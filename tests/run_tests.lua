@@ -1,0 +1,126 @@
+-- Runs RikProbe.lua under the stubbed WoW environment. Usage from the repo
+-- root: luajit tests/run_tests.lua
+package.path = "tests/?.lua;" .. package.path
+local env = require("wow_stub")
+
+local ADDON_FILE = "RikProbe/RikProbe.lua"
+local failures, passes = {}, 0
+
+local function check(name, ok, detail)
+    if ok then
+        passes = passes + 1
+    else
+        table.insert(failures, name .. (detail and (": " .. detail) or ""))
+    end
+end
+
+local function printedContains(pattern)
+    for _, line in ipairs(env.printed) do
+        if line:find(pattern, 1, true) then return true end
+    end
+    return false
+end
+
+local function logContains(pattern)
+    for _, line in ipairs(RikProbe and RikProbe.log or {}) do
+        if line:find(pattern, 1, true) then return true end
+    end
+    return false
+end
+
+local function loadAddon()
+    local chunk, err = loadfile(ADDON_FILE)
+    if not chunk then return false, err end
+    return pcall(chunk, "RikProbe", {})
+end
+
+-- 1. the file loads
+local ok, err = loadAddon()
+check("addon file loads", ok, err)
+
+-- 2. ADDON_LOADED seeds both saved variables on a fresh install
+env.fire("ADDON_LOADED", "RikProbe")
+check("RikProbeDB seeded", type(RikProbeDB) == "table" and RikProbeDB.seededAt ~= nil)
+check("RikProbeDB load counter starts at 1", RikProbeDB and RikProbeDB.loads == 1, tostring(RikProbeDB and RikProbeDB.loads))
+check("RikProbeCharDB seeded", type(RikProbeCharDB) == "table" and RikProbeCharDB.seededAt ~= nil)
+
+-- 3. PLAYER_LOGIN survives an unknown event and sets everything up
+local loginOk, loginErr = pcall(env.fire, "PLAYER_LOGIN")
+check("PLAYER_LOGIN handler does not abort", loginOk, loginErr)
+check("RikProbe namespace exposed", type(RikProbe) == "table")
+
+local driver
+for _, d in ipairs(env.stateDrivers) do
+    if d.state == "visibility" and d.condition == "[bonusbar:1] show; hide" then driver = d end
+end
+check("visibility driver registered for [bonusbar:1]", driver ~= nil)
+
+local button = RikProbeAction73
+check("action 73 button uses SecureActionButtonTemplate", button and button.template == "SecureActionButtonTemplate")
+check("action 73 button type attribute", button and button:GetAttribute("type") == "action")
+check("action 73 button action attribute", button and button:GetAttribute("action") == 73)
+
+local events = RikProbe and RikProbe.results and RikProbe.results.events or {}
+check("LEARNED_SPELL_IN_SKILL_LINE registered", events.LEARNED_SPELL_IN_SKILL_LINE == "ok", tostring(events.LEARNED_SPELL_IN_SKILL_LINE))
+check("LEARNED_SPELL_IN_TAB failure recorded", type(events.LEARNED_SPELL_IN_TAB) == "string" and events.LEARNED_SPELL_IN_TAB ~= "ok", tostring(events.LEARNED_SPELL_IN_TAB))
+check("SPELLS_CHANGED registered", events.SPELLS_CHANGED == "ok", tostring(events.SPELLS_CHANGED))
+
+-- 4. /probe prints the report
+local slashOk, slashErr = pcall(function() SlashCmdList.RIKPROBE("") end)
+check("/probe runs without error", slashOk, slashErr)
+check("/probe prints loadstring_untainted type", printedContains("loadstring_untainted") and printedContains("nil"))
+check("/probe prints UnitHealth(player) secrecy", printedContains("UnitHealth(player)"))
+check("/probe prints event registration results", printedContains("LEARNED_SPELL_IN_TAB"))
+check("/probe prints bonus bar offset", printedContains("GetBonusBarOffset"))
+check("/probe prints saved variable status", printedContains("RikProbeDB"))
+
+-- 5. secret snapshots on entering and leaving combat
+env.inCombat = true
+env.fire("PLAYER_REGEN_DISABLED")
+env.flushTimers()
+local secrets = RikProbe and RikProbe.results and RikProbe.results.secrets
+check("in-combat secret snapshot recorded", secrets and secrets["in combat"] ~= nil)
+check("in-combat snapshot flags UnitHealth(player) secret", secrets and secrets["in combat"] and secrets["in combat"]["UnitHealth(player)"] == true)
+check("in-combat snapshot flags UnitHealth(target) readable", secrets and secrets["in combat"] and secrets["in combat"]["UnitHealth(target)"] == false)
+env.inCombat = false
+env.fire("PLAYER_REGEN_ENABLED")
+env.flushTimers()
+check("out-of-combat secret snapshot recorded", secrets and secrets["out of combat"] ~= nil)
+
+-- 6. stance events are logged with the bonus bar offset
+env.bonusBarOffset = 2
+env.fire("UPDATE_BONUS_ACTIONBAR")
+check("UPDATE_BONUS_ACTIONBAR logged with offset", logContains("UPDATE_BONUS_ACTIONBAR: GetShapeshiftForm()=1 GetBonusBarOffset()=2"))
+
+-- 7. ActionButton1 click compares resolved slot against the overlay mapping
+env.click(ActionButton1)
+check("ActionButton1 click logs resolved slot", logContains("resolved slot 1"))
+check("ActionButton1 click logs expected overlay slot", logContains("expected 85"))
+
+-- 8. visibility frames log Show/Hide with the combat flag
+if driver then
+    driver.frame:Hide()
+    driver.frame:Show()
+end
+check("visibility frame logs hide", logContains("[bonusbar:1] show; hide -> hidden"))
+check("visibility frame logs show", logContains("[bonusbar:1] show; hide -> shown"))
+
+-- 9. the fixed action button logs its click
+if button then env.click(button) end
+check("action 73 click logged", logContains("action 73"))
+
+-- 10. a relog sees the seeded saved variables
+local relogOk, relogErr = loadAddon()
+check("addon reloads for relog", relogOk, relogErr)
+env.fire("ADDON_LOADED", "RikProbe")
+check("load counter increments on relog", RikProbeDB and RikProbeDB.loads == 2, tostring(RikProbeDB and RikProbeDB.loads))
+check("relog reports survival", printedContains("survived"))
+
+-- report
+if #failures == 0 then
+    io.write(string.format("OK: %d checks passed\n", passes))
+    os.exit(0)
+end
+io.write(string.format("FAILED: %d of %d checks\n", #failures, passes + #failures))
+for _, f in ipairs(failures) do io.write("  - " .. f .. "\n") end
+os.exit(1)

@@ -7,7 +7,7 @@
 ```bash
 # Quality gate (check + test + lint)
 # Or use /validate skill
-echo 'no check configured' && echo 'no test configured' && echo 'no lint configured'
+luajit -e "assert(loadfile('RikProbe/RikProbe.lua'))" && luajit tests/run_tests.lua && echo 'no lint configured'
 ```
 
 ## Workflow — Plan, Execute, Verify
@@ -134,7 +134,7 @@ read while the work is happening.
 
 This is a software project. Use these commands to verify changes:
 
-- `echo 'no check configured'`
-- `echo 'no test configured'`
+- `luajit -e "assert(loadfile('RikProbe/RikProbe.lua'))"` (syntax check)
+- `luajit tests/run_tests.lua` (stubbed WoW environment test)
 - `echo 'no lint configured'`
 <!-- /think-and-ship -->

@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: RikProbe
+## Notes: Throwaway probe for the RikUI design. /probe prints what this client allows.
+## Author: AlrikOlson
+## Version: 0.1.0
+## SavedVariables: RikProbeDB
+## SavedVariablesPerCharacter: RikProbeCharDB
+## IconTexture: Interface\Icons\INV_Misc_QuestionMark
+
+RikProbe.lua

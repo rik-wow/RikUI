@@ -5,16 +5,16 @@
     "type": ""
   },
   "stack": {
-    "language": "unknown",
+    "language": "lua",
     "framework": "none",
     "package_manager": "unknown",
-    "test_framework": "unknown",
+    "test_framework": "luajit stub runner (tests/run_tests.lua)",
     "linter": "none",
     "formatter": "none"
   },
   "quality_gate": {
-    "check": "echo 'no check configured'",
-    "test": "echo 'no test configured'",
+    "check": "luajit -e \"assert(loadfile('RikProbe/RikProbe.lua'))\"",
+    "test": "luajit tests/run_tests.lua",
     "lint": "echo 'no lint configured'"
   },
   "format": {

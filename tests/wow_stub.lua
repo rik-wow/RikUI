@@ -1,0 +1,203 @@
+-- Minimal fake of the WoW Forever client globals, enough to load RikProbe.lua
+-- under luajit. It mimics the beta's known sharp edges: loadstring_untainted
+-- is nil, RegisterEvent throws on unknown events, the player's own health is
+-- a secret value. Everything else is a plain no-op with a sensible return.
+
+local env = {
+    printed = {},
+    frames = {},
+    stateDrivers = {},
+    timers = {},
+    hooks = {},
+}
+
+local SECRET = setmetatable({}, { __tostring = function() return "<secret>" end })
+env.SECRET = SECRET
+
+local KNOWN_EVENTS = {
+    ADDON_LOADED = true, PLAYER_LOGIN = true, PLAYER_ENTERING_WORLD = true,
+    PLAYER_REGEN_DISABLED = true, PLAYER_REGEN_ENABLED = true,
+    UPDATE_BONUS_ACTIONBAR = true, UPDATE_SHAPESHIFT_FORM = true,
+    UPDATE_SHAPESHIFT_FORMS = true, ACTIONBAR_PAGE_CHANGED = true,
+    ACTIONBAR_SLOT_CHANGED = true, LEARNED_SPELL_IN_SKILL_LINE = true,
+    SPELLS_CHANGED = true, CHARACTER_POINTS_CHANGED = true,
+    PLAYER_TALENT_UPDATE = true, UNIT_HEALTH = true, PLAYER_LOGOUT = true,
+}
+env.KNOWN_EVENTS = KNOWN_EVENTS
+
+local KNOWN_TEMPLATES = { SecureActionButtonTemplate = true, SecureHandlerStateTemplate = true }
+
+------------------------------------------------------------------------
+-- Frames
+------------------------------------------------------------------------
+local Frame = {}
+Frame.__index = function(t, k)
+    local v = rawget(Frame, k)
+    if v ~= nil then return v end
+    return function() end -- any unknown widget method is a no-op
+end
+
+function Frame:RegisterEvent(event)
+    if not KNOWN_EVENTS[event] then
+        error("Frame:RegisterEvent(): Attempt to register unknown event \"" .. tostring(event) .. "\"", 2)
+    end
+    self.events[event] = true
+end
+Frame.RegisterUnitEvent = Frame.RegisterEvent
+function Frame:UnregisterEvent(event) self.events[event] = nil end
+function Frame:IsEventRegistered(event) return self.events[event] == true end
+function Frame:SetScript(handler, fn) self.scripts[handler] = fn end
+function Frame:GetScript(handler) return self.scripts[handler] end
+function Frame:HookScript(handler, fn)
+    self.hooks[handler] = self.hooks[handler] or {}
+    table.insert(self.hooks[handler], fn)
+end
+function Frame:SetAttribute(name, value) self.attributes[name] = value end
+function Frame:GetAttribute(name) return self.attributes[name] end
+function Frame:GetName() return self.name end
+function Frame:GetObjectType() return self.kind end
+function Frame:IsShown() return self.shown end
+function Frame:Show()
+    if self.shown then return end
+    self.shown = true
+    env.runScript(self, "OnShow")
+end
+function Frame:Hide()
+    if not self.shown then return end
+    self.shown = false
+    env.runScript(self, "OnHide")
+end
+function Frame:CreateTexture() return setmetatable({ kind = "Texture", scripts = {}, hooks = {}, events = {}, attributes = {} }, Frame) end
+function Frame:CreateFontString() return setmetatable({ kind = "FontString", scripts = {}, hooks = {}, events = {}, attributes = {}, text = "" }, Frame) end
+function Frame:SetText(text) self.text = text end
+function Frame:SetFormattedText(fmt, ...) self.text = string.format(fmt, ...) end
+function Frame:GetText() return self.text end
+
+function env.runScript(frame, handler, ...)
+    local fn = frame.scripts[handler]
+    if fn then fn(frame, ...) end
+    for _, hook in ipairs(frame.hooks[handler] or {}) do hook(frame, ...) end
+end
+
+function CreateFrame(kind, name, parent, template)
+    if template and not KNOWN_TEMPLATES[template] then
+        error("CreateFrame: Unknown frame template: " .. tostring(template), 2)
+    end
+    local f = setmetatable({
+        kind = kind, name = name, parent = parent, template = template,
+        scripts = {}, hooks = {}, events = {}, attributes = {}, shown = true,
+    }, Frame)
+    table.insert(env.frames, f)
+    if name then _G[name] = f end
+    return f
+end
+
+function env.fire(event, ...)
+    for _, f in ipairs(env.frames) do
+        if f.events[event] then env.runScript(f, "OnEvent", event, ...) end
+    end
+end
+
+function env.click(frame, button)
+    env.runScript(frame, "PreClick", button or "LeftButton")
+    env.runScript(frame, "OnClick", button or "LeftButton")
+    env.runScript(frame, "PostClick", button or "LeftButton")
+end
+
+------------------------------------------------------------------------
+-- Globals the probe touches
+------------------------------------------------------------------------
+UIParent = CreateFrame("Frame", "UIParent")
+ActionButton1 = CreateFrame("Button", "ActionButton1", UIParent)
+ActionButton1.action = 1
+EditModeManagerFrame = CreateFrame("Frame", "EditModeManagerFrame", UIParent)
+MainMenuBar = CreateFrame("Frame", "MainMenuBar", UIParent)
+
+loadstring_untainted = nil
+date = os.date
+time = os.time
+SlashCmdList = {}
+Enum = { PowerType = { Rage = 1, Mana = 0 } }
+GameFontNormal = "GameFontNormal"
+GameFontNormalSmall = "GameFontNormalSmall"
+
+function print(...)
+    local parts = {}
+    for i = 1, select("#", ...) do parts[i] = tostring((select(i, ...))) end
+    table.insert(env.printed, table.concat(parts, " "))
+end
+
+function issecretvalue(v) return v == SECRET end
+function InCombatLockdown() return env.inCombat == true end
+function GetTime() return os.clock() end
+function UnitName() return "Probey" end
+function UnitClass() return "Warrior", "WARRIOR", 1 end
+function UnitLevel() return 12 end
+function UnitExists(unit) return unit == "player" or unit == "target" end
+function UnitHealth(unit) if unit == "player" then return SECRET end return 42 end
+function UnitHealthMax() return 100 end
+function UnitPower() return SECRET end
+function UnitPowerMax() return 100 end
+function GetRealmName() return "Probe Realm" end
+function GetBuildInfo() return "1.60.1", "69913", "Sep 17 2026", 16001 end
+
+function GetActionCooldown() return 0, 0, 1, 1 end
+function IsUsableAction() return true, false end
+function IsActionInRange() return nil end
+function GetActionCount() return 0 end
+function HasAction(slot) return slot == 1 or slot == 73 end
+function GetActionInfo(slot) if HasAction(slot) then return "spell", 78, "spell" end end
+function GetActionTexture() return 132355 end
+function GetActionText() return nil end
+function GetBonusBarOffset() return env.bonusBarOffset or 1 end
+function GetShapeshiftForm() return env.shapeshiftForm or 1 end
+function GetActionBarPage() return 1 end
+function GetNumShapeshiftForms() return 3 end
+function GetShapeshiftFormInfo(i) return 132349, true, true, 2457 + i end
+function GetBindingKey() return "1" end
+function ActionButtonDown() end
+function ActionButtonUp() end
+
+function RegisterStateDriver(frame, state, condition)
+    table.insert(env.stateDrivers, { frame = frame, state = state, condition = condition })
+end
+function UnregisterStateDriver() end
+function SecureHandlerWrapScript() error("attempt to call a nil value") end
+function SecureHandlerExecute() error("attempt to call a nil value") end
+function hooksecurefunc(a, b, c)
+    local tbl, name, fn = _G, a, b
+    if type(a) == "table" then tbl, name, fn = a, b, c end
+    local orig = tbl[name]
+    if type(orig) ~= "function" then error("hooksecurefunc(): " .. tostring(name) .. " is not a function", 2) end
+    tbl[name] = function(...) orig(...) fn(...) end
+    table.insert(env.hooks, name)
+end
+
+function PickupSpell() end
+function PlaceAction() end
+function ClearCursor() end
+function SetBinding() return true end
+function SaveBindings() end
+function CreateMacro() return 1 end
+function EditMacro() return 1 end
+function ReloadUI() end
+
+C_Timer = {
+    After = function(seconds, fn) table.insert(env.timers, { seconds = seconds, fn = fn }) end,
+}
+function env.flushTimers()
+    local pending = env.timers
+    env.timers = {}
+    for _, t in ipairs(pending) do t.fn() end
+end
+
+C_Spell = { GetSpellCooldownDuration = function() end, GetSpellTexture = function() return 132355 end, GetSpellName = function() return "Heroic Strike" end, GetSpellInfo = function() end }
+C_UnitAuras = { GetAuraDataByIndex = function() end, GetAuraDuration = function() end }
+C_Macro = { GetNumMacros = function() return 0, 0 end }
+C_CVar = { GetCVar = function() return "1" end, SetCVar = function() end, GetCVarInfo = function() end }
+C_Secrets = { ShouldAurasBeSecret = function() return true end }
+C_ActionBar = { GetActionCooldownDuration = function() end }
+C_Item = { GetItemInfo = function() end }
+C_AddOns = { GetAddOnMetadata = function() return "dev" end }
+
+return env
