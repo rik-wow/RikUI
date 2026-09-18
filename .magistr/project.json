@@ -1,0 +1,35 @@
+{
+  "project": {
+    "name": "wowforever-classicui",
+    "description": "",
+    "type": ""
+  },
+  "stack": {
+    "language": "unknown",
+    "framework": "none",
+    "package_manager": "unknown",
+    "test_framework": "unknown",
+    "linter": "none",
+    "formatter": "none"
+  },
+  "quality_gate": {
+    "check": "echo 'no check configured'",
+    "test": "echo 'no test configured'",
+    "lint": "echo 'no lint configured'"
+  },
+  "format": {
+    "extensions": [],
+    "command": ""
+  },
+  "roadmap_backend": "think-and-ship",
+  "spec": {
+    "file": ".magistr-roadmap.yml",
+    "unchecked_pattern": "^\\s*- \\[ \\]"
+  },
+  "testing": {
+    "companion_pattern": "{name}.test.{ext}",
+    "test_dir": "tests/"
+  },
+  "reference_repos": [],
+  "state_prefix": "wowforever-classicui"
+}

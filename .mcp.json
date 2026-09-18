@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "magistr": {
+      "command": "magistr",
+      "args": [
+        "mcp-launch",
+        "magistr",
+        "."
+      ],
+      "type": "stdio"
+    },
+    "workbench-mcp": {
+      "command": "magistr",
+      "args": [
+        "mcp-launch",
+        "workbench-mcp",
+        "."
+      ],
+      "type": "stdio"
+    }
+  }
+}

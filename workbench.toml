@@ -1,0 +1,12 @@
+# Seeded by `magistr init` from .magistr/project.json (and `workbench-mcp init` manifest detection).
+# Amend by hand: this table is workbench `run`'s allowlist and only a human may change it.
+[commands]
+"check" = "echo 'no check configured'" # project.json quality_gate.check
+"test" = "echo 'no test configured'" # project.json quality_gate.test
+"lint" = "echo 'no lint configured'" # project.json quality_gate.lint
+
+# magistr runs unattended (`magistr next-loop`), so a confirm-gated write
+# takes workbench's token flow — the agent confirms against the diff in the
+# envelope — rather than an elicitation dialog nobody is there to answer.
+[edit]
+confirm_mode = "token"
