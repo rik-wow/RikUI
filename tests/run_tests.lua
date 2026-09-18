@@ -173,6 +173,9 @@ check("Spell test suite completes", spellsOk, spellsErr)
 local macrosOk, macrosErr = pcall(function() dofile("tests/macros.test.lua")(check) end)
 check("Macro test suite completes", macrosOk, macrosErr)
 
+local bindingsOk, bindingsErr = pcall(function() dofile("tests/bindings.test.lua")(check) end)
+check("Binding test suite completes", bindingsOk, bindingsErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))

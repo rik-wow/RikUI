@@ -266,6 +266,11 @@ Movement: `A`/`D` become strafe, turn keys unbound, so Q/E are free. Blizzard's
 defaults on R (reply), F (assist), T (target), G (?), and the Ctrl-1..6
 shapeshift binds get cleared. Alt is left alone for self-cast.
 
+With Mouse4/5 disabled, bar2 slots 10/11 take Shift-G/Ctrl-G. Pet slot 1 and
+bar3 slot 8 then receive no scheme key, avoiding duplicate key ownership.
+Disabling A/D strafe assigns A/D to turn left/right. Apply only clears the
+scheme's keys plus Ctrl-6; existing bindings outside that set are preserved.
+
 Bindings go to the native commands (`ACTIONBUTTON1`, `MULTIACTIONBAR1BUTTON1`,
 `SHAPESHIFTBUTTON1`, `BONUSACTIONBUTTON1`, `STRAFELEFT`...), not to `CLICK`
 bindings on our buttons. Reason: with overlay bars there are three "slot 1"

@@ -1,0 +1,76 @@
+# Bindings service
+
+`bindings.lua` exposes `RikUI.Bindings`; loading the file never changes bindings.
+The TOC already loads it after core and setup. Native commands preserve the
+client's action-page and stance resolution.
+
+- `Scheme` is the read-only-by-convention command-to-key table from the SDD:
+  11 main, 12 bar2, 12 bar3, three stance, three pet and two movement bindings.
+  Mouse4/5 use the native key names `BUTTON4` and `BUTTON5`.
+- `Apply(opts)` clears the 43 scheme keys plus `CTRL-6`, assigns the resolved
+  scheme, then calls `SaveBindings(2)`. It preserves all other keys, including
+  Alt combinations and existing secondary bindings outside this touched set.
+  Slots marked unbound in the SDD receive no new scheme key; existing keys
+  outside the touched set are not globally erased.
+- Omit options for the default scheme. `strafe=false` assigns A/D to
+  `TURNLEFT`/`TURNRIGHT`; `mouse45=false` assigns bar2 slots 10/11 to
+  Shift-G/Ctrl-G and clears Mouse4/5. The fallback takes priority over pet
+  slot 1 and bar3 slot 8, which receive no scheme key in that mode. No extra
+  replacement keys are invented. Switching back restores the default scheme.
+  Options must be a table and these two fields, when present, must be booleans.
+- `Snapshot()` returns a detached
+  `{ bindingSet = 1_or_2, keys = { [key] = previousCommand } }` for all 44
+  touched keys. Empty strings mean previously unbound. Reads are guarded;
+  an incomplete snapshot returns `nil, reason` and Apply writes nothing.
+- Successful immediate Apply returns that pre-write snapshot. Failure returns
+  `nil, reason` and prints a diagnostic. Rejected/throwing writes trigger
+  best-effort restoration of touched runtime bindings; failed restoration is
+  reported. A write failure never saves a partial preset. If SaveBindings
+  itself fails, persistence cannot be guaranteed; runtime restoration is
+  attempted, with no second save.
+- All writes, including failure cleanup and save, run through `Combat.Queue`.
+  Deferred Apply returns `nil, "queued"`; it captures options now and reads
+  the actual binding snapshot when the queue executes. It does not return a
+  deferred snapshot later. Setup/undo should queue its whole ordered operation
+  and capture its snapshot inside that operation. Persistent undo belongs to
+  the later setup/undo chunk.
+- `Label(command)` reads current native keys on every call, prefers the active
+  scheme/fallback key when secondary aliases exist, and otherwise uses the
+  primary native key. It formats `SHIFT-1` as `s1`, `CTRL-Z` as `cZ`
+  and `BUTTON4` as `M4`; unbound/unavailable reads yield `""`.
+- `/rik binds` applies the default scheme and prints one key-to-command line
+  per assigned binding after a successful save. In combat it reports that
+  the operation is queued. This command does not persist an undo snapshot.
+
+## Native mapping and evidence
+
+Bar2 uses `MULTIACTIONBAR1BUTTONn` (BottomLeft, page 6, slots 61–72);
+bar3 uses `MULTIACTIONBAR2BUTTONn` (BottomRight, page 5, slots 49–60).
+Future preset placement and overlays must use those pages. See Blizzard's
+[command-to-frame mapping](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic/Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Keybindings.lua)
+and [multibar page constants](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic/Interface/AddOns/Blizzard_ActionBar/Shared/MultiActionBars.lua).
+
+Blizzard's [binding UI](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic/Interface/AddOns/Blizzard_BindingUI/Blizzard_BindingUI.lua)
+uses nil commands to clear keys, empty strings for unbound lookups and truthy
+SetBinding success. SaveBindings is treated as a void call; an explicit false
+or exception is rejected here. Blizzard's
+[settings implementation](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic/Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua)
+documents that saving character bindings updates the active binding set.
+Apply saves directly to set 2 without loading a different set or saving set 1.
+These sources were checked on 2026-09-18; the underlying native persistence
+implementation is not public.
+
+## Verification and live smoke check
+
+The LuaJIT stub suite tests exact assignments, clear/set/save order, preserved
+keys, detached snapshots, options, labels, rejected APIs, failure cleanup,
+slash routing and the real core combat queue. It cannot establish native beta
+persistence or protected-call behavior.
+
+On a disposable beta character after `/reload`, run `/rik binds` out of combat.
+Expect 43 binding lines and character-specific bindings selected. Check main
+1/Q, Shift-1, Ctrl-1, Mouse4/5, stance Ctrl-Q/E/R and A/D; confirm Alt and an
+unrelated custom key still work. Reload and confirm persistence, then inspect
+another character's account bindings. Verify combat invocation delays changes
+until combat ends. Exercise the two false options through the service API.
+No live beta execution of this module is claimed by automated tests.
