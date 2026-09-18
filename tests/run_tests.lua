@@ -164,6 +164,9 @@ loadstring_untainted, SecureHandlerExecute = nil, originalExecute
 local coreOk, coreErr = pcall(function() dofile("tests/core.test.lua")(check) end)
 check("core test suite completes", coreOk, coreErr)
 
+local cvarsOk, cvarsErr = pcall(function() dofile("tests/cvars.test.lua")(check) end)
+check("CVar test suite completes", cvarsOk, cvarsErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))
