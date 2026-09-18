@@ -191,7 +191,8 @@ function env.flushTimers()
     for _, t in ipairs(pending) do t.fn() end
 end
 
-C_Spell = { GetSpellCooldownDuration = function() end, GetSpellTexture = function() return 132355 end, GetSpellName = function() return "Heroic Strike" end, GetSpellInfo = function() end }
+C_Spell = { GetSpellCooldownDuration = function() end, GetSpellTexture = function() return 132355 end, GetSpellName = function() return "Heroic Strike" end, GetSpellInfo = function() end, PickupSpell = function() end }
+function PickupAction() end
 C_UnitAuras = { GetAuraDataByIndex = function() end, GetAuraDuration = function() end }
 C_Macro = { GetNumMacros = function() return 0, 0 end }
 C_CVar = { GetCVar = function() return "1" end, SetCVar = function() end, GetCVarInfo = function() end }

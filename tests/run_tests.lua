@@ -109,6 +109,12 @@ check("visibility frame logs show", logContains("[bonusbar:1] show; hide -> show
 if button then env.click(button) end
 check("action 73 click logged", logContains("action 73"))
 
+-- 9b. /probe fill copies slot 1 into slot 73 and logs the result
+local fillOk, fillErr = pcall(function() SlashCmdList.RIKPROBE("fill") end)
+check("/probe fill runs without error", fillOk, fillErr)
+check("/probe fill logs the filled slot", logContains("fill: slot 73 now holds spell 78"))
+check("/probe prints character line", printedContains("character: WARRIOR level 12"))
+
 -- 10. a relog sees the seeded saved variables
 local relogOk, relogErr = loadAddon()
 check("addon reloads for relog", relogOk, relogErr)

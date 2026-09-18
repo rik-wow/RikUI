@@ -96,7 +96,8 @@ local API_NAMES = {
     "RegisterStateDriver", "UnregisterStateDriver",
     "SecureHandlerExecute", "SecureHandlerWrapScript",
     -- action bars
-    "ActionButton1", "ActionButtonDown", "MainMenuBar",
+    "ActionButton1", "ActionButtonDown", "MainMenuBar", "PickupAction",
+    "GetNumShapeshiftForms",
     "GetActionBarPage", "GetActionCooldown", "GetActionCount", "GetActionInfo",
     "GetBonusBarOffset", "GetShapeshiftForm", "HasAction",
     "IsActionInRange", "IsUsableAction",
@@ -105,7 +106,8 @@ local API_NAMES = {
     -- setup engine
     "ClearCursor", "CreateMacro", "EditMacro", "PickupItem", "PickupMacro",
     "PickupSpell", "PlaceAction", "GetBindingKey", "SaveBindings", "SetBinding",
-    "C_CVar.GetCVarInfo", "C_CVar.SetCVar", "C_Item.GetItemInfo", "C_Macro",
+    "C_CVar.GetCVarInfo", "C_CVar.SetCVar", "C_Item.GetItemInfo", "C_Item.PickupItem",
+    "C_Macro", "C_Spell.PickupSpell",
     -- unit frames and auras
     "C_Secrets.ShouldAurasBeSecret", "C_UnitAuras.GetAuraDataByIndex",
     "C_Timer.After", "EditModeManagerFrame",
@@ -233,6 +235,7 @@ local function CreateActionButton()
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetAllPoints()
     icon:SetTexture(Call(GetActionTexture, FIXED_ACTION_SLOT) or "Interface/Icons/INV_Misc_QuestionMark")
+    P.action73Icon = icon
     local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     label:SetPoint("BOTTOM", button, "BOTTOM", 0, 2)
     label:SetText(tostring(FIXED_ACTION_SLOT))
@@ -243,6 +246,30 @@ local function CreateActionButton()
             FIXED_ACTION_SLOT, S(mouseButton), DescribeSlot(FIXED_ACTION_SLOT)))
     end)
     R.action73 = "created at top centre; click it and check what fires"
+end
+
+local function RefreshFixedIcon()
+    if not P.action73Icon then return end
+    P.action73Icon:SetTexture(Call(GetActionTexture, FIXED_ACTION_SLOT) or "Interface/Icons/INV_Misc_QuestionMark")
+end
+
+-- Copy the spell in slot 1 into the fixed slot so the button has something to fire.
+local function FillFixedSlot()
+    if InCombatLockdown() then
+        Print("fill: cannot place actions in combat")
+        return
+    end
+    local actionType, id = Call(GetActionInfo, 1)
+    if actionType ~= "spell" or type(id) ~= "number" or isSecret(id) then
+        Print("fill: slot 1 does not hold a spell; drag one there first")
+        return
+    end
+    local pickup = Resolve("C_Spell.PickupSpell") or PickupSpell
+    if not Try("pickup spell " .. id, pickup, id) then return end
+    Try("PlaceAction " .. FIXED_ACTION_SLOT, PlaceAction, FIXED_ACTION_SLOT)
+    Try("ClearCursor", ClearCursor)
+    RefreshFixedIcon()
+    Log(string.format("fill: slot %d now holds %s", FIXED_ACTION_SLOT, DescribeSlot(FIXED_ACTION_SLOT)))
 end
 
 ------------------------------------------------------------------------
@@ -399,6 +426,7 @@ local function OnDesignEvent(_, event, ...)
     if STANCE_EVENTS[event] then return OnStanceEvent(event) end
     if event == "PLAYER_REGEN_DISABLED" then return ScheduleSnapshot("in combat") end
     if event == "PLAYER_REGEN_ENABLED" then return ScheduleSnapshot("out of combat") end
+    if event == "ACTIONBAR_SLOT_CHANGED" and (...) == FIXED_ACTION_SLOT then RefreshFixedIcon() end
     if NOISY_EVENTS[event] and R.eventCounts[event] > NOISY_EVENT_LIMIT then return end
     if LEARNED_EVENTS[event] then
         Log(event .. ": spell " .. SpellLabel((...)) .. " args " .. DescribeArgs(...))
@@ -418,6 +446,9 @@ end)
 local function PrintHeader()
     local version, build, _, toc = Call(GetBuildInfo)
     Print(string.format("report: client %s build %s toc %s (%s)", S(version), S(build), S(toc), CombatTag()))
+    local _, class = Call(UnitClass, "player")
+    Print(string.format("character: %s level %s, GetNumShapeshiftForms()=%s",
+        S(class), S(Call(UnitLevel, "player")), S(Call(GetNumShapeshiftForms))))
     Print("secure snippets: " .. tostring(R.snippets))
 end
 
@@ -506,6 +537,7 @@ local function PrintHelp()
     print("  /probe clear     clear the event log")
     print("  /probe secrets   take a secret-value snapshot now and print it")
     print("  /probe stance    log the current stance state and ACTIONBUTTON1 mapping")
+    print("  /probe fill      copy the spell in slot 1 into slot 73 (out of combat)")
 end
 
 ------------------------------------------------------------------------
@@ -554,6 +586,8 @@ SlashCmdList.RIKPROBE = function(input)
         Try("print secrets", PrintSecrets)
     elseif cmd == "stance" then
         Try("stance", LogButton1Mapping, "now")
+    elseif cmd == "fill" then
+        Try("fill", FillFixedSlot)
     else
         PrintHelp()
     end
