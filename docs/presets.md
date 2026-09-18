@@ -24,8 +24,8 @@ For a main/stance page, copy these layers in order into a fresh table:
 4. `roleOverrides[role][stance]`, when present
 
 For bar2–bar5, copy only that bar and its matching role override.
-Never mutate the preset while resolving pages. Composition and placement are
-future setup-engine work; the tests exercise this contract with a local fixture.
+Never mutate the preset while resolving pages. `RikUI.Setup.Resolve` implements
+this composition; [the setup engine](setup.md) places the resulting actions.
 
 Main preserves the SDD's rotation on 1–5, Charge/Overpower/Pummel/Bloodrage
 on Q/E/R/F, Shield Block/Demoralizing Shout on T/G, and Hearthstone on 12.
@@ -125,4 +125,5 @@ independent source levels, all six role/stance compositions, inheritance,
 macro operands/limits/icons and slash diagnostics with unresolved-name fixtures.
 No in-game macro execution or native action placement was performed for this
 chunk. After reloading the addon, `/rik preset validate` is the read-only
-live smoke check; actual application belongs to the later setup chunk.
+live smoke check. Actual application is now available through `/rik apply`;
+see [setup contracts and live verification status](setup.md).

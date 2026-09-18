@@ -8,9 +8,9 @@ local ACCOUNT_LIMIT, CHARACTER_LIMIT = 120, 18
 local FIRST_CHARACTER, LAST_CHARACTER = ACCOUNT_LIMIT + 1, ACCOUNT_LIMIT + CHARACTER_LIMIT
 local NAME_LIMIT, BODY_LIMIT = 16, 255
 
-local function reject(name, reason)
+local function reject(name, reason, opts)
     local label = type(name) == "string" and name or "<invalid name>"
-    core:Print("Macro " .. label .. ": " .. reason)
+    if not (opts and opts.quiet) then core:Print("Macro " .. label .. ": " .. reason) end
     return nil, reason
 end
 
@@ -97,30 +97,36 @@ local function edit(index, name, icon, body)
     return result
 end
 
-local function ensureNow(name, icon, body, scope)
+local function ensureNow(name, icon, body, scope, opts)
     local snapshot, reason = macros.Snapshot()
-    if not snapshot then return reject(name, reason) end
+    if not snapshot then return reject(name, reason, opts) end
     local index = findInSnapshot(snapshot, name)
+    local disposition = index and "edited" or "placed"
     if index then
         index, reason = edit(index, name, icon, body)
     else
         index, reason = create(snapshot, name, icon, body, scope)
     end
     if type(index) ~= "number" or index % 1 ~= 0 or index < 1 or index > LAST_CHARACTER then
-        return reject(name, reason or "macro write rejected")
+        return reject(name, reason or "macro write rejected", opts)
     end
-    return index
+    return index, nil, disposition
 end
 
-function macros.Ensure(name, icon, body, scope)
+function macros.Ensure(name, icon, body, scope, opts)
+    opts = opts or {}
     local invalid = validate(name, icon, body, scope)
-    if invalid then return reject(name, invalid) end
-    local finished, index, reason = false, nil, nil
+    if invalid then
+        if opts.onComplete then opts.onComplete(nil, invalid) end
+        return reject(name, invalid, opts)
+    end
+    local finished, index, reason, disposition = false, nil, nil, nil
     local accepted = core.Combat.Queue(function()
-        index, reason = ensureNow(name, icon, body, scope)
+        index, reason, disposition = ensureNow(name, icon, body, scope, opts)
         finished = true
+        if opts.onComplete then opts.onComplete(index, reason, disposition) end
     end)
-    if not accepted then return reject(name, "combat queue failed") end
+    if not accepted then return reject(name, "combat queue failed", opts) end
     if not finished then return nil, "queued" end
     return index, reason
 end

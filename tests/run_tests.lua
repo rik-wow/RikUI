@@ -179,6 +179,9 @@ check("Binding test suite completes", bindingsOk, bindingsErr)
 local presetOk, presetErr = pcall(function() dofile("tests/preset-warrior.test.lua")(check) end)
 check("Warrior preset test suite completes", presetOk, presetErr)
 
+local setupOk, setupErr = pcall(function() dofile("tests/setup.test.lua")(check) end)
+check("Setup test suite completes", setupOk, setupErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))

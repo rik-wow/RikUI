@@ -33,8 +33,8 @@ local touched = { ["CTRL-6"] = true }
 for _, key in pairs(scheme) do touched[key] = true end
 local touchedKeys = sortedKeys(touched)
 
-local function reject(reason)
-    core:Print("Bindings: " .. reason)
+local function reject(reason, opts)
+    if not (opts and opts.quiet) then core:Print("Bindings: " .. reason) end
     return nil, reason
 end
 
@@ -111,31 +111,38 @@ local function writeBindings(resolved, commands)
     return true
 end
 
-local function applyNow(resolved)
-    if type(SetBinding) ~= "function" then return reject("SetBinding unavailable") end
-    if type(SaveBindings) ~= "function" then return reject("SaveBindings unavailable") end
+local function applyNow(resolved, opts)
+    if type(SetBinding) ~= "function" then return reject("SetBinding unavailable", opts) end
+    if type(SaveBindings) ~= "function" then return reject("SaveBindings unavailable", opts) end
     local snapshot, reason = bindings.Snapshot()
-    if not snapshot then return reject(reason) end
+    if not snapshot then return reject(reason, opts) end
     local commands = sortedKeys(resolved)
     local ok
     ok, reason = writeBindings(resolved, commands)
     if not ok then
         if not restore(snapshot) then reason = reason .. "; runtime rollback incomplete" end
-        return reject(reason)
+        return reject(reason, opts)
     end
-    for _, command in ipairs(commands) do core:Print(resolved[command] .. " -> " .. command) end
-    return snapshot
+    if not opts.quiet then
+        for _, command in ipairs(commands) do core:Print(resolved[command] .. " -> " .. command) end
+    end
+    return snapshot, nil, #commands
 end
 
 function bindings.Apply(opts)
     local resolved, reason = resolveOptions(opts)
-    if not resolved then return reject(reason) end
-    local finished, snapshot = false, nil
+    if not resolved then
+        if type(opts) == "table" and opts.onComplete then opts.onComplete(nil, reason) end
+        return reject(reason, type(opts) == "table" and opts or nil)
+    end
+    opts = opts or {}
+    local finished, snapshot, count = false, nil, nil
     local accepted = core.Combat.Queue(function()
-        snapshot, reason = applyNow(resolved)
+        snapshot, reason, count = applyNow(resolved, opts)
         finished = true
+        if opts.onComplete then opts.onComplete(snapshot, reason, count) end
     end)
-    if not accepted then return reject("combat queue failed") end
+    if not accepted then return reject("combat queue failed", opts) end
     if not finished then return nil, "queued" end
     return snapshot, reason
 end

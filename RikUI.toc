@@ -12,6 +12,8 @@ data/spells.lua
 data/cvars.lua
 presets/warrior.lua
 setup.lua
+setup-actions.lua
+setup-apply.lua
 bindings.lua
 macros.lua
 bars.lua

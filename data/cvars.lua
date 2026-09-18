@@ -19,55 +19,69 @@ cvars.List = {
     { name = "screenshotQuality", value = 10, label = "Maximum screenshot quality" },
 }
 
-local function skip(name, reason)
-    core:Print("Skipped " .. name .. ": " .. reason)
+local function skip(name, reason, opts)
+    if not (opts and opts.quiet) then core:Print("Skipped " .. name .. ": " .. reason) end
 end
 
 local function readCurrent(name)
     if not C_CVar or type(C_CVar.GetCVarInfo) ~= "function" then
-        skip(name, "CVar lookup unavailable")
-        return nil
+        return nil, "CVar lookup unavailable"
     end
     local ok, value = pcall(C_CVar.GetCVarInfo, name)
-    if not ok then skip(name, "CVar lookup failed") return nil end
-    if value == nil then skip(name, "unknown CVar") return nil end
+    if not ok then return nil, "CVar lookup failed" end
+    if value == nil then return nil, "unknown CVar" end
     return value
 end
 
-local function capture(selection)
-    local prior = {}
+local function capture(selection, opts)
+    local prior, stats = {}, { placed = 0, skipped = 0, edited = 0 }
     for _, entry in ipairs(cvars.List) do
         if selection == nil or selection[entry.name] == true then
-            prior[entry.name] = readCurrent(entry.name)
+            local value, reason = readCurrent(entry.name)
+            prior[entry.name] = value
+            if value == nil then
+                skip(entry.name, reason, opts)
+                stats.skipped = stats.skipped + 1
+                if reason ~= "unknown CVar" then stats.error = entry.name .. ": " .. reason end
+            end
         end
     end
-    return prior
+    return prior, stats
 end
 
-local function applyEntry(entry)
+local function applyEntry(entry, opts)
     if not C_CVar or type(C_CVar.SetCVar) ~= "function" then
-        skip(entry.name, "CVar setter unavailable")
-        return
+        return nil, "CVar setter unavailable"
     end
     local value = tostring(entry.value)
     local ok, accepted = pcall(C_CVar.SetCVar, entry.name, value)
-    if not ok then skip(entry.name, "CVar write failed") return end
-    if accepted ~= true then skip(entry.name, "CVar write rejected") return end
-    core:Print("Applied " .. entry.name .. " = " .. value)
+    if not ok then return nil, "CVar write failed" end
+    if accepted ~= true then return nil, "CVar write rejected" end
+    if not (opts and opts.quiet) then core:Print("Applied " .. entry.name .. " = " .. value) end
+    return true
 end
 
 function cvars.Snapshot()
     return capture()
 end
 
-function cvars.Apply(selection)
+function cvars.Apply(selection, opts)
     assert(selection == nil or type(selection) == "table", "CVars.Apply needs a selection table or nil")
     -- Finish the snapshot before SetCVar can trigger changes to other settings.
-    local prior = capture(selection)
+    local prior, stats = capture(selection, opts)
     for _, entry in ipairs(cvars.List) do
-        if prior[entry.name] ~= nil then applyEntry(entry) end
+        if prior[entry.name] ~= nil then
+            local ok, reason = applyEntry(entry, opts)
+            if ok then
+                stats.placed = stats.placed + 1
+            else
+                stats.skipped = stats.skipped + 1
+                stats.error = entry.name .. ": " .. reason
+                skip(entry.name, reason, opts)
+            end
+        end
     end
-    return prior
+    return prior, stats
 end
 
 core:RegisterCommand("cvars", function() cvars.Apply() end, "Apply the recommended game settings")

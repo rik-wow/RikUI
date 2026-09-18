@@ -1,6 +1,7 @@
 -- Warrior preset: Forever spellbooks checked 2026-09-18 (build 1.60.1.69913).
 -- Sources, sparse page composition and acquisition caveats: docs/presets.md.
 RikUI.Presets.WARRIOR = {
+    version = 1,
     roles = {
         dps = { label = "Arms / Fury", trees = { 1, 2 } },
         tank = { label = "Protection", trees = { 3 } },
