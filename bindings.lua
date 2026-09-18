@@ -1,0 +1,1 @@
+-- Reserved for the planned module; no runtime behavior yet.

@@ -44,10 +44,20 @@ check("RikProbeDB seeded", type(RikProbeDB) == "table" and RikProbeDB.seededAt ~
 check("RikProbeDB load counter starts at 1", RikProbeDB and RikProbeDB.loads == 1, tostring(RikProbeDB and RikProbeDB.loads))
 check("RikProbeCharDB seeded", type(RikProbeCharDB) == "table" and RikProbeCharDB.seededAt ~= nil)
 
--- 3. PLAYER_LOGIN survives an unknown event and sets everything up
+-- 3. PLAYER_LOGIN survives an unknown event and avoids the broken snippet VM.
+local snippetCalls = 0
+local originalExecute = SecureHandlerExecute
+SecureHandlerExecute = function(...)
+    snippetCalls = snippetCalls + 1
+    return originalExecute(...)
+end
 local loginOk, loginErr = pcall(env.fire, "PLAYER_LOGIN")
 check("PLAYER_LOGIN handler does not abort", loginOk, loginErr)
 check("RikProbe namespace exposed", type(RikProbe) == "table")
+check("missing snippet compiler never invokes executor", snippetCalls == 0)
+check("missing snippet compiler never creates header", RikProbeSnippetHeader == nil)
+check("missing snippet compiler is reported as skipped",
+    RikProbe.results.snippets:find("skipped: snippet compiler unavailable", 1, true))
 
 local driver
 for _, d in ipairs(env.stateDrivers) do
@@ -121,6 +131,38 @@ check("addon reloads for relog", relogOk, relogErr)
 env.fire("ADDON_LOADED", "RikProbe")
 check("load counter increments on relog", RikProbeDB and RikProbeDB.loads == 2, tostring(RikProbeDB and RikProbeDB.loads))
 check("relog reports survival", printedContains("survived"))
+
+-- Snippet API availability must not prevent the other probes from running.
+local function probeSnippetAvailability(compiler, executor)
+    env.frames = {}
+    RikProbeSnippetHeader = nil
+    loadstring_untainted, SecureHandlerExecute = compiler, executor
+    local loaded, loadErr = loadAddon()
+    check("probe reloads for snippet API scenario", loaded, loadErr)
+    env.fire("PLAYER_LOGIN")
+end
+
+probeSnippetAvailability(true, function() error("must not execute") end)
+check("non-function compiler skips header creation", RikProbeSnippetHeader == nil
+    and RikProbe.results.snippets:find("skipped: snippet compiler unavailable", 1, true))
+
+probeSnippetAvailability(function() end, nil)
+check("missing snippet executor skips header creation", RikProbeSnippetHeader == nil
+    and RikProbe.results.snippets:find("skipped: API unavailable", 1, true))
+
+local workingCalls = 0
+probeSnippetAvailability(function() end, function(header)
+    workingCalls = workingCalls + 1
+    header:SetAttribute("rikprobe", 1)
+end)
+check("available snippet machinery still runs the probe", workingCalls == 1
+    and RikProbe.results.snippets:find("ran and set the attribute", 1, true))
+
+loadstring_untainted, SecureHandlerExecute = nil, originalExecute
+
+-- The addon core shares the same runner and reports through check().
+local coreOk, coreErr = pcall(function() dofile("tests/core.test.lua")(check) end)
+check("core test suite completes", coreOk, coreErr)
 
 -- report
 if #failures == 0 then

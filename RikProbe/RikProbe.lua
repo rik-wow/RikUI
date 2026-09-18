@@ -121,6 +121,15 @@ end
 
 local function ProbeSecureSnippets()
     local report = "loadstring_untainted is " .. type(loadstring_untainted)
+    -- The client raises snippet errors inside a C script handler; pcall cannot catch them.
+    if type(loadstring_untainted) ~= "function" then
+        R.snippets = report .. "; SecureHandlerExecute: skipped: snippet compiler unavailable"
+        return
+    end
+    if type(SecureHandlerExecute) ~= "function" then
+        R.snippets = report .. "; SecureHandlerExecute: skipped: API unavailable"
+        return
+    end
     local ok, header = pcall(CreateFrame, "Frame", "RikProbeSnippetHeader", UIParent, "SecureHandlerStateTemplate")
     if not ok then
         R.snippets = report .. "; SecureHandlerStateTemplate: error: " .. tostring(header)
