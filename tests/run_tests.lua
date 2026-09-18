@@ -170,6 +170,9 @@ check("CVar test suite completes", cvarsOk, cvarsErr)
 local spellsOk, spellsErr = pcall(function() dofile("tests/spells.test.lua")(check) end)
 check("Spell test suite completes", spellsOk, spellsErr)
 
+local macrosOk, macrosErr = pcall(function() dofile("tests/macros.test.lua")(check) end)
+check("Macro test suite completes", macrosOk, macrosErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))
