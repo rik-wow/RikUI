@@ -41,7 +41,7 @@ behavior and loads every TOC entry, but cannot reproduce WoW's secret-value VM
 or prove that the beta client loads the addon.
 
 For a live smoke check, enable RikUI, log in (restart the client if the new addon
-is not listed), and run `/rik` and `/rik debug`. Help should list help/debug/cvars;
+is not listed), and run `/rik` and `/rik debug`. Help should list help/debug/spells/cvars;
 debug should show profile Default and no module dependencies at this stage.
 Check for Lua errors, then `/reload` and repeat.
 

@@ -167,6 +167,9 @@ check("core test suite completes", coreOk, coreErr)
 local cvarsOk, cvarsErr = pcall(function() dofile("tests/cvars.test.lua")(check) end)
 check("CVar test suite completes", cvarsOk, cvarsErr)
 
+local spellsOk, spellsErr = pcall(function() dofile("tests/spells.test.lua")(check) end)
+check("Spell test suite completes", spellsOk, spellsErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))
