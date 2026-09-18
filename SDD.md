@@ -222,7 +222,7 @@ RikUI.Presets.WARRIOR = {
     bar5 = { ... },
   },
   macros = {
-    Execute = { icon = 5308, body = "#showtooltip Execute\n/cast [stance:1/3] Execute; [stance:2] Berserker Stance" },
+    Execute = { icon = 135358, body = "#showtooltip Execute\n/cast [stance:1/3] Execute; [stance:2] Battle Stance" },
     ...
   },
   roleOverrides = {
@@ -234,7 +234,19 @@ RikUI.Presets.WARRIOR = {
 Spells are referenced by name, not ID, so rank handling is "find the highest
 rank of this name in the spellbook". Spell IDs only appear where we need an icon
 for a spell the character hasn't learned yet (ghost slots); `C_Spell.GetSpellTexture(id)`
-works for unknown spells. `level` is the trainer level, shown on the ghost.
+works for unknown spells. `level` is the first acquisition level, shown on the
+ghost; quest/talent requirements still apply. Macro `icon` values are texture
+fileIDs for `CreateMacro`, not spell IDs. The Execute example switches to Battle
+so it works before Berserker Stance is learned at level 30.
+
+Stance pages are sparse. Resolve a fresh page by replacing whole slots in this
+order: `bars.main`, `roleOverrides[role].main`, `bars[stance]`, then
+`roleOverrides[role][stance]`; missing layers are skipped and missing slots
+inherit. For bar2–bar5, use that bar and its matching role override only.
+Use `pairs` or a 1–12 loop for sparse overrides, never `ipairs`.
+The Warrior default role is explicitly `dps`, not the first key from `pairs`.
+The concrete layout and read-only `/rik preset validate` diagnostic are
+documented in [docs/presets.md](docs/presets.md).
 
 The data has to be typed in by hand from the Forever spellbook sites
 (foreverchanges.pro, wowforevertalents.com). That's a chunk of grunt work, about
