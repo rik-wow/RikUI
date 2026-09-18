@@ -134,7 +134,7 @@ read while the work is happening.
 
 This is a software project. Use these commands to verify changes:
 
-- `luajit -e "assert(loadfile('RikProbe/RikProbe.lua'))"` (syntax check)
-- `luajit tests/run_tests.lua` (stubbed WoW environment test)
+- `echo 'no check configured'`
+- `echo 'no test configured'`
 - `echo 'no lint configured'`
 <!-- /think-and-ship -->
