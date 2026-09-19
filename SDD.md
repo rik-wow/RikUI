@@ -483,6 +483,12 @@ load order:
 | `chat.lua` | font, timestamps, copy button, URL detection, hide the side buttons |
 | `bags.lua` | one-bag view with sort and search |
 | `tooltip.lua` | reposition, class colours, item level, spell ID line |
+| `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar |
+| `xpbar.lua` | experience and reputation bar with rested segment, hide the tracking bars |
+| `nameplates.lua` | flat restyle of Blizzard nameplates with an own-debuff aura container |
+| `loot.lua` | compact loot list and skinned roll frames, hide LootFrame |
+| `questtracker.lua` | watched quest list, hide ObjectiveTrackerFrame |
+| `panels.lua` | skin pass over character, spellbook, talents, quest log, merchant, bank, mail, trade |
 | `wizard.lua` | the first-login flow |
 | `options.lua` | `/rik config` panel, hooked into Settings too |
 | `importexport.lua` | strings |
@@ -651,7 +657,11 @@ Repo root is the addon root because the BigWigs packager wants the TOC there.
 2. **Bars.** Overlay bars with stance paging, skin, hotkey labels, ghost slots,
    hide Blizzard bars. Button state is drawn by us (Constraints 2).
 3. **Unit frames, castbars, auras.**
-4. **Minimap, chat, bags, tooltips.**
+4. **The rest of the in-game UI.** Tooltips, minimap, chat, bags, party and
+   raid frames, micro menu and bag bar, XP and reputation bar, nameplates,
+   loot window and roll frames, objective tracker, and a skin pass over the
+   Blizzard windows. Decided 2026-09-19: this whole pass ships before any
+   polish on already replaced pieces (ghost slots, wizard).
 5. **Wizard, options panel, import/export.** Remaining eight class presets.
 6. **Ship.** GitHub release via packager, CurseForge, README with the restart
    gotcha up top.
