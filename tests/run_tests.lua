@@ -188,6 +188,12 @@ check("Level-up test suite completes", levelupOk, levelupErr)
 local roleOk, roleErr = pcall(function() dofile("tests/setup-role.test.lua")(check) end)
 check("Role test suite completes", roleOk, roleErr)
 
+local barsOk, barsErr = pcall(function() dofile("tests/bars.test.lua")(check) end)
+check("Bar test suite completes", barsOk, barsErr)
+
+local stockOk, stockErr = pcall(function() dofile("tests/bars-stock.test.lua")(check) end)
+check("Stock-bar test suite completes", stockOk, stockErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))

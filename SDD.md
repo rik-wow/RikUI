@@ -83,8 +83,10 @@ What works, all verified in-game on a warrior:
   and the `[combat]` frame toggled while `InCombatLockdown()` was true.
 - `SecureActionButtonTemplate` with `type="action"` and a fixed `action=73`
   attribute. Clicking it fired the Attack in slot 73. It registers `AnyUp` and
-  `AnyDown` so `PostClick` runs twice per click; whether the action itself fires
-  twice needs a check with a non-toggle spell (noted on the bars-overlay chunk).
+  `AnyDown` so `PostClick` runs twice per click. Current secure source selects
+  one action edge from `ActionButtonUseKeyDown`; the new overlays preserve
+  that handler and both registrations. The user confirmed the bars-overlay
+  once-per-click beta check on 2026-09-18, with no Lua errors.
 - `PlaceAction`, `PickupMacro`, `ClearCursor`, `SetBinding`, `SaveBindings`,
   `CreateMacro`, `EditMacro`, `C_CVar.*`, `C_Macro`. All present.
   **`PickupSpell` and `PickupItem` are gone**; use `C_Spell.PickupSpell(id)` and
@@ -434,16 +436,25 @@ load order:
 | `importexport.lua` | strings |
 | `libs/LibDeflate.lua` | embedded, unchanged |
 
-Hiding Blizzard: at `PLAYER_LOGIN`, reparent the main action bar (not
-`MainMenuBar`, which is nil on 12.x; the real name is a to-do on the
-bars-hide-blizzard chunk), the `MultiBar*`s, `StanceBar`, `PetActionBar`,
-`PlayerFrame`, `TargetFrame`, `PetFrame`, `PartyFrame`, `BuffFrame`,
-`DebuffFrame`, `MinimapCluster`, `ChatFrame*` side buttons, `ContainerFrame*`,
-to a hidden frame and `UnregisterAllEvents` on the ones that would otherwise
-re-show themselves. Never in combat. Since our buttons don't inherit Blizzard's
-template (Constraints 2), nothing we hide holds logic we depend on. The one
-thing that must keep working is the native keybind resolution, which lives in
-C, not in the hidden frames.
+Hiding Blizzard: the current overlay milestone suppresses the five overlapping
+stock action bars through a hidden parent, out of combat. MainActionBar is the
+12.1.5 source name (exact beta observation still pending); ActionButton1.bar is
+its owner fallback. Keep native action events, attributes and button handlers:
+the native binding path still calls those buttons. Do not unregister them.
+A guarded parent posthook handles Blizzard reattachment; /rik stockbars show
+restores the latest native parents, and hide reapplies the saved preference.
+
+The user-requested cleanup also parks MicroMenu, BagsBar and
+StatusTrackingBarManager once the main overlay exists. Keep the status manager's
+child hierarchy and leave MicroMenuContainer, its queue-status sibling and bag
+inventory windows available. Refresh native menu layout on restoration to its
+default container. Bag/menu keys and /rik stockbars show retain access.
+
+The later bars-hide-blizzard milestone extends this to stance/pet after their
+replacements exist, adds the shared hiding helper and
+Edit Mode warning, and verifies the actual beta frame identity. Other modules
+will hide PlayerFrame, TargetFrame, PetFrame, PartyFrame, BuffFrame, DebuffFrame,
+MinimapCluster, chat side buttons and container frames only when replaced.
 
 ## Wizard (first login)
 
@@ -474,6 +485,15 @@ profile position so anyone can drag frames there in `/rik move`.
 Bars: main bar and bar2 stacked bottom-centre, bar3 above them (fades unless
 hovered or in combat), bar4 and bar5 vertical on the right edge, stance/pet bar
 above bar3 on the left. Gryphon art is a toggle, off by default.
+
+The base overlay implementation uses the setup engine's corrected native pages:
+main 1–12, bar2 61–72, bar3 49–60, bar4 25–36, bar5 37–48. Fixed action
+buttons keep frame ID zero and their inherited secure OnClick. The bare secure
+template has no drag scripts; explicit PickupAction/PlaceAction handlers run
+only out of combat. Profile layout, event-driven visuals and bar3 alpha fading
+are implemented. The user confirmed beta click/drag behavior, both right-side
+columns, hover/combat reveal and fade, and the stock UI cleanup on 2026-09-18,
+with no Lua errors. See [overlay contracts and beta checks](docs/bars.md).
 
 ## Settings we apply
 

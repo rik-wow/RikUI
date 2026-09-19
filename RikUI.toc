@@ -23,6 +23,7 @@ setup-levelup.lua
 setup-talents.lua
 setup-role.lua
 bars.lua
+bars-stock.lua
 unitframes.lua
 auras.lua
 minimap.lua

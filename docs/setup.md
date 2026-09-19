@@ -81,9 +81,10 @@ Layout writes copies of `preset.positions`, or `Setup.DefaultPositions`,
 into `RikUI.Profile.positions`, preserving unrelated position keys.
 Each record uses `point`, `relativePoint`, `x`, `y` relative to UIParent.
 Defaults place main/bar2/bar3 at bottom center and bar4/bar5 on the right.
-These are saved positions for future RikUI frames; this step does not move
-Blizzard frames or change Edit Mode. Existing Blizzard extra bars must already
-be enabled if the user wants to see those stock buttons.
+Apply and Undo refresh existing RikUI overlay bars from these positions through
+the combat queue; see [overlay bars](bars.md). Blizzard frames and Edit Mode
+are unchanged. Existing Blizzard extra bars must already be enabled if the user
+wants to see those stock buttons.
 
 ## Keeping spell slots current
 

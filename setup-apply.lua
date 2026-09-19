@@ -67,6 +67,7 @@ local function writeLayout(preset, profile)
         profile.positions[name] = copy(position)
         stats[category] = stats[category] + 1
     end
+    if core.Bars then core.Bars.ApplyLayout() end
     return stats
 end
 
