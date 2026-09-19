@@ -48,12 +48,25 @@ local function updateCooldown(widget, api, slot, occupied)
     if not ok then widget:Clear(); warnOnce(api, reason) end
 end
 
+local function activeTexture(texture, api, legacy, slot, occupied)
+    if not occupied then texture:SetAlphaFromBoolean(false, 1, 0); return end
+    local ok, reason = core.Secret.Apply(function(value) texture:SetAlphaFromBoolean(value, 1, 0) end,
+        reader(api, legacy), slot)
+    if not ok then texture:SetAlphaFromBoolean(false, 1, 0); warnOnce(api, reason) end
+end
+
+local function updateActive(button)
+    activeTexture(button.current, "IsCurrentAction", IsCurrentAction, button.action, button.stateOccupied)
+    activeTexture(button.repeating, "IsAutoRepeatAction", IsAutoRepeatAction, button.action, button.stateOccupied)
+end
+
 function bars.RefreshButtonState(button, occupied)
     if not button.cooldown then return end
     button.stateOccupied = occupied
     updateCooldown(button.cooldown, "GetActionCooldownDuration", button.action, occupied)
     updateCooldown(button.chargeCooldown, "GetActionChargeDuration", button.action, occupied)
     updateTint(button, occupied)
+    updateActive(button)
     button.hotkey:SetText(core.Bindings.Label(button.bindingCommand))
     if not occupied then button.pressedFlash:SetAlpha(0) end
 end
@@ -98,6 +111,7 @@ function bars.CreateButtonState(button, bar, index)
     button.pressedFlash:SetAllPoints()
     button.pressedFlash:SetColorTexture(1, 1, 1, 0.45)
     button.pressedFlash:SetAlpha(0)
+    bars.SkinButtonState(button)
     button:HookScript("OnHide", function() button.pressedFlash:SetAlpha(0) end)
     if not rangeSlots[button.action] then
         local ok, reason = pcall(reader("EnableActionRangeCheck"), button.action, true)
@@ -189,6 +203,7 @@ function bars.EnableButtonState()
     hook("MultiActionButtonDown", function(name, id) multiPress(name, id, true) end)
     hook("MultiActionButtonUp", function(name, id) multiPress(name, id, false) end)
     core:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN", refreshCooldowns)
+    core:RegisterEvent("ACTIONBAR_UPDATE_STATE", function() eachButton(updateActive) end)
     core:RegisterEvent("ACTION_USABLE_CHANGED", function() refreshTints() end)
     core:RegisterEvent("ACTION_RANGE_CHECK_UPDATE", function(_, slot) refreshTints(slot) end)
     core:RegisterEvent("PLAYER_TARGET_CHANGED", function() refreshTints() end)

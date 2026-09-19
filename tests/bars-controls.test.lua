@@ -2,10 +2,12 @@ return function(check)
     local env = require("wow_stub")
     local originalCreate, originalDriver = CreateFrame, RegisterStateDriver
     local saved = {}
-    for _, name in ipairs({ "GetNumShapeshiftForms", "GetShapeshiftFormInfo", "GetPetActionInfo" }) do
+    for _, name in ipairs({ "GetNumShapeshiftForms", "GetShapeshiftFormInfo", "GetPetActionInfo", "GetBindingKey" }) do
         saved[name] = _G[name]
     end
     local forms, pets, writes, drivers = {}, {}, 0, {}
+    local keys = { SHAPESHIFTBUTTON1 = "CTRL-Q", BONUSACTIONBUTTON1 = "SHIFT-G" }
+    GetBindingKey = function(command) return keys[command] end
     local secureClick = function() end
     local function protected()
         assert(not InCombatLockdown(), "protected control write in combat")
@@ -17,6 +19,8 @@ return function(check)
             if key:match("^[A-Z]") then return methods(t, key) end
         end })
         function value:SetTexture(texture) self.texture = texture end
+        function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
+        function value:SetTexCoord(...) self.coords = { ... } end
         function value:SetShown(shown) self.shown = shown end
         function value:SetAlphaFromBoolean(active, yes, no) self.active, self.yes, self.no = active, yes, no end
         function value:SetVertexColor(...) self.color = { ... } end
@@ -77,8 +81,8 @@ return function(check)
     local function loadBars(combat)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "core.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
-            "bars.lua", "bars-controls.lua", "bars-stock.lua" }) do
+        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
+            "bars.lua", "bars-skin.lua", "bars-controls.lua", "bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -98,6 +102,9 @@ return function(check)
         check("stance casts exact reported spell ID", stance.buttons[1]:GetAttribute("type1") == "spell"
             and stance.buttons[1]:GetAttribute("spell") == 2457)
         check("stance active highlight is rendered", stance.buttons[1].active.active == true)
+        check("companion indicators use shared flat media", RikUI.Media ~= nil
+            and stance.buttons[1].active.texture == RikUI.Media.checked
+            and pet.buttons[2].autoCastAllowed.texture == RikUI.Media.checked)
         check("native stance and pet binding scheme is preserved",
             RikUI.Bindings.Scheme.SHAPESHIFTBUTTON1 == "CTRL-Q"
             and RikUI.Bindings.Scheme.BONUSACTIONBUTTON1 == "SHIFT-G"
@@ -116,6 +123,19 @@ return function(check)
         check("pet visibility requires a living pet and no override", drivers[pet] == "[@pet,exists,nodead,nopossessbar,nooverridebar] show; hide")
         check("stance visibility is driven independently of current form", drivers[stance] == "[possessbar][overridebar] hide; show")
         check("companion rows sit above utility row without overlap", stance.point[5] == 166 and pet.point[5] == 202)
+        for _, row in ipairs({ stance, pet }) do
+            for _, button in ipairs(row.buttons) do
+                check("companion shares flat font and icon crop", #button.border == 4
+                    and button.icon.coords[1] == 0.07 and button.count.fontPath == RikUI.Media.font
+                    and button.hotkey.fontPath == RikUI.Media.font and button.hotkey.fontSize == 12)
+            end
+        end
+        check("companion labels use real native bindings", stance.buttons[1].hotkey.text == "cQ"
+            and pet.buttons[1].hotkey.text == "sG")
+        keys.SHAPESHIFTBUTTON1, keys.BONUSACTIONBUTTON1 = "BUTTON4", nil
+        env.fire("UPDATE_BINDINGS")
+        check("companion rebind and unbind refresh labels", stance.buttons[1].hotkey.text == "M4"
+            and pet.buttons[1].hotkey.text == "")
         local before = writes
         env.inCombat = true
         forms[1].active, pets[2].enabled = false, false

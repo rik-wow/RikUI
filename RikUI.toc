@@ -8,6 +8,7 @@
 ## IconTexture: Interface\Icons\INV_Misc_QuestionMark
 
 core.lua
+media.lua
 data/spells.lua
 data/cvars.lua
 data/bonus-pages.lua
@@ -24,6 +25,7 @@ setup-levelup.lua
 setup-talents.lua
 setup-role.lua
 bars.lua
+bars-skin.lua
 bars-state.lua
 bars-paging.lua
 bars-controls.lua

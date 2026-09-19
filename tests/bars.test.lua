@@ -18,6 +18,7 @@ return function(check)
         function region:SetTexture(value) self.texture = value end
         function region:SetAlpha(value) self.alpha = value end
         function region:SetShown(value) self.shown = value end
+        function region:SetTexCoord(...) self.coords = { ... } end
         function region:SetFormattedText(format, value) self.format, self.value = format, value end
         return region
     end
@@ -98,8 +99,8 @@ return function(check)
     local function loadBars(profile, combat)
         env.frames, env.printed, env.timers, env.inCombat = {}, {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile or {} } }, nil
-        for _, file in ipairs({ "core.lua", "setup.lua", "setup-apply.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "bars.lua", "bars-stock.lua" }) do
+        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua",
+            "setup-snapshot.lua", "setup-undo.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -133,6 +134,25 @@ return function(check)
         end
         local main, bar2, fade = bars.Frames.main, bars.Frames.bar2, bars.Frames.bar3
         local button = main.buttons[1]
+        check("shared media and default-off gryphons exist", RikUI.Media ~= nil and RikUI.Profile.gryphons == false)
+        check("main row owns hidden gryphons", type(main.gryphons) == "table" and not main.gryphons[1].shown)
+        SlashCmdList.RIKUI("gryphons on")
+        check("profile command shows referenced mirrored gryphons", RikUI.Profile.gryphons == true
+            and main.gryphons[1].shown and main.gryphons[2].shown
+            and main.gryphons[1].texture:find("UI-MainMenuBar-EndCap-Dwarf", 1, true)
+            and main.gryphons[2].coords[1] == 1 and main.gryphons[2].coords[2] == 0)
+        check("secondary rows do not acquire gryphons", bar2.gryphons == nil)
+        local overlay = bars.Create("skinPage", 13, { positionKey = "main" })
+        check("new overlays inherit skin and current gryphon preference", overlay.gryphons[1].shown
+            and #overlay.buttons[1].border == 4)
+        SlashCmdList.RIKUI("gryphons invalid")
+        check("invalid preference leaves profile intact", RikUI.Profile.gryphons == true)
+        env.inCombat = true
+        SlashCmdList.RIKUI("gryphons off")
+        check("combat preference defers visual writes", main.gryphons[1].shown and overlay.gryphons[1].shown)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("combat exit updates every main overlay", not main.gryphons[1].shown and not overlay.gryphons[1].shown)
         check("profile position overrides defaults", main.point[1] == "TOP" and main.point[2] == UIParent
             and main.point[3] == "TOP" and main.point[4] == 9 and main.point[5] == -20)
         check("missing position uses setup default", bar2.point[5] == RikUI.Setup.DefaultPositions.bar2.y)
@@ -248,6 +268,9 @@ return function(check)
         check("modern display count goes directly to text sink", modernButton.count:GetText() == env.SECRET)
         GetActionTexture, GetActionCount, C_ActionBar = textureReader, countReader, originalActionBar
 
+        bars = loadBars({ gryphons = true })
+        check("saved gryphon preference survives initialization", RikUI.Profile.gryphons == true
+            and bars.Frames.main.gryphons[1].shown)
         bars = loadBars({ modules = { bars = false } })
         check("disabled module creates no bars", next(bars.Frames) == nil)
         bars = loadBars(nil, true)

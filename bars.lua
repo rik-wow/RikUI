@@ -4,7 +4,6 @@ local bars = { Frames = {} }
 core.Bars = bars
 local BUTTONS, BUTTON_SIZE, BUTTON_GAP = 12, 36, 6
 local FADE_SECONDS, LEAVE_DELAY = 0.2, 0.05
-local EMPTY_TEXTURE = "Interface\\Buttons\\UI-Quickslot"
 local BAR_ORDER = { "main", "bar2", "bar3", "bar4", "bar5" }
 local POINTS = { TOP = true, TOPLEFT = true, TOPRIGHT = true, LEFT = true, CENTER = true,
     RIGHT = true, BOTTOM = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
@@ -119,6 +118,7 @@ local function position(bar)
     bar:ClearAllPoints()
     bar:SetPoint(point, UIParent, relative, x, y)
     bar:SetScale(scale)
+    bars.UpdateGryphons(bar)
 end
 
 -- Shared by companion rows so Apply/Undo use the same profile validation.
@@ -134,20 +134,6 @@ function bars.ApplyLayout()
     end)
 end
 
-local function buttonArt(button)
-    button.empty = button:CreateTexture(nil, "BACKGROUND")
-    button.empty:SetAllPoints()
-    button.empty:SetTexture(EMPTY_TEXTURE)
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetAllPoints()
-    button.count = button:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-    button.count:SetPoint("BOTTOMRIGHT", -2, 2)
-    button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
-    button:SetPushedTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-end
-
-bars.DecorateButton = buttonArt
-
 local function createButton(bar, index, opts)
     local button = CreateFrame("Button", bar:GetName() .. "Button" .. index, bar, "SecureActionButtonTemplate")
     button.action = bar.firstAction + index - 1
@@ -160,7 +146,7 @@ local function createButton(bar, index, opts)
     button:SetSize(opts.size, opts.size)
     local offset = (index - 1) * (opts.size + opts.spacing)
     button:SetPoint("TOPLEFT", bar, "TOPLEFT", opts.vertical and 0 or offset, opts.vertical and -offset or 0)
-    buttonArt(button)
+    bars.DecorateButton(button)
     if bars.CreateButtonState then bars.CreateButtonState(button, bar, index) end
     button:SetScript("OnDragStart", function(self) drag(self, false) end)
     button:SetScript("OnReceiveDrag", function(self) drag(self, true) end)

@@ -1,7 +1,7 @@
 -- RikUI core. Loaded before data and modules; see docs/core.md for contracts.
 local addonName = ...
 local DEFAULT_PROFILE = "Default"
-local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1 }
+local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = false }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }
 local CHARACTER_DEFAULTS = { profile = DEFAULT_PROFILE, askRole = true, wizardDone = false }
 

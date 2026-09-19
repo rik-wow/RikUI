@@ -69,6 +69,72 @@ An alpha animation fades it out in 0.2 seconds. Combat reveals it immediately
 and combat exit reevaluates hover. No OnUpdate or restricted secure snippets
 are installed.
 
+## Shared media and flat skin
+
+`media.lua` exports `RikUI.Media.font`, `statusbar`, `border`,
+`checked` and `highlight` paths. The bundled font is static hinted Noto Sans
+Regular; [media/LICENSES.md](../media/LICENSES.md) records the full provenance.
+Fully exit and restart WoW when installing new media; a reload may not find it.
+
+`bars-skin.lua` decorates every new fixed-slot, manual-page, bonus, stance and
+pet button. Icons are inset one UI unit and cropped to 0.07–0.93; four
+one-unit edges form the flat border. Buttons have no native normal art.
+Hover and mouse press use the bundled translucent texture. Hotkey/count
+text is 12 units, central cooldown 16 and recharge 11, all outlined in the
+shared font. Profile scale applies to the complete row, including its art.
+
+Current actions and auto-repeat each feed an independent gold checked border
+through `SetAlphaFromBoolean`, refreshed by `ACTIONBAR_UPDATE_STATE`.
+Opaque flags are not combined or tested in Lua. Empty slots/API failures
+clear stale borders. Action borders and labels live above the cooldown frames.
+Companion labels use `SHAPESHIFTBUTTON` and `BONUSACTIONBUTTON` bindings;
+their active border stays distinct from the green autocast marker at bottom left.
+
+`Profile.gryphons` defaults to false. Use `/rik gryphons on` or
+`/rik gryphons off`; the command saves the profile preference and uses the
+existing combat-queued layout refresh. Each main-position overlay owns its
+own end caps, so native paging visibility hides its art with its buttons.
+Secondary and companion rows never acquire end caps. Art is referenced
+from the client, not copied into the addon.
+
+### Skin verification
+
+Automated recording widgets cover every action overlay's crop, font and border
+layer, companion labels and secret flags, active/repeat/error/empty states,
+new overlays, profile persistence, and combat-deferred end-cap changes.
+They do not prove font loading, native pixels or protection behavior.
+
+On 2026-09-18, the user replied "looko aight" to the full-restart checklist
+covering the skin/readability, gryphon toggle with paging/reload, and combat
+errors. This is recorded as user-reported native acceptance with no issues
+reported, for the usual scale and available character/rows. Other scales and
+unavailable stance/pet combinations are not claimed as independently observed.
+No runtime code changed after that report.
+
+Repeatable native check after a full client restart:
+
+1. Check normal, empty, hover, pressed, active, range/resource and cooldown/count
+   states on available action and companion rows.
+2. Toggle gryphons on/off; select pages 1–6 and the available Battle overlay.
+   Only the visible main row should show end caps. Reload and check persistence.
+3. Repeat page changes, key presses and a gryphon toggle in combat; no Lua or
+   protected-action error should occur, and the art toggle applies after combat.
+4. Check readability at the normal profile scale, then 0.8 and 1.25 if practical.
+   Out of combat, use `/run RikUI.Profile.scale=0.8; RikUI.Bars.ApplyLayout()`
+   (substitute 1.25 for the other size), then restore the original scale.
+   The existing multi-stance/pet beta follow-up remains separate where unavailable.
+
+API methods are confirmed against the exact 1.60.1.69913 source commit.
+The gryphon path is supported by current Classic XML and the user-reported
+native acceptance above.
+
+Primary API references used for the skin:
+
+- [Blizzard end-cap references](https://github.com/Gethe/wow-ui-source/blob/classic_era/Interface/AddOns/Blizzard_ActionBar/Classic/MainActionBar.xml)
+- [Button texture methods](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleButtonAPIDocumentation.lua)
+- [Action state APIs and event](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ActionBarFrameDocumentation.lua)
+- [Native boolean alpha sink](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleRegionAPIDocumentation.lua)
+
 ## Action button state
 
 `bars-state.lua` adds state to every fixed action-slot button in the five bars

@@ -16,6 +16,11 @@ return function(check)
         function r:SetAlpha(v) self.alpha = v end
         function r:SetShown(v) self.shown = v end
         function r:SetTexture(v) self.texture = v end
+        function r:SetFont(path, size, flags) self.fontPath, self.fontSize, self.fontFlags = path, size, flags; return true end
+        function r:SetTexCoord(...) self.coords = { ... } end
+        function r:SetAlphaFromBoolean(value, yes, no) self.active, self.yes, self.no = value, yes, no end
+        function r:SetHeight(value) self.height = value end
+        function r:SetWidth(value) self.width = value end
         function r:SetFormattedText(fmt, v) self.format, self.value = fmt, v end
         return r
     end
@@ -30,6 +35,9 @@ return function(check)
         function f:GetFrameLevel() return self.level end
         function f:SetFrameLevel(level) protected(); self.level = level end
         function f:SetAttribute(k, v) protected(); self.attributes[k] = v end
+        function f:ClearNormalTexture() self.normalTexture = nil; self.normalSet = true end
+        function f:SetHighlightTexture(v) self.highlightTexture = v end
+        function f:SetPushedTexture(v) self.pushedTexture = v end
         function f:SetPoint(...) protected() end
         function f:SetParent(v) protected(); self.parent = v end
         function f:SetScale(v) protected() end
@@ -66,6 +74,11 @@ return function(check)
             return a.usable, a.resource
         end,
         IsActionInRange = function(slot) return actions[slot] and actions[slot].range end,
+        IsCurrentAction = function(slot)
+            if actions[slot] and actions[slot].failCurrent then error("current action unavailable") end
+            return actions[slot] and actions[slot].current or false
+        end,
+        IsAutoRepeatAction = function(slot) return actions[slot] and actions[slot].repeating or false end,
         EnableActionRangeCheck = function(slot, enabled) subscriptions[slot] = enabled end,
     }
     GetBindingKey = function(command) return bindings[command] end
@@ -78,7 +91,7 @@ return function(check)
     end
     for _, event in ipairs({ "UPDATE_BINDINGS", "SPELL_UPDATE_CHARGES", "UPDATE_INVENTORY_ALERTS",
         "BAG_UPDATE_DELAYED", "SPELL_UPDATE_ICON", "ACTIONBAR_UPDATE_COOLDOWN", "ACTION_USABLE_CHANGED",
-        "ACTION_RANGE_CHECK_UPDATE", "PLAYER_TARGET_CHANGED", "UNIT_POWER_UPDATE" }) do env.KNOWN_EVENTS[event] = true end
+        "ACTION_RANGE_CHECK_UPDATE", "PLAYER_TARGET_CHANGED", "UNIT_POWER_UPDATE", "ACTIONBAR_UPDATE_STATE" }) do env.KNOWN_EVENTS[event] = true end
     local function color(button, r, g, b)
         local c = button.icon.color or {}
         return c[1] == r and c[2] == g and c[3] == b
@@ -86,8 +99,8 @@ return function(check)
     local ok, reason = pcall(function()
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "core.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
-            "data/bonus-pages.lua", "bars.lua", "bars-paging.lua", "bars-state.lua" }) do
+        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
+            "data/bonus-pages.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-state.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         RikUI.Bars.UpdateStockVisibility = function() end
@@ -97,6 +110,33 @@ return function(check)
         env.fire("ADDON_LOADED", "RikUI")
         env.fire("PLAYER_LOGIN")
         local bars, first = RikUI.Bars, RikUI.Bars.Frames.main.buttons[1]
+        for name, bar in pairs(bars.Frames) do
+            for _, button in ipairs(bar.buttons) do
+                check(name .. " uses flat media and trimmed icons", button.normalSet and button.normalTexture == nil
+                    and button.highlightTexture == RikUI.Media.highlight and button.pushedTexture == RikUI.Media.highlight
+                    and button.icon.coords[1] == 0.07 and button.icon.coords[2] == 0.93)
+                check(name .. " uses consistent media type scale", button.hotkey.fontPath == RikUI.Media.font
+                    and button.hotkey.fontSize == 12 and button.count.fontPath == RikUI.Media.font
+                    and button.count.fontSize == 12 and button.cooldown.font.fontSize == 16
+                    and button.chargeCooldown.font.fontSize == 11)
+                check(name .. " keeps four one-pixel borders above cooldowns", #button.border == 4
+                    and button.border[1].height == 1 and button.border[3].width == 1
+                    and button.border[1].parent == button.stateOverlay)
+            end
+        end
+        actions[1].current = env.SECRET
+        env.inCombat = true
+        env.fire("ACTIONBAR_UPDATE_STATE")
+        check("secret current action goes directly to active border", first.current.active == env.SECRET
+            and first.current.yes == 1 and first.current.no == 0)
+        actions[1].current, actions[1].repeating = false, true
+        env.fire("ACTIONBAR_UPDATE_STATE")
+        check("auto repeat has its own active border", first.current.active == false and first.repeating.active == true)
+        actions[1].failCurrent = true
+        env.fire("ACTIONBAR_UPDATE_STATE")
+        check("failed current action clears stale border", first.current.active == false)
+        actions[1].failCurrent, actions[1].repeating = nil, false
+        env.inCombat = false
         -- Visibility is modeled explicitly; the stub does not execute native drivers.
         for _, bar in pairs(bars.Frames) do if bar.positionKey == "main" then bar:Hide() end end
         check("action button has native cooldown and charge widgets", first.cooldown and first.chargeCooldown)
@@ -195,6 +235,7 @@ return function(check)
         bindings.ACTIONBUTTON1 = nil
         env.fire("UPDATE_BINDINGS")
         check("unbound action clears stale label", first.hotkey.text == "")
+        check("empty slot clears both active borders", first.current.active == false and first.repeating.active == false)
     end)
     env.inCombat = false
     UIParent.IsVisible = visible

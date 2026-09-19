@@ -34,9 +34,9 @@ return function(check)
         end
     end
     core = RikUI
-    check("TOC loads core before data and modules", files[1] == "core.lua" and files[2] == "data/spells.lua"
-        and files[3] == "data/cvars.lua" and files[4] == "data/bonus-pages.lua"
-        and files[5] == "presets/warrior.lua" and files[6] == "setup.lua")
+    check("TOC loads core before data and modules", files[1] == "core.lua" and files[2] == "media.lua" and files[3] == "data/spells.lua"
+        and files[4] == "data/cvars.lua" and files[5] == "data/bonus-pages.lua"
+        and files[6] == "presets/warrior.lua" and files[7] == "setup.lua")
     check("TOC ends with import/export after options", files[#files] == "importexport.lua"
         and files[#files - 1] == "options.lua")
     check("TOC loads data and preset namespaces", type(core.Data) == "table" and type(core.Presets) == "table")

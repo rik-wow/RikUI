@@ -23,6 +23,19 @@ local function indicator(button, texture)
     return art
 end
 
+local function autoCastArt(button)
+    button.autoCastAllowed = indicator(button, core.Media.checked)
+    button.autoCastAllowed:SetVertexColor(0.3, 0.8, 0.4, 1)
+    button.autoCastAllowed:ClearAllPoints()
+    button.autoCastAllowed:SetPoint("BOTTOMLEFT", 1, 1)
+    button.autoCastAllowed:SetSize(7, 7)
+    button.autoCastEnabled = indicator(button, core.Media.statusbar)
+    button.autoCastEnabled:SetVertexColor(0.3, 1, 0.4, 1)
+    button.autoCastEnabled:ClearAllPoints()
+    button.autoCastEnabled:SetPoint("BOTTOMLEFT", 2, 2)
+    button.autoCastEnabled:SetSize(5, 5)
+end
+
 local function createButton(bar, index, kind)
     local button = CreateFrame("Button", bar:GetName() .. "Button" .. index, bar, "SecureActionButtonTemplate")
     button.index = index
@@ -33,14 +46,12 @@ local function createButton(bar, index, kind)
     button:SetSize(SIZE, SIZE)
     button:SetPoint("TOPLEFT", bar, "TOPLEFT", (index - 1) * (SIZE + GAP), 0)
     bars.DecorateButton(button)
-    button.active = indicator(button, "Interface\\Buttons\\CheckButtonHilight")
-    if kind == "pet" then
-        button.autoCastAllowed = indicator(button, "Interface\\Buttons\\UI-AutoCastableOverlay")
-        button.autoCastEnabled = indicator(button, "Interface\\Buttons\\UI-CheckBox-Check")
-        button.autoCastEnabled:ClearAllPoints()
-        button.autoCastEnabled:SetPoint("TOPRIGHT", 1, 1)
-        button.autoCastEnabled:SetSize(14, 14)
-    end
+    button.hotkey = button:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
+    button.hotkey:SetPoint("TOPRIGHT", -2, -2)
+    core.Media.Font(button.hotkey, "hotkey")
+    button.bindingCommand = (kind == "pet" and "BONUSACTIONBUTTON" or "SHAPESHIFTBUTTON") .. index
+    button.active = bars.CreateActiveTexture(button)
+    if kind == "pet" then autoCastArt(button) end
     return button
 end
 
@@ -64,6 +75,7 @@ local function visibility(bar, driver)
 end
 
 local function stanceArt(button)
+    button.hotkey:SetText(core.Bindings.Label(button.bindingCommand))
     local ok, texture, active = core.Secret.Read(GetShapeshiftFormInfo, button.index)
     if not ok then report("stance", texture); texture, active = nil, false end
     button.icon:SetTexture(texture)
@@ -115,6 +127,7 @@ local function queueForms()
 end
 
 local function petArt(button)
+    button.hotkey:SetText(core.Bindings.Label(button.bindingCommand))
     local ok, name, texture, token, active, allowed, enabled = core.Secret.Read(GetPetActionInfo, button.index)
     if not ok then
         report("pet action", name)
@@ -142,6 +155,7 @@ function bars.EnableControls()
         visibility(pet, PET_VISIBILITY)
         refreshPets()
     end)
+    core:RegisterEvent("UPDATE_BINDINGS", function() refreshStances(); refreshPets() end)
     core:RegisterEvent("UPDATE_SHAPESHIFT_FORMS", queueForms)
     core:RegisterEvent("SPELLS_CHANGED", queueForms)
     for _, event in ipairs({ "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_USABLE" }) do
