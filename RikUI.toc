@@ -39,6 +39,7 @@ castbars.lua
 castbars-status.lua
 auras.lua
 auras-status.lua
+auras-units.lua
 minimap.lua
 chat.lua
 bags.lua

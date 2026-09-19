@@ -220,6 +220,8 @@ local castOk, castErr = pcall(function() dofile("tests/castbars.test.lua")(check
 check("Castbar test suite completes", castOk, castErr)
 local auraOk, auraErr = pcall(function() dofile("tests/auras.test.lua")(check) end)
 check("Aura test suite completes", auraOk, auraErr)
+local unitAuraOk, unitAuraErr = pcall(function() dofile("tests/auras-units.test.lua")(check) end)
+check("Unit aura test suite completes", unitAuraOk, unitAuraErr)
 
 -- report
 if #failures == 0 then

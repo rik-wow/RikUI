@@ -1,9 +1,11 @@
-# Player auras
+# Auras
 
 `auras.lua` and `auras-status.lua` replace the Blizzard buff and debuff
 frames with two flat rows of icons at the top right: buffs (and temporary
 weapon enchants) first, debuffs beneath. Disable the `auras` module in
-`/rik config` and reload to get the Blizzard frames back.
+`/rik config` and reload to get the Blizzard frames back. `auras-units.lua`
+builds target and pet aura rows from the same factory; see
+[target and pet auras](#target-and-pet-auras).
 
 ## What you see
 
@@ -26,6 +28,37 @@ Both rows register with the [shared layout](layout.md) under `buffs` and
 include them. Defaults sit at the top right of the screen, left of the
 minimap cluster (`x=-200, y=-13`) with the debuff row directly under the
 four buff lines (`y=-149`).
+
+## Target and pet auras
+
+`auras-units.lua` registers a second module, `unitauras`, that builds rows
+from the same factory and attaches them to the RikUI unit frames: a target
+debuff row (twelve 30 px icons, six per line) directly above the target
+frame, a smaller target buff row (sixteen 22 px icons, eight per line) above
+the debuffs, and a pet debuff row (eight 22 px icons, four per line) above
+the pet frame. The rows fill left to right and upward from the bottom left
+corner. They are plain children of the secure unit buttons, so they hide with
+the frame's visibility driver, follow it in `/rik move` and `/rik scale`, and
+stay writable in combat; they have no cancel layer and no layout key of their
+own. With the `unitframes` module disabled there is nothing to attach to and
+the module prints one `Unit auras attach` line.
+
+Auras the player or their pet applied keep full size. Anything else shrinks
+to 75 % and its icon dims to half alpha. The decision reads the record's
+`isFromPlayerOrPlayerPet`: a readable flag drives both the scale and the
+icon alpha, a secret flag goes only into `Texture:SetAlphaFromBoolean` and
+keeps full size, and a missing flag falls back to a readable `sourceUnit` of
+`player`, `pet` or `vehicle`. Unknown ownership stays full size.
+
+`UNIT_AURA` for `target` or `pet` (or a secret unit token) refreshes the
+matching rows. `PLAYER_TARGET_CHANGED` and `UNIT_PET` clear the rows before
+re-reading them, so a read that is blocked in combat never leaves the
+previous target's auras on the new one; with no target the reads return
+nothing and the rows stay empty. The blocked flag is per module: `/rik debug`
+prints `Unit auras blocked=<bool> rows=<n>` and samples
+`GetAuraDataByIndex(target,1,HARMFUL)` and the first debuff's duration
+object. Disable `unitauras` in `/rik config` to drop the rows and keep the
+player auras.
 
 ## Secret rules
 
@@ -113,6 +146,18 @@ item icon, charges, snapshot duration, refresh and removal, and the
 `target-slot` attribute; tooltips; the debug report; missing duration and
 count APIs; combat-login deferral; module disablement; missing stock globals.
 
+`tests/auras-units.test.lua` covers the unit rows: plain children of the
+target and pet frames with the expected slot counts, sizes and bottom-left
+fill; no layout key or cancel layer; icons, counts, borders and duration
+objects asked about the target; full size for player-cast auras, shrunk and
+dimmed for others, a secret flag reaching only the alpha sink, the
+`sourceUnit` fallback; secret values through the sinks with no error and no
+secret argument; per-unit event filtering; clearing on target loss and on a
+blocked target change; combat redraws without protected writes; a throwing
+read blocking only the unit module; the pet row and `UNIT_PET`; the debug
+line; coexistence with the player rows; missing unit frames; combat-login
+deferral.
+
 The stub cannot show native rendering, the countdown numbers, secure clicks
 or secret-value errors inside the real VM. Beta checklist on the Warrior:
 
@@ -133,6 +178,16 @@ or secret-value errors inside the real VM. Beta checklist on the Warrior:
 4. `/rik move`: drag both rows, lock, reload and confirm positions. Disable
    the module in `/rik config`, reload, and confirm the Blizzard frames
    return.
+5. Target a mob: its debuffs should appear directly above the target frame
+   and its buffs in a smaller row above them. Apply Sunder Armor or Rend:
+   your debuff should be full size while auras from other casters are
+   smaller and dimmer. Change targets and clear the target: the rows should
+   swap or empty with no stale icons. In combat, if the rows stop updating
+   and `/rik debug` shows `Unit auras blocked=true`, target aura reads are
+   restricted on this build; report the debug output. If every debuff is
+   dimmed including your own, the record carries no
+   `isFromPlayerOrPlayerPet` on this build; report that too, since the
+   fallback is Blizzard's `C_UnitAuras.GetAuraCasterGUID` route.
 
 ## Source evidence
 
@@ -145,3 +200,7 @@ Reviewed against the Forever [1.60.1 (69913) commit](https://github.com/Gethe/wo
 - [Blizzard aura button cancel path](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraButton.lua)
 - [Blizzard enchant duration snapshot](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerEnchantments.lua)
 - [Blizzard buff frame events](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua)
+- [Blizzard aura source: caster identified through GetAuraCasterGUID](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerSources.lua)
+  (the generated documentation of this build has an empty Tables section for
+  the aura API, so the `AuraData` field list is not pinned there)
+- [Native boolean alpha sink](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleRegionAPIDocumentation.lua)

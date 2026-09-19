@@ -1,14 +1,19 @@
--- Player buffs, debuffs and weapon enchants. Aura values only reach sinks (auras-status.lua);
--- this file owns frames, layout, the secure cancel layer, events and the stock frames.
+-- Shared aura button factory plus the player buffs, debuffs and weapon enchants. Aura values
+-- only reach sinks (auras-status.lua); this file owns frames, layout, the secure cancel layer,
+-- events and the stock frames. auras-units.lua builds the target and pet rows on the same factory.
 local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
 local auras = { Rows = {}, blocked = false }
 core.Auras = auras
 
 local SIZE, GAP, PER_ROW, EDGE, ICON_CROP, CANCEL_LEVEL = 30, 4, 8, 1, 0.07, 5
 local STEP = SIZE + GAP
+-- A row fills from its origin corner: player rows run right-to-left and downward.
+local DIRECTIONS = { TOPRIGHT = { x = -1, y = -1 }, BOTTOMLEFT = { x = 1, y = 1 } }
 local ROWS = {
-    { key = "buffs", filter = "HELPFUL", slots = 32, enchants = true, cancel = true },
-    { key = "debuffs", filter = "HARMFUL", slots = 16 },
+    { key = "buffs", unit = "player", filter = "HELPFUL", slots = 32, size = SIZE, perLine = PER_ROW,
+        origin = "TOPRIGHT", enchants = true, cancel = true },
+    { key = "debuffs", unit = "player", filter = "HARMFUL", slots = 16, size = SIZE, perLine = PER_ROW,
+        origin = "TOPRIGHT" },
 }
 -- Top right beside the minimap cluster; the debuff rows sit under the four buff rows.
 local DEFAULTS = {
@@ -27,13 +32,21 @@ function auras.Warn(operation, reason)
     core:Print("Auras " .. operation .. ": " .. tostring(reason))
 end
 
-local function rowSize(slots)
-    return PER_ROW * STEP - GAP, math.ceil(slots / PER_ROW) * STEP - GAP
+function auras.Api(namespace, name)
+    local table = _G[namespace]
+    if type(table) == "table" and type(table[name]) == "function" then return table[name] end
+    return function() error(namespace .. "." .. name .. " unavailable", 0) end
 end
 
-local function slotOffset(index)
-    local column, line = (index - 1) % PER_ROW, math.floor((index - 1) / PER_ROW)
-    return -column * STEP, -line * STEP
+function auras.RowSize(spec)
+    local step = spec.size + GAP
+    return spec.perLine * step - GAP, math.ceil(spec.slots / spec.perLine) * step - GAP
+end
+
+local function slotOffset(spec, index)
+    local step, direction = spec.size + GAP, DIRECTIONS[spec.origin]
+    local column, line = (index - 1) % spec.perLine, math.floor((index - 1) / spec.perLine)
+    return column * step * direction.x, line * step * direction.y
 end
 
 local function tooltipEntry(button)
@@ -48,9 +61,9 @@ local function showTooltip(button)
     GameTooltip:SetOwner(button, "ANCHOR_BOTTOMLEFT")
     local ok, reason
     if entry.slot then
-        ok, reason = pcall(GameTooltip.SetInventoryItem, GameTooltip, "player", entry.slot)
+        ok, reason = pcall(GameTooltip.SetInventoryItem, GameTooltip, entry.unit, entry.slot)
     else
-        ok, reason = pcall(GameTooltip.SetUnitAura, GameTooltip, "player", entry.index, entry.filter)
+        ok, reason = pcall(GameTooltip.SetUnitAura, GameTooltip, entry.unit, entry.index, entry.filter)
     end
     if not ok then GameTooltip:Hide(); auras.Warn("tooltip", reason) end
 end
@@ -101,15 +114,28 @@ local function decorate(button)
     button.count = countText(button)
 end
 
-local function createButton(row, index)
+local function createButton(row, spec, index)
     local button = CreateFrame("Frame", nil, row)
-    button:SetSize(SIZE, SIZE)
-    button:SetPoint("TOPRIGHT", row, "TOPRIGHT", slotOffset(index))
+    button:SetSize(spec.size, spec.size)
+    button:SetPoint(spec.origin, row, spec.origin, slotOffset(spec, index))
     button:EnableMouse(true)
     decorate(button)
     hoverScripts(button)
     button:Hide()
     return button
+end
+
+-- Rows are plain frames any module may build under any parent and refresh through
+-- auras.RefreshRow; the owning module keeps its own Rows table and blocked flag.
+function auras.CreateRow(spec, parent, owner)
+    local row = CreateFrame("Frame", FRAME_PREFIX .. spec.key, parent)
+    row.key, row.unit, row.filter, row.slots = spec.key, spec.unit, spec.filter, spec.slots
+    row.enchants, row.emphasis, row.module = spec.enchants, spec.emphasis, owner
+    row.buttons, row.entries = {}, {}
+    row:SetSize(auras.RowSize(spec))
+    for index = 1, spec.slots do row.buttons[index] = createButton(row, spec, index) end
+    owner.Rows[spec.key] = row
+    return row
 end
 
 local function createCancelButton(parent, display)
@@ -136,15 +162,10 @@ local function createCancelLayer(row)
     return parent
 end
 
-local function createRow(spec)
-    local row = CreateFrame("Frame", FRAME_PREFIX .. spec.key, UIParent)
-    row.key, row.filter, row.slots, row.enchants = spec.key, spec.filter, spec.slots, spec.enchants
-    row.buttons, row.entries = {}, {}
-    row:SetSize(rowSize(spec.slots))
-    for index = 1, spec.slots do row.buttons[index] = createButton(row, index) end
+local function createPlayerRow(spec)
+    local row = auras.CreateRow(spec, UIParent, auras)
     if spec.cancel then row.cancel = createCancelLayer(row) end
     layout.Register(row, spec.key, DEFAULTS[spec.key])
-    auras.Rows[spec.key] = row
     return row
 end
 
@@ -206,25 +227,19 @@ end
 function auras:OnEnable()
     core.Combat.Queue(function()
         for _, spec in ipairs(ROWS) do
-            if not auras.Rows[spec.key] then auras.RefreshRow(createRow(spec)) end
+            if not auras.Rows[spec.key] then auras.RefreshRow(createPlayerRow(spec)) end
         end
         auras.UpdateStockVisibility()
     end)
     registerEvents()
 end
 
-local function api(namespace, name)
-    local table = _G[namespace]
-    if type(table) == "table" and type(table[name]) == "function" then return table[name] end
-    return function() error(namespace .. "." .. name .. " unavailable", 0) end
-end
-
 function auras:Debug(sample)
     core:Print("Auras blocked=" .. tostring(auras.blocked) .. " combat=" .. tostring(InCombatLockdown()))
-    sample("GetAuraDataByIndex(player,1,HELPFUL)", api("C_UnitAuras", "GetAuraDataByIndex"), "player", 1, "HELPFUL")
-    sample("ShouldAurasBeSecret()", api("C_Secrets", "ShouldAurasBeSecret"))
-    local id = auras.FirstAuraInstance("HELPFUL")
-    if id ~= nil then sample("GetAuraDuration(player, first buff)", api("C_UnitAuras", "GetAuraDuration"), "player", id) end
+    sample("GetAuraDataByIndex(player,1,HELPFUL)", auras.Api("C_UnitAuras", "GetAuraDataByIndex"), "player", 1, "HELPFUL")
+    sample("ShouldAurasBeSecret()", auras.Api("C_Secrets", "ShouldAurasBeSecret"))
+    local id = auras.FirstAuraInstance("player", "HELPFUL")
+    if id ~= nil then sample("GetAuraDuration(player, first buff)", auras.Api("C_UnitAuras", "GetAuraDuration"), "player", id) end
 end
 
 core:RegisterModule("auras", auras)

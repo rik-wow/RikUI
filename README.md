@@ -40,6 +40,11 @@ numbers. Right-click a buff out of combat to cancel it. The Blizzard buff and
 debuff frames are hidden; disable the `auras` module to restore them. See
 [auras](docs/auras.md).
 
+The target frame carries the target's debuffs above it and a smaller row of
+its buffs above those; your own debuffs stay full size while other casters'
+auras are smaller and dimmer. The pet frame gets a debuff row the same way.
+Disable the `unitauras` module to drop them.
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require

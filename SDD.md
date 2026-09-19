@@ -158,7 +158,10 @@ duration text binding for the time, so no cast time is subtracted in Lua; see
 into `Cooldown:SetCooldownFromDurationObject`, use the client's
 `GetAuraApplicationDisplayCount` string for stacks, and keep the last display
 when a read throws or returns a secret record; buff cancel lives on a separate
-secure layer that a `[combat]` driver hides; see [auras](docs/auras.md).
+secure layer that a `[combat]` driver hides. Target and pet rows come from the
+same factory (`auras-units.lua`): player-cast auras keep full size, the rest
+shrink and dim through `Texture:SetAlphaFromBoolean`, so a secret caster flag
+never branches; see [auras](docs/auras.md).
 
 Consequence for action buttons, decided: **we draw button state ourselves and do
 not inherit `ActionBarButtonTemplate`.** Reason: the two things you branch on,
@@ -475,7 +478,7 @@ load order:
 | `bars.lua` | overlay action bars, stance/pet bars, ghost layer, button skin, hide Blizzard bars |
 | `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), party, raid; class colours; threat |
 | `castbars.lua`, `castbars-status.lua` | player and target castbars (delivered): duration-object fill, shield, interrupt state |
-| `auras.lua`, `auras-status.lua` | player buffs/debuffs and weapon enchants with duration-object timers (delivered); target debuffs on the target frame |
+| `auras.lua`, `auras-status.lua`, `auras-units.lua` | player buffs/debuffs and weapon enchants with duration-object timers, target and pet aura rows with own-aura emphasis (delivered) |
 | `minimap.lua` | square minimap, clock, coords, tracking, zone text, hide Blizzard buttons |
 | `chat.lua` | font, timestamps, copy button, URL detection, hide the side buttons |
 | `bags.lua` | one-bag view with sort and search |
@@ -609,6 +612,7 @@ RikUI/
   castbars.lua
   auras.lua
   auras-status.lua
+  auras-units.lua
   minimap.lua
   chat.lua
   bags.lua
