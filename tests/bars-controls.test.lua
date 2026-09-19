@@ -107,6 +107,14 @@ return function(check)
         check("stance casts exact reported spell ID", stance.buttons[1]:GetAttribute("type1") == "spell"
             and stance.buttons[1]:GetAttribute("spell") == 2457)
         check("stance active highlight is rendered", stance.buttons[1].active.active == true)
+        env.runScript(stance.buttons[1], "OnEnter")
+        check("hovering a stance button shows its form tooltip", GameTooltip.shapeshift == 1
+            and GameTooltip.owner == stance.buttons[1] and GameTooltip.shown == true)
+        env.runScript(pet.buttons[2], "OnEnter")
+        check("hovering a pet button shows its pet action tooltip", GameTooltip.petAction == 2
+            and GameTooltip.owner == pet.buttons[2])
+        env.runScript(pet.buttons[2], "OnLeave")
+        check("leaving hides the control tooltip", GameTooltip.shown == false)
         check("companion indicators use shared flat media", RikUI.Media ~= nil
             and stance.buttons[1].active.texture == RikUI.Media.checked
             and pet.buttons[2].autoCastAllowed.texture == RikUI.Media.checked)

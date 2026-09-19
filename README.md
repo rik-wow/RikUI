@@ -12,7 +12,8 @@ Use `/rik help` for available commands. `/rik config` opens the options panel
 (also under Options > AddOns > RikUI) with module toggles, scale, bar
 appearance and profiles; see [options](docs/options.md).
 The bars use flat square icons,
-outlined labels and shared bundled media. Gryphon end caps are off by default:
+outlined labels and shared bundled media; hovering a button shows its
+tooltip. Gryphon end caps are off by default:
 `/rik gryphons on` enables them and `/rik gryphons off` hides them.
 The preference is saved per profile; changes during combat apply afterward.
 The Blizzard action, stance and pet bars are hidden once their RikUI

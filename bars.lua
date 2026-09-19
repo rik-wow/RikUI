@@ -122,9 +122,37 @@ function bars.ApplyLayout()
     end)
 end
 
+local TOOLTIP_FALLBACK_ANCHOR, tooltipWarned = "ANCHOR_RIGHT", {}
+
+local function anchorTooltip(button)
+    if type(GameTooltip_SetDefaultAnchor) == "function" then
+        GameTooltip_SetDefaultAnchor(GameTooltip, button)
+    else
+        GameTooltip:SetOwner(button, TOOLTIP_FALLBACK_ANCHOR)
+    end
+end
+
+-- Blizzard's ActionButton_SetTooltip pattern: GameTooltip_OnUpdate calls owner:UpdateTooltip().
+-- setter(button) fills GameTooltip; hooks leave template and fade scripts in place.
+function bars.AttachTooltip(button, label, setter)
+    local function update(self)
+        anchorTooltip(self)
+        local ok, reason = pcall(setter, self)
+        if ok or tooltipWarned[label] then return end
+        tooltipWarned[label] = true
+        report(label .. " tooltip", reason)
+    end
+    button.UpdateTooltip = update
+    button:HookScript("OnEnter", update)
+    button:HookScript("OnLeave", function() GameTooltip:Hide() end)
+end
+
+local function actionTooltip(button) return GameTooltip:SetAction(button.action) end
+
 local function createButton(bar, index, opts)
     local button = CreateFrame("Button", bar:GetName() .. "Button" .. index, bar, "SecureActionButtonTemplate")
     button.action = bar.firstAction + index - 1
+    bars.AttachTooltip(button, "action", actionTooltip)
     -- A positive frame ID would make CalculateAction use the current page.
     button:SetID(0)
     button:SetAttribute("type", "action")

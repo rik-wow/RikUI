@@ -164,6 +164,24 @@ return function(check)
         check("empty slots display empty texture", main.buttons[2].empty.shown and not main.buttons[2].icon.shown)
         check("single count is omitted", bar2.buttons[1].count:GetText() == "")
 
+        GameTooltip.action, GameTooltip.shown = nil, false
+        env.runScript(button, "OnEnter")
+        check("hovering an action button shows its slot tooltip at the default anchor", GameTooltip.action == 1
+            and GameTooltip.owner == button and GameTooltip.anchorType == "ANCHOR_NONE" and GameTooltip.shown == true)
+        GameTooltip.action = nil
+        button:UpdateTooltip()
+        check("the owner refresh re-sets the action", GameTooltip.action == 1)
+        env.runScript(button, "OnLeave")
+        check("leaving hides the action tooltip", GameTooltip.shown == false)
+        local setAction = GameTooltip.SetAction
+        GameTooltip.SetAction = function() error("action tooltip unavailable") end
+        env.printed = {}
+        env.runScript(button, "OnEnter")
+        env.runScript(main.buttons[2], "OnEnter")
+        check("a failing action tooltip is reported once and contained", #env.printed == 1
+            and env.printed[1]:find("Bars action tooltip", 1, true) ~= nil)
+        GameTooltip.SetAction = setAction
+
         reads = {}
         actions[1] = { texture = 789, count = env.SECRET }
         env.fire("ACTIONBAR_SLOT_CHANGED", 1)

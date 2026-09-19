@@ -53,6 +53,9 @@ function stub.tooltip(name)
     tip.lines, tip.textures = {}, {}
     function tip:SetOwner(owner, anchor) self.owner, self.anchorType = owner, anchor end
     function tip:SetUnit(unit) self.unit, self.shown = unit, true; return true end
+    function tip:SetAction(slot) self.action, self.shown = slot, true; return true end
+    function tip:SetShapeshift(index) self.shapeshift, self.shown = index, true; return true end
+    function tip:SetPetAction(index) self.petAction, self.shown = index, true; return true end
     function tip:GetOwner() return self.owner end
     function tip:ClearAllPoints() self.point = nil end
     function tip:SetPoint(...) self.point = { ... } end

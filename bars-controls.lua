@@ -36,9 +36,14 @@ local function autoCastArt(button)
     button.autoCastEnabled:SetSize(5, 5)
 end
 
+local function stanceTooltip(button) return GameTooltip:SetShapeshift(button.index) end
+local function petTooltip(button) return GameTooltip:SetPetAction(button.index) end
+
 local function createButton(bar, index, kind)
     local button = CreateFrame("Button", bar:GetName() .. "Button" .. index, bar, "SecureActionButtonTemplate")
     button.index = index
+    if kind == "pet" then bars.AttachTooltip(button, "pet", petTooltip)
+    else bars.AttachTooltip(button, "stance", stanceTooltip) end
     button:SetID(0)
     button:SetAttribute("type1", kind)
     if kind == "pet" then button:SetAttribute("action", index) end

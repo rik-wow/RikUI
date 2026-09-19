@@ -71,6 +71,15 @@ An alpha animation fades it out in 0.2 seconds. Combat reveals it immediately
 and combat exit reevaluates hover. No OnUpdate or restricted secure snippets
 are installed.
 
+Hovering any action, stance or pet button shows its tooltip the way the stock
+bars did: `Bars.AttachTooltip(button, label, setter)` asks for the default
+anchor (so the [tooltip module](tooltip.md) places and skins it) and runs
+`GameTooltip:SetAction(slot)`, `SetShapeshift(index)` or
+`SetPetAction(index)` under `pcall`; the button's `UpdateTooltip` method lets
+`GameTooltip_OnUpdate` refresh it while hovered and `OnLeave` hides it. A
+failing setter prints one `Bars <label> tooltip` line. The hooks sit beside
+the fade hooks and are not protected, so they work in combat.
+
 ## Shared media and flat skin
 
 `media.lua` exports `RikUI.Media.font`, `statusbar`, `border`,
