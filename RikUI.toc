@@ -35,6 +35,8 @@ bars-controls.lua
 bars-stock.lua
 unitframes.lua
 unitframes-status.lua
+castbars.lua
+castbars-status.lua
 auras.lua
 minimap.lua
 chat.lua

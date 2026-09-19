@@ -151,7 +151,10 @@ frames follow this exactly: `SecureUnitButtonTemplate` buttons, values fed only
 through `Secret.Apply` into bar and text sinks, class/reaction/power colours
 and the threat border guarded by `issecretvalue` with neutral fallbacks, and
 target/ToT/pet visibility through `RegisterStateDriver`. See
-[unit frames](docs/unitframes.md).
+[unit frames](docs/unitframes.md). Castbars follow the same rule with the
+client's cast duration object fed into `StatusBar:SetTimerDuration` and a
+duration text binding for the time, so no cast time is subtracted in Lua; see
+[castbars](docs/castbars.md).
 
 Consequence for action buttons, decided: **we draw button state ourselves and do
 not inherit `ActionBarButtonTemplate`.** Reason: the two things you branch on,
@@ -466,7 +469,8 @@ load order:
 | `bindings.lua` | the global key scheme, clear/apply, hotkey label formatting ("s1", "M4") |
 | `macros.lua`, `macros-undo.lua` | create/edit/find macros, per-character first; scoped undo identities and restoration |
 | `bars.lua` | overlay action bars, stance/pet bars, ghost layer, button skin, hide Blizzard bars |
-| `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), party, raid; castbars; class colours; threat |
+| `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), party, raid; class colours; threat |
+| `castbars.lua`, `castbars-status.lua` | player and target castbars (delivered): duration-object fill, shield, interrupt state |
 | `auras.lua` | player buffs/debuffs with timers, target debuffs on the target frame |
 | `minimap.lua` | square minimap, clock, coords, tracking, zone text, hide Blizzard buttons |
 | `chat.lua` | font, timestamps, copy button, URL detection, hide the side buttons |
@@ -500,7 +504,8 @@ StanceBar and PetActionBar are parked only once the RikUI stance and pet rows
 exist. The RikUI pet row has no right-click autocast toggle yet, so
 /rik stockbars show remains the route to native autocast until it does. The unit
 frame module parks PlayerFrame, TargetFrame, PetFrame and TargetFrameToT with
-`keepEvents` false once its four replacements exist. Other modules will hide
+`keepEvents` false once its four replacements exist, and the castbar module
+parks PlayerCastingBarFrame the same way once both bars exist. Other modules will hide
 PartyFrame, BuffFrame, DebuffFrame, MinimapCluster, chat side buttons and
 container frames through the same helper, only when replaced, passing
 `keepEvents` false where no native handler must keep running.
@@ -596,6 +601,7 @@ RikUI/
   macros.lua
   bars.lua
   unitframes.lua
+  castbars.lua
   auras.lua
   minimap.lua
   chat.lua

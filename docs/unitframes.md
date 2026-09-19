@@ -35,11 +35,14 @@ uses and which was verified in combat on build 69913.
 ## Layout
 
 The frames register with the [shared layout](layout.md) under the keys
-`player`, `target`, `tot` and `pet`, so `/rik move`, `/rik move reset`,
+`player`, `target`, `tot` and `petframe` (`pet` belongs to the pet action
+row), so `/rik move`, `/rik move reset`,
 `/rik scale`, Apply and Undo include them. Defaults sit centre-bottom above
 the bar stack and the stance/pet rows: player left (`x=-140, y=300`), target
-right (`x=140, y=300`), ToT to the right of the target (`x=313`), pet under
-the player (`y=250`). The large frames are 220x44 and the small ones 110x30.
+right (`x=140, y=300`), ToT to the right of the target (`x=313`), pet to the
+left of the player (`x=-313`). The large frames are 220x44 and the small ones
+110x30. The [castbars](castbars.md) sit directly under the player and target
+frames.
 
 ## Secret rules
 

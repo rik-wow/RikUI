@@ -27,6 +27,10 @@ local KNOWN_EVENTS = {
     UNIT_NAME_UPDATE = true, UNIT_LEVEL = true, UNIT_FACTION = true, UNIT_CONNECTION = true,
     UNIT_CLASSIFICATION_CHANGED = true, UNIT_THREAT_SITUATION_UPDATE = true, UNIT_PET = true,
     UNIT_TARGET = true, PLAYER_TARGET_CHANGED = true,
+    UNIT_SPELLCAST_START = true, UNIT_SPELLCAST_STOP = true, UNIT_SPELLCAST_FAILED = true,
+    UNIT_SPELLCAST_INTERRUPTED = true, UNIT_SPELLCAST_DELAYED = true, UNIT_SPELLCAST_CHANNEL_START = true,
+    UNIT_SPELLCAST_CHANNEL_UPDATE = true, UNIT_SPELLCAST_CHANNEL_STOP = true,
+    UNIT_SPELLCAST_INTERRUPTIBLE = true, UNIT_SPELLCAST_NOT_INTERRUPTIBLE = true,
 }
 env.KNOWN_EVENTS = KNOWN_EVENTS
 
@@ -123,7 +127,12 @@ loadstring_untainted = nil
 date = os.date
 time = os.time
 SlashCmdList = {}
-Enum = { PowerType = { Rage = 1, Mana = 0 } }
+Enum = {
+    PowerType = { Rage = 1, Mana = 0 },
+    StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 1 },
+    StatusBarTimerDirection = { ElapsedTime = 0, RemainingTime = 1 },
+    SecondsFormatterInterval = { Seconds = 0, Minutes = 1, Hours = 2, Days = 3 },
+}
 GameFontNormal = "GameFontNormal"
 GameFontNormalSmall = "GameFontNormalSmall"
 
@@ -149,6 +158,10 @@ function UnitReaction() return 5 end
 function UnitIsPlayer(unit) return unit == "player" end
 function UnitThreatSituation() return nil end
 function GetThreatStatusColor() return 1, 0, 0 end
+function UnitCastingInfo() end
+function UnitChannelInfo() end
+function UnitCastingDuration() end
+function UnitChannelDuration() end
 function UnitIsConnected() return true end
 function UnitIsTapDenied() return false end
 function GetRealmName() return "Probe Realm" end
@@ -232,5 +245,8 @@ C_Secrets = { ShouldAurasBeSecret = function() return true end }
 C_ActionBar = { GetActionCooldownDuration = function() end }
 C_Item = { GetItemInfo = function() end }
 C_AddOns = { GetAddOnMetadata = function() return "dev" end }
+local function noopObject() return setmetatable({}, { __index = function() return function() end end }) end
+C_DurationUtil = { CreateDuration = noopObject, CreateDurationTextBinding = noopObject }
+C_StringUtil = { CreateSecondsFormatter = noopObject }
 
 return env

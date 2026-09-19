@@ -12,14 +12,16 @@ local UNITS = {
         visibility = "[@target,exists] show; hide" },
     { key = "tot", unit = "targettarget", size = SMALL, threat = { "player", "targettarget" },
         visibility = "[@targettarget,exists] show; hide", poll = true },
-    { key = "pet", unit = "pet", size = SMALL, threat = { "pet" }, visibility = "[@pet,exists] show; hide" },
+    -- "pet" is the pet action row's layout key, so the frame uses its own.
+    { key = "petframe", unit = "pet", size = SMALL, threat = { "pet" }, visibility = "[@pet,exists] show; hide" },
 }
--- Centre-bottom above the bar stack and the companion rows (which end at y=232).
+-- Centre-bottom above the bar stack and the companion rows (which end at y=232);
+-- the castbars sit directly under the player and target frames.
 local DEFAULTS = {
     player = { point = "BOTTOM", relativePoint = "BOTTOM", x = -140, y = 300 },
     target = { point = "BOTTOM", relativePoint = "BOTTOM", x = 140, y = 300 },
     tot = { point = "BOTTOM", relativePoint = "BOTTOM", x = 313, y = 300 },
-    pet = { point = "BOTTOM", relativePoint = "BOTTOM", x = -140, y = 250 },
+    petframe = { point = "BOTTOM", relativePoint = "BOTTOM", x = -313, y = 300 },
 }
 local STOCK_FRAMES = { "PlayerFrame", "TargetFrame", "PetFrame", "TargetFrameToT" }
 local EDGE, THREAT_EDGE, TEXT_INSET, POLL_SECONDS = 1, 2, 4, 0.5
@@ -48,6 +50,7 @@ local function edges(frame, thickness, layer)
         edge(frame, "TOPRIGHT", "BOTTOMRIGHT", false, thickness, layer),
     }
 end
+unitframes.Edges = edges
 
 local function text(parent, role, point, x)
     local region = parent:CreateFontString(nil, "OVERLAY")

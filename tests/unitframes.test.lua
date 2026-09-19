@@ -132,7 +132,7 @@ return function(check)
         fixture()
         local module = load()
         local frames = module.Frames
-        local player, target, tot, pet = frames.player, frames.target, frames.tot, frames.pet
+        local player, target, tot, pet = frames.player, frames.target, frames.tot, frames.petframe
         check("four secure unit buttons exist", player and target and tot and pet
             and player.template == "SecureUnitButtonTemplate" and pet.template == "SecureUnitButtonTemplate")
         check("left click targets and right click toggles the unit menu", player:GetAttribute("*type1") == "target"
@@ -141,11 +141,13 @@ return function(check)
             and table.concat(player.clicks, ",") == "AnyUp")
         local groups = RikUI.Layout.Groups
         check("frames register with the shared layout", groups.player and groups.player.frames[1] == player
-            and groups.target.frames[1] == target and groups.tot.frames[1] == tot and groups.pet.frames[1] == pet)
-        local dp, dt, dtot, dpet = groups.player.defaults, groups.target.defaults, groups.tot.defaults, groups.pet.defaults
-        check("defaults sit centre-bottom above the bars: player left, target right, ToT beyond target, pet under player",
+            and groups.target.frames[1] == target and groups.tot.frames[1] == tot and groups.petframe.frames[1] == pet)
+        check("the pet frame does not share the pet action row's layout key", groups.pet == nil
+            and RikUI.Setup.DefaultPositions.pet.y ~= groups.petframe.defaults.y)
+        local dp, dt, dtot, dpet = groups.player.defaults, groups.target.defaults, groups.tot.defaults, groups.petframe.defaults
+        check("defaults sit centre-bottom above the bars: player left, target right, ToT beyond target, pet beyond player",
             dp.point == "BOTTOM" and dp.x < 0 and dt.x > 0 and dp.y == dt.y and dtot.x > dt.x and dtot.y == dt.y
-            and dpet.x == dp.x and dpet.y < dp.y and dpet.y > 232)
+            and dpet.x < dp.x and dpet.y == dp.y and dpet.x == -dtot.x)
         check("setup layout step learns the unit frame keys", RikUI.Setup.DefaultPositions.tot ~= nil)
         check("secret player health reaches the bar and text unchanged", player.health.value == env.SECRET
             and player.health.min == 0 and player.health.max == 100 and player.health.text.format == "%d / %d"

@@ -26,11 +26,20 @@ secret). Left click targets, right click opens the unit menu. The Blizzard
 frames for those units are hidden; disable the `unitframes` module and reload
 to restore them. See [unit frames](docs/unitframes.md).
 
+Castbars sit under the player and target frames with the spell icon, name
+and remaining time; casts fill gold, channels drain blue, interrupted casts
+flash red, and the target bar shows a shield on the icon while a cast cannot
+be interrupted. The fill comes from the client's duration object, so it works
+even when the target's cast times are secret. The Blizzard casting bar is
+hidden; disable the `castbars` module to restore it. See
+[castbars](docs/castbars.md).
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
-See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md), [setup](docs/setup.md),
+See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
+[castbars](docs/castbars.md), [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.
