@@ -89,7 +89,7 @@ end
 
 local function highestRank(entry, known)
     for rank = #entry.ranks, 1, -1 do
-        if known[rank] then return known[rank] end
+        if known[rank] then return known[rank], rank end
     end
 end
 
@@ -98,7 +98,8 @@ function spells.HighestKnownRank(name)
     if not entry then return nil end
     local known, reason = knownRanks(entry)
     if not known then return nil, reason end
-    return highestRank(entry, known)
+    local id, rank = highestRank(entry, known)
+    return id, nil, rank
 end
 
 function spells.Icon(name)

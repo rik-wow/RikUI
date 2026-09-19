@@ -182,6 +182,9 @@ check("Warrior preset test suite completes", presetOk, presetErr)
 local setupOk, setupErr = pcall(function() dofile("tests/setup.test.lua")(check) end)
 check("Setup test suite completes", setupOk, setupErr)
 
+local levelupOk, levelupErr = pcall(function() dofile("tests/setup-levelup.test.lua")(check) end)
+check("Level-up test suite completes", levelupOk, levelupErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))

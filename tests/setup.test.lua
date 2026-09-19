@@ -19,7 +19,7 @@ return function(check)
         RikUIDB, RikUICharDB = nil, nil
         for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua",
             "presets/warrior.lua", "setup.lua", "setup-actions.lua", "setup-apply.lua",
-            "macros.lua", "bindings.lua", "macros-undo.lua", "setup-snapshot.lua", "setup-undo.lua" }) do
+            "macros.lua", "bindings.lua", "macros-undo.lua", "setup-snapshot.lua", "setup-undo.lua", "setup-levelup.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         core = RikUI
@@ -589,7 +589,7 @@ return function(check)
         env.frames = {}
         for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua", "presets/warrior.lua",
             "setup.lua", "setup-actions.lua", "setup-apply.lua", "macros.lua", "bindings.lua", "macros-undo.lua",
-            "setup-snapshot.lua", "setup-undo.lua" }) do assert(loadfile(file))("RikUI", {}) end
+            "setup-snapshot.lua", "setup-undo.lua", "setup-levelup.lua" }) do assert(loadfile(file))("RikUI", {}) end
         RikUIDB, RikUICharDB = savedAccount, savedCharacter
         env.fire("ADDON_LOADED", "RikUI")
         core, setup = RikUI, RikUI.Setup
@@ -597,6 +597,35 @@ return function(check)
         check("saved snapshot survives addon reload and restores", undone.status == "undone"
             and actions[1].id == 222 and RikUICharDB.undo == nil)
     end
+
+    setup = fresh()
+    actions[1] = { kind = "item", id = 6948 }
+    setup.Apply("WARRIOR", nil, only("bars"))
+    env.inCombat = true
+    env.fire("LEARNED_SPELL_IN_SKILL_LINE", 284)
+    local pendingUndo = setup.Undo()
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    env.fire("SPELLS_CHANGED")
+    check("queued learned event cannot refill slots during or after first Apply Undo",
+        pendingUndo.status == "undone" and actions[1].kind == "item" and actions[1].id == 6948
+        and RikUICharDB.applied == nil)
+
+    setup = fresh()
+    setup.Apply("WARRIOR", nil, only("bars"))
+    local restoreSlot = setup.RestoreSlot
+    local rejectOnce = true
+    setup.RestoreSlot = function(slot, action)
+        if slot == 1 and rejectOnce then rejectOnce = false; return nil, "retry me" end
+        return restoreSlot(slot, action)
+    end
+    local failedUndo = setup.Undo()
+    env.fire("SPELLS_CHANGED")
+    check("resync preserves completed entries after partial Undo failure",
+        failedUndo.status == "failed" and actions[73] == nil)
+    local retriedUndo = setup.Undo()
+    check("retry Undo retains originally empty slots after learned events",
+        retriedUndo.status == "undone" and actions[73] == nil)
 
     for _, name in ipairs(globals) do _G[name] = savedGlobals[name] end
 end

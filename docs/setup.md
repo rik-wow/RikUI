@@ -84,6 +84,54 @@ These are saved positions for future RikUI frames; this step does not move
 Blizzard frames or change Edit Mode. Existing Blizzard extra bars must already
 be enabled if the user wants to see those stock buttons.
 
+## Keeping spell slots current
+
+After a successful Apply for the player's class, RikUI listens for
+`LEARNED_SPELL_IN_SKILL_LINE` and `SPELLS_CHANGED` through the core's guarded
+event registration. A recognized learned ID selects its catalogue spell family;
+the payload-free fallback (or an unrecognized/missing learned ID) scans every
+spell slot in the applied role's resolved preset, including stance pages.
+
+`/rik resync` explicitly runs that same full scan. `Setup.Resync()` returns a
+result with `status` (`queued`, `running`, `complete`, `cancelled`, or `failed`)
+and `placed`, `edited`, `skipped` counts, or `nil, reason` when refused.
+The command prints a completion summary; per-slot skips include the spell,
+native slot and reason. Repeated automatic events suppress identical skip lines.
+
+Only empty slots and lower catalogue ranks of the same spell are written.
+The highest known runtime spell ID is used; rank order comes from the catalogue,
+not numeric ID or localized name order. Equal/higher ranks stay in place.
+Different spells, macros, items and other occupied action kinds stay untouched.
+Unlearned spells never clear a slot. Preset macro/item entries are not processed.
+An occupied cursor is preserved; release it and use `/rik resync` to retry.
+API/lookup failures report diagnostics and can be retried by a later event or
+the command. A completed scan may still contain reported skips.
+
+Combat bursts coalesce into one queued pass. Rank, slot contents and the applied
+marker are checked when it runs; combat starting during a pass pauses it again.
+An absent/wrong-class applied marker makes automatic handlers inert. Apply and
+Undo suspend reconciliation. A failed or reloaded Undo with recorded progress
+also suspends it until Undo finishes or a new Apply replaces that checkpoint,
+so completed restoration steps cannot be refilled before an Undo retry.
+Resync does not replace the Apply snapshot or alter the applied marker.
+Apply step flags such as `bars=false` apply to that invocation; they are not
+persistent opt-outs from subsequent automatic spell placement.
+
+Reviewed 2026-09-18 against Blizzard's generated
+[Classic Era spellbook API](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic_era/Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua):
+the learned event supplies a spell ID, while `SPELLS_CHANGED` has no payload.
+The definitions provide no book-readiness or event-order guarantee. The existing
+69913 probe confirms event registration and a broad-event observation; trainer
+delivery/payload of the learned event has not yet been observed on that build.
+
+For a beta smoke test, Apply, leave one designated learned-spell slot empty,
+put unrelated spell/macro/item actions in other designated slots, and train a
+new spell/rank. Check the empty slot and older ranks update, other actions stay
+intact, and each conflict prints a clear line. Repeat `/rik resync`, then request
+it during combat and verify placement only after combat. Check after reload,
+with a held cursor, and after Undo. These live checks remain unperformed;
+the automated suite covers those state transitions through simulated APIs.
+
 ## Snapshot and Undo
 
 `Setup.Snapshot(class, role, opts)` returns a detached, read-only preview or

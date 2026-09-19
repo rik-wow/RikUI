@@ -19,6 +19,7 @@ macros.lua
 macros-undo.lua
 setup-snapshot.lua
 setup-undo.lua
+setup-levelup.lua
 bars.lua
 unitframes.lua
 auras.lua

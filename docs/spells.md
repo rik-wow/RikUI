@@ -6,7 +6,9 @@
 - `SpellData[name]` uses exact English source names. Each entry has a contiguous
   `ranks` array of spell IDs, numeric `icon` fileID and `level` for first
   availability. Unranked abilities occupy `ranks[1]`. Treat the table as read-only.
-- `Spells.HighestKnownRank(name)` returns the highest learned rank's spell ID.
+- `Spells.HighestKnownRank(name)` returns `spellID, nil, rankIndex` on success.
+  The third value is the catalogue rank index, including when the returned ID
+  is a runtime override. Existing callers can continue using just the first ID.
   It scans the player spellbook each time, so training and unlearning need no
   cache invalidation. Matching uses IDs, independent of localized spell names,
   rank labels, numeric ID order or spellbook slot order.
