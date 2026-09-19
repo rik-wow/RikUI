@@ -1,7 +1,8 @@
 -- Plate layout and the health bar. Blizzard calls SetValue without interpolation, so each plate
 -- gets an own StatusBar over Blizzard's bar, fed reader-to-sink with the client's easing; Blizzard's
--- fill is faded. A child frame draws above its parent's regions, which is why the name and
--- Blizzard's health text move onto the overlay and every RikUI region lives on it.
+-- fill is faded. A child frame draws above its parent's regions, which is why Blizzard's health
+-- text moves onto the overlay and the bar's RikUI regions live on it. The name sits in its own
+-- plaque on top of the bar.
 -- UpdateAnchors resets fonts, anchors, sizes and atlases on each layout pass; Apply runs after it.
 local core, media, unitframes = RikUI, RikUI.Media, RikUI.UnitFrames
 local nameplates = core.Nameplates
@@ -9,7 +10,8 @@ local skin = {}
 nameplates.Skin = skin
 
 local isRegion, font, flat = nameplates.IsRegion, nameplates.Font, nameplates.Flat
-local BAR_HEIGHT, TEXT_INSET, LEVEL_GAP, MARKER_GAP, PERCENT_WIDTH = 14, 4, 2, 16, 34
+local BAR_HEIGHT, LEVEL_GAP, MARKER_GAP = 14, 2, 16
+local NAME_GAP, PLAQUE_PAD_X, PLAQUE_PAD_Y = 3, 5, 2
 local BACKING, LINE, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1, 1 }
 local LEVEL_ART = { "playerLevelDiffIcon", "selectedBorder" }
 local CAST_ART = { "Border", "BorderShield" }
@@ -75,6 +77,28 @@ local function createLevel(parts, level)
     parts.levelBorder = nameplates.Outline(level, parts.levelBox, LINE)
 end
 
+-- The name's own box: same backing and edge as the bar and the level box, sized to the text.
+-- Blizzard hides the name on some plates, and the box follows it.
+local function createPlaque(parts, frame)
+    local name = frame.name
+    if not isRegion(name) then return end
+    parts.plaque = nameplates.Block(frame, "BACKGROUND", BACKING)
+    parts.plaqueBorder = nameplates.Outline(frame, parts.plaque, LINE)
+    local function sync() skin.SyncPlaque(frame) end
+    for _, method in ipairs({ "SetShown", "Show", "Hide" }) do
+        if type(name[method]) == "function" then hooksecurefunc(name, method, sync) end
+    end
+end
+
+function skin.SyncPlaque(frame)
+    local parts = nameplates.Parts[frame]
+    if not parts or not parts.plaque then return end
+    local nameOnly = type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true
+    local shown = not nameOnly and frame.name:IsShown() == true
+    parts.plaque:SetShown(shown)
+    for _, line in ipairs(parts.plaqueBorder) do line:SetShown(shown) end
+end
+
 local function createCast(parts, castBar)
     if not isRegion(castBar) then return end
     parts.castBorder = nameplates.Outline(castBar, castBar, LINE)
@@ -87,6 +111,7 @@ function skin.Ensure(frame)
     nameplates.Parts[frame] = parts
     parts.fade = tween(frame, 0, 1, FADE_SECONDS)
     createLevel(parts, frame.PlayerLevelDiffFrame)
+    createPlaque(parts, frame)
     createCast(parts, isRegion(frame.CastBarsContainer) and frame.CastBarsContainer.castBar or nil)
     nameplates.Target.Build(frame, parts)
     hooksecurefunc(frame, "UpdateAnchors", skin.Apply)
@@ -106,8 +131,7 @@ local function applyBar(frame, parts, size)
 end
 
 -- TextStatusBar puts the percent in Text, LeftText or RightText depending on the display mode,
--- so all three are pinned to the right end and the name stops short of a fixed percent width.
--- An anchor to an empty font string has no rect to hold on to, which let the name run under it.
+-- so all three are centred in the bar; only one is filled at a time.
 local function applyHealthText(bar, own)
     for _, key in ipairs({ "Text", "LeftText", "RightText" }) do
         local region = bar[key]
@@ -115,26 +139,28 @@ local function applyHealthText(bar, own)
             region:SetParent(own)
             font(region, "small")
             region:ClearAllPoints()
-            region:SetPoint("RIGHT", own, "RIGHT", -TEXT_INSET, 0)
+            region:SetPoint("CENTER", own, "CENTER", 0, 0)
         end
     end
 end
 
--- Name left, percent right, both inside the bar. A name-only plate hides its bar, so its name
--- goes back to the unit frame and keeps Blizzard's anchors.
-local function applyText(frame, parts)
-    local bar, own, name = frame.HealthBarsContainer.healthBar, parts.bar, frame.name
-    applyHealthText(bar, own)
+-- Percent inside the bar, name in its plaque on top. One anchor and no width lets the name take
+-- whatever length it has. A name-only plate keeps Blizzard's name placement and gets no plaque.
+local function applyText(frame, parts, size)
+    local name = frame.name
+    applyHealthText(frame.HealthBarsContainer.healthBar, parts.bar)
     if not isRegion(name) then return end
     font(name, "small")
-    local nameOnly = type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true
-    name:SetParent(nameOnly and frame or own)
-    if nameOnly then return end
+    skin.SyncPlaque(frame)
+    if type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true then return end
     name:ClearAllPoints()
-    name:SetJustifyH("LEFT")
-    name:SetWordWrap(false)
-    name:SetPoint("LEFT", own, "LEFT", TEXT_INSET, 0)
-    name:SetPoint("RIGHT", own, "RIGHT", -TEXT_INSET - PERCENT_WIDTH, 0)
+    name:SetJustifyH("CENTER")
+    name:SetPoint("BOTTOM", frame.HealthBarsContainer, "TOP", 0, NAME_GAP)
+    if not parts.plaque then return end
+    parts.plaque:ClearAllPoints()
+    parts.plaque:SetPoint("TOPLEFT", name, "TOPLEFT", -PLAQUE_PAD_X, PLAQUE_PAD_Y)
+    parts.plaque:SetPoint("BOTTOMRIGHT", name, "BOTTOMRIGHT", PLAQUE_PAD_X, -PLAQUE_PAD_Y)
+    nameplates.Resize(parts.plaqueBorder, size)
 end
 
 -- The box takes Blizzard's width for the badge and the bar's exact height, outer edge included.
@@ -178,7 +204,7 @@ function skin.Apply(frame)
     if not parts then return end
     local size = nameplates.Pixel(parts.bar)
     applyBar(frame, parts, size)
-    applyText(frame, parts)
+    applyText(frame, parts, size)
     applyLevel(frame, parts, size)
     applyCast(frame, parts, size)
     nameplates.Target.Resize(frame, parts, size)

@@ -90,8 +90,9 @@ local function createContainer(frame, unit)
         containerUnavailable = true
         return nil
     end
-    -- Above the bar, which now holds the name: anything under the plate covers the creature.
-    container:SetPoint("BOTTOM", frame.HealthBarsContainer, "TOP", 0, AURA_GAP)
+    -- Above the name plaque: anything under the plate covers the creature.
+    local parts = nameplates.Parts[frame]
+    container:SetPoint("BOTTOM", parts and parts.plaque or frame.HealthBarsContainer, "TOP", 0, AURA_GAP)
     nameplates.Containers[frame] = container
     hideStockDebuffs(frame)
     return container

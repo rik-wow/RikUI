@@ -79,7 +79,7 @@ The group roll frames get the same flat skin with need, greed and pass left
 alone. See [loot](docs/loot.md).
 
 Nameplates keep Blizzard's plates under a new layout: a chunky flat bar with
-the name and health percent inside, a level box, an elite or rare marker and
+the health percent inside and the name in its own plaque on top, a level box, an elite or rare marker and
 your own debuffs above. Your target grows while the others dim, and gets side
 arrows and a pulsing line; a red line marks mobs that are on you. Health eases
 instead of jumping and flashes on a hit. See [nameplates](docs/nameplates.md).

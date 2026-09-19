@@ -95,7 +95,8 @@ return function(check)
         bar.selectedBorder = toggled(bar:CreateTexture())
         bar.Text, bar.LeftText, bar.RightText = bar:CreateFontString(), bar:CreateFontString(), bar:CreateFontString()
         frame.HealthBarsContainer.healthBar = bar
-        frame.name = frame:CreateFontString()
+        frame.name = toggled(frame:CreateFontString())
+        frame.name.shown = true
         local level = CreateFrame("Frame", nil, frame)
         level.playerLevelDiffText, level.playerLevelDiffIcon = level:CreateFontString(), level:CreateTexture()
         level.selectedBorder = level:CreateTexture()
@@ -176,12 +177,22 @@ return function(check)
         check("health reaches the own bar as a secret without easing on the first fill", own.value == 42
             and own.range[2] == 100 and own.easing == Enum.StatusBarInterpolation.Immediate)
         check("the bar takes the unit's reaction or class colour", type(own.barColor) == "table" and #own.barColor == 3)
-        check("the name sits left inside the bar in the RikUI font", frame.name.parent == own
-            and frame.name.fontPath == media.font and frame.name.justify == "LEFT"
-            and frame.name.points[1][1] == "LEFT" and frame.name.points[1][2] == own
-            and frame.name.points[2][2] == own and frame.name.points[2][4] < -30)
-        check("all three of Blizzard's health texts are pinned to the right inside the bar", bar.LeftText.parent == own
-            and bar.LeftText.fontPath == media.font and bar.LeftText.points[1][1] == "RIGHT"
+        check("the name floats centred above the bar in the RikUI font with no width limit",
+            rawget(frame.name, "parent") == frame and frame.name.fontPath == media.font and frame.name.justify == "CENTER"
+            and #frame.name.points == 1 and frame.name.points[1][1] == "BOTTOM"
+            and frame.name.points[1][2] == frame.HealthBarsContainer and frame.name.points[1][3] == "TOP")
+        check("the name lives in a flat bordered plaque sized to the text", parts.plaque.shown == true
+            and parts.plaque.texture == "Interface\\BUTTONS\\WHITE8X8" and parts.plaque.color[1] < 0.2
+            and parts.plaque.points[1][2] == frame.name and parts.plaque.points[1][4] < 0
+            and parts.plaque.points[2][2] == frame.name and #parts.plaqueBorder == 4
+            and parts.plaqueBorder[1].height == 0.5 and parts.plaqueBorder[1].shown == true)
+        frame.name:Hide()
+        check("the plaque hides when Blizzard hides the name", parts.plaque.shown == false
+            and parts.plaqueBorder[3].shown == false)
+        frame.name:SetShown(true)
+        check("and returns with it", parts.plaque.shown == true)
+        check("all three of Blizzard's health texts are centred inside the bar", bar.LeftText.parent == own
+            and bar.LeftText.fontPath == media.font and bar.LeftText.points[1][1] == "CENTER"
             and bar.LeftText.points[1][2] == own and bar.RightText.points[1][2] == own
             and bar.Text.points[1][2] == own and #bar.Text.points == 1)
         check("an elite gets a gold marker left of the bar", own.marker.text == "+" and own.marker.color[2] > 0.8
@@ -245,14 +256,15 @@ return function(check)
             and bar.bgTexture.texture == "Interface\\BUTTONS\\WHITE8X8" and frame.name.fontPath == media.font)
         frame.nameOnly = true
         frame:UpdateAnchors()
-        check("a name-only plate gets its name back on the unit frame", frame.name.parent == frame)
+        check("a name-only plate gets no plaque", parts.plaque.shown == false)
         frame.nameOnly = false
         frame:UpdateAnchors()
+        check("the plaque returns when the plate shows its bar again", parts.plaque.shown == true)
 
         local container = module.Containers[frame]
-        check("own debuffs sit in a container above the bar", container ~= nil and container.unit == "nameplate1"
+        check("own debuffs sit in a container above the name plaque", container ~= nil and container.unit == "nameplate1"
             and container.groups.owndebuffs.filter == "HARMFUL|PLAYER" and container.points[1][1] == "BOTTOM"
-            and container.points[1][2] == frame.HealthBarsContainer and container.points[1][3] == "TOP")
+            and container.points[1][2] == parts.plaque and container.points[1][3] == "TOP")
         local stockList = frame.AurasFrame.DebuffListFrame
         check("Blizzard's debuff list is hidden once the container exists", stockList:IsShown() == false)
         stockList:SetShown(true)
@@ -276,8 +288,7 @@ return function(check)
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate4")
         local bareParts = module.Parts[bare.UnitFrame]
         check("a plate without level, cast, aura, aggro or percent regions is still laid out", bareParts ~= nil
-            and bareParts.arrowRight.points[1][2] == bareParts.bar and bare.UnitFrame.name.points[2][2] == bareParts.bar
-            and #env.printed == 0)
+            and bareParts.arrowRight.points[1][2] == bareParts.bar and bareParts.plaque ~= nil and #env.printed == 0)
 
         env.printed = {}
         SlashCmdList.RIKUI("debug")

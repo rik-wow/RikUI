@@ -9,15 +9,17 @@ the target and threat indicators. Disable the `nameplates` module in
 
 ## What you see
 
-A 14px flat bar on a dark backing with a one-pixel edge. The unit's name sits
-left inside the bar and the health percent right, both in the RikUI font. The
-bar is coloured by reaction, or by class for players, and goes grey for tapped
+A 14px flat bar on a dark backing with a one-pixel edge, with the health
+percent centred inside it. The unit's name sits in its own plaque on top of the
+bar: a flat dark box with the same one-pixel edge, sized to the text and
+centred, so a long name is never cut and the plaque, bar and level box read as
+one piece. Both texts use the RikUI font. The bar is coloured by reaction, or by class for players, and goes grey for tapped
 and disconnected units. The level is a flat dark box flush with the bar's right
 end, exactly as tall as the bar, with the number in Blizzard's difficulty
 colour and the skull kept for high-level units. Left of the bar, outside the target arrow, a small glyph
 marks special units: gold `+` elite, red `B` boss, silver `R` rare and `R+`
 rare elite. Your own debuffs sit in a centred row of up to six 18px icons
-above the bar, with countdown numbers and dispel-coloured borders like the
+above the name plaque, with countdown numbers and dispel-coloured borders like the
 [target aura row](auras.md).
 
 Your target and focus get a `>` and `<` arrow either side of the plate and a
@@ -59,8 +61,8 @@ combat is not dependable. Nothing here reads or compares either.
   secret values. The module switches it on with the `CurrentHealthPercent`
   bit of `nameplateInfoDisplay` and moves the font strings onto the own bar.
   `TextStatusBar` uses `Text`, `LeftText` or `RightText` depending on the
-  display mode, so all three are pinned to the bar's right end and the name
-  stops 34px short of it with word wrap off.
+  display mode, so all three are centred in the bar; only one is filled at a
+  time.
 - Target and focus. `NamePlateHealthBarMixin:UpdateSelectionBorder` decides
   them in secure code and shows `healthBar.selectedBorder`. That art is faded
   and its `SetShown` and `Hide` are post-hooked; arrows and accent line copy
@@ -87,15 +89,21 @@ combat is not dependable. Nothing here reads or compares either.
 `NamePlateUnitFrameMixin:UpdateAnchors` resets the bar height, the background
 atlas, the name's font height and every anchor on each layout pass. Each unit
 frame's `UpdateAnchors` is post-hooked once, and `Skin.Apply` then sets the
-14px height, the backing, the fonts, the name and percent anchors, the level
+14px height, the backing, the fonts, the name, plaque and percent anchors, the level
 box, the cast bar frame and the pixel sizes again. Lines are sized with
 `PixelUtil.GetNearestPixelSize` against the own bar's effective scale and have
 pixel snapping off, because plates move in fractions of a pixel.
 
 A child frame draws above its parent's regions, so the own bar would cover
-Blizzard's name and health text. Those font strings are re-parented to the own
-bar, and every RikUI region is created on it. A name-only plate hides its bar,
-so its name goes back to the unit frame.
+Blizzard's health text. Those font strings are re-parented to the own bar, and
+the bar's RikUI regions are created on it.
+
+The name stays Blizzard's font string on the unit frame. It gets one anchor,
+`BOTTOM` to the top of the bar, and no width, so it takes the length of the
+text. The plaque is a texture anchored to the name's corners with 5px and 2px
+of padding, plus the shared outline. Blizzard hides the name on some plates;
+the name's `SetShown`, `Show` and `Hide` are post-hooked and the plaque follows.
+A name-only plate keeps Blizzard's name placement and gets no plaque.
 
 ## Plates, pooling and combat
 
@@ -141,8 +149,9 @@ colouring, which would need threat values addon code cannot read.
 `UpdateAnchors` that restores the stock look, recorders for animation groups
 and a fake `C_CVar`. It proves: the three client settings written with the
 originals saved; the own bar, faded fill, 14px height and pixel backing;
-secret health reaching the bar with an immediate first fill; bar colour; name
-and percent placement and fonts; the elite marker, a classification change and
+secret health reaching the bar with an immediate first fill; bar colour; the
+name above the bar with one anchor, its plaque sized to the text and following
+the name's shown state; the centred percent texts; the elite marker, a classification change and
 a secret classification; the fade-in; the level box; eased health with a flash
 on `UNIT_HEALTH` and none on `UNIT_MAXHEALTH`; other and secret tokens
 ignored; arrows, accent line and pulse following `selectedBorder` without
@@ -161,8 +170,8 @@ whether the two target CVars exist on 69913, whether `SetValue` accepts the
 easing argument here, whether `UnitClassification` is readable for nameplate
 units in combat, and whether the hooks taint plate layout. Beta checklist:
 
-1. Fully restart the client (two new TOC entries). Target a mob: chunky bar,
-   name left, percent right, level box flush right, arrows and a pulsing line,
+1. Fully restart the client (two new TOC entries). Target a mob: chunky bar
+   with the percent centred, the name in its plaque on top, level box flush right, arrows and a pulsing line,
    the plate a little larger and the others dimmer.
 2. Hit the mob: the bar should ease down and flash. Let it hit you: a red line
    should appear over its bar.
