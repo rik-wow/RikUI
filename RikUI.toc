@@ -42,6 +42,7 @@ auras-button.lua
 auras-units.lua
 minimap.lua
 chat.lua
+chat-copy.lua
 bags.lua
 tooltip.lua
 tooltip-data.lua

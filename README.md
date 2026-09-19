@@ -62,13 +62,22 @@ buttons and day/night ring are hidden; the mail indicator sits inside the
 square. Disable the `minimap` module to get the round cluster back. See
 [minimap](docs/minimap.md).
 
+Chat keeps Blizzard's windows with the RikUI font, a flat edit box docked
+under the window, `HH:MM` timestamps and tabs that stay invisible until you
+hover the window. The button column, scroll bar and social buttons are
+hidden; the mouse wheel scrolls. The small button in a window's top-right
+corner opens its lines as selectable text, and web addresses in chat are
+links that open a box to copy from. Font size and timestamps are on the Chat
+options page. Disable the `chat` module to get the stock chat back. See
+[chat](docs/chat.md).
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

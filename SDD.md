@@ -483,7 +483,7 @@ load order:
 | `castbars.lua`, `castbars-status.lua` | player and target castbars (delivered): duration-object fill, shield, interrupt state |
 | `auras.lua`, `auras-button.lua`, `auras-units.lua` | player buffs/debuffs, weapon enchants, target and pet aura rows on Blizzard's CustomAuraContainer with our button skin and own-aura emphasis (delivered) |
 | `minimap.lua` | Blizzard's Minimap in a square RikUI holder with zone text, local clock and coords, wheel zoom and right-click tracking; cluster art parked, mail and queue frames kept (delivered) |
-| `chat.lua` | font, timestamps, copy button, URL detection, hide the side buttons |
+| `chat.lua`, `chat-copy.lua` | RikUI font at the profile size, flat docked edit box, timestamps, faded tabs, side buttons and scroll controls parked; per-window copy button and address links through the message filter registry and the `addon` link type (delivered) |
 | `bags.lua` | one-bag view with sort and search |
 | `tooltip.lua`, `tooltip-data.lua` | movable anchor, flat skin and font, class/reaction colours, Blizzard's GUID-watched health bar, item level and spell ID lines, hide in combat (delivered) |
 | `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar |
@@ -527,8 +527,11 @@ module keeps `Minimap` itself (re-parented into `RikUIMinimap` with a square
 mask) and parks the cluster's border, zone button, zoom buttons, backdrop,
 native coordinates, instance difficulty flag and day/night indicator with
 `keepEvents` false; the mail indicator, queue button and tracking dropdown
-move into the holder so they stay reachable. Other modules will hide
-PartyFrame, chat side buttons and
+move into the holder so they stay reachable. The chat module parks each chat
+window's button frame, scroll bar and scroll-to-bottom button plus the
+channel, voice, text-to-speech and quick-join buttons with `keepEvents` false;
+the chat windows, tabs and edit boxes stay Blizzard's. Other modules will hide
+PartyFrame and
 container frames through the same helper, only when replaced, passing
 `keepEvents` false where no native handler must keep running.
 
@@ -629,6 +632,7 @@ RikUI/
   auras-units.lua
   minimap.lua
   chat.lua
+  chat-copy.lua
   bags.lua
   tooltip.lua
   tooltip-data.lua

@@ -226,6 +226,8 @@ local tooltipOk, tooltipErr = pcall(function() dofile("tests/tooltip.test.lua")(
 check("Tooltip test suite completes", tooltipOk, tooltipErr)
 local minimapOk, minimapErr = pcall(function() dofile("tests/minimap.test.lua")(check) end)
 check("Minimap test suite completes", minimapOk, minimapErr)
+local chatOk, chatErr = pcall(function() dofile("tests/chat.test.lua")(check) end)
+check("Chat test suite completes", chatOk, chatErr)
 
 -- report
 if #failures == 0 then
