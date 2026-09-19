@@ -34,6 +34,12 @@ range fade. The frames hide when you're solo or in a raid, and the Blizzard
 party frame is hidden with the rest. `/rik party test` shows all four frames
 solo, pointed at you, so you can check and move them without a group.
 
+In a raid the party frames give way to a grid of up to forty small frames in
+the same spot: name, class-coloured health, a thin power bar, range fade. They
+fill in raid order, five to a column, not by subgroup. The Blizzard raid
+frames are hidden; the raid manager tab on the left edge stays. I haven't been
+able to test this in a real raid on the beta yet.
+
 Castbars sit under the player and target frames with the spell icon, name
 and remaining time; casts fill gold, channels drain blue, interrupted casts
 flash red, and the target bar shows a shield on the icon while a cast cannot

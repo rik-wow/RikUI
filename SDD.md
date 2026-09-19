@@ -479,7 +479,8 @@ load order:
 | `bindings.lua` | the global key scheme, clear/apply, hotkey label formatting ("s1", "M4") |
 | `macros.lua`, `macros-undo.lua` | create/edit/find macros, per-character first; scoped undo identities and restoration |
 | `bars.lua` | overlay action bars, stance/pet bars, ghost layer, button skin, hide Blizzard bars |
-| `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), raid; class colours; threat |
+| `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered); class colours; threat; shared range fade |
+| `unitframes-raid.lua` | forty fixed frames for raid1-40 from the shared factory in one holder, eight columns of five in raid index order (delivered); parks `CompactRaidFrameContainer`, leaves the raid manager |
 | `unitframes-party.lua` | four fixed `SecureUnitButtonTemplate` frames for party1-4 from the shared factory (delivered). No `SecureGroupHeaderTemplate`: its `initialConfigFunction` is a secure snippet, and RikProbe showed snippets cannot run on 69913. Leader icon, role letter, range fade through `SetAlphaFromBoolean` |
 | `castbars.lua`, `castbars-status.lua` | player and target castbars (delivered): duration-object fill, shield, interrupt state |
 | `auras.lua`, `auras-button.lua`, `auras-units.lua` | player buffs/debuffs, weapon enchants, target and pet aura rows on Blizzard's CustomAuraContainer with our button skin and own-aura emphasis (delivered) |
@@ -701,14 +702,24 @@ fix them by launch, nothing here breaks either.
 - How aggressive is level-up placement when the player has rearranged things?
   Current answer: never overwrite a slot that holds a different spell. Might
   need a "re-sync" button.
-- Raid frames are a lot of work. Might ship v1 with party frames only and let
-  Blizzard's CompactRaidFrames handle raids, styled.
 - Nameplates. Not in scope for v1; we set the cvars and leave Blizzard's.
 
 Closed by the probe: Blizzard's `ActionBarButtonTemplate` is not used, we draw
 our own buttons (Constraints 2). Saved variables load (Constraints 3). The
 learned-spell event is `LEARNED_SPELL_IN_SKILL_LINE` (Constraints 4). Native
 `ACTIONBUTTON1` paging matches the overlay mapping (Keybind scheme).
+
+Closed on raid frames: RikUI draws its own grid, forty fixed
+`SecureUnitButtonTemplate` frames for `raid1`-`raid40` in `unitframes-raid.lua`.
+Once the party frames existed the grid was cheap, because the same factory
+gives every slot its bars, class colour, clicks and secret-safe updates with no
+new reader code. Restyling `CompactRaidFrames` was the other option and I
+dropped it: it means tainted code writing into frames that read health and
+auras in combat, and on this client tainted aura reads throw in combat. The
+cost of the choice is ordering. Slots follow the raid index, not the
+subgroups, since re-pointing units in combat needs a secure header and header
+snippets cannot run on 69913. `CompactRaidFrameContainer` is parked and
+`CompactRaidFrameManager` stays.
 
 ## Things I'm not doing
 

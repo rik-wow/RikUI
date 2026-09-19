@@ -133,6 +133,34 @@ function unitframes.UpdateThreat(frame)
     end
 end
 
+-- A secret boolean is never compared: SetAlphaFromBoolean takes it as it is.
+function unitframes.AlphaFromBoolean(region, value, yes, no)
+    if not core.Secret.IsSecret(value) then region:SetAlpha(value == true and yes or no); return end
+    if type(region.SetAlphaFromBoolean) == "function" then
+        region:SetAlphaFromBoolean(value, yes, no)
+    else
+        region:SetAlpha(yes)
+    end
+end
+
+local function applyRange(frame, fadeAlpha, inRange, checked)
+    if core.Secret.IsSecret(inRange) or core.Secret.IsSecret(checked) then
+        unitframes.AlphaFromBoolean(frame, inRange, 1, fadeAlpha)
+    else
+        -- An unchecked range says nothing about distance, so the member stays opaque.
+        frame:SetAlpha((checked ~= true or inRange == true) and 1 or fadeAlpha)
+    end
+end
+
+-- Shared by the party and raid frames. A failed read leaves the member opaque.
+function unitframes.FadeByRange(frame, fadeAlpha)
+    local ok, reason = core.Secret.Apply(function(inRange, checked) applyRange(frame, fadeAlpha, inRange, checked) end,
+        UnitInRange, frame.unit)
+    if ok then return end
+    frame:SetAlpha(1)
+    warnOnce("range", reason)
+end
+
 function unitframes.Update(frame)
     unitframes.UpdateIdentity(frame)
     unitframes.UpdateHealth(frame)

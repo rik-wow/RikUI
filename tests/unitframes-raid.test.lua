@@ -1,0 +1,237 @@
+-- Fixed raid1-40 grid. Native rendering, clicks, state drivers and stock parking need a beta check.
+return function(check)
+    local env = require("wow_stub")
+    local originalCreate, originalDriver = CreateFrame, RegisterStateDriver
+    local API = { "UnitHealth", "UnitHealthMax", "UnitPower", "UnitPowerMax", "UnitPowerType", "UnitClass",
+        "UnitReaction", "UnitIsPlayer", "UnitLevel", "UnitName", "UnitThreatSituation", "GetThreatStatusColor",
+        "UnitIsConnected", "UnitIsTapDenied", "UnitIsGroupLeader", "UnitGroupRolesAssigned", "UnitInRange",
+        "CompactRaidFrameContainer", "CompactRaidFrameManager", "RAID_CLASS_COLORS", "FACTION_BAR_COLORS",
+        "PowerBarColor" }
+    local STOCK = { "CompactRaidFrameContainer", "CompactRaidFrameManager" }
+    local PARTY_DRIVER = "[group:raid] hide; [@party1,exists] show; hide"
+    local saved = {}
+    for _, name in ipairs(API) do saved[name] = _G[name] end
+    local units, writes, drivers, templates = {}, 0, {}, {}
+    local function protected()
+        assert(not InCombatLockdown(), "protected raid frame write in combat")
+        writes = writes + 1
+    end
+    -- The stub answers unknown keys with a no-op; lowercase fields must read as nil.
+    local function capitalOnly(value)
+        local methods = getmetatable(value).__index
+        setmetatable(value, { __index = function(t, key)
+            if key:match("^[A-Z]") then return methods(t, key) end
+        end })
+    end
+    local function alphaSinks(value)
+        function value:SetAlpha(alpha) self.alpha, self.fromBoolean = alpha, nil end
+        function value:SetAlphaFromBoolean(flag, yes, no) self.alpha, self.fromBoolean = nil, { flag, yes, no } end
+    end
+    local function region(value)
+        capitalOnly(value)
+        alphaSinks(value)
+        function value:SetText(text) self.text = text end
+        function value:SetFormattedText(format, ...) self.format, self.args = format, { ... } end
+        function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
+        function value:Show() self.shown = true end
+        function value:Hide() self.shown = false end
+        return value
+    end
+    CreateFrame = function(kind, name, parent, template)
+        if template then protected(); templates[template] = true end
+        local frame = originalCreate(kind, name, parent, template)
+        capitalOnly(frame)
+        alphaSinks(frame)
+        frame.sets, frame.label, frame.owner = 0, name, parent
+        function frame:SetAttribute(key, value) protected(); self.attributes[key] = value end
+        function frame:SetSize(w, h) protected(); self.width, self.height = w, h end
+        function frame:SetPoint(...) protected(); self.point = { ... } end
+        function frame:SetMinMaxValues(min, max) self.min, self.max = min, max end
+        function frame:SetValue(value) self.value, self.sets = value, self.sets + 1 end
+        function frame:SetStatusBarColor(...) self.color = { ... } end
+        local texture, font = frame.CreateTexture, frame.CreateFontString
+        function frame:CreateTexture(...) return region(texture(self, ...)) end
+        function frame:CreateFontString(...) return region(font(self, ...)) end
+        return frame
+    end
+    RegisterStateDriver = function(frame, state, condition)
+        protected()
+        assert(state == "visibility")
+        drivers[frame] = condition
+    end
+    local function field(unit, key)
+        local record = units[unit]
+        if not record then return nil end
+        return record[key]
+    end
+    UnitHealth = function(unit) return field(unit, "health") end
+    UnitHealthMax = function(unit) return field(unit, "healthMax") end
+    UnitPower = function(unit) return field(unit, "power") end
+    UnitPowerMax = function(unit) return field(unit, "powerMax") end
+    UnitPowerType = function(unit) return 0, field(unit, "powerToken"), 1, 0, 0 end
+    UnitClass = function(unit) return "Class", field(unit, "class"), 1 end
+    UnitReaction = function(unit) return field(unit, "reaction") end
+    UnitIsPlayer = function(unit) return units[unit] ~= nil end
+    UnitLevel = function(unit) return field(unit, "level") end
+    UnitName = function(unit) return field(unit, "name"), nil end
+    UnitThreatSituation = function(unit) return field(unit, "threat") end
+    GetThreatStatusColor = function(status) return 0.1 * status, 0.5, 0.9 end
+    UnitIsConnected = function(unit) return field(unit, "connected") ~= false end
+    UnitIsTapDenied = function() return false end
+    UnitIsGroupLeader = function(unit) return field(unit, "leader") end
+    UnitGroupRolesAssigned = function(unit) return field(unit, "role") end
+    UnitInRange = function(unit)
+        if field(unit, "rangeError") then error("range unavailable") end
+        return field(unit, "inRange"), field(unit, "checked")
+    end
+    RAID_CLASS_COLORS = { WARRIOR = { r = 0.78, g = 0.61, b = 0.43 }, PRIEST = { r = 1, g = 1, b = 1 } }
+    FACTION_BAR_COLORS = { [5] = { r = 0, g = 1, b = 0 } }
+    PowerBarColor = { RAGE = { r = 1, g = 0, b = 0 }, MANA = { r = 0, g = 0, b = 1 } }
+    local function stockFrame(name)
+        local f = { parent = UIParent, events = { GROUP_ROSTER_UPDATE = true }, label = name }
+        function f:GetParent() return self.parent end
+        function f:SetParent(value) assert(not InCombatLockdown(), "stock frame reparented in combat"); self.parent = value end
+        function f:UnregisterAllEvents() self.events = {}; self.unregistered = (self.unregistered or 0) + 1 end
+        function f:GetName() return self.label end
+        return f
+    end
+    local function printedContains(text)
+        for _, line in ipairs(env.printed) do
+            if line:find(text, 1, true) then return true end
+        end
+        return false
+    end
+    local function near(a, b) return type(a) == "number" and math.abs(a - b) < 0.00001 end
+    local function color(actual, expected)
+        return type(actual) == "table" and near(actual[1], expected.r) and near(actual[2], expected.g)
+            and near(actual[3], expected.b)
+    end
+    local function load(profile, combat, missingStock)
+        env.frames, env.printed, env.inCombat, writes, drivers, templates = {}, {}, false, 0, {}, {}
+        RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
+        for _, name in ipairs(STOCK) do _G[name] = (not missingStock) and stockFrame(name) or nil end
+        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua",
+            "layout.lua", "unitframes.lua", "unitframes-status.lua", "unitframes-party.lua" }) do
+            assert(loadfile(file))("RikUI", {})
+        end
+        -- A missing implementation is a red assertion rather than a crashed suite.
+        local chunk = loadfile("unitframes-raid.lua")
+        if chunk then chunk("RikUI", {}) end
+        env.fire("ADDON_LOADED", "RikUI")
+        env.inCombat = combat == true
+        env.fire("PLAYER_LOGIN")
+        return RikUI.UnitFrames
+    end
+    local function fixture()
+        units = {
+            player = { health = 1, healthMax = 2, power = 1, powerMax = 2, powerToken = "RAGE", name = "Probey",
+                level = 12, class = "WARRIOR" },
+            raid1 = { health = env.SECRET, healthMax = env.SECRET, power = 40, powerMax = 80, powerToken = "MANA",
+                name = "Healbot", level = 14, class = "PRIEST", inRange = true, checked = true },
+            raid2 = { health = 30, healthMax = 90, power = 10, powerMax = 100, powerToken = "RAGE",
+                name = "Tanky", level = 15, class = "WARRIOR", inRange = false, checked = true },
+        }
+    end
+    local ok, reason = pcall(function()
+        fixture()
+        local module = load()
+        local raid = module.Raid
+        assert(raid, "unitframes-raid.lua did not register UnitFrames.Raid")
+        local holder, frames = raid.Holder, raid.Frames
+        local one, two, five, six, last = frames[1], frames[2], frames[5], frames[6], frames[40]
+        check("forty fixed secure unit buttons exist for raid1-40", #frames == 40 and one and last
+            and one.template == "SecureUnitButtonTemplate" and last.unit == "raid40"
+            and one.label == "RikUIUnit_raid1" and last:GetAttribute("unit") == "raid40")
+        check("the raid grid uses no group header template", templates.SecureGroupHeaderTemplate == nil)
+        check("each slot shows only while its raid unit exists", drivers[one] == "[@raid1,exists] show; hide"
+            and drivers[last] == "[@raid40,exists] show; hide")
+        check("party frames keep hiding in a raid and return when it ends",
+            drivers[module.Party.Frames[1]] == PARTY_DRIVER)
+        local groups = RikUI.Layout.Groups
+        check("one raid holder registers with the layout under its own key", groups.raid
+            and groups.raid.frames[1] == holder and #groups.raid.frames == 1 and groups.raid1 == nil)
+        local defaults, partyDefaults = groups.raid.defaults, groups.party.defaults
+        check("the raid grid defaults to the party position", defaults.point == partyDefaults.point
+            and defaults.relativePoint == partyDefaults.relativePoint and defaults.x == partyDefaults.x
+            and defaults.y == partyDefaults.y)
+        check("slots fill columns of five from the top left", one.owner == holder and one.point[1] == "TOPLEFT"
+            and one.point[2] == holder and one.point[4] == 0 and one.point[5] == 0
+            and five.point[4] == 0 and near(five.point[5], 4 * two.point[5]) and two.point[5] < 0
+            and six.point[4] > 0 and six.point[5] == 0)
+        check("the grid is eight columns wide and the holder covers it", near(last.point[4], 7 * six.point[4])
+            and near(last.point[5], five.point[5]) and near(holder.width, last.point[4] + one.width)
+            and near(holder.height, one.height - five.point[5]))
+        check("secret member health reaches the bar unchanged", one.health.value == env.SECRET
+            and one.health.max == env.SECRET)
+        check("raid health is class coloured", color(one.health.color, RAID_CLASS_COLORS.PRIEST)
+            and color(two.health.color, RAID_CLASS_COLORS.WARRIOR))
+        check("raid names use the shared font and the small frame drops level and health text",
+            one.name.text == "Healbot" and one.name.fontPath == RikUI.Media.font
+            and one.level.shown == false and one.health.text.shown == false)
+        check("in-range raid members are opaque and out-of-range members fade", one.alpha == 1
+            and two.alpha == raid.FadeAlpha and raid.FadeAlpha > 0 and raid.FadeAlpha < 1)
+
+        units.raid2.inRange, units.raid2.checked = env.SECRET, env.SECRET
+        env.printed = {}
+        env.runScript(holder, "OnUpdate", 0.6)
+        check("a secret raid range result goes to the boolean alpha sink uncompared", two.fromBoolean
+            and two.fromBoolean[1] == env.SECRET and two.fromBoolean[3] == raid.FadeAlpha and #env.printed == 0)
+        units.raid2.rangeError = true
+        env.runScript(holder, "OnUpdate", 0.6)
+        env.runScript(holder, "OnUpdate", 0.6)
+        check("a failing raid range read is reported once and leaves the frame opaque", two.alpha == 1
+            and printedContains("Unit frames range") and #env.printed == 1)
+        units.raid2.rangeError, units.raid2.inRange, units.raid2.checked = nil, false, true
+        env.runScript(holder, "OnUpdate", 0.2)
+        check("the raid range poll waits for its interval", two.alpha == 1)
+        env.runScript(holder, "OnUpdate", 0.4)
+        check("the raid range poll fades once the interval passes", two.alpha == raid.FadeAlpha)
+
+        local oneSets = one.health.sets
+        units.raid2.health = 60
+        env.fire("UNIT_HEALTH", "raid2")
+        check("unit events refresh only the matching raid member", two.health.value == 60
+            and one.health.sets == oneSets)
+        units.raid3 = { health = 5, healthMax = 9, power = 1, powerMax = 2, powerToken = "MANA",
+            name = "Latecomer", level = 10, class = "PRIEST", inRange = true, checked = true }
+        env.fire("GROUP_ROSTER_UPDATE")
+        check("roster updates refresh every raid slot", frames[3].name.text == "Latecomer"
+            and frames[3].health.value == 5 and color(frames[3].health.color, RAID_CLASS_COLORS.PRIEST))
+        units.raid2.threat = 3
+        env.fire("UNIT_THREAT_SITUATION_UPDATE", "raid2")
+        check("threat borders work on raid members", two.threat[1].shown == true)
+
+        local before = writes
+        env.inCombat = true
+        units.raid2.health, units.raid2.inRange = 10, true
+        env.fire("UNIT_HEALTH", "raid2")
+        env.fire("GROUP_ROSTER_UPDATE")
+        env.runScript(holder, "OnUpdate", 0.6)
+        check("combat raid updates flow to sinks without protected writes", two.health.value == 10
+            and two.alpha == 1 and writes == before)
+        env.inCombat = false
+
+        check("the stock raid container is parked with events dropped",
+            CompactRaidFrameContainer.parent == RikUIHiddenFrames and CompactRaidFrameContainer.unregistered == 1)
+        check("the stock raid manager stays where Blizzard put it", CompactRaidFrameManager.parent == UIParent
+            and CompactRaidFrameManager.unregistered == nil)
+
+        fixture()
+        module = load(nil, true)
+        check("combat login defers the raid grid and stock parking", module.Raid.Holder == nil
+            and #module.Raid.Frames == 0 and CompactRaidFrameContainer.parent == UIParent)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("the raid grid and parking follow after combat", #module.Raid.Frames == 40
+            and CompactRaidFrameContainer.parent == RikUIHiddenFrames)
+        module = load({ modules = { unitframes = false } })
+        check("disabled module builds no raid grid and leaves the stock container", #module.Raid.Frames == 0
+            and CompactRaidFrameContainer.parent == UIParent)
+        module = load(nil, false, true)
+        check("missing stock raid globals are tolerated", #module.Raid.Frames == 40 and #env.printed == 0)
+    end)
+    CreateFrame, RegisterStateDriver = originalCreate, originalDriver
+    for _, name in ipairs(API) do _G[name] = saved[name] end
+    env.inCombat = false
+    check("raid frame suite completes", ok, reason)
+end

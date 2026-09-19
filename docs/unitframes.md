@@ -103,6 +103,41 @@ per member on the left edge, left and right click, the leader icon, the fade
 when a member runs off, no frames after converting to a raid, no Blizzard
 party frame, and no `Could not register event` line at login.
 
+## Raid frames
+
+`unitframes-raid.lua` builds forty fixed frames for `raid1` to `raid40` through
+the same factory, so they get the same clicks, tooltips, class colours, threat
+border and secret-safe sinks. There is no `SecureGroupHeaderTemplate`, for the
+same reason as the party frames. That also fixes the order: slots follow the
+raid index, five to a column and eight columns, not the subgroups. Sorting by
+subgroup would mean re-pointing units when the roster changes in combat, and
+only a secure header can do that.
+
+Each slot is 72x30 with a 22px health bar, a 5px power bar and the name; level
+and health text are hidden at this size. The slots sit in one `RikUIRaid`
+holder registered with the layout under the key `raid`. Its default is the
+party holder's position, which is free because the party frames hide in a
+raid. Each slot's visibility driver is `[@raidN,exists] show; hide`, so the
+grid shows only filled slots and empties itself when the raid ends, at which
+point the party drivers show again.
+
+Members out of range fade to `Raid.FadeAlpha` on the same 0.5 second poll.
+The fade is `UnitFrames.FadeByRange`, shared with the party frames.
+`GROUP_ROSTER_UPDATE` and `PLAYER_ENTERING_WORLD` refresh every slot.
+`CompactRaidFrameContainer` is parked through `RikUI.Hide.Frame(frame, false)`
+once the grid exists. `CompactRaidFrameManager` is left alone: it holds the
+ready check, world markers and raid settings.
+
+`tests/unitframes-raid.test.lua` covers the build, drivers, the layout key and
+default, the grid geometry, sinks in readable and secret form, the range
+cases and poll interval, unit and roster events, threat, zero protected writes
+in combat, parking of the container only, combat login, the disabled module
+and missing stock globals. None of this has been seen in a real raid yet.
+Beta checklist: convert a party to a raid and confirm the party frames give
+way to the grid, one slot per member, class colours, clicks, the fade, no
+Blizzard raid frames, the raid manager still opens, and leaving the raid
+brings back the party or solo state.
+
 ## Secret rules
 
 - `UnitHealth`, `UnitHealthMax`, `UnitPower` and `UnitPowerMax` are read

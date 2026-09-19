@@ -21,33 +21,10 @@ local function warnOnce(operation, reason)
     core:Print("Unit frames " .. operation .. ": " .. tostring(reason))
 end
 
--- A secret boolean is never compared: SetAlphaFromBoolean takes it as it is.
-local function alphaFromBoolean(region, value, yes, no)
-    if not core.Secret.IsSecret(value) then region:SetAlpha(value == true and yes or no); return end
-    if type(region.SetAlphaFromBoolean) == "function" then
-        region:SetAlphaFromBoolean(value, yes, no)
-    else
-        region:SetAlpha(yes)
-    end
-end
-
-local function applyRange(frame, inRange, checked)
-    if core.Secret.IsSecret(inRange) or core.Secret.IsSecret(checked) then
-        alphaFromBoolean(frame, inRange, 1, party.FadeAlpha)
-    else
-        -- An unchecked range says nothing about distance, so the member stays opaque.
-        frame:SetAlpha((checked ~= true or inRange == true) and 1 or party.FadeAlpha)
-    end
-end
-
 function party.UpdateRange(frame)
     -- Solo test mode previews the fade on the last frame; the player is never out of range.
     if party.Testing then frame:SetAlpha(frame == party.Frames[MEMBERS] and party.FadeAlpha or 1); return end
-    local ok, reason = core.Secret.Apply(function(inRange, checked) applyRange(frame, inRange, checked) end,
-        UnitInRange, frame.unit)
-    if ok then return end
-    frame:SetAlpha(1)
-    warnOnce("range", reason)
+    unitframes.FadeByRange(frame, party.FadeAlpha)
 end
 
 local function updateLeader(frame)
@@ -56,7 +33,7 @@ local function updateLeader(frame)
     if not ok then warnOnce("leader", isLeader); frame.leader:Hide(); return end
     if core.Secret.IsSecret(isLeader) then
         frame.leader:Show()
-        alphaFromBoolean(frame.leader, isLeader, 1, 0)
+        unitframes.AlphaFromBoolean(frame.leader, isLeader, 1, 0)
         return
     end
     frame.leader:SetAlpha(1)

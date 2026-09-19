@@ -241,6 +241,7 @@ function unitframes:OnEnable()
     registerUnitEvents()
     registerTargetEvents()
     if unitframes.Party then unitframes.Party.Enable() end
+    if unitframes.Raid then unitframes.Raid.Enable() end
 end
 
 function unitframes:Debug(sample)
