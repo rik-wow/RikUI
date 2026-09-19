@@ -126,7 +126,7 @@ Measured with `issecretvalue()` on a warrior, out of combat and in combat:
 | `GetActionCooldown(slot)` | readable | start, duration, modRate secret; enable readable |
 | `GetActionCount(slot)` | readable | secret |
 | `IsUsableAction(slot)` | readable | readable |
-| `IsActionInRange(slot)` | readable | readable (sampled on Attack, which has no range) |
+| `IsActionInRange(slot)` | readable | readable, including a range-bearing action (slot 1, 2026-09-18 follow-up) |
 | `C_Secrets.ShouldAurasBeSecret()` | false | not sampled |
 
 So the player's own health and power are secret at all times, target health
@@ -157,8 +157,21 @@ or the `C_ActionBar` equivalent, whichever gives one per slot) fed into
 `Cooldown:SetCooldownFromDurationObject`, and counts go through
 `FontString:SetFormattedText`. Nothing needs Blizzard's secure button code,
 and skipping the template keeps the buttons free of Edit Mode and of the
-paging attributes we can't drive anyway. Range should be re-sampled once on a
-ranged spell before bars-button-state relies on it; the probe only had Attack.
+paging attributes we can't drive anyway. Button state now uses the slot-owned
+`C_ActionBar.GetActionCooldownDuration` and `GetActionChargeDuration` objects.
+Range and usability are checked with `issecretvalue` before any comparison;
+unknown values retain a neutral tint.
+
+Native ranged-action follow-up: `Screenshot 2026-09-18 212711.png` records
+`/rik debug` on slot 1 with `combat=false`, `hasRange=true`, `range=true` and
+readable returns from all four action APIs. The follow-up
+`Screenshot 2026-09-18 213847.png` records the same slot with `combat=true`,
+`hasRange=true` and `range=true`: GetActionCooldown returns 1/2/4 are secret,
+return 3 is readable; GetActionCount is secret; both IsUsableAction returns and
+IsActionInRange remain readable. This closes the ranged combat sample that the
+original Attack-only probe lacked. The user also confirmed the updated
+cooldowns/countdowns, colors, hotkey labels and keypress flashes work without
+Lua errors after reloading.
 
 ### 3. Saved variables load (verified on 69913)
 

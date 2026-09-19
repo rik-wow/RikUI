@@ -68,6 +68,80 @@ An alpha animation fades it out in 0.2 seconds. Combat reveals it immediately
 and combat exit reevaluates hover. No OnUpdate or restricted secure snippets
 are installed.
 
+## Action button state
+
+`bars-state.lua` adds state to every fixed action-slot button in the five bars
+and their bonus overlays. It uses per-slot `C_ActionBar.GetActionCooldownDuration`
+and `GetActionChargeDuration`, so macro and item cooldowns do not depend on
+guessing a spell ID. Objects go straight into `SetCooldownFromDurationObject`.
+The main timer has a swipe and native center countdown; recharge has an edge
+and a smaller countdown at bottom left. Stack/charge display counts continue
+through the existing text sink at bottom right. No cooldown numbers are read,
+compared, subtracted or formatted in Lua.
+
+Range tint is red, resource shortage blue, other unusable actions grey, and
+usable or unknown state neutral white, in that priority order. Both modern
+boolean range and legacy 0/1 results are accepted only after a secrecy check.
+Range notifications are enabled per owned slot; a guarded posthook restores
+our slots after native OnHide disables the shared subscription. A visual child
+above both cooldowns keeps hotkeys, counts and pressed feedback readable.
+Target, range, usability and player-power events refresh tint; action cooldown
+and charge events refresh timers. Empty slots clear old timers/tint/press
+feedback. Missing or failing APIs clear stale timers and report one diagnostic
+per operation.
+
+Hotkeys use the real native command through `Bindings.Label`, including main
+commands on bonus overlays, and refresh on `UPDATE_BINDINGS`. Unbound slots
+show no label. Cosmetic posthooks on `ActionButtonDown/Up` and
+`MultiActionButtonDown/Up` flash only a visible overlay matching the native
+button's current slot and binding command. Releases and page/binding changes
+clear the previous flash. No hook executes an action or changes a secure
+attribute. A manually selected page without an overlay will not falsely flash
+the fixed base row; implementing those pages remains `bars-manual-pages`.
+
+These slot-based APIs apply to action overlays. Stance/pet companion controls
+retain their existing active/autocast indicators and separate native API paths.
+
+### Native diagnostic and acceptance
+
+`/rik bardebug 1` selects absolute action slot 1 and samples it immediately.
+Then `/rik debug` re-samples that slot, including during combat. Without an
+explicit selection it uses native ActionButton1's current slot when readable.
+The report names the slot, combat status and secrecy of every return from
+GetActionCooldown, GetActionCount, IsUsableAction and IsActionInRange. It prints
+the range result and HasRangeRequirements only when readable. Diagnostics
+sample raw cooldown numbers solely to report secrecy, never to render them.
+
+Native acceptance passed on 2026-09-18. The user's
+`Screenshot 2026-09-18 212711.png` confirms slot 1 out of combat:
+`hasRange=true`, `range=true`, all four APIs readable. The follow-up
+`Screenshot 2026-09-18 213847.png` shows `combat=true` on the same range-bearing
+slot. Cooldown returns 1/2/4 and the count are secret; cooldown return 3, both
+usable returns and range remain readable. The range result is true.
+The user then confirmed the updated cooldowns/countdowns, colors, hotkey labels
+and keypress flashes work without Lua errors after reload.
+
+The LuaJIT suite additionally covers duration handoff, failure/empty cleanup,
+colour precedence, secret fallback, bindings, native press routing and page
+changes, including combat write guards, native subscription ownership and
+visual frame layering. The native confirmation covers the user's current
+configuration; no separate pet/stance cooldown or exhaustive item/charge catalog
+coverage is claimed.
+
+Native check: reload, target an enemy in and out of range, use a cooldown action
+and verify swipe/countdown, resource tint, label and held-key flash. Repeat in
+combat and run `/rik debug` with `hasRange=true`; record secrecy and any Lua or
+protected-action errors. Exercise a charge/item action when available.
+
+### Exact-build sources
+
+Reviewed against Forever 1.60.1 build 69913:
+
+- [Action-slot duration, range and usable APIs](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ActionBarFrameDocumentation.lua)
+- [Cooldown widget sinks and countdown text](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua)
+- [Main native keyboard execution](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua)
+- [Multibar keyboard execution](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBar/Shared/MultiActionBars.lua)
+
 ## Stance paging and companion rows
 
 `data/bonus-pages.lua` contains per-class records of the bonus offset and first

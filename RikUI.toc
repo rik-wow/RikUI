@@ -24,6 +24,7 @@ setup-levelup.lua
 setup-talents.lua
 setup-role.lua
 bars.lua
+bars-state.lua
 bars-paging.lua
 bars-controls.lua
 bars-stock.lua

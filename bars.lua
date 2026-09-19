@@ -44,6 +44,7 @@ local function updateButton(button)
     button.icon:SetTexture(texture)
     button.icon:SetShown(texture ~= nil)
     button.empty:SetShown(texture == nil)
+    if bars.RefreshButtonState then bars.RefreshButtonState(button, texture ~= nil) end
     if texture == nil then button.count:SetText(""); return end
     updateCount(button)
 end
@@ -160,6 +161,7 @@ local function createButton(bar, index, opts)
     local offset = (index - 1) * (opts.size + opts.spacing)
     button:SetPoint("TOPLEFT", bar, "TOPLEFT", opts.vertical and 0 or offset, opts.vertical and -offset or 0)
     buttonArt(button)
+    if bars.CreateButtonState then bars.CreateButtonState(button, bar, index) end
     button:SetScript("OnDragStart", function(self) drag(self, false) end)
     button:SetScript("OnReceiveDrag", function(self) drag(self, true) end)
     updateButton(button)
@@ -224,6 +226,7 @@ local function refreshFades()
 end
 
 function bars:OnEnable()
+    if bars.EnableButtonState then bars.EnableButtonState() end
     for _, name in ipairs(BAR_ORDER) do
         bars.Create(name, setup.SlotToAction(name, 1), {
             vertical = name == "bar4" or name == "bar5", fade = name == "bar3",
