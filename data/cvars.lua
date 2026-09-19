@@ -61,8 +61,18 @@ local function applyEntry(entry, opts)
     return true
 end
 
-function cvars.Snapshot()
-    return capture()
+function cvars.Snapshot(selection, opts)
+    return capture(selection, opts)
+end
+
+function cvars.Restore(name, value)
+    if InCombatLockdown() then return nil, "CVar restore requires leaving combat" end
+    if type(value) ~= "string" then return nil, "invalid CVar snapshot for " .. tostring(name) end
+    local ok, reason = applyEntry({ name = name, value = value }, { quiet = true })
+    if not ok then return nil, name .. ": " .. reason end
+    local actual = readCurrent(name)
+    if actual ~= value then return nil, name .. ": CVar restore readback failed" end
+    return true
 end
 
 function cvars.Apply(selection, opts)

@@ -80,10 +80,17 @@ local function hasSpace(snapshot, first, last)
     return false
 end
 
+local function creationScope(snapshot, scope)
+    if hasSpace(snapshot, FIRST_CHARACTER, LAST_CHARACTER) then return "character" end
+    if scope ~= "account" then return nil, "character macro pool is full" end
+    if not hasSpace(snapshot, 1, ACCOUNT_LIMIT) then return nil, "account macro pool is full" end
+    return "account"
+end
+
 local function create(snapshot, name, icon, body, scope)
-    local character = hasSpace(snapshot, FIRST_CHARACTER, LAST_CHARACTER)
-    if not character and scope ~= "account" then return nil, "character macro pool is full" end
-    if not character and not hasSpace(snapshot, 1, ACCOUNT_LIMIT) then return nil, "account macro pool is full" end
+    local target, reason = creationScope(snapshot, scope)
+    if not target then return nil, reason end
+    local character = target == "character"
     if type(CreateMacro) ~= "function" then return nil, "CreateMacro unavailable" end
     local ok, index = pcall(CreateMacro, name, icon, body, character)
     if not ok then return nil, "CreateMacro failed" end
@@ -102,6 +109,14 @@ local function ensureNow(name, icon, body, scope, opts)
     if not snapshot then return reject(name, reason, opts) end
     local index = findInSnapshot(snapshot, name)
     local disposition = index and "edited" or "placed"
+    if opts.beforeWrite then
+        local target = index and snapshot[index].scope
+        if not target then target, reason = creationScope(snapshot, scope) end
+        if not target then return reject(name, reason, opts) end
+        local ready
+        ready, reason = opts.beforeWrite(index, snapshot, target)
+        if not ready then return reject(name, reason, opts) end
+    end
     if index then
         index, reason = edit(index, name, icon, body)
     else

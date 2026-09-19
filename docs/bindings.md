@@ -39,9 +39,15 @@ client's action-page and stance resolution.
 - All writes, including failure cleanup and save, run through `Combat.Queue`.
   Deferred Apply returns `nil, "queued"`; it captures options now and reads
   the actual binding snapshot when the queue executes. It does not return a
-  deferred snapshot later. Setup/undo should queue its whole ordered operation
-  and capture its snapshot inside that operation. Persistent undo belongs to
-  the later setup/undo chunk.
+  deferred snapshot later. Setup queues its whole ordered operation and captures
+  its persistent snapshot inside that operation.
+- `Restore(snapshot)` restores the saved runtime ownership and primary/alternate
+  order, verifies readback, then saves character set 2. Setup queues this helper;
+  direct combat calls are refused. New aliases on captured commands are appended
+  after the original aliases and journaled in `snapshot.restore` before clearing,
+  so a failed restore can retry without losing them. `ValidateSnapshot` checks
+  persisted key/order consistency before Undo starts. The captured binding-set
+  number is context; Undo does not switch back to or overwrite account set 1.
 - `Label(command)` reads current native keys on every call, prefers the active
   scheme/fallback key when secondary aliases exist, and otherwise uses the
   primary native key. It formats `SHIFT-1` as `s1`, `CTRL-Z` as `cZ`

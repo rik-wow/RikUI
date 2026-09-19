@@ -323,7 +323,10 @@ the wizard: `bars`, `binds`, `macros`, `cvars`, `layout`. Order:
    Mode isn't touched.
 
 Everything logs to chat one line per step, and there's a `/rik undo` that
-restores the snapshot taken before Apply (bars, binds, macros, cvars).
+restores the snapshot taken before Apply (bars, binds, macros, cvars, touched
+layout keys and the prior applied marker). It persists in RikUICharDB.undo.
+Undo restores macros before re-placing bars so macro indices are resolved after
+any deletions; failures retain the snapshot and completed-entry progress.
 
 ### Keeping it applied while levelling
 
@@ -369,9 +372,9 @@ load order:
 | `data/spells.lua` | spell name -> {id per rank, icon, level} for ghost icons. Generated table |
 | `data/cvars.lua` | the cvar list with labels and default values |
 | `presets/*.lua` | one per class |
-| `setup.lua` | Apply / Undo / role guess / level-up placement |
+| `setup*.lua` | preset resolution, ordered Apply, persistent snapshots and Undo; future role guess / level-up placement |
 | `bindings.lua` | the global key scheme, clear/apply, hotkey label formatting ("s1", "M4") |
-| `macros.lua` | create/edit/find macros, per-character first |
+| `macros.lua`, `macros-undo.lua` | create/edit/find macros, per-character first; scoped undo identities and restoration |
 | `bars.lua` | overlay action bars, stance/pet bars, ghost layer, button skin, hide Blizzard bars |
 | `unitframes.lua` | player, target, ToT, pet, party, raid; castbars; class colours; threat |
 | `auras.lua` | player buffs/debuffs with timers, target debuffs on the target frame |

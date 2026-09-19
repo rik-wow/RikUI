@@ -11,12 +11,21 @@ local PAGE_STARTS = { main = 1, battle = 73, defensive = 85, berserker = 97,
     bar2 = 61, bar3 = 49, bar4 = 25, bar5 = 37 }
 setup.PageOrder = { "main", "battle", "defensive", "berserker", "bar2", "bar3", "bar4", "bar5" }
 
-local function copy(value)
+function setup.CopyState(value)
     if type(value) ~= "table" then return value end
     local result = {}
-    for key, entry in pairs(value) do result[key] = copy(entry) end
+    for key, entry in pairs(value) do result[key] = setup.CopyState(entry) end
     return result
 end
+
+function setup.StateKeys(values)
+    local keys = {}
+    for key in pairs(values or {}) do keys[#keys + 1] = key end
+    table.sort(keys)
+    return keys
+end
+
+local copy = setup.CopyState
 
 function setup.SlotToAction(page, index)
     local first = PAGE_STARTS[page]

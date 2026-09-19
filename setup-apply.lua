@@ -3,6 +3,8 @@ local core, setup = RikUI, RikUI.Setup
 local STEP_ORDER = { "macros", "bars", "binds", "cvars", "layout" }
 local active
 
+function setup.IsApplying() return active ~= nil end
+
 setup.DefaultPositions = {
     main = { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 40 },
     bar2 = { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 82 },
@@ -11,19 +13,7 @@ setup.DefaultPositions = {
     bar5 = { point = "RIGHT", relativePoint = "RIGHT", x = -82, y = 0 },
 }
 
-local function copy(value)
-    if type(value) ~= "table" then return value end
-    local result = {}
-    for key, entry in pairs(value) do result[key] = copy(entry) end
-    return result
-end
-
-local function sortedKeys(values)
-    local keys = {}
-    for key in pairs(values) do keys[#keys + 1] = key end
-    table.sort(keys)
-    return keys
-end
+local copy, sortedKeys = setup.CopyState, setup.StateKeys
 
 local function counts()
     return { placed = 0, skipped = 0, edited = 0 }
@@ -34,15 +24,21 @@ local function summarize(name, stats, suffix)
         name, stats.placed, stats.skipped, stats.edited, suffix or ""))
 end
 
-local function macroOperations(preset)
+local function macroOperations(context)
+    local preset = context.preset
     local operations = {}
     for _, name in ipairs(sortedKeys(preset.macros)) do
         local macro = preset.macros[name]
         operations[#operations + 1] = function(done)
             core.Macros.Ensure(name, macro.icon, macro.body, macro.scope, {
                 quiet = true,
+                beforeWrite = function(index, pool, scope)
+                    return core.Macros.PrepareUndo(context.snapshot.macros[name], index, pool, scope)
+                end,
                 onComplete = function(index, reason, disposition)
                     if not index then done(nil, name .. ": " .. tostring(reason)); return end
+                    local saved, failure = core.Macros.RecordUndo(context.snapshot.macros[name], index)
+                    if not saved then done(nil, failure); return end
                     local stats = counts()
                     stats[disposition] = 1
                     done(stats)
@@ -76,7 +72,7 @@ end
 
 local function operationsFor(name, context)
     local preset, opts = context.preset, context.opts
-    if name == "macros" then return macroOperations(preset) end
+    if name == "macros" then return macroOperations(context) end
     if name == "bars" then return barOperations(preset) end
     if name == "binds" then
         return { function(done)
@@ -89,7 +85,9 @@ local function operationsFor(name, context)
     end
     if name == "cvars" then
         return { function(done)
-            local _, stats = core.CVars.Apply(opts.cvarSelection, { quiet = true })
+            local selection = {}
+            for cvar in pairs(context.snapshot.cvars) do selection[cvar] = true end
+            local _, stats = core.CVars.Apply(selection, { quiet = true })
             done(stats, stats.error)
         end }
     end
@@ -143,6 +141,7 @@ runStep = function(context, index)
         context.charDB.applied = { class = context.preset.class, role = context.preset.role,
             at = time(), presetVersion = context.preset.version or 1 }
         context.result.status, active = "applied", nil
+        core:Print("Setup complete; type /rik undo to revert.")
         return
     end
     context.result.steps[name] = counts()
@@ -160,7 +159,7 @@ local function reject(reason)
     return nil, reason
 end
 
-local function validateOptions(opts)
+function setup.ValidateOptions(opts)
     if type(opts) ~= "table" then return "options must be a table" end
     for _, name in ipairs({ "macros", "bars", "binds", "cvars", "layout", "strafe", "mouse45" }) do
         if opts[name] ~= nil and type(opts[name]) ~= "boolean" then return name .. " must be a boolean" end
@@ -169,25 +168,26 @@ local function validateOptions(opts)
 end
 
 function setup.Apply(class, role, opts)
-    if active then return reject("an Apply is already pending") end
+    if active or setup.IsUndoing() then return reject("another Setup operation is pending") end
     if not core.CharDB or not core.Profile then return reject("Still loading") end
     if opts == nil then opts = {} end
-    local reason = validateOptions(opts)
+    local reason = setup.ValidateOptions(opts)
     if reason then return reject(reason) end
     local preset
     preset, reason = setup.Resolve(class, role)
     if not preset then return reject(reason) end
     local result = { status = "running", steps = {}, class = class, role = preset.role }
     local context = { preset = preset, opts = copy(opts), result = result,
-        charDB = core.CharDB, profile = core.Profile }
+        charDB = core.CharDB, profile = core.Profile, profileName = core.CharDB.profile }
     active = context
-    local ok
-    ok, reason = pcall(runStep, context, 1)
-    if not ok then
-        local name = STEP_ORDER[1]
-        for _, step in ipairs(STEP_ORDER) do if result.steps[step] then name = step end end
-        fail(context, name, reason)
-    end
+    context.result.steps.snapshot = counts()
+    queueOperation(context, "snapshot", function()
+        local snapshot, failure = setup.CaptureSnapshot(context.preset, context.opts,
+            context.profile, context.charDB, context.profileName)
+        if not snapshot then fail(context, "snapshot", failure); return end
+        context.snapshot, context.charDB.undo = snapshot, snapshot
+        runStep(context, 1)
+    end)
     return result
 end
 

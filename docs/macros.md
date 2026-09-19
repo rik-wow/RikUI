@@ -40,13 +40,16 @@ macro changes do not send an edit to a stale index. Create/edit return values
 are retained because the client sorts macros. A later insertion may invalidate
 a previously returned index; call Find again immediately before placing a macro.
 
-Future Apply code must finish queued macro work before placing its macro actions.
-It cannot assume Ensure completed synchronously inside another draining queue
-callback. Snapshot immediately before the Apply transaction changes macros.
-Keep that snapshot plus the names/pools actually touched; later undo must
-re-resolve their identities, preserve unrelated macros, and identify new macros
-that were absent before Apply. This chunk supplies snapshot data; Apply/Undo
-remain separate roadmap work.
+Apply finishes queued macro work before placing macro actions. Its persistent
+journal in `macros-undo.lua` captures only preset macro names, distinguishes
+original macros from new ones, and records each mutation's pool before writing.
+The Ensure `beforeWrite(index, pool, scope)` hook runs inside its queued callback.
+Undo resolves unique name/pool identities again for each operation, restores
+original bodies/icons, and deletes only setup-created macros whose post-write
+body/icon still match. Unrelated macros and account/character name collisions
+are preserved. Ambiguous names within the same pool stop snapshot capture.
+Macros restore before action slots so restored buttons use current indices.
+See [Setup](setup.md) for retry, combat and persistence behavior.
 
 ## Sources and verification
 
@@ -70,6 +73,12 @@ do not establish live Forever write behavior or native Unicode truncation rules.
 The retained probe confirmed CreateMacro/EditMacro presence on build 69913,
 but this chunk has not exercised them in-game.
 
-Snapshot preserves the icon returned by GetMacroInfo. Blizzard's editor instead
-uses C_Macro.GetSelectedMacroIcon; exact restoration of a configured question-mark
-icon may require that value. Verify this distinction with the later undo work.
+The general `Macros.Snapshot()` preserves the displayed GetMacroInfo icon.
+Setup's `CaptureIdentity` instead prefers C_Macro.GetSelectedMacroIcon, following
+Blizzard's [Classic Era icon editor](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic_era/Interface/AddOns/Blizzard_MacroUI/Blizzard_MacroIconSelector.lua)
+(reviewed 2026-09-18). If that API is absent, the displayed icon is the fallback;
+exact question-mark icon restoration then remains uncertain. Native after-write
+icons are recorded too, allowing texture paths to resolve to numeric IDs.
+Stub tests cover selected versus displayed icons and macro index churn.
+Live Forever capacity, Unicode limits and exact icon behavior remain in the
+existing macro-beta-compatibility backlog.

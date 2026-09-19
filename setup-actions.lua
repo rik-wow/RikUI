@@ -64,8 +64,12 @@ function setup.WriteSlot(slot, entry)
     local readOK, kind, id, reason = pcall(resolveAction, entry)
     if not readOK then return nil, "action lookup failed for slot " .. slot .. ": " .. tostring(kind) end
     if reason then return nil, "slot " .. slot .. ": " .. reason end
-    local ok, stats
-    ok, stats, reason = pcall(writeAction, slot, kind, id)
+    return setup.RestoreSlot(slot, { kind = kind, id = id })
+end
+
+function setup.RestoreSlot(slot, action)
+    if InCombatLockdown() then return nil, "slot restore requires leaving combat" end
+    local ok, stats, reason = pcall(writeAction, slot, action.kind, action.id)
     -- Cleanup even when a pickup/placement API throws.
     local cleared = pcall(ClearCursor)
     if not ok then return nil, "slot " .. slot .. ": " .. tostring(stats) end

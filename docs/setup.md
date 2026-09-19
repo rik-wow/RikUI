@@ -3,8 +3,10 @@
 After loading the addon, use `/rik apply` (DPS) or `/rik apply tank`.
 The command uses the player's class and enables all five steps. It applies
 macros, bars, bindings, CVars, then saved positions. This changes existing
-designated slots and character bindings. Undo is a separate roadmap chunk
-and is not implemented yet; a failed Apply can leave earlier steps applied.
+designated slots and character bindings. Before the first write, it saves the
+previous state in `RikUICharDB.undo`. Use `/rik undo` to restore the last Apply,
+including an Apply that failed after some steps. Successful Apply ends with
+`type /rik undo to revert`.
 
 Each completed step prints one `Setup <step>` line with placed, skipped and
 edited counts. Disabled steps print one skipped-step summary. A failure is
@@ -42,8 +44,8 @@ before writes.
 An accepted call returns a result table with `status`, `class`, `role`,
 `steps`, and an `error` on failure. Status is `running`, `queued`,
 `applied`, or `failed`. The same table updates when queued work finishes;
-returning a table does not itself mean setup succeeded. A second Apply is
-rejected while one is pending. The selected preset/options/profile are captured
+returning a table does not itself mean setup succeeded. Apply and Undo are
+rejected while another Setup operation is pending. The selected preset/options/profile are captured
 for that invocation, so later caller mutations do not rewrite pending work.
 
 All operations pass through the existing combat queue. In combat, one chat
@@ -81,6 +83,51 @@ Defaults place main/bar2/bar3 at bottom center and bar4/bar5 on the right.
 These are saved positions for future RikUI frames; this step does not move
 Blizzard frames or change Edit Mode. Existing Blizzard extra bars must already
 be enabled if the user wants to see those stock buttons.
+
+## Snapshot and Undo
+
+`Setup.Snapshot(class, role, opts)` returns a detached, read-only preview or
+`nil, reason`. Omitted class uses the player and omitted role uses DPS.
+It refuses combat; Apply instead captures through the combat queue at execution
+time. A failed capture preserves the previous undo record and writes nothing.
+A later accepted Apply replaces the single saved record.
+
+The versioned saved record contains only enabled steps: designated action slots
+(including explicitly empty slots), ordered binding snapshots, preset macro
+before/after identities and write intent, selected known CVars, touched position
+keys, the original profile name and the previous applied marker. Unsupported
+occupied action kinds and ambiguous macro names within a pool stop Apply before
+writes. Runtime IDs restore the exact captured spell/item, not today's highest
+rank. Macro slots also capture name and pool because indices can change.
+
+`Setup.Undo()` returns a result whose status becomes `running`, `queued`,
+`undone` or `failed`; refusal returns `nil, reason`. Apply and Undo exclude
+one another while pending. Undo restores layout, CVars and bindings, then macros,
+then bars. Restoring macros before bars is a dependency exception to reverse
+order: deletions can renumber macros, so each old macro slot resolves its final
+index immediately before pickup. Layout restoration targets the original saved
+profile even if the selected profile has changed.
+
+Each step prints one `Undo <step>` line, followed by `Undo complete.`.
+Success restores the prior applied marker and clears the snapshot. A second
+`/rik undo` reports `nothing to undo`. In combat, it reports that it cannot run
+yet and queues until combat ends; every subsequent operation is queued too.
+
+Successful entries record persistent progress. Rejected writes, missing original
+macros, changed setup-created macros, missing items, and readback failures keep
+the snapshot for retry. A setup-created macro edited afterward is preserved;
+rename it if you want to keep it, then retry Undo. Malformed or unsupported saved
+snapshots are refused. Normal saved-variable reload persistence was established
+by the existing build-69913 probe; the new undo reload path is covered by stubs.
+
+Binding Undo saves restored runtime keys to character set 2, even if Apply began
+with account bindings selected; it does not modify the account binding file.
+Original primaries and alias order return, with later aliases retained afterward.
+Macro Undo prefers `C_Macro.GetSelectedMacroIcon`; clients without that method
+fall back to the displayed icon, so exact question-mark icon restoration on
+those clients is not guaranteed. The existing 120-account/18-character macro
+target remains unchanged. Standalone `/rik binds` and `/rik cvars` do not create
+this Setup snapshot.
 
 ## Supporting service extensions
 
@@ -120,3 +167,11 @@ summary lines, visible stock bars and learned spell/Hearthstone slots. Check
 available stances, Shift/Ctrl bar bindings, and an Apply issued during combat
 that completes after combat ends. Record any Lua errors and whether the saved
 marker survives reload. Do not treat these instructions as completed evidence.
+
+For Undo, start with recognizable spell, macro, item and empty designated slots,
+an existing primary/alternate key pair, and an edited preset macro. Apply, reload,
+then run `/rik undo`; compare those original states and verify a second Undo is
+a no-op. Repeat with Undo requested during combat. Check character bindings after
+reload and the selected question-mark macro icon. Automated integration covers
+these state transitions, failures, sorting and retry behavior; live beta Undo
+execution and protected native API behavior have not been observed here.

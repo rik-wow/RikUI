@@ -16,6 +16,9 @@ setup-actions.lua
 setup-apply.lua
 bindings.lua
 macros.lua
+macros-undo.lua
+setup-snapshot.lua
+setup-undo.lua
 bars.lua
 unitframes.lua
 auras.lua

@@ -153,6 +153,76 @@ local function restore(snapshot)
     return matchesSnapshot(snapshot) and restored
 end
 
+local function validateStoredBindings(snapshot)
+    if type(snapshot) ~= "table" or type(snapshot.keys) ~= "table" or type(snapshot.commands) ~= "table" then
+        return nil, "invalid binding snapshot"
+    end
+    for key, command in pairs(snapshot.keys) do
+        if type(key) ~= "string" or key == "" or type(command) ~= "string" then return nil, "invalid binding entry" end
+    end
+    for command, keys in pairs(snapshot.commands) do
+        if type(command) ~= "string" or command == "" or type(keys) ~= "table" then return nil, "invalid binding order" end
+        local count, seen = 0, {}
+        for index, key in pairs(keys) do
+            if type(index) ~= "number" or index % 1 ~= 0 or index < 1 or index > #keys
+                or type(key) ~= "string" or key == "" or seen[key] then return nil, "invalid binding key list" end
+            seen[key], count = true, count + 1
+            if snapshot.keys[key] ~= command then return nil, "inconsistent binding order" end
+        end
+        if count ~= #keys then return nil, "incomplete binding key list" end
+    end
+    if not verifySnapshot(snapshot) then return nil, "incomplete binding snapshot" end
+    return true
+end
+
+function bindings.ValidateSnapshot(snapshot)
+    local ok, reason = validateStoredBindings(snapshot)
+    if not ok then return nil, reason end
+    if snapshot.restore ~= nil then return validateStoredBindings(snapshot.restore) end
+    return true
+end
+
+local function restoreTarget(snapshot)
+    local target = snapshot.restore
+    if not target then
+        target = { keys = {}, commands = {} }
+        for key, command in pairs(snapshot.keys) do target.keys[key] = command end
+        for command, keys in pairs(snapshot.commands) do
+            target.commands[command] = {}
+            for _, key in ipairs(keys) do table.insert(target.commands[command], key) end
+        end
+    end
+    for command, keys in pairs(target.commands) do
+        local ok, current = pcall(function() return { GetBindingKey(command) } end)
+        if not ok then return nil, "GetBindingKey failed for " .. command end
+        for _, key in ipairs(current) do
+            if target.keys[key] == nil then
+                local readable, owner = pcall(GetBindingAction, key)
+                if not readable or owner ~= command then return nil, "inconsistent binding for " .. tostring(key) end
+                target.keys[key] = command
+                keys[#keys + 1] = key
+            end
+        end
+    end
+    -- Journal later aliases before temporarily clearing them to restore primaries.
+    snapshot.restore = target
+    return target
+end
+
+-- Setup owns queuing; restore refuses direct combat calls.
+function bindings.Restore(snapshot)
+    if InCombatLockdown() then return nil, "binding restore requires leaving combat" end
+    local valid, reason = bindings.ValidateSnapshot(snapshot)
+    if not valid then return nil, reason end
+    local target
+    target, reason = restoreTarget(snapshot)
+    if not target then return nil, reason end
+    if not restore(target) then return nil, "binding restore readback failed" end
+    local ok, saved = pcall(SaveBindings, CHARACTER_BINDINGS)
+    if not ok or saved == false then return nil, "SaveBindings failed" end
+    return true
+end
+
 local function keysToClear(resolved, snapshot)
     local keys = {}
     for _, key in ipairs(touchedKeys) do keys[key] = true end

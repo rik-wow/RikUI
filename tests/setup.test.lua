@@ -2,28 +2,31 @@
 return function(check)
     local env = require("wow_stub")
     local core, actions, cursor, calls, macroData, settings, keys, keyOrder, known, items
-    local failPlace, failBinding, failCVar, combatAfterMacro
+    local failPlace, failBinding, failCVar, combatAfterMacro, firstWriteSnapshot
     local savedGlobals = {}
     local globals = { "GetActionInfo", "GetCursorInfo", "PickupAction", "PickupMacro", "PlaceAction",
-        "ClearCursor", "GetMacroInfo", "CreateMacro", "EditMacro", "GetCurrentBindingSet",
+        "ClearCursor", "GetMacroInfo", "CreateMacro", "EditMacro", "DeleteMacro", "C_Macro", "GetCurrentBindingSet",
         "GetBindingAction", "GetBindingKey", "SetBinding", "SaveBindings", "C_Spell", "C_Item", "C_CVar", "C_Container", "time" }
     for _, name in ipairs(globals) do savedGlobals[name] = _G[name] end
 
     local function record(value)
         assert(not InCombatLockdown(), "protected write in combat")
+        if #calls == 0 then firstWriteSnapshot = RikUICharDB.undo end
         calls[#calls + 1] = value
     end
     local function fresh()
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUIDB, RikUICharDB = nil, nil
         for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua",
-            "presets/warrior.lua", "setup.lua", "setup-actions.lua", "setup-apply.lua", "macros.lua", "bindings.lua" }) do
+            "presets/warrior.lua", "setup.lua", "setup-actions.lua", "setup-apply.lua",
+            "macros.lua", "bindings.lua", "macros-undo.lua", "setup-snapshot.lua", "setup-undo.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         core = RikUI
         env.fire("ADDON_LOADED", "RikUI")
         actions, calls, macroData, keys, keyOrder = {}, {}, {}, {}, {}
         cursor, failPlace, failBinding, failCVar, combatAfterMacro = nil, false, false, false, false
+        firstWriteSnapshot = nil
         known = { ["Heroic Strike"] = 284, ["Rend"] = 772 }
         items, settings = { Hearthstone = 6948 }, {}
         for _, entry in ipairs(core.CVars.List) do settings[entry.name] = "old" end
@@ -68,6 +71,14 @@ return function(check)
             macroData[index] = { name = name, icon = icon, body = body }
             return index
         end
+        DeleteMacro = function(index)
+            record("deleteMacro")
+            macroData[index] = nil
+        end
+        C_Macro = { GetSelectedMacroIcon = function(index)
+            local value = macroData[index]
+            return value and (value.selectedIcon or value.icon)
+        end }
         GetCurrentBindingSet = function() return 1 end
         GetBindingAction = function(key) return keys[key] or "" end
         GetBindingKey = function(command)
@@ -156,7 +167,7 @@ return function(check)
     check("cursor is empty after Apply", cursor == nil)
     check("layout positions are saved independently", core.Profile.positions.main.point == "BOTTOM"
         and core.Profile.positions.main ~= setup.DefaultPositions.main)
-    check("one summary per step without per-binding/cvar chatter", countLines() == 5
+    check("one summary per step without per-binding/cvar chatter", countLines() == 6
         and countLines("Setup macros:") == 1 and countLines("Setup bars:") == 1
         and countLines("Setup binds:") == 1 and countLines("Setup cvars:") == 1
         and countLines("Setup layout:") == 1)
@@ -184,7 +195,7 @@ return function(check)
     env.inCombat = false
     env.fire("PLAYER_REGEN_ENABLED")
     check("nested queue completion drains entire sequence in order", result.status == "applied"
-        and actions[73].id == 284 and RikUICharDB.applied ~= nil and countLines() == 5)
+        and actions[73].id == 284 and RikUICharDB.applied ~= nil and countLines() == 6)
 
     setup = fresh()
     combatAfterMacro = true
@@ -315,5 +326,277 @@ return function(check)
     setup = fresh()
     SlashCmdList.RIKUI("apply tank")
     check("slash command applies player class and requested role", RikUICharDB.applied and RikUICharDB.applied.role == "tank")
+
+    setup = fresh()
+    check("Setup exports persistent snapshot and undo", type(setup.Snapshot) == "function" and type(setup.Undo) == "function")
+    if type(setup.Undo) == "function" and type(setup.Snapshot) == "function" then
+        actions[1], actions[8], actions[25] = { kind = "spell", id = 999 }, { kind = "item", id = 42 }, { kind = "spell", id = 555 }
+        macroData[121] = { name = "Execute", icon = 999, selectedIcon = 134400, body = "/say original" }
+        macroData[1] = { name = "Execute", icon = 77, body = "/say account" }
+        actions[5] = { kind = "macro", id = 1 }
+        keys["6"], keys["7"], keys.Q = "ACTIONBUTTON6", "ACTIONBUTTON6", "TOGGLEBAG1"
+        keyOrder[1], keyOrder[2], keyOrder[3] = "6", "7", "Q"
+        core.Profile.positions.main = { x = 12, y = 34 }
+        core.Profile.positions.custom = { x = 99 }
+        local oldMarker = { class = "WARRIOR", role = "tank", at = 1 }
+        RikUICharDB.applied = oldMarker
+        result = setup.Apply("WARRIOR")
+        local snapshot = RikUICharDB.undo
+        check("full snapshot is persisted before first protected write", firstWriteSnapshot == snapshot
+            and snapshot.bars[1].id == 999 and snapshot.bars[8].id == 42
+            and snapshot.binds.keys.Q == "TOGGLEBAG1" and snapshot.cvars.autoLootDefault == "old")
+        check("snapshot excludes undesignated slots and unknown CVars", snapshot.bars[25] == nil
+            and snapshot.cvars.nameplateMotion == nil)
+        check("Apply advertises undo once", countLines("type /rik undo to revert") == 1)
+        macroData[130] = { name = "Unrelated", icon = 55, body = "/say keep" }
+        env.printed, calls = {}, {}
+        local undone = setup.Undo()
+        check("Undo restores spell item empty and scoped macro slots", undone.status == "undone"
+            and actions[1].id == 999 and actions[8].id == 42 and actions[2] == nil
+            and actions[5].kind == "macro" and actions[5].id == 1 and actions[25].id == 555)
+        check("Undo restores edited macro body and selected icon", macroData[121].body == "/say original"
+            and macroData[121].icon == 134400 and macroData[1].body == "/say account")
+        check("Undo deletes created macros and preserves unrelated macros", core.Macros.Find("Charge") == nil
+            and core.Macros.Find("Revenge") == nil and macroData[130].body == "/say keep")
+        local a, b = GetBindingKey("ACTIONBUTTON6")
+        check("Undo restores binding primary order and displaced commands", a == "6" and b == "7"
+            and keys.Q == "TOGGLEBAG1" and keys["SHIFT-1"] == nil)
+        check("Undo restores CVars layout and applied marker", settings.autoLootDefault == "old"
+            and core.Profile.positions.main.x == 12 and core.Profile.positions.bar2 == nil
+            and core.Profile.positions.custom.x == 99 and RikUICharDB.applied.role == "tank"
+            and RikUICharDB.applied.at == 1)
+        check("Undo consumes snapshot and summarizes each step", RikUICharDB.undo == nil and countLines() == 6
+            and countLines("Undo bars:") == 1 and countLines("Undo macros:") == 1)
+        calls, env.printed = {}, {}
+        SlashCmdList.RIKUI("undo")
+        check("second slash undo is a no-op", #calls == 0 and countLines("nothing to undo") == 1)
+
+        setup = fresh()
+        local opts = only("cvars")
+        opts.cvarSelection = { autoLootDefault = true }
+        result = setup.Apply("WARRIOR", nil, opts)
+        snapshot = RikUICharDB.undo
+        check("snapshot respects step flags and CVar selection", snapshot.bars == nil and snapshot.binds == nil
+            and snapshot.macros == nil and snapshot.layout == nil and snapshot.cvars.autoLootDefault == "old"
+            and snapshot.cvars.screenshotQuality == nil)
+        settings.screenshotQuality = "new unrelated"
+        setup.Undo()
+        check("selected undo preserves settings outside selection", settings.autoLootDefault == "old"
+            and settings.screenshotQuality == "new unrelated")
+
+        setup = fresh()
+        env.inCombat = true
+        result = setup.Apply("WARRIOR", nil, only("bars"))
+        check("queued Apply has no premature snapshot", RikUICharDB.undo == nil and #calls == 0)
+        actions[1] = { kind = "spell", id = 333 }
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("snapshot captures state at actual Apply execution", RikUICharDB.undo.bars[1].id == 333)
+        env.inCombat, calls, env.printed = true, {}, {}
+        undone = setup.Undo()
+        check("Undo queues without writes during combat", undone.status == "queued" and #calls == 0 and countLines("combat") == 1)
+        check("pending Undo excludes Apply and another Undo", setup.Apply("WARRIOR") == nil and setup.Undo() == nil)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("queued Undo completes out of combat", undone.status == "undone" and actions[1].id == 333)
+
+        setup = fresh()
+        local previousUndo = { sentinel = true }
+        RikUICharDB.undo = previousUndo
+        actions[1] = { kind = "equipmentset", id = 3 }
+        result = setup.Apply("WARRIOR")
+        check("unsupported prior action rejects before writes and preserves old undo", result.status == "failed"
+            and #calls == 0 and RikUICharDB.undo == previousUndo)
+        setup = fresh()
+        local originalLookup = C_CVar.GetCVarInfo
+        C_CVar.GetCVarInfo = function() error("unreadable") end
+        result = setup.Apply("WARRIOR")
+        check("snapshot failure prevents every Apply write", result.status == "failed" and #calls == 0 and RikUICharDB.undo == nil)
+        C_CVar.GetCVarInfo = originalLookup
+
+        setup = fresh()
+        actions[1] = { kind = "spell", id = 444 }
+        result = setup.Apply("WARRIOR", nil, only("bars"))
+        failPlace = true
+        undone = setup.Undo()
+        check("Undo readback failure retains snapshot", undone.status == "failed" and RikUICharDB.undo ~= nil)
+        failPlace = false
+        undone = setup.Undo()
+        check("failed Undo can retry and consume snapshot", undone.status == "undone"
+            and actions[1].id == 444 and RikUICharDB.undo == nil)
+
+        setup = fresh()
+        failPlace = true
+        result = setup.Apply("WARRIOR")
+        failPlace = false
+        undone = setup.Undo()
+        check("partially failed Apply remains undoable", result.status == "failed" and undone.status == "undone"
+            and next(actions) == nil and next(macroData) == nil and RikUICharDB.applied == nil)
+
+        setup = fresh()
+        local preview = setup.Snapshot()
+        check("Snapshot previews a detached write set without saving or writing", preview and preview.version == 1
+            and RikUICharDB.undo == nil and #calls == 0)
+        check("Snapshot rejects invalid option values", setup.Snapshot("WARRIOR", nil, false) == nil)
+        env.inCombat = true
+        check("Snapshot refuses unreadable combat state", setup.Snapshot() == nil)
+        env.inCombat = false
+
+        setup = fresh()
+        keys["6"], keyOrder[1] = "ACTIONBUTTON6", "6"
+        setup.Apply("WARRIOR", nil, only("binds"))
+        SetBinding("Z", "ACTIONBUTTON6")
+        undone = setup.Undo()
+        local primaryKey, addedAlias = GetBindingKey("ACTIONBUTTON6")
+        check("Undo preserves a later alias after restoring original primary", undone.status == "undone"
+            and primaryKey == "6" and addedAlias == "Z")
+
+        setup = fresh()
+        setup.Apply("WARRIOR", nil, only("macros"))
+        local charge = assert(core.Macros.Find("Charge"))
+        macroData[charge].selectedIcon = 987
+        undone = setup.Undo()
+        check("Undo preserves a newly edited created macro and reports conflict", undone.status == "failed"
+            and macroData[charge] ~= nil and RikUICharDB.undo ~= nil)
+
+        setup = fresh()
+        local nativeDelete = DeleteMacro
+        setup.Apply("WARRIOR", nil, only("macros"))
+        DeleteMacro = function() end
+        undone = setup.Undo()
+        check("silent macro deletion rejection keeps snapshot", undone.status == "failed"
+            and RikUICharDB.undo ~= nil)
+        DeleteMacro = nativeDelete
+        check("macro deletion failure is retryable", setup.Undo().status == "undone" and next(macroData) == nil)
+
+        setup = fresh()
+        macroData[121] = { name = "Execute", body = "one", icon = 1 }
+        macroData[122] = { name = "Execute", body = "two", icon = 2 }
+        result = setup.Apply("WARRIOR")
+        check("ambiguous original macros stop Apply before writes", result.status == "failed" and #calls == 0)
+
+        setup = fresh()
+        -- Simulate native sorting and index changes, including action references.
+        local function sortMacroPools()
+            local remap, sorted = {}, {}
+            for _, first in ipairs({ 1, 121 }) do
+                local pool = {}
+                for index, macro in pairs(macroData) do
+                    if (index >= 121) == (first == 121) then
+                        pool[#pool + 1] = { old = index, macro = macro }
+                    end
+                end
+                table.sort(pool, function(a, b) return a.macro.name < b.macro.name end)
+                for offset, value in ipairs(pool) do
+                    local index = first + offset - 1
+                    remap[value.old], sorted[index] = index, value.macro
+                end
+            end
+            for _, action in pairs(actions) do
+                if action.kind == "macro" then action.id = remap[action.id] end
+            end
+            macroData = sorted
+            return remap
+        end
+        local createUnsorted, editUnsorted, deleteUnsorted = CreateMacro, EditMacro, DeleteMacro
+        CreateMacro = function(...)
+            local index = createUnsorted(...)
+            return sortMacroPools()[index]
+        end
+        EditMacro = function(...)
+            local index = editUnsorted(...)
+            return sortMacroPools()[index]
+        end
+        DeleteMacro = function(index) deleteUnsorted(index); sortMacroPools() end
+        macroData[121] = { name = "Zebra", body = "/say keep", icon = 55 }
+        macroData[1] = { name = "Zebra", body = "/say account", icon = 56 }
+        actions[1] = { kind = "macro", id = 121 }
+        result = setup.Apply("WARRIOR")
+        CreateMacro("Alpha", 11, "/say new")
+        undone = setup.Undo()
+        check("Undo resolves macro actions after sorted creations and deletions", result.status == "applied"
+            and undone.status == "undone" and actions[1].id == core.Macros.Find("Zebra")
+            and macroData[actions[1].id].body == "/say keep" and core.Macros.Find("Alpha") ~= nil)
+
+        setup = fresh()
+        actions[1] = { kind = "spell", id = 345 }
+        setup.Apply("WARRIOR")
+        local restoreCVar = C_CVar.SetCVar
+        local stopOnce = true
+        C_CVar.SetCVar = function(name, value)
+            local accepted = restoreCVar(name, value)
+            if stopOnce then stopOnce = false; env.inCombat = true end
+            return accepted
+        end
+        undone = setup.Undo()
+        check("combat appearing during Undo suspends later native writes", undone.status == "queued"
+            and RikUICharDB.undo ~= nil)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("mid-Undo combat suspension resumes and finishes", undone.status == "undone" and actions[1].id == 345)
+
+        setup = fresh()
+        actions[1] = { kind = "spell", id = 345 }
+        setup.Apply("WARRIOR", nil, only("bars"))
+        known["Heroic Strike"] = 1608
+        setup.Apply("WARRIOR", nil, only("bars"))
+        undone = setup.Undo()
+        check("repeat Apply replaces undo with the immediately previous state", undone.status == "undone"
+            and actions[1].id == 284 and RikUICharDB.applied.role == "dps")
+
+        setup = fresh()
+        core.Profile.positions.main = { x = 9 }
+        setup.Apply("WARRIOR")
+        RikUICharDB.undo.bars[1] = { kind = "spell" }
+        calls = {}
+        local invalidUndo = RikUICharDB.undo
+        check("malformed action snapshot refuses before restoration writes", setup.Undo() == nil
+            and #calls == 0 and RikUICharDB.undo == invalidUndo and core.Profile.positions.main.x == 0)
+
+        setup = fresh()
+        setup.Apply("WARRIOR")
+        RikUICharDB.undo.binds.commands.ACTIONBUTTON1 = "invalid"
+        calls = {}
+        check("malformed binding snapshot refuses before restoration writes", setup.Undo() == nil and #calls == 0)
+
+        setup = fresh()
+        local createBeforeCVar = CreateMacro
+        CreateMacro = function(...)
+            settings.nameplateMotion = "new"
+            return createBeforeCVar(...)
+        end
+        result = setup.Apply("WARRIOR")
+        check("Apply never writes a CVar absent from initial snapshot", result.status == "applied"
+            and settings.nameplateMotion == "new" and RikUICharDB.undo.cvars.nameplateMotion == nil)
+
+        setup = fresh()
+        local originalProfile = core.Profile
+        originalProfile.positions.main = { x = 19 }
+        env.inCombat = true
+        result = setup.Apply("WARRIOR", nil, only("layout"))
+        core.DB.profiles.Other = { positions = { main = { x = 88 } } }
+        core.Profile, core.CharDB.profile = core.DB.profiles.Other, "Other"
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        undone = setup.Undo()
+        check("queued Apply undo restores the captured profile after a profile switch", undone.status == "undone"
+            and originalProfile.positions.main.x == 19 and core.Profile.positions.main.x == 88)
+
+        setup = fresh()
+        actions[1] = { kind = "spell", id = 222 }
+        setup.Apply("WARRIOR", nil, only("bars"))
+        local savedAccount, savedCharacter = RikUIDB, RikUICharDB
+        env.frames = {}
+        for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua", "presets/warrior.lua",
+            "setup.lua", "setup-actions.lua", "setup-apply.lua", "macros.lua", "bindings.lua", "macros-undo.lua",
+            "setup-snapshot.lua", "setup-undo.lua" }) do assert(loadfile(file))("RikUI", {}) end
+        RikUIDB, RikUICharDB = savedAccount, savedCharacter
+        env.fire("ADDON_LOADED", "RikUI")
+        core, setup = RikUI, RikUI.Setup
+        undone = setup.Undo()
+        check("saved snapshot survives addon reload and restores", undone.status == "undone"
+            and actions[1].id == 222 and RikUICharDB.undo == nil)
+    end
+
     for _, name in ipairs(globals) do _G[name] = savedGlobals[name] end
 end
