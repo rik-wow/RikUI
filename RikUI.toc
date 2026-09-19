@@ -38,6 +38,7 @@ unitframes-status.lua
 castbars.lua
 castbars-status.lua
 auras.lua
+auras-status.lua
 minimap.lua
 chat.lua
 bags.lua

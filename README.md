@@ -34,12 +34,18 @@ even when the target's cast times are secret. The Blizzard casting bar is
 hidden; disable the `castbars` module to restore it. See
 [castbars](docs/castbars.md).
 
+Buffs, weapon enchants and debuffs sit at the top right as flat icons with
+stack counts, dispel-coloured debuff borders and the client's own countdown
+numbers. Right-click a buff out of combat to cancel it. The Blizzard buff and
+debuff frames are hidden; disable the `auras` module to restore them. See
+[auras](docs/auras.md).
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [setup](docs/setup.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

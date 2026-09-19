@@ -31,6 +31,7 @@ local KNOWN_EVENTS = {
     UNIT_SPELLCAST_INTERRUPTED = true, UNIT_SPELLCAST_DELAYED = true, UNIT_SPELLCAST_CHANNEL_START = true,
     UNIT_SPELLCAST_CHANNEL_UPDATE = true, UNIT_SPELLCAST_CHANNEL_STOP = true,
     UNIT_SPELLCAST_INTERRUPTIBLE = true, UNIT_SPELLCAST_NOT_INTERRUPTIBLE = true,
+    UNIT_AURA = true, WEAPON_ENCHANT_CHANGED = true, WEAPON_SLOT_CHANGED = true,
 }
 env.KNOWN_EVENTS = KNOWN_EVENTS
 
@@ -238,7 +239,10 @@ end
 
 C_Spell = { GetSpellCooldownDuration = function() end, GetSpellTexture = function() return 132355 end, GetSpellName = function() return "Heroic Strike" end, GetSpellInfo = function() end, PickupSpell = function() end }
 function PickupAction() end
-C_UnitAuras = { GetAuraDataByIndex = function() end, GetAuraDuration = function() end }
+C_UnitAuras = { GetAuraDataByIndex = function() end, GetAuraDuration = function() end,
+    GetAuraApplicationDisplayCount = function() return "" end }
+C_PaperDollInfo = { GetTemporaryEnchantmentInfo = function() end }
+function GetInventoryItemTexture() return 135274 end
 C_Macro = { GetNumMacros = function() return 0, 0 end }
 C_CVar = { GetCVar = function() return "1" end, SetCVar = function() end, GetCVarInfo = function() end }
 C_Secrets = { ShouldAurasBeSecret = function() return true end }

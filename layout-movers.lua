@@ -3,7 +3,7 @@ local core, layout = RikUI, RikUI.Layout
 local LABELS = { main = "Main bar", bar2 = "Bar 2", bar3 = "Bar 3", bar4 = "Bar 4",
     bar5 = "Bar 5", stance = "Stance bar", pet = "Pet bar", player = "Player frame",
     target = "Target frame", tot = "Target of target", petframe = "Pet frame",
-    castplayer = "Player castbar", casttarget = "Target castbar" }
+    castplayer = "Player castbar", casttarget = "Target castbar", buffs = "Buffs", debuffs = "Debuffs" }
 local LABEL_SIZE, MIN_SIZE = 12, 24
 local moving = false
 layout.Movers = {}
