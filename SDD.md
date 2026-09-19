@@ -632,6 +632,7 @@ RikUI/
   auras-units.lua
   minimap.lua
   chat.lua
+  chat-skin.lua
   chat-copy.lua
   chat-move.lua
   bags.lua

@@ -14,8 +14,8 @@ local USAGE = "Usage: /rik chat lock|unlock|reset"
 local UNLOCKED = "Chat unlocked: drag the padlock button or the first chat tab, then click the padlock to lock."
 local RESET = "Chat position forgotten; reload to hand the window back to Blizzard's layout."
 local TIP_LOCKED, TIP_UNLOCKED = "Click to unlock the chat window", "Drag to move the chat window. Click to lock."
--- The copy button takes the corner (14 wide, inset 2); the padlock sits four pixels left of it.
-local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, SHACKLE_SWING = 14, 20, 2, 0.35, 4
+-- The copy button takes the corner (16 wide, inset 2); the padlock sits two pixels left of it.
+local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, SHACKLE_SWING = 16, 20, 2, 0.35, 3
 local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
 local holder, lockButton, adopted, anchoring, dragging = nil, nil, false, false, false
 
@@ -124,8 +124,9 @@ local function createLockButton()
     lockButton = CreateFrame("Button", nil, _G[MAIN])
     lockButton:SetSize(LOCK_SIZE, LOCK_SIZE)
     lockButton:SetPoint("TOPRIGHT", _G[MAIN], "TOPRIGHT", -LOCK_OFFSET, -LOCK_INSET)
-    lockButton.body, lockButton.shackle = lockPart(10, 7), lockPart(6, 5)
-    lockButton.body:SetPoint("BOTTOM", lockButton, "BOTTOM", 0, 1)
+    chat.Flat(lockButton, chat.Colors.field)
+    lockButton.body, lockButton.shackle = lockPart(8, 5), lockPart(4, 4)
+    lockButton.body:SetPoint("BOTTOM", lockButton, "BOTTOM", 0, 3)
     lockButton:RegisterForDrag("LeftButton")
     lockButton:SetScript("OnClick", function() chat.SetLocked(not isLocked()) end)
     lockButton:SetScript("OnDragStart", dragStart)

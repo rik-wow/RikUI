@@ -8,6 +8,18 @@
 local stub = { WINDOWS = 3, TAB_ART = { "Left", "Middle", "Right", "ActiveLeft", "ActiveMiddle", "ActiveRight",
     "HighlightLeft", "HighlightMiddle", "HighlightRight" } }
 
+-- CHAT_FRAME_TEXTURES' window part: Blizzard fades these in on hover unless they are hidden.
+stub.FRAME_ART = { "Background", "TopLeftTexture", "BottomLeftTexture", "TopRightTexture", "BottomRightTexture",
+    "LeftTexture", "RightTexture", "BottomTexture", "TopTexture" }
+
+local function installFrameArt(frame, name)
+    for _, key in ipairs(stub.FRAME_ART) do
+        local art = frame:CreateTexture()
+        art.shown = true
+        _G[name .. key] = art
+    end
+end
+
 local function installEditBox(frame, name)
     local box = CreateFrame("EditBox", name .. "EditBox", frame)
     frame.editBox = box
@@ -44,6 +56,7 @@ local function installFrame(id)
     frame.ScrollBar = CreateFrame("EventFrame", nil, frame)
     frame.ScrollToBottomButton = CreateFrame("Button", nil, frame)
     frame.buttonFrame = CreateFrame("Frame", name .. "ButtonFrame", frame)
+    installFrameArt(frame, name)
     installEditBox(frame, name)
     installTab(name, id)
     table.insert(CHAT_FRAMES, name)
@@ -79,6 +92,7 @@ local function installFontFunctions()
     CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA, CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1, 0.4
     CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA, CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 0.6, 0.2
     CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA, CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1, 1
+    function FCFTab_UpdateColors() end
     function FCFTab_UpdateAlpha(chatFrame)
         local tab = _G[chatFrame:GetName() .. "Tab"]
         local selected = chatFrame:GetID() == 1

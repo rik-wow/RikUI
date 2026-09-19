@@ -9,9 +9,11 @@ core.Chat = chat
 
 local MAX_WINDOWS, FONT_FLAGS, SHADOW = 10, "", { 0, 0, 0, 1 }
 local SIZE_MIN, SIZE_MAX, SIZE_FUNCTION = 10, 24, "FCF_SetChatWindowFontSize"
-local EDIT_HEIGHT, EDIT_GAP, EDGE = 24, 4, 1
-local BACKGROUND, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0.32, 1 }
-local COPY_SIZE, COPY_GLYPH, COPY_INSET, COPY_ALPHA = 14, 10, 2, 0.35
+local EDIT_HEIGHT, EDIT_GAP, PANEL_GAP, EDGE = 24, 4, 2, 1
+-- The one palette every chat piece draws from: panel fill, control fill, border, selected border.
+chat.Colors = { background = { 0.055, 0.065, 0.08, 0.95 }, field = { 0.1, 0.11, 0.13, 1 },
+    border = { 0.25, 0.28, 0.32, 1 }, selected = { 1, 0.78, 0.3, 1 } }
+local COPY_SIZE, COPY_GLYPH, COPY_GLYPH_INSET, COPY_INSET, COPY_ALPHA = 16, 7, 3, 2, 0.35
 local TIMESTAMP_CVAR, TIMESTAMP_FORMAT, TIMESTAMP_OFF = "showTimestamps", "%H:%M ", "none"
 -- FCFTab_UpdateAlpha reads these globals on every refresh; alerting tabs keep their own alpha.
 local NO_MOUSE_ALPHAS = { "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA" }
@@ -42,6 +44,15 @@ function chat.Settings() return core.Profile.chat end
 -- Blizzard toggles the focus art with SetShown, so alpha is the write that lasts.
 local function fade(region)
     if hasMethod(region, "SetAlpha") then region:SetAlpha(0) end
+end
+
+-- Flat fill and one-pixel border, the look of every RikUI window and control.
+function chat.Flat(frame, fill)
+    frame.rikBackground = frame:CreateTexture(nil, "BACKGROUND")
+    frame.rikBackground:SetAllPoints()
+    frame.rikBackground:SetColorTexture(unpack(fill))
+    frame.rikBorder = unitframes.Edges(frame, EDGE, "BORDER")
+    for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(chat.Colors.border)) end
 end
 
 local function applyFont(target)
@@ -92,14 +103,12 @@ local function flattenEditBox(frame)
     local name = box:GetName()
     for _, key in ipairs(EDIT_ART) do fade(name and _G[name .. key]) end
     for _, key in ipairs(EDIT_FOCUS) do fade(box[key]) end
-    box.rikBackground = box:CreateTexture(nil, "BACKGROUND")
-    box.rikBackground:SetAllPoints()
-    box.rikBackground:SetColorTexture(unpack(BACKGROUND))
-    box.rikBorder = unitframes.Edges(box, EDGE, "BORDER")
-    for _, line in ipairs(box.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
+    chat.Flat(box, chat.Colors.background)
+    -- Under the window's panel when the skin file made one, so both share their left and right edge.
+    local anchor, gap = frame.rikPanel or frame, frame.rikPanel and PANEL_GAP or EDIT_GAP
     box:ClearAllPoints()
-    box:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, -EDIT_GAP)
-    box:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, -EDIT_GAP)
+    box:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -gap)
+    box:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -gap)
     box:SetHeight(EDIT_HEIGHT)
 end
 
@@ -123,8 +132,9 @@ end
 local function copyGlyph(button, point)
     local square = button:CreateTexture(nil, "ARTWORK")
     square:SetTexture(media.border)
+    local inset = point == "TOPLEFT" and COPY_GLYPH_INSET or -COPY_GLYPH_INSET
     square:SetSize(COPY_GLYPH, COPY_GLYPH)
-    square:SetPoint(point, button, point, 0, 0)
+    square:SetPoint(point, button, point, inset, -inset)
     return square
 end
 
@@ -132,6 +142,7 @@ local function addCopyButton(frame)
     local button = CreateFrame("Button", nil, frame)
     button:SetSize(COPY_SIZE, COPY_SIZE)
     button:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -COPY_INSET, -COPY_INSET)
+    chat.Flat(button, chat.Colors.field)
     button:SetAlpha(COPY_ALPHA)
     button.back, button.front = copyGlyph(button, "TOPLEFT"), copyGlyph(button, "BOTTOMRIGHT")
     button:SetScript("OnEnter", function(self) self:SetAlpha(1) end)
@@ -167,6 +178,7 @@ end
 
 local function setupFrame(frame)
     chat.Frames[frame] = true
+    if chat.SkinFrame then chat.SkinFrame(frame) end
     for _, key in ipairs(FRAME_CONTROLS) do park(frame[key]) end
     flattenEditBox(frame)
     skinTab(frame)

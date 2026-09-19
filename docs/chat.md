@@ -9,6 +9,26 @@ module in `/rik config` and reload to get the stock chat back.
 `chat-copy.lua` is a new TOC entry. **Fully exit and restart the client after
 updating**, a `/reload` does not pick up new files.
 
+## One look
+
+`chat-skin.lua` (a new TOC entry, so restart the client once) puts the chat
+on the same flat style as the bags, tooltips and minimap. Every piece draws
+from one palette in `chat.Colors` through one helper, `chat.Flat`: dark fill,
+one-pixel border.
+
+- Each chat window sits on a flat bordered panel four pixels larger than the
+  text area. The Chat options page can turn the panel off.
+- Blizzard's own window background and rounded border are hidden. They are
+  hidden rather than faded because `FCF_FadeInChatFrame` fades every shown
+  texture back in on hover and skips hidden ones.
+- Tabs are flat boxes with the label centred; the selected tab has a gold
+  border (post-hook on `FCFTab_UpdateColors`). They still fade out with the
+  window.
+- The edit box hangs two pixels under the panel with the same left and right
+  edge and the same fill and border.
+- The copy and padlock buttons are 16-pixel flat buttons side by side in the
+  top-right corner, dim until hovered.
+
 ## What you see
 
 Every chat window uses the RikUI font without an outline, with a one-pixel

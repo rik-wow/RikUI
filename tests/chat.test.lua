@@ -5,10 +5,10 @@ return function(check)
     local stub = require("chat_stub")
     local originalCreate = CreateFrame
     local API = { "CHAT_FRAMES", "NUM_CHAT_WINDOWS", "ChatFrameUtil", "EventRegistry", "SetItemRef", "ChatFontNormal",
-        "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA",
+        "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA",
         "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA", "ItemRefTooltip", "RikUIChatCopy" }
     local FILES = { "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
-        "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-copy.lua", "chat-move.lua" }
+        "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua", "chat-move.lua" }
     local STOCK_FONT, URL = "Fonts\\FRIZQT__.TTF", "https://example.com/a?b=1"
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
@@ -121,7 +121,7 @@ return function(check)
             and type(rawget(box, "rikBorder")) == "table" and #box.rikBorder == 4
             and box.rikBorder[1].texture == RikUI.Media.border)
         check("the edit box docks under its chat frame across the full width", #box.points == 2
-            and box.points[1][1] == "TOPLEFT" and box.points[1][2] == ChatFrame1 and box.points[1][3] == "BOTTOMLEFT"
+            and box.points[1][1] == "TOPLEFT" and box.points[1][2] == ChatFrame1.rikPanel and box.points[1][3] == "BOTTOMLEFT"
             and box.points[2][1] == "TOPRIGHT" and box.points[2][3] == "BOTTOMRIGHT" and box.points[1][5] < 0
             and box.height == 24)
     end
@@ -250,13 +250,44 @@ return function(check)
         end)
         check("missing link APIs print one line each and the rest still applies", printedContains("Chat links")
             and printedContains("Chat clicks") and #env.printed == 2 and ChatFrame1.fontPath == RikUI.Media.font
-            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 3)
+            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 4)
         check("without Blizzard's size function SetFontSize writes the fonts itself", module.SetFontSize(15) == true
             and ChatFrame3.fontSize == 15 and ChatFrame3EditBox.fontSize == 15)
 
         module = load(nil, false, function() ChatFrame1 = nil end)
         check("a client without ChatFrame1 prints one line and touches nothing", printedContains("Chat frames")
             and #env.printed == 1 and ChatFrame2.fontPath == STOCK_FONT and #module.Parked == 0)
+
+        module = load()
+        local panel, skinnedTab = rawget(ChatFrame1, "rikPanel"), ChatFrame2Tab
+        check("every chat window sits on a flat bordered panel a few pixels larger than itself", allFrames(function(frame)
+            local back = rawget(frame, "rikPanel")
+            return back and back.parent == frame and #back.rikBorder == 4 and back.rikBorder[1].texture == RikUI.Media.border
+                and back.points[1][4] < 0 and back.points[2][4] > 0
+        end) and panel.rikBackground.color[4] == 0.95)
+        check("Blizzard's window background and rounded border are hidden, not faded", allFrames(function(_, name)
+            for _, key in ipairs(stub.FRAME_ART) do
+                if _G[name .. key]:IsShown() then return false end
+            end
+            return true
+        end))
+        check("tabs are flat boxes with the label centred in them", #skinnedTab.rikBorder == 4
+            and skinnedTab.rikBox ~= nil and skinnedTab.Text.point[2] == skinnedTab.rikBox)
+        FCFTab_UpdateColors(skinnedTab, true)
+        check("the selected tab gets the gold border", skinnedTab.rikBorder[1].color[1] == 1
+            and skinnedTab.rikBorder[1].color[3] < 0.5)
+        FCFTab_UpdateColors(skinnedTab, false)
+        check("an unselected tab goes back to the neutral border", skinnedTab.rikBorder[1].color[1] == 0.25)
+        local copyButton, lockButton = rawget(ChatFrame1, "rikCopy"), rawget(ChatFrame1, "rikLock")
+        check("the copy and lock buttons share the flat button skin and size", #copyButton.rikBorder == 4
+            and #lockButton.rikBorder == 4 and copyButton.width == 16 and lockButton.width == 16
+            and copyButton.rikBackground.color[1] == lockButton.rikBackground.color[1])
+        check("the panel setting hides and shows every panel", module.SetPanel(false) == true
+            and RikUI.Profile.chat.panel == false and not panel:IsShown() and module.SetPanel(true) == true
+            and panel:IsShown())
+        module = load({ chat = { panel = false } })
+        check("a profile without the panel still loses Blizzard's art", not ChatFrame1.rikPanel:IsShown()
+            and not ChatFrame1Background:IsShown())
 
         module = load()
         local tab = ChatFrame1Tab
