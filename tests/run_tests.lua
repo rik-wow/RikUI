@@ -224,6 +224,8 @@ local unitAuraOk, unitAuraErr = pcall(function() dofile("tests/auras-units.test.
 check("Unit aura test suite completes", unitAuraOk, unitAuraErr)
 local tooltipOk, tooltipErr = pcall(function() dofile("tests/tooltip.test.lua")(check) end)
 check("Tooltip test suite completes", tooltipOk, tooltipErr)
+local minimapOk, minimapErr = pcall(function() dofile("tests/minimap.test.lua")(check) end)
+check("Minimap test suite completes", minimapOk, minimapErr)
 
 -- report
 if #failures == 0 then

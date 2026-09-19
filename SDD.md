@@ -482,7 +482,7 @@ load order:
 | `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), party, raid; class colours; threat |
 | `castbars.lua`, `castbars-status.lua` | player and target castbars (delivered): duration-object fill, shield, interrupt state |
 | `auras.lua`, `auras-button.lua`, `auras-units.lua` | player buffs/debuffs, weapon enchants, target and pet aura rows on Blizzard's CustomAuraContainer with our button skin and own-aura emphasis (delivered) |
-| `minimap.lua` | square minimap, clock, coords, tracking, zone text, hide Blizzard buttons |
+| `minimap.lua` | Blizzard's Minimap in a square RikUI holder with zone text, local clock and coords, wheel zoom and right-click tracking; cluster art parked, mail and queue frames kept (delivered) |
 | `chat.lua` | font, timestamps, copy button, URL detection, hide the side buttons |
 | `bags.lua` | one-bag view with sort and search |
 | `tooltip.lua`, `tooltip-data.lua` | movable anchor, flat skin and font, class/reaction colours, Blizzard's GUID-watched health bar, item level and spell ID lines, hide in combat (delivered) |
@@ -522,8 +522,13 @@ exist. The RikUI pet row has no right-click autocast toggle yet, so
 frame module parks PlayerFrame, TargetFrame, PetFrame and TargetFrameToT with
 `keepEvents` false once its four replacements exist, and the castbar module
 parks PlayerCastingBarFrame the same way once both bars exist, and the aura module
-parks BuffFrame and DebuffFrame once both aura containers exist. Other modules will hide
-PartyFrame, MinimapCluster, chat side buttons and
+parks BuffFrame and DebuffFrame once both aura containers exist. The minimap
+module keeps `Minimap` itself (re-parented into `RikUIMinimap` with a square
+mask) and parks the cluster's border, zone button, zoom buttons, backdrop,
+native coordinates, instance difficulty flag and day/night indicator with
+`keepEvents` false; the mail indicator, queue button and tracking dropdown
+move into the holder so they stay reachable. Other modules will hide
+PartyFrame, chat side buttons and
 container frames through the same helper, only when replaced, passing
 `keepEvents` false where no native handler must keep running.
 

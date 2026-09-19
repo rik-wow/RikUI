@@ -55,12 +55,20 @@ end with the item level and spell tooltips with the spell ID. The Tooltips
 options page can hide unit tooltips in combat. Disable the `tooltip` module
 to get the stock tooltips back. See [tooltips](docs/tooltip.md).
 
+The minimap is a bordered square at the top right with the zone name above it
+and the local clock and your coordinates below. Scroll to zoom, right-click
+for the tracking menu, left-click to ping. The round cluster art, zoom
+buttons and day/night ring are hidden; the mail indicator sits inside the
+square. Disable the `minimap` module to get the round cluster back. See
+[minimap](docs/minimap.md).
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [setup](docs/setup.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md),
+[setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.
