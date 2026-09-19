@@ -479,7 +479,8 @@ load order:
 | `bindings.lua` | the global key scheme, clear/apply, hotkey label formatting ("s1", "M4") |
 | `macros.lua`, `macros-undo.lua` | create/edit/find macros, per-character first; scoped undo identities and restoration |
 | `bars.lua` | overlay action bars, stance/pet bars, ghost layer, button skin, hide Blizzard bars |
-| `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), party, raid; class colours; threat |
+| `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), raid; class colours; threat |
+| `unitframes-party.lua` | four fixed `SecureUnitButtonTemplate` frames for party1-4 from the shared factory (delivered). No `SecureGroupHeaderTemplate`: its `initialConfigFunction` is a secure snippet, and RikProbe showed snippets cannot run on 69913. Leader icon, role letter, range fade through `SetAlphaFromBoolean` |
 | `castbars.lua`, `castbars-status.lua` | player and target castbars (delivered): duration-object fill, shield, interrupt state |
 | `auras.lua`, `auras-button.lua`, `auras-units.lua` | player buffs/debuffs, weapon enchants, target and pet aura rows on Blizzard's CustomAuraContainer with our button skin and own-aura emphasis (delivered) |
 | `minimap.lua` | Blizzard's Minimap in a square RikUI holder with zone text, local clock and coords, wheel zoom and right-click tracking; cluster art parked, mail and queue frames kept (delivered) |

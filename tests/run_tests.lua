@@ -216,6 +216,8 @@ local optionsOk, optionsErr = pcall(function() dofile("tests/options.test.lua")(
 check("Options test suite completes", optionsOk, optionsErr)
 local unitOk, unitErr = pcall(function() dofile("tests/unitframes.test.lua")(check) end)
 check("Unit frame test suite completes", unitOk, unitErr)
+local partyOk, partyErr = pcall(function() dofile("tests/unitframes-party.test.lua")(check) end)
+check("Party frame test suite completes", partyOk, partyErr)
 local castOk, castErr = pcall(function() dofile("tests/castbars.test.lua")(check) end)
 check("Castbar test suite completes", castOk, castErr)
 local auraOk, auraErr = pcall(function() dofile("tests/auras.test.lua")(check) end)

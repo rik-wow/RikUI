@@ -51,6 +51,50 @@ left of the player (`x=-313`). The large frames are 220x44 and the small ones
 110x30. The [castbars](castbars.md) sit directly under the player and target
 frames.
 
+## Party frames
+
+`unitframes-party.lua` builds four fixed frames for `party1` to `party4`
+through the same factory (`UnitFrames.Build`), so clicks, tooltips, colours,
+threat and the secret rules match the player frame. There is no
+`SecureGroupHeaderTemplate`: its `initialConfigFunction` is a secure snippet,
+and snippets cannot run on build 69913. They are part of the `unitframes`
+module and turn off with it.
+
+The frames are 150x36 and sit in one `RikUIParty` holder registered with the
+layout under the key `party`, default `LEFT` of the screen at `x=20, y=0`, so
+one mover carries the stack. Each frame's visibility driver is
+`[group:raid] hide; [@partyN,exists] show; hide`: one frame per member, none
+solo, none in a raid. The health bar has no `current / max` text at this size.
+
+A leader icon sits at the right of the health bar and a role letter (`T`,
+`H`, `D`) at the right of the power bar. `UnitIsGroupLeader` and
+`UnitGroupRolesAssigned` are `pcall`-read; a secret leader flag goes
+uncompared into `Texture:SetAlphaFromBoolean(flag, 1, 0)`, and a secret or
+unassigned role shows no letter.
+
+Range is polled every 0.5 seconds with `UnitInRange` inside `pcall`
+(`UNIT_IN_RANGE_UPDATE` carries secret payloads, so it is not used). A
+readable result fades the frame to 0.45 alpha only when the range was checked
+and the member is out of range. The pinned documentation marks the returns as
+secret-capable; a secret result goes into
+`Frame:SetAlphaFromBoolean(inRange, 1, 0.45)`, which accepts secrets from
+addon code. In that case the `checkedRange` flag cannot be honoured. A failing
+read leaves the frame opaque and prints one `Unit frames range` line.
+
+`GROUP_ROSTER_UPDATE` refreshes every member, `PARTY_LEADER_CHANGED` the
+icons. `PartyFrame` and `CompactPartyFrame` (the raid-style party option) are
+parked through `RikUI.Hide.Frame(frame, false)` once the RikUI frames exist,
+and rechecked on roster updates and `PLAYER_ENTERING_WORLD`.
+
+`tests/unitframes-party.test.lua` covers the build, attributes, drivers,
+layout default, stacking, sinks, leader and role in readable and secret form,
+the four range cases, the poll interval, roster and leader events, threat,
+zero protected writes in combat, parking, combat login, the disabled module
+and missing stock globals. Beta checklist: join a party and confirm one frame
+per member on the left edge, left and right click, the leader icon, the fade
+when a member runs off, no frames after converting to a raid, no Blizzard
+party frame, and no `Could not register event` line at login.
+
 ## Secret rules
 
 - `UnitHealth`, `UnitHealthMax`, `UnitPower` and `UnitPowerMax` are read

@@ -133,17 +133,25 @@ local function poll(frame)
     end)
 end
 
-local function createFrame(spec)
-    local frame = CreateFrame("Button", FRAME_PREFIX .. spec.key, UIParent, "SecureUnitButtonTemplate")
+-- The shared factory: unitframes-party.lua builds its members through it, so every
+-- built frame lands in Frames and receives the unit events below.
+local function build(spec, parent)
+    local frame = CreateFrame("Button", FRAME_PREFIX .. spec.key, parent or UIParent, "SecureUnitButtonTemplate")
     frame.key, frame.unit, frame.threatArgs = spec.key, spec.unit, spec.threat
     frame:SetSize(spec.size.width, spec.size.height)
     decorate(frame, spec.size)
     secure(frame, spec.unit)
     hover(frame)
-    layout.Register(frame, spec.key, DEFAULTS[spec.key])
     visibility(frame, spec.visibility)
     if spec.poll then poll(frame) end
     unitframes.Frames[spec.key] = frame
+    return frame
+end
+unitframes.Build = build
+
+local function createFrame(spec)
+    local frame = build(spec)
+    layout.Register(frame, spec.key, DEFAULTS[spec.key])
     return frame
 end
 
@@ -178,9 +186,8 @@ end
 
 local function eachFrame(callback, unit)
     if core.Secret.IsSecret(unit) then unit = nil end
-    for _, spec in ipairs(UNITS) do
-        local frame = unitframes.Frames[spec.key]
-        if frame and (not unit or unit == spec.unit) then callback(frame) end
+    for _, frame in pairs(unitframes.Frames) do
+        if not unit or unit == frame.unit then callback(frame) end
     end
 end
 
@@ -233,6 +240,7 @@ function unitframes:OnEnable()
     end)
     registerUnitEvents()
     registerTargetEvents()
+    if unitframes.Party then unitframes.Party.Enable() end
 end
 
 function unitframes:Debug(sample)

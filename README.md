@@ -28,6 +28,11 @@ the unit tooltip. The Blizzard
 frames for those units are hidden; disable the `unitframes` module and reload
 to restore them. See [unit frames](docs/unitframes.md).
 
+In a party, up to four member frames stack on the left edge at middle height
+with the same bars, a leader icon and a T/H/D role letter. Members out of
+range fade. The frames hide when you're solo or in a raid, and the Blizzard
+party frame is hidden with the rest.
+
 Castbars sit under the player and target frames with the spell icon, name
 and remaining time; casts fill gold, channels drain blue, interrupted casts
 flash red, and the target bar shows a shield on the icon while a cast cannot
