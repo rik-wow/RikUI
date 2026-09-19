@@ -48,6 +48,7 @@ chat-copy.lua
 chat-move.lua
 bags.lua
 bags-items.lua
+micromenu.lua
 tooltip.lua
 tooltip-data.lua
 wizard.lua

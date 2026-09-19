@@ -2,17 +2,10 @@
 local core, bars = RikUI, RikUI.Bars
 local BUTTONS = 12
 
--- Native menu layout skips anchors while it is parked outside its container.
-local function refreshMenuLayout(frame)
-    local parent = frame:GetParent()
-    if parent and parent == MicroMenuContainer and type(parent.Layout) == "function" then parent:Layout() end
-end
-
+-- MicroMenu and BagsBar belong to micromenu.lua, which parks them once its strip exists.
 local TARGETS = {
     { overlay = "main", name = "MainActionBar" },
     { overlay = "main", name = "MainMenuBarArtFrame" },
-    { overlay = "main", name = "MicroMenu", onRestored = refreshMenuLayout },
-    { overlay = "main", name = "BagsBar" },
     { overlay = "main", name = "StatusTrackingBarManager" },
     { overlay = "bar2", name = "MultiBarBottomLeft" },
     { overlay = "bar3", name = "MultiBarBottomRight" },

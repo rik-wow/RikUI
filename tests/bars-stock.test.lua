@@ -69,9 +69,10 @@ return function(check)
         check("corresponding multibars share the hidden parent", MultiBarBottomLeft:GetParent() == hidden
             and MultiBarBottomRight:GetParent() == hidden and MultiBarRight:GetParent() == hidden
             and MultiBarLeft:GetParent() == hidden)
-        check("surrounding bar UI is hidden with the action bars", BagsBar:GetParent() == hidden
-            and MicroMenu:GetParent() == hidden and StatusTrackingBarManager:GetParent() == hidden
+        check("surrounding bar UI is hidden with the action bars", StatusTrackingBarManager:GetParent() == hidden
             and MainMenuBarArtFrame:GetParent() == hidden)
+        check("the menu and bag bar are left to the micro menu module", BagsBar:GetParent() == UIParent
+            and MicroMenu:GetParent() == MicroMenuContainer)
         check("progress bar hierarchy remains intact", MainStatusTrackingBarContainer:GetParent() == StatusTrackingBarManager
             and SecondaryStatusTrackingBarContainer:GetParent() == StatusTrackingBarManager)
         check("queue status and opened bags keep their native parents", QueueStatusButton:GetParent() == MicroMenuContainer
@@ -87,9 +88,7 @@ return function(check)
         SlashCmdList.RIKUI("stockbars show")
         check("show restores original parents after repeated hide", main:GetParent() == UIParent
             and MultiBarLeft:GetParent() == UIParent and RikUI.Profile.showStockBars == true)
-        check("show restores furniture and refreshes menu layout", BagsBar:GetParent() == UIParent
-            and StatusTrackingBarManager:GetParent() == UIParent and MicroMenu:GetParent() == MicroMenuContainer
-            and MicroMenuContainer.restoredMenu == true)
+        check("show restores the progress bars", StatusTrackingBarManager:GetParent() == UIParent)
         SlashCmdList.RIKUI("stockbars hide")
         check("hide command persists preference and reapplies", main:GetParent() == hidden and RikUI.Profile.showStockBars == false)
         local writes = main.writes
@@ -101,11 +100,6 @@ return function(check)
         check("Blizzard reparent is suppressed while hidden", main:GetParent() == hidden)
         SlashCmdList.RIKUI("stockbars show")
         check("restore respects latest native parent", main:GetParent() == otherParent)
-        SlashCmdList.RIKUI("stockbars hide")
-        MicroMenu:SetParent(otherParent)
-        check("native menu relocation cannot escape suppression", MicroMenu:GetParent() == hidden)
-        SlashCmdList.RIKUI("stockbars show")
-        check("menu restoration retains native override parent", MicroMenu:GetParent() == otherParent)
 
         env.inCombat = true
         writes = main.writes
@@ -146,8 +140,7 @@ return function(check)
         check("stock bar remains available without its overlay", MultiBarBottomLeft:GetParent() == UIParent)
         bars.Frames.main = nil
         bars.UpdateStockVisibility()
-        check("furniture returns when the main overlay is unavailable", BagsBar:GetParent() == UIParent
-            and MicroMenu:GetParent() == MicroMenuContainer and StatusTrackingBarManager:GetParent() == UIParent)
+        check("furniture returns when the main overlay is unavailable", StatusTrackingBarManager:GetParent() == UIParent)
 
         bars, main = fresh(nil, false, false, true)
         hidden = main:GetParent()

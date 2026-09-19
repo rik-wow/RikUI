@@ -232,6 +232,8 @@ local chatOk, chatErr = pcall(function() dofile("tests/chat.test.lua")(check) en
 check("Chat test suite completes", chatOk, chatErr)
 local bagsOk, bagsErr = pcall(function() dofile("tests/bags.test.lua")(check) end)
 check("Bag test suite completes", bagsOk, bagsErr)
+local microOk, microErr = pcall(function() dofile("tests/micromenu.test.lua")(check) end)
+check("Micro menu test suite completes", microOk, microErr)
 
 -- report
 if #failures == 0 then

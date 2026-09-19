@@ -511,11 +511,13 @@ attributes and handlers are never unregistered. /rik stockbars show restores
 the latest native parents, hide reapplies the saved preference, and status
 prints each target's resolved frame and state.
 
-The user-requested cleanup also parks MicroMenu, BagsBar and
-StatusTrackingBarManager once the main overlay exists. Keep the status manager's
-child hierarchy and leave MicroMenuContainer, its queue-status sibling and bag
-inventory windows available. Refresh native menu layout on restoration to its
-default container. Bag/menu keys and /rik stockbars show retain access.
+The user-requested cleanup also parks StatusTrackingBarManager once the main
+overlay exists, keeping its child hierarchy. MicroMenu and BagsBar are parked by
+micromenu.lua once its strip exists (delivered): micro buttons are secure click
+delegates to the stock buttons, bag buttons call the client's bag toggles.
+MicroMenuContainer, its queue-status sibling and bag inventory windows stay
+available. Native menu layout is refreshed on restoration to its default
+container. Bag/menu keys and /rik stockbars show retain access.
 
 StanceBar and PetActionBar are parked only once the RikUI stance and pet rows
 exist. The RikUI pet row has no right-click autocast toggle yet, so

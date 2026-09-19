@@ -324,13 +324,10 @@ StanceBar and PetActionBar are parked once the RikUI stance and pet rows exist
 pet row has no right-click autocast toggle yet; `/rik stockbars show` restores
 the native pet bar for that until the row supplies it.
 
-With the main overlay ready, the same cleanup also parks MicroMenu, BagsBar and
-StatusTrackingBarManager. Their child artwork and both XP/reputation containers
-are hidden with them. The menu is targeted directly so its sibling matchmaking
-status button remains available; MicroMenuContainer and the MicroButtonAndBagsBar
-anchor stay intact. Inventory windows are separate from the bag buttons and remain
-available through their normal keys. Restoring the menu to MicroMenuContainer
-refreshes its native layout; a temporary native override parent is restored as-is.
+With the main overlay ready, the same cleanup also parks
+StatusTrackingBarManager; both XP/reputation containers are hidden with it.
+MicroMenu and BagsBar belong to the [micro menu module](micromenu.md), which
+parks them once its own row exists and follows `/rik stockbars show|hide`.
 These stock modules load during game startup; world entry also rechecks targets.
 
 Native events, attributes and click handlers stay intact. Reparenting runs only
