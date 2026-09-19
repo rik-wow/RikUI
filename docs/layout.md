@@ -44,7 +44,8 @@ compatibility entry point that also refreshes gryphon art.
 `RikUI:SetProfile(name)` selects an existing profile, merges missing defaults,
 cancels the mover and applies positions/scale. It refuses unknown profiles,
 combat, and a pending Setup Apply/Undo. Module enable flags still take effect
-after reload; the options-panel chunk owns profile creation and its UI.
+after reload; profile creation and the selection UI live in the
+[options panel](options.md).
 
 Setup resolves a copy of all defaults plus preset position overrides when its
 snapshot phase starts. The snapshot and layout writer share that fixed set,

@@ -83,13 +83,20 @@ function bars.UpdateStockVisibility()
     core.Combat.Queue(applyVisibility)
 end
 
+local function setStockBars(shown)
+    core.Profile.showStockBars = shown == true
+    bars.UpdateStockVisibility()
+    if InCombatLockdown() then core:Print("Stock bar visibility queued until combat ends.") end
+end
+
 core:RegisterCommand("stockbars", function(args)
     if args ~= "show" and args ~= "hide" then
         core:Print("Usage: /rik stockbars show|hide")
         return
     end
     if not core.Profile then core:Print("Still loading."); return end
-    core.Profile.showStockBars = args == "show"
-    bars.UpdateStockVisibility()
-    if InCombatLockdown() then core:Print("Stock bar visibility queued until combat ends.") end
+    setStockBars(args == "show")
 end, "Show or hide stock bars, bag/menu buttons and XP/reputation bars: /rik stockbars show|hide")
+
+table.insert(bars.Options.settings, { type = "checkbox", key = "showStockBars", label = "Show stock Blizzard bars",
+    get = function() return core.Profile.showStockBars == true end, set = setStockBars })

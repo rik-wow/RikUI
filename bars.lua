@@ -1,6 +1,6 @@
 -- Fixed-slot secure buttons. Native key bindings still own keyboard execution.
 local core, setup = RikUI, RikUI.Setup
-local bars = { Frames = {} }
+local bars = { Frames = {}, Options = { title = "Bars and layout", settings = {} } }
 core.Bars = bars
 local BUTTONS, BUTTON_SIZE, BUTTON_GAP = 12, 36, 6
 local FADE_SECONDS, LEAVE_DELAY = 0.2, 0.05

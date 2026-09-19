@@ -174,6 +174,25 @@ function hooksecurefunc(a, b, c)
     table.insert(env.hooks, name)
 end
 
+function IsShiftKeyDown() return env.shiftDown == true end
+function HideUIPanel(frame) frame:Hide() end
+env.settings = { registered = {}, opened = {} }
+Settings = {
+    RegisterCanvasLayoutCategory = function(frame, name)
+        local category = { frame = frame, name = name, id = "RikUI-" .. tostring(name) }
+        function category:GetID() return self.id end
+        table.insert(env.settings.registered, category)
+        return category, {}
+    end,
+    RegisterAddOnCategory = function(category) category.addon = true end,
+    OpenToCategory = function(id) table.insert(env.settings.opened, id) end,
+}
+ColorPickerFrame = {
+    rgb = { 1, 1, 1 },
+    SetupColorPickerAndShow = function(self, info) self.info = info end,
+    GetColorRGB = function(self) return self.rgb[1], self.rgb[2], self.rgb[3] end,
+}
+
 function PickupSpell() end
 function PlaceAction() end
 function ClearCursor() end

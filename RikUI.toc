@@ -39,5 +39,7 @@ chat.lua
 bags.lua
 tooltip.lua
 wizard.lua
+options-widgets.lua
+options-controls.lua
 options.lua
 importexport.lua

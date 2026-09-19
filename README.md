@@ -8,7 +8,10 @@ Install this directory as `Interface/AddOns/RikUI` inside the beta client.
 **Fully exit and restart the client after adding or updating media files.**
 A UI reload alone may not discover new font or texture assets.
 
-Use `/rik help` for available commands. The bars use flat square icons,
+Use `/rik help` for available commands. `/rik config` opens the options panel
+(also under Options > AddOns > RikUI) with module toggles, scale, bar
+appearance and profiles; see [options](docs/options.md).
+The bars use flat square icons,
 outlined labels and shared bundled media. Gryphon end caps are off by default:
 `/rik gryphons on` enables them and `/rik gryphons off` hides them.
 The preference is saved per profile; changes during combat apply afterward.

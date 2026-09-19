@@ -182,6 +182,10 @@ function core:RegisterCommand(name, callback, description)
     table.insert(commandOrder, name)
 end
 
+function core:HasCommand(name)
+    return type(name) == "string" and commands[name] ~= nil
+end
+
 local function showHelp()
     core:Print("Commands:")
     for _, name in ipairs(commandOrder) do

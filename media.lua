@@ -5,7 +5,7 @@ local media = {
     font = root .. "font.ttf", statusbar = root .. "statusbar.tga",
     border = root .. "border.tga", checked = root .. "checked.tga",
     highlight = root .. "highlight.tga",
-    sizes = { hotkey = 12, count = 12, cooldown = 16, charge = 11 },
+    sizes = { hotkey = 12, count = 12, cooldown = 16, charge = 11, label = 13, heading = 16, small = 11 },
 }
 RikUI.Media = media
 local warned = false

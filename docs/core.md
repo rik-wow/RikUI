@@ -22,7 +22,8 @@ LibDeflate and the remaining class presets are added with their owning chunks.
   on the next event. Register during `OnEnable` when a module is optional.
 - `RikUI:RegisterCommand(name, callback, description)` adds a lowercase command
   to `/rik` help. The callback receives trimmed arguments with case preserved.
-  The core provides `help` and `debug`.
+  The core provides `help` and `debug`. `RikUI:HasCommand(name)` reports
+  whether a command is registered, so UI can omit buttons for absent features.
 - `RikUI.Secret.Read(reader, ...)` returns `ok, ...` from `pcall`, including
   nil return slots. Branch only on `ok`, never on a returned unit value.
   `Secret.IsSecret(value)` returns the client's secrecy boolean.

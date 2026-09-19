@@ -25,7 +25,8 @@ return function(check)
         RikUIDB, RikUICharDB = { profiles = { Default = profile or {} } }, nil
         assert(loadfile("core.lua"))("RikUI", {})
         env.fire("ADDON_LOADED", "RikUI")
-        RikUI.Bars = { Frames = {}, enabled = not (profile and profile.modules and profile.modules.bars == false) }
+        RikUI.Bars = { Frames = {}, Options = { settings = {} },
+            enabled = not (profile and profile.modules and profile.modules.bars == false) }
         for _, name in ipairs({ "main", "bar2", "bar3", "bar4", "bar5" }) do
             local buttons = {}
             for i = 1, 12 do buttons[i] = {} end

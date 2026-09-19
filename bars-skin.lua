@@ -3,11 +3,32 @@ local core, bars, media = RikUI, RikUI.Bars, RikUI.Media
 local ICON_MIN, ICON_MAX, EDGE = 0.07, 0.93, 1
 local GRYPHON = "Interface\\MainMenuBar\\UI-MainMenuBar-EndCap-Dwarf"
 local GRYPHON_SIZE, GRYPHON_OVERLAP = 96, 8
+local DEFAULT_BORDER = { 0.25, 0.28, 0.32 }
+local decorated = setmetatable({}, { __mode = "k" })
+
+local function channel(value)
+    return type(value) == "number" and value >= 0 and value <= 1
+end
+
+function bars.BorderColor()
+    local saved = core.Profile and core.Profile.borderColor
+    if type(saved) == "table" and channel(saved[1]) and channel(saved[2]) and channel(saved[3]) then return saved end
+    return DEFAULT_BORDER
+end
+
+local function tintBorder(button)
+    local color = bars.BorderColor()
+    for _, edge in ipairs(button.border) do edge:SetVertexColor(color[1], color[2], color[3], 1) end
+end
+
+-- Cosmetic only: retinting existing textures needs no protected write.
+function bars.ApplySkin()
+    for button in pairs(decorated) do tintBorder(button) end
+end
 
 local function borderEdge(button, first, second, horizontal)
     local edge = button:CreateTexture(nil, "OVERLAY")
     edge:SetTexture(media.border)
-    edge:SetVertexColor(0.25, 0.28, 0.32, 1)
     edge:SetPoint(first, button, first, 0, 0)
     edge:SetPoint(second, button, second, 0, 0)
     if horizontal then edge:SetHeight(EDGE) else edge:SetWidth(EDGE) end
@@ -29,6 +50,8 @@ function bars.DecorateButton(button)
         borderEdge(button, "TOPLEFT", "BOTTOMLEFT", false),
         borderEdge(button, "TOPRIGHT", "BOTTOMRIGHT", false),
     }
+    decorated[button] = true
+    tintBorder(button)
     button.count = button:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
     button.count:SetPoint("BOTTOMRIGHT", -2, 2)
     media.Font(button.count, "count")
@@ -70,9 +93,22 @@ function bars.UpdateGryphons(bar)
     for _, art in ipairs(bar.gryphons) do art:SetShown(core.Profile.gryphons == true) end
 end
 
+local function setGryphons(shown)
+    core.Profile.gryphons = shown == true
+    bars.ApplyLayout()
+end
+
 core:RegisterCommand("gryphons", function(args)
     if not core.Profile then core:Print("Still loading."); return end
     if args ~= "on" and args ~= "off" then core:Print("Usage: /rik gryphons on|off"); return end
-    core.Profile.gryphons = args == "on"
-    bars.ApplyLayout()
+    setGryphons(args == "on")
 end, "Show or hide main-bar gryphon end caps")
+
+table.insert(bars.Options.settings, { type = "checkbox", key = "gryphons", label = "Gryphon end caps",
+    get = function() return core.Profile.gryphons == true end, set = setGryphons })
+table.insert(bars.Options.settings, { type = "colour", key = "borderColor", label = "Button border colour",
+    get = bars.BorderColor,
+    set = function(value)
+        core.Profile.borderColor = { value[1], value[2], value[3] }
+        bars.ApplySkin()
+    end })
