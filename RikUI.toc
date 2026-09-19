@@ -49,6 +49,8 @@ chat-move.lua
 bags.lua
 bags-items.lua
 micromenu.lua
+loot.lua
+loot-rolls.lua
 tooltip.lua
 tooltip-data.lua
 wizard.lua

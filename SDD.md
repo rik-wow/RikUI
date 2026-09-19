@@ -487,10 +487,10 @@ load order:
 | `chat.lua`, `chat-copy.lua`, `chat-move.lua` | main chat window lock/unlock and tab drag on a saved holder without Edit Mode; RikUI font at the profile size, flat docked edit box, timestamps, faded tabs, side buttons and scroll controls parked; per-window copy button and address links through the message filter registry and the `addon` link type (delivered) |
 | `bags.lua`, `bags-items.lua` | one frame for bags 0-4 on `ContainerFrameItemButtonTemplate` buttons (slot in the button ID, bag in a per-bag parent's ID, no Blizzard-read field written), quality borders, counts, cooldowns, name search, `C_Container.SortBags`, money line; Blizzard's bag functions post-hooked and the stock container frames parked (delivered) |
 | `tooltip.lua`, `tooltip-data.lua` | movable anchor, flat skin and font, class/reaction colours, Blizzard's GUID-watched health bar, item level and spell ID lines, hide in combat (delivered) |
-| `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar |
+| `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar (delivered) |
 | `xpbar.lua` | experience and reputation bar with rested segment, hide the tracking bars |
 | `nameplates.lua` | flat restyle of Blizzard nameplates with an own-debuff aura container |
-| `loot.lua` | compact loot list and skinned roll frames, hide LootFrame |
+| `loot.lua`, `loot-rolls.lua` | compact loot list on the loot globals and `LootSlot`, at the cursor or layout key `loot`; `LootFrame` parked with its events dropped because its hide and open paths call `CloseLoot`; `GroupLootFrame1-4` skinned with buttons untouched (delivered) |
 | `questtracker.lua` | watched quest list, hide ObjectiveTrackerFrame |
 | `panels.lua` | skin pass over character, spellbook, talents, quest log, merchant, bank, mail, trade |
 | `wizard.lua` | the first-login flow |

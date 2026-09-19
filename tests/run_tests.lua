@@ -234,6 +234,8 @@ local bagsOk, bagsErr = pcall(function() dofile("tests/bags.test.lua")(check) en
 check("Bag test suite completes", bagsOk, bagsErr)
 local microOk, microErr = pcall(function() dofile("tests/micromenu.test.lua")(check) end)
 check("Micro menu test suite completes", microOk, microErr)
+local lootOk, lootErr = pcall(function() dofile("tests/loot.test.lua")(check) end)
+check("Loot test suite completes", lootOk, lootErr)
 
 -- report
 if #failures == 0 then
