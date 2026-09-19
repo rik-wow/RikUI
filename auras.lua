@@ -1,19 +1,23 @@
--- Shared aura button factory plus the player buffs, debuffs and weapon enchants. Aura values
--- only reach sinks (auras-status.lua); this file owns frames, layout, the secure cancel layer,
--- events and the stock frames. auras-units.lua builds the target and pet rows on the same factory.
-local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
-local auras = { Rows = {}, blocked = false }
+-- Player buffs, debuffs and weapon enchants on Blizzard's aura containers. The container reads
+-- auras in secure code and drives the decorated buttons (auras-button.lua), so nothing here
+-- touches C_UnitAuras; this file owns the containers, their flow layout, the layout proxies,
+-- the stock frames and the shared container factory that auras-units.lua reuses.
+local core, layout = RikUI, RikUI.Layout
+local auras = { Rows = {}, Gap = 4 }
 core.Auras = auras
 
-local SIZE, GAP, PER_ROW, EDGE, ICON_CROP, CANCEL_LEVEL = 30, 4, 8, 1, 0.07, 5
+local SIZE, GAP, PER_LINE = 30, 4, 8
 local STEP = SIZE + GAP
--- A row fills from its origin corner: player rows run right-to-left and downward.
-local DIRECTIONS = { TOPRIGHT = { x = -1, y = -1 }, BOTTOMLEFT = { x = 1, y = 1 } }
+local LINE_SIZE = PER_LINE * STEP - GAP
+local CONTAINER_TYPE, CONTAINER_TEMPLATE, FRAME_PREFIX = "AuraContainer", "CustomAuraContainerTemplate", "RikUIAuras_"
+-- Both player rows fill right-to-left and downward from the proxy's top right corner.
+local FLOW = { anchor = "TOPRIGHT", horizontal = "Left", vertical = "Down", lineSize = LINE_SIZE }
+local DIRECTIONS = { Left = -1, Right = 1, Up = 1, Down = -1 } -- AnchorUtil.FlowDirection on 69913
+local ENCHANT_SLOTS = { "MainHand", "OffHand", "Ranged" } -- AuraContainerItemEnchantmentSlot keys
+local ENCHANT_SLOT_VALUES = { MainHand = 0, OffHand = 1, Ranged = 2 }
 local ROWS = {
-    { key = "buffs", unit = "player", filter = "HELPFUL", slots = 32, size = SIZE, perLine = PER_ROW,
-        origin = "TOPRIGHT", enchants = true, cancel = true },
-    { key = "debuffs", unit = "player", filter = "HARMFUL", slots = 16, size = SIZE, perLine = PER_ROW,
-        origin = "TOPRIGHT" },
+    { key = "buffs", filter = "HELPFUL", slots = 32, lines = 4, enchants = true, cancel = true },
+    { key = "debuffs", filter = "HARMFUL", slots = 16, lines = 2, harmful = true },
 }
 -- Top right beside the minimap cluster; the debuff rows sit under the four buff rows.
 local DEFAULTS = {
@@ -21,9 +25,6 @@ local DEFAULTS = {
     debuffs = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -200, y = -13 - 4 * STEP },
 }
 local STOCK_FRAMES = { "BuffFrame", "DebuffFrame" }
-local COMBAT_HIDDEN = "[combat] hide; show"
-local BACKGROUND = { 0.055, 0.065, 0.08, 0.95 }
-local FRAME_PREFIX = "RikUIAuras_"
 local warnings, stockPending = {}, false
 
 function auras.Warn(operation, reason)
@@ -38,140 +39,74 @@ function auras.Api(namespace, name)
     return function() error(namespace .. "." .. name .. " unavailable", 0) end
 end
 
-function auras.RowSize(spec)
-    local step = spec.size + GAP
-    return spec.perLine * step - GAP, math.ceil(spec.slots / spec.perLine) * step - GAP
+local function enumValue(enum, name, fallback)
+    if type(enum) == "table" and enum[name] ~= nil then return enum[name] end
+    return fallback
 end
 
-local function slotOffset(spec, index)
-    local step, direction = spec.size + GAP, DIRECTIONS[spec.origin]
-    local column, line = (index - 1) % spec.perLine, math.floor((index - 1) / spec.perLine)
-    return column * step * direction.x, line * step * direction.y
+local function direction(name)
+    local enum = type(AnchorUtil) == "table" and AnchorUtil.FlowDirection
+    return enumValue(enum, name, DIRECTIONS[name])
 end
 
-local function tooltipEntry(button)
-    local entry = button.entry or (button.display and button.display.entry)
-    if not entry or type(GameTooltip) ~= "table" or type(GameTooltip.SetOwner) ~= "function" then return nil end
-    return entry
+local function configure(container, unit, flow)
+    container:SetEditModePreviewEnabled(false)
+    container:SetUnit(unit)
+    container:SetFlowLayoutAnchorPoint(flow.anchor)
+    container:SetFlowLayoutGrowthDirection(direction(flow.horizontal), direction(flow.vertical))
+    container:SetFlowLayoutMaximumLineSize(flow.lineSize)
 end
 
-local function showTooltip(button)
-    local entry = tooltipEntry(button)
-    if not entry then return end
-    GameTooltip:SetOwner(button, "ANCHOR_BOTTOMLEFT")
-    local ok, reason
-    if entry.slot then
-        ok, reason = pcall(GameTooltip.SetInventoryItem, GameTooltip, entry.unit, entry.slot)
-    else
-        ok, reason = pcall(GameTooltip.SetUnitAura, GameTooltip, entry.unit, entry.index, entry.filter)
+-- One Blizzard container per unit, or nil with one warning when the client lacks the template.
+-- flow: anchor corner, horizontal and vertical growth names, maximum line size in pixels.
+function auras.CreateContainer(name, parent, unit, flow)
+    local ok, container = pcall(CreateFrame, CONTAINER_TYPE, FRAME_PREFIX .. name, parent, CONTAINER_TEMPLATE)
+    if not ok then auras.Warn("container", container); return nil end
+    local configured, reason = pcall(configure, container, unit, flow)
+    if not configured then auras.Warn("container", reason); container:Hide(); return nil end
+    return container
+end
+
+-- Runs a container population step; a failure hides the container and reports once.
+function auras.Populate(container, populate, ...)
+    local ok, reason = pcall(populate, container, ...)
+    if ok then return true end
+    auras.Warn("container", reason)
+    container:Hide()
+    return false
+end
+
+local function addEnchants(container, spec)
+    for _, name in ipairs(ENCHANT_SLOTS) do
+        local slot = enumValue(AuraContainerItemEnchantmentSlot, name, ENCHANT_SLOT_VALUES[name])
+        container:AddItemEnchantment(slot, { initializeFrame = auras.Decorator(spec) })
     end
-    if not ok then GameTooltip:Hide(); auras.Warn("tooltip", reason) end
+    container:SetItemEnchantmentLayout(auras.GroupLayout(spec.size))
 end
 
-local function hideTooltip()
-    if type(GameTooltip) == "table" and type(GameTooltip.Hide) == "function" then GameTooltip:Hide() end
+local function populateRow(container, row)
+    local spec = { size = SIZE, harmful = row.harmful, cancel = row.cancel }
+    if row.enchants then addEnchants(container, spec) end
+    container:AddAuraGroup(row.key, row.filter, auras.GroupOptions(spec, row.slots))
 end
 
-local function hoverScripts(frame)
-    frame:SetScript("OnEnter", showTooltip)
-    frame:SetScript("OnLeave", hideTooltip)
-end
-
-local function cooldown(button)
-    local widget = CreateFrame("Cooldown", nil, button)
-    widget:SetAllPoints(button)
-    widget:EnableMouse(false)
-    widget:SetDrawEdge(false)
-    widget:SetDrawBling(false)
-    widget:SetHideCountdownNumbers(false)
-    widget:SetCountdownFont("NumberFontNormal")
-    widget:SetSwipeColor(0, 0, 0, 0.8)
-    return widget
-end
-
--- The count sits on a frame above the cooldown so the swipe never covers it.
-local function countText(button)
-    local overlay = CreateFrame("Frame", nil, button)
-    overlay:SetAllPoints(button)
-    overlay:EnableMouse(false)
-    overlay:SetFrameLevel(button.cooldown:GetFrameLevel() + 1)
-    local region = overlay:CreateFontString(nil, "OVERLAY")
-    media.Font(region, "count")
-    region:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
-    return region
-end
-
-local function decorate(button)
-    button.background = button:CreateTexture(nil, "BACKGROUND")
-    button.background:SetAllPoints()
-    button.background:SetColorTexture(unpack(BACKGROUND))
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", EDGE, -EDGE)
-    button.icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -EDGE, EDGE)
-    button.icon:SetTexCoord(ICON_CROP, 1 - ICON_CROP, ICON_CROP, 1 - ICON_CROP)
-    button.border = unitframes.Edges(button, EDGE, "OVERLAY")
-    button.cooldown = cooldown(button)
-    button.count = countText(button)
-end
-
-local function createButton(row, spec, index)
-    local button = CreateFrame("Frame", nil, row)
-    button:SetSize(spec.size, spec.size)
-    button:SetPoint(spec.origin, row, spec.origin, slotOffset(spec, index))
-    button:EnableMouse(true)
-    decorate(button)
-    hoverScripts(button)
-    button:Hide()
-    return button
-end
-
--- Rows are plain frames any module may build under any parent and refresh through
--- auras.RefreshRow; the owning module keeps its own Rows table and blocked flag.
-function auras.CreateRow(spec, parent, owner)
-    local row = CreateFrame("Frame", FRAME_PREFIX .. spec.key, parent)
-    row.key, row.unit, row.filter, row.slots = spec.key, spec.unit, spec.filter, spec.slots
-    row.enchants, row.emphasis, row.module = spec.enchants, spec.emphasis, owner
-    row.buttons, row.entries = {}, {}
-    row:SetSize(auras.RowSize(spec))
-    for index = 1, spec.slots do row.buttons[index] = createButton(row, spec, index) end
-    owner.Rows[spec.key] = row
-    return row
-end
-
-local function createCancelButton(parent, display)
-    local button = CreateFrame("Button", nil, parent, "SecureActionButtonTemplate")
-    button.display = display
-    button:SetAllPoints(display)
-    button:RegisterForClicks("RightButtonUp")
-    button:SetAttribute("type2", "cancelaura")
-    hoverScripts(button)
-    button:Hide()
-    return button
-end
-
--- The cancel layer is protected: a state driver hides it in combat and every write to it
--- goes through the combat queue, so the display layer underneath stays free to redraw.
-local function createCancelLayer(row)
-    local parent = CreateFrame("Frame", FRAME_PREFIX .. row.key .. "Cancel", row)
-    parent:SetAllPoints(row)
-    parent:SetFrameLevel(row:GetFrameLevel() + CANCEL_LEVEL)
-    parent.buttons = {}
-    for index, display in ipairs(row.buttons) do parent.buttons[index] = createCancelButton(parent, display) end
-    local ok, reason = pcall(RegisterStateDriver, parent, "visibility", COMBAT_HIDDEN)
-    if not ok then auras.Warn("cancel driver", reason) end
-    return parent
-end
-
-local function createPlayerRow(spec)
-    local row = auras.CreateRow(spec, UIParent, auras)
-    if spec.cancel then row.cancel = createCancelLayer(row) end
-    layout.Register(row, spec.key, DEFAULTS[spec.key])
-    return row
+-- The proxy is a plain frame with the row's nominal footprint: it carries the layout key and
+-- the mover box, while the container inside sizes itself to the visible auras.
+local function createRow(row)
+    local proxy = CreateFrame("Frame", FRAME_PREFIX .. row.key, UIParent)
+    proxy:SetSize(LINE_SIZE, row.lines * STEP - GAP)
+    local container = auras.CreateContainer(row.key .. "Container", proxy, "player", FLOW)
+    if not container or not auras.Populate(container, populateRow, row) then proxy:Hide(); return nil end
+    container:SetPoint(FLOW.anchor, proxy, FLOW.anchor, 0, 0)
+    proxy.key, proxy.container = row.key, container
+    layout.Register(proxy, row.key, DEFAULTS[row.key])
+    auras.Rows[row.key] = proxy
+    return proxy
 end
 
 local function replacementsReady()
-    for _, spec in ipairs(ROWS) do
-        if not auras.Rows[spec.key] then return false end
+    for _, row in ipairs(ROWS) do
+        if not auras.Rows[row.key] then return false end
     end
     return true
 end
@@ -181,7 +116,7 @@ local function hideStock()
     if not auras.enabled or not replacementsReady() then return end
     for _, name in ipairs(STOCK_FRAMES) do
         local frame = _G[name]
-        -- No native handler must keep running: the RikUI rows own the player's auras now.
+        -- No native handler must keep running: the RikUI containers own the player's auras now.
         if frame then core.Hide.Frame(frame, false) end
     end
 end
@@ -192,54 +127,26 @@ function auras.UpdateStockVisibility()
     core.Combat.Queue(hideStock)
 end
 
-local function eachRow(callback)
-    for _, spec in ipairs(ROWS) do
-        local row = auras.Rows[spec.key]
-        if row then callback(row) end
-    end
-end
-
-function auras.Refresh()
-    eachRow(auras.RefreshRow)
-end
-
-local function refreshEnchants()
-    eachRow(function(row)
-        if row.enchants then auras.RefreshRow(row) end
-    end)
-end
-
-local function registerEvents()
-    core:RegisterEvent("UNIT_AURA", function(_, unit)
-        if core.Secret.IsSecret(unit) or unit == "player" then auras.Refresh() end
-    end)
-    core:RegisterEvent("WEAPON_ENCHANT_CHANGED", refreshEnchants)
-    core:RegisterEvent("WEAPON_SLOT_CHANGED", refreshEnchants)
-    core:RegisterEvent("PLAYER_REGEN_ENABLED", function()
-        if auras.blocked then auras.Refresh() end
-    end)
-    core:RegisterEvent("PLAYER_ENTERING_WORLD", function()
-        auras.Refresh()
-        auras.UpdateStockVisibility()
-    end)
-end
-
 function auras:OnEnable()
     core.Combat.Queue(function()
-        for _, spec in ipairs(ROWS) do
-            if not auras.Rows[spec.key] then auras.RefreshRow(createPlayerRow(spec)) end
+        for _, row in ipairs(ROWS) do
+            if not auras.Rows[row.key] then createRow(row) end
         end
         auras.UpdateStockVisibility()
     end)
-    registerEvents()
+    core:RegisterEvent("PLAYER_ENTERING_WORLD", auras.UpdateStockVisibility)
+end
+
+function auras.Count(containers)
+    local total = 0
+    for _ in pairs(containers) do total = total + 1 end
+    return total
 end
 
 function auras:Debug(sample)
-    core:Print("Auras blocked=" .. tostring(auras.blocked) .. " combat=" .. tostring(InCombatLockdown()))
-    sample("GetAuraDataByIndex(player,1,HELPFUL)", auras.Api("C_UnitAuras", "GetAuraDataByIndex"), "player", 1, "HELPFUL")
+    core:Print("Auras containers=" .. auras.Count(auras.Rows) .. " combat=" .. tostring(InCombatLockdown()))
     sample("ShouldAurasBeSecret()", auras.Api("C_Secrets", "ShouldAurasBeSecret"))
-    local id = auras.FirstAuraInstance("player", "HELPFUL")
-    if id ~= nil then sample("GetAuraDuration(player, first buff)", auras.Api("C_UnitAuras", "GetAuraDuration"), "player", id) end
+    sample("GetAuraDataByIndex(player,1,HELPFUL)", auras.Api("C_UnitAuras", "GetAuraDataByIndex"), "player", 1, "HELPFUL")
 end
 
 core:RegisterModule("auras", auras)

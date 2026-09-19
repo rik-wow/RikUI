@@ -36,14 +36,15 @@ hidden; disable the `castbars` module to restore it. See
 
 Buffs, weapon enchants and debuffs sit at the top right as flat icons with
 stack counts, dispel-coloured debuff borders and the client's own countdown
-numbers. Right-click a buff out of combat to cancel it. The Blizzard buff and
-debuff frames are hidden; disable the `auras` module to restore them. See
-[auras](docs/auras.md).
+numbers. Right-click a buff to cancel it. The rows are Blizzard aura
+containers in RikUI's skin, so they keep updating in combat where addon code
+cannot read auras on this build. The Blizzard buff and debuff frames are
+hidden; disable the `auras` module to restore them. See [auras](docs/auras.md).
 
-The target frame carries the target's debuffs above it and a smaller row of
-its buffs above those; your own debuffs stay full size while other casters'
-auras are smaller and dimmer. The pet frame gets a debuff row the same way.
-Disable the `unitauras` module to drop them.
+The target frame carries the target's debuffs above it, your own at full size
+and other casters' smaller and dimmer, with the target's buffs on the line
+above. The pet frame gets a debuff row the same way. Disable the `unitauras`
+module to drop them.
 
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the

@@ -154,14 +154,14 @@ target/ToT/pet visibility through `RegisterStateDriver`. See
 [unit frames](docs/unitframes.md). Castbars follow the same rule with the
 client's cast duration object fed into `StatusBar:SetTimerDuration` and a
 duration text binding for the time, so no cast time is subtracted in Lua; see
-[castbars](docs/castbars.md). Player auras feed `C_UnitAuras.GetAuraDuration`
-into `Cooldown:SetCooldownFromDurationObject`, use the client's
-`GetAuraApplicationDisplayCount` string for stacks, and keep the last display
-when a read throws or returns a secret record; buff cancel lives on a separate
-secure layer that a `[combat]` driver hides. Target and pet rows come from the
-same factory (`auras-units.lua`): player-cast auras keep full size, the rest
-shrink and dim through `Texture:SetAlphaFromBoolean`, so a secret caster flag
-never branches; see [auras](docs/auras.md).
+[castbars](docs/castbars.md). Auras go one step further: on 69913 every
+`C_UnitAuras` read throws for addon code while auras are secret (combat), so
+the aura rows are Blizzard `CustomAuraContainerTemplate` containers that read,
+assign and lay out auras in secure code and drive RikUI-supplied regions
+through the `CustomAuraButton` API (`SetIcon`, `SetApplicationCount`,
+`SetDurationCooldown`, `AddDispelTypeTexture`); own versus other casters is a
+filter string (`HARMFUL|PLAYER`, `HARMFUL|!PLAYER`); see
+[auras](docs/auras.md).
 
 Consequence for action buttons, decided: **we draw button state ourselves and do
 not inherit `ActionBarButtonTemplate`.** Reason: the two things you branch on,
@@ -478,7 +478,7 @@ load order:
 | `bars.lua` | overlay action bars, stance/pet bars, ghost layer, button skin, hide Blizzard bars |
 | `unitframes.lua`, `unitframes-status.lua` | player, target, ToT, pet (delivered), party, raid; class colours; threat |
 | `castbars.lua`, `castbars-status.lua` | player and target castbars (delivered): duration-object fill, shield, interrupt state |
-| `auras.lua`, `auras-status.lua`, `auras-units.lua` | player buffs/debuffs and weapon enchants with duration-object timers, target and pet aura rows with own-aura emphasis (delivered) |
+| `auras.lua`, `auras-button.lua`, `auras-units.lua` | player buffs/debuffs, weapon enchants, target and pet aura rows on Blizzard's CustomAuraContainer with our button skin and own-aura emphasis (delivered) |
 | `minimap.lua` | square minimap, clock, coords, tracking, zone text, hide Blizzard buttons |
 | `chat.lua` | font, timestamps, copy button, URL detection, hide the side buttons |
 | `bags.lua` | one-bag view with sort and search |
@@ -513,7 +513,7 @@ exist. The RikUI pet row has no right-click autocast toggle yet, so
 frame module parks PlayerFrame, TargetFrame, PetFrame and TargetFrameToT with
 `keepEvents` false once its four replacements exist, and the castbar module
 parks PlayerCastingBarFrame the same way once both bars exist, and the aura module
-parks BuffFrame and DebuffFrame once both rows exist. Other modules will hide
+parks BuffFrame and DebuffFrame once both aura containers exist. Other modules will hide
 PartyFrame, MinimapCluster, chat side buttons and
 container frames through the same helper, only when replaced, passing
 `keepEvents` false where no native handler must keep running.
@@ -611,7 +611,7 @@ RikUI/
   unitframes.lua
   castbars.lua
   auras.lua
-  auras-status.lua
+  auras-button.lua
   auras-units.lua
   minimap.lua
   chat.lua

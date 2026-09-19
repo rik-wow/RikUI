@@ -36,7 +36,8 @@ local KNOWN_EVENTS = {
 env.KNOWN_EVENTS = KNOWN_EVENTS
 
 local KNOWN_TEMPLATES = { SecureActionButtonTemplate = true, SecureHandlerStateTemplate = true,
-    SecureUnitButtonTemplate = true }
+    SecureUnitButtonTemplate = true, CustomAuraContainerTemplate = true, CustomAuraButtonTemplate = true }
+local auraStub = require("aura_stub")
 
 ------------------------------------------------------------------------
 -- Frames
@@ -78,8 +79,8 @@ function Frame:Hide()
     self.shown = false
     env.runScript(self, "OnHide")
 end
-function Frame:CreateTexture() return setmetatable({ kind = "Texture", scripts = {}, hooks = {}, events = {}, attributes = {} }, Frame) end
-function Frame:CreateFontString() return setmetatable({ kind = "FontString", scripts = {}, hooks = {}, events = {}, attributes = {}, text = "" }, Frame) end
+function Frame:CreateTexture() return setmetatable({ kind = "Texture", parent = self, scripts = {}, hooks = {}, events = {}, attributes = {} }, Frame) end
+function Frame:CreateFontString() return setmetatable({ kind = "FontString", parent = self, scripts = {}, hooks = {}, events = {}, attributes = {}, text = "" }, Frame) end
 function Frame:SetText(text) self.text = text end
 function Frame:SetFormattedText(fmt, ...) self.text = string.format(fmt, ...) end
 function Frame:GetText() return self.text end
@@ -94,10 +95,15 @@ function CreateFrame(kind, name, parent, template)
     if template and not KNOWN_TEMPLATES[template] then
         error("CreateFrame: Unknown frame template: " .. tostring(template), 2)
     end
+    if kind == "AuraContainer" and env.auraContainerMissing then
+        error("CreateFrame: Unknown frame type: " .. kind, 2)
+    end
     local f = setmetatable({
         kind = kind, name = name, parent = parent, template = template,
         scripts = {}, hooks = {}, events = {}, attributes = {}, shown = true,
     }, Frame)
+    if kind == "AuraContainer" then auraStub.installContainer(f) end
+    if kind == "AuraButton" then auraStub.installButton(f) end
     table.insert(env.frames, f)
     if name then _G[name] = f end
     return f
@@ -128,8 +134,14 @@ loadstring_untainted = nil
 date = os.date
 time = os.time
 SlashCmdList = {}
+AnchorUtil = {
+    FlowLayoutAxis = { Horizontal = 0, Vertical = 1 },
+    FlowDirection = { Left = -1, Right = 1, Up = 1, Down = -1 },
+}
+AuraContainerItemEnchantmentSlot = { MainHand = 0, OffHand = 1, Ranged = 2 }
 Enum = {
     PowerType = { Rage = 1, Mana = 0 },
+    CustomAuraButtonDispelTypeTextureStyle = { Border = 0, BorderWithIcon = 1, Icon = 2, PreserveAsset = 3, CustomAsset = 4 },
     StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 1 },
     StatusBarTimerDirection = { ElapsedTime = 0, RemainingTime = 1 },
     SecondsFormatterInterval = { Seconds = 0, Minutes = 1, Hours = 2, Days = 3 },

@@ -1,22 +1,27 @@
--- Target and pet aura rows attached above their RikUI unit frames. The rows come from the
--- shared factory in auras.lua and refresh through auras-status.lua; this file owns the row
--- specs, the anchoring and the unit events. Auras another caster applied shrink and dim.
+-- Target and pet aura containers under the RikUI unit frames, built on the shared factory in
+-- auras.lua. Filter strings split the player's own auras (full size) from other casters'
+-- (small and dim); the containers read and redraw in secure code, this file only asks them
+-- to refresh when the unit behind a token changes.
 local core, auras, unitframes = RikUI, RikUI.Auras, RikUI.UnitFrames
-local unitauras = { Rows = {}, blocked = false }
+local unitauras = { Containers = {} }
 core.UnitAuras = unitauras
 
-local LARGE, SMALL, GAP, ORIGIN = 30, 22, 4, "BOTTOMLEFT"
--- Debuffs sit directly above the frame and buffs above the debuffs. The target frame is 220
--- wide and the pet frame 110, so each per-line count fills its frame's width.
-local ROWS = {
-    { key = "targetdebuffs", frame = "target", unit = "target", filter = "HARMFUL", slots = 12, size = LARGE,
-        perLine = 6 },
-    { key = "targetbuffs", frame = "target", unit = "target", filter = "HELPFUL", slots = 16, size = SMALL,
-        perLine = 8, above = "targetdebuffs" },
-    { key = "petdebuffs", frame = "petframe", unit = "pet", filter = "HARMFUL", slots = 8, size = SMALL,
-        perLine = 4 },
+local LARGE, SMALL, GAP = 30, 22, 4
+-- Rows fill left-to-right and upward from the frame's top left corner.
+local FLOW = { anchor = "BOTTOMLEFT", horizontal = "Right", vertical = "Up" }
+local GROUPS = {
+    owndebuffs = { filter = "HARMFUL|PLAYER", large = true, harmful = true },
+    debuffs = { filter = "HARMFUL|!PLAYER", harmful = true, dim = true },
+    ownbuffs = { filter = "HELPFUL|PLAYER", newLine = true },
+    buffs = { filter = "HELPFUL|!PLAYER", dim = true },
 }
-for _, spec in ipairs(ROWS) do spec.origin, spec.emphasis = ORIGIN, true end
+-- width: the unit frame's width, so each line fills the frame; large: the own-debuff size.
+local UNITS = {
+    { key = "target", frame = "target", unit = "target", width = 220, large = LARGE,
+        groups = { { "owndebuffs", 12 }, { "debuffs", 12 }, { "ownbuffs", 16 }, { "buffs", 16 } } },
+    { key = "pet", frame = "petframe", unit = "pet", width = 110, large = SMALL,
+        groups = { { "owndebuffs", 8 }, { "debuffs", 8 } } },
+}
 local warnings = {}
 
 function unitauras.Warn(operation, reason)
@@ -25,76 +30,60 @@ function unitauras.Warn(operation, reason)
     core:Print("Unit auras " .. operation .. ": " .. tostring(reason))
 end
 
--- Rows are plain children of the secure unit button: they hide with its visibility driver,
--- inherit its layout scale and stay writable in combat.
-local function createRow(spec, frame)
-    local row = auras.CreateRow(spec, frame, unitauras)
-    local below = spec.above and unitauras.Rows[spec.above] or frame
-    row:SetPoint(ORIGIN, below, "TOPLEFT", 0, GAP)
-    return row
-end
-
-local function createRows()
-    for _, spec in ipairs(ROWS) do
-        local frame = unitframes.Frames[spec.frame]
-        if frame and not unitauras.Rows[spec.key] then auras.RefreshRow(createRow(spec, frame)) end
-    end
-    if next(unitauras.Rows) == nil then unitauras.Warn("attach", "no unit frames to attach to") end
-end
-
-local function eachRow(callback, unit)
-    if core.Secret.IsSecret(unit) then unit = nil end
-    for _, spec in ipairs(ROWS) do
-        local row = unitauras.Rows[spec.key]
-        if row and (not unit or unit == spec.unit) then callback(row) end
+local function addGroups(container, unit)
+    for _, entry in ipairs(unit.groups) do
+        local key, maxFrames = entry[1], entry[2]
+        local group = GROUPS[key]
+        local spec = { size = group.large and unit.large or SMALL, harmful = group.harmful, dim = group.dim }
+        container:AddAuraGroup(key, group.filter, auras.GroupOptions(spec, maxFrames, group.newLine))
     end
 end
 
-function unitauras.Refresh(unit)
-    eachRow(auras.RefreshRow, unit)
+-- Containers are children of the secure unit button: they hide with its visibility driver,
+-- inherit its layout scale and are sized by the secure flow layout.
+local function createContainer(unit, frame)
+    local flow = { anchor = FLOW.anchor, horizontal = FLOW.horizontal, vertical = FLOW.vertical, lineSize = unit.width }
+    local container = auras.CreateContainer(unit.key, frame, unit.unit, flow)
+    if not container or not auras.Populate(container, addGroups, unit) then return nil end
+    container:SetPoint(FLOW.anchor, frame, "TOPLEFT", 0, GAP)
+    unitauras.Containers[unit.key] = container
+    return container
 end
 
--- A blocked combat read keeps the last display, so a unit change clears first: the new
--- target or pet never wears the previous one's auras.
-local function reset(unit)
-    eachRow(auras.ClearRow, unit)
-    unitauras.Refresh(unit)
+local function createContainers()
+    for _, unit in ipairs(UNITS) do
+        local frame = unitframes.Frames[unit.frame]
+        if frame and not unitauras.Containers[unit.key] then createContainer(unit, frame) end
+    end
+    if next(unitauras.Containers) == nil and next(unitframes.Frames) == nil then
+        unitauras.Warn("attach", "no unit frames to attach to")
+    end
 end
 
-local function onUnitAura(_, unit)
-    if core.Secret.IsSecret(unit) or unit == "target" or unit == "pet" then unitauras.Refresh(unit) end
+-- UNIT_AURA for a token reaches the container itself; a token that now names a different
+-- unit needs an explicit full refresh, as Blizzard's target frame does.
+local function refresh(key)
+    local container = unitauras.Containers[key]
+    if not container then return end
+    local ok, reason = pcall(container.UpdateAllAuras, container)
+    if not ok then unitauras.Warn("refresh", reason) end
 end
 
 local function registerEvents()
-    core:RegisterEvent("UNIT_AURA", onUnitAura)
-    core:RegisterEvent("PLAYER_TARGET_CHANGED", function() reset("target") end)
+    core:RegisterEvent("PLAYER_TARGET_CHANGED", function() refresh("target") end)
     core:RegisterEvent("UNIT_PET", function(_, unit)
-        if core.Secret.IsSecret(unit) or unit == "player" then reset("pet") end
+        if core.Secret.IsSecret(unit) or unit == "player" then refresh("pet") end
     end)
-    core:RegisterEvent("PLAYER_REGEN_ENABLED", function()
-        if unitauras.blocked then unitauras.Refresh() end
-    end)
-    core:RegisterEvent("PLAYER_ENTERING_WORLD", function() unitauras.Refresh() end)
 end
 
 function unitauras:OnEnable()
-    core.Combat.Queue(createRows)
+    core.Combat.Queue(createContainers)
     registerEvents()
 end
 
-local function rowCount()
-    local total = 0
-    for _ in pairs(unitauras.Rows) do total = total + 1 end
-    return total
-end
-
 function unitauras:Debug(sample)
-    core:Print("Unit auras blocked=" .. tostring(unitauras.blocked) .. " rows=" .. rowCount())
+    core:Print("Unit auras containers=" .. auras.Count(unitauras.Containers))
     sample("GetAuraDataByIndex(target,1,HARMFUL)", auras.Api("C_UnitAuras", "GetAuraDataByIndex"), "target", 1, "HARMFUL")
-    local id = auras.FirstAuraInstance("target", "HARMFUL")
-    if id ~= nil then
-        sample("GetAuraDuration(target, first debuff)", auras.Api("C_UnitAuras", "GetAuraDuration"), "target", id)
-    end
 end
 
 core:RegisterModule("unitauras", unitauras)

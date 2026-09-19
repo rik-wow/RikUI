@@ -1,206 +1,178 @@
 # Auras
 
-`auras.lua` and `auras-status.lua` replace the Blizzard buff and debuff
-frames with two flat rows of icons at the top right: buffs (and temporary
-weapon enchants) first, debuffs beneath. Disable the `auras` module in
-`/rik config` and reload to get the Blizzard frames back. `auras-units.lua`
-builds target and pet aura rows from the same factory; see
-[target and pet auras](#target-and-pet-auras).
+`auras.lua`, `auras-button.lua` and `auras-units.lua` show player buffs,
+debuffs and weapon enchants at the top right, and target and pet auras above
+their unit frames. The rows are Blizzard aura containers wearing RikUI's flat
+skin: the client reads the auras and updates the icons in secure code, RikUI
+only configures the containers once. Disable the `auras` module in
+`/rik config` and reload to get the Blizzard buff frames back; disable
+`unitauras` to drop the target and pet rows.
+
+## Why a Blizzard container
+
+On build 69913 every `C_UnitAuras` read throws for addon code while auras are
+secret, which means during combat:
+
+```
+GetAuraDataByIndex(): Auras cannot be accessed when secret while tainted by 'RikUI'
+```
+
+A hand-rolled aura row therefore freezes or stays empty exactly when a
+target's debuffs matter. Blizzard ships `Blizzard_AuraContainer` with
+`CustomAuraContainerTemplate`, an aura container that addons may create
+(`allowUntaintedCreation`), and `CustomAuraButtonTemplate`, an `AuraButton`
+whose public API takes regions we supply and updates them through secret
+aspects. The container registers `UNIT_AURA` for its unit itself, parses the
+auras in the secure environment, assigns them to buttons, lays the buttons out
+and sizes itself. RikUI never sees an aura value.
 
 ## What you see
 
 Each aura is a 30 px icon with a 1 px border, the stack count in the bottom
 right corner and a cooldown swipe with the client's own countdown number.
-Buffs keep the neutral border; debuffs are bordered in the Blizzard dispel
+Buffs keep the neutral border; debuff borders take the client's dispel
 colours (Magic blue, Curse purple, Disease brown, Poison green, anything else
-red). Icons fill from the right edge, eight per line: the buff row has four
-lines (32 slots), the debuff row two (16 slots). Temporary weapon enchants
-(main hand, off hand, ranged) take the first buff slots with the weapon's
-icon and the remaining charges as the count.
+red). Player icons fill from the right edge, eight per line: the buff row
+holds four lines (32 auras), the debuff row two (16). Temporary weapon
+enchants (main hand, off hand, ranged) take the first buff slots with the
+weapon's icon and the remaining charges as the count.
 
-Hovering an icon shows the aura tooltip (`GameTooltip:SetUnitAura`) or the
-item tooltip for an enchant. Right-clicking a buff out of combat cancels it.
+Hovering an icon shows the client's aura tooltip. Right-clicking a player
+buff or enchant cancels it; the button does that in secure code, so it works
+in combat too.
+
+Target auras sit directly above the target frame and fill left to right,
+upward, one frame width (220 px) per line: your own debuffs first at full
+size, other casters' debuffs after them at 22 px and half alpha, then a new
+line with your own buffs on the target and, dimmed, everyone else's. The pet
+frame carries the same two debuff groups at 22 px above it.
+
+## How the pieces fit
+
+- `auras.CreateContainer(name, parent, unit, flow)` creates the container,
+  turns off its Edit Mode preview, sets the unit and the flow layout (anchor
+  corner, growth directions from `AnchorUtil.FlowDirection`, maximum line
+  size). It returns nil and prints one `Auras container` line when the client
+  lacks the template, in which case nothing else is created and the Blizzard
+  frames stay.
+- `container:AddAuraGroup(key, filter, options)` adds one group per row with
+  a filter string (`HELPFUL`, `HARMFUL`, and `|PLAYER` or `|!PLAYER` for own
+  versus other casters), `maxFrameCount`, the flow layout options
+  (`elementSpacing`, `lineSpacing`, `groupSpacing`, `elementWidth`,
+  `elementHeight`, `forceNewLine`) and the decorator as `initializeFrame`.
+  `AddItemEnchantment` adds the three weapon slots with the same decorator and
+  `SetItemEnchantmentLayout` spaces them like a group.
+- `auras.Decorator(spec)` returns the `initializeFrame` callback. The client
+  creates buttons in batches of ten and calls it once per button, possibly in
+  combat, before the button becomes inaccessible to addon code. The callback
+  sizes the button, sets its alpha for dim groups, and creates the background,
+  the icon (`SetIcon`), the four border lines (registered through
+  `AddDispelTypeTexture` with the `PreserveAsset` style for debuffs, static
+  neutral colour for buffs), a `Cooldown` child with countdown numbers
+  (`SetDurationCooldown`) and the count FontString on an overlay above the
+  swipe (`SetApplicationCount`). Player buffs and enchants get
+  `SetCancelAuraButtons("RightButtonUp")`. Every region is a descendant of the
+  button, which the client requires. Any failure prints one `Auras button`
+  line.
+- After `PLAYER_ENTERING_WORLD` the client denies tainted access to the
+  buttons while auras are secret, so RikUI never touches a button after its
+  decorator ran. It also never installs scripts on them: the `AuraButton`
+  handles tooltip and click itself and forbids untrusted scripts.
 
 ## Layout
 
-Both rows register with the [shared layout](layout.md) under `buffs` and
-`debuffs`, so `/rik move`, `/rik move reset`, `/rik scale`, Apply and Undo
-include them. Defaults sit at the top right of the screen, left of the
-minimap cluster (`x=-200, y=-13`) with the debuff row directly under the
-four buff lines (`y=-149`).
+The player rows are plain proxy frames with the row's nominal footprint
+(268x132 for buffs, 268x64 for debuffs) registered with the
+[shared layout](layout.md) under `buffs` and `debuffs`, so `/rik move`,
+`/rik move reset`, `/rik scale`, Apply and Undo include them and the mover
+box has a stable size. The container is a child of the proxy anchored to its
+top right corner and sizes itself to the visible auras. Defaults sit at the
+top right of the screen, left of the minimap cluster (`x=-200, y=-13`) with
+the debuff row directly under the four buff lines (`y=-149`).
 
-## Target and pet auras
+The proxy exists because adding a group marks the container with the
+`UntrustedLayoutScriptExecution` forbidden aspect and the layout module hooks
+`OnSizeChanged` on every frame it registers.
 
-`auras-units.lua` registers a second module, `unitauras`, that builds rows
-from the same factory and attaches them to the RikUI unit frames: a target
-debuff row (twelve 30 px icons, six per line) directly above the target
-frame, a smaller target buff row (sixteen 22 px icons, eight per line) above
-the debuffs, and a pet debuff row (eight 22 px icons, four per line) above
-the pet frame. The rows fill left to right and upward from the bottom left
-corner. They are plain children of the secure unit buttons, so they hide with
-the frame's visibility driver, follow it in `/rik move` and `/rik scale`, and
-stay writable in combat; they have no cancel layer and no layout key of their
-own. With the `unitframes` module disabled there is nothing to attach to and
-the module prints one `Unit auras attach` line.
+Target and pet containers are children of the secure unit buttons anchored
+`BOTTOMLEFT` to the frame's `TOPLEFT` four pixels up, so they hide with the
+frame's visibility driver and follow it in `/rik move` and `/rik scale`. With
+the `unitframes` module disabled there is nothing to attach to and the module
+prints one `Unit auras attach` line.
 
-Auras the player or their pet applied keep full size. Anything else shrinks
-to 75 % and its icon dims to half alpha. The decision reads the record's
-`isFromPlayerOrPlayerPet`: a readable flag drives both the scale and the
-icon alpha, a secret flag goes only into `Texture:SetAlphaFromBoolean` and
-keeps full size, and a missing flag falls back to a readable `sourceUnit` of
-`player`, `pet` or `vehicle`. Unknown ownership stays full size.
+## Events
 
-`UNIT_AURA` for `target` or `pet` (or a secret unit token) refreshes the
-matching rows. `PLAYER_TARGET_CHANGED` and `UNIT_PET` clear the rows before
-re-reading them, so a read that is blocked in combat never leaves the
-previous target's auras on the new one; with no target the reads return
-nothing and the rows stay empty. The blocked flag is per module: `/rik debug`
-prints `Unit auras blocked=<bool> rows=<n>` and samples
-`GetAuraDataByIndex(target,1,HARMFUL)` and the first debuff's duration
-object. Disable `unitauras` in `/rik config` to drop the rows and keep the
-player auras.
-
-## Secret rules
-
-The client documents every `C_UnitAuras` read as secret while unit auras are
-restricted, and the addon kit reports player auras unreadable in combat on an
-earlier beta build. The module never subtracts, compares or formats an aura
-value unless `issecretvalue` says it is readable:
-
-- Every row refresh reads `C_UnitAuras.GetAuraDataByIndex("player", i, filter)`
-  inside one `pcall`. If a read throws or returns a secret record, the row
-  keeps its last display, sets a blocked flag and prints one `Auras read`
-  line. `PLAYER_REGEN_ENABLED` re-reads a blocked row; `/rik debug` reports
-  the flag.
-- The icon goes straight into `SetTexture`. The count comes from
-  `C_UnitAuras.GetAuraApplicationDisplayCount`, which formats the number and
-  applies the minimum of two in the client, so a secret count still displays
-  through `SetText`. Without that API a readable `applications` of two or
-  more is formatted; a secret one shows nothing.
-- The timer is the aura's duration object from `C_UnitAuras.GetAuraDuration`
-  fed into `Cooldown:SetCooldownFromDurationObject`, the same sink the action
-  bars use. When no object is available, readable `duration` and
-  `expirationTime` drive `Cooldown:SetCooldown(expirationTime - duration,
-  duration)`; otherwise the swipe is cleared. A secret `auraInstanceID` never
-  reaches `GetAuraDuration` or `GetAuraApplicationDisplayCount`, because both
-  refuse secret arguments from addon code.
-- The border colour uses `dispelName` only when it is a readable string.
-- Weapon enchants come from `C_PaperDollInfo.GetTemporaryEnchantmentInfo`.
-  The client reports only the remaining time, so the duration is the
-  remaining time seen when an enchant first appears or is refreshed, as
-  Blizzard's own aura container does; a permanent enchant shows no swipe.
-- `UNIT_AURA` handlers filter by the event's unit token; a secret token
-  refreshes both rows instead of comparing.
-
-## Cancel layer
-
-Cancelling a buff needs secure code. `C_UnitAuras.CancelAuraByInstanceID`
-and `CancelUnitBuff` are restricted, so each buff slot carries a
-`SecureActionButtonTemplate` button with `type2 = cancelaura` over its
-display button. After every refresh the module copies the slot's aura index
-and filter (or the inventory slot for an enchant) into the button's
-attributes and shows or hides it, always through the combat queue.
-
-Protected frames cannot be shown, hidden or moved by addon code during
-combat, so the cancel layer's parent has a `[combat] hide; show` visibility
-driver: in combat the layer disappears, the plain display buttons underneath
-keep redrawing and answer the tooltip, and the pending attribute sync runs
-when combat ends. Out of combat the cancel buttons sit on top and take the
-right click.
-
-The build's `cancelaura` action only cancels a weapon enchant when the
-client's `CANCELABLE_ITEMS` table accepts the slot, and that table is
-referenced but not defined in the 69913 interface source. The module sets
-`target-slot` anyway; if right-click does nothing on an enchant, that is the
-client, and the Blizzard character pane remains the way to remove it.
+The containers register `UNIT_AURA` for their own unit. A unit token that now
+names a different unit needs a full refresh, as Blizzard's target frame does,
+so `PLAYER_TARGET_CHANGED` calls `UpdateAllAuras` on the target container and
+`UNIT_PET` for the player (or a secret unit token) on the pet container. A
+refused call prints one `Unit auras refresh` line. `PLAYER_ENTERING_WORLD`
+rechecks the stock frames.
 
 ## Stock frames
 
-Once both rows exist and the module is enabled, `BuffFrame` and
+Once both player containers exist and the module is enabled, `BuffFrame` and
 `DebuffFrame` are parked through `RikUI.Hide.Frame(frame, false)`: their
-events are unregistered until reload. Hiding happens only out of combat and
-after `PLAYER_ENTERING_WORLD` rechecks. Missing globals are ignored.
+events are unregistered until reload. Hiding happens only out of combat.
+Missing globals are ignored.
 
 ## Diagnostics
 
-`/rik debug` prints `Auras blocked=<bool> combat=<bool>` and the secrecy of
-`GetAuraDataByIndex(player,1,HELPFUL)`, `ShouldAurasBeSecret()` and, when the
-first buff's instance ID is readable, `GetAuraDuration(player, first buff)`.
-Reader failures print one `Auras ...` line per operation.
+`/rik debug` prints `Auras containers=<n> combat=<bool>`, the secrecy of
+`ShouldAurasBeSecret()`, the `GetAuraDataByIndex(player,1,HELPFUL)` sample
+(which reports the taint error in combat; that is expected and is the reason
+for the container) and `Unit auras containers=<n>` with the target sample.
 
 ## Verification
 
-The LuaJIT suite (`tests/auras.test.lua`) uses a recording renderer to
-prove: plain rows with 32 and 16 display buttons and top-right layout
-defaults; the cancel layer as a child of the buff row with the combat driver
-and secure `cancelaura` buttons anchored over their display buttons; stock
-frames parked with events dropped; icons, duration-object timers, client
-display counts and the readable fallbacks for both; neutral buff borders and
-dispel-coloured debuff borders; secret icon, count, instance ID, dispel type
-and times reaching the sinks with no printed error and no secret argument
-passed to the duration or count APIs; one contained duration failure;
-per-unit event filtering with the secret fallback; combat redraws without a
-protected write; a throwing or secret read keeping the display and warning
-once; the re-read and cancel sync after combat; weapon enchants with the
-item icon, charges, snapshot duration, refresh and removal, and the
-`target-slot` attribute; tooltips; the debug report; missing duration and
-count APIs; combat-login deferral; module disablement; missing stock globals.
+The LuaJIT suites use a fake of the container and button
+(`tests/aura_stub.lua`) that validates filter strings and options, creates
+buttons through `initializeFrame` like the client and records every call.
+`tests/auras.test.lua` proves: proxies registered at the top right with the
+nominal footprint; containers from the template as proxy children with unit
+player, preview off and a right-to-left, downward flow of 268 px lines; the
+HELPFUL group of 32 after the three enchant slots and the HARMFUL group of
+16 with 4 px spacing and 30 px elements; the decorator registering icon,
+count (on an overlay above the cooldown), cooldown with countdown numbers,
+four dispel-typed border lines for debuffs and a neutral border for buffs,
+right-click cancel on buffs and enchants only, no scripts; zero `C_UnitAuras`
+calls; stock frames parked; the missing-template fallback; combat-login
+deferral; module disablement; missing stock globals.
+`tests/auras-units.test.lua` proves the containers under the target and pet
+frames, their anchoring and flow, the four target groups and two pet groups
+with their filter strings, sizes, alphas and counts, no cancel buttons, the
+refresh calls on target and pet changes, a refused refresh warning once,
+coexistence with the player module, missing unit frames and the fallback.
 
-`tests/auras-units.test.lua` covers the unit rows: plain children of the
-target and pet frames with the expected slot counts, sizes and bottom-left
-fill; no layout key or cancel layer; icons, counts, borders and duration
-objects asked about the target; full size for player-cast auras, shrunk and
-dimmed for others, a secret flag reaching only the alpha sink, the
-`sourceUnit` fallback; secret values through the sinks with no error and no
-secret argument; per-unit event filtering; clearing on target loss and on a
-blocked target change; combat redraws without protected writes; a throwing
-read blocking only the unit module; the pet row and `UNIT_PET`; the debug
-line; coexistence with the player rows; missing unit frames; combat-login
-deferral.
+The stub cannot show native rendering, the countdown numbers or combat
+updates. Beta checklist on the Warrior:
 
-The stub cannot show native rendering, the countdown numbers, secure clicks
-or secret-value errors inside the real VM. Beta checklist on the Warrior:
-
-1. Reload out of combat. The Blizzard buff and debuff frames should be gone
-   and your buffs should appear top right with icons, borders and countdown
-   numbers. Run `/rik debug` and confirm the `Auras blocked=false` line and
-   the three `auras.*` lines print with no Lua error.
-2. Cast Battle Shout: the icon should appear with a swipe and countdown.
-   Right-click it: the buff should be cancelled. Apply a sharpening stone or
-   weightstone to your weapon: it should appear as the first buff icon with
-   the weapon's icon and a countdown.
-3. Fight a mob. Debuffs on you (a mob's Sunder, poison or disease) should
-   appear in the lower row with a coloured border, buffs should keep
-   updating, and no secret-value or protected-action error should print.
-   If the rows freeze during combat and `/rik debug` shows
-   `Auras blocked=true`, aura reads throw in combat on this build; report
-   the debug output. The rows should refresh once combat ends.
-4. `/rik move`: drag both rows, lock, reload and confirm positions. Disable
-   the module in `/rik config`, reload, and confirm the Blizzard frames
-   return.
-5. Target a mob: its debuffs should appear directly above the target frame
-   and its buffs in a smaller row above them. Apply Sunder Armor or Rend:
-   your debuff should be full size while auras from other casters are
-   smaller and dimmer. Change targets and clear the target: the rows should
-   swap or empty with no stale icons. In combat, if the rows stop updating
-   and `/rik debug` shows `Unit auras blocked=true`, target aura reads are
-   restricted on this build; report the debug output. If every debuff is
-   dimmed including your own, the record carries no
-   `isFromPlayerOrPlayerPet` on this build; report that too, since the
-   fallback is Blizzard's `C_UnitAuras.GetAuraCasterGUID` route.
+1. Reload out of combat. The Blizzard buff and debuff frames should be gone,
+   your buffs should appear top right with icons, borders and countdown
+   numbers, and `/rik debug` should print `Auras containers=2` and
+   `Unit auras containers=2` with no `Auras container` or `Auras button`
+   line.
+2. Cast Battle Shout and right-click it: it should be cancelled. Apply a
+   sharpening stone: it should appear as the first buff with a countdown.
+3. Target a mob and fight it. Rend and Sunder Armor should appear above the
+   target frame at full size with countdown and stack count, the mob's own
+   buffs smaller and dimmer on the line above, and your Battle Shout should
+   keep updating top right during the fight. Swap targets and clear the
+   target: the rows should follow. No red `RikUI:` line should print.
+4. `/rik move`: drag both player rows, lock, reload and confirm positions.
+   Disable `auras` in `/rik config`, reload, and confirm the Blizzard frames
+   return; disable `unitauras` and confirm the target rows go.
 
 ## Source evidence
 
 Reviewed against the Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
 
-- [Unit aura API and UNIT_AURA event with secret annotations](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitAuraDocumentation.lua)
-- [Cooldown duration-object sink](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua)
-- [Temporary enchant info and cancel](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/PaperDollInfoDocumentation.lua)
-- [cancelaura secure action](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua)
-- [Blizzard aura button cancel path](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraButton.lua)
-- [Blizzard enchant duration snapshot](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerEnchantments.lua)
-- [Blizzard buff frame events](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua)
-- [Blizzard aura source: caster identified through GetAuraCasterGUID](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerSources.lua)
-  (the generated documentation of this build has an empty Tables section for
-  the aura API, so the `AuraData` field list is not pinned there)
-- [Native boolean alpha sink](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleRegionAPIDocumentation.lua)
+- [CustomAuraContainerTemplate: options, validation, flow layout, access restrictions](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_CustomAuraContainer.lua)
+- [Container template marked for untainted creation](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_CustomAuraContainer.xml)
+- [CustomAuraButton region API and secret aspects](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_CustomAuraButton.lua)
+- [AuraButton tooltip, cancel clicks and forbidden aspects](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraButton.lua)
+- [Frame provider: batches, initializeFrame, deferred access restriction](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua)
+- [Defaults, enums and the DenyTaintedAccessWhenAurasAreSecret restriction](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerShared.lua)
+- [Flow layout semantics](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_SharedXMLBase/AnchorUtil.lua)
+- [Aura filter strings and negation](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_FrameXMLUtil/AuraUtil.lua)
+- [Secret predicates: SecretWhenUnitAuraRestricted](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SecretPredicatesDocumentation.lua)
