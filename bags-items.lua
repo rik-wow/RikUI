@@ -107,10 +107,22 @@ local function updateCooldown(button, bag, slot)
     if duration > 0 and enable ~= 0 then widget:SetCooldown(start, duration) else widget:Clear() end
 end
 
-local function dim(button)
+-- Blizzard's own bag search marks each item record isFiltered; clients without it match on the name.
+local function nativeSearch()
+    return type(C_Container.SetItemSearch) == "function"
+end
+
+local function matches(button)
+    if search == "" then return true end
+    if not button.rikFilled then return false end
+    if nativeSearch() then return not button.rikFiltered end
     local name = button.rikName
-    local matches = search == "" or (name ~= nil and name:find(search, 1, true) ~= nil)
-    button:SetAlpha(matches and FULL_ALPHA or DIM_ALPHA)
+    return name ~= nil and name:find(search, 1, true) ~= nil
+end
+
+local function dim(button)
+    button.rikDimmed = not matches(button)
+    button:SetAlpha(button.rikDimmed and DIM_ALPHA or FULL_ALPHA)
 end
 
 function bags.UpdateButton(button)
@@ -124,6 +136,7 @@ function bags.UpdateButton(button)
     local r, g, b = borderColor(info and info.quality)
     for _, line in ipairs(button.rikBorder) do line:SetVertexColor(r, g, b, 1) end
     button.rikName, button.rikFilled = itemName(info), info ~= nil
+    button.rikFiltered = info ~= nil and plain(info.isFiltered, "boolean") and info.isFiltered
     updateCooldown(button, bag, slot)
     dim(button)
 end
@@ -161,12 +174,29 @@ function bags.Refresh()
     bags.Resize()
 end
 
+local function eachButton(visit)
+    for _, frame in pairs(bagFrames) do
+        for _, button in ipairs(frame.buttons) do visit(button) end
+    end
+end
+
+-- The client answers SetItemSearch with INVENTORY_SEARCH_UPDATE, which redraws the open grid.
 function bags.SetSearch(text)
     if not plain(text, "string") then text = "" end
     search = text:lower():match("^%s*(.-)%s*$")
-    for _, frame in pairs(bagFrames) do
-        for _, button in ipairs(frame.buttons) do dim(button) end
+    if nativeSearch() then
+        local ok, reason = pcall(C_Container.SetItemSearch, search)
+        if not ok then bags.Warn("search", reason) end
     end
+    eachButton(dim)
+end
+
+function bags.SearchState()
+    local dimmed = 0
+    eachButton(function(button)
+        if button.rikDimmed and button:IsShown() then dimmed = dimmed + 1 end
+    end)
+    return search, dimmed
 end
 
 function bags.MoneyText(amount)

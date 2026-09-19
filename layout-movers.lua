@@ -4,7 +4,7 @@ local LABELS = { main = "Main bar", bar2 = "Bar 2", bar3 = "Bar 3", bar4 = "Bar 
     bar5 = "Bar 5", stance = "Stance bar", pet = "Pet bar", player = "Player frame",
     target = "Target frame", tot = "Target of target", petframe = "Pet frame",
     castplayer = "Player castbar", casttarget = "Target castbar", buffs = "Buffs", debuffs = "Debuffs",
-    tooltip = "Tooltip", minimap = "Minimap" }
+    tooltip = "Tooltip", minimap = "Minimap", bags = "Bags" }
 local LABEL_SIZE, MIN_SIZE = 12, 24
 local moving = false
 layout.Movers = {}
@@ -32,21 +32,28 @@ local function syncMover(mover, key, group)
     mover:Show()
 end
 
+-- Stores where a frame (an overlay, or a frame that drags itself) was dropped as the saved
+-- position of a layout key, as an offset from the screen centre in the frame's own scale.
+function layout.SaveCenter(key, frame, profile)
+    local x, y = frame:GetCenter()
+    local parentX, parentY = UIParent:GetCenter()
+    if not x or not y or not parentX or not parentY then return false end
+    local ratio = UIParent:GetEffectiveScale() / frame:GetEffectiveScale()
+    profile.positions[key] = { point = "CENTER", relativePoint = "CENTER",
+        x = x - parentX * ratio, y = y - parentY * ratio }
+    return true
+end
+
 local function saveDrop(mover)
     local profile = mover.dragProfile
     if not profile then return end
     cancelDrag(mover)
     if InCombatLockdown() or not moving or profile ~= core.Profile then return end
-    local x, y = mover:GetCenter()
-    local parentX, parentY = UIParent:GetCenter()
-    if not x or not y or not parentX or not parentY then
+    if not layout.SaveCenter(mover.key, mover, profile) then
         core:Print("Frame position unavailable; drag cancelled.")
         layout.RefreshMovers()
         return
     end
-    local ratio = UIParent:GetEffectiveScale() / mover:GetEffectiveScale()
-    profile.positions[mover.key] = { point = "CENTER", relativePoint = "CENTER",
-        x = x - parentX * ratio, y = y - parentY * ratio }
     layout.Apply()
 end
 

@@ -17,7 +17,7 @@ local TITLE_FORMAT, SEARCH_HINT, SORT_LABEL, CLOSE_LABEL = "Bags %d/%d", "Search
 local STOCK_PREFIX, STOCK_COMBINED, MAX_STOCK = "ContainerFrame", "ContainerFrameCombinedBags", 16
 local TOGGLES = { "OpenAllBags", "CloseAllBags", "ToggleAllBags", "OpenBackpack", "CloseBackpack", "ToggleBackpack",
     "OpenBag", "CloseBag", "ToggleBag" }
-local REFRESH_EVENTS = { "BAG_UPDATE_DELAYED", "BAG_UPDATE_COOLDOWN", "ITEM_LOCK_CHANGED" }
+local REFRESH_EVENTS = { "BAG_UPDATE_DELAYED", "BAG_UPDATE_COOLDOWN", "ITEM_LOCK_CHANGED", "INVENTORY_SEARCH_UPDATE" }
 local holder, warnings = nil, {}
 
 function bags.Warn(operation, reason)
@@ -129,8 +129,31 @@ local function onShow()
     bags.UpdateMoney()
 end
 
+-- The frame drags by its header, edges and footer at any time; the drop goes into the profile
+-- like a /rik move drop, so it survives reloads and follows the profile.
+local function dragStop()
+    if not holder.rikDragging then return end
+    holder.rikDragging = false
+    holder:StopMovingOrSizing()
+    if not layout.SaveCenter(KEY, holder, core.Profile) then
+        core:Print("Bags position unavailable; the frame keeps its last saved place.")
+    end
+    layout.Apply()
+end
+
+local function enableDrag()
+    holder:SetMovable(true)
+    holder:RegisterForDrag("LeftButton")
+    holder:SetScript("OnDragStart", function()
+        holder.rikDragging = true
+        holder:StartMoving()
+    end)
+    holder:SetScript("OnDragStop", dragStop)
+end
+
 -- Escape and the close button hide the holder directly; Blizzard's frames have to follow.
 local function onHide()
+    dragStop()
     holder.search:SetText("")
     searchChanged(holder.search)
     if anyStockOpen() and type(CloseAllBags) == "function" then CloseAllBags() end
@@ -144,6 +167,7 @@ local function createHolder()
     holder:EnableMouse(true)
     flat(holder, BACKGROUND)
     createControls()
+    enableDrag()
     holder:Hide()
     holder:SetScript("OnShow", onShow)
     holder:SetScript("OnHide", onHide)
@@ -182,8 +206,10 @@ function bags:OnEnable()
 end
 
 function bags:Debug(sample)
+    local search, dimmed = bags.SearchState()
     core:Print("Bags holder=" .. tostring(holder ~= nil) .. " parked=" .. #bags.Parked .. " slots=" .. bags.Total
-        .. " open=" .. tostring(holder ~= nil and holder:IsShown() == true))
+        .. " open=" .. tostring(holder ~= nil and holder:IsShown() == true) .. " search=\"" .. search
+        .. "\" dimmed=" .. dimmed)
     sample("GetContainerNumSlots(0)", function() return C_Container.GetContainerNumSlots(0) end)
 end
 

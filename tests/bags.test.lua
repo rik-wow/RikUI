@@ -9,6 +9,9 @@ return function(check)
         "OpenBag", "CloseBag", "ToggleBag", "OpenBackpack", "CloseBackpack", "ToggleBackpack", "OpenAllBags",
         "CloseAllBags", "ToggleAllBags" }
     local saved, savedQualityColor = {}, C_Item.GetItemQualityColor
+    local savedCenter, savedScale = rawget(UIParent, "GetCenter"), rawget(UIParent, "GetEffectiveScale")
+    function UIParent:GetCenter() return 400, 300 end
+    function UIParent:GetEffectiveScale() return 1 end
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local function capitalOnly(value)
         local methods = getmetatable(value).__index
@@ -45,6 +48,12 @@ return function(check)
         function frame:SetSize(w, h) self.width, self.height = w, h end
         function frame:SetPoint(...) self.point = { ... } end
         function frame:SetAlpha(alpha) self.alpha = alpha end
+        function frame:SetMovable(flag) self.movable = flag end
+        function frame:RegisterForDrag(button) self.dragButton = button end
+        function frame:StartMoving() self.moving = true end
+        function frame:StopMovingOrSizing() self.moving = false end
+        function frame:GetCenter() return self.centerX, self.centerY end
+        function frame:GetEffectiveScale() return 1 end
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
@@ -99,7 +108,7 @@ return function(check)
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
-            "unitframes.lua", "unitframes-status.lua", "bags.lua", "bags-items.lua" }) do
+            "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "bags.lua", "bags-items.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -151,6 +160,7 @@ return function(check)
             == "12g 34s 56c")
 
         typeSearch("LINEN ")
+        check("the text goes to Blizzard's bag search trimmed and lower-cased", stub.searchText == "linen")
         check("search dims every slot whose item name does not match", cloth.alpha == 1 and stone.alpha == 0.25
             and blade.alpha == 0.25 and empty.alpha == 0.25)
         typeSearch("")
@@ -198,13 +208,15 @@ return function(check)
 
         env.printed = {}
         SlashCmdList.RIKUI("debug")
-        check("debug reports the holder state and samples", printedContains("Bags holder=true parked=7 slots=20 open=true")
+        check("debug reports the holder state and samples",
+            printedContains("Bags holder=true parked=7 slots=20 open=true search=\"\" dimmed=0")
             and printedContains("bags.GetContainerNumSlots(0)"))
 
         typeSearch("blade")
         ToggleAllBags()
         check("the bag key closes the frame again", not holder:IsShown() and not ContainerFrame1:IsShown())
-        check("closing clears the search", RikUIBagsSearch.text == "" and blade.alpha == 1 and stone.alpha == 1)
+        check("closing clears the search", RikUIBagsSearch.text == "" and blade.alpha == 1 and stone.alpha == 1
+            and stub.searchText == "")
         local reads = stub.infoReads
         env.fire("BAG_UPDATE_DELAYED")
         check("a closed frame ignores bag events", stub.infoReads == reads)
@@ -220,7 +232,33 @@ return function(check)
         check("the close button closes both", not holder:IsShown() and not ContainerFrame1:IsShown())
         ToggleBackpack()
         check("the backpack binding opens the frame", holder:IsShown())
+
+        check("the frame drags by itself with the left button", holder.movable == true
+            and holder.dragButton == "LeftButton" and not RikUI.Layout.IsMoving())
+        env.runScript(holder, "OnDragStart")
+        check("a drag starts without /rik move", holder.moving == true)
+        holder.centerX, holder.centerY = 700, 250
+        env.runScript(holder, "OnDragStop")
+        local dropped = RikUIDB.profiles.Default.positions.bags
+        check("the drop is saved in the profile relative to the screen centre", holder.moving == false
+            and type(dropped) == "table" and dropped.point == "CENTER" and dropped.relativePoint == "CENTER"
+            and dropped.x == 300 and dropped.y == -50)
+        check("the saved position is applied back through the layout", holder.point[1] == "CENTER"
+            and holder.point[2] == UIParent and holder.point[4] == 300 and holder.point[5] == -50)
+        env.runScript(holder, "OnDragStart")
+        holder.centerX, holder.centerY = nil, nil
+        env.runScript(holder, "OnDragStop")
+        check("a drop without a readable position keeps the last one and says so", holder.moving == false
+            and RikUIDB.profiles.Default.positions.bags.x == 300 and printedContains("Bags position"))
+        env.printed = {}
+        env.runScript(holder, "OnDragStart")
+        holder:Hide()
+        check("closing the frame ends an unfinished drag", holder.moving == false)
         CloseAllBags()
+
+        module = load({ positions = { bags = { point = "CENTER", relativePoint = "CENTER", x = 300, y = -50 } } })
+        check("a saved position is used at the next login", module.Holder.point[1] == "CENTER"
+            and module.Holder.point[4] == 300 and module.Holder.point[5] == -50)
 
         module = load(nil, true)
         check("a combat login builds the holder and queues the parking", module.Holder ~= nil
@@ -241,6 +279,15 @@ return function(check)
         env.click(module.Holder.sort)
         check("a client without SortBags prints one line", printedContains("Bags sort") and #env.printed == 1)
 
+        module = load(nil, false, function() C_Container.SetItemSearch = nil end)
+        OpenAllBags()
+        typeSearch("Hearth")
+        check("a client without SetItemSearch matches on the item name", button(0, 2).alpha == 1
+            and button(0, 1).alpha == 0.25 and button(0, 3).alpha == 0.25 and #env.printed == 0)
+        env.printed = {}
+        SlashCmdList.RIKUI("debug")
+        check("debug names the search text and how many slots it dims", printedContains("search=\"hearth\" dimmed=21"))
+
         module = load(nil, false, function() ContainerFrameCombinedBags = nil end)
         check("an absent combined frame is skipped", #module.Parked == 6)
 
@@ -252,6 +299,7 @@ return function(check)
     end)
     CreateFrame = originalCreate
     C_Item.GetItemQualityColor = savedQualityColor
+    UIParent.GetCenter, UIParent.GetEffectiveScale = savedCenter, savedScale
     for name, value in pairs(saved) do _G[name] = value end
     env.inCombat = false
     check("bags suite completes", ok, reason)

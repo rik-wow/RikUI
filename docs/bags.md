@@ -20,12 +20,18 @@ the neutral border.
 
 The header has the title with used and total slots (`Bags 31/64`), a search
 box, a Sort button and a close button. Typing in the search box dims every
-slot whose item name does not contain the text; matching ignores case and
-treats the text literally. Escape in the box clears it, and closing the frame
-clears it too. Sort calls `C_Container.SortBags()`, Blizzard's own clean-up.
+empty slot and every item that does not match. The text goes to Blizzard's
+own bag search (`C_Container.SetItemSearch`), the client marks each item
+record `isFiltered` and answers with `INVENTORY_SEARCH_UPDATE`, and the grid
+redraws from that. A client without `SetItemSearch` falls back to matching
+the item name from its link, ignoring case and treating the text literally.
+Escape in the box clears it, and closing the frame clears it too. Sort calls `C_Container.SortBags()`, Blizzard's own clean-up.
 The footer shows your money.
 
-Escape closes the frame. `/rik move` drags it under the label `bags`.
+Escape closes the frame. Drag it by its header, edges or footer with the left
+button at any time, also in combat; no `/rik move` needed. The drop is saved
+in the profile's positions under `bags`, the same place a `/rik move` drop
+goes, so it survives reloads and relogs and `/rik move reset` puts it back.
 
 Left-click picks an item up, dragging works, right-click uses, equips or
 sells, shift-click splits a stack or links into chat, and the item tooltip
@@ -95,7 +101,9 @@ cooldown leaves the swipe as it was. Nothing secret is compared or printed.
 
 ## Diagnostics
 
-`/rik debug` prints `Bags holder=<bool> parked=<n> slots=<n> open=<bool>` and
+`/rik debug` prints `Bags holder=<bool> parked=<n> slots=<n> open=<bool>
+search="<text>" dimmed=<n>` (run it with text in the search box: `dimmed=0`
+means the client marked nothing as filtered) and
 the secrecy of `C_Container.GetContainerNumSlots(0)`. A client without the
 item template prints one `Bags buttons` line, one without `SortBags` one
 `Bags sort` line, and one without container frames one `Bags frames` line.
@@ -131,15 +139,17 @@ Warrior, after a full client restart:
 3. Repeat the right-click use while in combat.
 4. Open a merchant: the frame should open by itself; right-click sells, and
    the grey-item sell cursor shows. Close the merchant: the frame closes.
-5. Type part of an item name in the search box: other slots dim. Escape
-   clears it.
+5. Type part of an item name in the search box: other slots dim. If nothing
+   dims, run `/rik debug` with the text still in the box and note the
+   `search=` and `dimmed=` values. Escape clears it.
 6. Click Sort: items regroup and the grid follows.
 7. Hover an item: tooltip with comparison, in the RikUI tooltip skin.
 8. Press Escape with the frame open: it closes, and B opens it again with one
    press.
 9. Open the world map fullscreen and press B: no stock bag window appears.
 10. If the character has a keyring button, note whether anything opens.
-11. `/rik move`: a `bags` overlay; drag, lock, reload, position kept.
+11. Drag the frame by its title without `/rik move`, `/reload`, relog: the
+    position is kept. `/rik move` also shows a `Bags` overlay.
 12. Disable the module, reload: the Blizzard bags return.
 
 ## Source evidence

@@ -52,6 +52,18 @@ local function installToggles()
     function ToggleAllBags() if anyShown() then CloseAllBags() else OpenAllBags() end end
 end
 
+-- BagSearch_OnTextChanged's route: the client marks every item record, then fires the event.
+function stub.setItemSearch(text)
+    stub.searchText = text
+    for _, item in pairs(stub.items) do
+        if item ~= stub.env.SECRET then
+            local name = item.hyperlink:match("%[(.-)%]"):lower()
+            item.isFiltered = text ~= "" and not name:find(text, 1, true)
+        end
+    end
+    stub.env.fire("INVENTORY_SEARCH_UPDATE")
+end
+
 local function installContainerApi()
     C_Container = {
         GetContainerNumSlots = function(bag) return stub.slots[bag] or 0 end,
@@ -66,6 +78,7 @@ local function installContainerApi()
             return cooldown[1], cooldown[2], 1
         end,
         SortBags = function() stub.sorted = stub.sorted + 1 end,
+        SetItemSearch = stub.setItemSearch,
     }
     function GetMoney() return stub.money end
     C_Item.GetItemQualityColor = function(quality)
@@ -80,7 +93,7 @@ function stub.install(env)
     stub.env = env
     stub.slots, stub.items, stub.cooldowns = { [0] = 16, [1] = 6, [2] = 0, [3] = 0, [4] = 0 }, defaultItems(), {}
     stub.money, stub.sorted, stub.infoReads, stub.closeAllCalls, stub.infoError = 123456, 0, 0, 0, nil
-    stub.templateMissing = false
+    stub.templateMissing, stub.searchText = false, nil
     installFrames()
     installToggles()
     installContainerApi()
