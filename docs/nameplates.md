@@ -12,9 +12,13 @@ The health bar uses the RikUI statusbar texture on a flat dark backing that
 shows as a one-pixel border. The bar's fill and colour are Blizzard's: reaction
 colour for mobs and class colour for players when the client's class-colour
 setting is on. The name and the level number use the RikUI font. The level
-badge loses its gold frame for a flat dark box with the same border; the number
+badge loses its gold frame for a flat dark box with the same border, exactly as
+tall as the bar with the number centred; the number
 keeps Blizzard's difficulty colour and the skull for high-level units stays.
-Your target and focus get a white border in place of Blizzard's glow. Borders
+Your target and focus get a white border in place of Blizzard's glow, drawn on
+the bar's outer edge where the dark line normally is. Border lines have pixel
+snapping off, because plates move in fractions of a pixel and snapped lines
+change thickness from side to side. Borders
 are sized with `PixelUtil.GetNearestPixelSize` against the plate's effective
 scale on every layout pass, so they stay one screen pixel. Your own
 debuffs sit in a centred row of up to six 18px icons above the name, with the

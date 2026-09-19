@@ -3,13 +3,13 @@
 -- textures, fonts and alpha. UpdateAnchors puts the stock atlases back on every layout pass, so
 -- the skin is reapplied from a post-hook. Own debuffs come from a Blizzard aura container per
 -- unit frame; forbidden plates are never touched.
-local core, media, unitframes, auras = RikUI, RikUI.Media, RikUI.UnitFrames, RikUI.Auras
+local core, media, auras = RikUI, RikUI.Media, RikUI.Auras
 local nameplates = { Active = {}, Containers = setmetatable({}, { __mode = "k" }) }
 core.Nameplates = nameplates
 
 local FLAT, EDGE = "Interface\\BUTTONS\\WHITE8X8", 1
 local BACKING, HIGHLIGHT = { 0.06, 0.07, 0.09, 0.9 }, { 1, 1, 1, 1 }
-local LEVEL_ART, LEVEL_BORDER = { "playerLevelDiffIcon", "selectedBorder" }, { 0.25, 0.28, 0.32, 1 }
+local LEVEL_ART, LEVEL_BORDER, LEVEL_GAP = { "playerLevelDiffIcon", "selectedBorder" }, { 0.25, 0.28, 0.32, 1 }, 2
 local AURA_SIZE, AURA_MAX, AURA_LINE, AURA_GAP = 18, 6, 140, 2
 local AURA_GROUP, AURA_FILTER = "owndebuffs", "HARMFUL|PLAYER"
 local FLOW = { anchor = "BOTTOMLEFT", horizontal = "Right", vertical = "Up", lineSize = AURA_LINE }
@@ -28,7 +28,26 @@ local function pixel(frame)
     return EDGE
 end
 
--- unitframes.Edges order: top, bottom, left, right.
+local OUTLINE = { { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" }, { "TOPLEFT", "BOTTOMLEFT" },
+    { "TOPRIGHT", "BOTTOMRIGHT" } }
+
+-- Four lines along the inside of a region's edge: top, bottom, left, right. Plates move in
+-- fractions of a pixel, and snapped lines then change thickness from side to side.
+local function outline(owner, target, color)
+    local lines = {}
+    for index, points in ipairs(OUTLINE) do
+        local line = owner:CreateTexture(nil, "OVERLAY")
+        line:SetTexture(FLAT)
+        line:SetVertexColor(unpack(color))
+        line:SetSnapToPixelGrid(false)
+        line:SetTexelSnappingBias(0)
+        line:SetPoint(points[1], target, points[1], 0, 0)
+        line:SetPoint(points[2], target, points[2], 0, 0)
+        lines[index] = line
+    end
+    return lines
+end
+
 local function resize(lines, size)
     if type(lines) ~= "table" then return end
     for index, line in ipairs(lines) do
@@ -38,6 +57,23 @@ end
 
 local function font(region, role)
     if isRegion(region) then region:SetFont(media.font, media.sizes[role], "OUTLINE") end
+end
+
+-- The box takes Blizzard's width for the badge and the bar's exact height, outer edge included,
+-- with the number centred in it.
+local function placeLevel(level, bar, size)
+    local box = level.rikBacking
+    box:ClearAllPoints()
+    box:SetPoint("LEFT", level, "LEFT", LEVEL_GAP, 0)
+    box:SetPoint("RIGHT", level, "RIGHT", 0, 0)
+    box:SetPoint("TOP", bar, "TOP", 0, size)
+    box:SetPoint("BOTTOM", bar, "BOTTOM", 0, -size)
+    resize(level.rikBorder, size)
+    local number = level.playerLevelDiffText
+    if not isRegion(number) then return end
+    font(number, "small")
+    number:ClearAllPoints()
+    number:SetPoint("CENTER", box, "CENTER", 0, 0)
 end
 
 -- Everything Blizzard's layout pass resets.
@@ -54,10 +90,7 @@ local function applySkin(frame)
     resize(bar.rikHighlight, size)
     font(frame.name, "small")
     local level = frame.PlayerLevelDiffFrame
-    if isRegion(level) then
-        font(level.playerLevelDiffText, "small")
-        resize(level.rikBorder, size)
-    end
+    if isRegion(level) and level.rikBacking then placeLevel(level, bar, size) end
 end
 
 -- The level badge loses its gold frame and selection glow; the number keeps Blizzard's
@@ -68,23 +101,22 @@ local function skinLevel(level)
         if isRegion(level[key]) then level[key]:SetAlpha(0) end
     end
     local backing = level:CreateTexture(nil, "BACKGROUND")
-    backing:SetAllPoints(level)
     backing:SetTexture(FLAT)
     backing:SetVertexColor(unpack(BACKING))
-    level.rikBorder = unitframes.Edges(level, EDGE, "BORDER")
-    for _, line in ipairs(level.rikBorder) do line:SetVertexColor(unpack(LEVEL_BORDER)) end
+    level.rikBacking = backing
+    level.rikBorder = outline(level, backing, LEVEL_BORDER)
 end
 
 -- Blizzard decides target and focus and shows its selection art; the flat border copies that state.
 local function followSelection(bar)
     local border = bar.selectedBorder
     border:SetAlpha(0)
-    bar.rikHighlight = unitframes.Edges(bar, EDGE, "OVERLAY")
+    -- On the backing's outer edge, so the white line replaces the dark one instead of eating the fill.
+    bar.rikHighlight = outline(bar, bar.bgTexture, HIGHLIGHT)
     local function sync()
         local shown = border:IsShown() == true
         for _, line in ipairs(bar.rikHighlight) do line:SetShown(shown) end
     end
-    for _, line in ipairs(bar.rikHighlight) do line:SetVertexColor(unpack(HIGHLIGHT)) end
     hooksecurefunc(border, "SetShown", sync)
     hooksecurefunc(border, "Hide", sync)
     sync()

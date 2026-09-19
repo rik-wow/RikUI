@@ -111,6 +111,12 @@ return function(check)
         local level = frame.PlayerLevelDiffFrame
         check("the level badge loses its art and gets the flat border", level.playerLevelDiffIcon.alpha == 0
             and level.selectedBorder.alpha == 0 and #level.rikBorder == 4)
+        local box, number = level.rikBacking, level.playerLevelDiffText
+        check("the level box takes the bar's height and centres the number", #box.points == 4
+            and box.points[3][1] == "TOP" and box.points[3][2] == bar and box.points[3][5] == 0.5
+            and box.points[4][1] == "BOTTOM" and box.points[4][2] == bar
+            and number.points[1][1] == "CENTER" and number.points[1][2] == box)
+        check("the target border sits on the backing's outer edge", bar.rikHighlight[1].points[1][2] == bar.bgTexture)
         bar.selectedBorder:SetShown(true)
         check("the highlight follows Blizzard showing its selection border", bar.rikHighlight[1].shown == true
             and bar.rikHighlight[4].shown == true)
