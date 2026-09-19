@@ -19,6 +19,7 @@ setup-actions.lua
 setup-apply.lua
 layout.lua
 layout-movers.lua
+motion.lua
 bindings.lua
 macros.lua
 macros-undo.lua
@@ -53,6 +54,7 @@ chat-move.lua
 bags.lua
 bags-items.lua
 micromenu.lua
+xpbar.lua
 loot.lua
 loot-rolls.lua
 tooltip.lua

@@ -489,7 +489,7 @@ load order:
 | `bags.lua`, `bags-items.lua` | one frame for bags 0-4 on `ContainerFrameItemButtonTemplate` buttons (slot in the button ID, bag in a per-bag parent's ID, no Blizzard-read field written), quality borders, counts, cooldowns, name search, `C_Container.SortBags`, money line; Blizzard's bag functions post-hooked and the stock container frames parked (delivered) |
 | `tooltip.lua`, `tooltip-data.lua` | movable anchor, flat skin and font, class/reaction colours, Blizzard's GUID-watched health bar, item level and spell ID lines, hide in combat (delivered) |
 | `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar (delivered) |
-| `xpbar.lua` | experience and reputation bar with rested segment, hide the tracking bars |
+| `xpbar.lua`, `motion.lua` | experience row with a rested segment and a watched-faction reputation row, values reader-to-sink with sums under `pcall`, eased fills, gain flash, hover numbers, layout key `xpbar`; `StatusTrackingBarManager` parked once the bar exists; `motion.lua` holds the shared tween and easing helpers (delivered) |
 | `nameplates.lua`, `nameplates-skin.lua`, `nameplates-target.lua` | flat layout over Blizzard's plates, reapplied after `UpdateAnchors`: 14px own StatusBar fed reader-to-sink with the client's easing, name and Blizzard's percent text inside it, level box, elite marker, flat cast bar frame; target arrows and a pulsing accent line copy `selectedBorder`, a threat line copies `aggroHighlight`, target scale and dimming go through the client's nameplate CVars; a `HARMFUL|PLAYER` aura container per pooled unit frame; forbidden plates are skipped (delivered) |
 | `loot.lua`, `loot-rolls.lua` | compact loot list on the loot globals and `LootSlot`, at the cursor or layout key `loot`; `LootFrame` parked with its events dropped because its hide and open paths call `CloseLoot`; `GroupLootFrame1-4` skinned with buttons untouched (delivered) |
 | `questtracker.lua` | watched quest list, hide ObjectiveTrackerFrame |
@@ -512,8 +512,8 @@ attributes and handlers are never unregistered. /rik stockbars show restores
 the latest native parents, hide reapplies the saved preference, and status
 prints each target's resolved frame and state.
 
-The user-requested cleanup also parks StatusTrackingBarManager once the main
-overlay exists, keeping its child hierarchy. MicroMenu and BagsBar are parked by
+StatusTrackingBarManager is parked by xpbar.lua once its own bar exists
+(delivered), keeping its child hierarchy. MicroMenu and BagsBar are parked by
 micromenu.lua once its strip exists (delivered): micro buttons are secure click
 delegates to the stock buttons, bag buttons call the client's bag toggles.
 MicroMenuContainer, its queue-status sibling and bag inventory windows stay

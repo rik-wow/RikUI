@@ -2,11 +2,11 @@
 local core, bars = RikUI, RikUI.Bars
 local BUTTONS = 12
 
--- MicroMenu and BagsBar belong to micromenu.lua, which parks them once its strip exists.
+-- MicroMenu and BagsBar belong to micromenu.lua and StatusTrackingBarManager to xpbar.lua; each
+-- parks its stock frames once its replacement exists.
 local TARGETS = {
     { overlay = "main", name = "MainActionBar" },
     { overlay = "main", name = "MainMenuBarArtFrame" },
-    { overlay = "main", name = "StatusTrackingBarManager" },
     { overlay = "bar2", name = "MultiBarBottomLeft" },
     { overlay = "bar3", name = "MultiBarBottomRight" },
     { overlay = "bar4", name = "MultiBarRight" },

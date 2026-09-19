@@ -236,6 +236,8 @@ local bagsOk, bagsErr = pcall(function() dofile("tests/bags.test.lua")(check) en
 check("Bag test suite completes", bagsOk, bagsErr)
 local microOk, microErr = pcall(function() dofile("tests/micromenu.test.lua")(check) end)
 check("Micro menu test suite completes", microOk, microErr)
+local xpOk, xpErr = pcall(function() dofile("tests/xpbar.test.lua")(check) end)
+check("XP bar test suite completes", xpOk, xpErr)
 local lootOk, lootErr = pcall(function() dofile("tests/loot.test.lua")(check) end)
 check("Loot test suite completes", lootOk, lootErr)
 local plateOk, plateErr = pcall(function() dofile("tests/nameplates.test.lua")(check) end)
