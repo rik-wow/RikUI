@@ -68,14 +68,18 @@ hover the window. The button column, scroll bar and social buttons are
 hidden; the mouse wheel scrolls. The small button in a window's top-right
 corner opens its lines as selectable text, and web addresses in chat are
 links that open a box to copy from. Font size and timestamps are on the Chat
-options page. Disable the `chat` module to get the stock chat back. See
+options page. `/rik chat unlock` lets you drag the main chat window by its
+first tab, no Edit Mode needed; `/rik chat lock` when done, and the position
+is remembered. Disable the `chat` module to get the stock chat back. See
 [chat](docs/chat.md).
 
 B opens one bag frame with every slot of all five bags, ten to a row, with
 stack counts, quality-coloured borders, a search box that dims what does not
 match, a Sort button and your money. Clicks, drags, right-click use and
 vendor selling run on Blizzard's own item buttons. The bank stays Blizzard's.
-`bags-items.lua` is a new file, so fully restart the client after updating.
+Drag it by its title to move it; the place is remembered.
+`bags-items.lua` and `chat-move.lua` are new files, so fully restart the
+client after updating.
 Disable the `bags` module to get the stock bags back. See [bags](docs/bags.md).
 
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.

@@ -8,10 +8,13 @@ return function(check)
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA",
         "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA", "ItemRefTooltip", "RikUIChatCopy" }
     local FILES = { "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
-        "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-copy.lua" }
+        "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-copy.lua", "chat-move.lua" }
     local STOCK_FONT, URL = "Fonts\\FRIZQT__.TTF", "https://example.com/a?b=1"
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
+    local savedCenter, savedScale = rawget(UIParent, "GetCenter"), rawget(UIParent, "GetEffectiveScale")
+    function UIParent:GetCenter() return 400, 300 end
+    function UIParent:GetEffectiveScale() return 1 end
     local function upperOnly(value)
         local methods = getmetatable(value).__index
         setmetatable(value, { __index = function(t, key)
@@ -42,6 +45,11 @@ return function(check)
         function frame:SetFont(path, size, flags) self.fontPath, self.fontSize, self.fontFlags = path, size, flags; return true end
         function frame:GetFont() return self.fontPath, self.fontSize, self.fontFlags end
         function frame:HighlightText() self.highlighted = true end
+        function frame:SetMovable(flag) self.movable = flag end
+        function frame:StartMoving() self.moving = true end
+        function frame:StopMovingOrSizing() self.moving = false end
+        function frame:GetCenter() return self.centerX, self.centerY end
+        function frame:GetEffectiveScale() return 1 end
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
@@ -250,7 +258,55 @@ return function(check)
         check("a client without ChatFrame1 prints one line and touches nothing", printedContains("Chat frames")
             and #env.printed == 1 and ChatFrame2.fontPath == STOCK_FONT and #module.Parked == 0)
 
+        module = load()
+        local tab = ChatFrame1Tab
+        ChatFrame1.centerX, ChatFrame1.centerY = 200, 150
+        check("the main chat window starts locked and untouched", RikUI.Profile.chat.locked == true
+            and ChatFrame1.points == nil and module.Holder == nil and RikUI.Layout.Groups.chat == nil)
+        env.runScript(tab, "OnDragStart")
+        check("dragging the tab of a locked window does nothing", module.Holder == nil and ChatFrame1.points == nil)
+        env.printed = {}
+        SlashCmdList.RIKUI("chat unlock")
+        check("/rik chat unlock saves the flag and says how to drag", RikUI.Profile.chat.locked == false
+            and printedContains("drag") and not RikUI.Layout.IsMoving())
+        env.runScript(tab, "OnDragStart")
+        local holder = module.Holder
+        check("an unlocked tab drag puts a holder on the window's centre and moves it", holder ~= nil
+            and holder.moving == true and holder.movable == true and ChatFrame1.points[1][1] == "CENTER"
+            and ChatFrame1.points[1][2] == holder and #ChatFrame1.points == 1)
+        holder.centerX, holder.centerY = 500, 380
+        env.runScript(tab, "OnDragStop")
+        local dropped = RikUIDB.profiles.Default.positions.chat
+        check("the drop is saved in the profile and registered with the layout", holder.moving == false
+            and type(dropped) == "table" and dropped.point == "CENTER" and dropped.x == 100 and dropped.y == 80
+            and RikUI.Layout.Groups.chat.frames[1] == holder and holder.points[1][4] == 100)
+        ChatFrame1:ClearAllPoints()
+        ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 32, 95)
+        check("an Edit Mode re-anchor is answered by putting the window back on the holder",
+            #ChatFrame1.points == 1 and ChatFrame1.points[1][2] == holder)
+        SlashCmdList.RIKUI("chat lock")
+        env.runScript(tab, "OnDragStart")
+        check("/rik chat lock stops further drags", RikUI.Profile.chat.locked == true and holder.moving == false)
+        SlashCmdList.RIKUI("chat reset")
+        check("/rik chat reset forgets the position", RikUIDB.profiles.Default.positions.chat == nil
+            and printedContains("reload"))
+        SlashCmdList.RIKUI("chat sideways")
+        check("an unknown chat argument prints the usage", printedContains("Usage: /rik chat"))
+
+        module = load({ positions = { chat = { point = "CENTER", relativePoint = "CENTER", x = 100, y = 80 } } })
+        check("a saved position is applied at the next login", module.Holder ~= nil
+            and module.Holder.points[1][4] == 100 and module.Holder.points[1][5] == 80
+            and ChatFrame1.points[1][2] == module.Holder)
+        module = load({ positions = { chat = { point = "CENTER", relativePoint = "CENTER", x = 100, y = 80 } } }, true)
+        check("a combat login leaves the window alone until the holder is placed", ChatFrame1.points == nil)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("leaving combat places the holder, then the window", module.Holder.points[1][4] == 100
+            and ChatFrame1.points[1][2] == module.Holder)
+
         module = load({ modules = { chat = false } })
+        env.runScript(ChatFrame1Tab, "OnDragStart")
+        check("a disabled module never moves the chat window", ChatFrame1.points == nil and module.Holder == nil)
         check("a disabled module leaves fonts, buttons, tabs, timestamps, filters and hooks untouched",
             ChatFrame1.fontPath == STOCK_FONT and ChatFontNormal.fontPath == nil
             and ChatFrame1ButtonFrame.parent == ChatFrame1 and ChatFrame1EditBoxLeft.alpha == nil
@@ -260,6 +316,7 @@ return function(check)
     end)
     CreateFrame = originalCreate
     C_CVar.GetCVar, C_CVar.SetCVar = savedGet, savedSet
+    UIParent.GetCenter, UIParent.GetEffectiveScale = savedCenter, savedScale
     for _, name in ipairs(API) do _G[name] = saved[name] end
     env.inCombat = false
     check("chat suite completes", ok, reason)

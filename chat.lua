@@ -188,6 +188,7 @@ function chat:OnEnable()
     chat.ApplyTimestamps()
     if type(_G[SIZE_FUNCTION]) == "function" then hooksecurefunc(SIZE_FUNCTION, rememberSize) end
     if chat.EnableLinks then chat.EnableLinks() end
+    if chat.EnableMove then chat.EnableMove() end
 end
 
 local function frameCount()

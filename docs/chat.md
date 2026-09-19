@@ -44,9 +44,45 @@ community and system messages turn into light-blue links. Clicking one opens
 the same window holding just the address, selected. The client cannot open a
 browser for addons, so copying is the whole feature.
 
+## Moving the chat window
+
+`chat-move.lua` is a new TOC entry, so fully restart the client once.
+
+On this client the main chat window (`ChatFrame1`, with every tab docked to
+it) is an Edit Mode system: Blizzard's tab drag handler returns early for it,
+so unlocking it from the tab menu does not make it draggable. RikUI adds that
+back without Edit Mode and without `/rik move`:
+
+1. `/rik chat unlock`, or untick "Lock the main chat window" on the Chat
+   options page.
+2. Rest the cursor over the chat so the tabs fade in, then drag the first tab
+   (General) with the left button. The window, its docked tabs and the edit
+   box move together. This also works in combat.
+3. `/rik chat lock` when done. The lock state is saved per profile.
+
+The drop is saved in the profile's positions under `chat`, so it survives
+reloads and relogs and follows the profile. After the first move a `Chat
+window` overlay also shows up in `/rik move`. `/rik chat reset` forgets the
+position; reload afterwards and the window is back where Blizzard's layout
+puts it. RikUI never touches the window's position until you have moved it
+once. The size is still Blizzard's.
+
+Windows you have undocked are not Edit Mode systems. They keep Blizzard's own
+behaviour: right-click their tab, Unlock Window, drag the tab, Lock Window,
+and the client saves their position itself.
+
+How it works: the window is centred on a small RikUI holder, and the holder
+is what moves and what the layout saves. Edit Mode re-anchors its systems
+whenever a layout is applied; a `SetPoint` post-hook on `ChatFrame1` puts the
+window back on the holder. Entering Edit Mode while RikUI holds the window
+may show it in the wrong place there or raise a taint complaint; move the
+chat with RikUI or with Edit Mode, not both.
+
 ## Options
 
-The Chat page of `/rik config` has two settings, both saved per profile:
+The Chat page of `/rik config` has three settings, all saved per profile:
+
+- Lock the main chat window, see above.
 
 - Font size, 10 to 24. The change goes through Blizzard's own
   `FCF_SetChatWindowFontSize`, so the client saves it with the chat window
@@ -153,7 +189,11 @@ checklist on the Warrior, after a full client restart:
    recent lines as plain text, selected. Scroll the box with the wheel.
 6. Enter combat and `/reload`: no "action blocked" error; the button column
    disappears when combat ends.
-7. Change the font size on the Chat page of `/rik config`, reload and
+7. `/rik chat unlock`, drag the General tab: the whole chat moves. `/rik chat
+   lock`, `/reload`, relog: the position is kept. Open and close Edit Mode
+   once and note whether the window stays put and whether an error appears.
+   `/rik chat reset`, `/reload`: back at Blizzard's position.
+8. Change the font size on the Chat page of `/rik config`, reload and
    confirm it stuck. Disable the module, reload and confirm the stock chat
    returns.
 
