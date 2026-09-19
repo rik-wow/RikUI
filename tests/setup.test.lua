@@ -1,12 +1,12 @@
 -- Setup contracts exercise the real modules and real combat queue.
 return function(check)
     local env = require("wow_stub")
-    local core, actions, cursor, calls, macroData, settings, keys, known, items
+    local core, actions, cursor, calls, macroData, settings, keys, keyOrder, known, items
     local failPlace, failBinding, failCVar, combatAfterMacro
     local savedGlobals = {}
     local globals = { "GetActionInfo", "GetCursorInfo", "PickupAction", "PickupMacro", "PlaceAction",
         "ClearCursor", "GetMacroInfo", "CreateMacro", "EditMacro", "GetCurrentBindingSet",
-        "GetBindingAction", "SetBinding", "SaveBindings", "C_Spell", "C_Item", "C_CVar", "C_Container", "time" }
+        "GetBindingAction", "GetBindingKey", "SetBinding", "SaveBindings", "C_Spell", "C_Item", "C_CVar", "C_Container", "time" }
     for _, name in ipairs(globals) do savedGlobals[name] = _G[name] end
 
     local function record(value)
@@ -22,7 +22,7 @@ return function(check)
         end
         core = RikUI
         env.fire("ADDON_LOADED", "RikUI")
-        actions, calls, macroData, keys = {}, {}, {}, {}
+        actions, calls, macroData, keys, keyOrder = {}, {}, {}, {}, {}
         cursor, failPlace, failBinding, failCVar, combatAfterMacro = nil, false, false, false, false
         known = { ["Heroic Strike"] = 284, ["Rend"] = 772 }
         items, settings = { Hearthstone = 6948 }, {}
@@ -70,10 +70,22 @@ return function(check)
         end
         GetCurrentBindingSet = function() return 1 end
         GetBindingAction = function(key) return keys[key] or "" end
+        GetBindingKey = function(command)
+            local matches = {}
+            for _, key in ipairs(keyOrder) do
+                if keys[key] == command then matches[#matches + 1] = key end
+            end
+            return unpack(matches)
+        end
         SetBinding = function(key, command)
             record("bind")
             if failBinding then return false end
+            if keys[key] == command then return true end
+            for index, existing in ipairs(keyOrder) do
+                if existing == key then table.remove(keyOrder, index); break end
+            end
             keys[key] = command
+            if command then keyOrder[#keyOrder + 1] = key end
             return true
         end
         SaveBindings = function(set) record("save"); assert(set == 2) end
@@ -131,7 +143,10 @@ return function(check)
 
     actions[8], actions[25] = { kind = "spell", id = 999 }, { kind = "item", id = 42 }
     cursor = { kind = "item", id = 777 }
+    keys["6"], keyOrder[1] = "ACTIONBUTTON6", "6"
     local result = setup.Apply("WARRIOR")
+    local primary, secondary = GetBindingKey("ACTIONBUTTON6")
+    check("Setup promotes preset key and retains the old main-bar alias", primary == "Q" and secondary == "6")
     check("Apply finishes and records versioned character identity", result.status == "applied"
         and RikUICharDB.applied.class == "WARRIOR" and RikUICharDB.applied.role == "dps"
         and RikUICharDB.applied.at == 123456 and RikUICharDB.applied.presetVersion == 1)

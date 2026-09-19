@@ -280,8 +280,12 @@ shapeshift binds get cleared. Alt is left alone for self-cast.
 
 With Mouse4/5 disabled, bar2 slots 10/11 take Shift-G/Ctrl-G. Pet slot 1 and
 bar3 slot 8 then receive no scheme key, avoiding duplicate key ownership.
-Disabling A/D strafe assigns A/D to turn left/right. Apply only clears the
-scheme's keys plus Ctrl-6; existing bindings outside that set are preserved.
+Disabling A/D strafe assigns A/D to turn left/right. Apply makes each scheme
+key the native primary so stock bars display the preset key. It clears the
+scheme keys plus Ctrl-6 and temporarily clears target-command aliases, then
+binds the primary first and restores aliases outside the scheme in their
+original relative order. Unrelated bindings remain assigned. Failure recovery
+restores original ownership and key order before reporting the error.
 
 Bindings go to the native commands (`ACTIONBUTTON1`, `MULTIACTIONBAR1BUTTON1`,
 `SHAPESHIFTBUTTON1`, `BONUSACTIONBUTTON1`, `STRAFELEFT`...), not to `CLICK`

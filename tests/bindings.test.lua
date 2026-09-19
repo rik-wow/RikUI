@@ -49,6 +49,7 @@ return function(check)
                 keys = { ["1"] = "ORIGINAL_ONE", Q = "ORIGINAL_Q", ["6"] = "ACTIONBUTTON6",
                     ["CTRL-6"] = "LEGACY", ["ALT-1"] = "ALT_ACTION", F12 = "KEEP" },
                 log = {}, reads = 0, saves = 0, bindingSet = 1, depth = 0,
+                keyOrder = { "1", "Q", "6", "CTRL-6", "ALT-1", "F12" },
             }
             local queue = RikUI.Combat.Queue
             RikUI.Combat.Queue = function(fn)
@@ -67,8 +68,16 @@ return function(check)
                 state.reads = state.reads + 1
                 return state.keys[key] or ""
             end
-            GetBindingKey = function()
-                return state.primary, state.secondary, state.tertiary
+            GetBindingKey = function(command)
+                if state.labelFixture then return state.primary, state.secondary, state.tertiary end
+                if state.wrongPrimary and command == "ACTIONBUTTON6" and state.keys.Q == command then
+                    return "6", "Q"
+                end
+                local keys = {}
+                for _, key in ipairs(state.keyOrder) do
+                    if state.keys[key] == command then keys[#keys + 1] = key end
+                end
+                return unpack(keys)
             end
             SetBinding = function(key, command)
                 assert(not env.inCombat, "binding write during combat")
@@ -81,7 +90,15 @@ return function(check)
                     if fail == "throw" then error("native SetBinding failed") end
                     return nil
                 end
+                if state.rejectKey == key and command then state.rejectKey = nil; return nil end
+                if state.dropKeyAlways == key and command then return 1 end
+                if state.dropKey == key and command then state.dropKey = nil; return 1 end
+                if state.keys[key] == command then return 1 end
+                for index, existing in ipairs(state.keyOrder) do
+                    if existing == key then table.remove(state.keyOrder, index); break end
+                end
                 state.keys[key] = command
+                if command then state.keyOrder[#state.keyOrder + 1] = key end
                 return 1
             end
             SaveBindings = function(set)
@@ -102,6 +119,7 @@ return function(check)
         local service, state = fresh()
         check("bindings scheme matches all SDD commands and keys", same(service.Scheme, expected))
         local before = touchedState(state)
+        before["6"] = "ACTIONBUTTON6"
         local snapshot = service.Snapshot()
         check("bindings snapshot captures set and every touched key, including empty keys",
             type(snapshot) == "table" and snapshot.bindingSet == 1 and same(snapshot.keys, before))
@@ -115,16 +133,16 @@ return function(check)
         local clears, assigns, order = {}, 0, true
         for _, call in ipairs(state.log) do
             if call.kind == "bind" and call.command == nil then
-                order = order and assigns == 0 and touched[call.key] == true
+                order = order and assigns == 0
                 clears[call.key] = true
             elseif call.kind == "bind" then
                 assigns = assigns + 1
                 for key in pairs(touched) do order = order and clears[key] == true end
             end
         end
-        local applied = assigns == 43
+        local applied = assigns == 44 -- 43 scheme keys plus retained 6 alias
         for command, key in pairs(expected) do applied = applied and state.keys[key] == command end
-        check("bindings clears the complete touched set before assigning", order and same(clears, touched))
+        check("bindings clears scheme keys and old target aliases before assigning", order and clears["6"] == true)
         check("bindings applies exactly the default scheme and clears legacy CTRL-6",
             applied and state.keys["CTRL-6"] == nil)
         local last = state.log[#state.log]
@@ -133,13 +151,65 @@ return function(check)
         check("bindings preserves Alt, unrelated keys and existing aliases",
             state.keys["ALT-1"] == "ALT_ACTION" and state.keys.F12 == "KEEP" and state.keys["6"] == "ACTIONBUTTON6")
 
+        check("native first key is the scheme primary while old number remains alternate",
+            GetBindingKey("ACTIONBUTTON6") == "Q" and select(2, GetBindingKey("ACTIONBUTTON6")) == "6")
+        service.Apply()
+        check("repeat Apply retains primary ordering without duplicate aliases",
+            GetBindingKey("ACTIONBUTTON6") == "Q" and select("#", GetBindingKey("ACTIONBUTTON6")) == 2)
+
+        service, state = fresh()
+        state.keys["ALT-Q"], state.keys.F11 = "ACTIONBUTTON6", "ACTIONBUTTON6"
+        state.keyOrder[#state.keyOrder + 1], state.keyOrder[#state.keyOrder + 2] = "ALT-Q", "F11"
+        service.Apply()
+        check("all retained aliases keep relative order after new primary",
+            table.concat({ GetBindingKey("ACTIONBUTTON6") }, ",") == "Q,6,ALT-Q,F11")
+        service, state = fresh()
+        state.keys.F11 = "ORIGINAL_Q"
+        state.keyOrder[#state.keyOrder + 1] = "F11"
+        state.rejectKey = "6" -- fail while restoring a retained target alias
+        result, reason = service.Apply()
+        check("alias write failure restores both target and displaced source ordering",
+            result == nil and state.saves == 0 and GetBindingKey("ACTIONBUTTON6") == "6"
+            and table.concat({ GetBindingKey("ORIGINAL_Q") }, ",") == "Q,F11")
+        service, state = fresh()
+        state.wrongPrimary = true
+        result, reason = service.Apply()
+        check("native primary mismatch rejects success and does not save",
+            result == nil and state.saves == 0 and state.keys.Q == "ORIGINAL_Q"
+            and reason:find("primary", 1, true))
+        service, state = fresh()
+        state.dropKey = "6"
+        result, reason = service.Apply()
+        check("silent alias loss is detected and restored",
+            result == nil and state.saves == 0 and state.keys["6"] == "ACTIONBUTTON6")
+
+        service, state = fresh()
+        state.dropKeyAlways = "6"
+        result, reason = service.Apply()
+        check("silent rollback failure reports incomplete restoration",
+            result == nil and state.saves == 0 and state.keys["6"] == nil
+            and reason:find("runtime rollback incomplete", 1, true))
+
+        service, state = fresh()
+        GetBindingKey = function() end
+        result, reason = service.Apply()
+        check("incomplete native key enumeration aborts before mutation",
+            result == nil and #state.log == 0 and reason:find("incomplete", 1, true))
+
+        service, state = fresh()
+        state.keys.Q = "ACTIONBUTTON1"
+        result = service.Apply()
+        check("old aliases that belong to the scheme are reassigned without being stolen back",
+            result ~= nil and GetBindingKey("ACTIONBUTTON1") == "1" and state.keys.Q == "ACTIONBUTTON6")
+
         service, state = fresh()
         result = service.Apply({ strafe = false, mouse45 = false })
         check("bindings strafe option switches A and D to turning",
             result ~= nil and state.keys.A == "TURNLEFT" and state.keys.D == "TURNRIGHT")
         check("bindings mouse option uses keyboard alternatives without collisions",
             state.keys["SHIFT-G"] == "MULTIACTIONBAR1BUTTON10" and state.keys["CTRL-G"] == "MULTIACTIONBAR1BUTTON11"
-                and state.keys.BUTTON4 == nil and state.keys.BUTTON5 == nil)
+                and state.keys.BUTTON4 == nil and state.keys.BUTTON5 == nil
+                and GetBindingKey("MULTIACTIONBAR1BUTTON10") == "SHIFT-G")
         check("bindings options leave the canonical scheme unchanged", same(service.Scheme, expected))
         service.Apply()
         check("bindings later defaults restore the original scheme",
@@ -156,7 +226,7 @@ return function(check)
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
         check("bindings queued application copies its options and runs on combat exit",
-            state.keys.A == "TURNLEFT" and state.saves == 1)
+            state.keys.A == "TURNLEFT" and state.saves == 1 and GetBindingKey("ACTIONBUTTON6") == "Q")
 
         service, state = fresh()
         env.inCombat = true
@@ -170,6 +240,7 @@ return function(check)
             same(touchedState(state), before) and state.saves == 0)
 
         service, state = fresh()
+        state.labelFixture = true
         local labels = { ["1"] = "1", Q = "Q", ["SHIFT-1"] = "s1",
             ["SHIFT-Q"] = "sQ", ["CTRL-1"] = "c1", ["CTRL-Z"] = "cZ", BUTTON4 = "M4", BUTTON5 = "M5" }
         local labelsCorrect = true
@@ -212,7 +283,7 @@ return function(check)
             check("bindings save " .. failure .. " is reported and runtime keys restored",
                 success and value == nil and type(err) == "string" and state.saves == 1 and same(touchedState(state), before))
         end
-        for _, api in ipairs({ "GetCurrentBindingSet", "GetBindingAction", "SetBinding", "SaveBindings" }) do
+        for _, api in ipairs({ "GetCurrentBindingSet", "GetBindingAction", "GetBindingKey", "SetBinding", "SaveBindings" }) do
             service, state = fresh()
             _G[api] = nil
             local success, value, err = pcall(service.Apply)

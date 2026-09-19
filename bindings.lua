@@ -60,20 +60,60 @@ local function resolveOptions(opts)
     return resolved
 end
 
-function bindings.Snapshot()
-    if type(GetCurrentBindingSet) ~= "function" then return nil, "GetCurrentBindingSet unavailable" end
-    if type(GetBindingAction) ~= "function" then return nil, "GetBindingAction unavailable" end
+local function captureCommand(snapshot, command)
+    local ok, keys = pcall(function() return { GetBindingKey(command) } end)
+    if not ok then return nil, "GetBindingKey failed for " .. command end
+    for _, key in ipairs(keys) do
+        if type(key) ~= "string" or key == "" then return nil, "invalid key for " .. command end
+        local readable, owner = pcall(GetBindingAction, key)
+        if not readable or owner ~= command then return nil, "inconsistent binding for " .. key end
+        snapshot.keys[key] = owner
+    end
+    snapshot.commands[command] = keys
+    return true
+end
+
+local function verifySnapshot(snapshot)
+    local captured = {}
+    for command, keys in pairs(snapshot.commands) do
+        for _, key in ipairs(keys) do captured[key] = command end
+    end
+    for key, command in pairs(snapshot.keys) do
+        if command ~= "" and captured[key] ~= command then
+            return nil, "incomplete binding snapshot for " .. key
+        end
+    end
+    return snapshot
+end
+
+local function captureSnapshot(resolved)
+    local reason
+    for _, name in ipairs({ "GetCurrentBindingSet", "GetBindingAction", "GetBindingKey" }) do
+        if type(_G[name]) ~= "function" then return nil, name .. " unavailable" end
+    end
     local ok, bindingSet = pcall(GetCurrentBindingSet)
     if not ok or (bindingSet ~= ACCOUNT_BINDINGS and bindingSet ~= CHARACTER_BINDINGS) then
         return nil, "GetCurrentBindingSet failed"
     end
-    local snapshot = { bindingSet = bindingSet, keys = {} }
+    local snapshot, commands = { bindingSet = bindingSet, keys = {}, commands = {} }, {}
+    for command in pairs(resolved) do commands[command] = true end
     for _, key in ipairs(touchedKeys) do
         local readable, command = pcall(GetBindingAction, key)
         if not readable or type(command) ~= "string" then return nil, "GetBindingAction failed for " .. key end
         snapshot.keys[key] = command
+        if command ~= "" then commands[command] = true end
     end
-    return snapshot
+    for _, command in ipairs(sortedKeys(commands)) do
+        ok, reason = captureCommand(snapshot, command)
+        if not ok then return nil, reason end
+    end
+    return verifySnapshot(snapshot)
+end
+
+function bindings.Snapshot(opts)
+    local resolved, reason = resolveOptions(opts)
+    if not resolved then return nil, reason end
+    return captureSnapshot(resolved)
 end
 
 local function setKey(key, command)
@@ -83,28 +123,83 @@ local function setKey(key, command)
     return true
 end
 
--- Failure cleanup only. Public/persistent undo belongs to the setup module.
-local function restore(snapshot)
-    local restored = true
-    for _, key in ipairs(touchedKeys) do
-        if not setKey(key) then restored = false end
+local function matchesSnapshot(snapshot)
+    for key, command in pairs(snapshot.keys) do
+        local ok, actual = pcall(GetBindingAction, key)
+        if not ok or actual ~= command then return false end
     end
-    for _, key in ipairs(touchedKeys) do
-        local command = snapshot.keys[key]
-        if command ~= "" and not setKey(key, command) then restored = false end
+    for command, keys in pairs(snapshot.commands) do
+        local ok, actual = pcall(function() return { GetBindingKey(command) } end)
+        if not ok or #actual ~= #keys then return false end
+        for index, key in ipairs(keys) do
+            if actual[index] ~= key then return false end
+        end
     end
-    return restored
+    return true
 end
 
-local function writeBindings(resolved, commands)
-    for _, key in ipairs(touchedKeys) do
+-- Failure cleanup restores ordering as well as ownership, including old owners
+-- of keys reassigned by the scheme. Public/persistent undo belongs to setup.
+local function restore(snapshot)
+    local restored = true
+    for _, key in ipairs(sortedKeys(snapshot.keys)) do
+        if not setKey(key) then restored = false end
+    end
+    for _, command in ipairs(sortedKeys(snapshot.commands)) do
+        for _, key in ipairs(snapshot.commands[command]) do
+            if not setKey(key, command) then restored = false end
+        end
+    end
+    return matchesSnapshot(snapshot) and restored
+end
+
+local function keysToClear(resolved, snapshot)
+    local keys = {}
+    for _, key in ipairs(touchedKeys) do keys[key] = true end
+    for command in pairs(resolved) do
+        for _, key in ipairs(snapshot.commands[command]) do keys[key] = true end
+    end
+    return sortedKeys(keys)
+end
+
+local function assignPrimary(command, primary, aliases)
+    local ok, reason = setKey(primary, command)
+    if not ok then return nil, reason end
+    for _, key in ipairs(aliases) do
+        -- Scheme keys may now belong to a different command; never steal them back.
+        if not touched[key] then
+            ok, reason = setKey(key, command)
+            if not ok then return nil, reason end
+        end
+    end
+    return true
+end
+
+local function verifyBindings(resolved, snapshot)
+    for command, primary in pairs(resolved) do
+        local ok, actual = pcall(GetBindingKey, command)
+        if not ok or actual ~= primary then return nil, "primary binding mismatch for " .. command end
+    end
+    for key, previous in pairs(snapshot.keys) do
+        if not touched[key] then
+            local ok, actual = pcall(GetBindingAction, key)
+            if not ok or actual ~= previous then return nil, "alternate binding mismatch for " .. key end
+        end
+    end
+    return true
+end
+
+local function writeBindings(resolved, commands, snapshot)
+    for _, key in ipairs(keysToClear(resolved, snapshot)) do
         local ok, reason = setKey(key)
         if not ok then return nil, reason end
     end
     for _, command in ipairs(commands) do
-        local ok, reason = setKey(resolved[command], command)
+        local ok, reason = assignPrimary(command, resolved[command], snapshot.commands[command])
         if not ok then return nil, reason end
     end
+    local verified, reason = verifyBindings(resolved, snapshot)
+    if not verified then return nil, reason end
     local ok, saved = pcall(SaveBindings, CHARACTER_BINDINGS)
     -- SaveBindings has no success return; an explicit false still means failure.
     if not ok or saved == false then return nil, "SaveBindings failed" end
@@ -114,11 +209,11 @@ end
 local function applyNow(resolved, opts)
     if type(SetBinding) ~= "function" then return reject("SetBinding unavailable", opts) end
     if type(SaveBindings) ~= "function" then return reject("SaveBindings unavailable", opts) end
-    local snapshot, reason = bindings.Snapshot()
+    local snapshot, reason = captureSnapshot(resolved)
     if not snapshot then return reject(reason, opts) end
     local commands = sortedKeys(resolved)
     local ok
-    ok, reason = writeBindings(resolved, commands)
+    ok, reason = writeBindings(resolved, commands, snapshot)
     if not ok then
         if not restore(snapshot) then reason = reason .. "; runtime rollback incomplete" end
         return reject(reason, opts)

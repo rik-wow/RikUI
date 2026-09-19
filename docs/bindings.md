@@ -7,26 +7,34 @@ client's action-page and stance resolution.
 - `Scheme` is the read-only-by-convention command-to-key table from the SDD:
   11 main, 12 bar2, 12 bar3, three stance, three pet and two movement bindings.
   Mouse4/5 use the native key names `BUTTON4` and `BUTTON5`.
-- `Apply(opts)` clears the 43 scheme keys plus `CTRL-6`, assigns the resolved
-  scheme, then calls `SaveBindings(2)`. It preserves all other keys, including
-  Alt combinations and existing secondary bindings outside this touched set.
-  Slots marked unbound in the SDD receive no new scheme key; existing keys
-  outside the touched set are not globally erased.
+- `Apply(opts)` makes each resolved scheme key the native primary key. It clears
+  the 43 scheme keys plus `CTRL-6` and each target command's existing aliases,
+  assigns the new primary first, then restores aliases outside the scheme in
+  their original relative order. Thus Q replaces 6 as the displayed main-slot-6
+  key while 6 remains an alternate. Alt combinations and unrelated bindings
+  retain their assignments. Slots marked unbound in the SDD receive no new key.
+  Before `SaveBindings(2)`, native readback must confirm every preset primary
+  and preserved alias; a mismatch fails the operation.
 - Omit options for the default scheme. `strafe=false` assigns A/D to
   `TURNLEFT`/`TURNRIGHT`; `mouse45=false` assigns bar2 slots 10/11 to
   Shift-G/Ctrl-G and clears Mouse4/5. The fallback takes priority over pet
   slot 1 and bar3 slot 8, which receive no scheme key in that mode. No extra
   replacement keys are invented. Switching back restores the default scheme.
   Options must be a table and these two fields, when present, must be booleans.
-- `Snapshot()` returns a detached
-  `{ bindingSet = 1_or_2, keys = { [key] = previousCommand } }` for all 44
-  touched keys. Empty strings mean previously unbound. Reads are guarded;
-  an incomplete snapshot returns `nil, reason` and Apply writes nothing.
+- `Snapshot(opts)` returns a detached
+  `{ bindingSet = 1_or_2, keys = { [key] = previousCommand }, commands = { [command] = orderedKeys } }`.
+  It captures all 44 scheme/legacy keys plus aliases of resolved target commands
+  and original owners of reassigned keys. `commands` preserves native primary
+  and alternate order for rollback. Empty key commands mean previously unbound.
+  Reads are guarded and cross-checked; an incomplete snapshot returns
+  `nil, reason` and Apply writes nothing.
 - Successful immediate Apply returns that pre-write snapshot. Failure returns
   `nil, reason` and prints a diagnostic. Rejected/throwing writes trigger
-  best-effort restoration of touched runtime bindings; failed restoration is
-  reported. A write failure never saves a partial preset. If SaveBindings
-  itself fails, persistence cannot be guaranteed; runtime restoration is
+  best-effort restoration of original runtime assignments and primary/alternate
+  ordering, including displaced source commands; rejected writes or failed
+  restoration readback are reported as incomplete rollback. A write failure
+  never saves a partial preset. If SaveBindings itself fails, persistence
+  cannot be guaranteed; runtime restoration is
   attempted, with no second save.
 - All writes, including failure cleanup and save, run through `Combat.Queue`.
   Deferred Apply returns `nil, "queued"`; it captures options now and reads
@@ -57,20 +65,27 @@ or exception is rejected here. Blizzard's
 [settings implementation](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic/Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua)
 documents that saving character bindings updates the active binding set.
 Apply saves directly to set 2 without loading a different set or saving set 1.
-These sources were checked on 2026-09-18; the underlying native persistence
+Blizzard's [primary-key reassignment](https://raw.githubusercontent.com/Gethe/wow-ui-source/live/Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Keybindings.lua)
+likewise clears a command's keys and rebinds the primary before its alternate.
+The [stock action button](https://raw.githubusercontent.com/Gethe/wow-ui-source/classic/Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua)
+uses the first native `GetBindingKey` result for its label; it does not call
+RikUI's `Label` helper. These sources were checked on 2026-09-18; native persistence
 implementation is not public.
 
 ## Verification and live smoke check
 
 The LuaJIT stub suite tests exact assignments, clear/set/save order, preserved
-keys, detached snapshots, options, labels, rejected APIs, failure cleanup,
+keys, native primary ordering, repeated application, detached ordered snapshots,
+options, labels, rejected APIs, readback mismatches, ordered failure cleanup,
 slash routing and the real core combat queue. It cannot establish native beta
 persistence or protected-call behavior.
 
 On a disposable beta character after `/reload`, run `/rik binds` out of combat.
-Expect 43 binding lines and character-specific bindings selected. Check main
-1/Q, Shift-1, Ctrl-1, Mouse4/5, stance Ctrl-Q/E/R and A/D; confirm Alt and an
-unrelated custom key still work. Reload and confirm persistence, then inspect
+Expect 43 binding lines and character-specific bindings selected. Main slots
+1–11 should show 1/2/3/4/5/Q/E/R/F/T/G; existing number aliases should still work.
+Check Shift-1, Ctrl-1, Mouse4/5, stance Ctrl-Q/E/R and A/D; confirm Alt and an
+unrelated custom key still work. `/rik apply dps` uses this same binding service.
+Reload and confirm persistence, then inspect
 another character's account bindings. Verify combat invocation delays changes
 until combat ends. Exercise the two false options through the service API.
 No live beta execution of this module is claimed by automated tests.
