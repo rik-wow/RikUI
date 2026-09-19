@@ -14,6 +14,9 @@ local PAD, HEADER, FOOTER, EDGE = 8, 24, 18, 1
 local CONTROL_HEIGHT, SEARCH_WIDTH, SORT_WIDTH, CLOSE_WIDTH, CONTROL_GAP = 18, 120, 40, 18, 4
 local BACKGROUND, FIELD, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.1, 0.11, 0.13, 1 }, { 0.25, 0.28, 0.32, 1 }
 local TITLE_FORMAT, SEARCH_HINT, SORT_LABEL, CLOSE_LABEL = "Bags %d/%d", "Search", "Sort", "x"
+local MATCH_ONE, MATCH_MANY = "  1 match", "  %d matches"
+-- Blizzard's bag search box: its own handlers feed C_Container.SetItemSearch. SearchBoxTemplate art keys.
+local SEARCH_TEMPLATE, SEARCH_ART = "BagSearchBoxTemplate", { "Left", "Middle", "Right" }
 local STOCK_PREFIX, STOCK_COMBINED, MAX_STOCK = "ContainerFrame", "ContainerFrameCombinedBags", 16
 local TOGGLES = { "OpenAllBags", "CloseAllBags", "ToggleAllBags", "OpenBackpack", "CloseBackpack", "ToggleBackpack",
     "OpenBag", "CloseBag", "ToggleBag" }
@@ -78,25 +81,36 @@ end
 
 local function searchChanged(box)
     local text = box:GetText()
-    box.hint:SetShown(text == nil or text == "")
+    if box.hint then box.hint:SetShown(text == nil or text == "") end
     bags.SetSearch(text)
 end
 
-local function createSearch()
+-- Only the fallback box needs these: the template brings its own prompt, clear button and keys.
+local function plainSearchBox()
     local box = CreateFrame("EditBox", SEARCH_NAME, holder)
-    box:SetSize(SEARCH_WIDTH, CONTROL_HEIGHT)
     box:SetAutoFocus(false)
     box:SetTextInsets(CONTROL_GAP, CONTROL_GAP, 0, 0)
-    box:SetFont(media.font, media.sizes.small, "")
-    flat(box, FIELD)
     box.hint = box:CreateFontString(nil, "OVERLAY")
     media.Font(box.hint, "small")
     box.hint:SetPoint("LEFT", box, "LEFT", CONTROL_GAP, 0)
     box.hint:SetText(SEARCH_HINT)
     box.hint:SetTextColor(0.6, 0.6, 0.6, 1)
-    box:SetScript("OnTextChanged", searchChanged)
     box:SetScript("OnEnterPressed", box.ClearFocus)
     box:SetScript("OnEscapePressed", function(self) self:SetText(""); searchChanged(self); self:ClearFocus() end)
+    return box
+end
+
+local function createSearch()
+    local ok, box = pcall(CreateFrame, "EditBox", SEARCH_NAME, holder, SEARCH_TEMPLATE)
+    if not ok then box = plainSearchBox() end
+    for _, key in ipairs(SEARCH_ART) do
+        local art = box[key]
+        if type(art) == "table" and type(art.SetAlpha) == "function" then art:SetAlpha(0) end
+    end
+    box:SetSize(SEARCH_WIDTH, CONTROL_HEIGHT)
+    box:SetFont(media.font, media.sizes.small, "")
+    flat(box, FIELD)
+    box:HookScript("OnTextChanged", searchChanged)
     return box
 end
 
@@ -121,7 +135,20 @@ function bags.Resize()
     local width, height = bags.GridSize(bags.Total)
     holder.grid:SetSize(width, height)
     holder:SetSize(width + 2 * PAD, height + 2 * PAD + HEADER + FOOTER)
-    holder.title:SetText(TITLE_FORMAT:format(bags.Used, bags.Total))
+    bags.UpdateTitle()
+end
+
+-- While a search is active the title counts the matching slots, so a search that reaches
+-- nothing is visible at a glance.
+function bags.UpdateTitle()
+    if not holder then return end
+    local text = TITLE_FORMAT:format(bags.Used, bags.Total)
+    local search, dimmed = bags.SearchState()
+    if search ~= "" then
+        local found = bags.Total - dimmed
+        text = text .. (found == 1 and MATCH_ONE or MATCH_MANY:format(found))
+    end
+    holder.title:SetText(text)
 end
 
 local function onShow()

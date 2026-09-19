@@ -93,7 +93,7 @@ function stub.install(env)
     stub.env = env
     stub.slots, stub.items, stub.cooldowns = { [0] = 16, [1] = 6, [2] = 0, [3] = 0, [4] = 0 }, defaultItems(), {}
     stub.money, stub.sorted, stub.infoReads, stub.closeAllCalls, stub.infoError = 123456, 0, 0, 0, nil
-    stub.templateMissing, stub.searchText = false, nil
+    stub.templateMissing, stub.searchTemplateMissing, stub.searchText = false, false, nil
     installFrames()
     installToggles()
     installContainerApi()

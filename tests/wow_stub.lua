@@ -40,7 +40,7 @@ env.KNOWN_EVENTS = KNOWN_EVENTS
 
 local KNOWN_TEMPLATES = { SecureActionButtonTemplate = true, SecureHandlerStateTemplate = true,
     SecureUnitButtonTemplate = true, CustomAuraContainerTemplate = true, CustomAuraButtonTemplate = true,
-    ContainerFrameItemButtonTemplate = true }
+    ContainerFrameItemButtonTemplate = true, BagSearchBoxTemplate = true }
 local auraStub = require("aura_stub")
 
 ------------------------------------------------------------------------

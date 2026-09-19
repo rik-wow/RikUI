@@ -13,7 +13,7 @@ local SLOT, GAP, COLUMNS, EDGE, COUNT_INSET = 36, 2, 10, 1, 2
 local ICON_MIN, ICON_MAX = 0.07, 0.93
 local EMPTY, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0.32 }
 local MIN_BORDER_QUALITY = 2 -- uncommon
-local DIM_ALPHA, FULL_ALPHA = 0.25, 1
+local DIM_ALPHA, FULL_ALPHA, DIM_OVERLAY = 0.25, 1, { 0, 0, 0, 0.6 }
 local NAME_PATTERN = "%[(.-)%]"
 local COPPER_PER_SILVER, COPPER_PER_GOLD = 100, 10000
 local GOLD, SILVER, COPPER = "%d|cffffd700g|r", "%d|cffc7c7cfs|r", "%d|cffeda55fc|r"
@@ -53,6 +53,10 @@ local function decorate(button)
     button.rikCount = button:CreateFontString(nil, "OVERLAY")
     media.Font(button.rikCount, "count")
     button.rikCount:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -COUNT_INSET, COUNT_INSET)
+    button.rikDim = button:CreateTexture(nil, "OVERLAY", nil, 7)
+    button.rikDim:SetAllPoints()
+    button.rikDim:SetColorTexture(unpack(DIM_OVERLAY))
+    button.rikDim:SetShown(false)
     button:SetHighlightTexture(media.highlight, "ADD")
 end
 
@@ -122,6 +126,7 @@ end
 
 local function dim(button)
     button.rikDimmed = not matches(button)
+    button.rikDim:SetShown(button.rikDimmed)
     button:SetAlpha(button.rikDimmed and DIM_ALPHA or FULL_ALPHA)
 end
 
@@ -189,6 +194,7 @@ function bags.SetSearch(text)
         if not ok then bags.Warn("search", reason) end
     end
     eachButton(dim)
+    bags.UpdateTitle()
 end
 
 function bags.SearchState()

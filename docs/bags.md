@@ -19,8 +19,12 @@ and better items get a border in their quality colour; everything else keeps
 the neutral border.
 
 The header has the title with used and total slots (`Bags 31/64`), a search
-box, a Sort button and a close button. Typing in the search box dims every
-empty slot and every item that does not match. The text goes to Blizzard's
+box, a Sort button and a close button. The search box is Blizzard's own
+`BagSearchBoxTemplate` in a flat skin (a plain edit box if the template is
+missing). Typing dims every empty slot and every item that does not match,
+with a dark overlay on top, and the title counts the hits (`Bags 31/64  3
+matches`). If the title never shows a match count, the text is not reaching
+the addon; if it does but nothing darkens, the drawing is at fault. The text goes to Blizzard's
 own bag search (`C_Container.SetItemSearch`), the client marks each item
 record `isFiltered` and answers with `INVENTORY_SEARCH_UPDATE`, and the grid
 redraws from that. A client without `SetItemSearch` falls back to matching

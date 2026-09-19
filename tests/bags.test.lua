@@ -25,6 +25,8 @@ return function(check)
         function value:SetVertexColor(...) self.color = { ... } end
         function value:SetPoint(...) self.point = { ... } end
         function value:SetDesaturated(flag) self.desaturated = flag end
+        function value:SetShown(flag) self.visible = flag end
+        function value:SetAlpha(alpha) self.alpha = alpha end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         return value
     end
@@ -36,6 +38,7 @@ return function(check)
     end
     CreateFrame = function(kind, name, parent, template)
         if template == TEMPLATE and stub.templateMissing then error("CreateFrame: Unknown frame template") end
+        if template == "BagSearchBoxTemplate" and stub.searchTemplateMissing then error("CreateFrame: Unknown frame template") end
         local frame = originalCreate(kind, name, parent, template)
         capitalOnly(frame)
         function frame:SetParent(value)
@@ -58,6 +61,9 @@ return function(check)
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
         if template == TEMPLATE then frame.Cooldown = cooldown(frame) end
+        if template == "BagSearchBoxTemplate" then
+            frame.Left, frame.Middle, frame.Right = frame:CreateTexture(), frame:CreateTexture(), frame:CreateTexture()
+        end
         return frame
     end
     local function printedContains(text)
@@ -159,7 +165,11 @@ return function(check)
         check("the money line shows gold, silver and copper", holder.money.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
             == "12g 34s 56c")
 
+        check("the search box is Blizzard's bag search box with its art faded", RikUIBagsSearch.template == "BagSearchBoxTemplate"
+            and RikUIBagsSearch.Left.alpha == 0 and RikUIBagsSearch.Middle.alpha == 0 and #RikUIBagsSearch.rikBorder == 4)
         typeSearch("LINEN ")
+        check("dimmed slots get a dark overlay and the title counts the matches", stone.rikDim.visible == true
+            and cloth.rikDim.visible == false and holder.title.text == "Bags 3/22  1 match")
         check("the text goes to Blizzard's bag search trimmed and lower-cased", stub.searchText == "linen")
         check("search dims every slot whose item name does not match", cloth.alpha == 1 and stone.alpha == 0.25
             and blade.alpha == 0.25 and empty.alpha == 0.25)
@@ -167,8 +177,10 @@ return function(check)
         check("clearing the search restores every slot", cloth.alpha == 1 and stone.alpha == 1 and blade.alpha == 1
             and empty.alpha == 1)
         typeSearch("[")
-        check("search text is matched literally", cloth.alpha == 0.25 and #env.printed == 0)
+        check("search text is matched literally", cloth.alpha == 0.25 and #env.printed == 0
+            and holder.title.text == "Bags 3/22  0 matches")
         typeSearch("")
+        check("an empty search drops the match count", holder.title.text == "Bags 3/22")
 
         env.click(holder.sort)
         check("the sort button calls C_Container.SortBags", stub.sorted == 1)
@@ -278,6 +290,13 @@ return function(check)
         OpenAllBags()
         env.click(module.Holder.sort)
         check("a client without SortBags prints one line", printedContains("Bags sort") and #env.printed == 1)
+
+        module = load(nil, false, function() stub.searchTemplateMissing = true end)
+        OpenAllBags()
+        typeSearch("hearth")
+        check("a client without the search template gets a plain box that still searches",
+            RikUIBagsSearch.template == nil and button(0, 2).alpha == 1 and button(0, 1).alpha == 0.25
+            and #env.printed == 0)
 
         module = load(nil, false, function() C_Container.SetItemSearch = nil end)
         OpenAllBags()
