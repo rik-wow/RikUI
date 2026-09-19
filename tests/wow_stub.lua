@@ -33,11 +33,13 @@ local KNOWN_EVENTS = {
     UNIT_SPELLCAST_INTERRUPTIBLE = true, UNIT_SPELLCAST_NOT_INTERRUPTIBLE = true,
     UNIT_AURA = true, WEAPON_ENCHANT_CHANGED = true, WEAPON_SLOT_CHANGED = true,
     ZONE_CHANGED = true, ZONE_CHANGED_INDOORS = true, ZONE_CHANGED_NEW_AREA = true,
+    BAG_UPDATE_DELAYED = true, BAG_UPDATE_COOLDOWN = true, ITEM_LOCK_CHANGED = true, PLAYER_MONEY = true,
 }
 env.KNOWN_EVENTS = KNOWN_EVENTS
 
 local KNOWN_TEMPLATES = { SecureActionButtonTemplate = true, SecureHandlerStateTemplate = true,
-    SecureUnitButtonTemplate = true, CustomAuraContainerTemplate = true, CustomAuraButtonTemplate = true }
+    SecureUnitButtonTemplate = true, CustomAuraContainerTemplate = true, CustomAuraButtonTemplate = true,
+    ContainerFrameItemButtonTemplate = true }
 local auraStub = require("aura_stub")
 
 ------------------------------------------------------------------------

@@ -484,7 +484,7 @@ load order:
 | `auras.lua`, `auras-button.lua`, `auras-units.lua` | player buffs/debuffs, weapon enchants, target and pet aura rows on Blizzard's CustomAuraContainer with our button skin and own-aura emphasis (delivered) |
 | `minimap.lua` | Blizzard's Minimap in a square RikUI holder with zone text, local clock and coords, wheel zoom and right-click tracking; cluster art parked, mail and queue frames kept (delivered) |
 | `chat.lua`, `chat-copy.lua` | RikUI font at the profile size, flat docked edit box, timestamps, faded tabs, side buttons and scroll controls parked; per-window copy button and address links through the message filter registry and the `addon` link type (delivered) |
-| `bags.lua` | one-bag view with sort and search |
+| `bags.lua`, `bags-items.lua` | one frame for bags 0-4 on `ContainerFrameItemButtonTemplate` buttons (slot in the button ID, bag in a per-bag parent's ID, no Blizzard-read field written), quality borders, counts, cooldowns, name search, `C_Container.SortBags`, money line; Blizzard's bag functions post-hooked and the stock container frames parked (delivered) |
 | `tooltip.lua`, `tooltip-data.lua` | movable anchor, flat skin and font, class/reaction colours, Blizzard's GUID-watched health bar, item level and spell ID lines, hide in combat (delivered) |
 | `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar |
 | `xpbar.lua` | experience and reputation bar with rested segment, hide the tracking bars |
@@ -634,6 +634,7 @@ RikUI/
   chat.lua
   chat-copy.lua
   bags.lua
+  bags-items.lua
   tooltip.lua
   tooltip-data.lua
   wizard.lua

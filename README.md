@@ -71,13 +71,20 @@ links that open a box to copy from. Font size and timestamps are on the Chat
 options page. Disable the `chat` module to get the stock chat back. See
 [chat](docs/chat.md).
 
+B opens one bag frame with every slot of all five bags, ten to a row, with
+stack counts, quality-coloured borders, a search box that dims what does not
+match, a Sort button and your money. Clicks, drags, right-click use and
+vendor selling run on Blizzard's own item buttons. The bank stays Blizzard's.
+`bags-items.lua` is a new file, so fully restart the client after updating.
+Disable the `bags` module to get the stock bags back. See [bags](docs/bags.md).
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.
