@@ -109,9 +109,10 @@ return function(check)
             and bar.bgTexture.texture == "Interface\\BUTTONS\\WHITE8X8" and frame.name.fontPath == media.font)
 
         local container = module.Containers[frame]
-        check("the plate gets an own-debuff container on its unit below the frame", container ~= nil
+        check("the plate gets an own-debuff container on its unit above the name", container ~= nil
             and container.unit == "nameplate1" and container.groups.owndebuffs.filter == "HARMFUL|PLAYER"
-            and container.parent == frame and container.point[1] == "TOP" and container.point[3] == "BOTTOM")
+            and container.parent == frame and container.point[1] == "BOTTOM" and container.point[2] == frame.name
+            and container.point[3] == "TOP" and container.point[5] > 0)
         check("Blizzard's debuff list is faded once the container exists", frame.AurasFrame.DebuffListFrame.alpha == 0)
         local hooks, updates = #env.hooks, container.updates
         env.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")

@@ -13,7 +13,7 @@ shows as a one-pixel border. The bar's fill and colour are Blizzard's: reaction
 colour for mobs and class colour for players when the client's class-colour
 setting is on. The name and the level number use the RikUI font. Your target
 and focus get a one-pixel white border in place of Blizzard's glow. Your own
-debuffs sit in a centred row of up to six 18px icons under the plate, with the
+debuffs sit in a centred row of up to six 18px icons above the name, with the
 same countdown numbers and dispel-coloured borders as the
 [target aura row](auras.md).
 
@@ -72,7 +72,7 @@ stock. There is no plate resizing and no threat colouring.
 an `UpdateAnchors` that restores the stock textures. It proves: bar texture,
 backing, its two anchors and both fonts; the faded selection art and the
 highlight following `SetShown` and `Hide`; the skin surviving a layout pass;
-the container's unit, filter, parent and anchor, and the stock debuff list
+the container's unit, filter, parent and anchor above the name, and the stock debuff list
 fading with it; removal hiding the container; a pooled frame reused without
 new hooks and retargeted; a forbidden plate untouched; unknown and secret
 tokens ignored; a plate without level or aura frames; the debug line; a combat
@@ -87,8 +87,8 @@ nameplate token, whether `SetUnit` is allowed in combat, or whether the
 1. Reload and target a mob: flat bar, RikUI font on the name and level, white
    border on the target only. Tab through several mobs and watch the border
    move.
-2. Fight two mobs with a debuff on each: your debuff icons should sit under
-   each plate with countdowns. Watch for a secret-value or blocked-action
+2. Fight two mobs with a debuff on each: your debuff icons should sit above
+   each plate's name with countdowns. Watch for a secret-value or blocked-action
    error and for plates that stop following their mobs.
 3. Pull a mob whose plate was not on screen before combat: it should be
    skinned straight away and get its debuff row after the fight.

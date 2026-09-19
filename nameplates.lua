@@ -11,7 +11,7 @@ local FLAT, EDGE = "Interface\\BUTTONS\\WHITE8X8", 1
 local BACKING, HIGHLIGHT = { 0.06, 0.07, 0.09, 0.9 }, { 1, 1, 1, 1 }
 local AURA_SIZE, AURA_MAX, AURA_LINE, AURA_GAP = 18, 6, 140, 2
 local AURA_GROUP, AURA_FILTER = "owndebuffs", "HARMFUL|PLAYER"
-local FLOW = { anchor = "TOPLEFT", horizontal = "Right", vertical = "Down", lineSize = AURA_LINE }
+local FLOW = { anchor = "BOTTOMLEFT", horizontal = "Right", vertical = "Up", lineSize = AURA_LINE }
 local skinned, skinnedCount, containerCount, containerUnavailable = setmetatable({}, { __mode = "k" }), 0, 0, false
 
 local function isRegion(value)
@@ -74,7 +74,9 @@ local function createContainer(frame, unit)
         containerUnavailable = true
         return nil
     end
-    container:SetPoint("TOP", frame, "BOTTOM", 0, -AURA_GAP)
+    -- Above the name: anything under the plate covers the creature.
+    local anchor = isRegion(frame.name) and frame.name or frame.HealthBarsContainer
+    container:SetPoint("BOTTOM", anchor, "TOP", 0, AURA_GAP)
     nameplates.Containers[frame] = container
     local stock = isRegion(frame.AurasFrame) and frame.AurasFrame.DebuffListFrame
     if isRegion(stock) then stock:SetAlpha(0) end

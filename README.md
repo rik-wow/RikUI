@@ -80,7 +80,7 @@ alone. See [loot](docs/loot.md).
 
 Nameplates keep Blizzard's plates and get the flat skin: RikUI bar texture and
 font, a white border on your target and focus, and your own debuffs in a row
-under each plate. Health, colour and targeting stay Blizzard's, so nothing
+above each plate's name. Health, colour and targeting stay Blizzard's, so nothing
 here touches secret values. See [nameplates](docs/nameplates.md).
 
 Chat keeps Blizzard's windows with the RikUI font, a flat edit box docked
