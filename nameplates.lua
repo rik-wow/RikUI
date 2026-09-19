@@ -72,7 +72,17 @@ local function addGroup(container)
     container:AddAuraGroup(AURA_GROUP, AURA_FILTER, auras.GroupOptions(spec, AURA_MAX))
 end
 
--- Blizzard's debuff list fades only where ours exists, so a refused container costs nothing.
+-- NamePlateAurasMixin shows its debuff list with SetShown on every aura display update, so the
+-- list is hidden again from a post-hook. Alpha alone left both rows on screen.
+local function hideStockDebuffs(frame)
+    local stock = isRegion(frame.AurasFrame) and frame.AurasFrame.DebuffListFrame
+    if not isRegion(stock) then return end
+    stock:SetAlpha(0)
+    stock:Hide()
+    hooksecurefunc(stock, "SetShown", function(self, shown) if shown then self:Hide() end end)
+end
+
+-- Blizzard's debuff list goes only where ours exists, so a refused container costs nothing.
 local function createContainer(frame, unit)
     containerCount = containerCount + 1
     local container = auras.CreateContainer("Nameplate" .. containerCount, frame, unit, FLOW)
@@ -83,8 +93,7 @@ local function createContainer(frame, unit)
     -- Above the bar, which now holds the name: anything under the plate covers the creature.
     container:SetPoint("BOTTOM", frame.HealthBarsContainer, "TOP", 0, AURA_GAP)
     nameplates.Containers[frame] = container
-    local stock = isRegion(frame.AurasFrame) and frame.AurasFrame.DebuffListFrame
-    if isRegion(stock) then stock:SetAlpha(0) end
+    hideStockDebuffs(frame)
     return container
 end
 

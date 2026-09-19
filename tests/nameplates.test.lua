@@ -17,7 +17,14 @@ return function(check)
     end
     local function common(value)
         function value:SetAlpha(alpha) self.alpha = alpha end
-        function value:SetShown(shown) self.shown = shown == true end
+        function value:SetShown(shown)
+            if type(rawget(self, "scripts")) == "table" and rawget(self, "kind") ~= "Texture"
+                and rawget(self, "kind") ~= "FontString" then
+                if shown then self:Show() else self:Hide() end
+                return
+            end
+            self.shown = shown == true
+        end
         function value:SetHeight(height) self.height = height end
         function value:SetWidth(width) self.width = width end
         function value:SetParent(parent) self.parent = parent end
@@ -172,10 +179,11 @@ return function(check)
         check("the name sits left inside the bar in the RikUI font", frame.name.parent == own
             and frame.name.fontPath == media.font and frame.name.justify == "LEFT"
             and frame.name.points[1][1] == "LEFT" and frame.name.points[1][2] == own
-            and frame.name.points[2][2] == bar.LeftText)
-        check("Blizzard's health percent moves to the right inside the bar", bar.LeftText.parent == own
+            and frame.name.points[2][2] == own and frame.name.points[2][4] < -30)
+        check("all three of Blizzard's health texts are pinned to the right inside the bar", bar.LeftText.parent == own
             and bar.LeftText.fontPath == media.font and bar.LeftText.points[1][1] == "RIGHT"
-            and bar.LeftText.points[1][2] == own)
+            and bar.LeftText.points[1][2] == own and bar.RightText.points[1][2] == own
+            and bar.Text.points[1][2] == own and #bar.Text.points == 1)
         check("an elite gets a gold marker left of the bar", own.marker.text == "+" and own.marker.color[2] > 0.8
             and own.marker.points[1][3] == "LEFT")
         check("an added plate fades in", parts.fade.plays == 1)
@@ -213,7 +221,7 @@ return function(check)
         check("deselecting hides them and stops the pulse", parts.arrowLeft.shown == false
             and parts.accent.shown == false and parts.accentPulse.playing == false)
         check("arrows flank the marker and the level box; the accent line runs under the backing",
-            parts.arrowLeft.points[1][2] == own.marker and parts.arrowRight.points[1][2] == parts.levelBox
+            parts.arrowLeft.points[1][2] == own and parts.arrowRight.points[1][2] == parts.levelBox
             and parts.accent.points[1][2] == bar.bgTexture and parts.accent.points[1][3] == "BOTTOMLEFT"
             and parts.accent.height == 1)
 
@@ -244,8 +252,11 @@ return function(check)
         local container = module.Containers[frame]
         check("own debuffs sit in a container above the bar", container ~= nil and container.unit == "nameplate1"
             and container.groups.owndebuffs.filter == "HARMFUL|PLAYER" and container.points[1][1] == "BOTTOM"
-            and container.points[1][2] == frame.HealthBarsContainer and container.points[1][3] == "TOP"
-            and frame.AurasFrame.DebuffListFrame.alpha == 0)
+            and container.points[1][2] == frame.HealthBarsContainer and container.points[1][3] == "TOP")
+        local stockList = frame.AurasFrame.DebuffListFrame
+        check("Blizzard's debuff list is hidden once the container exists", stockList:IsShown() == false)
+        stockList:SetShown(true)
+        check("and hidden again when Blizzard's aura display update shows it", stockList:IsShown() == false)
         local hooks, updates = #env.hooks, container.updates
         env.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
         check("a removed plate hides its container", container:IsShown() == false and module.Active.nameplate1 == nil)
@@ -290,7 +301,7 @@ return function(check)
         env.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
         check("a client without the aura container keeps Blizzard's debuffs and warns once",
-            module.Containers[plain.UnitFrame] == nil and rawget(plain.UnitFrame.AurasFrame.DebuffListFrame, "alpha") == nil
+            module.Containers[plain.UnitFrame] == nil and plain.UnitFrame.AurasFrame.DebuffListFrame:IsShown() == true
             and printedContains("Auras container") and #env.printed == 1)
 
         module = load({ modules = { nameplates = false }, nameplateCVars = { nameplateSelectedScale = "1.3" } })

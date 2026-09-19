@@ -9,7 +9,7 @@ local skin = {}
 nameplates.Skin = skin
 
 local isRegion, font, flat = nameplates.IsRegion, nameplates.Font, nameplates.Flat
-local BAR_HEIGHT, TEXT_INSET, TEXT_GAP, LEVEL_GAP, MARKER_GAP = 14, 4, 2, 2, 3
+local BAR_HEIGHT, TEXT_INSET, LEVEL_GAP, MARKER_GAP, PERCENT_WIDTH = 14, 4, 2, 16, 34
 local BACKING, LINE, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1, 1 }
 local LEVEL_ART = { "playerLevelDiffIcon", "selectedBorder" }
 local CAST_ART = { "Border", "BorderShield" }
@@ -105,18 +105,26 @@ local function applyBar(frame, parts, size)
     backing:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", size, -size)
 end
 
+-- TextStatusBar puts the percent in Text, LeftText or RightText depending on the display mode,
+-- so all three are pinned to the right end and the name stops short of a fixed percent width.
+-- An anchor to an empty font string has no rect to hold on to, which let the name run under it.
+local function applyHealthText(bar, own)
+    for _, key in ipairs({ "Text", "LeftText", "RightText" }) do
+        local region = bar[key]
+        if isRegion(region) then
+            region:SetParent(own)
+            font(region, "small")
+            region:ClearAllPoints()
+            region:SetPoint("RIGHT", own, "RIGHT", -TEXT_INSET, 0)
+        end
+    end
+end
+
 -- Name left, percent right, both inside the bar. A name-only plate hides its bar, so its name
 -- goes back to the unit frame and keeps Blizzard's anchors.
 local function applyText(frame, parts)
     local bar, own, name = frame.HealthBarsContainer.healthBar, parts.bar, frame.name
-    local percent = bar.LeftText
-    for _, key in ipairs({ "Text", "LeftText", "RightText" }) do
-        if isRegion(bar[key]) then bar[key]:SetParent(own); font(bar[key], "small") end
-    end
-    if isRegion(percent) then
-        percent:ClearAllPoints()
-        percent:SetPoint("RIGHT", own, "RIGHT", -TEXT_INSET, 0)
-    end
+    applyHealthText(bar, own)
     if not isRegion(name) then return end
     font(name, "small")
     local nameOnly = type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true
@@ -124,9 +132,9 @@ local function applyText(frame, parts)
     if nameOnly then return end
     name:ClearAllPoints()
     name:SetJustifyH("LEFT")
+    name:SetWordWrap(false)
     name:SetPoint("LEFT", own, "LEFT", TEXT_INSET, 0)
-    if isRegion(percent) then name:SetPoint("RIGHT", percent, "LEFT", -TEXT_GAP, 0)
-    else name:SetPoint("RIGHT", own, "RIGHT", -TEXT_INSET, 0) end
+    name:SetPoint("RIGHT", own, "RIGHT", -TEXT_INSET - PERCENT_WIDTH, 0)
 end
 
 -- The box takes Blizzard's width for the badge and the bar's exact height, outer edge included.

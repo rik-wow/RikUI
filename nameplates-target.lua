@@ -45,8 +45,9 @@ end
 local function followSelection(parts, border)
     border:SetAlpha(0)
     local function sync() setSelected(parts, border:IsShown() == true) end
-    hooksecurefunc(border, "SetShown", sync)
-    hooksecurefunc(border, "Hide", sync)
+    for _, method in ipairs({ "SetShown", "Show", "Hide" }) do
+        if type(border[method]) == "function" then hooksecurefunc(border, method, sync) end
+    end
     sync()
 end
 
@@ -77,13 +78,14 @@ function target.Build(frame, parts)
     followThreat(frame, parts)
 end
 
--- Arrows sit outside the marker and the level box; the accent line runs under the bar's outer
--- edge and the threat line over it.
+-- Arrows hug the bar and the level box, with the marker beyond the left arrow: the marker is
+-- empty on most units and an empty font string gives an anchored region nothing to draw against.
+-- The accent line runs under the bar's outer edge and the threat line over it.
 function target.Resize(frame, parts, size)
     local own, backing = parts.bar, frame.HealthBarsContainer.healthBar.bgTexture
     local right = parts.levelBox or own
     parts.arrowLeft:ClearAllPoints()
-    parts.arrowLeft:SetPoint("RIGHT", own.marker, "LEFT", -ARROW_GAP, 0)
+    parts.arrowLeft:SetPoint("RIGHT", own, "LEFT", -ARROW_GAP, 0)
     parts.arrowRight:ClearAllPoints()
     parts.arrowRight:SetPoint("LEFT", right, "RIGHT", ARROW_GAP, 0)
     for line, point in pairs({ [parts.accent] = { "TOP", "BOTTOM", -1 }, [parts.threat] = { "BOTTOM", "TOP", 1 } }) do

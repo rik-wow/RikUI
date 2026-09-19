@@ -14,7 +14,7 @@ left inside the bar and the health percent right, both in the RikUI font. The
 bar is coloured by reaction, or by class for players, and goes grey for tapped
 and disconnected units. The level is a flat dark box flush with the bar's right
 end, exactly as tall as the bar, with the number in Blizzard's difficulty
-colour and the skull kept for high-level units. Left of the bar a small glyph
+colour and the skull kept for high-level units. Left of the bar, outside the target arrow, a small glyph
 marks special units: gold `+` elite, red `B` boss, silver `R` rare and `R+`
 rare elite. Your own debuffs sit in a centred row of up to six 18px icons
 above the bar, with countdown numbers and dispel-coloured borders like the
@@ -58,6 +58,9 @@ combat is not dependable. Nothing here reads or compares either.
 - Percent text. It is Blizzard's own health text, which already works with
   secret values. The module switches it on with the `CurrentHealthPercent`
   bit of `nameplateInfoDisplay` and moves the font strings onto the own bar.
+  `TextStatusBar` uses `Text`, `LeftText` or `RightText` depending on the
+  display mode, so all three are pinned to the bar's right end and the name
+  stops 34px short of it with word wrap off.
 - Target and focus. `NamePlateHealthBarMixin:UpdateSelectionBorder` decides
   them in secure code and shows `healthBar.selectedBorder`. That art is faded
   and its `SetShown` and `Hide` are post-hooked; arrows and accent line copy
@@ -107,9 +110,11 @@ re-marked, faded in, and its container gets `SetUnit`, `Show` and
 
 Layout is plain region work and runs in combat. Aura containers are created
 out of combat only; a plate that first appears mid-fight gets its row on
-`PLAYER_REGEN_ENABLED`. Blizzard's `AurasFrame.DebuffListFrame` is faded only
+`PLAYER_REGEN_ENABLED`. Blizzard's `AurasFrame.DebuffListFrame` is hidden only
 where the RikUI container exists, so a client that refuses the container keeps
-the stock debuffs with one `Auras container` line.
+the stock debuffs with one `Auras container` line. Blizzard shows that list
+with `SetShown` on every aura display update, so `SetShown` is post-hooked and
+the list is hidden again; fading it was not enough and left two rows.
 
 ## Client settings
 
