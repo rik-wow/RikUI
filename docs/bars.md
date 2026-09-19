@@ -2,11 +2,12 @@
 
 `RikUI.Bars` owns five 12-button bars and hides the corresponding stock action
 bars, bag/menu buttons and XP/reputation bars once their overlays are ready.
-Stance paging adds the probe-backed Warrior Battle
-overlay (slots 73–84), a known-form row and a ten-slot pet row. Later stance
-and other-class bonus offsets have no recorded probe evidence yet; those
-mappings and native acceptance are deferred follow-up. Base slots 1–12 are used
-outside the recorded bonus condition.
+Manual paging adds five main-position overlays for selected pages 2–6.
+Stance paging adds the probe-backed Warrior Battle overlay (slots 73–84),
+a known-form row and a ten-slot pet row. Later stance and other-class bonus
+offsets have no recorded probe evidence yet; those mappings and native
+acceptance are deferred follow-up. Base slots 1–12 are used on selected
+page 1 outside the recorded bonus condition.
 
 | Bar | Fixed slots | Native binding prefix | Default anchor (x, y) |
 |---|---|---|---|
@@ -29,7 +30,7 @@ position fields or scale fall back to defaults without rewriting saved data.
 - `Bars.Create(name, firstAction, layoutOpts)` creates or returns a bar.
   Options: `size` (positive number, default 36), `spacing` (nonnegative,
   default 6), `vertical` and `fade` (booleans, default false).
-  `positionKey` may name a `Setup.DefaultPositions` entry; bonus overlays
+  `positionKey` may name a `Setup.DefaultPositions` entry; manual and bonus overlays
   use `main` so saved position, scale, Apply and Undo move all main pages together.
   The same name/range is idempotent; a conflicting range is rejected.
   Returns the frame on immediate success, `nil, "queued"` when deferred,
@@ -153,10 +154,32 @@ a correct substitute for an unrecorded bonus page.
 
 `bars-paging.lua` creates fixed overlays and registers only visibility drivers.
 Its `[bar:1,bonusbar:N]` conditions respect the native controller's rule that
-bonus pages apply only while selected page 1 is active. Manually selecting other
-main pages is not mirrored by the fixed base row yet. Driver failure removes
-partial registrations, hides the extra overlays and restores the base row;
-it reports the failure instead of adopting Blizzard buttons.
+bonus pages apply only while selected page 1 is active. Each manual overlay
+uses `[bar:N] show; hide`; the base hides whenever a manual or recorded bonus
+overlay is selected. Driver failure removes partial registrations, hides every
+extra overlay and restores the base row, reporting that paging is unavailable.
+
+| Selected native page | Main overlay | Fixed slots |
+|---|---|---|
+| 1, outside recorded bonus condition | main | 1–12 |
+| 1, Battle bonus offset 1 | battle | 73–84 |
+| 2 | page2 | 13–24 |
+| 3 | page3 | 25–36 |
+| 4 | page4 | 37–48 |
+| 5 | page5 | 49–60 |
+| 6 | page6 | 61–72 |
+
+Manual pages exist for every class, including classes without recorded bonus
+mappings. They share the main position, scale and ACTIONBUTTON labels while
+retaining immutable absolute slot attributes. Pages 3–6 share slots with the
+four separate multibars; their labels and pressed feedback use the main binding,
+while those multibars retain their own bindings. Slot changes update both copies.
+
+Native paging commands stay intact. Page-up/down may skip a page when Blizzard
+settings mark its separate multibar visible; RikUI preserves that native policy.
+All page frames and drivers are installed out of combat through the existing
+queue. Subsequent page transitions use the native visibility driver, with no
+addon page-event handler changing protected attributes or showing/hiding bars.
 
 `bars-controls.lua` uses the shared button art and validated profile layout.
 The stance row shows learned forms and an active highlight; its left clicks
@@ -187,8 +210,26 @@ These tests do not execute the protected client renderer. Native multi-stance
 transitions, click/key agreement, pet lifecycle and taint acceptance remain
 unobserved and are tracked in `bars-stance-beta-coverage`. The user authorized
 closing this implementation with those checks deferred and requested no more
-prompts for later-stance testing. Manual main-page support is separately
-tracked in `bars-manual-pages`.
+prompts for later-stance testing.
+
+Manual-page automated coverage checks all twelve slots on pages 1–6, page-1-only
+bonus precedence, one modeled main overlay, classes without bonus data,
+combat login, deferred shared layout and complete partial-driver cleanup.
+Integrated state tests cover selected-page cooldown/count/labels, combat key
+feedback, clearing flash on a page change and distinct bindings on shared slots.
+Native manual-page acceptance passed on 2026-09-18. The user confirmed all
+checks below: pages 1–6 show one main row with matching click/key actions,
+page 1 restores Battle Stance, switching works both out of combat and in combat
+without Lua/protected-action errors, and reloading while page 2 is selected
+preserves the correct row. This verifies the current beta configuration.
+
+For the manual-page beta check, reload the addon, then select pages directly
+with `/changeactionbar 1` through `/changeactionbar 6`. Verify one main row,
+matching click/key actions and no Lua/protected-action errors both out of combat
+and in combat. Return to page 1 with Battle Stance active and verify the Battle
+row returns. Also reload out of combat while page 2 is selected to check initial
+visibility. These native commands avoid the preset's Shift bindings, which
+belong to the separate multibar.
 
 ## Stock action bars
 
@@ -256,6 +297,9 @@ Repeatable Warrior beta regression checks:
 
 Reviewed 2026-09-18 against the exact Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
 
+- [Six native pages, twelve buttons and slot-to-page mapping](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBar/Shared/ActionButtonUtil.lua)
+- [Native multibar page assignments](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBar/Shared/MultiActionBars.lua)
+- [Native page-up/down selection](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua)
 - [Native visibility driver](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureStateDriver.lua)
 - [Native bonus-page precedence](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBarController/ActionBarController.lua)
 - [Secure action types](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua)

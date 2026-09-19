@@ -86,7 +86,8 @@ return function(check)
     local ok, reason = pcall(function()
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "core.lua", "setup.lua", "setup-apply.lua", "bindings.lua", "bars.lua", "bars-state.lua" }) do
+        for _, file in ipairs({ "core.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
+            "data/bonus-pages.lua", "bars.lua", "bars-paging.lua", "bars-state.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         RikUI.Bars.UpdateStockVisibility = function() end
@@ -96,6 +97,8 @@ return function(check)
         env.fire("ADDON_LOADED", "RikUI")
         env.fire("PLAYER_LOGIN")
         local bars, first = RikUI.Bars, RikUI.Bars.Frames.main.buttons[1]
+        -- Visibility is modeled explicitly; the stub does not execute native drivers.
+        for _, bar in pairs(bars.Frames) do if bar.positionKey == "main" then bar:Hide() end end
         check("action button has native cooldown and charge widgets", first.cooldown and first.chargeCooldown)
         assert(first.cooldown and first.chargeCooldown, "cooldown state missing")
         check("slot duration objects feed widgets untouched", first.cooldown.duration == actions[1].cooldown
@@ -130,9 +133,35 @@ return function(check)
         check("side bar release clears flash", bars.Frames.bar2.buttons[1].pressedFlash.alpha == 0)
         native.action = 13
         ActionButtonDown(1)
-        check("unmirrored page never flashes a misleading base button", first.pressedFlash.alpha == 0)
+        check("different native page never flashes a misleading base button", first.pressedFlash.alpha == 0)
         ActionButtonUp(1)
+        local manual = bars.Frames.page2.buttons[1]
+        actions[13] = { usable = true, range = true, cooldown = {}, count = "3" }
+        env.fire("ACTIONBAR_SLOT_CHANGED", 13)
+        bars.Frames.main:Hide()
+        bars.Frames.page2:Show()
+        check("selected page inherits main labels and slot-owned state", manual.hotkey.text == "1"
+            and manual.cooldown.duration == actions[13].cooldown and manual.count.text == "3")
         env.inCombat = true
+        ActionButtonDown(1)
+        check("native main key flashes the visible selected page in combat", manual.pressedFlash.alpha == 1
+            and first.pressedFlash.alpha == 0)
+        env.fire("ACTIONBAR_PAGE_CHANGED")
+        check("page change clears the previous selected-page flash", manual.pressedFlash.alpha == 0)
+        bars.Frames.page2:Hide()
+        bars.Frames.page6:Show()
+        native.action = 61
+        ActionButtonDown(1)
+        check("shared slot main key flashes only its main overlay", bars.Frames.page6.buttons[1].pressedFlash.alpha == 1
+            and bars.Frames.bar2.buttons[1].pressedFlash.alpha == 0)
+        ActionButtonUp(1)
+        MultiActionButtonDown("MultiBarBottomLeft", 1)
+        check("shared slot multibar key flashes only its multibar", bars.Frames.bar2.buttons[1].pressedFlash.alpha == 1
+            and bars.Frames.page6.buttons[1].pressedFlash.alpha == 0)
+        MultiActionButtonUp("MultiBarBottomLeft", 1)
+        bars.Frames.page6:Hide()
+        bars.Frames.main:Show()
+        native.action = 1
         actions[1].range, actions[1].usable, actions[1].resource = false, false, true
         env.fire("ACTION_RANGE_CHECK_UPDATE", 1, false, true)
         check("out of range has red priority", color(first, 1, 0.2, 0.2))
