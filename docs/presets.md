@@ -68,7 +68,13 @@ guarantee rage, equipment, range, cooldowns, target conditions or training.
 Shield Block/Shield Bash need a shield; Charge still cannot be used in combat.
 The Interrupt macro does not grant Pummel before level 38 or equip a shield.
 Macro slots retain the SDD's `{ macro = name }` shape without a trainer-level
-field. Spell slots carry levels; macro availability is conditional on its body.
+field. Instead each macro record carries `spells`, the catalogue names of the
+attacks it exists to cast (`Execute`, `Shield Block`, `Charge`, and `Pummel`
+plus `Shield Bash` for Interrupt). The macro is created on Apply regardless,
+but its bar slot stays empty until the character knows one listed spell; the
+stance fallback alone never earns a slot. A macro without `spells` is placed
+unconditionally, which suits mount or consumable macros. The preset test
+requires every bundled macro to list exactly its non-stance `/cast` operands.
 
 ## Validation
 
@@ -77,6 +83,8 @@ strings. An empty list means its slot references and spell levels match the
 loaded catalogue. It visits all base/stance pages and every role override,
 including sparse high slots, and reports the precise path of an unresolved
 spell/macro, wrong spell level, malformed slot or out-of-range slot index.
+It also checks every macro's `spells` field, when present, is a list of
+catalogue spell names and reports `macros.<name>: ...` otherwise.
 
 `/rik preset validate` checks every loaded class preset in name order and prints
 each issue, including unresolved spell names. A clean Warrior prints

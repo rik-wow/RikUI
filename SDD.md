@@ -299,7 +299,8 @@ RikUI.Presets.WARRIOR = {
     bar5 = { ... },
   },
   macros = {
-    Execute = { icon = 135358, body = "#showtooltip Execute\n/cast [stance:1/3] Execute; [stance:2] Battle Stance" },
+    Execute = { icon = 135358, body = "#showtooltip Execute\n/cast [stance:1/3] Execute; [stance:2] Battle Stance",
+                spells = { "Execute" } }, -- slot stays empty until one listed spell is known
     ...
   },
   roleOverrides = {
@@ -391,7 +392,11 @@ the wizard: `bars`, `binds`, `macros`, `cvars`, `layout`. Order:
    `C_Spell.PickupSpell(highestRankID)`, `PlaceAction(slot)`, `ClearCursor()`.
    (The global `PickupSpell` doesn't exist on this client.) If not known, leave
    it empty and let the ghost layer draw it. Items by name via
-   `C_Item.GetItemInfo` and `C_Item.PickupItem` if in bags.
+   `C_Item.GetItemInfo` and `C_Item.PickupItem` if in bags. A preset macro
+   goes on the bar only once the character knows one of the `spells` its
+   record lists (Execute, Shield Block, Charge, Pummel/Shield Bash); until
+   then its slot stays empty too, so a level-1 character never sees a
+   button for an attack it cannot train yet.
    Everything out of combat, guarded by `InCombatLockdown()`; if in combat, queue
    and run on `PLAYER_REGEN_ENABLED`.
 3. Binds. Clear the keys we're about to use, `SetBinding` each, `SaveBindings(2)`.
@@ -413,6 +418,8 @@ any deletions; failures retain the snapshot and completed-entry progress.
   or holds a lower rank of the same spell, place it. If the slot holds something
   else (the player moved things around), don't touch it, print one line.
 - Rank upgrades: same path. Highest known rank wins.
+- Preset macros: same path. A learned spell also fills the empty designated
+  slot of every macro that lists it, using the macro's current index.
 - `CHARACTER_POINTS_CHANGED` / talent events: recompute role guess. If it
   changed, popup "Looks like you went Protection. Switch to the tank preset?"
   with Yes / No / Stop asking.

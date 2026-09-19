@@ -124,13 +124,24 @@ return function(check)
         check("macro has a texture fileID: " .. name, type(macro.icon) == "number" and macro.icon > 0
             and macro.icon == (RikUI.SpellData[name] or RikUI.SpellData.Pummel).icon)
         -- The bundled macros use simple cast alternatives. Check every spell operand.
+        local operands, listed = {}, {}
         for line in macro.body:gmatch("[^\n]+") do
             if line:match("^/cast ") then
                 for alternative in line:sub(7):gmatch("[^;]+") do
                     local spell = alternative:gsub("%b[]", ""):match("^%s*(.-)%s*$")
                     check(name .. " casts catalogue spell " .. spell, RikUI.SpellData[spell] ~= nil)
+                    operands[spell] = true
                 end
             end
+        end
+        -- Bar placement waits for one of these attacks; stances never gate a macro.
+        check("macro lists the attacks that gate its slot: " .. name, type(macro.spells) == "table" and #macro.spells > 0)
+        for _, spell in ipairs(type(macro.spells) == "table" and macro.spells or {}) do
+            listed[spell] = true
+            check(name .. " gating spell is a cast operand: " .. spell, operands[spell] and not spell:find("Stance", 1, true))
+        end
+        for spell in pairs(operands) do
+            check(name .. " non-stance operand gates the slot: " .. spell, listed[spell] or spell:find("Stance", 1, true))
         end
     end
 
@@ -155,6 +166,14 @@ return function(check)
     check("missing macro references are diagnosed", table.concat(validate(fixture), "\n"):find("Missing Macro", 1, true))
     fixture.bars.main[12] = { spell = "Charge", macro = "Execute", level = 4 }
     check("ambiguous slot actions are rejected", table.concat(validate(fixture), "\n"):find("one action", 1, true))
+    fixture.bars.main[12] = { macro = "Gated" }
+    fixture.macros.Gated = { icon = 1, body = "/cast Nope", spells = { "Nope" } }
+    check("unknown macro gating spell is diagnosed", table.concat(validate(fixture), "\n"):find("Nope", 1, true))
+    fixture.macros.Gated.spells = "Execute"
+    check("macro spells must be a list", table.concat(validate(fixture), "\n"):find("spells must be a list", 1, true))
+    fixture.macros.Gated.spells = { "Execute" }
+    check("catalogue gating spells validate", not table.concat(validate(fixture), "\n"):find("macros.Gated", 1, true))
+    fixture.macros.Gated = nil
     fixture.bars.main[12] = "invalid"
     check("malformed slot returns a diagnostic", #validate(fixture) > 0)
     check("invalid preset returns a diagnostic", #validate(nil) > 0)

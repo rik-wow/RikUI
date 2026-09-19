@@ -56,7 +56,7 @@ local function barOperations(preset)
     for _, page in ipairs(setup.PageOrder) do
         for _, index in ipairs(sortedKeys(preset.bars[page] or {})) do
             local slot, entry = setup.SlotToAction(page, index), preset.bars[page][index]
-            operations[#operations + 1] = function(done) done(setup.WriteSlot(slot, entry)) end
+            operations[#operations + 1] = function(done) done(setup.WriteSlot(slot, entry, preset)) end
         end
     end
     return operations

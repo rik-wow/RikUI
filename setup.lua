@@ -110,6 +110,21 @@ local function checkPage(slots, macros, path, issues)
     end
 end
 
+local function macroIssue(macro)
+    if type(macro) ~= "table" or macro.spells == nil then return end
+    if type(macro.spells) ~= "table" then return "spells must be a list of spell names" end
+    for _, spell in ipairs(macro.spells) do
+        if not (core.SpellData and core.SpellData[spell]) then return "unresolved spell: " .. tostring(spell) end
+    end
+end
+
+local function checkMacros(macros, issues)
+    for name, macro in pairs(macros) do
+        local reason = macroIssue(macro)
+        if reason then issues[#issues + 1] = "macros." .. tostring(name) .. ": " .. reason end
+    end
+end
+
 local function checkPages(pages, macros, path, issues)
     if type(pages) ~= "table" then
         issues[#issues + 1] = path .. ": pages must be a table"
@@ -128,6 +143,7 @@ function setup.ValidatePreset(preset)
         issues[#issues + 1] = "macros must be a table"
         macros = {}
     end
+    checkMacros(macros, issues)
     checkPages(preset.bars, macros, "bars", issues)
     if preset.roleOverrides ~= nil then
         if type(preset.roleOverrides) ~= "table" then

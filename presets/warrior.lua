@@ -68,22 +68,29 @@ RikUI.Presets.WARRIOR = {
         bar4 = {},
         bar5 = {},
     },
+    -- `spells` lists the attacks a macro exists to cast. Its bar slot stays
+    -- empty until the character knows one of them; the stance fallback alone
+    -- never earns the macro a slot.
     macros = {
         Execute = {
             icon = 135358,
             body = "#showtooltip Execute\n/cast [stance:1/3] Execute; [stance:2] Battle Stance",
+            spells = { "Execute" },
         },
         ["Shield Block"] = {
             icon = 132110,
             body = "#showtooltip Shield Block\n/cast [stance:2] Shield Block; Defensive Stance",
+            spells = { "Shield Block" },
         },
         Charge = {
             icon = 132337,
             body = "#showtooltip Charge\n/cast [stance:1] Charge; Battle Stance",
+            spells = { "Charge" },
         },
         Interrupt = {
             icon = 132938,
             body = "#showtooltip\n/cast [stance:3] Pummel; Shield Bash",
+            spells = { "Pummel", "Shield Bash" },
         },
     },
     roleOverrides = {

@@ -2,10 +2,11 @@
 return function(check)
     local env = require("wow_stub")
     local names = { "GetActionInfo", "GetCursorInfo", "ClearCursor", "PlaceAction",
-        "C_Spell", "C_SpellBook", "Enum", "UnitClass" }
+        "C_Spell", "C_SpellBook", "Enum", "UnitClass", "GetMacroInfo", "PickupMacro" }
     local saved = {}
     for _, name in ipairs(names) do saved[name] = _G[name] end
     local actions, cursor, known, writes, reads, failBook, failPlace, combatAfterPlace, setup
+    local macroData
     local function countLines(fragment)
         local count = 0
         for _, line in ipairs(env.printed) do
@@ -18,6 +19,15 @@ return function(check)
         RikUIDB, RikUICharDB = nil, nil
         actions, known, writes, reads = {}, {}, {}, 0
         cursor, failBook, failPlace, combatAfterPlace = nil, false, false, false
+        macroData = { [121] = { name = "Gated", icon = 1, body = "/cast Slam" } }
+        GetMacroInfo = function(index)
+            local macro = macroData[index]
+            if macro then return macro.name, macro.icon, macro.body end
+        end
+        PickupMacro = function(id)
+            assert(not env.inCombat, "pickup in combat")
+            cursor = { kind = "macro", id = id }
+        end
         UnitClass = function() return "Warrior", "WARRIOR" end
         Enum = { SpellBookSpellBank = { Player = 1 }, SpellBookItemType = { Spell = 1 } }
         C_SpellBook = {
@@ -54,7 +64,7 @@ return function(check)
         end
         if rejectLearned then env.KNOWN_EVENTS.LEARNED_SPELL_IN_SKILL_LINE = nil end
         for _, file in ipairs({ "core.lua", "data/spells.lua", "presets/warrior.lua",
-            "setup.lua", "setup-actions.lua", "setup-apply.lua", "setup-undo.lua" }) do
+            "setup.lua", "setup-actions.lua", "setup-apply.lua", "macros.lua", "setup-undo.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         -- Loading the TOC entry is tested separately; a missing implementation is a red assertion.
@@ -64,10 +74,11 @@ return function(check)
         setup = RikUI.Setup
         env.fire("ADDON_LOADED", "RikUI")
         RikUI.Presets.WARRIOR = {
-            version = 1, roles = { dps = {}, tank = {} }, macros = { Keep = {} },
+            version = 1, roles = { dps = {}, tank = {} },
+            macros = { Keep = {}, Gated = { spells = { "Slam" } } },
             bars = { main = { [1] = { spell = "Heroic Strike", level = 1 },
                 [2] = { spell = "Rend", level = 4 }, [3] = { macro = "Keep" },
-                [4] = { item = "Hearthstone" } }, battle = {},
+                [4] = { item = "Hearthstone" }, [5] = { macro = "Gated" } }, battle = {},
                 bar2 = { [1] = { spell = "Slam", level = 20 } } },
             roleOverrides = { tank = { main = { [1] = { spell = "Sunder Armor", level = 10 } } } },
         }
@@ -124,7 +135,10 @@ return function(check)
     check("resync fills every resolved spell slot including stance inheritance",
         actions[1].id == 284 and actions[2].id == 772 and actions[73].id == 284 and actions[74].id == 772)
     check("rank order follows catalogue not numeric spell IDs", actions[61].id == 1464)
-    check("resync ignores preset macro and item slots", actions[3] == nil and actions[4] == nil)
+    check("resync ignores ungated macro and item slots", actions[3] == nil and actions[4] == nil)
+    check("resync places a macro whose attack is known on base and stance pages",
+        actions[5] and actions[5].kind == "macro" and actions[5].id == 121
+        and actions[77] and actions[77].kind == "macro" and actions[77].id == 121)
     check("resync preserves applied marker and undo snapshot", RikUICharDB.applied == applied and RikUICharDB.undo == undo)
     check("resync reports completion", countLines("Resync complete") == 1)
     before = #writes
@@ -251,6 +265,34 @@ return function(check)
     SlashCmdList.RIKUI("resync")
     check("unlearned spells do not clear occupied or empty slots", #writes == 0
         and actions[2].kind == "item" and actions[1] == nil)
+    check("a macro whose attacks are unlearned stays off the bar", actions[5] == nil and #env.printed == 1)
+
+    fresh()
+    known = { 284, 1464 }
+    learned(284)
+    check("a learned event outside the macro's attacks leaves the slot alone", actions[5] == nil and #writes == 2)
+    learned(1464)
+    check("learning a macro's attack places the macro on base and stance pages",
+        actions[5] and actions[5].id == 121 and actions[77] and actions[77].id == 121)
+    local before = #writes
+    learned(1464)
+    check("a placed macro is idempotent", #writes == before and countLines("Gated") == 0)
+
+    fresh()
+    known = { 1464 }
+    actions[5] = { kind = "spell", id = 78 }
+    learned(1464)
+    check("an occupied macro slot is preserved and reported once", actions[5].kind == "spell"
+        and actions[77] and actions[77].kind == "macro" and countLines("Gated skipped at slot 5") == 1)
+    env.fire("SPELLS_CHANGED")
+    check("fallback does not repeat the macro conflict", countLines("Gated skipped at slot 5") == 1)
+
+    fresh()
+    known = { 1464 }
+    macroData = {}
+    learned(1464)
+    check("a missing preset macro is reported instead of placed", actions[5] == nil and actions[77] == nil
+        and countLines("Gated skipped at slot 5") == 1 and countLines("/rik apply") == 2)
 
     fresh()
     known = { 284 }

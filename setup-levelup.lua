@@ -39,6 +39,19 @@ local function reportSkip(context, job, reason)
     context.result.skipped = context.result.skipped + 1
 end
 
+local function reportOccupied(context, job, kind)
+    reportSkip(context, job, "occupied by a different " .. tostring(kind) .. " action")
+end
+
+local function placeAction(context, job, kind, id)
+    if GetCursorInfo() ~= nil then reportSkip(context, job, "cursor is holding an action; retry /rik resync"); return end
+    local stats, failure = setup.RestoreSlot(job.slot, { kind = kind, id = id })
+    if not stats then reportSkip(context, job, failure); return end
+    reported[job.slot] = nil
+    context.result.placed = context.result.placed + stats.placed
+    context.result.edited = context.result.edited + stats.edited
+end
+
 local function placeSpell(context, job)
     local id, reason, rank = core.Spells.HighestKnownRank(job.name)
     if reason then reportSkip(context, job, reason); return end
@@ -47,29 +60,51 @@ local function placeSpell(context, job)
     if kind == "spell" and currentID == id then reported[job.slot] = nil; return end
     if kind then
         local currentRank = kind == "spell" and rankOf(job.name, currentID)
-        if not currentRank then
-            reportSkip(context, job, "occupied by a different " .. tostring(kind) .. " action")
-            return
-        end
+        if not currentRank then reportOccupied(context, job, kind); return end
         if not rank or currentRank >= rank then return end
     end
-    if GetCursorInfo() ~= nil then reportSkip(context, job, "cursor is holding an action; retry /rik resync"); return end
-    local stats, failure = setup.RestoreSlot(job.slot, { kind = "spell", id = id })
-    if not stats then reportSkip(context, job, failure); return end
-    reported[job.slot] = nil
-    context.result.placed = context.result.placed + stats.placed
-    context.result.edited = context.result.edited + stats.edited
+    placeAction(context, job, "spell", id)
+end
+
+local function placeMacro(context, job)
+    local usable, reason = setup.MacroKnown(job.macro)
+    if reason then reportSkip(context, job, reason); return end
+    if not usable then return end -- The slot waits until one of the macro's attacks is learned.
+    local index
+    index, reason = core.Macros.Find(job.name)
+    if reason then reportSkip(context, job, reason); return end
+    if not index then reportSkip(context, job, "macro is missing; run /rik apply"); return end
+    local kind, currentID = GetActionInfo(job.slot)
+    if kind == "macro" and currentID == index then reported[job.slot] = nil; return end
+    if kind then reportOccupied(context, job, kind); return end
+    placeAction(context, job, "macro", index)
+end
+
+local function jobFor(preset, entry, slot)
+    if entry.spell then return { name = entry.spell, spells = { entry.spell }, slot = slot } end
+    local macro = entry.macro and preset.macros[entry.macro]
+    -- Macros without a spells list are placed by Apply alone.
+    if type(macro) ~= "table" or type(macro.spells) ~= "table" or #macro.spells == 0 then return end
+    return { name = entry.macro, spells = macro.spells, slot = slot, macro = macro }
 end
 
 local function jobsFor(preset)
     local jobs = {}
     for _, page in ipairs(setup.PageOrder) do
         for _, index in ipairs(setup.StateKeys(preset.bars[page])) do
-            local name = preset.bars[page][index].spell
-            if name then jobs[#jobs + 1] = { name = name, slot = setup.SlotToAction(page, index) } end
+            local job = jobFor(preset, preset.bars[page][index], setup.SlotToAction(page, index))
+            if job then jobs[#jobs + 1] = job end
         end
     end
     return jobs
+end
+
+local function wanted(context, job)
+    if context.all then return true end
+    for _, name in ipairs(job.spells) do
+        if context.names[name] then return true end
+    end
+    return false
 end
 
 local function finish(context, status, reason)
@@ -120,7 +155,9 @@ run = function(context)
         local job = context.jobs[context.index]
         context.index = context.index + 1
         -- A synchronous spell event during placement may reset index to 1.
-        if context.all or context.names[job.name] then placeSpell(context, job) end
+        if wanted(context, job) then
+            if job.macro then placeMacro(context, job) else placeSpell(context, job) end
+        end
     end
     finish(context, "complete")
 end
@@ -159,4 +196,4 @@ core:RegisterEvent("SPELLS_CHANGED", function() request(nil, false) end)
 core:RegisterCommand("resync", function(args)
     if args ~= "" then core:Print("Usage: /rik resync"); return end
     setup.Resync()
-end, "Fill empty preset spell slots and upgrade older ranks: /rik resync")
+end, "Fill empty preset spell and macro slots and upgrade older ranks: /rik resync")

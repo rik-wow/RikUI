@@ -29,7 +29,7 @@ return function(check)
         actions, calls, macroData, keys, keyOrder = {}, {}, {}, {}, {}
         cursor, failPlace, failBinding, failCVar, combatAfterMacro = nil, false, false, false, false
         firstWriteSnapshot = nil
-        known = { ["Heroic Strike"] = 284, ["Rend"] = 772 }
+        known = { ["Heroic Strike"] = 284, ["Rend"] = 772, ["Charge"] = 100 }
         items, settings = { Hearthstone = 6948 }, {}
         for _, entry in ipairs(core.CVars.List) do settings[entry.name] = "old" end
         settings.nameplateMotion = nil -- valid unknown-CVar skip
@@ -155,6 +155,7 @@ return function(check)
         and setup.SlotToAction("main", 1.5) == nil)
 
     actions[8], actions[25] = { kind = "spell", id = 999 }, { kind = "item", id = 42 }
+    actions[71] = { kind = "spell", id = 555 }
     cursor = { kind = "item", id = 777 }
     keys["6"], keyOrder[1] = "ACTIONBUTTON6", "6"
     local result = setup.Apply("WARRIOR")
@@ -165,7 +166,9 @@ return function(check)
         and RikUICharDB.applied.at == 123456 and RikUICharDB.applied.presetVersion == 1)
     check("highest known spell placed on base and stance pages", actions[1].id == 284 and actions[73].id == 284)
     check("unknown designated spell is cleared and unspecified side slot preserved", actions[8] == nil and actions[25].id == 42)
-    check("bag item and existing macro placed", actions[12].id == 6948 and actions[5].kind == "macro")
+    check("bag item and usable macro placed", actions[12].id == 6948 and actions[70] and actions[70].kind == "macro")
+    check("macros whose attacks are all unlearned leave their slots empty", actions[5] == nil and actions[82] == nil)
+    check("an old action in an unusable macro slot is cleared like an unlearned spell", actions[71] == nil)
     check("cursor is empty after Apply", cursor == nil)
     check("layout positions are saved independently", core.Profile.positions.main.point == "BOTTOM"
         and core.Profile.positions.main ~= setup.DefaultPositions.main)
@@ -211,8 +214,22 @@ return function(check)
     setup = fresh()
     result = setup.Apply("WARRIOR", nil, only("bars"))
     check("disabled steps perform no writes and missing macros stay empty", result.status == "applied"
-        and next(macroData) == nil and next(keys) == nil and actions[5] == nil
+        and next(macroData) == nil and next(keys) == nil and actions[70] == nil
         and settings.autoLootDefault == "old" and next(core.Profile.positions) == nil)
+    setup = fresh()
+    core.Presets.WARRIOR.macros.Execute.spells = nil
+    result = setup.Apply("WARRIOR")
+    check("a macro without a spells list keeps unconditional placement", result.status == "applied"
+        and actions[5] and actions[5].kind == "macro")
+    setup = fresh()
+    core.Spells.HighestKnownRank = function(name)
+        if name == "Execute" then return nil, "Spellbook lookup failed" end
+        return known[name]
+    end
+    actions[5] = { kind = "spell", id = 999 }
+    result = setup.Apply("WARRIOR", nil, only("bars"))
+    check("spellbook errors on a macro's attacks fail Apply without clearing the slot", result.status == "failed"
+        and actions[5].id == 999 and result.error:find("slot 5", 1, true))
     setup = fresh()
     items = {}
     result = setup.Apply("WARRIOR", nil, only("bars"))

@@ -65,6 +65,11 @@ disabled steps were applied.
 Known spells use the highest learned rank from the spellbook resolver.
 Only explicitly designated slots are written; unspecified slots are preserved.
 Designated unlearned spells or unavailable actions clear any old action.
+A preset macro counts as unavailable until the character knows one of the
+spells listed in its `spells` field (see [the preset contract](presets.md));
+`Setup.MacroKnown(macro)` answers that question and a macro without the field
+is always placeable. The macro itself is still created in the macros step so
+later level-up placement can find it.
 A lookup/API failure preserves the slot where lookup failed and stops Apply.
 Only carried bags are searched for named items; bank and equipped items do not
 satisfy a preset item. If metadata for a present bag item is unavailable and no
@@ -92,9 +97,11 @@ wants to see those stock buttons.
 
 After a successful Apply for the player's class, RikUI listens for
 `LEARNED_SPELL_IN_SKILL_LINE` and `SPELLS_CHANGED` through the core's guarded
-event registration. A recognized learned ID selects its catalogue spell family;
+event registration. A recognized learned ID selects its catalogue spell family, which covers
+the spell's own slots and every preset macro that lists that spell;
 the payload-free fallback (or an unrecognized/missing learned ID) scans every
-spell slot in the applied role's resolved preset, including stance pages.
+spell and gated macro slot in the applied role's resolved preset, including
+stance pages.
 
 `/rik resync` explicitly runs that same full scan. `Setup.Resync()` returns a
 result with `status` (`queued`, `running`, `complete`, `cancelled`, or `failed`)
@@ -106,7 +113,11 @@ Only empty slots and lower catalogue ranks of the same spell are written.
 The highest known runtime spell ID is used; rank order comes from the catalogue,
 not numeric ID or localized name order. Equal/higher ranks stay in place.
 Different spells, macros, items and other occupied action kinds stay untouched.
-Unlearned spells never clear a slot. Preset macro/item entries are not processed.
+Unlearned spells never clear a slot. A preset macro with a `spells` list is
+placed into its empty designated slot, or left in place when already there,
+once one listed spell is known; the index comes from `Macros.Find` at placement
+time, and a macro missing from both pools is reported with a hint to run
+`/rik apply`. Macros without `spells` and item entries are not processed.
 An occupied cursor is preserved; release it and use `/rik resync` to retry.
 API/lookup failures report diagnostics and can be retried by a later event or
 the command. A completed scan may still contain reported skips.

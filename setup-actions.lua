@@ -23,15 +23,37 @@ local function carriedItem(name)
     if uncached then return nil, "bag item data not loaded; retry Apply after items load" end
 end
 
-local function resolveAction(entry)
+-- A macro earns its slot once the character knows one of the attacks it
+-- casts; a macro without a spells list is always placeable.
+function setup.MacroKnown(macro)
+    local spells = type(macro) == "table" and macro.spells
+    if type(spells) ~= "table" or #spells == 0 then return true end
+    local failure
+    for _, name in ipairs(spells) do
+        local id, reason = core.Spells.HighestKnownRank(name)
+        if id then return true end
+        failure = failure or reason
+    end
+    if failure then return nil, failure end
+    return false
+end
+
+local function resolveMacro(entry, preset)
+    local macros = type(preset) == "table" and preset.macros or {}
+    local usable, reason = setup.MacroKnown(macros[entry.macro])
+    if reason then return "macro", nil, reason end
+    if not usable then return "macro", nil end
+    local id
+    id, reason = core.Macros.Find(entry.macro)
+    return "macro", id, reason
+end
+
+local function resolveAction(entry, preset)
     if entry.spell then
         local id, reason = core.Spells.HighestKnownRank(entry.spell)
         return "spell", id, reason
     end
-    if entry.macro then
-        local id, reason = core.Macros.Find(entry.macro)
-        return "macro", id, reason
-    end
+    if entry.macro then return resolveMacro(entry, preset) end
     local id, reason = carriedItem(entry.item)
     return "item", id, reason
 end
@@ -59,9 +81,9 @@ local function writeAction(slot, kind, id)
     return { placed = oldKind and 0 or 1, skipped = 0, edited = oldKind and 1 or 0 }
 end
 
-function setup.WriteSlot(slot, entry)
+function setup.WriteSlot(slot, entry, preset)
     if InCombatLockdown() then return nil, "slot write requires leaving combat" end
-    local readOK, kind, id, reason = pcall(resolveAction, entry)
+    local readOK, kind, id, reason = pcall(resolveAction, entry, preset)
     if not readOK then return nil, "action lookup failed for slot " .. slot .. ": " .. tostring(kind) end
     if reason then return nil, "slot " .. slot .. ": " .. reason end
     return setup.RestoreSlot(slot, { kind = kind, id = id })
