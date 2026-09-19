@@ -100,7 +100,7 @@ return function(check)
         env.frames, env.printed, env.timers, env.inCombat = {}, {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile or {} } }, nil
         for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua" }) do
+            "setup-snapshot.lua", "setup-undo.lua", "layout.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

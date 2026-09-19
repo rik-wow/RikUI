@@ -77,12 +77,14 @@ Clearing an occupied slot uses `PickupAction` and `ClearCursor`, followed by
 an empty-slot check. The internal `Setup.WriteSlot` refuses combat calls;
 consumers should use the queued Apply entry point.
 
-Layout writes copies of `preset.positions`, or `Setup.DefaultPositions`,
-into `RikUI.Profile.positions`, preserving unrelated position keys.
+Layout writes copied `Setup.DefaultPositions` with `preset.positions` overrides
+into `RikUI.Profile.positions`, preserving unrelated position keys. The full
+write set is fixed at snapshot time, including defaults supplied by registered
+frames; late registrations cannot expand this Apply's writes.
 Each record uses `point`, `relativePoint`, `x`, `y` relative to UIParent.
 Defaults place main/bar2/bar3 at bottom center and bar4/bar5 on the right.
-Apply and Undo refresh existing RikUI overlay bars from these positions through
-the combat queue; see [overlay bars](bars.md). Blizzard frames and Edit Mode
+Apply and Undo refresh all registered RikUI frames from these positions through
+the combat queue; see [moving frames](layout.md). Blizzard frames and Edit Mode
 are unchanged. Existing Blizzard extra bars must already be enabled if the user
 wants to see those stock buttons.
 

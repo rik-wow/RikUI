@@ -16,6 +16,8 @@ presets/warrior.lua
 setup.lua
 setup-actions.lua
 setup-apply.lua
+layout.lua
+layout-movers.lua
 bindings.lua
 macros.lua
 macros-undo.lua

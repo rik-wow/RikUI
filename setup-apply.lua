@@ -62,14 +62,21 @@ local function barOperations(preset)
     return operations
 end
 
-local function writeLayout(preset, profile)
+function setup.LayoutPositions(preset)
+    local positions = copy(setup.DefaultPositions)
+    for key, value in pairs(preset.positions or {}) do positions[key] = copy(value) end
+    return positions
+end
+
+local function writeLayout(positions, profile)
     local stats = counts()
-    for name, position in pairs(preset.positions or setup.DefaultPositions) do
+    for name, position in pairs(positions) do
         local category = profile.positions[name] and "edited" or "placed"
         profile.positions[name] = copy(position)
         stats[category] = stats[category] + 1
     end
-    if core.Bars then core.Bars.ApplyLayout() end
+    if core.Layout then core.Layout.Apply()
+    elseif core.Bars then core.Bars.ApplyLayout() end
     return stats
 end
 
@@ -94,7 +101,7 @@ local function operationsFor(name, context)
             done(stats, stats.error)
         end }
     end
-    return { function(done) done(writeLayout(preset, context.profile)) end }
+    return { function(done) done(writeLayout(context.layout, context.profile)) end }
 end
 
 local function fail(context, name, reason)
@@ -185,8 +192,9 @@ function setup.Apply(class, role, opts)
     active = context
     context.result.steps.snapshot = counts()
     queueOperation(context, "snapshot", function()
+        if context.opts.layout ~= false then context.layout = setup.LayoutPositions(context.preset) end
         local snapshot, failure = setup.CaptureSnapshot(context.preset, context.opts,
-            context.profile, context.charDB, context.profileName)
+            context.profile, context.charDB, context.profileName, context.layout)
         if not snapshot then fail(context, "snapshot", failure); return end
         context.snapshot, context.charDB.undo = snapshot, snapshot
         runStep(context, 1)

@@ -20,9 +20,11 @@ page 1 outside the recorded bonus condition.
 The mapping comes from `Setup.SlotToAction`, the same source used by Apply.
 Defaults come from `Setup.DefaultPositions`. Three horizontal rows use
 36-pixel buttons with 6-pixel gaps; the two side columns run top to bottom.
-Each bar reads `Profile.positions[name]` and `Profile.scale`. Apply and Undo
-refresh existing bars after changing saved positions. All creation, attributes,
-position and scale writes run through the core combat queue. Invalid saved
+The [shared layout registry](layout.md) reads `Profile.positions[name]` and
+`Profile.scale` for every bar. `/rik move` exposes one labelled mover per key.
+Apply and Undo refresh existing bars after changing saved positions.
+All creation, attribute, position and scale writes run through the core combat
+queue. Invalid saved
 position fields or scale fall back to defaults without rewriting saved data.
 
 ## Module API

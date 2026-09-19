@@ -33,15 +33,15 @@ local function captureBars(preset)
     return bars
 end
 
-local function captureLayout(preset, profile)
+local function captureLayout(preset, profile, positions)
     local layout = {}
-    for name in pairs(preset.positions or setup.DefaultPositions) do
+    for name in pairs(positions or setup.LayoutPositions(preset)) do
         layout[name] = { value = setup.CopyState(profile.positions[name]) }
     end
     return layout
 end
 
-function setup.CaptureSnapshot(preset, opts, profile, charDB, profileName)
+function setup.CaptureSnapshot(preset, opts, profile, charDB, profileName, positions)
     local snapshot = { version = SNAPSHOT_VERSION, profile = profileName or charDB.profile,
         applied = setup.CopyState(charDB.applied), progress = {} }
     local reason
@@ -62,7 +62,7 @@ function setup.CaptureSnapshot(preset, opts, profile, charDB, profileName)
         snapshot.cvars, stats = core.CVars.Snapshot(opts.cvarSelection, { quiet = true })
         if stats.error then return nil, stats.error end
     end
-    if opts.layout ~= false then snapshot.layout = captureLayout(preset, profile) end
+    if opts.layout ~= false then snapshot.layout = captureLayout(preset, profile, positions) end
     return snapshot
 end
 

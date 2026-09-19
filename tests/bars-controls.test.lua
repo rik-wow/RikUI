@@ -82,7 +82,7 @@ return function(check)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
         for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
-            "bars.lua", "bars-skin.lua", "bars-controls.lua", "bars-stock.lua" }) do
+            "layout.lua", "bars.lua", "bars-skin.lua", "bars-controls.lua", "bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -97,6 +97,11 @@ return function(check)
         PET_TEST_TEXTURE = 20
         local bars = loadBars()
         local stance, pet = bars.ControlFrames.stance, bars.ControlFrames.pet
+        for _, key in ipairs({ "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet" }) do
+            local group = RikUI.Layout.Groups[key]
+            check("shared layout registers " .. key, group and group.frames[1] ==
+                (bars.Frames[key] or bars.ControlFrames[key]))
+        end
         check("known stance creates one visible secure control", stance and stance.buttons[1]:IsShown()
             and not stance.buttons[2]:IsShown())
         check("stance casts exact reported spell ID", stance.buttons[1]:GetAttribute("type1") == "spell"

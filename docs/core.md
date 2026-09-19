@@ -12,6 +12,10 @@ LibDeflate and the remaining class presets are added with their owning chunks.
   `ADDON_LOADED`. Missing defaults are copied recursively into every profile.
   Existing values, including false flags, are preserved. A new character has
   no applied preset, asks about role changes and has not completed the wizard.
+- `RikUI:SetProfile(name)` selects an existing profile and immediately applies
+  its layout/scale, cancelling any frame drag. It returns `true` or
+  `nil, reason`; combat and pending Setup Apply/Undo refuse the switch.
+  Module enable flags still take effect after reload. See [layout](layout.md).
 - `RikUI:RegisterEvent(event, callback)` calls `callback(event, ...)`.
   Registration failures return false and print once per event. Callback errors
   do not stop other subscribers. A subscriber added while dispatching starts

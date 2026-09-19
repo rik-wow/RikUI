@@ -25,7 +25,8 @@ local function restoreEntry(context, name, key)
     local saved = context.snapshot[name]
     if name == "layout" then
         context.profile.positions[key] = setup.CopyState(saved[key].value)
-        if core.Bars then core.Bars.ApplyLayout() end
+        if core.Layout then core.Layout.Apply()
+        elseif core.Bars then core.Bars.ApplyLayout() end
         return true
     end
     if name == "cvars" then return core.CVars.Restore(key, saved[key]) end

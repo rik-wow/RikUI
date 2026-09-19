@@ -5,8 +5,6 @@ core.Bars = bars
 local BUTTONS, BUTTON_SIZE, BUTTON_GAP = 12, 36, 6
 local FADE_SECONDS, LEAVE_DELAY = 0.2, 0.05
 local BAR_ORDER = { "main", "bar2", "bar3", "bar4", "bar5" }
-local POINTS = { TOP = true, TOPLEFT = true, TOPRIGHT = true, LEFT = true, CENTER = true,
-    RIGHT = true, BOTTOM = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
 local pending, layoutPending = {}, false
 
 local function finite(value)
@@ -107,21 +105,11 @@ end
 
 local function position(bar)
     local key = bar.positionKey or bar.key
-    local defaults = setup.DefaultPositions[key] or setup.DefaultPositions.main
-    local saved = core.Profile.positions[key]
-    if type(saved) ~= "table" then saved = defaults end
-    local point = POINTS[saved.point] and saved.point or defaults.point
-    local relative = POINTS[saved.relativePoint] and saved.relativePoint or defaults.relativePoint
-    local x, y = finite(saved.x) and saved.x or defaults.x, finite(saved.y) and saved.y or defaults.y
-    local scale = core.Profile.scale
-    if not finite(scale) or scale <= 0 then scale = 1 end
-    bar:ClearAllPoints()
-    bar:SetPoint(point, UIParent, relative, x, y)
-    bar:SetScale(scale)
+    core.Layout.Register(bar, key, setup.DefaultPositions[key] or setup.DefaultPositions.main)
     bars.UpdateGryphons(bar)
 end
 
--- Shared by companion rows so Apply/Undo use the same profile validation.
+-- Kept for companion factories and callers that also refresh gryphon art.
 bars.PositionFrame = position
 
 function bars.ApplyLayout()
@@ -129,8 +117,8 @@ function bars.ApplyLayout()
     layoutPending = true
     core.Combat.Queue(function()
         layoutPending = false
-        for _, bar in pairs(bars.Frames) do position(bar) end
-        for _, bar in pairs(bars.ControlFrames or {}) do position(bar) end
+        core.Layout.Apply()
+        for _, bar in pairs(bars.Frames) do bars.UpdateGryphons(bar) end
     end)
 end
 

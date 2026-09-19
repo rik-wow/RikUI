@@ -49,7 +49,7 @@ return function(check)
             } }, scale = 0.75,
         } } }, nil
         for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "data/bonus-pages.lua",
-            "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-stock.lua" }) do
+            "layout.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -131,6 +131,14 @@ return function(check)
         for _, bar in ipairs(mainOverlays(bars)) do
             check("page " .. bar.key .. " follows main layout after combat", bar.point[4] == 90)
         end
+        local group = RikUI.Layout.Groups.main
+        check("all main pages share one layout group", #group.frames == #mainOverlays(bars))
+        local originalCondition = drivers[battle]
+        RikUI.Layout.SetScale(1.2)
+        for _, bar in ipairs(group.frames) do check("group scale reaches " .. bar.key, bar.scale == 1.2) end
+        RikUI.Layout.Reset()
+        check("reset reaches every main overlay without replacing drivers", battle.point[4] == 0
+            and battle.point[5] == 40 and drivers[battle] == originalCondition)
         class = "MAGE"
         bars = loadBars()
         check("class without recorded bonus pages creates no bonus overlay", bars.Frames.battle == nil)

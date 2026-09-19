@@ -106,6 +106,24 @@ local function initialize(_, loadedAddon)
     for _, moduleName in ipairs(moduleOrder) do configureModule(moduleName) end
 end
 
+-- Module enable/disable changes still take effect on reload.
+function core:SetProfile(name)
+    if not initialized then return nil, "Still loading." end
+    if InCombatLockdown() then return nil, "Cannot switch profiles in combat." end
+    if self.Setup and (self.Setup.IsApplying() or (self.Setup.IsUndoing and self.Setup.IsUndoing())) then
+        return nil, "Finish the pending Setup operation before switching profiles."
+    end
+    if type(name) ~= "string" or type(self.DB.profiles[name]) ~= "table" then
+        return nil, "Unknown profile."
+    end
+    if self.Layout and self.Layout.StopMoving then self.Layout.StopMoving() end
+    self.Profile = mergeDefaults(self.DB.profiles[name], PROFILE_DEFAULTS)
+    self.CharDB.profile = name
+    if self.Bars then self.Bars.ApplyLayout()
+    elseif self.Layout then self.Layout.Apply() end
+    return true
+end
+
 local function login()
     if loggedIn or not initialized then return end
     loggedIn = true

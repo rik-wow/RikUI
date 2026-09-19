@@ -206,6 +206,9 @@ check("Button state test suite completes", stateOk, stateErr)
 local displayOk, displayErr = pcall(function() dofile("tests/bars-state-display.test.lua")(check) end)
 check("Button display test suite completes", displayOk, displayErr)
 
+local layoutOk, layoutErr = pcall(function() dofile("tests/layout.test.lua")(check) end)
+check("Layout test suite completes", layoutOk, layoutErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))
