@@ -214,6 +214,8 @@ check("Layout test suite completes", layoutOk, layoutErr)
 
 local optionsOk, optionsErr = pcall(function() dofile("tests/options.test.lua")(check) end)
 check("Options test suite completes", optionsOk, optionsErr)
+local unitOk, unitErr = pcall(function() dofile("tests/unitframes.test.lua")(check) end)
+check("Unit frame test suite completes", unitOk, unitErr)
 
 -- report
 if #failures == 0 then

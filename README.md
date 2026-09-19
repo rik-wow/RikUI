@@ -19,11 +19,18 @@ The Blizzard action, stance and pet bars are hidden once their RikUI
 replacements exist; `/rik stockbars show|hide|status` restores, hides or
 reports them. Edit Mode cannot move hidden frames and prints a warning.
 
+The player, target, target-of-target and pet frames sit centre-bottom above
+the bars: flat class- or reaction-coloured health and power bars with
+`current / max` text and a threat border, no percent (the beta keeps health
+secret). Left click targets, right click opens the unit menu. The Blizzard
+frames for those units are hidden; disable the `unitframes` module and reload
+to restore them. See [unit frames](docs/unitframes.md).
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
-See [bar behavior and native checks](docs/bars.md), [setup](docs/setup.md),
+See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md), [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

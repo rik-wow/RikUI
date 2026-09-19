@@ -23,10 +23,15 @@ local KNOWN_EVENTS = {
     SPELLS_CHANGED = true, CHARACTER_POINTS_CHANGED = true,
     PLAYER_TALENT_UPDATE = true, TRAIT_CONFIG_UPDATED = true, ACTIVE_COMBAT_CONFIG_CHANGED = true,
     UNIT_HEALTH = true, PLAYER_LOGOUT = true, UI_SCALE_CHANGED = true, DISPLAY_SIZE_CHANGED = true,
+    UNIT_MAXHEALTH = true, UNIT_POWER_UPDATE = true, UNIT_MAXPOWER = true, UNIT_DISPLAYPOWER = true,
+    UNIT_NAME_UPDATE = true, UNIT_LEVEL = true, UNIT_FACTION = true, UNIT_CONNECTION = true,
+    UNIT_CLASSIFICATION_CHANGED = true, UNIT_THREAT_SITUATION_UPDATE = true, UNIT_PET = true,
+    UNIT_TARGET = true, PLAYER_TARGET_CHANGED = true,
 }
 env.KNOWN_EVENTS = KNOWN_EVENTS
 
-local KNOWN_TEMPLATES = { SecureActionButtonTemplate = true, SecureHandlerStateTemplate = true }
+local KNOWN_TEMPLATES = { SecureActionButtonTemplate = true, SecureHandlerStateTemplate = true,
+    SecureUnitButtonTemplate = true }
 
 ------------------------------------------------------------------------
 -- Frames
@@ -139,6 +144,13 @@ function UnitHealth(unit) if unit == "player" then return SECRET end return 42 e
 function UnitHealthMax() return 100 end
 function UnitPower() return SECRET end
 function UnitPowerMax() return 100 end
+function UnitPowerType() return 1, "RAGE", 1, 0, 0 end
+function UnitReaction() return 5 end
+function UnitIsPlayer(unit) return unit == "player" end
+function UnitThreatSituation() return nil end
+function GetThreatStatusColor() return 1, 0, 0 end
+function UnitIsConnected() return true end
+function UnitIsTapDenied() return false end
 function GetRealmName() return "Probe Realm" end
 function GetBuildInfo() return "1.60.1", "69913", "Sep 17 2026", 16001 end
 
