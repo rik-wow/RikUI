@@ -40,6 +40,20 @@ LibDeflate and the remaining class presets are added with their owning chunks.
   drain. Work queued during a drain is appended. Capture arguments in the closure.
 - `RikUI:Print(message)` prefixes a chat line. `RikUI.Data` and `RikUI.Presets`
   are the shared namespaces populated by later data chunks.
+- `RikUI.Hide.Frame(frame, keepEvents)` (from `hide.lua`) is the one helper for
+  hiding Blizzard frames. It parks the frame under the hidden
+  `RikUIHiddenFrames` container through the combat queue, so the call returns
+  `true` immediately and the parent write happens out of combat; the latest
+  request wins when several arrive during combat. A parent posthook records
+  native reattachment, including Edit Mode moves, and re-parks the frame.
+  Pass `keepEvents` true (or omit it) for frames whose native handlers must
+  keep running, such as action bars driven by key bindings; `false` unregisters
+  the frame's events once, and they return only after a reload. Non-frames
+  return `nil, reason`. `Hide.Restore(frame, onRestored)` returns the frame to
+  its latest native parent and then calls the optional callback with the
+  frame; it refuses a frame that was never hidden. `Hide.IsHidden(frame)`
+  reports the requested state. The first hidden frame installs an
+  `EditModeManagerFrame` OnShow hook that prints one warning line per open.
 
 Run `luajit tests/run_tests.lua` from the repository root. The stub checks
 behavior and loads every TOC entry, but cannot reproduce WoW's secret-value VM

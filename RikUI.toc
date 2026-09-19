@@ -8,6 +8,7 @@
 ## IconTexture: Interface\Icons\INV_Misc_QuestionMark
 
 core.lua
+hide.lua
 media.lua
 data/spells.lua
 data/cvars.lua

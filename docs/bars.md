@@ -301,12 +301,19 @@ belong to the separate multibar.
 
 ## Stock action bars
 
-`bars-stock.lua` parks MainActionBar and the four replaced MultiBar roots under
-a hidden parent. MainActionBar includes its gryphons and page controls; the
-legacy MainMenuBarArtFrame is parked if present. MainMenuBar itself, stance,
-pet, override and extra-action controls are not suppressed. A missing
-MainActionBar global falls back to ActionButton1.bar, the owner assigned by
-Blizzard's action-bar constructor.
+`bars-stock.lua` parks MainActionBar and the four replaced MultiBar roots
+through the shared `RikUI.Hide.Frame` helper (see [core](core.md)), always
+with `keepEvents` true. MainActionBar includes its gryphons (`EndCaps`) and
+page arrows (`ActionBarPageNumber`); the legacy MainMenuBarArtFrame is parked
+if present. On Forever the Mainline family loads, so MainActionBar is the main
+bar and MainMenuBar does not exist; a missing MainActionBar global falls back
+to ActionButton1.bar, the owner assigned by Blizzard's action-bar constructor.
+Override and extra-action controls are not suppressed.
+
+StanceBar and PetActionBar are parked once the RikUI stance and pet rows exist
+(`bars.ControlFrames`), and return whenever a row is unavailable. The RikUI
+pet row has no right-click autocast toggle yet; `/rik stockbars show` restores
+the native pet bar for that until the row supplies it.
 
 With the main overlay ready, the same cleanup also parks MicroMenu, BagsBar and
 StatusTrackingBarManager. Their child artwork and both XP/reputation containers
@@ -326,6 +333,13 @@ reappear if Blizzard reparents them during combat, until the queue can run.
 suppresses them again. The choice persists as `Profile.showStockBars`.
 Disabling the bars module leaves the stock UI available after reload. Stock
 bars without a complete matching overlay remain available.
+`/rik stockbars status` prints each target, the frame it resolved to on the
+live client and its state (hidden, hide queued, native, or native with no
+RikUI replacement); use it to confirm the beta frame identity.
+
+Opening Edit Mode prints one warning line: Edit Mode cannot show or move the
+parked frames, and its layout changes are recorded by the parent posthook and
+re-parked. RikUI does not register its own frames with Edit Mode.
 
 ## Verification
 
@@ -335,7 +349,10 @@ drags, lock/modifier pickup, cursor drops, event refreshes, modern and legacy
 APIs, secret count sinks, module disablement and hover/combat fade transitions.
 Stock-bar tests cover parent restoration, native reattachment, combat deferral,
 module disablement, furniture hide/restore, native menu relocation/layout refresh,
-and preservation of native events, status-child hierarchy and unrelated controls. The recording
+stance/pet parking gated on the RikUI control rows, the status report, and
+preservation of native events, status-child hierarchy and unrelated controls.
+The shared helper has its own suite for keepEvents, restore callbacks, combat
+queueing and the Edit Mode warning line. The recording
 renderer does not execute Blizzard's protected action handler.
 
 Native beta acceptance passed on 2026-09-18. The user confirmed the expanded
@@ -347,9 +364,14 @@ click-edge settings and temporary override modes were not separately reported.
 Repeatable Warrior beta regression checks:
 
 1. Reload with RikUI enabled and inspect the bottom stack and right columns.
-   Stock main/extra bars, gryphons, bag/menu buttons, and XP/reputation bars
-   should be absent. Verify native keys still cast, bag/menu keys still open
-   their panels, and /rik stockbars show|hide restores/hides the stock UI.
+   Stock main/extra bars, gryphons, page arrows, stance/pet bars, bag/menu
+   buttons, and XP/reputation bars should be absent, also after zoning.
+   Verify native keys still cast, bag/menu keys still open their panels, and
+   /rik stockbars show|hide restores/hides the stock UI. Run
+   /rik stockbars status and note the frame MainActionBar resolved to. Open
+   Edit Mode from the game menu: expect exactly one RikUI warning line and no
+   Lua error. Disable the bars module in /rik config, reload, and confirm the
+   Blizzard bars are back.
 2. With the Warrior preset placed, click a known non-toggle spell/action on an
    overlay and confirm the expected action fires once. Compare bar2 with its
    Shift binding. Check with ActionButtonUseKeyDown both 1 and 0, restoring

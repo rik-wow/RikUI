@@ -302,7 +302,7 @@ return function(check)
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = { modules = { bars = false } } } }, nil
-        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "setup-snapshot.lua", "setup-undo.lua",
+        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "setup-snapshot.lua", "setup-undo.lua",
             "layout.lua", "layout-movers.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua", "options-widgets.lua",
             "options-controls.lua", "options.lua" }) do
             assert(loadfile(file))("RikUI", {})

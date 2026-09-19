@@ -1,46 +1,30 @@
 -- Hide overlapping stock bars without removing native paging or binding logic.
 local core, bars = RikUI, RikUI.Bars
+local BUTTONS = 12
+
+-- Native menu layout skips anchors while it is parked outside its container.
+local function refreshMenuLayout(frame)
+    local parent = frame:GetParent()
+    if parent and parent == MicroMenuContainer and type(parent.Layout) == "function" then parent:Layout() end
+end
+
 local TARGETS = {
     { overlay = "main", name = "MainActionBar" },
     { overlay = "main", name = "MainMenuBarArtFrame" },
-    { overlay = "main", name = "MicroMenu" },
+    { overlay = "main", name = "MicroMenu", onRestored = refreshMenuLayout },
     { overlay = "main", name = "BagsBar" },
     { overlay = "main", name = "StatusTrackingBarManager" },
     { overlay = "bar2", name = "MultiBarBottomLeft" },
     { overlay = "bar3", name = "MultiBarBottomRight" },
     { overlay = "bar4", name = "MultiBarRight" },
     { overlay = "bar5", name = "MultiBarLeft" },
+    { control = "stance", name = "StanceBar" },
+    { control = "pet", name = "PetActionBar" },
 }
-local saved, hidden, pending, changing = {}, nil, false, false
+local known, pending = {}, false
 
 local function wantsHidden()
     return bars.enabled and core.Profile.showStockBars ~= true
-end
-
-local function hiddenParent()
-    if not hidden then
-        hidden = CreateFrame("Frame", "RikUIHiddenActionBars", UIParent)
-        hidden:Hide()
-    end
-    return hidden
-end
-
-local function reparent(frame, parent)
-    changing = true
-    local ok, reason = pcall(frame.SetParent, frame, parent)
-    changing = false
-    if not ok then error(reason) end
-end
-
-local function remember(frame)
-    if saved[frame] then return end
-    saved[frame] = { parent = frame:GetParent() }
-    hooksecurefunc(frame, "SetParent", function(self)
-        if changing or self:GetParent() == hidden then return end
-        -- Restore the latest Blizzard attachment, including Edit Mode changes.
-        saved[self].parent = self:GetParent()
-        if wantsHidden() then bars.UpdateStockVisibility() end
-    end)
 end
 
 local function targetFrame(target)
@@ -50,12 +34,11 @@ local function targetFrame(target)
     if type(frame.SetParent) == "function" and type(frame.GetParent) == "function" then return frame end
 end
 
-local function restore(frame, parent)
-    reparent(frame, parent)
-    -- Native menu layout skips anchors while it is parked outside its container.
-    if frame == MicroMenu and parent and parent == MicroMenuContainer and type(parent.Layout) == "function" then
-        parent:Layout()
-    end
+-- A stock frame goes only after its RikUI replacement exists.
+local function replacementReady(target)
+    if target.control then return bars.ControlFrames ~= nil and bars.ControlFrames[target.control] ~= nil end
+    local overlay = bars.Frames[target.overlay]
+    return overlay ~= nil and #overlay.buttons == BUTTONS
 end
 
 local function applyVisibility()
@@ -63,17 +46,16 @@ local function applyVisibility()
     local parked = {}
     if wantsHidden() then
         for _, target in ipairs(TARGETS) do
-            local overlay, frame = bars.Frames[target.overlay], targetFrame(target)
-            if overlay and #overlay.buttons == 12 and frame then
-                remember(frame)
-                local parent = hiddenParent()
-                if frame:GetParent() ~= parent then reparent(frame, parent) end
-                parked[frame] = true
+            local frame = targetFrame(target)
+            if frame and replacementReady(target) then
+                -- Native bindings still invoke these buttons, so their events stay registered.
+                core.Hide.Frame(frame, true)
+                known[frame], parked[frame] = target, true
             end
         end
     end
-    for frame, original in pairs(saved) do
-        if not parked[frame] and frame:GetParent() == hidden then restore(frame, original.parent) end
+    for frame, target in pairs(known) do
+        if not parked[frame] and core.Hide.IsHidden(frame) then core.Hide.Restore(frame, target.onRestored) end
     end
 end
 
@@ -83,6 +65,24 @@ function bars.UpdateStockVisibility()
     core.Combat.Queue(applyVisibility)
 end
 
+local function describe(target)
+    local frame = targetFrame(target)
+    if not frame then return target.name .. ": missing" end
+    local name = type(frame.GetName) == "function" and frame:GetName() or nil
+    local state = "native"
+    if core.Hide.IsHidden(frame) then
+        state = InCombatLockdown() and "hide queued" or "hidden"
+    elseif not replacementReady(target) then
+        state = "native, no RikUI replacement"
+    end
+    return target.name .. " -> " .. tostring(name or "unnamed") .. " (" .. state .. ")"
+end
+
+local function printStatus()
+    core:Print("Stock frames (" .. (wantsHidden() and "hiding" or "showing") .. "):")
+    for _, target in ipairs(TARGETS) do core:Print(describe(target)) end
+end
+
 local function setStockBars(shown)
     core.Profile.showStockBars = shown == true
     bars.UpdateStockVisibility()
@@ -90,13 +90,13 @@ local function setStockBars(shown)
 end
 
 core:RegisterCommand("stockbars", function(args)
-    if args ~= "show" and args ~= "hide" then
-        core:Print("Usage: /rik stockbars show|hide")
+    if args ~= "show" and args ~= "hide" and args ~= "status" then
+        core:Print("Usage: /rik stockbars show|hide|status")
         return
     end
     if not core.Profile then core:Print("Still loading."); return end
-    setStockBars(args == "show")
-end, "Show or hide stock bars, bag/menu buttons and XP/reputation bars: /rik stockbars show|hide")
+    if args == "status" then printStatus() else setStockBars(args == "show") end
+end, "Show, hide or report stock bars, stance/pet bars, bag/menu buttons and XP/reputation bars: /rik stockbars show|hide|status")
 
 table.insert(bars.Options.settings, { type = "checkbox", key = "showStockBars", label = "Show stock Blizzard bars",
     get = function() return core.Profile.showStockBars == true end, set = setStockBars })

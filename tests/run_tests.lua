@@ -164,6 +164,9 @@ loadstring_untainted, SecureHandlerExecute = nil, originalExecute
 local coreOk, coreErr = pcall(function() dofile("tests/core.test.lua")(check) end)
 check("core test suite completes", coreOk, coreErr)
 
+local hideOk, hideErr = pcall(function() dofile("tests/hide.test.lua")(check) end)
+check("Hide helper test suite completes", hideOk, hideErr)
+
 local cvarsOk, cvarsErr = pcall(function() dofile("tests/cvars.test.lua")(check) end)
 check("CVar test suite completes", cvarsOk, cvarsErr)
 

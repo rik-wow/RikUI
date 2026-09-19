@@ -194,8 +194,16 @@ spending a chunk on it.
   `UPDATE_BONUS_ACTIONBAR`, `UPDATE_SHAPESHIFT_FORM`, `ACTIONBAR_PAGE_CHANGED`
   and `ACTIONBAR_SLOT_CHANGED`. Still wrap every registration in `pcall`; the
   next build could rename something.
-- `MainMenuBar` is nil on this client. The 12.x main bar frame has a different
-  name; find it before writing the hide-Blizzard code.
+- `MainMenuBar` is nil on this client because Forever is the `camelot` game
+  type inside the Mainline UI family: `Blizzard_ActionBar.toc` (commit
+  70ef1b2) loads `MainMenuBar.xml` only for `AllowLoadGameType classic`. The
+  main bar is **`MainActionBar`**, a `UIParent` child inheriting
+  `EditModeActionBarTemplate`, with the gryphons under its `EndCaps` child and
+  the page arrows under `ActionBarPageNumber`. `StanceBar` and `PetActionBar`
+  are `UIParent` children driven by plain `SetShown`/`Show`/`Hide`, not state
+  drivers. `/rik stockbars status` prints the frame each target resolved to on
+  the live client; `ActionButton1.bar` is the owner fallback if the global is
+  ever renamed.
 - After 100 Lua errors the client stops reporting them. `/reload` resets.
 - `ReloadUI()` is protected; the user has to type `/reload`.
 - Sound/texture files added after launch aren't seen until a client restart.
@@ -457,13 +465,18 @@ load order:
 | `importexport.lua` | strings |
 | `libs/LibDeflate.lua` | embedded, unchanged |
 
-Hiding Blizzard: the current overlay milestone suppresses the five overlapping
-stock action bars through a hidden parent, out of combat. MainActionBar is the
-12.1.5 source name (exact beta observation still pending); ActionButton1.bar is
-its owner fallback. Keep native action events, attributes and button handlers:
-the native binding path still calls those buttons. Do not unregister them.
-A guarded parent posthook handles Blizzard reattachment; /rik stockbars show
-restores the latest native parents, and hide reapplies the saved preference.
+Hiding Blizzard: `hide.lua` owns `RikUI.Hide.Frame(frame, keepEvents)`,
+`Hide.Restore(frame, onRestored)` and `Hide.IsHidden(frame)`. Every Blizzard
+frame RikUI suppresses is parked under the shared hidden `RikUIHiddenFrames`
+container through the combat queue; a parent posthook records native
+reattachment (including Edit Mode moves) and re-parks. The first hidden frame
+installs an `EditModeManagerFrame` OnShow hook that prints one warning line.
+`bars-stock.lua` uses the helper for MainActionBar (source-verified name;
+ActionButton1.bar is the owner fallback) and the multibars with `keepEvents`
+true: the native binding path still calls those buttons, so their events,
+attributes and handlers are never unregistered. /rik stockbars show restores
+the latest native parents, hide reapplies the saved preference, and status
+prints each target's resolved frame and state.
 
 The user-requested cleanup also parks MicroMenu, BagsBar and
 StatusTrackingBarManager once the main overlay exists. Keep the status manager's
@@ -471,11 +484,13 @@ child hierarchy and leave MicroMenuContainer, its queue-status sibling and bag
 inventory windows available. Refresh native menu layout on restoration to its
 default container. Bag/menu keys and /rik stockbars show retain access.
 
-The later bars-hide-blizzard milestone extends this to stance/pet after their
-replacements exist, adds the shared hiding helper and
-Edit Mode warning, and verifies the actual beta frame identity. Other modules
-will hide PlayerFrame, TargetFrame, PetFrame, PartyFrame, BuffFrame, DebuffFrame,
-MinimapCluster, chat side buttons and container frames only when replaced.
+StanceBar and PetActionBar are parked only once the RikUI stance and pet rows
+exist. The RikUI pet row has no right-click autocast toggle yet, so
+/rik stockbars show remains the route to native autocast until it does. Other
+modules will hide PlayerFrame, TargetFrame, PetFrame, PartyFrame, BuffFrame,
+DebuffFrame, MinimapCluster, chat side buttons and container frames through
+the same helper, only when replaced, passing `keepEvents` false where no native
+handler must keep running.
 
 ## Wizard (first login)
 

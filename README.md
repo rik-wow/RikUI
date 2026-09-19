@@ -15,6 +15,9 @@ The bars use flat square icons,
 outlined labels and shared bundled media. Gryphon end caps are off by default:
 `/rik gryphons on` enables them and `/rik gryphons off` hides them.
 The preference is saved per profile; changes during combat apply afterward.
+The Blizzard action, stance and pet bars are hidden once their RikUI
+replacements exist; `/rik stockbars show|hide|status` restores, hides or
+reports them. Edit Mode cannot move hidden frames and prints a warning.
 
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
