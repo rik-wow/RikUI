@@ -78,10 +78,11 @@ name and stack size, click to loot, Escape to close. Auto-loot is untouched.
 The group roll frames get the same flat skin with need, greed and pass left
 alone. See [loot](docs/loot.md).
 
-Nameplates keep Blizzard's plates and get the flat skin: RikUI bar texture and
-font, a white border on your target and focus, and your own debuffs in a row
-above each plate's name. Health, colour and targeting stay Blizzard's, so nothing
-here touches secret values. See [nameplates](docs/nameplates.md).
+Nameplates keep Blizzard's plates under a new layout: a chunky flat bar with
+the name and health percent inside, a level box, an elite or rare marker and
+your own debuffs above. Your target grows while the others dim, and gets side
+arrows and a pulsing line; a red line marks mobs that are on you. Health eases
+instead of jumping and flashes on a hit. See [nameplates](docs/nameplates.md).
 
 Chat keeps Blizzard's windows with the RikUI font, a flat edit box docked
 under the window, `HH:MM` timestamps and tabs that stay invisible until you

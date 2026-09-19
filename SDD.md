@@ -489,7 +489,7 @@ load order:
 | `tooltip.lua`, `tooltip-data.lua` | movable anchor, flat skin and font, class/reaction colours, Blizzard's GUID-watched health bar, item level and spell ID lines, hide in combat (delivered) |
 | `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar (delivered) |
 | `xpbar.lua` | experience and reputation bar with rested segment, hide the tracking bars |
-| `nameplates.lua` | flat restyle of Blizzard nameplates: bar texture, backing and fonts reapplied after `UpdateAnchors`, a flat target border that follows Blizzard's `selectedBorder`, and a `HARMFUL|PLAYER` aura container per pooled unit frame; no unit value is read and forbidden plates are skipped (delivered) |
+| `nameplates.lua`, `nameplates-skin.lua`, `nameplates-target.lua` | flat layout over Blizzard's plates, reapplied after `UpdateAnchors`: 14px own StatusBar fed reader-to-sink with the client's easing, name and Blizzard's percent text inside it, level box, elite marker, flat cast bar frame; target arrows and a pulsing accent line copy `selectedBorder`, a threat line copies `aggroHighlight`, target scale and dimming go through the client's nameplate CVars; a `HARMFUL|PLAYER` aura container per pooled unit frame; forbidden plates are skipped (delivered) |
 | `loot.lua`, `loot-rolls.lua` | compact loot list on the loot globals and `LootSlot`, at the cursor or layout key `loot`; `LootFrame` parked with its events dropped because its hide and open paths call `CloseLoot`; `GroupLootFrame1-4` skinned with buttons untouched (delivered) |
 | `questtracker.lua` | watched quest list, hide ObjectiveTrackerFrame |
 | `panels.lua` | skin pass over character, spellbook, talents, quest log, merchant, bank, mail, trade |

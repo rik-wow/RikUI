@@ -42,6 +42,8 @@ auras.lua
 auras-button.lua
 auras-units.lua
 nameplates.lua
+nameplates-skin.lua
+nameplates-target.lua
 minimap.lua
 chat.lua
 chat-skin.lua

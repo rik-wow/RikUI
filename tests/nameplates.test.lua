@@ -1,25 +1,42 @@
--- The skin writes textures, fonts and alpha only; health, colour and target state stay Blizzard's.
--- Whether the client accepts an aura container on a nameplate token needs a beta check.
+-- Health travels reader-to-sink into an own bar; target and threat state are copied from Blizzard's
+-- regions. Re-parenting Blizzard's text, the target CVars and the easing argument need a beta check.
 return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
-    local savedNamePlate, savedPixelUtil = C_NamePlate, PixelUtil
-    PixelUtil = { GetNearestPixelSize = function(size, scale) return size / scale end }
+    local API = { "C_NamePlate", "PixelUtil", "UnitClassification" }
+    local saved, savedCVar, savedInfoEnum = {}, C_CVar, Enum.NamePlateInfoDisplay
+    for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
-    local function region(value)
-        function value:SetTexture(texture) self.texture = texture end
-        function value:SetVertexColor(...) self.color = { ... } end
+    local function group()
+        local result = { plays = 0, stops = 0 }
+        function result:CreateAnimation() return setmetatable({}, { __index = function() return function() end end }) end
+        function result:Play() self.plays, self.playing = self.plays + 1, true end
+        function result:Stop() self.stops, self.playing = self.stops + 1, false end
+        function result:SetLooping(mode) self.looping = mode end
+        return result
+    end
+    local function common(value)
         function value:SetAlpha(alpha) self.alpha = alpha end
+        function value:SetShown(shown) self.shown = shown == true end
+        function value:SetHeight(height) self.height = height end
+        function value:SetWidth(width) self.width = width end
+        function value:SetParent(parent) self.parent = parent end
+        function value:CreateAnimationGroup() return group() end
+        function value:ClearAllPoints() self.points = {} end
         function value:SetPoint(...)
             local points = rawget(self, "points") or {}
             points[#points + 1] = { ... }
             self.points = points
         end
-        function value:ClearAllPoints() self.points = {} end
+        return value
+    end
+    local function region(value)
+        common(value)
+        function value:SetTexture(texture) self.texture = texture end
+        function value:SetVertexColor(...) self.color = { ... } end
+        function value:SetTextColor(...) self.color = { ... } end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
-        function value:SetShown(shown) self.shown = shown == true end
-        function value:SetHeight(height) self.height = height end
-        function value:SetWidth(width) self.width = width end
+        function value:SetJustifyH(justify) self.justify = justify end
         return value
     end
     CreateFrame = function(kind, name, parent, template)
@@ -28,12 +45,15 @@ return function(check)
         setmetatable(frame, { __index = function(t, key)
             if key:match("^[A-Z]") then return methods(t, key) end
         end })
-        function frame:SetAlpha(alpha) self.alpha = alpha end
-        function frame:SetPoint(...) self.point = { ... } end
+        common(frame)
         function frame:GetParent() return self.parent end
         function frame:GetEffectiveScale() return 2 end
         function frame:GetFrameLevel() return rawget(self, "level") or 1 end
         function frame:SetFrameLevel(level) self.level = level end
+        function frame:SetStatusBarTexture(texture) self.barTexture = texture end
+        function frame:SetStatusBarColor(r, g, b) self.barColor = { r, g, b } end
+        function frame:SetMinMaxValues(low, high) self.range = { low, high } end
+        function frame:SetValue(value, easing) self.value, self.easing = value, easing end
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
@@ -45,26 +65,44 @@ return function(check)
         end
         return false
     end
-    -- Blizzard's layout pass puts the atlases back, as NamePlateUnitFrameMixin:UpdateAnchors does.
+    local function toggled(texture)
+        texture.shown = false
+        function texture:Hide() self.shown = false end
+        function texture:IsShown() return self.shown end
+        return texture
+    end
+    local function castBar(frame)
+        frame.CastBarsContainer = CreateFrame("Frame", nil, frame)
+        local bar = CreateFrame("StatusBar", nil, frame.CastBarsContainer)
+        bar.Border, bar.BorderShield, bar.Background, bar.Icon = bar:CreateTexture(), bar:CreateTexture(),
+            bar:CreateTexture(), bar:CreateTexture()
+        bar.Text, bar.CastTargetNameText = bar:CreateFontString(), bar:CreateFontString()
+        frame.CastBarsContainer.castBar = bar
+    end
+    -- Blizzard's layout pass puts the atlases, fonts and anchors back, as UpdateAnchors does.
     local function unitFrame()
         local frame = CreateFrame("Button", nil, UIParent)
         frame.HealthBarsContainer = CreateFrame("Frame", nil, frame)
         local bar = CreateFrame("StatusBar", nil, frame.HealthBarsContainer)
         bar.barTexture, bar.bgTexture = bar:CreateTexture(), bar:CreateTexture()
-        bar.selectedBorder = bar:CreateTexture()
-        bar.selectedBorder.shown = false
-        function bar.selectedBorder:Hide() self.shown = false end
-        function bar.selectedBorder:IsShown() return self.shown end
+        bar.selectedBorder = toggled(bar:CreateTexture())
+        bar.Text, bar.LeftText, bar.RightText = bar:CreateFontString(), bar:CreateFontString(), bar:CreateFontString()
         frame.HealthBarsContainer.healthBar = bar
         frame.name = frame:CreateFontString()
-        frame.PlayerLevelDiffFrame = CreateFrame("Frame", nil, frame)
-        frame.PlayerLevelDiffFrame.playerLevelDiffText = frame.PlayerLevelDiffFrame:CreateFontString()
-        frame.PlayerLevelDiffFrame.playerLevelDiffIcon = frame.PlayerLevelDiffFrame:CreateTexture()
-        frame.PlayerLevelDiffFrame.selectedBorder = frame.PlayerLevelDiffFrame:CreateTexture()
+        local level = CreateFrame("Frame", nil, frame)
+        level.playerLevelDiffText, level.playerLevelDiffIcon = level:CreateFontString(), level:CreateTexture()
+        level.selectedBorder = level:CreateTexture()
+        frame.PlayerLevelDiffFrame = level
         frame.AurasFrame = CreateFrame("Frame", nil, frame)
         frame.AurasFrame.DebuffListFrame = CreateFrame("Frame", nil, frame.AurasFrame)
+        castBar(frame)
+        frame.aggroHighlight = toggled(frame:CreateTexture())
+        frame.aggroHighlightTextures = { frame:CreateTexture(), frame:CreateTexture() }
+        frame.aggroHighlightTextures[1].texture = "flare"
+        function frame:UpdateAggroHighlight() end
+        function frame:IsShowOnlyName() return self.nameOnly == true end
         function frame:UpdateAnchors()
-            bar.barTexture.texture, bar.bgTexture.texture, self.name.fontPath = "atlas-bar", "atlas-bg", "stock-font"
+            bar.bgTexture.texture, self.name.fontPath, self.HealthBarsContainer.height = "atlas-bg", "stock-font", 8
         end
         return frame
     end
@@ -74,85 +112,161 @@ return function(check)
         stub.plates[unit] = result
         return result
     end
+    local function installCVars()
+        stub.cvars = { nameplateSelectedScale = "1", nameplateNotSelectedAlpha = "1", nameplateInfoDisplay = "0" }
+        stub.bits = {}
+        C_CVar = {
+            GetCVarInfo = function(name) return stub.cvars[name] end,
+            GetCVar = function(name) return stub.cvars[name] end,
+            SetCVar = function(name, value)
+                assert(not InCombatLockdown(), "CVar written in combat")
+                stub.cvars[name] = value
+            end,
+            SetCVarBitfield = function(name, index, value) stub.bits[name .. ":" .. index] = value end,
+        }
+        Enum.NamePlateInfoDisplay = { CurrentHealthPercent = 1 }
+    end
     local function load(profile, combat, missingContainer)
-        env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
+        env.frames, env.printed, env.inCombat, env.hooks = {}, {}, combat == true, {}
         env.auraContainerMissing = missingContainer == true
-        stub.plates = {}
+        stub.plates, stub.classification = {}, "normal"
         C_NamePlate = { GetNamePlateForUnit = function(unit) return stub.plates[unit] end }
+        PixelUtil = { GetNearestPixelSize = function(size, scale) return size / scale end }
+        UnitClassification = function() return stub.classification end
+        installCVars()
         profile = profile or {}
         profile.modules = profile.modules or {}
         profile.modules.unitframes, profile.modules.auras, profile.modules.unitauras = false, false, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
-            "unitframes.lua", "unitframes-status.lua", "auras.lua", "auras-button.lua", "nameplates.lua" }) do
+            "unitframes.lua", "unitframes-status.lua", "auras.lua", "auras-button.lua", "nameplates.lua",
+            "nameplates-skin.lua", "nameplates-target.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
         env.fire("PLAYER_LOGIN")
-        env.inCombat = combat == true
         return RikUI.Nameplates
     end
     local ok, reason = pcall(function()
         local module = load()
         local media = RikUI.Media
+        check("the client's target scale, non-target alpha and health percent are switched on",
+            stub.cvars.nameplateSelectedScale == "1.15" and stub.cvars.nameplateNotSelectedAlpha == "0.6"
+            and stub.bits["nameplateInfoDisplay:1"] == true)
+        check("the original settings are kept in the profile", RikUI.Profile.nameplateCVars.nameplateSelectedScale == "1"
+            and RikUI.Profile.nameplateCVars.nameplateInfoDisplay == "0")
+
+        stub.classification = "elite"
         local first = plate("nameplate1")
         local frame, bar = first.UnitFrame, first.UnitFrame.HealthBarsContainer.healthBar
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
-        check("an added plate gets the RikUI bar texture and a flat dark backing", bar.barTexture.texture == media.statusbar
-            and bar.bgTexture.texture == "Interface\\BUTTONS\\WHITE8X8" and bar.bgTexture.color[1] < 0.2
-            and #bar.bgTexture.points == 2)
-        check("the name and level text take the RikUI font", frame.name.fontPath == media.font
-            and frame.PlayerLevelDiffFrame.playerLevelDiffText.fontPath == media.font)
-        check("Blizzard's selection art is faded and the flat highlight starts hidden", bar.selectedBorder.alpha == 0
-            and #bar.rikHighlight == 4 and bar.rikHighlight[1].shown == false)
-        check("borders are one screen pixel at the plate's scale", bar.rikHighlight[1].height == 0.5
-            and bar.rikHighlight[3].width == 0.5 and bar.bgTexture.points[1][4] == -0.5
-            and frame.PlayerLevelDiffFrame.rikBorder[2].height == 0.5)
+        local parts = module.Parts[frame]
+        local own = parts.bar
+        check("the plate gets an own bar over Blizzard's with the RikUI texture and Blizzard's fill faded",
+            own.parent == bar and own.barTexture == media.statusbar and bar.barTexture.alpha == 0)
+        check("the bar is 14 high on a flat one-pixel backing", frame.HealthBarsContainer.height == 14
+            and bar.bgTexture.texture == "Interface\\BUTTONS\\WHITE8X8" and bar.bgTexture.points[1][4] == -0.5)
+        check("health reaches the own bar as a secret without easing on the first fill", own.value == 42
+            and own.range[2] == 100 and own.easing == Enum.StatusBarInterpolation.Immediate)
+        check("the bar takes the unit's reaction or class colour", type(own.barColor) == "table" and #own.barColor == 3)
+        check("the name sits left inside the bar in the RikUI font", frame.name.parent == own
+            and frame.name.fontPath == media.font and frame.name.justify == "LEFT"
+            and frame.name.points[1][1] == "LEFT" and frame.name.points[1][2] == own
+            and frame.name.points[2][2] == bar.LeftText)
+        check("Blizzard's health percent moves to the right inside the bar", bar.LeftText.parent == own
+            and bar.LeftText.fontPath == media.font and bar.LeftText.points[1][1] == "RIGHT"
+            and bar.LeftText.points[1][2] == own)
+        check("an elite gets a gold marker left of the bar", own.marker.text == "+" and own.marker.color[2] > 0.8
+            and own.marker.points[1][3] == "LEFT")
+        check("an added plate fades in", parts.fade.plays == 1)
+
         local level = frame.PlayerLevelDiffFrame
-        check("the level badge loses its art and gets the flat border", level.playerLevelDiffIcon.alpha == 0
-            and level.selectedBorder.alpha == 0 and #level.rikBorder == 4)
-        local box, number = level.rikBacking, level.playerLevelDiffText
-        check("the level box takes the bar's height and centres the number", #box.points == 4
-            and box.points[3][1] == "TOP" and box.points[3][2] == bar and box.points[3][5] == 0.5
-            and box.points[4][1] == "BOTTOM" and box.points[4][2] == bar
-            and number.points[1][1] == "CENTER" and number.points[1][2] == box)
-        check("the target border sits on the backing's outer edge", bar.rikHighlight[1].points[1][2] == bar.bgTexture)
+        check("the level box takes the bar's height, loses Blizzard's art and centres the number",
+            level.playerLevelDiffIcon.alpha == 0 and level.selectedBorder.alpha == 0 and #parts.levelBox.points == 4
+            and parts.levelBox.points[3][2] == bar and parts.levelBorder[1].height == 0.5
+            and level.playerLevelDiffText.points[1][2] == parts.levelBox)
+
+        env.fire("UNIT_HEALTH", "nameplate1")
+        check("a health event eases the bar and flashes it", own.easing == Enum.StatusBarInterpolation.ExponentialEaseOut
+            and own.flashAnim.plays == 1 and own.flash.alpha == 0)
+        env.fire("UNIT_MAXHEALTH", "nameplate1")
+        check("a maximum health event refills without a flash", own.flashAnim.plays == 1)
+        env.fire("UNIT_HEALTH", "nameplate9")
+        env.fire("UNIT_HEALTH", env.SECRET)
+        check("health events for other or secret tokens are ignored", own.flashAnim.plays == 1 and #env.printed == 0)
+        stub.classification = "rare"
+        env.fire("UNIT_CLASSIFICATION_CHANGED", "nameplate1")
+        check("a classification change updates the marker", own.marker.text == "R")
+        stub.classification = env.SECRET
+        env.fire("UNIT_CLASSIFICATION_CHANGED", "nameplate1")
+        check("a secret classification clears the marker without printing", own.marker.text == "" and #env.printed == 0)
+
+        check("Blizzard's selection art is faded and the target indicators start hidden", bar.selectedBorder.alpha == 0
+            and parts.arrowLeft.shown == false and parts.arrowRight.shown == false and parts.accent.shown == false)
         bar.selectedBorder:SetShown(true)
-        check("the highlight follows Blizzard showing its selection border", bar.rikHighlight[1].shown == true
-            and bar.rikHighlight[4].shown == true)
+        check("Blizzard selecting the plate shows the arrows and the pulsing accent line", parts.arrowLeft.shown
+            and parts.arrowRight.shown and parts.accent.shown and parts.accentPulse.playing
+            and parts.accentPulse.looping == "BOUNCE" and parts.arrowLeft.appear.plays == 1)
+        bar.selectedBorder:SetShown(true)
+        check("a repeated selection does not restart the animations", parts.arrowLeft.appear.plays == 1)
         bar.selectedBorder:Hide()
-        check("the highlight follows Blizzard hiding it", bar.rikHighlight[1].shown == false)
+        check("deselecting hides them and stops the pulse", parts.arrowLeft.shown == false
+            and parts.accent.shown == false and parts.accentPulse.playing == false)
+        check("arrows flank the marker and the level box; the accent line runs under the backing",
+            parts.arrowLeft.points[1][2] == own.marker and parts.arrowRight.points[1][2] == parts.levelBox
+            and parts.accent.points[1][2] == bar.bgTexture and parts.accent.points[1][3] == "BOTTOMLEFT"
+            and parts.accent.height == 1)
+
+        check("Blizzard's aggro flare art is blanked and the threat line starts hidden",
+            rawget(frame.aggroHighlightTextures[1], "texture") == nil and parts.threat.shown == false)
+        frame.aggroHighlight.shown = true
+        frame:UpdateAggroHighlight()
+        check("the threat line follows Blizzard's aggro state", parts.threat.shown == true
+            and parts.threat.color[1] == 1 and parts.threat.points[1][3] == "TOPLEFT")
+        frame.aggroHighlight.shown = false
+        frame:UpdateAggroHighlight()
+        check("and hides with it", parts.threat.shown == false)
+
+        local cast = frame.CastBarsContainer.castBar
+        check("the cast bar goes flat with its fill left to Blizzard", cast.Border.alpha == 0
+            and cast.Background.texture == "Interface\\BUTTONS\\WHITE8X8" and cast.Text.fontPath == media.font
+            and #parts.castBorder == 4 and rawget(cast, "barTexture") == nil)
+
         frame:UpdateAnchors()
-        check("the skin is reapplied after Blizzard's layout pass", bar.barTexture.texture == media.statusbar
+        check("the layout is reapplied after Blizzard's layout pass", frame.HealthBarsContainer.height == 14
             and bar.bgTexture.texture == "Interface\\BUTTONS\\WHITE8X8" and frame.name.fontPath == media.font)
+        frame.nameOnly = true
+        frame:UpdateAnchors()
+        check("a name-only plate gets its name back on the unit frame", frame.name.parent == frame)
+        frame.nameOnly = false
+        frame:UpdateAnchors()
 
         local container = module.Containers[frame]
-        check("the plate gets an own-debuff container on its unit above the name", container ~= nil
-            and container.unit == "nameplate1" and container.groups.owndebuffs.filter == "HARMFUL|PLAYER"
-            and container.parent == frame and container.point[1] == "BOTTOM" and container.point[2] == frame.name
-            and container.point[3] == "TOP" and container.point[5] > 0)
-        check("Blizzard's debuff list is faded once the container exists", frame.AurasFrame.DebuffListFrame.alpha == 0)
+        check("own debuffs sit in a container above the bar", container ~= nil and container.unit == "nameplate1"
+            and container.groups.owndebuffs.filter == "HARMFUL|PLAYER" and container.points[1][1] == "BOTTOM"
+            and container.points[1][2] == frame.HealthBarsContainer and container.points[1][3] == "TOP"
+            and frame.AurasFrame.DebuffListFrame.alpha == 0)
         local hooks, updates = #env.hooks, container.updates
         env.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
         check("a removed plate hides its container", container:IsShown() == false and module.Active.nameplate1 == nil)
         stub.plates.nameplate7, stub.plates.nameplate1 = first, nil
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
-        check("a pooled frame is reused without new hooks and its container moves to the new token", #env.hooks == hooks
-            and module.Containers[frame] == container and container.unit == "nameplate7" and container:IsShown()
-            and container.updates == updates + 1)
+        check("a pooled frame is reused without new hooks or parts and fades in again", #env.hooks == hooks
+            and module.Parts[frame] == parts and container.unit == "nameplate7" and container.updates == updates + 1
+            and parts.fade.plays == 2 and own.easing == Enum.StatusBarInterpolation.Immediate)
 
         local forbidden = plate("nameplate2", true)
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
-        check("a forbidden plate is never touched", rawget(forbidden.UnitFrame.HealthBarsContainer.healthBar.barTexture, "texture") == nil
-            and module.Containers[forbidden.UnitFrame] == nil)
-        env.fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
-        env.fire("NAME_PLATE_UNIT_ADDED", env.SECRET)
-        check("an unknown or secret token is ignored without printing", #env.printed == 0)
+        check("a forbidden plate is never touched", module.Parts[forbidden.UnitFrame] == nil
+            and rawget(forbidden.UnitFrame.HealthBarsContainer.healthBar.barTexture, "alpha") == nil)
         local bare = plate("nameplate4")
-        bare.UnitFrame.PlayerLevelDiffFrame, bare.UnitFrame.AurasFrame = nil, nil
+        bare.UnitFrame.PlayerLevelDiffFrame, bare.UnitFrame.AurasFrame, bare.UnitFrame.CastBarsContainer = nil, nil, nil
+        bare.UnitFrame.aggroHighlight, bare.UnitFrame.HealthBarsContainer.healthBar.LeftText = nil, nil
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate4")
-        check("a plate without a level frame or aura frame is still skinned",
-            bare.UnitFrame.HealthBarsContainer.healthBar.barTexture.texture == media.statusbar and #env.printed == 0)
+        local bareParts = module.Parts[bare.UnitFrame]
+        check("a plate without level, cast, aura, aggro or percent regions is still laid out", bareParts ~= nil
+            and bareParts.arrowRight.points[1][2] == bareParts.bar and bare.UnitFrame.name.points[2][2] == bareParts.bar
+            and #env.printed == 0)
 
         env.printed = {}
         SlashCmdList.RIKUI("debug")
@@ -160,16 +274,15 @@ return function(check)
             printedContains("Nameplates skinned=2 active=2 containers=2"))
 
         module = load(nil, true)
+        check("a combat login leaves the client settings alone", stub.cvars.nameplateSelectedScale == "1")
         local fighting = plate("nameplate1")
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
-        check("a plate added in combat is skinned but gets no container yet",
-            fighting.UnitFrame.HealthBarsContainer.healthBar.barTexture.texture == RikUI.Media.statusbar
-            and module.Containers[fighting.UnitFrame] == nil
-            and rawget(fighting.UnitFrame.AurasFrame.DebuffListFrame, "alpha") == nil)
+        check("a plate added in combat is laid out but gets no container yet", module.Parts[fighting.UnitFrame] ~= nil
+            and module.Containers[fighting.UnitFrame] == nil)
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
-        check("leaving combat gives active plates their containers", module.Containers[fighting.UnitFrame] ~= nil
-            and module.Containers[fighting.UnitFrame].unit == "nameplate1")
+        check("leaving combat writes the settings and gives active plates their containers",
+            stub.cvars.nameplateSelectedScale == "1.15" and module.Containers[fighting.UnitFrame] ~= nil)
 
         module = load(nil, false, true)
         local plain = plate("nameplate1")
@@ -180,14 +293,16 @@ return function(check)
             module.Containers[plain.UnitFrame] == nil and rawget(plain.UnitFrame.AurasFrame.DebuffListFrame, "alpha") == nil
             and printedContains("Auras container") and #env.printed == 1)
 
-        module = load({ modules = { nameplates = false } })
+        module = load({ modules = { nameplates = false }, nameplateCVars = { nameplateSelectedScale = "1.3" } })
         local stock = plate("nameplate1")
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
-        check("a disabled module leaves the stock plates alone",
-            rawget(stock.UnitFrame.HealthBarsContainer.healthBar.barTexture, "texture") == nil and #env.hooks == 0)
+        check("a disabled module leaves the stock plates alone and hands the saved settings back",
+            module.Parts[stock.UnitFrame] == nil and #env.hooks == 0 and stub.cvars.nameplateSelectedScale == "1.3"
+            and stub.cvars.nameplateNotSelectedAlpha == "1" and RikUI.Profile.nameplateCVars == nil)
     end)
     CreateFrame = originalCreate
-    C_NamePlate, PixelUtil = savedNamePlate, savedPixelUtil
+    C_CVar, Enum.NamePlateInfoDisplay = savedCVar, savedInfoEnum
+    for _, name in ipairs(API) do _G[name] = saved[name] end
     env.inCombat, env.auraContainerMissing = false, false
     check("nameplate suite completes", ok, reason)
 end
