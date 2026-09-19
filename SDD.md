@@ -161,7 +161,10 @@ assign and lay out auras in secure code and drive RikUI-supplied regions
 through the `CustomAuraButton` API (`SetIcon`, `SetApplicationCount`,
 `SetDurationCooldown`, `AddDispelTypeTexture`); own versus other casters is a
 filter string (`HARMFUL|PLAYER`, `HARMFUL|!PLAYER`); see
-[auras](docs/auras.md).
+[auras](docs/auras.md). Tooltips never read health either: the bar under a
+unit tooltip is Blizzard's GUID-watched `GameTooltip.StatusBar`, whose
+`SetWatch` the source marks safe for tainted callers, tinted with the unit
+frame colour; see [tooltips](docs/tooltip.md).
 
 Consequence for action buttons, decided: **we draw button state ourselves and do
 not inherit `ActionBarButtonTemplate`.** Reason: the two things you branch on,
@@ -482,7 +485,7 @@ load order:
 | `minimap.lua` | square minimap, clock, coords, tracking, zone text, hide Blizzard buttons |
 | `chat.lua` | font, timestamps, copy button, URL detection, hide the side buttons |
 | `bags.lua` | one-bag view with sort and search |
-| `tooltip.lua` | reposition, class colours, item level, spell ID line |
+| `tooltip.lua`, `tooltip-data.lua` | movable anchor, flat skin and font, class/reaction colours, Blizzard's GUID-watched health bar, item level and spell ID lines, hide in combat (delivered) |
 | `micromenu.lua` | flat micro menu and bag slot strip, hide MicroMenu and BagsBar |
 | `xpbar.lua` | experience and reputation bar with rested segment, hide the tracking bars |
 | `nameplates.lua` | flat restyle of Blizzard nameplates with an own-debuff aura container |
@@ -623,6 +626,7 @@ RikUI/
   chat.lua
   bags.lua
   tooltip.lua
+  tooltip-data.lua
   wizard.lua
   options.lua
   importexport.lua

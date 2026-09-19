@@ -222,6 +222,8 @@ local auraOk, auraErr = pcall(function() dofile("tests/auras.test.lua")(check) e
 check("Aura test suite completes", auraOk, auraErr)
 local unitAuraOk, unitAuraErr = pcall(function() dofile("tests/auras-units.test.lua")(check) end)
 check("Unit aura test suite completes", unitAuraOk, unitAuraErr)
+local tooltipOk, tooltipErr = pcall(function() dofile("tests/tooltip.test.lua")(check) end)
+check("Tooltip test suite completes", tooltipOk, tooltipErr)
 
 -- report
 if #failures == 0 then

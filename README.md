@@ -46,12 +46,19 @@ and other casters' smaller and dimmer, with the target's buffs on the line
 above. The pet frame gets a debuff row the same way. Disable the `unitauras`
 module to drop them.
 
+Tooltips sit bottom right in a flat box with the RikUI font. Unit names are
+class or reaction coloured with the guild line in light blue, the health bar
+under them is Blizzard's own secret-safe bar in RikUI's skin, item tooltips
+end with the item level and spell tooltips with the spell ID. The Tooltips
+options page can hide unit tooltips in combat. Disable the `tooltip` module
+to get the stock tooltips back. See [tooltips](docs/tooltip.md).
+
 Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [setup](docs/setup.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

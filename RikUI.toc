@@ -44,6 +44,7 @@ minimap.lua
 chat.lua
 bags.lua
 tooltip.lua
+tooltip-data.lua
 wizard.lua
 options-widgets.lua
 options-controls.lua

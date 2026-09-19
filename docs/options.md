@@ -7,7 +7,7 @@ If the client has no Settings API, the panel opens as a standalone window
 with a close button instead.
 
 Tabs run across the top: General, one tab per module that declares options
-(currently Bars and layout), and Profiles. Controls use the shared font and
+(currently Bars and layout, and Tooltips with its hide-in-combat toggle), and Profiles. Controls use the shared font and
 textures. Disabled controls are dimmed and ignore input.
 
 Keyboard: Tab or Down moves to the next control, Up or Shift-Tab moves back,

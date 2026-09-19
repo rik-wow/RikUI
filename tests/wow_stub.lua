@@ -264,5 +264,6 @@ C_AddOns = { GetAddOnMetadata = function() return "dev" end }
 local function noopObject() return setmetatable({}, { __index = function() return function() end end }) end
 C_DurationUtil = { CreateDuration = noopObject, CreateDurationTextBinding = noopObject }
 C_StringUtil = { CreateSecondsFormatter = noopObject }
+require("tooltip_stub").install(env) -- GameTooltip, its health bar, anchor/backdrop functions, TooltipDataProcessor
 
 return env
