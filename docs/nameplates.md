@@ -11,8 +11,12 @@ look back.
 The health bar uses the RikUI statusbar texture on a flat dark backing that
 shows as a one-pixel border. The bar's fill and colour are Blizzard's: reaction
 colour for mobs and class colour for players when the client's class-colour
-setting is on. The name and the level number use the RikUI font. Your target
-and focus get a one-pixel white border in place of Blizzard's glow. Your own
+setting is on. The name and the level number use the RikUI font. The level
+badge loses its gold frame for a flat dark box with the same border; the number
+keeps Blizzard's difficulty colour and the skull for high-level units stays.
+Your target and focus get a white border in place of Blizzard's glow. Borders
+are sized with `PixelUtil.GetNearestPixelSize` against the plate's effective
+scale on every layout pass, so they stay one screen pixel. Your own
 debuffs sit in a centred row of up to six 18px icons above the name, with the
 same countdown numbers and dispel-coloured borders as the
 [target aura row](auras.md).
@@ -58,9 +62,8 @@ container you keep the stock debuff icons. A refusal prints one
 
 ## Not covered
 
-The cast bar, classification icon, raid target icon, aggro flare, the
-level-difference badge art and the dimming overlay on non-targets are left
-stock. There is no plate resizing and no threat colouring.
+The cast bar, classification icon, raid target icon, aggro flare and the
+dimming overlay on non-targets are left stock. There is no plate resizing and no threat colouring.
 
 ## Diagnostics
 

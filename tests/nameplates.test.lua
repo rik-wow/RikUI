@@ -3,7 +3,8 @@
 return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
-    local savedNamePlate = C_NamePlate
+    local savedNamePlate, savedPixelUtil = C_NamePlate, PixelUtil
+    PixelUtil = { GetNearestPixelSize = function(size, scale) return size / scale end }
     local stub = {}
     local function region(value)
         function value:SetTexture(texture) self.texture = texture end
@@ -17,6 +18,8 @@ return function(check)
         function value:ClearAllPoints() self.points = {} end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         function value:SetShown(shown) self.shown = shown == true end
+        function value:SetHeight(height) self.height = height end
+        function value:SetWidth(width) self.width = width end
         return value
     end
     CreateFrame = function(kind, name, parent, template)
@@ -28,6 +31,7 @@ return function(check)
         function frame:SetAlpha(alpha) self.alpha = alpha end
         function frame:SetPoint(...) self.point = { ... } end
         function frame:GetParent() return self.parent end
+        function frame:GetEffectiveScale() return 2 end
         function frame:GetFrameLevel() return rawget(self, "level") or 1 end
         function frame:SetFrameLevel(level) self.level = level end
         local texture, font = frame.CreateTexture, frame.CreateFontString
@@ -55,6 +59,8 @@ return function(check)
         frame.name = frame:CreateFontString()
         frame.PlayerLevelDiffFrame = CreateFrame("Frame", nil, frame)
         frame.PlayerLevelDiffFrame.playerLevelDiffText = frame.PlayerLevelDiffFrame:CreateFontString()
+        frame.PlayerLevelDiffFrame.playerLevelDiffIcon = frame.PlayerLevelDiffFrame:CreateTexture()
+        frame.PlayerLevelDiffFrame.selectedBorder = frame.PlayerLevelDiffFrame:CreateTexture()
         frame.AurasFrame = CreateFrame("Frame", nil, frame)
         frame.AurasFrame.DebuffListFrame = CreateFrame("Frame", nil, frame.AurasFrame)
         function frame:UpdateAnchors()
@@ -99,6 +105,12 @@ return function(check)
             and frame.PlayerLevelDiffFrame.playerLevelDiffText.fontPath == media.font)
         check("Blizzard's selection art is faded and the flat highlight starts hidden", bar.selectedBorder.alpha == 0
             and #bar.rikHighlight == 4 and bar.rikHighlight[1].shown == false)
+        check("borders are one screen pixel at the plate's scale", bar.rikHighlight[1].height == 0.5
+            and bar.rikHighlight[3].width == 0.5 and bar.bgTexture.points[1][4] == -0.5
+            and frame.PlayerLevelDiffFrame.rikBorder[2].height == 0.5)
+        local level = frame.PlayerLevelDiffFrame
+        check("the level badge loses its art and gets the flat border", level.playerLevelDiffIcon.alpha == 0
+            and level.selectedBorder.alpha == 0 and #level.rikBorder == 4)
         bar.selectedBorder:SetShown(true)
         check("the highlight follows Blizzard showing its selection border", bar.rikHighlight[1].shown == true
             and bar.rikHighlight[4].shown == true)
@@ -169,7 +181,7 @@ return function(check)
             rawget(stock.UnitFrame.HealthBarsContainer.healthBar.barTexture, "texture") == nil and #env.hooks == 0)
     end)
     CreateFrame = originalCreate
-    C_NamePlate = savedNamePlate
+    C_NamePlate, PixelUtil = savedNamePlate, savedPixelUtil
     env.inCombat, env.auraContainerMissing = false, false
     check("nameplate suite completes", ok, reason)
 end

@@ -9,6 +9,7 @@ core.Nameplates = nameplates
 
 local FLAT, EDGE = "Interface\\BUTTONS\\WHITE8X8", 1
 local BACKING, HIGHLIGHT = { 0.06, 0.07, 0.09, 0.9 }, { 1, 1, 1, 1 }
+local LEVEL_ART, LEVEL_BORDER = { "playerLevelDiffIcon", "selectedBorder" }, { 0.25, 0.28, 0.32, 1 }
 local AURA_SIZE, AURA_MAX, AURA_LINE, AURA_GAP = 18, 6, 140, 2
 local AURA_GROUP, AURA_FILTER = "owndebuffs", "HARMFUL|PLAYER"
 local FLOW = { anchor = "BOTTOMLEFT", horizontal = "Right", vertical = "Up", lineSize = AURA_LINE }
@@ -19,6 +20,22 @@ local function isRegion(value)
     return (kind == "table" or kind == "userdata") and type(value.SetAlpha) == "function"
 end
 
+-- Plates carry their own scale, so a fixed thickness of 1 draws two screen pixels or more.
+local function pixel(frame)
+    if type(PixelUtil) ~= "table" or type(PixelUtil.GetNearestPixelSize) ~= "function" then return EDGE end
+    local ok, size = pcall(PixelUtil.GetNearestPixelSize, 1, frame:GetEffectiveScale(), 1)
+    if ok and type(size) == "number" and size > 0 then return size end
+    return EDGE
+end
+
+-- unitframes.Edges order: top, bottom, left, right.
+local function resize(lines, size)
+    if type(lines) ~= "table" then return end
+    for index, line in ipairs(lines) do
+        if index <= 2 then line:SetHeight(size) else line:SetWidth(size) end
+    end
+end
+
 local function font(region, role)
     if isRegion(region) then region:SetFont(media.font, media.sizes[role], "OUTLINE") end
 end
@@ -26,16 +43,36 @@ end
 -- Everything Blizzard's layout pass resets.
 local function applySkin(frame)
     local bar = frame.HealthBarsContainer.healthBar
+    local size = pixel(bar)
     bar.barTexture:SetTexture(media.statusbar)
     local backing = bar.bgTexture
     backing:SetTexture(FLAT)
     backing:SetVertexColor(unpack(BACKING))
     backing:ClearAllPoints()
-    backing:SetPoint("TOPLEFT", bar, "TOPLEFT", -EDGE, EDGE)
-    backing:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", EDGE, -EDGE)
+    backing:SetPoint("TOPLEFT", bar, "TOPLEFT", -size, size)
+    backing:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", size, -size)
+    resize(bar.rikHighlight, size)
     font(frame.name, "small")
     local level = frame.PlayerLevelDiffFrame
-    if isRegion(level) then font(level.playerLevelDiffText, "small") end
+    if isRegion(level) then
+        font(level.playerLevelDiffText, "small")
+        resize(level.rikBorder, size)
+    end
+end
+
+-- The level badge loses its gold frame and selection glow; the number keeps Blizzard's
+-- difficulty colour and the skull for high-level units stays.
+local function skinLevel(level)
+    if not isRegion(level) then return end
+    for _, key in ipairs(LEVEL_ART) do
+        if isRegion(level[key]) then level[key]:SetAlpha(0) end
+    end
+    local backing = level:CreateTexture(nil, "BACKGROUND")
+    backing:SetAllPoints(level)
+    backing:SetTexture(FLAT)
+    backing:SetVertexColor(unpack(BACKING))
+    level.rikBorder = unitframes.Edges(level, EDGE, "BORDER")
+    for _, line in ipairs(level.rikBorder) do line:SetVertexColor(unpack(LEVEL_BORDER)) end
 end
 
 -- Blizzard decides target and focus and shows its selection art; the flat border copies that state.
@@ -54,10 +91,11 @@ local function followSelection(bar)
 end
 
 local function skin(frame)
-    applySkin(frame)
-    if skinned[frame] then return end
+    if skinned[frame] then applySkin(frame) return end
     skinned[frame], skinnedCount = true, skinnedCount + 1
     followSelection(frame.HealthBarsContainer.healthBar)
+    skinLevel(frame.PlayerLevelDiffFrame)
+    applySkin(frame)
     hooksecurefunc(frame, "UpdateAnchors", applySkin)
 end
 
