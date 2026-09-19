@@ -86,7 +86,15 @@ icons. `PartyFrame` and `CompactPartyFrame` (the raid-style party option) are
 parked through `RikUI.Hide.Frame(frame, false)` once the RikUI frames exist,
 and rechecked on roster updates and `PLAYER_ENTERING_WORLD`.
 
-`tests/unitframes-party.test.lua` covers the build, attributes, drivers,
+To look at the frames solo, run `/rik party test` out of combat. All four
+frames take the `player` unit and a forced-show driver, so the bars, name,
+clicks, tooltip and `/rik move` work with real data. The first frame shows
+the leader icon and the last one the 0.45 fade as previews, since you are
+never your own leader or out of your own range. Run it again to restore the
+`partyN` units and the real drivers; a reload also leaves test mode. It
+cannot exercise the raid condition, roster events or real range results.
+
+`tests/unitframes-party.test.lua` covers the test mode toggle and the build, attributes, drivers,
 layout default, stacking, sinks, leader and role in readable and secret form,
 the four range cases, the poll interval, roster and leader events, threat,
 zero protected writes in combat, parking, combat login, the disabled module

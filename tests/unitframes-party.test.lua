@@ -241,6 +241,31 @@ return function(check)
         check("the core unit frames still build and park", module.Frames.player ~= nil
             and PlayerFrame.parent == RikUIHiddenFrames)
 
+        env.inCombat, env.printed = true, {}
+        SlashCmdList.RIKUI("party test")
+        check("test mode is refused in combat", party.Testing ~= true and four.unit == "party4"
+            and printedContains("combat"))
+        env.inCombat, env.printed = false, {}
+        SlashCmdList.RIKUI("party test")
+        check("test mode points every frame at the player and forces it shown", party.Testing == true
+            and one.unit == "player" and four:GetAttribute("unit") == "player" and drivers[three] == "show"
+            and three.name.text == "Probey" and color(four.health.color, RAID_CLASS_COLORS.WARRIOR)
+            and printedContains("test mode on"))
+        env.runScript(holder, "OnUpdate", 0.6)
+        check("test mode previews the leader icon first and the fade last", one.leader.shown == true
+            and two.leader.shown == false and four.alpha == party.FadeAlpha and one.alpha == 1)
+        units.player.name = "Renamed"
+        env.fire("UNIT_NAME_UPDATE", "player")
+        check("player events refresh the test frames", two.name.text == "Renamed")
+        SlashCmdList.RIKUI("party test")
+        check("toggling again restores party units and drivers", party.Testing == false
+            and four.unit == "party4" and four:GetAttribute("unit") == "party4"
+            and drivers[four] == "[group:raid] hide; [@party4,exists] show; hide"
+            and two.name.text == "Tanky" and four.alpha == 1 and one.leader.shown == false)
+        env.printed = {}
+        SlashCmdList.RIKUI("party nonsense")
+        check("other arguments print usage", printedContains("Usage: /rik party test"))
+
         fixture()
         module = load(nil, true)
         check("combat login defers party frames and stock parking", module.Party.Holder == nil
@@ -252,6 +277,10 @@ return function(check)
         module = load({ modules = { unitframes = false } })
         check("disabled module builds nothing and leaves the stock party frame", #module.Party.Frames == 0
             and PartyFrame.parent == UIParent)
+        env.printed = {}
+        SlashCmdList.RIKUI("party test")
+        check("test mode is refused while the frames are not built", module.Party.Testing ~= true
+            and printedContains("not built"))
         module = load(nil, false, true)
         check("missing stock party globals are tolerated", #module.Party.Frames == 4 and #env.printed == 0)
     end)

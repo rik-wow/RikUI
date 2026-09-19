@@ -9,6 +9,7 @@ local SIZE = { width = 150, height = 36, health = 22, power = 11, font = "small"
 local DEFAULT = { point = "LEFT", relativePoint = "LEFT", x = 20, y = 0 }
 local LAYOUT_KEY, HOLDER_NAME = "party", "RikUIParty"
 local VISIBILITY = "[group:raid] hide; [@%s,exists] show; hide"
+local TEST_UNIT, TEST_VISIBILITY = "player", "show"
 local STOCK_FRAMES = { "PartyFrame", "CompactPartyFrame" }
 local LEADER_TEXTURE, LEADER_SIZE, ICON_INSET = "Interface\\GroupFrame\\UI-Group-LeaderIcon", 12, 4
 local ROLE_LETTERS = { TANK = "T", HEALER = "H", DAMAGER = "D" }
@@ -40,6 +41,8 @@ local function applyRange(frame, inRange, checked)
 end
 
 function party.UpdateRange(frame)
+    -- Solo test mode previews the fade on the last frame; the player is never out of range.
+    if party.Testing then frame:SetAlpha(frame == party.Frames[MEMBERS] and party.FadeAlpha or 1); return end
     local ok, reason = core.Secret.Apply(function(inRange, checked) applyRange(frame, inRange, checked) end,
         UnitInRange, frame.unit)
     if ok then return end
@@ -48,6 +51,7 @@ function party.UpdateRange(frame)
 end
 
 local function updateLeader(frame)
+    if party.Testing then frame.leader:SetAlpha(1); frame.leader:SetShown(frame == party.Frames[1]); return end
     local ok, isLeader = core.Secret.Read(UnitIsGroupLeader, frame.unit)
     if not ok then warnOnce("leader", isLeader); frame.leader:Hide(); return end
     if core.Secret.IsSecret(isLeader) then
@@ -132,6 +136,35 @@ local function create()
     refresh()
     hideStock()
 end
+
+local function retarget(frame, unit, driver)
+    frame.unit, frame.threatArgs = unit, { unit }
+    frame:SetAttribute("unit", unit)
+    local ok, reason = pcall(RegisterStateDriver, frame, "visibility", driver)
+    if not ok then warnOnce("visibility unavailable", reason) end
+end
+
+-- Solo check of layout, clicks and sinks: every frame takes the player unit and stays shown.
+function party.SetTest(enabled)
+    if InCombatLockdown() then return nil, "Cannot switch party test mode in combat." end
+    if not party.Holder then return nil, "Party frames are not built; enable the unitframes module." end
+    party.Testing = enabled == true
+    for index, frame in ipairs(party.Frames) do
+        local unit = "party" .. index
+        if party.Testing then retarget(frame, TEST_UNIT, TEST_VISIBILITY)
+        else retarget(frame, unit, VISIBILITY:format(unit)) end
+    end
+    refresh()
+    return true
+end
+
+core:RegisterCommand("party", function(args)
+    if args:lower() ~= "test" then core:Print("Usage: /rik party test"); return end
+    local ok, reason = party.SetTest(not party.Testing)
+    if not ok then core:Print(reason); return end
+    core:Print(party.Testing and "Party test mode on: four frames show you. /rik party test again to leave."
+        or "Party test mode off.")
+end, "Show the party frames solo for testing: /rik party test")
 
 -- Called from the unitframes module's OnEnable; that module routes the unit events.
 function party.Enable()
