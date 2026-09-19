@@ -236,6 +236,8 @@ local microOk, microErr = pcall(function() dofile("tests/micromenu.test.lua")(ch
 check("Micro menu test suite completes", microOk, microErr)
 local lootOk, lootErr = pcall(function() dofile("tests/loot.test.lua")(check) end)
 check("Loot test suite completes", lootOk, lootErr)
+local plateOk, plateErr = pcall(function() dofile("tests/nameplates.test.lua")(check) end)
+check("Nameplate test suite completes", plateOk, plateErr)
 
 -- report
 if #failures == 0 then

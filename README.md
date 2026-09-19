@@ -78,6 +78,11 @@ name and stack size, click to loot, Escape to close. Auto-loot is untouched.
 The group roll frames get the same flat skin with need, greed and pass left
 alone. See [loot](docs/loot.md).
 
+Nameplates keep Blizzard's plates and get the flat skin: RikUI bar texture and
+font, a white border on your target and focus, and your own debuffs in a row
+under each plate. Health, colour and targeting stay Blizzard's, so nothing
+here touches secret values. See [nameplates](docs/nameplates.md).
+
 Chat keeps Blizzard's windows with the RikUI font, a flat edit box docked
 under the window, `HH:MM` timestamps and tabs that stay invisible until you
 hover the window. The button column, scroll bar and social buttons are
@@ -105,7 +110,7 @@ shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [loot](docs/loot.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

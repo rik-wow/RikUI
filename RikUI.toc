@@ -41,6 +41,7 @@ castbars-status.lua
 auras.lua
 auras-button.lua
 auras-units.lua
+nameplates.lua
 minimap.lua
 chat.lua
 chat-skin.lua
