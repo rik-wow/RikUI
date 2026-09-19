@@ -177,15 +177,18 @@ return function(check)
         check("health reaches the own bar as a secret without easing on the first fill", own.value == 42
             and own.range[2] == 100 and own.easing == Enum.StatusBarInterpolation.Immediate)
         check("the bar takes the unit's reaction or class colour", type(own.barColor) == "table" and #own.barColor == 3)
-        check("the name floats centred above the bar in the RikUI font with no width limit",
+        check("the name is centred inside its plaque in the RikUI font and truncates instead of wrapping",
             rawget(frame.name, "parent") == frame and frame.name.fontPath == media.font and frame.name.justify == "CENTER"
-            and #frame.name.points == 1 and frame.name.points[1][1] == "BOTTOM"
-            and frame.name.points[1][2] == frame.HealthBarsContainer and frame.name.points[1][3] == "TOP")
-        check("the name lives in a flat bordered plaque sized to the text", parts.plaque.shown == true
-            and parts.plaque.texture == "Interface\\BUTTONS\\WHITE8X8" and parts.plaque.color[1] < 0.2
-            and parts.plaque.points[1][2] == frame.name and parts.plaque.points[1][4] < 0
-            and parts.plaque.points[2][2] == frame.name and #parts.plaqueBorder == 4
-            and parts.plaqueBorder[1].height == 0.5 and parts.plaqueBorder[1].shown == true)
+            and #frame.name.points == 2 and frame.name.points[1][2] == parts.plaque
+            and frame.name.points[2][2] == parts.plaque and frame.name.points[2][4] < 0)
+        check("the plaque is a flat bordered box exactly as wide as the bar and level box, sharing their top edge",
+            parts.plaque.shown == true and parts.plaque.texture == "Interface\\BUTTONS\\WHITE8X8"
+            and parts.plaque.color[1] < 0.2 and parts.plaque.height == 13
+            and parts.plaque.points[1][1] == "BOTTOMLEFT" and parts.plaque.points[1][2] == bar.bgTexture
+            and parts.plaque.points[1][3] == "TOPLEFT" and parts.plaque.points[1][5] == -0.5
+            and parts.plaque.points[2][1] == "BOTTOMRIGHT" and parts.plaque.points[2][2] == parts.levelBox
+            and #parts.plaqueBorder == 4 and parts.plaqueBorder[1].height == 0.5
+            and parts.plaqueBorder[1].shown == true)
         frame.name:Hide()
         check("the plaque hides when Blizzard hides the name", parts.plaque.shown == false
             and parts.plaqueBorder[3].shown == false)
@@ -288,7 +291,8 @@ return function(check)
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate4")
         local bareParts = module.Parts[bare.UnitFrame]
         check("a plate without level, cast, aura, aggro or percent regions is still laid out", bareParts ~= nil
-            and bareParts.arrowRight.points[1][2] == bareParts.bar and bareParts.plaque ~= nil and #env.printed == 0)
+            and bareParts.arrowRight.points[1][2] == bareParts.bar and #env.printed == 0
+            and bareParts.plaque.points[2][2] == bare.UnitFrame.HealthBarsContainer.healthBar.bgTexture)
 
         env.printed = {}
         SlashCmdList.RIKUI("debug")

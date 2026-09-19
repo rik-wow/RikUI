@@ -11,9 +11,10 @@ the target and threat indicators. Disable the `nameplates` module in
 
 A 14px flat bar on a dark backing with a one-pixel edge, with the health
 percent centred inside it. The unit's name sits in its own plaque on top of the
-bar: a flat dark box with the same one-pixel edge, sized to the text and
-centred, so a long name is never cut and the plaque, bar and level box read as
-one piece. Both texts use the RikUI font. The bar is coloured by reaction, or by class for players, and goes grey for tapped
+bar: a flat dark box with the same one-pixel edge, exactly as wide as the bar
+and level box together and sharing their top line, so the two rows stack as one
+block on every mob. The name is centred in it and a name too long for the row
+truncates. Both texts use the RikUI font. The bar is coloured by reaction, or by class for players, and goes grey for tapped
 and disconnected units. The level is a flat dark box flush with the bar's right
 end, exactly as tall as the bar, with the number in Blizzard's difficulty
 colour and the skull kept for high-level units. Left of the bar, outside the target arrow, a small glyph
@@ -98,10 +99,11 @@ A child frame draws above its parent's regions, so the own bar would cover
 Blizzard's health text. Those font strings are re-parented to the own bar, and
 the bar's RikUI regions are created on it.
 
-The name stays Blizzard's font string on the unit frame. It gets one anchor,
-`BOTTOM` to the top of the bar, and no width, so it takes the length of the
-text. The plaque is a texture anchored to the name's corners with 5px and 2px
-of padding, plus the shared outline. Blizzard hides the name on some plates;
+The name stays Blizzard's font string on the unit frame. The plaque is a 13px
+texture anchored from the backing's top-left corner to the level box's
+top-right corner, one pixel down so both rows share an edge line, plus the
+shared outline. The name is anchored left and right inside it with 4px of
+padding, centred, with word wrap off. Blizzard hides the name on some plates;
 the name's `SetShown`, `Show` and `Hide` are post-hooked and the plaque follows.
 A name-only plate keeps Blizzard's name placement and gets no plaque.
 
@@ -150,8 +152,8 @@ colouring, which would need threat values addon code cannot read.
 and a fake `C_CVar`. It proves: the three client settings written with the
 originals saved; the own bar, faded fill, 14px height and pixel backing;
 secret health reaching the bar with an immediate first fill; bar colour; the
-name above the bar with one anchor, its plaque sized to the text and following
-the name's shown state; the centred percent texts; the elite marker, a classification change and
+name centred in a plaque as wide as the bar and level box that follows the
+name's shown state; the centred percent texts; the elite marker, a classification change and
 a secret classification; the fade-in; the level box; eased health with a flash
 on `UNIT_HEALTH` and none on `UNIT_MAXHEALTH`; other and secret tokens
 ignored; arrows, accent line and pulse following `selectedBorder` without

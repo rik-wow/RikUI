@@ -11,7 +11,7 @@ nameplates.Skin = skin
 
 local isRegion, font, flat = nameplates.IsRegion, nameplates.Font, nameplates.Flat
 local BAR_HEIGHT, LEVEL_GAP, MARKER_GAP = 14, 2, 16
-local NAME_GAP, PLAQUE_PAD_X, PLAQUE_PAD_Y = 3, 5, 2
+local PLAQUE_HEIGHT, PLAQUE_PAD_X = 13, 4
 local BACKING, LINE, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1, 1 }
 local LEVEL_ART = { "playerLevelDiffIcon", "selectedBorder" }
 local CAST_ART = { "Border", "BorderShield" }
@@ -77,8 +77,8 @@ local function createLevel(parts, level)
     parts.levelBorder = nameplates.Outline(level, parts.levelBox, LINE)
 end
 
--- The name's own box: same backing and edge as the bar and the level box, sized to the text.
--- Blizzard hides the name on some plates, and the box follows it.
+-- The name's own box: same backing and edge as the bar and the level box, and exactly as wide
+-- as the row below it. Blizzard hides the name on some plates, and the box follows it.
 local function createPlaque(parts, frame)
     local name = frame.name
     if not isRegion(name) then return end
@@ -144,8 +144,9 @@ local function applyHealthText(bar, own)
     end
 end
 
--- Percent inside the bar, name in its plaque on top. One anchor and no width lets the name take
--- whatever length it has. A name-only plate keeps Blizzard's name placement and gets no plaque.
+-- Percent inside the bar, name in its plaque on top. The plaque spans the bar and the level box
+-- and sits on the backing's top edge, so the two rows share one line; a name too long for it
+-- truncates. A name-only plate keeps Blizzard's name placement and gets no plaque.
 local function applyText(frame, parts, size)
     local name = frame.name
     applyHealthText(frame.HealthBarsContainer.healthBar, parts.bar)
@@ -153,14 +154,18 @@ local function applyText(frame, parts, size)
     font(name, "small")
     skin.SyncPlaque(frame)
     if type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true then return end
+    if not parts.plaque then return end
+    local plaque, backing = parts.plaque, frame.HealthBarsContainer.healthBar.bgTexture
+    plaque:ClearAllPoints()
+    plaque:SetPoint("BOTTOMLEFT", backing, "TOPLEFT", 0, -size)
+    plaque:SetPoint("BOTTOMRIGHT", parts.levelBox or backing, "TOPRIGHT", 0, -size)
+    plaque:SetHeight(PLAQUE_HEIGHT)
+    nameplates.Resize(parts.plaqueBorder, size)
     name:ClearAllPoints()
     name:SetJustifyH("CENTER")
-    name:SetPoint("BOTTOM", frame.HealthBarsContainer, "TOP", 0, NAME_GAP)
-    if not parts.plaque then return end
-    parts.plaque:ClearAllPoints()
-    parts.plaque:SetPoint("TOPLEFT", name, "TOPLEFT", -PLAQUE_PAD_X, PLAQUE_PAD_Y)
-    parts.plaque:SetPoint("BOTTOMRIGHT", name, "BOTTOMRIGHT", PLAQUE_PAD_X, -PLAQUE_PAD_Y)
-    nameplates.Resize(parts.plaqueBorder, size)
+    name:SetWordWrap(false)
+    name:SetPoint("LEFT", plaque, "LEFT", PLAQUE_PAD_X, 0)
+    name:SetPoint("RIGHT", plaque, "RIGHT", -PLAQUE_PAD_X, 0)
 end
 
 -- The box takes Blizzard's width for the badge and the bar's exact height, outer edge included.
