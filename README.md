@@ -83,6 +83,11 @@ Experience is a thin purple row under the main bar with a blue rested segment;
 a watched faction adds a second row in its standing colour. Fills ease, a gain
 flashes the row and hovering shows the numbers. See [XP bar](docs/xpbar.md).
 
+Watched quests are a compact list under the minimap: level-tagged titles in
+their difficulty colour, one line per objective, green when ready to turn in.
+Progress flashes its line, click opens the quest log, shift-click stops
+tracking and the header collapses the list. See [quest tracker](docs/questtracker.md).
+
 The loot window is a compact flat list at the cursor: icon, quality-coloured
 name and stack size, click to loot, Escape to close. Auto-loot is untouched.
 The group roll frames get the same flat skin with need, greed and pass left
@@ -121,7 +126,7 @@ shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [quest tracker](docs/questtracker.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

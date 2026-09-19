@@ -238,6 +238,8 @@ local microOk, microErr = pcall(function() dofile("tests/micromenu.test.lua")(ch
 check("Micro menu test suite completes", microOk, microErr)
 local xpOk, xpErr = pcall(function() dofile("tests/xpbar.test.lua")(check) end)
 check("XP bar test suite completes", xpOk, xpErr)
+local questOk, questErr = pcall(function() dofile("tests/questtracker.test.lua")(check) end)
+check("Quest tracker test suite completes", questOk, questErr)
 local lootOk, lootErr = pcall(function() dofile("tests/loot.test.lua")(check) end)
 check("Loot test suite completes", lootOk, lootErr)
 local plateOk, plateErr = pcall(function() dofile("tests/nameplates.test.lua")(check) end)
