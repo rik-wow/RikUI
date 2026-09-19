@@ -2,6 +2,7 @@
 -- Sources, sparse page composition and acquisition caveats: docs/presets.md.
 RikUI.Presets.WARRIOR = {
     version = 1,
+    roleOrder = { "dps", "tank" },
     roles = {
         dps = { label = "Arms / Fury", trees = { 1, 2 } },
         tank = { label = "Protection", trees = { 3 } },

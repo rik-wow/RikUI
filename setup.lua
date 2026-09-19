@@ -53,7 +53,7 @@ end
 function setup.Resolve(class, role)
     local preset = core.Presets[class]
     if not preset then return nil, "No preset for " .. tostring(class) end
-    role = role or "dps"
+    role = role or (preset.roleOrder and preset.roleOrder[1]) or "dps"
     if type(preset.roles) ~= "table" or not preset.roles[role] then return nil, "Unknown role: " .. tostring(role) end
     local issues = setup.ValidatePreset(preset)
     if #issues > 0 then return nil, issues[1] end

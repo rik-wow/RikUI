@@ -181,6 +181,52 @@ spending a chunk on it.
   If the player opens Edit Mode with RikUI on, things will look wrong. We hook
   `EditModeManagerFrame` OnShow and print a warning.
 
+### Talent reader (level-1 beta path verified)
+
+The 1.60.1 Camelot UI source reads the three vanilla trees as trait groups:
+`C_ClassTalents.GetActiveConfigID()`, `C_Traits.GetConfigInfo`,
+`C_Traits.GetGroupDisplayInfoByTreeID` and `C_Traits.GetGroupCurrencyInfo`.
+RikUI follows the native group display order and matches currency records by
+`traitNodeGroupID`, using `currencyInfos[1].spent`. Reads are guarded; staged
+talent edits suppress inference via `C_Traits.ConfigHasStagedChanges`.
+[Source links, contracts and beta check](docs/roles.md) record the implementation.
+The implemented path is now **verified in-game for a level-1 Warrior with no
+talents spent**, as recorded below. Nonzero allocations and native popup
+interactions remain automated-test coverage rather than observed beta behavior.
+
+User beta observation, 2026-09-18 18:49:05: `/dump GetTalentTabInfo(1)`
+raised `attempt to call a nil value` in the dump expression, confirming that
+legacy global is unavailable. The user reported no visible output from
+`/dump GetNumTalentTabs()`; its availability and return value remain
+inconclusive. Neither observation verifies the implemented `C_Traits` path.
+
+User screenshot `Screenshot 2026-09-18 185018.png` shows
+`C_SpecializationInfo.GetSpecializationInfo(1)` returning ID `1491`, name
+`Warrior`, empty description, icon `626008`, role `DAMAGER`, primary stat `4`,
+points spent `0`, preview points `0`, and unlocked `true` (return 8 omitted).
+This is a class specialization record, not an observed three-tree point breakdown.
+At 18:51:13, `C_SpecializationInfo.GetNumSpecializations()` raised
+`attempt to call a nil value`, confirming that requested method is unavailable.
+RikUI's implemented reader uses neither of these calls.
+
+User screenshot `Screenshot 2026-09-18 185546.png` shows the loaded reader
+failing in `/rik role` at `setup-talents.lua:40` with `talent points unavailable
+or unreadable`. Active-config and three-group metadata validation completed,
+but that generic error did not identify the currency response shape. Review
+found that the native Camelot header renders zero for an omitted currency
+group, a case the initial reader incorrectly rejected. The reader now follows
+that behavior while still rejecting malformed present records and secret
+points; errors name the affected tree. Regression tests cover sparse and empty
+currency arrays.
+
+User screenshot `Screenshot 2026-09-18 190910.png`, after reload, shows
+`RikUI: Role guess: dps (Arms=0, Fury=0, Protection=0).` The user confirmed
+that this is a level-1 character. This verifies the active trait-config path,
+three native tree labels, empty-allocation handling and below-10 default in
+the beta. The screenshot does not establish spent-point totals, role-change
+event delivery or the native popup. Those behaviors pass the LuaJIT tests;
+follow-up live coverage is tracked as `setup-role-beta-coverage`.
+
 ## How the setup engine works
 
 This is the part that matters. Everything else is furniture.
@@ -244,7 +290,8 @@ order: `bars.main`, `roleOverrides[role].main`, `bars[stance]`, then
 `roleOverrides[role][stance]`; missing layers are skipped and missing slots
 inherit. For bar2–bar5, use that bar and its matching role override only.
 Use `pairs` or a 1–12 loop for sparse overrides, never `ipairs`.
-The Warrior default role is explicitly `dps`, not the first key from `pairs`.
+The Warrior declares `roleOrder = { "dps", "tank" }`: the first entry supplies
+its default role and resolves talent-score ties, never dictionary iteration order.
 The concrete layout and read-only `/rik preset validate` diagnostic are
 documented in [docs/presets.md](docs/presets.md).
 

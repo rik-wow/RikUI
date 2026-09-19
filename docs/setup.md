@@ -18,7 +18,8 @@ expected skips. Standalone `/rik binds` and `/rik cvars` retain detailed output.
 
 `RikUI.Setup.Resolve(class, role)` returns a fresh preset with `class`,
 `role` and resolved `bars`, or `nil, reason`. The default role is
-explicitly `dps`. Whole-slot composition follows [the preset contract](presets.md):
+the first `roleOrder` entry (`dps` for Warrior), with `dps` as the fallback
+for older presets without that metadata. Whole-slot composition follows [the preset contract](presets.md):
 main, role main, stance, role stance. Side bars inherit only their own
 role override. All nested data is copied. Undeclared stance pages are omitted.
 
@@ -131,6 +132,13 @@ intact, and each conflict prints a clear line. Repeat `/rik resync`, then reques
 it during combat and verify placement only after combat. Check after reload,
 with a held cursor, and after Undo. These live checks remain unperformed;
 the automated suite covers those state transitions through simulated APIs.
+
+## Role suggestions
+
+`/rik role` reports the talent-based guess and tree totals. A changed guess can
+offer one confirmation per login/reload; Yes applies bars and macros only.
+See [role suggestions](roles.md) for thresholds, choices, API contracts,
+recorded beta evidence and coverage limits.
 
 ## Snapshot and Undo
 

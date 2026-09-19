@@ -6,7 +6,8 @@ return function(check)
     local savedGlobals = {}
     local globals = { "GetActionInfo", "GetCursorInfo", "PickupAction", "PickupMacro", "PlaceAction",
         "ClearCursor", "GetMacroInfo", "CreateMacro", "EditMacro", "DeleteMacro", "C_Macro", "GetCurrentBindingSet",
-        "GetBindingAction", "GetBindingKey", "SetBinding", "SaveBindings", "C_Spell", "C_Item", "C_CVar", "C_Container", "time" }
+        "GetBindingAction", "GetBindingKey", "SetBinding", "SaveBindings", "C_Spell", "C_Item", "C_CVar",
+        "C_Container", "time", "StaticPopupDialogs", "StaticPopup_Show" }
     for _, name in ipairs(globals) do savedGlobals[name] = _G[name] end
 
     local function record(value)
@@ -19,7 +20,8 @@ return function(check)
         RikUIDB, RikUICharDB = nil, nil
         for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua",
             "presets/warrior.lua", "setup.lua", "setup-actions.lua", "setup-apply.lua",
-            "macros.lua", "bindings.lua", "macros-undo.lua", "setup-snapshot.lua", "setup-undo.lua", "setup-levelup.lua" }) do
+            "macros.lua", "bindings.lua", "macros-undo.lua", "setup-snapshot.lua", "setup-undo.lua",
+            "setup-levelup.lua", "setup-talents.lua", "setup-role.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         core = RikUI
@@ -589,7 +591,9 @@ return function(check)
         env.frames = {}
         for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua", "presets/warrior.lua",
             "setup.lua", "setup-actions.lua", "setup-apply.lua", "macros.lua", "bindings.lua", "macros-undo.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "setup-levelup.lua" }) do assert(loadfile(file))("RikUI", {}) end
+            "setup-snapshot.lua", "setup-undo.lua", "setup-levelup.lua", "setup-talents.lua", "setup-role.lua" }) do
+            assert(loadfile(file))("RikUI", {})
+        end
         RikUIDB, RikUICharDB = savedAccount, savedCharacter
         env.fire("ADDON_LOADED", "RikUI")
         core, setup = RikUI, RikUI.Setup
@@ -626,6 +630,42 @@ return function(check)
     local retriedUndo = setup.Undo()
     check("retry Undo retains originally empty slots after learned events",
         retriedUndo.status == "undone" and actions[73] == nil)
+
+    setup = fresh()
+    known["Sunder Armor"] = 7386
+    setup.Apply("WARRIOR", "dps")
+    local oldApplied = RikUICharDB.applied
+    local originalID = actions[1].id
+    core.Profile.positions.main = { x = 777 }
+    settings.autoLootDefault = "custom"
+    keys.F12 = "JUMP"
+    macroData[121].body = "/say original macro"
+    local popup
+    StaticPopupDialogs = {}
+    StaticPopup_Show = function(which, _, _, data)
+        popup = { which = which, data = data }
+        return popup
+    end
+    setup.GuessRole = function() return "tank", {} end
+    env.fire("PLAYER_TALENT_UPDATE")
+    calls = {}
+    env.inCombat = true
+    StaticPopupDialogs[popup.which].OnAccept(popup, popup.data)
+    check("real role Apply waits in combat", #calls == 0 and RikUICharDB.applied == oldApplied)
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    check("confirmed role executes actual bar and macro writers", RikUICharDB.applied.role == "tank"
+        and actions[1].id == 7386 and macroData[121].body ~= "/say original macro")
+    local wroteOther = false
+    for _, call in ipairs(calls) do
+        if call == "bind" or call == "save" or call == "cvar" then wroteOther = true end
+    end
+    check("role switch preserves keys CVars and layout", not wroteOther and keys.F12 == "JUMP"
+        and settings.autoLootDefault == "custom" and core.Profile.positions.main.x == 777)
+    local roleUndo = setup.Undo()
+    check("role switch snapshot restores previous bars macros and role", roleUndo.status == "undone"
+        and actions[1].id == originalID and macroData[121].body == "/say original macro"
+        and RikUICharDB.applied.role == "dps")
 
     for _, name in ipairs(globals) do _G[name] = savedGlobals[name] end
 end
