@@ -52,6 +52,7 @@ function stub.tooltip(name)
     tip.StatusBar = statusBar(tip)
     tip.lines, tip.textures = {}, {}
     function tip:SetOwner(owner, anchor) self.owner, self.anchorType = owner, anchor end
+    function tip:SetUnit(unit) self.unit, self.shown = unit, true; return true end
     function tip:GetOwner() return self.owner end
     function tip:ClearAllPoints() self.point = nil end
     function tip:SetPoint(...) self.point = { ... } end

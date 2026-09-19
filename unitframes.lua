@@ -27,7 +27,8 @@ local STOCK_FRAMES = { "PlayerFrame", "TargetFrame", "PetFrame", "TargetFrameToT
 local EDGE, THREAT_EDGE, TEXT_INSET, POLL_SECONDS = 1, 2, 4, 0.5
 local BACKGROUND, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0.32, 1 }
 local FRAME_PREFIX = "RikUIUnit_"
-local stockPending = false
+local TOOLTIP_FALLBACK_ANCHOR = "ANCHOR_RIGHT"
+local stockPending, tooltipWarned = false, false
 
 local function report(operation, reason)
     core:Print("Unit frames " .. operation .. ": " .. tostring(reason))
@@ -95,6 +96,26 @@ local function secure(frame, unit)
     frame:RegisterForClicks("AnyUp")
 end
 
+-- Blizzard's UnitFrame_UpdateTooltip pattern: GameTooltip_OnUpdate calls owner:UpdateTooltip().
+local function updateTooltip(frame)
+    if type(GameTooltip_SetDefaultAnchor) == "function" then
+        GameTooltip_SetDefaultAnchor(GameTooltip, frame)
+    else
+        GameTooltip:SetOwner(frame, TOOLTIP_FALLBACK_ANCHOR)
+    end
+    local ok, reason = pcall(GameTooltip.SetUnit, GameTooltip, frame.unit)
+    if ok or tooltipWarned then return end
+    tooltipWarned = true
+    report("tooltip", reason)
+end
+
+-- Enter and leave scripts are not protected, so hover works in combat too.
+local function hover(frame)
+    frame.UpdateTooltip = updateTooltip
+    frame:SetScript("OnEnter", updateTooltip)
+    frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+end
+
 local function visibility(frame, driver)
     if not driver then return end
     local ok, reason = pcall(RegisterStateDriver, frame, "visibility", driver)
@@ -118,6 +139,7 @@ local function createFrame(spec)
     frame:SetSize(spec.size.width, spec.size.height)
     decorate(frame, spec.size)
     secure(frame, spec.unit)
+    hover(frame)
     layout.Register(frame, spec.key, DEFAULTS[spec.key])
     visibility(frame, spec.visibility)
     if spec.poll then poll(frame) end

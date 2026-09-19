@@ -149,6 +149,24 @@ return function(check)
             dp.point == "BOTTOM" and dp.x < 0 and dt.x > 0 and dp.y == dt.y and dtot.x > dt.x and dtot.y == dt.y
             and dpet.x < dp.x and dpet.y == dp.y and dpet.x == -dtot.x)
         check("setup layout step learns the unit frame keys", RikUI.Setup.DefaultPositions.tot ~= nil)
+        GameTooltip.unit, GameTooltip.shown = nil, false
+        env.runScript(target, "OnEnter")
+        check("hovering a frame shows its unit tooltip at the default anchor", GameTooltip.unit == "target"
+            and GameTooltip.owner == target and GameTooltip.anchorType == "ANCHOR_NONE"
+            and rawget(GameTooltip, "point")[2] == GameTooltipDefaultContainer and GameTooltip.shown == true)
+        GameTooltip.unit = nil
+        target:UpdateTooltip()
+        check("the owner refresh re-sets the unit while hovered", GameTooltip.unit == "target")
+        env.runScript(target, "OnLeave")
+        check("leaving hides the tooltip", GameTooltip.shown == false)
+        local setUnit = GameTooltip.SetUnit
+        GameTooltip.SetUnit = function() error("unit tooltip unavailable") end
+        env.printed = {}
+        env.runScript(pet, "OnEnter")
+        env.runScript(player, "OnEnter")
+        check("a failing unit tooltip is reported once and contained", printedContains("Unit frames tooltip")
+            and #env.printed == 1)
+        GameTooltip.SetUnit = setUnit
         check("secret player health reaches the bar and text unchanged", player.health.value == env.SECRET
             and player.health.min == 0 and player.health.max == 100 and player.health.text.format == "%d / %d"
             and player.health.text.args[1] == env.SECRET and player.health.text.args[2] == 100)

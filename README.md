@@ -22,7 +22,8 @@ reports them. Edit Mode cannot move hidden frames and prints a warning.
 The player, target, target-of-target and pet frames sit centre-bottom above
 the bars: flat class- or reaction-coloured health and power bars with
 `current / max` text and a threat border, no percent (the beta keeps health
-secret). Left click targets, right click opens the unit menu. The Blizzard
+secret). Left click targets, right click opens the unit menu, hovering shows
+the unit tooltip. The Blizzard
 frames for those units are hidden; disable the `unitframes` module and reload
 to restore them. See [unit frames](docs/unitframes.md).
 

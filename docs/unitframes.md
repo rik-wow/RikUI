@@ -32,6 +32,13 @@ clicks securely. Target, ToT and pet frames show and hide through
 `[@targettarget,exists]`, `[@pet,exists]`), the same mechanism the pet bar
 uses and which was verified in combat on build 69913.
 
+Hovering a frame shows the unit's tooltip the way the stock frames did:
+`OnEnter` asks for the default anchor (so the [tooltip module](tooltip.md)
+places and skins it) and calls `GameTooltip:SetUnit`, the frame's
+`UpdateTooltip` method lets `GameTooltip_OnUpdate` refresh it while hovered,
+and `OnLeave` hides it. A failing `SetUnit` prints one `Unit frames tooltip`
+line. Neither script is protected, so hover works in combat.
+
 ## Layout
 
 The frames register with the [shared layout](layout.md) under the keys
