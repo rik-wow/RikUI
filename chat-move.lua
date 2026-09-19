@@ -11,9 +11,13 @@ local chat = core.Chat
 local HOLDER_NAME, KEY, HOLDER_SIZE = "RikUIChatHolder", "chat", 2
 local MAIN, TAB = "ChatFrame1", "ChatFrame1Tab"
 local USAGE = "Usage: /rik chat lock|unlock|reset"
-local UNLOCKED = "Chat unlocked: drag the first chat tab to move the window, then /rik chat lock."
+local UNLOCKED = "Chat unlocked: drag the padlock button or the first chat tab, then click the padlock to lock."
 local RESET = "Chat position forgotten; reload to hand the window back to Blizzard's layout."
-local holder, adopted, anchoring, dragging = nil, false, false, false
+local TIP_LOCKED, TIP_UNLOCKED = "Click to unlock the chat window", "Drag to move the chat window. Click to lock."
+-- The copy button takes the corner (14 wide, inset 2); the padlock sits four pixels left of it.
+local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, SHACKLE_SWING = 14, 20, 2, 0.35, 4
+local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
+local holder, lockButton, adopted, anchoring, dragging = nil, nil, false, false, false
 
 local function anchor()
     local frame = _G[MAIN]
@@ -81,10 +85,55 @@ local function dragStop()
     layout.Apply()
 end
 
+local function isLocked() return chat.Settings().locked ~= false end
+
+-- Padlock glyph: the shackle sits over the body when locked and swings right, in gold, when open.
+local function refreshLock()
+    if not lockButton then return end
+    local locked = isLocked()
+    local color = locked and LOCKED_COLOR or UNLOCKED_COLOR
+    lockButton.shackle:SetPoint("BOTTOM", lockButton.body, "TOP", locked and 0 or SHACKLE_SWING, 0)
+    lockButton.shackle:SetVertexColor(color[1], color[2], color[3], 1)
+    lockButton.body:SetVertexColor(color[1], color[2], color[3], 1)
+    lockButton.rest = locked and LOCK_ALPHA or 1
+    lockButton:SetAlpha(lockButton.rest)
+end
+
 function chat.SetLocked(locked)
     chat.Settings().locked = locked == true
     if locked == true then dragStop() else core:Print(UNLOCKED) end
+    refreshLock()
     return true
+end
+
+local function lockPart(width, height)
+    local part = lockButton:CreateTexture(nil, "ARTWORK")
+    part:SetTexture(core.Media.border)
+    part:SetSize(width, height)
+    return part
+end
+
+local function showLockTip(self)
+    self:SetAlpha(1)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:SetText(isLocked() and TIP_LOCKED or TIP_UNLOCKED)
+    GameTooltip:Show()
+end
+
+local function createLockButton()
+    lockButton = CreateFrame("Button", nil, _G[MAIN])
+    lockButton:SetSize(LOCK_SIZE, LOCK_SIZE)
+    lockButton:SetPoint("TOPRIGHT", _G[MAIN], "TOPRIGHT", -LOCK_OFFSET, -LOCK_INSET)
+    lockButton.body, lockButton.shackle = lockPart(10, 7), lockPart(6, 5)
+    lockButton.body:SetPoint("BOTTOM", lockButton, "BOTTOM", 0, 1)
+    lockButton:RegisterForDrag("LeftButton")
+    lockButton:SetScript("OnClick", function() chat.SetLocked(not isLocked()) end)
+    lockButton:SetScript("OnDragStart", dragStart)
+    lockButton:SetScript("OnDragStop", dragStop)
+    lockButton:SetScript("OnEnter", showLockTip)
+    lockButton:SetScript("OnLeave", function(self) self:SetAlpha(self.rest); GameTooltip:Hide() end)
+    _G[MAIN].rikLock = lockButton
+    refreshLock()
 end
 
 function chat.ResetPosition()
@@ -113,6 +162,7 @@ function chat.EnableMove()
     end
     tab:HookScript("OnDragStart", dragStart)
     tab:HookScript("OnDragStop", dragStop)
+    createLockButton()
     restore()
 end
 

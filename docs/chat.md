@@ -53,12 +53,15 @@ it) is an Edit Mode system: Blizzard's tab drag handler returns early for it,
 so unlocking it from the tab menu does not make it draggable. RikUI adds that
 back without Edit Mode and without `/rik move`:
 
-1. `/rik chat unlock`, or untick "Lock the main chat window" on the Chat
-   options page.
-2. Rest the cursor over the chat so the tabs fade in, then drag the first tab
-   (General) with the left button. The window, its docked tabs and the edit
-   box move together. This also works in combat.
-3. `/rik chat lock` when done. The lock state is saved per profile.
+1. Click the small padlock in the main chat window's top-right corner, left
+   of the copy button. It turns gold with an open shackle and stays bright
+   while the window is unlocked. `/rik chat unlock` and the "Lock the main
+   chat window" checkbox on the Chat options page do the same.
+2. Drag the padlock itself, or the first tab (General), with the left button.
+   The window, its docked tabs and the edit box move together. This also
+   works in combat.
+3. Click the padlock again (or `/rik chat lock`) when done. The lock state is
+   saved per profile.
 
 The drop is saved in the profile's positions under `chat`, so it survives
 reloads and relogs and follows the profile. After the first move a `Chat
@@ -189,8 +192,8 @@ checklist on the Warrior, after a full client restart:
    recent lines as plain text, selected. Scroll the box with the wheel.
 6. Enter combat and `/reload`: no "action blocked" error; the button column
    disappears when combat ends.
-7. `/rik chat unlock`, drag the General tab: the whole chat moves. `/rik chat
-   lock`, `/reload`, relog: the position is kept. Open and close Edit Mode
+7. Click the padlock in the chat window's corner and drag it: the whole chat
+   moves. Click it again to lock, `/reload`, relog: the position is kept. Open and close Edit Mode
    once and note whether the window stays put and whether an error appears.
    `/rik chat reset`, `/reload`: back at Blizzard's position.
 8. Change the font size on the Chat page of `/rik config`, reload and

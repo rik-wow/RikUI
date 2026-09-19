@@ -293,6 +293,34 @@ return function(check)
         SlashCmdList.RIKUI("chat sideways")
         check("an unknown chat argument prints the usage", printedContains("Usage: /rik chat"))
 
+        module = load()
+        local lock, copy = rawget(ChatFrame1, "rikLock"), rawget(ChatFrame1, "rikCopy")
+        ChatFrame1.centerX, ChatFrame1.centerY = 200, 150
+        check("the main window has a lock button left of its copy button, other windows do not", lock ~= nil
+            and lock.parent == ChatFrame1 and lock.points[1][1] == "TOPRIGHT"
+            and lock.points[1][4] < copy.points[1][4] and rawget(ChatFrame2, "rikLock") == nil)
+        check("a locked button rests dim with a closed white shackle", lock.alpha == 0.35
+            and lock.shackle.color[3] == 1 and lock.shackle.point[4] == 0)
+        env.runScript(lock, "OnDragStart")
+        check("dragging a locked button does nothing", module.Holder == nil)
+        env.click(lock)
+        check("a click unlocks: saved flag, full alpha, gold open shackle", RikUI.Profile.chat.locked == false
+            and lock.alpha == 1 and lock.shackle.color[3] < 1 and lock.shackle.point[4] > 0)
+        env.runScript(lock, "OnEnter")
+        check("hovering explains the button", GameTooltip:IsShown() and lock.alpha == 1)
+        env.runScript(lock, "OnLeave")
+        check("an unlocked button stays bright after the cursor leaves", lock.alpha == 1)
+        env.runScript(lock, "OnDragStart")
+        module.Holder.centerX, module.Holder.centerY = 500, 380
+        env.runScript(lock, "OnDragStop")
+        check("dragging the unlocked button moves the window and saves the drop", module.Holder.moving == false
+            and ChatFrame1.points[1][2] == module.Holder and RikUIDB.profiles.Default.positions.chat.x == 100)
+        env.click(lock)
+        check("a second click locks again and dims the button", RikUI.Profile.chat.locked == true
+            and lock.alpha == 0.35 and lock.shackle.point[4] == 0)
+        SlashCmdList.RIKUI("chat unlock")
+        check("the slash command keeps the button in step", lock.alpha == 1)
+
         module = load({ positions = { chat = { point = "CENTER", relativePoint = "CENTER", x = 100, y = 80 } } })
         check("a saved position is applied at the next login", module.Holder ~= nil
             and module.Holder.points[1][4] == 100 and module.Holder.points[1][5] == 80

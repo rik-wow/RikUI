@@ -68,9 +68,10 @@ hover the window. The button column, scroll bar and social buttons are
 hidden; the mouse wheel scrolls. The small button in a window's top-right
 corner opens its lines as selectable text, and web addresses in chat are
 links that open a box to copy from. Font size and timestamps are on the Chat
-options page. `/rik chat unlock` lets you drag the main chat window by its
-first tab, no Edit Mode needed; `/rik chat lock` when done, and the position
-is remembered. Disable the `chat` module to get the stock chat back. See
+options page. Click the padlock in the main chat window's corner to
+unlock it, drag the padlock to move the window, click again to lock; no Edit
+Mode needed and the position is remembered (`/rik chat lock|unlock|reset`
+does the same). Disable the `chat` module to get the stock chat back. See
 [chat](docs/chat.md).
 
 B opens one bag frame with every slot of all five bags, ten to a row, with
