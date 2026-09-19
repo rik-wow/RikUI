@@ -6,7 +6,7 @@ return function(check)
     local MICRO = { "CharacterMicroButton", "SpellbookMicroButton", "TalentMicroButton", "QuestLogMicroButton",
         "GuildMicroButton", "HelpMicroButton", "MainMenuMicroButton" }
     local API = { "MicroMenu", "MicroMenuContainer", "BagsBar", "C_Container", "ToggleBackpack", "ToggleBag",
-        "KEYRING_CONTAINER", "GetInventoryItemTexture" }
+        "KEYRING_CONTAINER", "GetInventoryItemTexture", "EJMicroButton" }
     for _, name in ipairs(MICRO) do API[#API + 1] = name end
     local saved, savedKeyring = {}, C_ActionBar.ShouldShowKeyring
     for _, name in ipairs(API) do saved[name] = _G[name] end
@@ -53,6 +53,7 @@ return function(check)
         BagsBar = CreateFrame("Frame", "BagsBar", UIParent)
         for _, name in ipairs(MICRO) do CreateFrame("Button", name, MicroMenu).tooltipText = name .. " tip" end
         HelpMicroButton.shown = false
+        CreateFrame("Button", "EJMicroButton", UIParent)
         stub.free, stub.bagTextures, stub.toggled, stub.backpack = { [0] = 9, [1] = 4 }, { [31] = 133633 }, {}, 0
         C_Container = {
             GetContainerNumFreeSlots = function(bag)
@@ -94,6 +95,8 @@ return function(check)
             and group.defaults.relativePoint == "BOTTOMRIGHT" and group.defaults.x < 0 and group.defaults.y > 0)
         check("every shown stock micro button gets one strip button and the hidden help button none",
             #module.Buttons == #MICRO - 1)
+        check("a defined button that is not a child of the menu gets no strip button",
+            RikUIMicroMenuEJMicroButton == nil)
         local first = module.Buttons[1]
         check("a strip button is a 22px secure click delegate to its stock button",
             first.template == "SecureActionButtonTemplate" and first.width == 22 and first.height == 22

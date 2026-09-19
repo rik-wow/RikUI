@@ -152,9 +152,12 @@ function micromenu.UpdateStock()
     end
 end
 
+-- The Mainline file defines buttons Forever never adds to the menu (the adventure guide's handler
+-- calls a nil global there); an orphan still reports shown, so membership is the parent.
 local function shownStock(name)
     local stock = _G[name]
     if not isFrame(stock) or type(stock.IsShown) ~= "function" then return nil end
+    if type(stock.GetParent) ~= "function" or stock:GetParent() ~= MicroMenu then return nil end
     return stock:IsShown() and stock or nil
 end
 
