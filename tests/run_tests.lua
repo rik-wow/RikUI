@@ -194,6 +194,12 @@ check("Bar test suite completes", barsOk, barsErr)
 local stockOk, stockErr = pcall(function() dofile("tests/bars-stock.test.lua")(check) end)
 check("Stock-bar test suite completes", stockOk, stockErr)
 
+local pagingOk, pagingErr = pcall(function() dofile("tests/bars-paging.test.lua")(check) end)
+check("Paging test suite completes", pagingOk, pagingErr)
+
+local controlsOk, controlsErr = pcall(function() dofile("tests/bars-controls.test.lua")(check) end)
+check("Control test suite completes", controlsOk, controlsErr)
+
 -- report
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))

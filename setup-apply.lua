@@ -11,6 +11,8 @@ setup.DefaultPositions = {
     bar3 = { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 124 },
     bar4 = { point = "RIGHT", relativePoint = "RIGHT", x = -40, y = 0 },
     bar5 = { point = "RIGHT", relativePoint = "RIGHT", x = -82, y = 0 },
+    stance = { point = "BOTTOMLEFT", relativePoint = "BOTTOM", x = -249, y = 166 },
+    pet = { point = "BOTTOMLEFT", relativePoint = "BOTTOM", x = -249, y = 202 },
 }
 
 local copy, sortedKeys = setup.CopyState, setup.StateKeys

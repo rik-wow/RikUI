@@ -10,6 +10,7 @@
 core.lua
 data/spells.lua
 data/cvars.lua
+data/bonus-pages.lua
 presets/warrior.lua
 setup.lua
 setup-actions.lua
@@ -23,6 +24,8 @@ setup-levelup.lua
 setup-talents.lua
 setup-role.lua
 bars.lua
+bars-paging.lua
+bars-controls.lua
 bars-stock.lua
 unitframes.lua
 auras.lua

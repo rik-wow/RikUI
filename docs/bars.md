@@ -2,9 +2,11 @@
 
 `RikUI.Bars` owns five 12-button bars and hides the corresponding stock action
 bars, bag/menu buttons and XP/reputation bars once their overlays are ready.
-The next chunk supplies stance overlays; the main row currently
-mirrors slots 1–12 even while the native Warrior ACTIONBUTTON bindings resolve
-to a stance page.
+Stance paging adds the probe-backed Warrior Battle
+overlay (slots 73–84), a known-form row and a ten-slot pet row. Later stance
+and other-class bonus offsets have no recorded probe evidence yet; those
+mappings and native acceptance are deferred follow-up. Base slots 1–12 are used
+outside the recorded bonus condition.
 
 | Bar | Fixed slots | Native binding prefix | Default anchor (x, y) |
 |---|---|---|---|
@@ -27,6 +29,8 @@ position fields or scale fall back to defaults without rewriting saved data.
 - `Bars.Create(name, firstAction, layoutOpts)` creates or returns a bar.
   Options: `size` (positive number, default 36), `spacing` (nonnegative,
   default 6), `vertical` and `fade` (booleans, default false).
+  `positionKey` may name a `Setup.DefaultPositions` entry; bonus overlays
+  use `main` so saved position, scale, Apply and Undo move all main pages together.
   The same name/range is idempotent; a conflicting range is rejected.
   Returns the frame on immediate success, `nil, "queued"` when deferred,
   or `nil, reason` for invalid input or immediate creation failure.
@@ -63,6 +67,54 @@ reveals the row; a short delayed leave check prevents flicker between buttons.
 An alpha animation fades it out in 0.2 seconds. Combat reveals it immediately
 and combat exit reevaluates hover. No OnUpdate or restricted secure snippets
 are installed.
+
+## Stance paging and companion rows
+
+`data/bonus-pages.lua` contains per-class records of the bonus offset and first
+native action slot observed by RikProbe. Only Warrior Battle (offset 1, slot 73)
+has raw beta evidence. No Defensive, Berserker, Druid, Rogue or Priest mapping
+is inferred from form index or copied from another client. Missing mappings
+are tracked as backlog `bars-stance-beta-coverage`; the current base row is not
+a correct substitute for an unrecorded bonus page.
+
+`bars-paging.lua` creates fixed overlays and registers only visibility drivers.
+Its `[bar:1,bonusbar:N]` conditions respect the native controller's rule that
+bonus pages apply only while selected page 1 is active. Manually selecting other
+main pages is not mirrored by the fixed base row yet. Driver failure removes
+partial registrations, hides the extra overlays and restores the base row;
+it reports the failure instead of adopting Blizzard buttons.
+
+`bars-controls.lua` uses the shared button art and validated profile layout.
+The stance row shows learned forms and an active highlight; its left clicks
+cast the spell ID returned by GetShapeshiftFormInfo. The pet row has ten fixed
+pet actions, active highlights, an autocast-available border and an enabled
+checkmark. It follows the build-69913 GetPetActionInfo tuple and resolves token
+textures. Left click casts; right-click autocast toggling is not implemented.
+Native stock pet controls remain available for toggling autocast.
+
+The native Ctrl-Q/E/R stance and Shift-G/Ctrl-B/Ctrl-N pet binding commands are
+unchanged. Forms 4+ gain clickable controls without new bindings. The profile's
+`stance` and `pet` positions default to the left edge above bar3, at y=166
+and y=202 with 30-pixel buttons. Apply/Undo and profile scale include both rows.
+Creation, spell attributes, form visibility and layout are deferred in combat;
+active and autocast flags go directly to alpha sinks during visual refreshes.
+
+The stance visibility driver excludes possession/override bars. The pet driver
+requires a living pet and excludes possession/override bars; exact behavior
+with temporary guardians, pet dismissal and possession remains unobserved.
+The controls preserve SecureActionButtonTemplate's click handler and both click
+edges. No native frame is adopted and stock stance/pet suppression remains the
+later hiding chunk.
+
+Automated tests cover the recorded mapping, modeled visibility exclusivity,
+partial driver cleanup, combat login, shared layout, known/removed forms,
+fourth-form clicks, current pet tuple/token handling, autocast and secret flags.
+These tests do not execute the protected client renderer. Native multi-stance
+transitions, click/key agreement, pet lifecycle and taint acceptance remain
+unobserved and are tracked in `bars-stance-beta-coverage`. The user authorized
+closing this implementation with those checks deferred and requested no more
+prompts for later-stance testing. Manual main-page support is separately
+tracked in `bars-manual-pages`.
 
 ## Stock action bars
 
@@ -126,7 +178,17 @@ Repeatable Warrior beta regression checks:
 5. Check saved position/scale persistence across reload. Apply/Undo should
    update positions immediately.
 
-## Source evidence
+## Source evidence for stance/pet work
+
+Reviewed 2026-09-18 against the exact Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
+
+- [Native visibility driver](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureStateDriver.lua)
+- [Native bonus-page precedence](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBarController/ActionBarController.lua)
+- [Secure action types](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua)
+- [Stance API and events](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBar/Shared/StanceBar.lua)
+- [Pet API and events](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ActionBar/Shared/PetActionBar.lua)
+
+## Source evidence for initial overlays
 
 Reviewed 2026-09-18. The 12.1.5 ptr2 source reports build 69848; it supports
 implementation choices but does not replace a check on beta 1.60.1.69913.

@@ -106,8 +106,9 @@ local function configureFade(bar)
 end
 
 local function position(bar)
-    local defaults = setup.DefaultPositions[bar.key] or setup.DefaultPositions.main
-    local saved = core.Profile.positions[bar.key]
+    local key = bar.positionKey or bar.key
+    local defaults = setup.DefaultPositions[key] or setup.DefaultPositions.main
+    local saved = core.Profile.positions[key]
     if type(saved) ~= "table" then saved = defaults end
     local point = POINTS[saved.point] and saved.point or defaults.point
     local relative = POINTS[saved.relativePoint] and saved.relativePoint or defaults.relativePoint
@@ -119,12 +120,16 @@ local function position(bar)
     bar:SetScale(scale)
 end
 
+-- Shared by companion rows so Apply/Undo use the same profile validation.
+bars.PositionFrame = position
+
 function bars.ApplyLayout()
     if layoutPending or not core.Profile then return end
     layoutPending = true
     core.Combat.Queue(function()
         layoutPending = false
         for _, bar in pairs(bars.Frames) do position(bar) end
+        for _, bar in pairs(bars.ControlFrames or {}) do position(bar) end
     end)
 end
 
@@ -139,6 +144,8 @@ local function buttonArt(button)
     button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
     button:SetPushedTexture("Interface\\Buttons\\UI-Quickslot-Depress")
 end
+
+bars.DecorateButton = buttonArt
 
 local function createButton(bar, index, opts)
     local button = CreateFrame("Button", bar:GetName() .. "Button" .. index, bar, "SecureActionButtonTemplate")
@@ -162,6 +169,7 @@ end
 local function createBar(name, firstAction, opts)
     local bar = CreateFrame("Frame", "RikUIBar_" .. name, UIParent)
     bar.key, bar.firstAction, bar.buttons = name, firstAction, {}
+    bar.positionKey = opts.positionKey
     local length = BUTTONS * opts.size + (BUTTONS - 1) * opts.spacing
     bar:SetSize(opts.vertical and opts.size or length, opts.vertical and length or opts.size)
     position(bar)
@@ -181,7 +189,10 @@ local function options(opts)
     for _, key in ipairs({ "vertical", "fade" }) do
         if opts[key] ~= nil and type(opts[key]) ~= "boolean" then return nil, key .. " must be a boolean" end
     end
-    return { size = size, spacing = spacing, vertical = opts.vertical, fade = opts.fade }
+    if opts.positionKey ~= nil and (type(opts.positionKey) ~= "string" or not setup.DefaultPositions[opts.positionKey]) then
+        return nil, "unknown position key"
+    end
+    return { size = size, spacing = spacing, vertical = opts.vertical, fade = opts.fade, positionKey = opts.positionKey }
 end
 
 function bars.Create(name, firstAction, layoutOpts)
@@ -218,6 +229,8 @@ function bars:OnEnable()
             vertical = name == "bar4" or name == "bar5", fade = name == "bar3",
         })
     end
+    if bars.EnablePaging then bars.EnablePaging() end
+    if bars.EnableControls then bars.EnableControls() end
     bars.UpdateStockVisibility()
     core:RegisterEvent("ACTIONBAR_SLOT_CHANGED", function(_, slot) bars.Refresh(slot) end)
     core:RegisterEvent("PLAYER_ENTERING_WORLD", function()

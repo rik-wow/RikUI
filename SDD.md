@@ -106,6 +106,14 @@ buttons hard-wired to that page's action slots, and the visibility driver picks
 which one shows.** Looks exactly like paging. Costs 12 extra buttons per form.
 Decision: go. No fallback to Blizzard's buttons, no waiting.
 
+The delivered stance-paging implementation uses the recorded Battle offset
+only, shared main layout and native visibility drivers. Stance and pet controls
+use the exact build-69913 APIs. The user authorized closure with later stance
+mappings and native multi-stance/pet acceptance deferred to backlog
+`bars-stance-beta-coverage`; see [bar implementation status](docs/bars.md).
+The player does not yet have a second stance; do not repeat requests for those
+observations.
+
 ### 2. Secret values, always on (verified on 69913)
 
 Measured with `issecretvalue()` on a warrior, out of combat and in combat:
