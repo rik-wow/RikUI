@@ -8,14 +8,28 @@ function motion.Interpolation(name)
     return type(enum) == "table" and enum[name] or nil
 end
 
--- One alpha tween on a region or frame; nil where the client has no animation groups.
-function motion.Tween(owner, from, to, seconds)
+-- One alpha tween on a region or frame; nil where the client has no animation groups. delay holds
+-- the start back, which staggers a row of things that appear together.
+function motion.Tween(owner, from, to, seconds, delay)
     local group = type(owner.CreateAnimationGroup) == "function" and owner:CreateAnimationGroup() or nil
     if not group then return nil end
     local alpha = group:CreateAnimation("Alpha")
     alpha:SetFromAlpha(from)
     alpha:SetToAlpha(to)
     alpha:SetDuration(seconds)
+    if delay and type(alpha.SetStartDelay) == "function" then alpha:SetStartDelay(delay) end
+    return group
+end
+
+-- A region travelling distance units to the right over and over: the band of an indeterminate
+-- state. The region's parent has to clip it. nil where the client lacks translation animations.
+function motion.Sweep(region, distance, seconds)
+    local group = type(region.CreateAnimationGroup) == "function" and region:CreateAnimationGroup() or nil
+    local slide = group and group:CreateAnimation("Translation") or nil
+    if not slide or type(slide.SetOffset) ~= "function" then return nil end
+    slide:SetOffset(distance, 0)
+    slide:SetDuration(seconds)
+    if type(group.SetLooping) == "function" then group:SetLooping("REPEAT") end
     return group
 end
 

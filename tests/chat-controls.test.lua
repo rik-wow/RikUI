@@ -11,7 +11,7 @@ return function(check)
         "FCFDock_GetSelectedWindow", "GetChannelList", "IsInGroup", "IsInRaid", "IsInGuild", "C_GuildInfo",
         "C_PartyInfo", "C_FriendList", "IsAltKeyDown", "IsControlKeyDown" }
     local FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
+        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
         "chat-move.lua", "chat-lines.lua", "chat-history.lua", "chat-scroll.lua", "chat-size.lua", "chat-input.lua",
         "chat-strip.lua", "chat-tabs.lua", "chat-clicks.lua" }
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar

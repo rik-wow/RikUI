@@ -17,7 +17,7 @@ local TIP_LOCKED, TIP_UNLOCKED = "Click to unlock the chat window", "Drag to mov
 -- The copy button takes the corner (16 wide, inset 2); the padlock sits two pixels left of it.
 local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, SHACKLE_SWING = 16, 20, 2, 0.35, 3
 local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
-local holder, lockButton, adopted, anchoring, dragging = nil, nil, false, false, false
+local holder, lockButton, adopted, anchoring, dragging, engine = nil, nil, false, false, false, false
 
 local function anchor()
     local frame = _G[MAIN]
@@ -70,7 +70,10 @@ local function dragStart()
         return
     end
     dragging = true
-    holder:StartMoving()
+    -- Once the window has a saved place the arrangement engine drags it; the first drag, and any
+    -- drag in combat, is the client's, and the drop is settled when it registers.
+    engine = layout.BeginDrag ~= nil and layout.BeginDrag(KEY) == true
+    if not engine then holder:StartMoving() end
 end
 
 local function saveDrop()
@@ -83,6 +86,11 @@ end
 local function dragStop()
     if not dragging then return end
     dragging = false
+    if engine then
+        engine = false
+        layout.EndDrag()
+        return
+    end
     holder:StopMovingOrSizing()
     if not saveDrop() then chat.Warn("move", "drop position unavailable") end
 end

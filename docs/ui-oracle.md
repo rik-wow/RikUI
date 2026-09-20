@@ -29,7 +29,7 @@ flat regions added; `font` = font objects only.
 | Node | Files | Used by |
 | --- | --- | --- |
 | core | `core.lua`, `hide.lua`, `media.lua` | everything |
-| layout | `layout.lua`, `layout-movers.lua` | every `own` frame |
+| layout | `layout.lua`, `layout-geometry.lua`, `layout-rects.lua`, `layout-unlock.lua`, `layout-drag.lua`, `Bindings.xml` | every `own` frame; no two groups may overlap |
 | motion | `motion.lua` | every tier 2 and 3 surface |
 | skin | `skin.lua` | every `skin` surface |
 | controls | `controls.lua` | panels, dialogs, toasts, damage meter, popups |

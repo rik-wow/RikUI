@@ -39,7 +39,7 @@ return function(check)
     end
     CreateFrame = function(...) return instrument(originalCreate(...)) end
     local FILES = { "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "setup-snapshot.lua",
-        "setup-undo.lua", "setup-levelup.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "layout-movers.lua", "options-widgets.lua",
+        "setup-undo.lua", "setup-levelup.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "options-widgets.lua",
         "options-controls.lua", "options.lua" }
     local function boot(db, character, prepare)
         env.frames, env.printed, env.inCombat, env.shiftDown = {}, {}, false, false
@@ -303,7 +303,7 @@ return function(check)
         env.settings = { registered = {}, opened = {} }
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = { modules = { bars = false } } } }, nil
         for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "setup-snapshot.lua", "setup-undo.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "layout-movers.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua", "options-widgets.lua",
+            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua", "options-widgets.lua",
             "options-controls.lua", "options.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end

@@ -10,6 +10,8 @@ function stub.animationGroup()
         function animation:SetFromAlpha(value) self.from = value end
         function animation:SetToAlpha(value) self.to = value end
         function animation:SetDuration(value) self.duration = value end
+        function animation:SetStartDelay(value) self.delay = value end
+        function animation:SetOffset(x, y) self.offset = { x, y } end
         group.animation = animation
         return animation
     end

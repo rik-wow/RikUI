@@ -1,0 +1,8 @@
+<Bindings>
+	<!-- Held, not pressed: runOnUp makes the client call this on key down and again on key up, with
+	     keystate "down" or "up". Names shown in the Key Bindings screen come from the BINDING_HEADER_RIKUI
+	     and BINDING_NAME_RIKUI_UNLOCK globals in layout-unlock.lua. -->
+	<Binding name="RIKUI_UNLOCK" header="RIKUI" runOnUp="true" category="ADDONS">
+		RikUI.Layout.HoldKey(keystate)
+	</Binding>
+</Bindings>

@@ -9,7 +9,7 @@ return function(check)
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "ItemRefTooltip", "PlaySound",
         "SOUNDKIT", "GetTime" }
     local FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
+        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
         "chat-move.lua", "chat-lines.lua" }
     local GROUP_FORMATS = { CHAT_MSG_GUILD = "|Hchannel:GUILD|h[Guild]|h ", CHAT_MSG_PARTY = "|Hchannel:PARTY|h[Party]|h ",
         CHAT_MSG_PARTY_LEADER = "|Hchannel:PARTY|h[Party Leader]|h ", CHAT_MSG_SAY = "", CHAT_MSG_YELL = "",

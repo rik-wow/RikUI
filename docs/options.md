@@ -22,7 +22,7 @@ never changed during combat because propagation writes are protected there.
   `Profile.modules[name]` and are labelled as needing `/reload`.
 - Frame scale slider (0.25 to 3). It calls `Layout.SetScale`; in combat the
   change is queued and applied when combat ends.
-- Move frames runs `/rik move` and closes the Settings window so the overlays
+- Move frames runs `/rik move` (unlock every frame) and closes the Settings window so the overlays
   can be dragged. Reset positions runs `/rik move reset`.
 - Re-sync runs `/rik resync`. Re-run wizard appears only when a `setup`
   command is registered, so there is no dead button before the wizard exists.

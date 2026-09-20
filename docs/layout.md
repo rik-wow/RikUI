@@ -1,22 +1,51 @@
 # Moving and scaling frames
 
-Use `/rik move` outside combat to show labelled blue overlays. Drag an overlay
-with the left mouse button; the actual frame moves when you release it.
-Use `/rik move` again to lock. One main-bar overlay moves every manual and
-bonus page together. Bar 3 and absent stance/pet rows still have a visible
-mover, so their anchors remain accessible.
+Hold the "Hold to show frame locks" key (Key Bindings, RikUI section). While
+it has no key, hold Ctrl+Alt+Shift together. Every frame shows a small lock tag
+on its top left corner and a master tag appears at the top of the screen.
+Click a tag to unlock that frame; click the master tag to unlock or lock all.
+Release the key: unlocked frames keep a blue overlay with a pulsing edge and a
+sweeping band, and stay draggable until you lock them again, log out or enter
+combat. `/rik move` does the same as the master tag without the key.
+
+Drag an unlocked frame by its overlay. The frame follows at once. It snaps to
+other frames' edges and centres, to a 4-unit gap beside them, and to the screen
+edges and centre lines, with a blue guide line where it snapped; hold Shift to
+drag freely. It cannot be dropped on another frame: it stops flush against it
+(the overlay's edge turns red while it is blocked) and slides along it when the
+move allows. The bag window's header and the chat window's tab drag through the
+same engine. One main-bar overlay moves every manual and bonus page together.
 
 `/rik move reset` restores the default positions of all registered frames.
 It keeps the current scale. `/rik scale <0.25-3>` sets the shared profile scale;
 for example, `/rik scale 0.8` or `/rik scale 1`. Positions and scale survive
 reload. Invalid input prints usage without changing the profile.
 
-Combat refuses move, reset and scale commands. Entering combat cancels an
-unfinished drag and locks the overlays; its last saved position remains.
-Profile selection, UI scale changes and display-size changes also lock and
-cancel. Reset, Apply and scaling refresh the overlays and cancel stale drags.
-Frames remain at their last applied position while their independent overlay
-is being dragged.
+Combat refuses move, reset and scale commands. Entering combat locks every
+frame; a drag in flight ends where the frame stands, which is a free place by
+construction. Holding the key in combat shows only the master tag, which says
+the frames are locked. Profile selection, UI scale changes and display-size
+changes lock everything too.
+
+## Files
+
+| File | Role |
+| --- | --- |
+| `layout.lua` | Registry, saved positions, scale, `Apply`, `Reset` |
+| `layout-geometry.lua` | Rectangle arithmetic, no WoW API |
+| `layout-rects.lua` | Rectangles per group, anchor-preserving save, growth room, settle pass |
+| `layout-unlock.lua` | Hold state, lock tags, master tag, unlocked set, `/rik move`, `/rik scale`, `/rik layout`, combat locking |
+| `layout-drag.lua` | Overlay animation, `BeginDrag`/`EndDrag`, snapping, guides, live follow |
+| `Bindings.xml` | The `RIKUI_UNLOCK` binding; `runOnUp` makes it a hold |
+
+`layout.IsMoving`, `layout.StopMoving` and `layout.RefreshMovers` keep their
+old names (`options.lua`, `core.lua` and `layout.lua` call them): something is
+unlocked, lock everything, and re-place tags and overlays. `/rik layout` prints
+the group count, the unlocked count and the key bound to the hold.
+
+Whether the client loads an addon's `Bindings.xml` on 69913 is unverified. If
+the RikUI section is missing from the Key Bindings screen, the chord still
+works; report it.
 
 ## Module contract
 
@@ -140,7 +169,7 @@ establish native rendering or taint behavior.
 
 Repeatable checks:
 
-1. Reload, enter `/rik move`, and check readable overlays for all seven keys.
+1. Reload, hold Ctrl+Alt+Shift, and check a readable lock tag on every frame; unlock two, release, drag one into the other (it must stop flush) and near a screen edge (it must snap; Shift must not).
    Drag the main row, a right column, bar 3 and stance/pet overlays. The frame
    should land under its overlay on drop. Main page changes should keep the
    same position.

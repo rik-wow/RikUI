@@ -213,7 +213,7 @@ Drag it by its title to move it; the place is remembered.
 client after updating.
 Disable the `bags` module to get the stock bags back. See [bags](docs/bags.md).
 
-Use `/rik move` to drag labelled frame overlays, then repeat it to lock.
+Hold the frame-lock key (Key Bindings, RikUI section; Ctrl+Alt+Shift while unbound) to show a lock on every frame, click a lock to free that frame, then drag it: frames snap to each other and to the screen, and can never overlap. `/rik move` unlocks or locks everything at once.
 `/rik move reset` restores default positions; `/rik scale 0.8` changes the
 shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).

@@ -20,7 +20,6 @@ setup-apply.lua
 layout-geometry.lua
 layout.lua
 layout-rects.lua
-layout-movers.lua
 motion.lua
 bindings.lua
 macros.lua
@@ -77,6 +76,8 @@ popups.lua
 popups-skin.lua
 screentext.lua
 skin.lua
+layout-unlock.lua
+layout-drag.lua
 controls.lua
 dialogs.lua
 lossofcontrol.lua

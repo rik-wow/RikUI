@@ -10,7 +10,7 @@ return function(check)
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "ItemRefTooltip", "ChatTypeInfo",
         "IsControlKeyDown" }
     local FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
+        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
         "chat-move.lua", "chat-lines.lua", "chat-history.lua", "chat-scroll.lua", "chat-size.lua", "chat-input.lua" }
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end

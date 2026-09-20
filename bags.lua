@@ -161,19 +161,28 @@ end
 local function dragStop()
     if not holder.rikDragging then return end
     holder.rikDragging = false
+    if holder.rikEngine then
+        holder.rikEngine = false
+        layout.EndDrag()
+        return
+    end
     holder:StopMovingOrSizing()
     if not layout.SaveCenter(KEY, holder, core.Profile) then
         core:Print("Bags position unavailable; the frame keeps its last saved place.")
     end
     layout.Apply()
+    if layout.Settle then layout.Settle(KEY) end
 end
 
 local function enableDrag()
     holder:SetMovable(true)
     holder:RegisterForDrag("LeftButton")
+    -- The arrangement engine drags it, with snapping and without overlap. In combat, or on a client
+    -- that reports no screen size, the client drags it and the drop is settled afterwards.
     holder:SetScript("OnDragStart", function()
         holder.rikDragging = true
-        holder:StartMoving()
+        holder.rikEngine = layout.BeginDrag ~= nil and layout.BeginDrag(KEY) == true
+        if not holder.rikEngine then holder:StartMoving() end
     end)
     holder:SetScript("OnDragStop", dragStop)
 end

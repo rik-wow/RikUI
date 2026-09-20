@@ -1,4 +1,4 @@
--- Geometry-aware mover tests; protected writes fail even when a callback catches errors.
+-- Layout registry contracts; protected writes fail even when a callback catches errors.
 return function(check)
     local env = require("wow_stub")
     local originalCreate, originalParent = CreateFrame, UIParent
@@ -54,7 +54,7 @@ return function(check)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, db, character
         for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "layout-movers.lua" }) do
+            "setup-snapshot.lua", "setup-undo.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -79,18 +79,17 @@ return function(check)
         check("registered frame receives defaults and profile scale", target.point[4] == 25 and target.scale == 0.8)
         local alternate = register(layout, "example")
         SlashCmdList.RIKUI("move")
-        local mover = layout.Movers.example
-        check("one labelled mover per logical key", mover and mover.label:GetText() ~= ""
-            and mover.parent == UIParent and mover.shown and layout.Movers.example == mover)
-        check("proxy covers scaled frame without protected ancestry", near(mover.scale, 0.8)
-            and mover.width == target.width and mover.height == target.height and mover.clamped)
-        env.runScript(mover, "OnDragStart")
-        check("drag moves only proxy", mover.moving and not target.moving)
-        mover.dragCenter = { 1500, 800 }
-        env.runScript(mover, "OnDragStop")
+        check("/rik move unlocks every group and never moves a registered frame itself", layout.IsMoving()
+            and layout.IsUnlocked("example") and not target.moving)
+        SlashCmdList.RIKUI("move")
+        check("/rik move again locks them", not layout.IsMoving())
+        -- A frame that drags itself (the bag header did) reports where it was dropped.
+        target.dragCenter = { 1500, 800 }
+        check("a dropped frame's centre is saved", layout.SaveCenter("example", target, RikUI.Profile))
+        layout.Apply()
         local saved = RikUI.Profile.positions.example
-        check("drop saves explicit center anchors with UIParent scale conversion", saved.point == "CENTER"
-            and saved.relativePoint == "CENTER" and near(saved.x, 300) and near(saved.y, 125))
+        check("without a screen size the drop is kept as a centre offset with UIParent scale conversion",
+            saved.point == "CENTER" and saved.relativePoint == "CENTER" and near(saved.x, 300) and near(saved.y, 125))
         check("all frames sharing key follow drop", target.point[4] == saved.x and alternate.point[5] == saved.y)
         local centerX, centerY = target:GetCenter()
         local account, character = RikUIDB, RikUICharDB
@@ -112,19 +111,16 @@ return function(check)
             check("invalid scale is rejected: " .. value, RikUI.Profile.scale == 1.25)
         end
         SlashCmdList.RIKUI("move")
-        mover = layout.Movers.example
-        env.runScript(mover, "OnDragStart")
-        mover.dragCenter = { 20, 40 }
         local before = protectedWrites
         env.inCombat = true
         env.fire("PLAYER_REGEN_DISABLED")
-        env.runScript(mover, "OnDragStop")
         SlashCmdList.RIKUI("move")
         SlashCmdList.RIKUI("move reset")
         SlashCmdList.RIKUI("scale 2")
-        check("combat cancels proxy and refuses all mover mutations", not mover.shown and not mover.moving
-            and not layout.IsMoving() and contains("combat") and protectedWrites == before and combatWrites == 0)
-        check("cancelled drop never changes saved position", near(saved.x, 300)
+        check("combat locks every group and refuses all layout mutations", not layout.IsMoving()
+            and not layout.IsUnlocked("example") and contains("combat") and protectedWrites == before
+            and combatWrites == 0)
+        check("combat never changes a saved position", near(saved.x, 300)
             and RikUI.Profile.positions.example == saved and RikUI.Profile.scale == 1.25)
         RikUI.Profile.positions.example = { point = "TOP", relativePoint = "BOTTOM", x = 7, y = 8 }
         layout.Apply()
@@ -144,43 +140,23 @@ return function(check)
         layout.Apply()
         check("malformed saved coordinates and scale fall back", target.point[1] == "CENTER"
             and target.point[4] == 25 and target.point[5] == -40 and target.scale == 1)
-        SlashCmdList.RIKUI("move")
-        mover = layout.Movers.example
-        env.runScript(mover, "OnDragStart")
-        mover.dragCenter = { 400, 500 }
         SlashCmdList.RIKUI("scale 0.8")
-        env.runScript(mover, "OnDragStop")
-        check("scale during drag cancels stale drop", not mover.moving
-            and RikUI.Profile.positions.example.point == "bad" and target.scale == 0.8)
-        env.runScript(mover, "OnDragStart")
+        check("scale applies while a position is malformed", target.scale == 0.8
+            and RikUI.Profile.positions.example.point == "bad")
         SlashCmdList.RIKUI("move reset")
-        env.runScript(mover, "OnDragStop")
-        check("reset during drag cancels stale drop", RikUI.Profile.positions.example.x == 25)
-        local savedCenter = mover.GetCenter
-        mover.GetCenter = function() return nil end
-        env.runScript(mover, "OnDragStart")
-        env.runScript(mover, "OnDragStop")
-        mover.GetCenter = savedCenter
-        check("missing geometry preserves saved coordinates", RikUI.Profile.positions.example.x == 25
-            and contains("position unavailable"))
-        local existing = mover
-        SlashCmdList.RIKUI("move")
-        SlashCmdList.RIKUI("move")
-        check("toggles reuse proxies", layout.Movers.example == existing)
-        env.runScript(mover, "OnDragStart")
-        env.fire("UI_SCALE_CHANGED")
-        env.runScript(mover, "OnDragStop")
-        check("UI scale changes lock and cancel without saving", not layout.IsMoving()
-            and not mover.shown and RikUI.Profile.positions.example.x == 25)
+        check("reset replaces a malformed position with the default", RikUI.Profile.positions.example.x == 25)
+        local savedCenter = target.GetCenter
+        target.GetCenter = function() return nil end
+        check("a frame without geometry cannot be saved and keeps its coordinates",
+            not layout.SaveCenter("example", target, RikUI.Profile) and RikUI.Profile.positions.example.x == 25)
+        target.GetCenter = savedCenter
         RikUI.DB.profiles.Other = { scale = 0.6, positions = {
             example = { point = "LEFT", relativePoint = "LEFT", x = 11, y = 12 },
         } }
         SlashCmdList.RIKUI("move")
-        env.runScript(layout.Movers.example, "OnDragStart")
-        check("profile switch applies layout and cancels stale drag", RikUI:SetProfile("Other")
+        check("profile switch applies layout and locks every group", RikUI:SetProfile("Other")
             and target.scale == 0.6 and target.point[4] == 11 and not layout.IsMoving())
-        env.runScript(layout.Movers.example, "OnDragStop")
-        check("old drag cannot overwrite new profile", RikUI.Profile.positions.example.x == 11)
+        check("the new profile's position stands", RikUI.Profile.positions.example.x == 11)
         check("unknown profile is rejected", not RikUI:SetProfile("Missing") and RikUI.CharDB.profile == "Other")
         env.inCombat = true
         check("profile switching in combat is refused", not RikUI:SetProfile("Default") and RikUI.CharDB.profile == "Other")
