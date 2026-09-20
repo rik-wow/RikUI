@@ -209,7 +209,9 @@ local function createHolder()
     holder:SetScript("OnHide", onHide)
     bags.Resize()
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, HOLDER_NAME) end
-    layout.Register(holder, KEY, DEFAULTS)
+    -- A window you open over the screen and close again, like a tooltip: it neither blocks other frames
+    -- nor is moved out of their way.
+    layout.Register(holder, KEY, DEFAULTS, { label = "Bags", floating = true })
 end
 
 -- Fullscreen panels reparent each stock frame on their own, so every frame is parked by itself and

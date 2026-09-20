@@ -18,6 +18,8 @@ setup.lua
 setup-actions.lua
 setup-apply.lua
 layout-geometry.lua
+data/layouts.lua
+layout-audit.lua
 layout.lua
 layout-rects.lua
 editmode.lua

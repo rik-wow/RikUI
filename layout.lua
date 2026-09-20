@@ -68,8 +68,15 @@ end
 -- never shown together (party and raid) and do not block each other.
 local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive" }
 
+-- The Centered layout (data/layouts.lua) is the default look and the one source for default places.
+-- The position a module registers with is the fallback for a key that layout does not know.
+local function defaultFor(key, registered)
+    local centered = core.Layouts and core.Layouts.centered
+    return centered and centered.positions[key] or registered or setup.DefaultPositions[key]
+end
+
 local function newGroup(key, defaults, opts)
-    defaults = position(defaults or setup.DefaultPositions[key], ORIGIN)
+    defaults = position(defaultFor(key, defaults), ORIGIN)
     local group = { frames = {}, defaults = defaults }
     for _, name in ipairs(OPTIONS) do group[name] = opts and opts[name] or nil end
     layout.Groups[key] = group

@@ -140,6 +140,52 @@ bars' column (now `x=-126`). `tests/layout-rects.test.lua` repeats the audit:
 every default that registers under the stubs must settle without a move.
 Groups that need a Blizzard frame the stubs lack are settled at login instead.
 
+## Whole-screen layouts
+
+`data/layouts.lua` holds four arrangements of every movable frame, in
+`RikUI.Layouts.Order`: `centered` (unit frames above the bar stack, flush with
+its ends; the default), `classic` (player and target top left, party under
+them, the cast bar over the bars), `hud` (player and target 120 either side of
+the character, cast bar and class widgets between them) and `healer` (party and
+raid over the bars, your own frames in rows above the group's left end).
+
+Positions are written from constants, never bare numbers: `MARGIN = 16` to the
+screen edge, `GAP = 4` between neighbours, 6 between bars. A frame anchors to
+the edge or corner it sits nearest, or to the bottom centre, so a layout holds
+on 16:10 and 21:9 as well as 16:9. Shared by all four: the bar stack bottom
+centre; the two vertical bars at the right margin from the bottom up; one
+column left of them sharing a right edge (quest timers, tracker, damage meter,
+micro menu); the minimap top right under its zone line with the aura rows to
+its left; the chat bottom left; durability and mirror timers top centre.
+
+`Layouts.Sizes` is every key's nominal footprint: the real size for fixed
+frames and the room kept for the ones that vary (tracker 240x120, chat 344x170,
+damage meter 260x180, loot 228x174, bags 394x360). A layout may override one
+(`healer.sizes`: the grid reaches under the tracker's column on 16:10, so it
+keeps room for one quest and the tracker's own cap does the rest).
+`Layouts.Pads` is room outside a frame: the minimap's zone line and clock, the
+chat tabs and edit box, the reputation row. The chat is 344 wide because on
+16:10 only 349 units lie between the margin and the bar stack.
+
+`layout-audit.lua` has `Layouts.Rect(name, key, screen)` and
+`Layouts.Audit(name, screen)`, pure arithmetic returning sorted issues: a key
+not placed, off screen, under `MARGIN` from an edge, an overlap, neighbours
+under `GAP` apart. Floating windows (tooltip anchor, bags) block nothing; party
+and raid share a place.
+
+The Centered layout is the one source for default places: `layout.Register`
+takes a key's default from it, and the position a module passes is only the
+fallback for a key it does not know. The bag window is now `floating`: it opens
+over the screen like a tooltip, so it neither blocks a drag nor is moved.
+
+`tests/layouts.test.lua`: each layout places every key and audits clean on
+1365, 1228 and 1820 wide screens; the audit's four kinds of issue on a broken
+layout; named alignments (player and target flush with the bar ends, the right
+column's shared edge, Classic's corner, Healer's grid and HUD's mirror); over a
+whole-TOC load the nominal sizes equal the real ones and every registered
+default equals Centered; on 1024 wide (4:3) each layout settles with no overlap
+and nothing off screen.
+
 ## Geometry
 
 `layout-geometry.lua` is the arithmetic under the arrangement system. It has no
