@@ -7,7 +7,7 @@ local core, media, motion = RikUI, RikUI.Media, RikUI.Motion
 local chat = core.Chat
 
 local HEIGHT, MIN_WIDTH, INSET, PAD = 18, 22, 4, 6
-local GLYPH, FADE_SECONDS = "v", 0.15
+local ICON, ICON_SIZE, ICON_GAP, FADE_SECONDS = "chevron-down", 10, 3, 0.15
 local SCROLL_METHODS = { "ScrollUp", "ScrollDown", "PageUp", "PageDown", "ScrollToTop", "ScrollToBottom", "SetScrollOffset" }
 local unread = {}
 
@@ -22,9 +22,10 @@ end
 -- The count can reach three digits; the button grows with its text.
 local function label(frame)
     local button, count = frame.rikJump, unread[frame] or 0
-    button.label:SetText(count > 0 and (GLYPH .. " " .. count) or GLYPH)
+    button.label:SetText(count > 0 and tostring(count) or "")
     local width = type(button.label.GetStringWidth) == "function" and button.label:GetStringWidth() or nil
-    button:SetWidth(math.max(MIN_WIDTH, (type(width) == "number" and width or 0) + 2 * PAD))
+    local text = count > 0 and (type(width) == "number" and width or 0) + ICON_GAP or 0
+    button:SetWidth(math.max(MIN_WIDTH, ICON_SIZE + text + 2 * PAD))
 end
 
 local function refresh(frame)
@@ -59,9 +60,11 @@ local function createButton(frame)
     button:SetSize(MIN_WIDTH, HEIGHT)
     button:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -INSET, INSET)
     chat.Flat(button, chat.Colors.field)
+    button.icon = media.Icon(button, ICON, ICON_SIZE, "OVERLAY")
+    button.icon:SetPoint("LEFT", button, "LEFT", PAD, 0)
     button.label = button:CreateFontString(nil, "OVERLAY")
     media.Font(button.label, "small")
-    button.label:SetPoint("CENTER", button, "CENTER", 0, 0)
+    button.label:SetPoint("LEFT", button.icon, "RIGHT", ICON_GAP, 0)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(button)
     highlight:SetTexture(media.highlight)

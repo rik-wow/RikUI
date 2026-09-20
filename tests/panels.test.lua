@@ -119,8 +119,8 @@ return function(check)
 
         local close = character.CloseButton
         check("the close button loses its art and gains a flat box with an x", close.normal.alpha == 0
-            and close.pushed.alpha == 0 and close.rikLabel.text == "x" and #close.rikBorder == 4
-            and close.rikLabel.fontPath == RikUI.Media.font)
+            and close.pushed.alpha == 0 and close.rikIcon.rikIcon == "close" and #close.rikBorder == 4
+            and close.rikIcon.texture == RikUI.Media.IconPath("close") and rawget(close, "rikLabel") == nil)
         env.click(close)
         check("the close button keeps Blizzard's click handler", stub.closed == 1)
 
@@ -140,7 +140,7 @@ return function(check)
         check("the map window strips the chrome on its border frame and takes no fill",
             WorldMapFrame.BorderFrame.NineSlice.alpha == 0 and #WorldMapFrame.BorderFrame.rikBorder == 4
             and rawget(WorldMapFrame, "rikBackdrop") == nil and rawget(WorldMapFrame.BorderFrame, "rikBackdrop") == nil
-            and WorldMapFrame.BorderFrame.CloseButton.rikLabel.text == "x")
+            and WorldMapFrame.BorderFrame.CloseButton.rikIcon.rikIcon == "close")
 
         local spells = loadSpells()
         check("a load-on-demand window is found when its addon loads", module.Hooked.PlayerSpellsFrame == true
@@ -213,7 +213,7 @@ return function(check)
             and rawget(LFGParentFrame.regions[3], "alpha") == nil and rawget(LFGParentFrame.rikBackdrop, "alpha") ~= 0)
         DeathRecapFrame:Show()
         check("the close button is also found by its global name or as CloseXButton",
-            LFGParentFrameCloseButton.rikLabel.text == "x" and DeathRecapFrame.CloseXButton.rikLabel.text == "x")
+            LFGParentFrameCloseButton.rikIcon.rikIcon == "close" and DeathRecapFrame.CloseXButton.rikIcon.rikIcon == "close")
         check("none of the new windows printed anything", #env.printed == 0)
 
         module = load(nil, function()
@@ -237,7 +237,7 @@ return function(check)
             BattlefieldMapFrame.BorderFrame.regions[1].alpha == 0 and BattlefieldMapFrame.BorderFrame.regions[2].alpha == 0
             and #BattlefieldMapFrame.BorderFrame.rikBorder == 4
             and rawget(BattlefieldMapFrame.BorderFrame, "rikBackdrop") == nil
-            and BattlefieldMapFrame.BorderFrame.CloseButton.rikLabel.text == "x")
+            and BattlefieldMapFrame.BorderFrame.CloseButton.rikIcon.rikIcon == "close")
         PetStableFrame:Show()
         check("the Camelot pet stable is skinned under its own name",
             PetStableFrame.NineSlice.alpha == 0 and PetStableFrame.rikFade.plays == 1 and #env.printed == 0)

@@ -16,7 +16,7 @@ local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local FADE_SECONDS, FLASH_SECONDS, FLASH_ALPHA, GLOW_SECONDS, GLOW_ALPHA = 0.15, 0.4, 0.3, 0.6, 0.35
 local HIGHLIGHT_ALPHA = 0.5
 local MORE_HEIGHT, MORE_COLOR = 14, { 0.6, 0.65, 0.7 }
-local EXPANDED_GLYPH, COLLAPSED_GLYPH = "-", "+"
+local EXPANDED_ICON, COLLAPSED_ICON, HEADER_ICON_SIZE = "chevron-down", "chevron-right", 10
 local CLICK_HINT, SHIFT_HINT = "Click: open in the quest log", "Shift-click: stop tracking"
 local seen = {}
 
@@ -51,7 +51,7 @@ local function createHeader(holder)
     header.label = text(header, "small", "LEFT")
     header.label:SetPoint("LEFT", header, "LEFT", PAD, 0)
     header.label:SetText(label("TRACKER_HEADER_QUESTS", "Quests"))
-    header.glyph = text(header, "label", "RIGHT")
+    header.glyph = media.Icon(header, EXPANDED_ICON, HEADER_ICON_SIZE, "OVERLAY")
     header.glyph:SetPoint("RIGHT", header, "RIGHT", -PAD, 0)
     header.count = text(header, "small", "RIGHT")
     header.count:SetPoint("RIGHT", header.glyph, "LEFT", -PAD, 0)
@@ -193,7 +193,7 @@ end
 
 local function updateHeader(count, collapsed)
     view.Header.count:SetText(tostring(count))
-    view.Header.glyph:SetText(collapsed and COLLAPSED_GLYPH or EXPANDED_GLYPH)
+    media.SetIcon(view.Header.glyph, collapsed and COLLAPSED_ICON or EXPANDED_ICON)
 end
 
 -- The "+N more" line that stands in for the quests a capped list has no room for.

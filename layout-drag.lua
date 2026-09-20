@@ -10,7 +10,7 @@ layout.Overlays, layout.Guides = {}, {}
 
 local TINT, ACCENT, BLOCKED = { 0.3, 0.75, 1, 0.16 }, { 0.3, 0.75, 1, 1 }, { 1, 0.3, 0.25, 1 }
 local SNAP_THRESHOLD, SNAP_GAP, BAND_WIDTH, SWEEP_SECONDS, PULSE_SECONDS, PULSE_LOW = 8, 4, 64, 1.6, 0.8, 0.35
-local LOCK_SIZE, LOCK_INSET, LOCK_HOVER, LOCK_FADE = 18, 2, 0.35, 0.12
+local LOCK_SIZE, LOCK_ICON, LOCK_INSET, LOCK_HOVER, LOCK_FADE = 18, 12, 2, 0.35, 0.12
 local drag
 
 function layout.IsDragging() return drag ~= nil end
@@ -39,19 +39,6 @@ local function paintEdge(overlay, color)
     for _, line in ipairs(overlay.edge) do line:SetVertexColor(unpack(color)) end
 end
 
--- An open padlock: a body with a shackle swung to the right, the same glyph the chat's padlock draws.
-local function padlock(button)
-    local body, shackle = button:CreateTexture(nil, "ARTWORK"), button:CreateTexture(nil, "ARTWORK")
-    for _, part in ipairs({ body, shackle }) do
-        part:SetTexture(skin.FLAT)
-        part:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3])
-    end
-    body:SetSize(9, 6)
-    body:SetPoint("BOTTOM", button, "BOTTOM", 0, 3)
-    shackle:SetSize(4, 5)
-    shackle:SetPoint("BOTTOM", body, "TOP", 3, 0)
-end
-
 local function lockTip(button, key)
     button.glow:SetAlpha(LOCK_HOVER)
     motion.Play(button.glow.fade)
@@ -70,7 +57,9 @@ local function addLock(overlay, key)
     button:SetPoint("TOPRIGHT", overlay, "TOPRIGHT", -LOCK_INSET, -LOCK_INSET)
     skin.Fill(button, skin.BACKING)
     skin.Outline(button, ACCENT)
-    padlock(button)
+    button.icon = media.Icon(button, "lock-open", LOCK_ICON, "ARTWORK")
+    button.icon:SetPoint("CENTER", button, "CENTER", 0, 0)
+    button.icon:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3])
     button.glow = button:CreateTexture(nil, "OVERLAY")
     button.glow:SetAllPoints(button)
     button.glow:SetTexture(media.highlight)

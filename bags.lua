@@ -13,7 +13,7 @@ local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -12
 local PAD, HEADER, FOOTER, EDGE = 8, 24, 18, 1
 local CONTROL_HEIGHT, SEARCH_WIDTH, SORT_WIDTH, CLOSE_WIDTH, CONTROL_GAP = 18, 120, 40, 18, 4
 local BACKGROUND, FIELD, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.1, 0.11, 0.13, 1 }, { 0.25, 0.28, 0.32, 1 }
-local TITLE_FORMAT, SEARCH_HINT, SORT_LABEL, CLOSE_LABEL = "Bags %d/%d", "Search", "Sort", "x"
+local TITLE_FORMAT, SEARCH_HINT, SORT_LABEL, CLOSE_ICON = "Bags %d/%d", "Search", "Sort", "close"
 local MATCH_ONE, MATCH_MANY = "  1 match", "  %d matches"
 -- Blizzard's bag search box: its own handlers feed C_Container.SetItemSearch. SearchBoxTemplate art keys.
 local SEARCH_TEMPLATE, SEARCH_ART = "BagSearchBoxTemplate", { "Left", "Middle", "Right" }
@@ -118,7 +118,9 @@ local function createControls()
     holder.title = holder:CreateFontString(nil, "OVERLAY")
     media.Font(holder.title, "label")
     holder.title:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -PAD)
-    holder.close = textButton(CLOSE_LABEL, CLOSE_WIDTH, function() holder:Hide() end)
+    holder.close = textButton("", CLOSE_WIDTH, function() holder:Hide() end)
+    holder.close.icon = media.Icon(holder.close, CLOSE_ICON, 10, "OVERLAY")
+    holder.close.icon:SetPoint("CENTER", holder.close, "CENTER", 0, 0)
     holder.close:SetPoint("TOPRIGHT", holder, "TOPRIGHT", -PAD, -PAD)
     holder.sort = textButton(SORT_LABEL, SORT_WIDTH, bags.Sort)
     holder.sort:SetPoint("RIGHT", holder.close, "LEFT", -CONTROL_GAP, 0)

@@ -100,7 +100,7 @@ return function(check)
         check("the holder is 240px wide and as tall as the header and both blocks", holder.width == 240
             and holder.height == 92 and first.height == 38 and second.height == 26)
         check("the header shows the label, the quest count and the collapse glyph on the flat plaque",
-            view.Header.label.text == "Quests" and view.Header.count.text == "2" and view.Header.glyph.text == "-"
+            view.Header.label.text == "Quests" and view.Header.count.text == "2" and view.Header.glyph.rikIcon == "chevron-down"
             and #view.Header.rikBorder == 4 and view.Header.rikBorder[1].texture == RikUI.Media.border)
         check("blocks fade in when they first appear", first.fade.plays == 1 and second.fade.plays == 1)
 
@@ -173,7 +173,7 @@ return function(check)
 
         env.click(view.Header)
         check("clicking the header collapses the list to the header and remembers it",
-            view.Blocks[1].shown == false and holder.height == 18 and view.Header.glyph.text == "+"
+            view.Blocks[1].shown == false and holder.height == 18 and view.Header.glyph.rikIcon == "chevron-right"
             and RikUI.Profile.questtracker.collapsed == true and view.Header.count.text == "2")
         env.click(view.Header)
         check("clicking it again expands the list with a fade", view.Blocks[1].shown == true
@@ -204,7 +204,7 @@ return function(check)
 
         module = load({ questtracker = { collapsed = true } })
         check("a collapsed list stays collapsed after a reload", module.View.Blocks[1].shown == false
-            and module.Holder.height == 18 and module.View.Header.glyph.text == "+")
+            and module.Holder.height == 18 and module.View.Header.glyph.rikIcon == "chevron-right")
 
         module = load(nil, true)
         check("a combat login builds nothing and parks nothing", module.Holder == nil

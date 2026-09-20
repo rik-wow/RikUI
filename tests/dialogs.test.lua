@@ -88,7 +88,7 @@ return function(check)
 
         RolePollPopup:Show()
         check("the role poll loses its border frame and its global-named close button goes flat",
-            RolePollPopup.Border.alpha == 0 and RolePollPopupCloseButton.rikLabel.text == "x")
+            RolePollPopup.Border.alpha == 0 and RolePollPopupCloseButton.rikIcon.rikIcon == "close")
         StackSplitFrame:Show()
         check("the stack split loses both backgrounds", StackSplitFrame.SingleItemSplitBackground.alpha == 0
             and StackSplitFrame.MultiItemSplitBackground.alpha == 0 and StackSplitFrame.OkayButton.rikFill ~= nil)

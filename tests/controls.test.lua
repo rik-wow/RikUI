@@ -120,7 +120,7 @@ return function(check)
             and thumb.rikHoverFade ~= nil)
         check("a legacy scrollbar gets a flat thumb and flat step buttons with a glyph",
             ui.legacy.ThumbTexture.texture == RikUI.Skin.FLAT and ui.legacy.ScrollUpButton.states.Normal.alpha == 0
-            and ui.legacy.ScrollUpButton.rikGlyph.text == "^" and ui.legacy.ScrollDownButton.rikGlyph.text == "v")
+            and ui.legacy.ScrollUpButton.rikIcon.rikIcon == "chevron-up" and ui.legacy.ScrollDownButton.rikIcon.rikIcon == "chevron-down")
         check("a dropdown button loses its holder art, keeps its arrow and gets the typeface",
             ui.dropdown.Background.alpha == 0 and rawget(ui.dropdown.Arrow, "alpha") == nil
             and ui.dropdown.rikFill ~= nil and ui.dropdown.Text.fontPath == RikUI.Media.font)

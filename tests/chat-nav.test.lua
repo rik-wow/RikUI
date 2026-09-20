@@ -49,16 +49,17 @@ return function(check)
         check("at the newest line the jump button stays hidden", button.shown == false)
         frame:ScrollUp()
         check("scrolling up fades the jump button in", button.shown == true and button.fade.plays == 1
-            and button.label.text == "v")
+            and button.icon.rikIcon == "chevron-down" and button.label.text == "")
         say(frame, 3)
-        check("lines that arrive while scrolled up are counted on the button", button.label.text == "v 3")
+        check("lines that arrive while scrolled up are counted on the button", button.label.text == "3"
+            and button.icon.rikIcon == "chevron-down")
         frame:ScrollUp()
         check("more scrolling does not replay the fade", button.fade.plays == 1)
         env.click(button)
         check("clicking the button returns to the newest line and hides it", frame.offset == 0
             and button.shown == false)
         frame:ScrollUp()
-        check("the count starts again after a return", button.label.text == "v" and button.fade.plays == 2)
+        check("the count starts again after a return", button.label.text == "" and button.fade.plays == 2)
         frame:ScrollToBottom()
 
         state.control = true
@@ -107,7 +108,7 @@ return function(check)
         check("after a reload the saved lines come back dimmed above a separator", #frame.messages == 3
             and frame.messages[1].text == "|Hchannel:GUILD|h[G]|h hello" and frame.messages[1].g == 0.6
             and frame.messages[1].r == 0.3 and frame.messages[3].text:find("earlier", 1, true) ~= nil)
-        check("restored lines are not counted as unread", frame.rikJump.label.text == "v" or frame.rikJump.shown == false)
+        check("restored lines are not counted as unread", frame.rikJump.label.text == "" or frame.rikJump.shown == false)
         frame:AddMessage("fresh", 1, 1, 1)
         env.fire("PLAYER_LOGOUT")
         store = RikUICharDB.chatHistory[1]

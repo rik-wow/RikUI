@@ -17,7 +17,7 @@ local FIELD_ART = { "Left", "Middle", "Right", "TopLeftTex", "TopRightTex", "Top
     "BottomRightTex", "BottomTex", "LeftTex", "RightTex", "MiddleTex", "NineSlice" }
 local STATE_TEXTURES = { "GetNormalTexture", "GetPushedTexture", "GetDisabledTexture", "GetHighlightTexture" }
 local ICON_KEYS = { "icon", "Icon", "IconTexture" }
-local STEP_GLYPHS = { ScrollUpButton = "^", ScrollDownButton = "v" }
+local STEP_ICONS, STEP_ICON_SIZE = { ScrollUpButton = "chevron-up", ScrollDownButton = "chevron-down" }, 8
 local skinned, failed = setmetatable({}, { __mode = "k" }), setmetatable({}, { __mode = "k" })
 local watched = setmetatable({}, { __mode = "k" })
 local warnings, counts = {}, { skinned = 0, failed = 0 }
@@ -108,15 +108,13 @@ local function stepButton(button, glyph)
     fadeStates(button)
     box(button, skin.CONTROL, BUTTON_INSET)
     hover(button)
-    button.rikGlyph = button:CreateFontString(nil, "OVERLAY")
-    media.Font(button.rikGlyph, "small")
-    button.rikGlyph:SetPoint("CENTER", button, "CENTER", 0, 0)
-    button.rikGlyph:SetText(glyph)
+    button.rikIcon = media.Icon(button, glyph, STEP_ICON_SIZE, "OVERLAY")
+    button.rikIcon:SetPoint("CENTER", button, "CENTER", 0, 0)
 end
 
 local function legacyScrollBar(bar)
     flatThumb(bar, SCROLL_THUMB_WIDTH, SCROLL_THUMB_HEIGHT)
-    for key, glyph in pairs(STEP_GLYPHS) do stepButton(bar[key], glyph) end
+    for key, glyph in pairs(STEP_ICONS) do stepButton(bar[key], glyph) end
 end
 
 -- Blizzard swaps the thumb's atlases for hover and press; faded pieces stay faded through that.

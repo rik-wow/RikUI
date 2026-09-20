@@ -114,10 +114,10 @@ return function(check)
         local minimize = module.Buttons[first.MinimizeButton]
         check("the minimize and settings buttons go flat with a glyph and a hover tween, the type arrow becomes a glyph",
             first.MinimizeButton.normal.alpha == 0 and minimize.fill.texture == RikUI.Skin.FLAT
-            and minimize.glyph.text == "-" and minimize.hover ~= nil
-            and module.Buttons[first.SettingsDropdown].glyph.text == "="
+            and minimize.glyph.rikIcon == "minus" and minimize.glyph.color[4] == nil and minimize.hover ~= nil
+            and module.Buttons[first.SettingsDropdown].glyph.rikIcon == "settings"
             and first.DamageMeterTypeDropdown.Arrow.alpha == 0
-            and module.Buttons[first.DamageMeterTypeDropdown].glyph.text == "v")
+            and module.Buttons[first.DamageMeterTypeDropdown].glyph.rikIcon == "chevron-down")
         check("window alpha, background alpha, size and points stay Blizzard's", rawget(first, "alpha") == nil
             and rawget(container.Background, "alpha") == nil and first.width == nil and first.points == nil
             and first.rikFade == nil)

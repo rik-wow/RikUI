@@ -17,9 +17,11 @@ local LEVEL_ART = { "playerLevelDiffIcon", "selectedBorder" }
 local CAST_ART = { "Border", "BorderShield" }
 local ICON_CROP = 0.08
 local FADE_SECONDS, FLASH_SECONDS, FLASH_ALPHA = 0.15, 0.25, 0.5
--- Camelot switches Blizzard's classification art off; these glyphs take its place.
-local MARKERS = { elite = { "+", { 1, 0.82, 0 } }, worldboss = { "B", { 1, 0.3, 0.2 } },
-    rare = { "R", { 0.75, 0.78, 0.85 } }, rareelite = { "R+", { 0.75, 0.78, 0.85 } } }
+-- Camelot switches Blizzard's classification art off; these icons take its place: a gold star for an
+-- elite, a red skull for a world boss, a silver diamond for a rare and a silver star for a rare elite.
+local MARKERS = { elite = { "star", { 1, 0.82, 0 } }, worldboss = { "skull", { 1, 0.3, 0.2 } },
+    rare = { "diamond", { 0.75, 0.78, 0.85 } }, rareelite = { "star", { 0.75, 0.78, 0.85 } } }
+local MARKER_SIZE = 10
 local warnings = {}
 
 local function warn(operation, reason)
@@ -60,9 +62,9 @@ local function createOverlay(bar)
     own.flash:SetAllPoints(own)
     own.flash:SetAlpha(0)
     own.flashAnim = tween(own.flash, FLASH_ALPHA, 0, FLASH_SECONDS)
-    own.marker = own:CreateFontString(nil, "OVERLAY")
-    font(own.marker, "small")
+    own.marker = core.Media.Icon(own, "star", MARKER_SIZE, "OVERLAY")
     own.marker:SetPoint("RIGHT", own, "LEFT", -MARKER_GAP, 0)
+    own.marker:Hide()
     return own
 end
 
@@ -253,8 +255,10 @@ function skin.Marker(frame, unit)
     if not ok then warn("classification", classification) end
     local readable = ok and not core.Secret.IsSecret(classification) and type(classification) == "string"
     local marker = readable and MARKERS[classification] or nil
-    parts.bar.marker:SetText(marker and marker[1] or "")
-    if marker then parts.bar.marker:SetTextColor(unpack(marker[2])) end
+    parts.bar.marker:SetShown(marker ~= nil)
+    if not marker then return end
+    core.Media.SetIcon(parts.bar.marker, marker[1])
+    parts.bar.marker:SetVertexColor(marker[2][1], marker[2][2], marker[2][3])
 end
 
 -- A pooled frame arrives showing the previous unit's health, so the first fill does not ease.

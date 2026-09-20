@@ -13,7 +13,7 @@ local EDIT_HEIGHT, EDIT_GAP, PANEL_GAP, EDGE = 24, 4, 2, 1
 -- The one palette every chat piece draws from: panel fill, control fill, border, selected border.
 chat.Colors = { background = { 0.055, 0.065, 0.08, 0.95 }, field = { 0.1, 0.11, 0.13, 1 },
     border = { 0.25, 0.28, 0.32, 1 }, selected = { 1, 0.78, 0.3, 1 } }
-local COPY_SIZE, COPY_GLYPH, COPY_GLYPH_INSET, COPY_INSET, COPY_ALPHA, HOVER_FADE = 16, 7, 3, 2, 0.35, 0.12
+local COPY_SIZE, COPY_ICON, COPY_INSET, COPY_ALPHA, HOVER_FADE = 16, 10, 2, 0.35, 0.12
 local TIMESTAMP_CVAR, TIMESTAMP_FORMAT, TIMESTAMP_OFF = "showTimestamps", "%H:%M ", "none"
 -- FCFTab_UpdateAlpha reads these globals on every refresh; alerting tabs keep their own alpha.
 local NO_MOUSE_ALPHAS = { "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA" }
@@ -140,23 +140,14 @@ local function fadeTabs()
     end
 end
 
--- Two offset squares: the usual copy glyph without shipping another texture.
-local function copyGlyph(button, point)
-    local square = button:CreateTexture(nil, "ARTWORK")
-    square:SetTexture(media.border)
-    local inset = point == "TOPLEFT" and COPY_GLYPH_INSET or -COPY_GLYPH_INSET
-    square:SetSize(COPY_GLYPH, COPY_GLYPH)
-    square:SetPoint(point, button, point, inset, -inset)
-    return square
-end
-
 local function addCopyButton(frame)
     local button = CreateFrame("Button", nil, frame)
     button:SetSize(COPY_SIZE, COPY_SIZE)
     button:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -COPY_INSET, -COPY_INSET)
     chat.Flat(button, chat.Colors.field)
     button:SetAlpha(COPY_ALPHA)
-    button.back, button.front = copyGlyph(button, "TOPLEFT"), copyGlyph(button, "BOTTOMRIGHT")
+    button.icon = media.Icon(button, "copy", COPY_ICON, "ARTWORK")
+    button.icon:SetPoint("CENTER", button, "CENTER", 0, 0)
     button.rikHoverFade = core.Motion and core.Motion.Tween(button, COPY_ALPHA, 1, HOVER_FADE) or nil
     button:SetScript("OnEnter", function(self)
         self:SetAlpha(1)

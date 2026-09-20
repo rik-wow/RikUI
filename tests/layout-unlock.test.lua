@@ -126,7 +126,8 @@ return function(check)
         local lockButton = overlay.lock
         check("every overlay has a lock button in its top right corner", lockButton ~= nil
             and lockButton.points[1][1] == "TOPRIGHT" and lockButton.points[1][2] == overlay
-            and layout.Overlays.target.lock ~= nil and lockButton.width == 18)
+            and layout.Overlays.target.lock ~= nil and lockButton.width == 18
+            and lockButton.icon.rikIcon == "lock-open")
         env.runScript(lockButton, "OnEnter")
         check("hovering it fades a highlight in and says what it does", lockButton.glow.alpha > 0
             and lockButton.glow.fade.plays == 1 and GameTooltip:IsShown())

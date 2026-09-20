@@ -198,7 +198,8 @@ return function(check)
             and bar.LeftText.fontPath == media.font and bar.LeftText.points[1][1] == "CENTER"
             and bar.LeftText.points[1][2] == own and bar.RightText.points[1][2] == own
             and bar.Text.points[1][2] == own and #bar.Text.points == 1)
-        check("an elite gets a gold marker left of the bar", own.marker.text == "+" and own.marker.color[2] > 0.8
+        check("an elite gets a gold star left of the bar", own.marker.rikIcon == "star" and own.marker:IsShown()
+            and own.marker.color[2] > 0.8 and own.marker.color[4] == nil
             and own.marker.points[1][3] == "LEFT")
         check("an added plate fades in", parts.fade.plays == 1)
 
@@ -218,10 +219,10 @@ return function(check)
         check("health events for other or secret tokens are ignored", own.flashAnim.plays == 1 and #env.printed == 0)
         stub.classification = "rare"
         env.fire("UNIT_CLASSIFICATION_CHANGED", "nameplate1")
-        check("a classification change updates the marker", own.marker.text == "R")
+        check("a classification change updates the marker", own.marker.rikIcon == "diamond")
         stub.classification = env.SECRET
         env.fire("UNIT_CLASSIFICATION_CHANGED", "nameplate1")
-        check("a secret classification clears the marker without printing", own.marker.text == "" and #env.printed == 0)
+        check("a secret classification clears the marker without printing", not own.marker:IsShown() and #env.printed == 0)
 
         check("Blizzard's selection art is faded and the target indicators start hidden", bar.selectedBorder.alpha == 0
             and parts.arrowLeft.shown == false and parts.arrowRight.shown == false and parts.accent.shown == false)

@@ -101,8 +101,8 @@ return function(check)
         check("a strip button is a 22px secure click delegate to its stock button",
             first.template == "SecureActionButtonTemplate" and first.width == 22 and first.height == 22
             and first.attributes.type == "click" and first.attributes.clickbutton == CharacterMicroButton)
-        check("strip buttons carry a label in the RikUI font and the flat border", first.label.text == "C"
-            and first.label.fontPath == RikUI.Media.font and #first.rikBorder == 4
+        check("strip buttons carry an icon of their own and the flat border", first.icon.rikIcon == "character"
+            and first.icon.texture == RikUI.Media.IconPath("character") and rawget(first, "label") == nil and #first.rikBorder == 4
             and first.rikBorder[1].texture == RikUI.Media.border)
         check("the backpack, four bag slots and the keyring follow the micro buttons", #module.Bags == 6
             and module.Bags[1].bag == 0 and module.Bags[5].bag == 4 and module.Bags[6].bag == -2)

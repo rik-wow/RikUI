@@ -16,11 +16,11 @@ local APPEAR_SECONDS, PULSE_SECONDS, PULSE_LOW = 0.12, 0.6, 0.35
 local CVARS = { nameplateSelectedScale = "1.15", nameplateNotSelectedAlpha = "0.6" }
 local INFO_CVAR, INFO_PERCENT = "nameplateInfoDisplay", "CurrentHealthPercent"
 
+local ARROW_SIZE = 12
+
 local function arrow(own, glyph)
-    local region = own:CreateFontString(nil, "OVERLAY")
-    font(region, "label")
-    region:SetText(glyph)
-    region:SetTextColor(unpack(ACCENT))
+    local region = core.Media.Icon(own, glyph, ARROW_SIZE, "OVERLAY")
+    region:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3])
     region.appear = nameplates.Skin.Tween(region, 0, 1, APPEAR_SECONDS)
     return region
 end
@@ -69,7 +69,7 @@ end
 
 function target.Build(frame, parts)
     local own, bar = parts.bar, frame.HealthBarsContainer.healthBar
-    parts.arrowLeft, parts.arrowRight = arrow(own, ">"), arrow(own, "<")
+    parts.arrowLeft, parts.arrowRight = arrow(own, "chevron-right"), arrow(own, "chevron-left")
     parts.accent = nameplates.Block(own, "OVERLAY", ACCENT)
     parts.accentPulse = pulse(parts.accent)
     parts.threat = nameplates.Block(own, "OVERLAY", THREAT)

@@ -3,7 +3,7 @@ local core, media, options = RikUI, RikUI.Media, RikUI.Options
 local types, metrics, setShown = options.Types, options.Metrics, options.SetShown
 local THUMB_WIDTH, MAX_LETTERS, SWATCH_INSET, LIST_GAP, LIST_LEVEL = 12, 32, 2, 2, 10
 local BACKGROUND, BORDER_TINT, ACTIVE_TINT = { 0.055, 0.065, 0.08, 0.95 }, { 0.35, 0.38, 0.42, 1 }, { 1, 0.78, 0.3, 1 }
-local DROPDOWN_ARROW = "v"
+local DROPDOWN_ICON, DROPDOWN_ICON_SIZE = "chevron-down", 10
 
 types.heading = { refresh = function() end }
 
@@ -126,7 +126,7 @@ types.dropdown = {
         widget:SetHighlightTexture(media.highlight, "ADD")
         widget.text = options.Text(widget, "label")
         widget.text:SetPoint("LEFT", widget, "LEFT", metrics.textInset, 0)
-        widget.arrow = options.Text(widget, "label", DROPDOWN_ARROW)
+        widget.arrow = media.Icon(widget, DROPDOWN_ICON, DROPDOWN_ICON_SIZE, "OVERLAY")
         widget.arrow:SetPoint("RIGHT", widget, "RIGHT", -metrics.textInset, 0)
         widget:SetScript("OnClick", function() toggleList(row) end)
         widget:SetScript("OnHide", function() closeList(row) end)

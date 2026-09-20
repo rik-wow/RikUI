@@ -9,7 +9,7 @@ local BACKING, INSET_BACKING, CONTROL = { 0.06, 0.07, 0.09, 0.95 }, { 0.03, 0.03
 local LINE, TITLE_COLOR, ACCENT = { 0.25, 0.28, 0.32, 1 }, { 1, 0.82, 0 }, { 0.3, 0.75, 1, 1 }
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local FADE_SECONDS = 0.15
-local CLOSE_GLYPH = "x"
+local CLOSE_ICON, CLOSE_ICON_SIZE = "close", 10
 -- NineSlice windows, then the dialog border child, then the basic and translucent templates' pieces.
 local CHROME_ART = { "NineSlice", "Bg", "TopTileStreaks", "TitleBg", "PortraitContainer", "PortraitFrame", "portrait",
     "Border", "TopLeftCorner", "TopRightCorner", "BotLeftCorner", "BotRightCorner", "BottomLeftCorner",
@@ -65,10 +65,8 @@ local function skinClose(button)
     end
     button.rikBacking = fill(button, CONTROL, CLOSE_INSET)
     button.rikBorder = outline(button)
-    button.rikLabel = button:CreateFontString(nil, "OVERLAY")
-    media.Font(button.rikLabel, "label")
-    button.rikLabel:SetPoint("CENTER", button, "CENTER", 0, 0)
-    button.rikLabel:SetText(CLOSE_GLYPH)
+    button.rikIcon = media.Icon(button, CLOSE_ICON, CLOSE_ICON_SIZE, "OVERLAY")
+    button.rikIcon:SetPoint("CENTER", button, "CENTER", 0, 0)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(button)
     highlight:SetTexture(media.highlight)

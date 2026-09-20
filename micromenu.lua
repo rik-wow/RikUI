@@ -14,12 +14,14 @@ local BACKPACK_ICON, KEYRING_ICON = "Interface\\Icons\\INV_Misc_Bag_08", "Interf
 local BACKPACK, LAST_BAG, KEYRING_FALLBACK = 0, 4, -2
 -- Every micro button the Mainline file defines on 69913; the client decides which exist and show.
 local MICRO = {
-    { "CharacterMicroButton", "C" }, { "ProfessionMicroButton", "P" }, { "PlayerSpellsMicroButton", "S" },
-    { "SpellbookMicroButton", "B" }, { "TalentMicroButton", "T" }, { "AchievementMicroButton", "A" },
-    { "LegacyMicroButton", "L" }, { "QuestLogMicroButton", "Q" }, { "HousingMicroButton", "H" },
-    { "GuildMicroButton", "G" }, { "LFDMicroButton", "F" }, { "CollectionsMicroButton", "O" },
-    { "EJMicroButton", "J" }, { "HelpMicroButton", "?" }, { "StoreMicroButton", "$" }, { "MainMenuMicroButton", "=" },
+    { "CharacterMicroButton", "character" }, { "ProfessionMicroButton", "profession" },
+    { "PlayerSpellsMicroButton", "spells" }, { "SpellbookMicroButton", "spellbook" }, { "TalentMicroButton", "talents" },
+    { "AchievementMicroButton", "achievement" }, { "LegacyMicroButton", "legacy" }, { "QuestLogMicroButton", "quest" },
+    { "HousingMicroButton", "housing" }, { "GuildMicroButton", "guild" }, { "LFDMicroButton", "groupfinder" },
+    { "CollectionsMicroButton", "collections" }, { "EJMicroButton", "journal" }, { "HelpMicroButton", "help" },
+    { "StoreMicroButton", "store" }, { "MainMenuMicroButton", "menu" },
 }
+local MICRO_ICON_SIZE = 14
 local STOCK = { "MicroMenu", "BagsBar" }
 local holder, warnings = nil, {}
 
@@ -76,8 +78,8 @@ local function createMicro(stock, letter, offset)
     button:SetAttribute("clickbutton", stock)
     button:RegisterForClicks("AnyDown", "AnyUp")
     decorate(button, offset)
-    button.label = text(button, "label", "CENTER")
-    button.label:SetText(letter)
+    button.icon = media.Icon(button, letter, MICRO_ICON_SIZE, "OVERLAY")
+    button.icon:SetPoint("CENTER", button, "CENTER", 0, 0)
     button:SetScript("OnEnter", microTooltip)
     button:SetScript("OnLeave", hideTooltip)
     micromenu.Buttons[#micromenu.Buttons + 1] = button

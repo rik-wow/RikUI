@@ -373,13 +373,13 @@ return function(check)
         check("the main window has a lock button left of its copy button, other windows do not", lock ~= nil
             and lock.parent == ChatFrame1 and lock.points[1][1] == "TOPRIGHT"
             and lock.points[1][4] < copy.points[1][4] and rawget(ChatFrame2, "rikLock") == nil)
-        check("a locked button rests dim with a closed white shackle", lock.alpha == 0.35
-            and lock.shackle.color[3] == 1 and lock.shackle.point[4] == 0)
+        check("a locked button rests dim with a closed white padlock icon", lock.alpha == 0.35
+            and lock.icon.rikIcon == "lock" and lock.icon.color[3] == 1 and lock.icon.color[4] == nil)
         env.runScript(lock, "OnDragStart")
         check("dragging a locked button does nothing", not layout.IsDragging())
         env.click(lock)
-        check("a click unlocks the layout group: full alpha, gold open shackle", layout.IsUnlocked("chat")
-            and lock.alpha == 1 and lock.shackle.color[3] < 1 and lock.shackle.point[4] > 0)
+        check("a click unlocks the layout group: full alpha, gold open padlock icon", layout.IsUnlocked("chat")
+            and lock.alpha == 1 and lock.icon.rikIcon == "lock-open" and lock.icon.color[3] < 1)
         check("the open padlock rises above the overlay that covers the window, so it can lock again",
             lock.strata == "FULLSCREEN_DIALOG" and layout.Overlays.chat.strata == "DIALOG")
         env.click(lock)
@@ -396,7 +396,7 @@ return function(check)
         env.runScript(lock, "OnDragStop")
         layout.LockAll()
         check("locking every frame from the arrangement system dims the padlock too", lock.alpha == 0.35
-            and lock.shackle.point[4] == 0)
+            and lock.icon.rikIcon == "lock")
         layout.UnlockAll()
         check("and unlocking every frame opens it", lock.alpha == 1)
         env.inCombat = true

@@ -17,7 +17,7 @@ local UNLOCKED = "Chat unlocked: drag it by its overlay, its first tab or the pa
 local RESET = "Chat window back at its default place and size."
 local TIP_LOCKED, TIP_UNLOCKED = "Click to unlock the chat window", "Drag to move the chat window. Click to lock."
 -- The copy button takes the corner (16 wide, inset 2); the padlock sits two pixels left of it.
-local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, SHACKLE_SWING = 16, 20, 2, 0.35, 3
+local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, LOCK_ICON = 16, 20, 2, 0.35, 10
 local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
 -- The overlay of an unlocked group is a DIALOG frame over the whole window; the open padlock sits above it.
 local OPEN_STRATA = "FULLSCREEN_DIALOG"
@@ -70,14 +70,13 @@ local function freeClamp()
     if not ok then chat.Warn("clamp", reason) end
 end
 
--- Padlock glyph: the shackle sits over the body when locked and swings right, in gold, when open.
+-- The padlock icon: closed and white when locked, open and gold when unlocked.
 local function refreshLock()
     if not lockButton then return end
     local locked = isLocked()
     local color = locked and LOCKED_COLOR or UNLOCKED_COLOR
-    lockButton.shackle:SetPoint("BOTTOM", lockButton.body, "TOP", locked and 0 or SHACKLE_SWING, 0)
-    lockButton.shackle:SetVertexColor(color[1], color[2], color[3], 1)
-    lockButton.body:SetVertexColor(color[1], color[2], color[3], 1)
+    core.Media.SetIcon(lockButton.icon, locked and "lock" or "lock-open")
+    lockButton.icon:SetVertexColor(color[1], color[2], color[3])
     lockButton.rest = locked and LOCK_ALPHA or 1
     lockButton:SetAlpha(lockButton.rest)
     lockButton:SetFrameStrata(locked and lockButton.homeStrata or OPEN_STRATA)
@@ -153,13 +152,6 @@ function chat.SetLocked(locked)
     return true
 end
 
-local function lockPart(width, height)
-    local part = lockButton:CreateTexture(nil, "ARTWORK")
-    part:SetTexture(core.Media.border)
-    part:SetSize(width, height)
-    return part
-end
-
 local function showLockTip(self)
     self:SetAlpha(1)
     if self.rest < 1 and core.Motion then core.Motion.Play(self.rikHoverFade) end
@@ -173,8 +165,8 @@ local function createLockButton()
     lockButton:SetSize(LOCK_SIZE, LOCK_SIZE)
     lockButton:SetPoint("TOPRIGHT", _G[MAIN], "TOPRIGHT", -LOCK_OFFSET, -LOCK_INSET)
     chat.Flat(lockButton, chat.Colors.field)
-    lockButton.body, lockButton.shackle = lockPart(8, 5), lockPart(4, 4)
-    lockButton.body:SetPoint("BOTTOM", lockButton, "BOTTOM", 0, 3)
+    lockButton.icon = core.Media.Icon(lockButton, "lock", LOCK_ICON, "ARTWORK")
+    lockButton.icon:SetPoint("CENTER", lockButton, "CENTER", 0, 0)
     lockButton:RegisterForDrag("LeftButton")
     lockButton:SetScript("OnClick", function()
         local ok, reason = chat.SetLocked(not isLocked())

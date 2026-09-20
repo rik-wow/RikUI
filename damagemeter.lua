@@ -21,8 +21,9 @@ local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -12
 local WINDOW_TEXT = { { "SessionTimer" }, { "SessionDropdown", "SessionName" },
     { "DamageMeterTypeDropdown", "TypeName" }, { CONTAINER, "NotActive" } }
 -- boxed buttons get a flat box behind the glyph; the type dropdown only swaps its arrow for a glyph.
-local BUTTONS = { { key = "MinimizeButton", glyph = "-", boxed = true }, { key = "SettingsDropdown", glyph = "=", boxed = true },
-    { key = "DamageMeterTypeDropdown", glyph = "v", art = "Arrow" } }
+local BUTTONS = { { key = "MinimizeButton", glyph = "minus", boxed = true }, { key = "SettingsDropdown", glyph = "settings", boxed = true },
+    { key = "DamageMeterTypeDropdown", glyph = "chevron-down", art = "Arrow" } }
+local GLYPH_SIZE = 10
 local STATE_TEXTURES = { "GetNormalTexture", "GetPushedTexture", "GetHighlightTexture", "GetDisabledTexture" }
 local ENTRY_TEXT, ENTRY_ART = { "GetName", "GetValue" }, { "GetBackground", "GetBackgroundEdge" }
 local TRACK, ACCENT, ACCENT_HEIGHT, BOX_INSET = { 0, 0, 0, 0.45 }, { 0.3, 0.75, 1, 1 }, 2, 2
@@ -162,12 +163,10 @@ local function headerButton(window, spec)
         record.edge = skin.Outline(button, nil, BOX_INSET)
         hoverTween(button, record)
     end
-    record.glyph = button:CreateFontString(nil, "OVERLAY")
-    media.Font(record.glyph, "label")
-    record.glyph:SetTextColor(unpack(skin.GOLD))
+    record.glyph = media.Icon(button, spec.glyph, GLYPH_SIZE, "OVERLAY")
+    record.glyph:SetVertexColor(skin.GOLD[1], skin.GOLD[2], skin.GOLD[3])
     local anchor = spec.art and skin.IsRegion(button[spec.art]) and button[spec.art] or button
     record.glyph:SetPoint("CENTER", anchor, "CENTER", 0, 0)
-    record.glyph:SetText(spec.glyph)
     meter.Buttons[button] = record
 end
 
