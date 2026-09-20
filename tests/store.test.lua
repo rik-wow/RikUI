@@ -62,6 +62,44 @@ return function(check)
         check("damaged text is refused, not half decoded", store.Decode(text:sub(1, #text - 7)) == nil
             and store.Decode("zzz") == nil and store.Decode("") == nil)
 
+
+        local cycle = {}; cycle.self = cycle
+        local safe, encoded, encodeReason = pcall(store.Encode, cycle)
+        check("cyclic settings fail safely", safe and encoded == nil and type(encodeReason) == "string")
+        check("non-finite settings cannot be encoded", store.Encode({ n = math.huge }) == nil
+            and store.Encode({ n = -math.huge }) == nil and store.Encode({ n = 0 / 0 }) == nil)
+        local shared = { x = 1 }
+        local alias = store.Decode(store.Encode({ a = shared, b = shared }))
+        check("shared acyclic tables remain supported", alias and alias.a.x == 1 and alias.b.x == 1)
+        local deep = string.rep("Ts1za", 40) .. "t" .. string.rep("E", 40)
+        check("excessive stored nesting is rejected", store.Decode(deep) == nil)
+        check("invalid keys and duplicate stored entries are rejected", store.Decode("TttE") == nil
+            and store.Decode("TTEtE") == nil and store.Decode("Ts1zats1zafE") == nil)
+        check("non-finite values and invalid string lengths are rejected", store.Decode("n1e309z") == nil
+            and store.Decode("s1e1zabcdefghij") == nil)
+        check("incomplete escapes are rejected", store.Decode("s1z_") == nil and store.Decode("s3z_zz") == nil)
+        check("oversized input is rejected", store.Decode(string.rep("t", 21601)) == nil)
+
+
+        local get, chunkReads = C_CVar.GetCVar, 0
+        C_CVar.GetCVar = function(name)
+            if name:match("^rikuiStore_invalid_%d+$") then chunkReads = chunkReads + 1 end
+            return get(name)
+        end
+        cvars.rikuiStore_invalid = "v2x999999999x1x1"
+        check("unbounded header count is rejected before chunk reads", store.Load("invalid") == nil and chunkReads == 0)
+        cvars.rikuiStore_invalid = "v2x2x1x1"
+        check("inconsistent header length is rejected before chunk reads", store.Load("invalid") == nil and chunkReads == 0)
+        C_CVar.GetCVar = get
+        local register = C_CVar.RegisterCVar
+        C_CVar.RegisterCVar = function() error("register failed") end
+        local safeSave, saved = pcall(store.Save, "failure", {})
+        local safeLoad, loaded = pcall(store.Load, "failure")
+        check("CVar API exceptions become explicit store failures", safeSave and saved == false and safeLoad and loaded == nil)
+        C_CVar.RegisterCVar = register
+        check("cyclic settings do not write a header", store.Save("cycle", cycle) == false and cvars.rikuiStore_cycle == nil)
+        check("v2 dictionary remains byte compatible", store.Encode({ point = "CENTER", x = 219 }) == "Tk01k05k03n219zE")
+
         check("the store is available when the client can register CVars", store.Available() == true)
         local wrote, chunks = store.Save("account", sample)
         check("a long value is split over several CVars under one header", wrote == true and chunks > 1
@@ -97,6 +135,12 @@ return function(check)
         check("saved variables that did load win over the store", core.Profile.scale == 1.2 and not printed("restored"))
 
         core = boot()
+
+        local encode, encodes = core.Store.Encode, 0
+        core.Store.Encode = function(value) encodes = encodes + 1; return encode(value) end
+        core.Store.Flush()
+        check("flush serializes each database only once", encodes == 2)
+        core.Store.Encode = encode
         core.Profile.scale = 1.1
         check("a ticker is started after login", #tickers == 1)
         tickers[1]()

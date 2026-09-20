@@ -8,138 +8,15 @@
 local core = RikUI
 local store = {}
 core.Store = store
+store.Encode, store.Decode = core.Codec.Encode, core.Codec.Decode
 
 local PREFIX, VERSION, CHUNK, MAX_CHUNKS, TICK_SECONDS, TOUCH_SECONDS = "rikuiStore_", "v2", 180, 120, 5, 0.2
-local SKIP_KEYS = { chatHistory = true }
 local status = { saves = 0, chunks = 0, bytes = 0, restored = {}, failure = nil }
 local lastText = {}
 
 function store.Available()
     return type(C_CVar) == "table" and type(C_CVar.RegisterCVar) == "function" and type(C_CVar.GetCVar) == "function"
         and type(C_CVar.SetCVar) == "function"
-end
-
--- Keys in a fixed order: the same settings always encode to the same text, whatever order the table
--- was built in, so "did anything change" is a string comparison.
-local function sortedKeys(value)
-    local keys = {}
-    for key in pairs(value) do
-        if type(key) == "string" or type(key) == "number" then keys[#keys + 1] = key end
-    end
-    table.sort(keys, function(a, b)
-        if type(a) ~= type(b) then return type(a) == "number" end
-        return a < b
-    end)
-    return keys
-end
-
--- Words that repeat in every saved position and setting get a two-character code. APPEND ONLY: a code
--- is the word's place in this list, and stored text outlives the addon version that wrote it.
-local WORDS = { "point", "relativePoint", "x", "y", "CENTER", "TOP", "BOTTOM", "LEFT", "RIGHT", "TOPLEFT", "TOPRIGHT",
-    "BOTTOMLEFT", "BOTTOMRIGHT", "positions", "profiles", "Default", "modules", "chat", "size", "width", "height",
-    "scale", "characters", "account", "wizardDone", "applied", "askRole", "profile", "class", "role", "at",
-    "presetVersion", "version", "community", "layout", "base", "moved", "locked", "fontSize", "gryphons", "tooltip",
-    "questtracker", "collapsed", "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar", "player", "target",
-    "focus", "tot", "petframe", "party", "raid", "castplayer", "casttarget", "castfocus", "castpet", "buffs", "debuffs",
-    "minimap", "micromenu", "durability", "mirrortimers", "swingtimer", "combopoints", "totems", "questtimers", "loot",
-    "bags", "damagemeter", "WARRIOR", "dps", "tank", "nameplateCVars" }
-local DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
-local CODES = {}
-for index, word in ipairs(WORDS) do
-    local high, low = math.floor(index / 36), index % 36
-    CODES[word] = DIGITS:sub(high + 1, high + 1) .. DIGITS:sub(low + 1, low + 1)
-end
-
-local function armour(text)
-    return (text:gsub("[^%w]", function(char) return string.format("_%02x", char:byte()) end))
-end
-
-local function unarmour(text)
-    return (text:gsub("_(%x%x)", function(hex) return string.char(tonumber(hex, 16)) end))
-end
-
--- The shortest text that reads back as the same number.
-local function numberText(value)
-    local short = tostring(value)
-    return tonumber(short) == value and short or string.format("%.17g", value)
-end
-
--- The text is letters, digits and underscore throughout, so a CVar and a macro both hold it as it is:
--- value := n<number>z | s<length>z<armoured bytes> | k<two-character word code> | t | f | T<key><value>...E
-local function write(value, out, top)
-    local kind = type(value)
-    if kind == "number" then out[#out + 1] = "n" .. armour(numberText(value)) .. "z"
-    elseif kind == "string" then
-        local safe = armour(value)
-        out[#out + 1] = CODES[value] and "k" .. CODES[value] or "s" .. #safe .. "z" .. safe
-    elseif kind == "boolean" then out[#out + 1] = value and "t" or "f"
-    elseif kind == "table" then
-        out[#out + 1] = "T"
-        for _, key in ipairs(sortedKeys(value)) do
-            local entryKind = type(value[key])
-            local storable = entryKind == "number" or entryKind == "string" or entryKind == "boolean" or entryKind == "table"
-            if storable and not (top and SKIP_KEYS[key]) then
-                write(key, out)
-                write(value[key], out)
-            end
-        end
-        out[#out + 1] = "E"
-    end
-end
-
-function store.Encode(value)
-    local out = {}
-    write(value, out, true)
-    return table.concat(out)
-end
-
-local read
-
-local function readTable(text, at)
-    local result = {}
-    while text:sub(at, at) ~= "E" do
-        if at > #text then return nil end
-        local key, value
-        key, at = read(text, at)
-        if key == nil then return nil end
-        value, at = read(text, at)
-        if value == nil then return nil end
-        result[key] = value
-    end
-    return result, at + 1
-end
-
-local function readWord(text, at)
-    local high, low = DIGITS:find(text:sub(at + 1, at + 1), 1, true), DIGITS:find(text:sub(at + 2, at + 2), 1, true)
-    local word = high and low and #text >= at + 2 and WORDS[(high - 1) * 36 + low - 1] or nil
-    if word == nil then return nil end
-    return word, at + 3
-end
-
-read = function(text, at)
-    local tag = text:sub(at, at)
-    if tag == "t" then return true, at + 1 end
-    if tag == "f" then return false, at + 1 end
-    if tag == "T" then return readTable(text, at + 1) end
-    if tag == "k" then return readWord(text, at) end
-    local stop = (tag == "n" or tag == "s") and text:find("z", at + 1, true) or nil
-    if not stop then return nil end
-    if tag == "n" then
-        local number = tonumber((unarmour(text:sub(at + 1, stop - 1))))
-        if number == nil then return nil end
-        return number, stop + 1
-    end
-    local length = tonumber(text:sub(at + 1, stop - 1))
-    if not length or stop + length > #text then return nil end
-    return unarmour(text:sub(stop + 1, stop + length)), stop + length + 1
-end
-
--- false is a legal value, so failure is nil plus a reason.
-function store.Decode(text)
-    if type(text) ~= "string" or text == "" or not text:match("^[%w_]+$") then return nil, "not store text" end
-    local ok, value, stop = pcall(read, text, 1)
-    if not ok or value == nil or stop ~= #text + 1 then return nil, "damaged store text" end
-    return value
 end
 
 local function checksum(text)
@@ -151,22 +28,33 @@ local function checksum(text)
     return b * 65536 + a
 end
 
-local function cvar(name)
-    C_CVar.RegisterCVar(name, "")
-    return name
+local function validName(name)
+    return type(name) == "string" and name:match("^[%w_]+$") ~= nil
 end
 
--- Every write is read back: a client that truncates a value must be noticed now, not at the next login.
+local function get(name)
+    local registered, reason = pcall(C_CVar.RegisterCVar, name, "")
+    if not registered then return nil, tostring(reason) end
+    local ok, value = pcall(C_CVar.GetCVar, name)
+    if not ok then return nil, tostring(value) end
+    return value or ""
+end
+
 local function put(name, value)
-    local ok, reason = pcall(C_CVar.SetCVar, cvar(name), value)
-    if not ok then return false, tostring(reason) end
-    if C_CVar.GetCVar(name) ~= value then return false, "value truncated at " .. #tostring(C_CVar.GetCVar(name) or "") end
+    local previous, reason = get(name)
+    if previous == nil then return false, reason end
+    local ok, written = pcall(C_CVar.SetCVar, name, value)
+    if not ok then return false, tostring(written) end
+    if written == false then return false, "CVar write rejected" end
+    local back, failure = get(name)
+    if back == nil then return false, failure end
+    if back ~= value then return false, "value truncated at " .. #tostring(back) end
     return true
 end
 
-function store.Save(name, value)
+local function saveText(name, text)
     if not store.Available() then return false, "no CVar registration on this client" end
-    local text = store.Encode(value)
+    if not validName(name) then return false, "invalid store name" end
     local chunks = math.ceil(#text / CHUNK)
     if chunks > MAX_CHUNKS then return false, "settings too large for the store: " .. #text .. " characters" end
     for index = 1, chunks do
@@ -179,15 +67,40 @@ function store.Save(name, value)
     return true, chunks
 end
 
+function store.Save(name, value)
+    local text, reason = store.Encode(value)
+    if not text then return false, reason end
+    return saveText(name, text)
+end
+
+local function parseHeader(header)
+    if type(header) ~= "string" then return nil, "invalid store header" end
+    local version, chunks, length, sum = header:match("^(%w+)x(%d+)x(%d+)x(%d+)$")
+    if version ~= VERSION then return nil, "nothing stored" end
+    chunks, length, sum = tonumber(chunks), tonumber(length), tonumber(sum)
+    if not chunks or chunks < 1 or chunks > MAX_CHUNKS or not length or length < 1
+        or length > CHUNK * MAX_CHUNKS or chunks ~= math.ceil(length / CHUNK)
+        or not sum or sum < 0 or sum >= 4294967296 then return nil, "invalid store header" end
+    return { chunks = chunks, length = length, checksum = sum }
+end
+
 function store.Load(name)
     if not store.Available() then return nil, "no CVar registration on this client" end
-    local header = C_CVar.GetCVar(cvar(PREFIX .. name))
-    local version, chunks, length, sum = tostring(header or ""):match("^(%w+)x(%d+)x(%d+)x(%d+)$")
-    if version ~= VERSION then return nil, "nothing stored" end
+    if not validName(name) then return nil, "invalid store name" end
+    local header, reason = get(PREFIX .. name)
+    if header == nil then return nil, reason end
+    local info, failure = parseHeader(header)
+    if not info then return nil, failure end
     local parts = {}
-    for index = 1, tonumber(chunks) do parts[index] = C_CVar.GetCVar(cvar(PREFIX .. name .. "_" .. index)) or "" end
+    for index = 1, info.chunks do
+        local part, problem = get(PREFIX .. name .. "_" .. index)
+        if part == nil then return nil, problem end
+        local length = index < info.chunks and CHUNK or info.length - (index - 1) * CHUNK
+        if type(part) ~= "string" or #part ~= length then return nil, "checksum mismatch in stored settings: chunk length" end
+        parts[index] = part
+    end
     local text = table.concat(parts)
-    if #text ~= tonumber(length) or checksum(text) ~= tonumber(sum) then return nil, "checksum mismatch in stored settings" end
+    if checksum(text) ~= info.checksum then return nil, "checksum mismatch in stored settings" end
     return store.Decode(text)
 end
 
@@ -216,9 +129,10 @@ function store.Status() return status end
 
 local function flushOne(name, value)
     if type(value) ~= "table" then return end
-    local text = store.Encode(value)
-    if lastText[name] == text then return end
-    local ok, reason = store.Save(name, value)
+    local text, reason = store.Encode(value)
+    if text and lastText[name] == text then return end
+    local ok = false
+    if text then ok, reason = saveText(name, text) end
     if ok then lastText[name], status.failure = text, nil
     elseif status.failure ~= reason then
         status.failure = reason

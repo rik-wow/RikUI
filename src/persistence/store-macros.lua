@@ -26,25 +26,33 @@ local function complain(message)
     core:Print("Settings store: " .. message)
 end
 
-local function pruneTable(value, defaults, isModules)
+local MAX_PRUNE_DEPTH, MAX_PRUNE_NODES = 32, 8192
+local function pruneTable(value, defaults, isModules, context, depth)
+    if depth > MAX_PRUNE_DEPTH then error("settings nesting exceeds limit", 0) end
+    if context.active[value] then error("cyclic settings table", 0) end
+    context.active[value] = true
     local result = {}
     for key, entry in pairs(value) do
+        context.nodes = context.nodes + 1
+        if context.nodes > MAX_PRUNE_NODES then error("too many settings entries", 0) end
         local default = nil
         if type(defaults) == "table" then default = defaults[key] end
         local kept
         if SKIP[key] then kept = nil
-        elseif type(entry) == "table" then kept = pruneTable(entry, default, key == "modules")
+        elseif type(entry) == "table" then kept = pruneTable(entry, default, key == "modules", context, depth + 1)
         elseif entry ~= default and not (isModules and entry == true) then kept = entry end
         if kept ~= nil then result[key] = kept end
     end
+    context.active[value] = nil
     return next(result) ~= nil and result or nil
 end
 
--- A copy of value holding only what differs from defaults; nil when nothing does. A module that is
--- on is the default, whatever its name.
+-- nil alone means no differences; nil with a reason means input validation failed.
 function store.Prune(value, defaults)
     if type(value) ~= "table" then return nil end
-    return pruneTable(value, defaults, false)
+    local ok, result = pcall(pruneTable, value, defaults, false, { active = {}, nodes = 0 }, 1)
+    if not ok then return nil, tostring(result) end
+    return result
 end
 
 local function samePlace(a, b)
@@ -98,7 +106,8 @@ end
 local function pruneAccount(db)
     local result = { profiles = {} }
     for name, profile in pairs(db.profiles or {}) do
-        local pruned = store.Prune(profile, core.Defaults.profile)
+        local pruned, reason = store.Prune(profile, core.Defaults.profile)
+        if reason then error(reason, 0) end
         if pruned then packPositions(pruned) end
         result.profiles[name] = pruned
     end
@@ -163,20 +172,23 @@ end
 
 -- Everything this tier holds: the account's settings and one entry per character that ever saved.
 local function snapshot()
-    local data = state.data or {}
-    data.account = pruneAccount(core.DB)
-    data.characters = data.characters or {}
-    data.characters[store.CharacterKey()] = store.Prune(core.CharDB, core.Defaults.character)
-    state.data = data
-    return data
+    local own, reason = store.Prune(core.CharDB, core.Defaults.character)
+    if reason then error(reason, 0) end
+    local characters = {}
+    for name, settings in pairs(state.data and state.data.characters or {}) do characters[name] = settings end
+    characters[store.CharacterKey()] = own
+    return { account = pruneAccount(core.DB), characters = characters }
 end
 
 function store.FlushMacros()
     if not store.MacrosAvailable() or not core.DB or InCombatLockdown() then return end
-    local text = store.Encode(snapshot())
+    local built, data = pcall(snapshot)
+    if not built then complain(tostring(data)); return end
+    local text, reason = store.Encode(data)
+    if not text then complain(reason); return end
     if text == state.lastText then return end
-    local ok, reason = writeText(text)
-    if ok then state.lastText = text else complain(reason) end
+    local ok, failure = writeText(text)
+    if ok then state.lastText, state.data = text, data else complain(failure) end
 end
 
 local function overlay(target, source)

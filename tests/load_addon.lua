@@ -25,6 +25,12 @@ end
 -- Existing feature fixtures request core.lua as one logical runtime.
 function loader.Loadfile(path)
     if path == "src/core/core.lua" then return loader.Core end
+    if path == "src/persistence/store.lua" then
+        return function(...)
+            assert(loadfile("src/persistence/codec.lua"))(...)
+            return assert(loadfile(path))(...)
+        end
+    end
     return loadfile(path)
 end
 

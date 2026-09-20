@@ -76,6 +76,24 @@ return function(check)
             and pruned.layoutUndo == nil)
         check("a table with nothing left is dropped", store.Prune({ scale = 1, modules = { chat = true } }, core.Defaults.profile) == nil)
 
+
+        local before, messages = writes, #env.printed
+        core.Profile.cycle = core.Profile
+        local _, pruneReason = store.Prune(core.Profile, core.Defaults.profile)
+        check("prune reports cyclic data", type(pruneReason) == "string")
+        store.FlushMacros()
+        store.FlushMacros()
+        check("invalid profile preserves macros and reports once", writes == before and #env.printed == messages + 1)
+        core.Profile.cycle = nil
+        core.CharDB.cycle = core.CharDB
+        store.FlushMacros()
+        check("invalid character data preserves macros", writes == before)
+        core.CharDB.cycle = nil
+        core.Profile.scale = 0.87
+        store.FlushMacros()
+        check("macro saving recovers after invalid data is repaired", writes > before)
+        core.Profile.scale = 1
+
         core.Profile.positions.chat = { point = "CENTER", relativePoint = "BOTTOMLEFT", x = 219, y = 107 }
         core.Profile.chat.size = { width = 500, height = 200 }
         core.Profile.modules.bags = false
