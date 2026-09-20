@@ -35,7 +35,11 @@ return function(check)
     local function map()
         local frame = CreateFrame("Frame", "WorldMapFrame", UIParent)
         frame.ScrollContainer = CreateFrame("Frame", nil, frame)
-        frame.WorldMapTrackingOptionsButton = CreateFrame("Button", nil, frame)
+        for _, key in ipairs({ "WorldMapTrackingOptionsButton", "WorldMapTrackingPinButton" }) do
+            local round = CreateFrame("Button", nil, frame)
+            for _, art in ipairs({ "Background", "Icon", "Border" }) do round[art] = round:CreateTexture() end
+            frame[key] = round
+        end
         local bar = CreateFrame("Frame", nil, frame)
         regions(bar, 3)
         bar.overlay = CreateFrame("Frame", nil, bar)
@@ -70,8 +74,21 @@ return function(check)
             and bar.rikFill.texture == RikUI.Skin.FLAT and #bar.rikBorder == 4)
         check("the home breadcrumb goes flat with the typeface, a highlight and a separator on its right edge",
             flatCrumb(bar.home) and bar.home.text.fontSize == 12 and bar.home.rikSeparator.points[1][1] == "TOPRIGHT")
-        check("the canvas and the tracking button are not written", frame.ScrollContainer.rikFill == nil
-            and frame.WorldMapTrackingOptionsButton.rikHighlight == nil and frame.points == nil)
+        check("the canvas is not written and the map is not moved", frame.ScrollContainer.rikFill == nil
+            and frame.points == nil)
+        local tracking, pin = frame.WorldMapTrackingOptionsButton, frame.WorldMapTrackingPinButton
+        local record = module.Overlays[tracking]
+        check("the round tracking button loses its disc and ring, keeps its icon and gets an inset flat backing and edge",
+            tracking.Background.alpha == 0 and tracking.Border.alpha == 0 and rawget(tracking.Icon, "alpha") == nil
+            and record.fill.texture == RikUI.Skin.FLAT and record.fill.points[1][4] > 0 and #record.edge == 4
+            and record.highlight.texture == RikUI.Media.highlight)
+        check("the pin button gets the same look", module.Overlays[pin] ~= nil and pin.Border.alpha == 0)
+        check("no field, point, size or script is written on an overlay button", tracking.rikFill == nil
+            and tracking.rikBorder == nil and tracking.points == nil and tracking.width == nil
+            and tracking:GetScript("OnShow") == nil)
+        frame:Hide()
+        frame:Show()
+        check("a second show adds no second backing", module.Overlays[tracking] == record)
 
         local zone = crumb(bar, "Elwynn Forest")
         bar.navList[2] = zone

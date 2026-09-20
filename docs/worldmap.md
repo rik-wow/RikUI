@@ -37,15 +37,31 @@ On the first show and after every `Refresh`:
 A skin that raises prints one `World map skin: <reason>` line and is never
 tried again, not from `Refresh` either.
 
+## Round canvas buttons
+
+`WorldMapFrame.WorldMapTrackingOptionsButton` and `WorldMapTrackingPinButton`
+lose their disc (`Background`) and ring (`Border`) on the map's first show and
+get a flat backing four pixels in, a one-pixel edge and a hover highlight. The
+icon stays. An earlier version left them stock because Blizzard refreshes
+overlay frames with `secureexecuterange`; the navigation bar is an overlay
+frame added by the same `AddOverlayFrame` call and has been skinned since the
+first version, so the buttons add no new class of risk. They are handled more
+carefully than the bar: nothing is stored on a button, the record lives in a
+weak table (`RikUI.WorldMap.Overlays`). A button that refuses is reported once
+as `World map overlay`. The floor dropdown inherits `WowStyle1DropdownTemplate`, so the
+[window controls](controls.md) walk the panel skin runs on the map should catch
+it; that is unchecked and belongs on the beta list.
+
+If quest tracking from the map gets blocked or pins stop responding, disable
+the `worldmap` module first.
+
 ## Left stock on purpose
 
-The tracking options button, the pin button, the floor dropdown and the
-coordinates panel sit on the canvas container. Blizzard refreshes those
-overlay frames with `secureexecuterange`, and the map is the part of the UI
-where addon taint has historically done the most damage (blocked quest
-tracking, pins that stop responding). The canvas, the pins and those buttons
-are not written at all. The dropdowns they open are flat through the
-[menus](menus.md) module.
+The canvas, the pins, the coordinates panel, the side panel toggle and the
+content overlays (bounty board, action button, zone timer, threat frame,
+activity tracker) are not written at all. The map is the part of the UI where
+addon taint has historically done the most damage. The dropdowns the buttons
+open are flat through the [menus](menus.md) module.
 
 Nothing is moved, resized, reparented, shown, hidden or rescripted. Only
 alpha, fonts and new child regions are written, none of which is protected, so

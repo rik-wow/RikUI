@@ -1,17 +1,22 @@
 -- The flat look for the world map's navigation bar. The map's chrome is the panels module's job;
 -- this file covers the breadcrumb bar inside it. WorldMapNavBarMixin:Refresh rebuilds the
 -- breadcrumbs on every map change, so it is post-hooked on the bar itself, not on the global NavBar
--- functions that other windows share. Only alpha, fonts and new child regions are written. The
--- overlay buttons on the canvas are left stock on purpose: Blizzard walks them with
--- secureexecuterange and the map is where taint does the most damage.
+-- functions that other windows share. Only alpha, fonts and new child regions are written. The two
+-- round buttons on the canvas get a flat backing too. The map is where taint does the most damage,
+-- so the content overlays (bounty board, action button, threat frame) are never touched.
 local core, media, skin = RikUI, RikUI.Media, RikUI.Skin
-local worldmap = {}
+local worldmap = { Overlays = setmetatable({}, { __mode = "k" }) }
 core.WorldMap = worldmap
 
 local MAP = "WorldMapFrame"
 local CRUMB_ART = { "arrowUp", "arrowDown", "selected" }
 local CRUMB_TEXTURES = { "GetNormalTexture", "GetPushedTexture", "GetHighlightTexture" }
 local SEPARATOR_INSET, EDGE = 4, 1
+-- The disc and the ring of the round canvas buttons; the icon stays. The backing sits inside the
+-- ring's transparent margin.
+local OVERLAY_KEYS = { "WorldMapTrackingOptionsButton", "WorldMapTrackingPinButton" }
+local OVERLAY_ART, OVERLAY_INSET = { "Background", "Border" }, 4
+local overlayFailed = setmetatable({}, { __mode = "k" })
 local warnings, state = {}, { bar = false, failed = false, crumbs = 0 }
 local decorated, stock = setmetatable({}, { __mode = "k" }), setmetatable({}, { __mode = "k" })
 
@@ -96,7 +101,31 @@ local function refresh(bar)
     warn("skin", reason)
 end
 
+-- The two round buttons on the canvas. Like the bar they are overlay frames Blizzard walks with
+-- secureexecuterange, so nothing is stored on them: the record lives in a weak table.
+local function applyOverlay(button)
+    skin.Strip(button, OVERLAY_ART)
+    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(button)
+    highlight:SetTexture(media.highlight)
+    worldmap.Overlays[button] = { fill = skin.Fill(button, skin.CONTROL, OVERLAY_INSET),
+        edge = skin.Outline(button, nil, OVERLAY_INSET), highlight = highlight }
+end
+
+local function skinOverlays(frame)
+    for _, key in ipairs(OVERLAY_KEYS) do
+        local button = frame[key]
+        local fresh = skin.IsRegion(button) and type(button.CreateTexture) == "function"
+            and not worldmap.Overlays[button] and not overlayFailed[button]
+        if fresh then
+            local ok, reason = pcall(applyOverlay, button)
+            if not ok then overlayFailed[button] = true; warn("overlay", reason) end
+        end
+    end
+end
+
 local function onShow(frame)
+    skinOverlays(frame)
     local bar = frame.NavBar
     if not isFrame(bar) then return end
     if not worldmap.Hooked and type(bar.Refresh) == "function" then
