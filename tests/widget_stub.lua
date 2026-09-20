@@ -13,8 +13,10 @@ function stub.animationGroup()
         group.animation = animation
         return animation
     end
-    function group:Stop() end
-    function group:Play() self.plays = self.plays + 1 end
+    function group:SetLooping(mode) self.looping = mode end
+    function group:Stop() self.playing = false end
+    function group:Play() self.plays, self.playing = self.plays + 1, true end
+    function group:IsPlaying() return self.playing == true end
     return group
 end
 

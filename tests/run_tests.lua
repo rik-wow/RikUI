@@ -236,6 +236,8 @@ local chatLinesOk, chatLinesErr = pcall(function() dofile("tests/chat-lines.test
 check("Chat lines test suite completes", chatLinesOk, chatLinesErr)
 local chatNavOk, chatNavErr = pcall(function() dofile("tests/chat-nav.test.lua")(check) end)
 check("Chat navigation test suite completes", chatNavOk, chatNavErr)
+local chatControlsOk, chatControlsErr = pcall(function() dofile("tests/chat-controls.test.lua")(check) end)
+check("Chat controls test suite completes", chatControlsOk, chatControlsErr)
 local bagsOk, bagsErr = pcall(function() dofile("tests/bags.test.lua")(check) end)
 check("Bag test suite completes", bagsOk, bagsErr)
 local microOk, microErr = pcall(function() dofile("tests/micromenu.test.lua")(check) end)

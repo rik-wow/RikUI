@@ -26,7 +26,8 @@ local TAB_ART = { "Left", "Middle", "Right", "ActiveLeft", "ActiveMiddle", "Acti
     "HighlightLeft", "HighlightMiddle", "HighlightRight" }
 -- The other chat files, in the order they start. History comes first: raising the scrollback
 -- clears a window, and restored lines must land before the line and scroll hooks exist.
-local ENABLERS = { "EnableLinks", "EnableMove", "EnableHistory", "EnableLines", "EnableScroll", "EnableSize", "EnableInput" }
+local ENABLERS = { "EnableLinks", "EnableMove", "EnableHistory", "EnableLines", "EnableScroll", "EnableSize", "EnableInput",
+    "EnableStrip", "EnableTabs", "EnableClicks" }
 local warnings = {}
 
 function chat.Warn(operation, reason)
@@ -100,6 +101,18 @@ local function park(frame)
     if chat.IsFrame(frame) and core.Hide.Frame(frame, false) then chat.Parked[#chat.Parked + 1] = frame end
 end
 
+function chat.AnchorEditBox(frame, anchor, gap)
+    local box = frame.editBox
+    box:ClearAllPoints()
+    box:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -gap)
+    box:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -gap)
+end
+
+-- Under the window's panel when the skin file made one, so both share their left and right edge.
+function chat.DockEditBox(frame)
+    chat.AnchorEditBox(frame, frame.rikPanel or frame, frame.rikPanel and PANEL_GAP or EDIT_GAP)
+end
+
 local function flattenEditBox(frame)
     local box = frame.editBox
     if not chat.IsFrame(box) then return end
@@ -107,11 +120,7 @@ local function flattenEditBox(frame)
     for _, key in ipairs(EDIT_ART) do fade(name and _G[name .. key]) end
     for _, key in ipairs(EDIT_FOCUS) do fade(box[key]) end
     chat.Flat(box, chat.Colors.background)
-    -- Under the window's panel when the skin file made one, so both share their left and right edge.
-    local anchor, gap = frame.rikPanel or frame, frame.rikPanel and PANEL_GAP or EDIT_GAP
-    box:ClearAllPoints()
-    box:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -gap)
-    box:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -gap)
+    chat.DockEditBox(frame)
     box:SetHeight(EDIT_HEIGHT)
 end
 

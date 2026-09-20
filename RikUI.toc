@@ -56,6 +56,9 @@ chat-history.lua
 chat-scroll.lua
 chat-size.lua
 chat-input.lua
+chat-strip.lua
+chat-tabs.lua
+chat-clicks.lua
 bags.lua
 bags-items.lua
 micromenu.lua

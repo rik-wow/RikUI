@@ -44,8 +44,9 @@ and the scroll-to-bottom arrow; the mouse wheel still scrolls. Slash commands
 (`/p`, `/g`, `/w name`) replace the chat menu, and the social and channel
 windows keep their key bindings.
 
-Tabs are invisible until the cursor rests over the chat window, then fade in
-the way Blizzard's tabs always have. A tab with an unread whisper keeps
+Tabs stay visible as a flat strip by default (see [Controls](#controls)). With
+that option off they are invisible until the cursor rests over the chat window,
+then fade in the way Blizzard's tabs always have. A tab with an unread whisper keeps
 flashing at full strength. The tab art is hidden; the labels use the RikUI
 font.
 
@@ -132,6 +133,52 @@ the Chat options page and applies without a reload.
   Battle.net whisper and numbered channels stay selected after you send a
   line, by setting `ChatTypeInfo[type].sticky`. Blizzard's values are kept and
   written back when the option is switched off.
+
+## Controls
+
+`chat-strip.lua`, `chat-tabs.lua` and `chat-clicks.lua` are new TOC entries, so
+restart the client once. Each feature has a checkbox on the Chat options page
+and applies without a reload.
+
+- **Channel strip.** A row of 20x18 flat buttons hangs under the chat panel:
+  `S` say, `Y` yell, `P` party, `R` raid, `G` guild, `O` officer, `W` reply and
+  one numbered button per joined channel, each lettered in its channel's
+  colour. Party and raid show only in a group or raid, guild only in a guild,
+  officer only for officers; the row is rebuilt on roster, guild and channel
+  notice events. A click opens the edit box on that channel. With the edit box
+  already open it switches channel and keeps what you typed. The button of the
+  channel you are typing in has the gold border. The strip replaces the chat
+  menu button RikUI parks. The main window's edit box, and those of windows
+  docked to it, sit under the strip.
+- **Visible tabs with unread dots.** Tabs no longer fade out: the selected tab
+  rests at full strength and the others at 60%. A docked window that receives
+  a line while another tab is showing gets a small gold dot on its tab. A
+  whisper makes the dot pulse. Opening the tab clears it. The combat log tab
+  never gets a dot.
+- **Channel-coloured edit box.** The edit box border takes the colour of the
+  channel you are typing in, and the box flashes in that colour for 0.3s when
+  the channel changes. A header refresh on the same channel does not flash.
+- **Name clicks.** Alt-click a name in chat to invite, Ctrl-click to run a who
+  on it. Blizzard's plain click on a name opens a whisper, which also happens
+  with Alt or Ctrl held; RikUI closes that edit box again when nothing has
+  been typed in it. Shift-click and right-click stay Blizzard's.
+
+How it hooks in. A strip click calls `ChatFrameUtil.OpenChat(nil, window)`,
+which activates the right edit box without touching its text and returns it,
+then the edit box's own `SetChatType`, `SetChannelTarget` and `UpdateHeader`.
+Blizzard's `UpdateHeader` keeps its rules: party becomes instance chat inside
+an instance group, and a numbered channel's colour comes from `ChatTypeInfo`.
+Reply is `ChatFrameUtil.ReplyTell`. RikUI never sends a chat line. A post-hook
+on each edit box's `UpdateHeader` drives the border colour and the selected
+button, because every channel change ends there. The target window is the
+dock's selected window (`FCFDock_GetSelectedWindow`), falling back to
+`ChatFrame1`. Docked windows hide each other, so the strip is parented to the
+screen and only anchored to the main window's panel. Dots come from an
+`AddMessage` post-hook (the event name is the eighth argument, which is how a
+whisper is told apart) and an `OnShow` hook. Name clicks are a post-hook on
+`SetItemRef`; invites go through `C_PartyInfo.InviteUnit` and who queries
+through `C_FriendList.SendWho` as `n-"Name"`. A client without `OpenChat` gets
+no strip and keeps its edit boxes where they were.
 
 ## Resizing the chat window
 
@@ -305,6 +352,23 @@ Blizzard's values restored; a saved size applied and a damaged one ignored; a
 disabled module. Beta check for this part: scroll up in a busy channel and
 watch the count, resize and `/reload`, confirm the dimmed lines return, and
 open Edit Mode once to see whether the size holds.
+
+`tests/chat-controls.test.lua` fakes `OpenChat`, `ReplyTell`, the edit box
+methods, the dock's selected window, the channel list, group and guild state
+and the invite and who calls. It proves: the strip's parent, anchor and height;
+the buttons for a solo guildless character and for a raiding officer; button
+look and channel colours; a click opening the selected window's edit box on the
+channel with no text sent; a numbered channel's target; reply; the edit box
+border colour and a single flash per real change; the selected button border;
+both options off and on, with the edit boxes returning under their panels;
+visible tab alphas; a dot for a hidden window, a pulse for a whisper, both
+cleared on show, no dot for a shown window or the combat log, and the option
+off restoring the fade; Alt-click invite closing an empty whisper box,
+Ctrl-click who leaving a box with text open, right clicks and item links
+ignored and the option off; a client without `OpenChat` or the invite call; a
+disabled module. Beta check for this part: click every strip button in and out
+of a group, type half a line and switch channel, get whispered on a background
+tab, and Alt-click a name in combat to see whether the invite is allowed.
 
 The stub cannot show how the flat edit box renders, when the tabs fade, or
 whether the voice and text-to-speech buttons exist on Forever. Beta

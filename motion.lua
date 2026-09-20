@@ -19,6 +19,17 @@ function motion.Tween(owner, from, to, seconds)
     return group
 end
 
+-- The same tween bouncing between its two alphas until it is stopped.
+function motion.Pulse(owner, from, to, seconds)
+    local group = motion.Tween(owner, from, to, seconds)
+    if group and type(group.SetLooping) == "function" then group:SetLooping("BOUNCE") end
+    return group
+end
+
+function motion.Stop(group)
+    if group then group:Stop() end
+end
+
 function motion.Play(group)
     if not group then return end
     group:Stop()

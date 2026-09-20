@@ -106,8 +106,12 @@ arrows and a pulsing line; a red line marks mobs that are on you. Health eases
 instead of jumping and flashes on a hit. See [nameplates](docs/nameplates.md).
 
 Chat keeps Blizzard's windows with the RikUI font, a flat edit box docked
-under the window, `HH:MM` timestamps and tabs that stay invisible until you
-hover the window. The button column, scroll bar and social buttons are
+under the window, `HH:MM` timestamps and flat tabs that stay visible, with a
+gold dot on a tab that got messages while you were on another and a pulse for
+whispers. A row of small channel buttons under the window (`S Y P R G O W 1 2`)
+opens or switches the edit box with one click, and the edit box border takes
+the colour of the channel you are typing in. Alt-click a name to invite,
+Ctrl-click for a who. The button column, scroll bar and social buttons are
 hidden; the mouse wheel scrolls. The small button in a window's top-right
 corner opens its lines as selectable text, and web addresses in chat are
 links that open a box to copy from. Names are class-coloured, channel tags
