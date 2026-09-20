@@ -120,7 +120,8 @@ auction house, friends, guild, macros, professions, inspect, dressing room,
 stable, help, addon list and options windows) keep their content and get the flat
 dark skin: no parchment or portrait ring, a gold title, a flat close button and
 flat tabs with a blue accent on the selected one. Disable the `panels` module
-and reload for the stock look. See [panel skin](docs/panels.md).
+and reload for the stock look. See [panel skin](docs/panels.md). Inside the
+map, the breadcrumb bar is flat too; see [world map bar](docs/worldmap.md).
 
 Confirmation popups, the Escape menu and the release-spirit button get the
 same flat look: no stone border, flat buttons with gold text, a fade-in each
@@ -197,7 +198,7 @@ shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [durability](docs/durability.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [popups](docs/popups.md), [screen text](docs/screentext.md), [menus](docs/menus.md), [chat bubbles](docs/chatbubbles.md), [totem row](docs/totems.md), [alert toasts](docs/alerts.md), [UI widgets](docs/widgets.md), [combat text](docs/combattext.md), [quest timers](docs/questtimers.md), [small HUD frames](docs/hudframes.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [durability](docs/durability.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [popups](docs/popups.md), [screen text](docs/screentext.md), [menus](docs/menus.md), [chat bubbles](docs/chatbubbles.md), [totem row](docs/totems.md), [alert toasts](docs/alerts.md), [UI widgets](docs/widgets.md), [combat text](docs/combattext.md), [quest timers](docs/questtimers.md), [small HUD frames](docs/hudframes.md), [world map bar](docs/worldmap.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

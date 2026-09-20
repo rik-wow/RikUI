@@ -83,6 +83,7 @@ widgets.lua
 combattext.lua
 questtimers.lua
 hudframes.lua
+worldmap.lua
 loot.lua
 loot-rolls.lua
 tooltip.lua
