@@ -37,6 +37,18 @@ Only the first three and the dropdown list were read key by key in the 69913
 source. The rest are driven by the same key list; a key a dialog lacks is
 skipped, so the worst case there is a dialog that keeps part of its art.
 
+The last audit added 27 more, from their declarations only:
+
+| Family | Frames | Art removed |
+| --- | --- | --- |
+| Translucent template | `GuildInviteFrame`, `CommunitiesGuildTextEditFrame`, `CommunitiesGuildLogFrame`, `CommunitiesGuildNewsFiltersFrame` | `Bg`, the corner and border pieces |
+| Backdrop mixin | `CreateChannelPopup`, `OpacityFrame` | `Center`, four edges, four corners |
+| Border child or nine-slice | `FriendsFriendsFrame`, `BattleNetInviteFrame`, `LFDRoleCheckPopup`, `LFGReadyCheckPopup`, `LFGListApplicationDialog`, `LFGListInviteDialog`, `PVPRoleCheckPopup`, `QuickJoinRoleSelectionFrame`, `ReportCheatingDialog`, `CommunitiesAvatarPickerDialog`, `CommunitiesSettingsDialog`, `CommunitiesTicketManagerDialog`, the three `ClassTalentLoadout*Dialog`, `BankCleanUpConfirmationPopup`, `GuildRenameFrame`, `EditModeImportLayoutLinkDialog`, `EditModeSystemSettingsDialog`, `RatingMenuFrame`, `CurrencyTransferMenu` | whatever of the key list they carry |
+
+Left alone: `CommunitiesAddDialog` and `CommunitiesCreateDialog` (defined in
+`Blizzard_CommunitiesSecure`) and `SecureTransferDialog`. Addon code may not
+be allowed to index those frames.
+
 A dialog the client does not have is skipped silently. Load-on-demand ones
 are picked up on `ADDON_LOADED`.
 

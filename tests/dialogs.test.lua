@@ -6,7 +6,7 @@ return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
     local NAMES = { "ReadyCheckListenerFrame", "RolePollPopup", "RolePollPopupCloseButton", "StackSplitFrame",
-        "DropDownList1", "DropDownList1MenuBackdrop", "AutoCompleteBox" }
+        "DropDownList1", "DropDownList1MenuBackdrop", "AutoCompleteBox", "GuildInviteFrame", "CreateChannelPopup" }
     local saved = {}
     for _, name in ipairs(NAMES) do saved[name] = _G[name] end
     local restore = widgets.install()
@@ -54,9 +54,15 @@ return function(check)
         local list = dialog("DropDownList1", {})
         list.Border, DropDownList1MenuBackdrop = CreateFrame("Frame", nil, list), CreateFrame("Frame", nil, list)
     end
-    local function load(profile, combat)
+    -- The audit's dialogs: a translucent-template one and a backdrop-mixin one.
+    local function installRest()
+        installClient()
+        dialog("GuildInviteFrame", { "Bg", "TopLeftCorner", "BotRightCorner", "TopBorder", "LeftBorder" })
+        dialog("CreateChannelPopup", { "Center", "TopEdge", "LeftEdge", "TopLeftCorner", "BottomRightCorner" })
+    end
+    local function load(profile, combat, install)
         widgets.loadAddon(env, { "panels.lua", "panels-skin.lua", "skin.lua", "controls.lua", "dialogs.lua" },
-            profile, combat, installClient)
+            profile, combat, install or installClient)
         return RikUI.Dialogs
     end
     local ok, reason = pcall(function()
@@ -107,6 +113,18 @@ return function(check)
         RolePollPopup:Show()
         check("a dialog that refuses the skin is reported once and left alone", #env.printed == 1
             and widgets.printedContains(env, "Dialogs skin RolePollPopup") and RolePollPopup.rikFade == nil)
+
+        module = load(nil, false, installRest)
+        GuildInviteFrame:Show()
+        check("a translucent-template dialog loses its corners and borders and gets the flat fill",
+            GuildInviteFrame.TopLeftCorner.alpha == 0 and GuildInviteFrame.BotRightCorner.alpha == 0
+            and GuildInviteFrame.TopBorder.alpha == 0 and GuildInviteFrame.LeftBorder.alpha == 0
+            and GuildInviteFrame.rikFill ~= nil and GuildInviteFrame.rikFade.plays == 1)
+        CreateChannelPopup:Show()
+        check("a backdrop-mixin dialog loses its centre, edges and corners",
+            CreateChannelPopup.Center.alpha == 0 and CreateChannelPopup.TopEdge.alpha == 0
+            and CreateChannelPopup.LeftEdge.alpha == 0 and CreateChannelPopup.BottomRightCorner.alpha == 0
+            and #CreateChannelPopup.rikBorder == 4 and #env.printed == 0)
 
         module = load({ modules = { dialogs = false } })
         ReadyCheckListenerFrame:Show()

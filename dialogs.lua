@@ -16,9 +16,27 @@ local TARGETS = {
     { name = "DropDownList1", backdrop = "MenuBackdrop" }, { name = "DropDownList2", backdrop = "MenuBackdrop" },
     { name = "DropDownList3", backdrop = "MenuBackdrop" }, { name = "ColorPickerFrame" },
     { name = "AddFriendFrame" }, { name = "ReportFrame" },
+    -- The last audit. The two dialogs of Blizzard_CommunitiesSecure and SecureTransferDialog are left
+    -- out: addon code may not be allowed to index them.
+    { name = "GuildInviteFrame" }, { name = "FriendsFriendsFrame" }, { name = "BattleNetInviteFrame" },
+    { name = "CreateChannelPopup" }, { name = "LFDRoleCheckPopup" }, { name = "LFGReadyCheckPopup" },
+    { name = "LFGListApplicationDialog" }, { name = "LFGListInviteDialog" }, { name = "PVPRoleCheckPopup" },
+    { name = "QuickJoinRoleSelectionFrame" }, { name = "ReportCheatingDialog" },
+    { name = "CommunitiesAvatarPickerDialog" }, { name = "CommunitiesSettingsDialog" },
+    { name = "CommunitiesTicketManagerDialog" }, { name = "CommunitiesGuildTextEditFrame" },
+    { name = "CommunitiesGuildLogFrame" }, { name = "CommunitiesGuildNewsFiltersFrame" },
+    { name = "ClassTalentLoadoutCreateDialog" }, { name = "ClassTalentLoadoutEditDialog" },
+    { name = "ClassTalentLoadoutImportDialog" }, { name = "BankCleanUpConfirmationPopup" },
+    { name = "GuildRenameFrame" }, { name = "EditModeImportLayoutLinkDialog" },
+    { name = "EditModeSystemSettingsDialog" }, { name = "OpacityFrame" }, { name = "RatingMenuFrame" },
+    { name = "CurrencyTransferMenu" },
 }
+-- Shared dialog art, then TranslucentFrameTemplate's pieces, then the backdrop mixin's nine pieces.
 local DIALOG_ART = { "Border", "NineSlice", "Bg", "BG", "PortraitContainer", "SingleItemSplitBackground",
-    "MultiItemSplitBackground", "background", "filigree", "bottomArt" }
+    "MultiItemSplitBackground", "background", "filigree", "bottomArt",
+    "TopLeftCorner", "TopRightCorner", "BotLeftCorner", "BotRightCorner", "BottomLeftCorner", "BottomRightCorner",
+    "TopBorder", "BottomBorder", "LeftBorder", "RightBorder",
+    "Center", "TopEdge", "BottomEdge", "LeftEdge", "RightEdge" }
 local HEADER_ART = { "LeftBG", "RightBG", "CenterBG" }
 local CLOSE_KEYS, CLOSE_SUFFIX = { "CloseButton", "CloseXButton" }, "CloseButton"
 local failed, warnings = {}, {}
