@@ -232,6 +232,8 @@ local minimapOk, minimapErr = pcall(function() dofile("tests/minimap.test.lua")(
 check("Minimap test suite completes", minimapOk, minimapErr)
 local chatOk, chatErr = pcall(function() dofile("tests/chat.test.lua")(check) end)
 check("Chat test suite completes", chatOk, chatErr)
+local chatLinesOk, chatLinesErr = pcall(function() dofile("tests/chat-lines.test.lua")(check) end)
+check("Chat lines test suite completes", chatLinesOk, chatLinesErr)
 local bagsOk, bagsErr = pcall(function() dofile("tests/bags.test.lua")(check) end)
 check("Bag test suite completes", bagsOk, bagsErr)
 local microOk, microErr = pcall(function() dofile("tests/micromenu.test.lua")(check) end)

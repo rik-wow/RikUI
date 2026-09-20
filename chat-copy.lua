@@ -38,19 +38,21 @@ local function linkifyPlain(text)
     return text
 end
 
--- Existing hyperlinks pass through whole; only the text between them is searched.
-function chat.Linkify(text)
+-- Existing hyperlinks pass through whole; only the text between them goes through the rewrite.
+function chat.MapPlain(text, rewrite)
     local parts, position = {}, 1
     while true do
         local start, stop = text:find(HYPERLINK, position)
         if not start then break end
-        parts[#parts + 1] = linkifyPlain(text:sub(position, start - 1))
+        parts[#parts + 1] = rewrite(text:sub(position, start - 1))
         parts[#parts + 1] = text:sub(start, stop)
         position = stop + 1
     end
-    parts[#parts + 1] = linkifyPlain(text:sub(position))
+    parts[#parts + 1] = rewrite(text:sub(position))
     return table.concat(parts)
 end
+
+function chat.Linkify(text) return chat.MapPlain(text, linkifyPlain) end
 
 -- Filter contract on 69913: discard flag first; a second value replaces the whole argument list.
 local function filter(_, _, message, ...)
@@ -60,9 +62,15 @@ local function filter(_, _, message, ...)
     return false, linked, ...
 end
 
-local function registerFilters()
+-- The 69913 registry, or its deprecated alias; nil on a client with neither.
+function chat.FilterAdder()
     local add = type(ChatFrameUtil) == "table" and ChatFrameUtil.AddMessageEventFilter or ChatFrame_AddMessageEventFilter
-    if type(add) ~= "function" then
+    return type(add) == "function" and add or nil
+end
+
+local function registerFilters()
+    local add = chat.FilterAdder()
+    if not add then
         chat.Warn("links", "message filters unavailable on this client")
         return false
     end

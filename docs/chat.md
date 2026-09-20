@@ -64,6 +64,46 @@ community and system messages turn into light-blue links. Clicking one opens
 the same window holding just the address, selected. The client cannot open a
 browser for addons, so copying is the whole feature.
 
+## Lines
+
+`chat-lines.lua` (a new TOC entry, so restart the client once) changes what a
+line looks like. Each piece has a checkbox on the Chat options page and
+applies without a reload.
+
+- **Class-coloured names.** RikUI writes `0` to the client's own
+  `chatClassColorOverride` setting, which makes Blizzard colour every sender by
+  class. The value you had before is kept in the profile and written back when
+  you switch the option off. If class colours were already on, RikUI leaves
+  the setting alone in both directions.
+- **Short channel tags.** `[Guild]` becomes `[G]`, `[Officer]` `[O]`,
+  `[Party]` `[P]`, `[Party Leader]` `[PL]`, `[Raid]` `[R]`, `[Raid Leader]`
+  `[RL]`, `[Instance]` `[I]`, `[Instance Leader]` `[IL]` and `[2. Trade - City]`
+  `[2]`. The tag stays a clickable channel link. Only the first channel link
+  in a line is touched, so a player typing `[Guild]` changes nothing.
+- **Mention highlight.** Your character's name, in any letter case and as a
+  whole word, turns gold in say, yell, emote, group, guild, officer, channel
+  and whisper lines from other players. A soft sound plays at most once every
+  five seconds and once per line; whispers keep Blizzard's own sound and get
+  no second one. Names inside item or player links are never recoloured.
+- **Collapsed repeats.** The same text from the same sender in a numbered
+  channel, say, yell or an emote shows once per ten seconds. Guild, group and
+  whisper lines and your own lines are never dropped. The window does not
+  slide: a line repeated forever still shows every ten seconds.
+
+How it hooks in. Blizzard's handler runs the message filters first, then
+builds the sender name, then the channel tag, then calls `AddMessage` with the
+event name as the eighth argument. Mentions and repeats are message filters,
+the same sanctioned route as the address links; a filter is called once per
+window showing the line, which is why both use the line id to tell a second
+window from a second message. The tag exists only in the finished text, and
+shortening the channel argument in a filter would make the handler drop the
+line, so short tags wrap each window's `AddMessage`. The wrapper hands secret
+or non-string text to Blizzard untouched and runs the rewrite under `pcall`.
+It is the one place the chat module replaces a Blizzard method: it is only
+installed while the option is on, and once installed it stays until a reload,
+passing text through when the option is off. If a chat error ever names RikUI,
+switch short tags off and reload.
+
 ## Moving the chat window
 
 `chat-move.lua` is a new TOC entry, so fully restart the client once.
@@ -103,7 +143,8 @@ chat with RikUI or with Edit Mode, not both.
 
 ## Options
 
-The Chat page of `/rik config` has three settings, all saved per profile:
+The Chat page of `/rik config` has these settings, all saved per profile. The
+four line options are described under [Lines](#lines).
 
 - Lock the main chat window, see above.
 
@@ -191,6 +232,21 @@ links ignored and item links still reaching the tooltip; timestamps on, off
 and a player's own format left alone; the options page; the debug line; a
 combat login queueing the parent writes; missing link APIs; a client without
 `ChatFrame1`; a disabled module touching nothing.
+
+`tests/chat-lines.test.lua` delivers lines the way the handler does (filters,
+then a composed tag and sender, then `AddMessage` with the event name). It
+proves: the class colour setting written, restored and re-applied; the guild,
+party leader and numbered channel tags; a line without a channel link left
+alone; secret and missing text passed through; short tags off without a
+reload; the mention highlight in any case, the sound once per line and per
+five seconds, longer words and hyperlinks skipped, own lines skipped, a
+whisper highlighted silently and mentions off; a repeat dropped, the same line
+in a second window kept, another sender kept, the line back after ten seconds,
+guild lines and own lines never collapsed and collapsing off; nothing wrapped
+or written with both options off; a client without message filters; a disabled
+module. Beta check for this part: watch guild and trade chat for a few
+minutes, have someone say your name, and confirm `/reload` in combat raises no
+chat error.
 
 The stub cannot show how the flat edit box renders, when the tabs fade, or
 whether the voice and text-to-speech buttons exist on Forever. Beta

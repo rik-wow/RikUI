@@ -110,8 +110,10 @@ under the window, `HH:MM` timestamps and tabs that stay invisible until you
 hover the window. The button column, scroll bar and social buttons are
 hidden; the mouse wheel scrolls. The small button in a window's top-right
 corner opens its lines as selectable text, and web addresses in chat are
-links that open a box to copy from. Font size and timestamps are on the Chat
-options page. Click the padlock in the main chat window's corner to
+links that open a box to copy from. Names are class-coloured, channel tags
+are short (`[G]`, `[P]`, `[2]`), your own name turns gold with a soft sound
+when someone says it, and repeated public spam shows once per ten seconds.
+Each of those, font size and timestamps are on the Chat options page. Click the padlock in the main chat window's corner to
 unlock it, drag the padlock to move the window, click again to lock; no Edit
 Mode needed and the position is remembered (`/rik chat lock|unlock|reset`
 does the same). Disable the `chat` module to get the stock chat back. See

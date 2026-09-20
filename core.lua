@@ -2,7 +2,8 @@
 local addonName = ...
 local DEFAULT_PROFILE = "Default"
 local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = false, tooltip = { hideInCombat = false },
-    chat = { fontSize = 14, timestamps = true, locked = true, panel = true }, questtracker = { collapsed = false } }
+    chat = { fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
+        mentions = true, collapseRepeats = true }, questtracker = { collapsed = false } }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }
 local CHARACTER_DEFAULTS = { profile = DEFAULT_PROFILE, askRole = true, wizardDone = false }
 

@@ -201,6 +201,7 @@ function chat:OnEnable()
     if type(_G[SIZE_FUNCTION]) == "function" then hooksecurefunc(SIZE_FUNCTION, rememberSize) end
     if chat.EnableLinks then chat.EnableLinks() end
     if chat.EnableMove then chat.EnableMove() end
+    if chat.EnableLines then chat.EnableLines() end
 end
 
 local function frameCount()
