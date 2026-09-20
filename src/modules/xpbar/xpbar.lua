@@ -8,7 +8,7 @@ core.XPBar = xpbar
 
 local HOLDER_NAME, KEY = "RikUIXPBar", "xpbar"
 local WIDTH, ROW_HEIGHT, GAP, EDGE = 498, 8, 2, 1
-local DEFAULTS = { point = "TOP", relativePoint = "BOTTOM", x = 0, y = 36 }
+local DEFAULTS = { point = "TOP", relativePoint = "BOTTOM", x = 0, y = 48 }
 local BACKGROUND, BORDER, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1, 1 }
 local XP_COLOR, RESTED_COLOR, NEUTRAL_COLOR = { 0.58, 0.35, 0.85 }, { 0.2, 0.45, 0.9 }, { 0.9, 0.7, 0 }
 -- Hated to exalted, the client's reaction index.
@@ -62,6 +62,7 @@ local function createRow(key, color, tooltip)
     row:EnableMouse(true)
     row:SetScript("OnEnter", tooltip)
     row:SetScript("OnLeave", hideTooltip)
+    if xpbar.Details then xpbar.Details.Build(row, key) end
     row:Hide()
     xpbar.Rows[key] = row
     return row
@@ -78,9 +79,11 @@ local function arrange(wanted)
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, -offset)
             row:SetPoint("TOPRIGHT", holder, "TOPRIGHT", 0, -offset)
-            offset = offset + ROW_HEIGHT + GAP
+            local height = xpbar.Details and xpbar.Details.Height(key) or ROW_HEIGHT
+            row:SetHeight(height)
+            offset = offset + height + GAP
         end
-        if appearing then motion.Play(row.fade) end
+        if appearing and (not xpbar.Details or xpbar.Details.Animated()) then motion.Play(row.fade) end
     end
     holder:SetShown(offset > 0)
     if offset > 0 then holder:SetSize(WIDTH, offset - GAP) end
@@ -151,7 +154,8 @@ end
 
 -- A row that was hidden shows another moment's value, so its first fill does not ease.
 local function easingFor(row)
-    return motion.Interpolation(row:IsShown() and "ExponentialEaseOut" or "Immediate")
+    local animate = not xpbar.Details or xpbar.Details.Animated()
+    return motion.Interpolation(animate and row:IsShown() and "ExponentialEaseOut" or "Immediate")
 end
 
 function xpbar.Refresh()
@@ -161,21 +165,26 @@ function xpbar.Refresh()
     if wanted.xp then feedXP(xpbar.Rows.xp, easingFor(xpbar.Rows.xp)) end
     if faction then feedReputation(xpbar.Rows.reputation, faction, easingFor(xpbar.Rows.reputation)) end
     arrange(wanted)
+    if xpbar.Details then xpbar.Details.Refresh(faction) end
 end
 
-local function gained()
-    if not holder then return end
+local function gained(_, unit)
+    if not holder or (unit and unit ~= "player") then return end
+    local gainedXP = not xpbar.Details or xpbar.Details.Gain()
     local row = xpbar.Rows.xp
     local visible = row:IsShown()
     xpbar.Refresh()
-    if visible and row:IsShown() then motion.Play(row.flashAnim) end
+    if gainedXP and visible and row:IsShown() and (not xpbar.Details or xpbar.Details.Animated()) then
+        motion.Play(row.flashAnim)
+    end
 end
 
 local function experienceLines()
     local current, maximum, rested = UnitXP("player"), UnitXPMax("player"), GetXPExhaustion()
     local percent = maximum > 0 and math.floor(current / maximum * 100 + 0.5) or 0
     local lines = { string.format("%d / %d (%d%%)", current, maximum, percent) }
-    if rested and rested > 0 then lines[2] = string.format("Rested %d", rested) end
+    if rested and rested > 0 then lines[2] = string.format("Rested %d (%.1f%% of a level)", rested, maximum > 0 and rested / maximum * 100 or 0) end
+    if xpbar.Details then xpbar.Details.Tooltip(lines) end
     return lines
 end
 
@@ -184,8 +193,10 @@ local function reputationLines()
     if not data then return {} end
     local low = data.currentReactionThreshold
     local label = _G["FACTION_STANDING_LABEL" .. data.reaction]
-    local lines = { string.format("%d / %d", data.currentStanding - low, data.nextReactionThreshold - low) }
+    local total = data.nextReactionThreshold - low
+    local lines = { total <= 0 and "Maximum standing" or string.format("%d / %d", data.currentStanding - low, total) }
     if type(label) == "string" then table.insert(lines, 1, label) end
+    lines[#lines + 1] = "Left-click: reputation  |  Right-click: compact / detailed"
     return lines, data.name
 end
 
@@ -231,6 +242,8 @@ function xpbar:OnEnable()
         "PLAYER_ENTERING_WORLD" }) do
         core:RegisterEvent(event, xpbar.Refresh)
     end
+    if xpbar.Details then core:RegisterEvent("PLAYER_LEVEL_UP", xpbar.Details.LevelUp) end
+    hooksecurefunc(core, "SetProfile", xpbar.Refresh)
     local bars = core.Bars
     if type(bars) == "table" and type(bars.UpdateStockVisibility) == "function" then
         hooksecurefunc(bars, "UpdateStockVisibility", xpbar.UpdateStock)

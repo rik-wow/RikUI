@@ -135,16 +135,24 @@ local function onShow(frame)
     refresh(bar)
 end
 
-function worldmap:OnEnable()
+local function attachSkin()
     local frame = _G[MAP]
-    if not isFrame(frame) then return end
+    if worldmap.HookedFrame or not isFrame(frame) then return end
+    worldmap.HookedFrame = frame
     frame:HookScript("OnShow", onShow)
     if frame:IsShown() then onShow(frame) end
 end
 
+function worldmap:OnEnable()
+    if self.EnableTools then self.EnableTools() end
+    attachSkin()
+    core:RegisterEvent("ADDON_LOADED", attachSkin)
+end
+
 function worldmap:Debug()
     core:Print("World map bar=" .. tostring(state.bar) .. " crumbs=" .. state.crumbs
-        .. " failed=" .. tostring(state.failed))
+        .. " failed=" .. tostring(state.failed) .. " tools=" .. tostring(worldmap.Toolbar ~= nil)
+        .. " reveal=" .. tostring(core.Profile and core.Profile.worldmap and not core.Profile.worldmap.fog))
 end
 
 core:RegisterModule("worldmap", worldmap)

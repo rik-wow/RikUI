@@ -80,6 +80,7 @@ src/modules/bags/bags.lua
 src/modules/bags/bags-items.lua
 src/modules/micromenu/micromenu.lua
 src/modules/xpbar/xpbar.lua
+src/modules/xpbar/xpbar-details.lua
 src/modules/mirrortimers/mirrortimers.lua
 src/modules/swingtimer/swingtimer.lua
 src/modules/durability/durability.lua
@@ -111,6 +112,10 @@ src/modules/combattext/combattext.lua
 src/modules/questtimers/questtimers.lua
 src/modules/hudframes/hudframes.lua
 src/modules/worldmap/worldmap.lua
+data/map-terrain.lua
+src/modules/worldmap/worldmap-terrain.lua
+src/modules/worldmap/worldmap-navigation.lua
+src/modules/worldmap/worldmap-tools.lua
 src/modules/loot/loot.lua
 src/modules/loot/loot-rolls.lua
 src/modules/tooltip/tooltip.lua

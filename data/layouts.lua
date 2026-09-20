@@ -19,7 +19,7 @@ layouts.Sizes = {
     main = { width = BAR_WIDTH, height = BAR_HEIGHT }, bar2 = { width = BAR_WIDTH, height = BAR_HEIGHT },
     bar3 = { width = BAR_WIDTH, height = BAR_HEIGHT }, bar4 = { width = BAR_HEIGHT, height = BAR_WIDTH },
     bar5 = { width = BAR_HEIGHT, height = BAR_WIDTH }, stance = { width = 102, height = ROW_HEIGHT },
-    pet = { width = 354, height = ROW_HEIGHT }, xpbar = { width = BAR_WIDTH, height = 8 },
+    pet = { width = 354, height = ROW_HEIGHT }, xpbar = { width = BAR_WIDTH, height = 18 },
     player = { width = UNIT_WIDTH, height = UNIT_HEIGHT }, target = { width = UNIT_WIDTH, height = UNIT_HEIGHT },
     focus = { width = FOCUS_WIDTH, height = FOCUS_HEIGHT }, tot = { width = SMALL_WIDTH, height = SMALL_HEIGHT },
     petframe = { width = SMALL_WIDTH, height = SMALL_HEIGHT }, party = { width = 150, height = 186 },
@@ -37,7 +37,7 @@ layouts.Sizes = {
 }
 -- Room outside the frame: the minimap's zone line above and clock below, the reputation row under the
 -- experience row.
-layouts.Pads = { minimap = { top = 16, bottom = 16 }, xpbar = { bottom = 10 } }
+layouts.Pads = { minimap = { top = 16, bottom = 16 }, xpbar = { bottom = 14 } }
 -- The chat's rectangle is everything you see of it, not only the message area: the panel's border
 -- left and right, the tabs above, the channel strip and the input bar below. chat-move.lua sizes its
 -- holder with these, so the layout, the overlay and the audit all mean the same rectangle. The nominal
@@ -59,7 +59,7 @@ local function topLeft(x, y) return at("TOPLEFT", "TOPLEFT", x, y) end
 local function bottomRight(x, y) return at("BOTTOMRIGHT", "BOTTOMRIGHT", x, y) end
 
 -- The bar stack, bottom centre, the same in every layout.
-local XP_TOP = MARGIN + 20
+local XP_TOP = MARGIN + layouts.Sizes.xpbar.height + layouts.Pads.xpbar.bottom
 local MAIN_Y = XP_TOP + GAP
 local BAR_PITCH = BAR_HEIGHT + BAR_GAP
 local STANCE_Y = MAIN_Y + 3 * BAR_PITCH
@@ -93,7 +93,7 @@ local function shared()
         questtimers = topRight(COLUMN, TIMERS_Y), questtracker = topRight(COLUMN, TRACKER_Y),
         durability = at("TOP", "TOP", 0, -MARGIN),
         mirrortimers = at("TOP", "TOP", 0, -MARGIN - layouts.Sizes.durability.height - 2 * GAP),
-        chat = CHAT, loot = at("TOPLEFT", "CENTER", 20, 150),
+        chat = CHAT, loot = at("TOPLEFT", "CENTER", 20, 162),
         party = at("LEFT", "LEFT", MARGIN, 0), raid = topLeft(MARGIN, -120),
     }
 end
@@ -145,7 +145,7 @@ layouts.classic = layout("Classic", "Blizzard's arrangement: player and target i
 })
 
 -- HUD: player and target either side of the character, the cast bar and class widgets between them.
-local HUD_Y, HUD_SPREAD = 300, 120
+local HUD_Y, HUD_SPREAD = STACK_TOP + UNIT_HEIGHT + CAST_HEIGHT - GAP, 120
 local HUD_X = HUD_SPREAD + UNIT_WIDTH / 2
 local HUD_EDGE = HUD_SPREAD + UNIT_WIDTH
 local HUD_UNDER = HUD_Y - GAP - CAST_HEIGHT
@@ -159,8 +159,8 @@ layouts.hud = layout("HUD", "Player and target close beside your character with 
     combopoints = bottom(0, HUD_CAST + CAST_HEIGHT + 2 * GAP),
     totems = bottom(0, HUD_CAST + CAST_HEIGHT + layouts.Sizes.combopoints.height + 3 * GAP),
     casttarget = bottom(HUD_X, HUD_UNDER), tot = bottomLeftOfCentre(HUD_SPREAD, HUD_UNDER - GAP - SMALL_HEIGHT),
-    petframe = bottomLeftOfCentre(-HUD_EDGE, HUD_UNDER - GAP - SMALL_HEIGHT),
-    castpet = bottomLeftOfCentre(-HUD_EDGE + SMALL_WIDTH + GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
+    petframe = bottomRightOfCentre(BAR_LEFT - GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
+    castpet = bottomRightOfCentre(BAR_LEFT - SMALL_WIDTH - 2 * GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
     focus = bottomRightOfCentre(-HUD_EDGE - GAP, HUD_Y + GAP),
     castfocus = bottomRightOfCentre(-HUD_EDGE - GAP, HUD_Y - CAST_HEIGHT),
     party = at("LEFT", "LEFT", MARGIN, 90),
@@ -192,4 +192,4 @@ layouts.healer = layout("Healer", "Party and raid frames over the action bars, w
 })
 -- On 16:10 the grid reaches under the tracker's column, so this layout keeps room for a header and one quest;
 -- the tracker caps itself at whatever is under it and says how many quests it hides.
-layouts.healer.sizes = { questtracker = { width = 240, height = 60 } }
+layouts.healer.sizes = { questtracker = { width = 240, height = 56 } }

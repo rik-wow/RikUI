@@ -28,6 +28,7 @@ return function(check)
         function value:SetVertexColor(...) self.color = { ... } end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         function value:SetAlpha(alpha) self.alpha = alpha end
+        function value:SetShown(shown) self.shown = shown end
         function value:CreateAnimationGroup() return animationGroup() end
         return value
     end
@@ -97,7 +98,7 @@ return function(check)
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
-            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/xpbar/xpbar.lua" }) do
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/xpbar/xpbar.lua", "src/modules/xpbar/xpbar-details.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -115,8 +116,8 @@ return function(check)
         check("the bar registers with the layout under key xpbar, hanging below the main bar", holder and group
             and group.frames[1] == holder and group.defaults.point == "TOP"
             and group.defaults.relativePoint == "BOTTOM" and group.defaults.x == 0)
-        check("a levelling character sees one 8px experience row and no reputation row", xp.shown == true
-            and rep.shown == false and holder.shown == true and holder.height == 8 and holder.width == 498)
+        check("a levelling character sees one readable experience row and no reputation row", xp.shown == true
+            and rep.shown == false and holder.shown == true and holder.height == 18 and holder.width == 498)
         check("the first fill lands without easing", xp.bar.low == 0 and xp.bar.high == 1000 and xp.bar.value == 300
             and xp.bar.easing == IMMEDIATE)
         check("the rested segment reaches to experience plus rested", xp.rested.shown == true
@@ -129,6 +130,35 @@ return function(check)
         env.fire("PLAYER_XP_UPDATE", "player")
         check("an experience gain eases the fill and flashes the row", xp.bar.value == 450 and xp.bar.easing == EASE
             and xp.flashAnim.plays == 1 and xp.rested.value == 650)
+        env.fire("PLAYER_XP_UPDATE", "player")
+        check("duplicate XP events do not replay the gain flash", xp.flashAnim.plays == 1)
+        stub.xp = 460
+        env.fire("PLAYER_XP_UPDATE", "pet")
+        check("other units do not update the player XP bar", xp.bar.value == 450 and xp.flashAnim.plays == 1)
+        stub.xp = 450
+        check("detailed XP labels include remaining experience", xp.caption:GetText():find("550 to level", 1, true))
+        module.SetOption("compact", true)
+        check("compact mode restores thin bars and hides labels", holder.height == 8 and not xp.caption.shown)
+        module.SetOption("compact", false)
+        module.SetOption("text", false)
+        check("labels can be disabled independently", holder.height == 18 and not xp.caption.shown)
+        module.SetOption("text", true)
+        module.SetOption("ticks", false)
+        check("progress ticks can be disabled", not xp.ticks[1].shown)
+        module.SetOption("ticks", true)
+        module.SetOption("animations", false)
+        stub.xp = 470
+        env.fire("PLAYER_XP_UPDATE", "player")
+        check("reduced motion uses immediate fill without flashing", xp.bar.easing == IMMEDIATE and xp.flashAnim.plays == 1)
+        module.SetOption("animations", true)
+        stub.xp = 450
+        env.fire("PLAYER_XP_UPDATE", "player")
+        check("XP correction does not count as a gain", xp.flashAnim.plays == 1)
+        env.runScript(xp, "OnMouseUp", "RightButton")
+        check("right-click toggles compact mode", RikUI.Profile.xpbar.compact == true)
+        module.SetOption("compact", false)
+        env.fire("PLAYER_LEVEL_UP", 13)
+        check("level-up has its own highlight animation", xp.levelAnim.plays == 1)
         stub.rested = nil
         env.fire("UPDATE_EXHAUSTION")
         check("losing rested experience hides the rested segment without a flash", xp.rested.shown == false
@@ -136,7 +166,7 @@ return function(check)
 
         hover(xp)
         check("hovering the experience row shows the readable numbers", GameTooltip.owner == xp
-            and tooltipContains("450 / 1000") and tooltipContains("45%"))
+            and tooltipContains("450 / 1000") and tooltipContains("45%") and tooltipContains("550 XP") and tooltipContains("Last gain: 20 XP"))
         stub.rested = 200
         hover(xp)
         check("the experience tooltip names the rested amount", tooltipContains("Rested") and tooltipContains("200"))
@@ -158,7 +188,7 @@ return function(check)
         stub.faction = HONORED
         env.fire("UPDATE_FACTION")
         check("a watched faction adds a reputation row under the experience row", rep.shown == true
-            and holder.height == 18 and rep.bar.low == 3000 and rep.bar.high == 9000 and rep.bar.value == 4500)
+            and holder.height == 32 and rep.bar.low == 3000 and rep.bar.high == 9000 and rep.bar.value == 4500)
         check("the reputation row fades in and takes its standing colour", rep.fade.plays == 1
             and rep.bar.color[2] > rep.bar.color[1])
         hover(rep)
@@ -177,7 +207,7 @@ return function(check)
         stub.capped, stub.faction = true, HONORED
         env.fire("PLAYER_LEVEL_UP", 60)
         check("at the level cap only the reputation row remains", xp.shown == false and rep.shown == true
-            and holder.shown == true and holder.height == 8)
+            and holder.shown == true and holder.height == 12)
         stub.faction = { factionID = 0 }
         env.fire("UPDATE_FACTION")
         check("the level cap without a watched faction hides the whole bar", holder.shown == false)

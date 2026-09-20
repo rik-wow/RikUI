@@ -1,111 +1,106 @@
-# World map navigation bar
+# World map
 
-`src/modules/worldmap/worldmap.lua` flattens the breadcrumb bar inside the world map (World >
-Eastern Kingdoms > Elwynn Forest). The map's window chrome is covered by the
-[panel skin](panels.md); this module covers what sits inside it. Disable the
-`worldmap` module in `/rik config` and reload for the stock bar.
+The world map keeps Blizzard's canvas, zoom, quest pins and interactions, with a
+RikUI breadcrumb skin, compact toolbar and optional quest drawer. Disable the
+worldmap module in /rik config and reload to return to the native presentation.
 
-## What you see
+## Controls
 
-The bar is a flat panel with a one-pixel edge in place of the stone strip.
-Each breadcrumb is plain text in the RikUI typeface at Blizzard's size and
-colour, with a thin vertical line after it in place of the chevron art and the
-RikUI highlight on hover. Clicking a breadcrumb and its dropdown arrow work as
-before.
+- **Fog: on / Reveal all:** normal exploration fog is the default. Reveal all
+  draws unexplored terrain in a subtle blue tint; clicking again restores normal
+  fog immediately. This never changes exploration progress or achievements.
+- **Pins:** switches the native questPOI setting. Blizzard continues to own
+  quest markers, objective areas, tooltips and route behavior. This setting is
+  client-owned, so changes made elsewhere are reflected in the toolbar.
+- **Quest list:** opens a six-row, paged list. This map shows quests with supplied
+  objective coordinates on the displayed map; All quests also shows log entries
+  without coordinates. Completed quests sort first, followed by tracked quests.
+  Click a quest to select its native route and open details; Shift-click toggles
+  tracking. The list refreshes on quest and map events.
+- **Player / Up:** return to your current zone or navigate to the parent map.
+- Player coordinates refresh five times per second while the map is visible.
+  Missing or restricted positions display --.
 
-## How it works
+Fog, list visibility and the map-only filter are stored per RikUI profile. These
+settings also appear on the World map page in /rik config. The list starts
+collapsed to keep the map clear. Quest actions and navigation are guarded during
+combat; creating the toolbar waits until combat ends. Native map interactions
+continue to work independently.
 
-The map adds its bar with `AddOverlayFrame("WorldMapNavBarTemplate")` and keeps
-it on `WorldMapFrame.NavBar`. On the map's first show the module hooks the
-bar's own `Refresh`, the `WorldMapNavBarMixin` method that rebuilds the
-breadcrumbs on every map change. The hook is on that one frame. The global
-`NavBar_*` functions, which other windows share, are not hooked.
+Quest locations come from C_QuestLog.GetQuestsOnMap. This is not an external
+quest database: when the client supplies no location, the UI says so rather than
+inventing a pin. Native quest-offer providers remain responsible for available
+quest markers.
 
-On the first show and after every `Refresh`:
+## Reveal-all architecture and data
 
-- The bar's textures and the textures of its `overlay` child get alpha 0. The
-  list of Blizzard's textures is taken once, on the first pass, before the
-  module has created anything: `GetRegions` also returns regions an addon adds,
-  and a later pass would otherwise fade the module's own fill and edge.
-- The bar gets a fill and four edge lines, once.
-- Every button in `navList` has `arrowUp`, `arrowDown`, `selected` and its
-  normal, pushed and highlight textures faded, and the typeface written to
-  `text`. Blizzard re-shows the chevron art when a breadcrumb changes state, so
-  this is repeated. Once per button a highlight texture and a separator line
-  on the right edge are added.
+data/map-terrain.lua contains numeric asset metadata from the exact target
+Forever build, 1.60.1.69913: 519 unconditional base-layer overlays across 48 map
+art IDs. It contains no copied addon implementation or bundled Blizzard artwork.
 
-A skin that raises prints one `World map skin: <reason>` line and is never
-tried again, not from `Refresh` either.
+Sources:
+- [WorldMapOverlay CSV](https://wago.tools/db2/WorldMapOverlay/csv?build=1.60.1.69913)
+- [WorldMapOverlayTile CSV](https://wago.tools/db2/WorldMapOverlayTile/csv?build=1.60.1.69913)
 
-## Round canvas buttons
+Rows are grouped by UiMapArtID, excluding PlayerConditionID != 0 and Flags != 0.
+Each entry stores texture width, height, X/Y offsets, and tiles joined through
+WorldMapOverlayID. Tile entries store RowIndex, ColIndex and FileDataID; only
+LayerIndex 0 is included. Preserve this build provenance when regenerating data.
 
-`WorldMapFrame.WorldMapTrackingOptionsButton` and `WorldMapTrackingPinButton`
-lose their disc (`Background`) and ring (`Border`) on the map's first show and
-get a flat backing four pixels in, a one-pixel edge and a hover highlight. The
-icon stays. An earlier version left them stock because Blizzard refreshes
-overlay frames with `secureexecuterange`; the navigation bar is an overlay
-frame added by the same `AddOverlayFrame` call and has been skinned since the
-first version, so the buttons add no new class of risk. They are handled more
-carefully than the bar: nothing is stored on a button, the record lives in a
-weak table (`RikUI.WorldMap.Overlays`). A button that refuses is reported once
-as `World map overlay`. The floor dropdown inherits `WowStyle1DropdownTemplate`, so the
-[window controls](controls.md) walk the panel skin runs on the map should catch
-it; that is unchecked and belongs on the beta list.
+worldmap-terrain.lua owns a reusable texture layer on the native exploration pin.
+It uses the current art ID and tile dimensions, excludes already explored
+rectangles, crops partial tiles to the file's power-of-two dimensions, and
+registers textures with the canvas mask. It post-hooks instance RefreshOverlays
+so map, exploration and art-layer changes clear stale textures. It does not
+replace a data provider, write global mixins, alter native texture pools, or
+change native fog-of-war gameplay overlays.
 
-If quest tracking from the map gets blocked or pins stop responding, disable
-the `worldmap` module first.
+Only the base art layer is supplied. Unsupported map art keeps normal artwork;
+the map toggle is unavailable there, and switching maps clears previous reveal
+textures. Conditional/phased terrain is intentionally not guessed. Normal mode
+allocates no terrain textures. A pin reuses at most 256 textures.
 
-## Left stock on purpose
+## Code boundaries
 
-The canvas, the pins, the coordinates panel, the side panel toggle and the
-content overlays (bounty board, action button, zone timer, threat frame,
-activity tracker) are not written at all. The map is the part of the UI where
-addon taint has historically done the most damage. The dropdowns the buttons
-open are flat through the [menus](menus.md) module.
+- worldmap.lua: breadcrumb and round-button skin; supports late map loading.
+- worldmap-navigation.lua: readable quest snapshots and guarded native actions.
+- worldmap-terrain.lua: reversible unexplored-art rendering.
+- worldmap-tools.lua: toolbar, quest drawer, profile controls and coalesced refresh.
 
-Nothing is moved, resized, reparented, shown, hidden or rescripted. Only
-alpha, fonts and new child regions are written, none of which is protected, so
-a map change in combat is safe.
+Client API failures and secret values never become invented coordinates.
+No quest snapshot is persisted. Only user preferences enter the profile.
+The existing breadcrumb skin keeps one decoration per button and does not fade
+its own regions on repeated refreshes.
 
-## Diagnostics
-
-`/rik debug` prints `World map bar=<true|false> crumbs=<n> failed=<true|false>`.
+/rik debug includes bar, crumbs, failed, tools and reveal state.
 
 ## Verification
 
-`tests/worldmap.test.lua` builds a fake map with the bar's art, an overlay
-child, chevron buttons and a `Refresh`, and a `GetRegions` that returns
-addon-made regions as the client does. It proves: nothing skinned before the
-map opens; bar and overlay art faded with a fill and edge; the home breadcrumb
-flat with typeface, highlight and separator; canvas and tracking button
-unwritten and the map unmoved; Blizzard's `Refresh` still running and a new
-breadcrumb skinned; one decoration per breadcrumb and bar with restored art
-faded again; the module's own fill and edge never faded by a later pass (this
-check failed against the first implementation); a map change in combat; the
-debug line; a refused write reported once and never retried; a bar without a
-list or overlay; a map without a bar; a client without the map; the disabled
-module.
+Automated checks cover reveal/restore, reused textures, newly explored regions,
+unknown art, dataset tile geometry and allocation bounds, quest filtering,
+native selection/tracking, marker controls, player/parent navigation, secret and
+failing reads, combat-first-open and disabled-module behavior. Existing skin,
+manifest, global-ownership and layout checks remain enabled.
 
-The stub cannot settle these: whether these writes taint the map, whether
-faded button textures leave the breadcrumb's click area intact, and how the
-dropdown arrow on a breadcrumb looks without the chevron behind it. Beta
-checklist:
+Native acceptance still requires the Forever client:
 
-1. Fully restart the client (new TOC entry). Open the map: flat bar, text
-   breadcrumbs with separators.
-2. Click through continent and zone and back via the breadcrumbs; open a
-   breadcrumb's dropdown.
-3. With the map open, track and untrack a quest and click a pin. Then enter
-   combat with the map open and change zone on it. Any "action blocked"
-   message or dead pin means this module is the first suspect: disable it and
-   retry.
-4. `/rik debug` should print `World map bar=true` with `failed=false`.
+1. Restart after installing the new TOC entries. Open a partially explored zone;
+   toggle Reveal all, zoom and pan, explore an area, then return to Fog: on.
+2. Cross zone/continent/dungeon boundaries and change floors. Check for stale
+   tiles, incorrect crops, protected-action errors and map clipping.
+3. Open the quest list; switch filters and pages, click a quest, Shift-click to
+   track/untrack, and toggle Pins. Test missing-location quests and an empty log.
+4. Check toolbar/drawer placement in minimized and maximized maps, with the
+   native quest panel open, at small UI scales and with gamepad controls.
+5. Repeat during combat; verify only the intended guarded actions are deferred
+   or refused, then switch profiles and restart to check persistence.
 
-## Source evidence
+Stub tests establish behavior, not in-game visual quality or secure execution.
 
-Reviewed against the Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
+## Client source evidence
 
-- [Blizzard_WorldMap.lua: AddOverlayFrame calls, self.NavBar and the secureexecuterange refresh](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMap.lua)
-- [Camelot/Blizzard_WorldMap.lua: the tracking button anchored beside the bar](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_WorldMap/Camelot/Blizzard_WorldMap.lua)
-- [Blizzard_WorldMapTemplates.lua: WorldMapNavBarMixin:Refresh](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMapTemplates.lua)
-- [Mainline/NavigationBar.xml: NavBarTemplate and NavButtonTemplate keys](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_FrameXML/Mainline/NavigationBar.xml)
+Reviewed against the [Forever 69913 source snapshot](https://github.com/Gethe/wow-ui-source/tree/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
+Blizzard_WorldMap, MapExplorationDataProvider, QuestDataProvider, and generated
+QuestLog / MapExploration API documentation. The native exploration renderer
+provides the tile sizing and canvas-layer contract; quest providers establish
+the questPOI and location contracts.
