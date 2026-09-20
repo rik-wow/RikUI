@@ -11,6 +11,9 @@ skin.BACKING, skin.CONTROL = { 0.06, 0.07, 0.09, 0.95 }, { 0.1, 0.11, 0.14, 1 }
 skin.LINE, skin.GOLD = { 0.25, 0.28, 0.32, 1 }, { 1, 0.82, 0 }
 skin.FADE_SECONDS = 0.15
 local EDGE, ICON_CROP = 1, 0.08
+local BUTTON_FONT_PREFIX = "RikUIControlFont"
+local BUTTON_FONT_COLORS = { Normal = { 1, 0.82, 0 }, Highlight = { 1, 1, 1 }, Disabled = { 0.5, 0.5, 0.5 } }
+local fonts
 -- The direction that moves each corner towards the middle of its owner.
 local CORNERS = { TOPLEFT = { 1, -1 }, TOPRIGHT = { -1, -1 }, BOTTOMLEFT = { 1, 1 }, BOTTOMRIGHT = { -1, 1 } }
 local SIDES = { { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" }, { "TOPLEFT", "BOTTOMLEFT" },
@@ -78,6 +81,31 @@ function skin.Typeface(region, fallbackSize)
     local ok, _, size = pcall(region.GetFont, region)
     size = ok and type(size) == "number" and size > 0 and size or fallbackSize or media.sizes.label
     region:SetFont(media.font, size, "OUTLINE")
+end
+
+-- A button reapplies its font objects on every state change, so the typeface goes on shared font
+-- objects, not on the font string. false marks a client without CreateFont.
+local function buttonFonts()
+    if fonts ~= nil then return fonts end
+    fonts = false
+    if type(CreateFont) ~= "function" then return fonts end
+    fonts = {}
+    for state, color in pairs(BUTTON_FONT_COLORS) do
+        local object = CreateFont(BUTTON_FONT_PREFIX .. state)
+        object:SetFont(media.font, media.sizes.label, "OUTLINE")
+        object:SetTextColor(unpack(color))
+        fonts[state] = object
+    end
+    return fonts
+end
+
+function skin.ButtonFonts(button)
+    local objects = buttonFonts()
+    if not objects then return end
+    for state, object in pairs(objects) do
+        local setter = button["Set" .. state .. "FontObject"]
+        if type(setter) == "function" then setter(button, object) end
+    end
 end
 
 function skin.CropIcon(icon)

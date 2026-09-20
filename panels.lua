@@ -42,7 +42,10 @@ local function show(frame, target)
         local ok, reason = pcall(panels.Skin.Apply, frame, target)
         if ok then panels.Skinned[name] = true else failed[name] = true; warn("skin " .. name, reason) end
     end
-    if panels.Skinned[name] then panels.Skin.FadeIn(frame) end
+    if not panels.Skinned[name] then return end
+    -- Every show, not only the first: windows build controls as their tabs and lists fill.
+    if core.Controls then core.Controls.Walk(frame) end
+    panels.Skin.FadeIn(frame)
 end
 
 local function hook(target)
