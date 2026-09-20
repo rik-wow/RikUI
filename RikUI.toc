@@ -66,6 +66,7 @@ micromenu.lua
 xpbar.lua
 mirrortimers.lua
 swingtimer.lua
+durability.lua
 questtracker.lua
 questtracker-blocks.lua
 panels.lua

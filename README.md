@@ -92,6 +92,10 @@ that is swinging, with the time to the next swing, a flash on every swing and
 dimming with red time when the target is out of range. See
 [swing timer](docs/swingtimer.md).
 
+Worn gear shows as a small pill at the top centre (`2 worn`, or `1 broken, 2
+worn` in red with a pulse) instead of the armoured figure; hover it for the
+slots. See [durability](docs/durability.md).
+
 Rogues and druids get combo points as five flat pips between the player and
 target frames, gold with a red fifth, easing and flashing as they build. See
 [combo points](docs/combopoints.md).
@@ -156,7 +160,7 @@ shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [durability](docs/durability.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.
