@@ -44,6 +44,38 @@ whose template differs from the shared chrome keeps whatever pieces it does
 not share; the auction house, communities and settings windows have the most
 content of their own and are the likeliest to look half-done.
 
+### The last windows
+
+A third list, read from the 69913 source on 2026-09-20: `PVEFrame`,
+`LFGParentFrame`, `ChannelFrame`, `ItemSocketingFrame`, `ChatConfigFrame`,
+`RaidInfoFrame`, `TaxiFrame`, `CollectionsJournal`, `GuildControlUI`,
+`DeathRecapFrame`, `PVPMatchScoreboard`, `PVPMatchResults` and
+`CooldownViewerSettings`. They needed three chrome kinds the earlier windows
+did not have:
+
+- Dialog border. `ChatConfigFrame` and `RaidInfoFrame` keep their art in a
+  `Border` child frame and a `Header` with `LeftBG`, `RightBG`, `CenterBG` and
+  `Text`. The border frame is faded, the header art too, and the header text
+  becomes a gold RikUI heading.
+- Corner pieces. `BasicFrameTemplate` (`TaxiFrame`) and
+  `TranslucentFrameTemplate` (`GuildControlUI`) name their art
+  `TopLeftCorner`, `BotLeftCorner` or `BottomLeftCorner`, `TopBorder` and so
+  on. Those keys are in the strip list.
+- Hand-drawn art. `LFGParentFrame` and `RaidInfoFrame` draw unnamed textures
+  straight on the frame. Targets marked `regions` have every `Texture` region
+  of the frame faded. The regions are listed before the fill and edge exist,
+  because `GetRegions` also returns regions an addon made.
+
+The close button is looked up as `CloseButton`, then `CloseXButton`
+(`DeathRecapFrame`), then the global `<window>CloseButton`
+(`LFGParentFrame`).
+
+`CalendarFrame` and `AchievementFrame` stay stock. Their art is hand-drawn
+across dozens of child frames, so a pass over the top frame would leave most
+of it and look worse than the original.
+
+The controls inside every window are done by [window controls](controls.md).
+
 ## What changes
 
 On a window's first show:
@@ -131,6 +163,14 @@ how the fade behaves in combat are unverified. Beta checklist:
 2. Each should open flat with a working close button and tabs. Note any that
    keep stock art or look half-skinned.
 3. `/rik debug`: `Panels hooked=<n>` rises as load-on-demand windows arrive.
+
+### Beta checklist for the last windows
+
+1. Open the group finder, the chat settings (right-click a chat tab), the
+   raid info from the raid tab, a flight master and the socketing window if
+   you have a socketed item. Each should be flat with a working close button.
+2. In the chat settings the heading should be gold and the ornate border gone.
+3. Die once and open the death recap if the client offers it.
 
 ## Source evidence
 

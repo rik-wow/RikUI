@@ -10,7 +10,12 @@ local LINE, TITLE_COLOR, ACCENT = { 0.25, 0.28, 0.32, 1 }, { 1, 0.82, 0 }, { 0.3
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local FADE_SECONDS = 0.15
 local CLOSE_GLYPH = "x"
-local CHROME_ART = { "NineSlice", "Bg", "TopTileStreaks", "TitleBg", "PortraitContainer", "PortraitFrame", "portrait" }
+-- NineSlice windows, then the dialog border child, then the basic and translucent templates' pieces.
+local CHROME_ART = { "NineSlice", "Bg", "TopTileStreaks", "TitleBg", "PortraitContainer", "PortraitFrame", "portrait",
+    "Border", "TopLeftCorner", "TopRightCorner", "BotLeftCorner", "BotRightCorner", "BottomLeftCorner",
+    "BottomRightCorner", "TopBorder", "BottomBorder", "LeftBorder", "RightBorder" }
+local HEADER_ART = { "LeftBG", "RightBG", "CenterBG" }
+local CLOSE_KEYS, CLOSE_SUFFIX = { "CloseButton", "CloseXButton" }, "CloseButton"
 local INSET_ART = { "NineSlice", "Bg" }
 local TAB_ART = { "Left", "Middle", "Right", "LeftActive", "MiddleActive", "RightActive",
     "LeftHighlight", "MiddleHighlight", "RightHighlight" }
@@ -124,14 +129,40 @@ function skin.HookTabs()
     end
 end
 
+local function skinHeader(header)
+    if not isRegion(header) then return end
+    strip(header, HEADER_ART)
+    if not isRegion(header.Text) or type(header.Text.SetFont) ~= "function" then return end
+    media.Font(header.Text, "heading")
+    header.Text:SetTextColor(unpack(TITLE_COLOR))
+end
+
+local function findClose(chrome, name)
+    for _, key in ipairs(CLOSE_KEYS) do
+        if isRegion(chrome[key]) then return chrome[key] end
+    end
+    return _G[name .. CLOSE_SUFFIX]
+end
+
+-- Hand-drawn windows put unnamed textures straight on the frame. They are listed before any RikUI
+-- region exists, because GetRegions returns addon-made regions too.
+local function fadeTextures(chrome)
+    if type(chrome.GetRegions) ~= "function" then return end
+    for _, region in ipairs({ chrome:GetRegions() }) do
+        if isRegion(region) and region:GetObjectType() == "Texture" then region:SetAlpha(0) end
+    end
+end
+
 function skin.Apply(frame, target)
     local chrome = target.chrome and frame[target.chrome] or frame
     if not isRegion(chrome) then chrome = frame end
     strip(chrome, CHROME_ART)
+    if target.regions then fadeTextures(chrome) end
     if target.fill ~= false then chrome.rikBackdrop = fill(chrome, BACKING, 0) end
     chrome.rikBorder = outline(chrome)
     skinTitle(chrome)
-    skinClose(chrome.CloseButton)
+    skinHeader(chrome.Header)
+    skinClose(findClose(chrome, target.name))
     skinInset(frame.Inset)
     skinTabs(frame)
     frame.rikFade = motion.Tween(frame, 0, 1, FADE_SECONDS)

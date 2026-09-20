@@ -21,6 +21,12 @@ local TARGETS = {
     { name = "ItemTextFrame" }, { name = "StableFrame" }, { name = "TabardFrame" }, { name = "PetitionFrame" },
     { name = "GuildRegistrarFrame" }, { name = "GuildBankFrame" }, { name = "HelpFrame" }, { name = "AddonList" },
     { name = "TimeManagerFrame" }, { name = "GroupLootHistoryFrame" }, { name = "SettingsPanel" },
+    -- Found in the 69913 source after the first two lists. regions marks hand-drawn windows whose
+    -- unnamed textures sit on the frame itself.
+    { name = "PVEFrame" }, { name = "LFGParentFrame", regions = true }, { name = "ChannelFrame" },
+    { name = "ItemSocketingFrame" }, { name = "ChatConfigFrame" }, { name = "RaidInfoFrame", regions = true },
+    { name = "TaxiFrame" }, { name = "CollectionsJournal" }, { name = "GuildControlUI" }, { name = "DeathRecapFrame" },
+    { name = "PVPMatchScoreboard" }, { name = "PVPMatchResults" }, { name = "CooldownViewerSettings" },
 }
 local failed, warnings = {}, {}
 

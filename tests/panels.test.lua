@@ -6,7 +6,8 @@ return function(check)
     local restoreCreate = require("widget_stub").install()
     local WINDOWS = { "CharacterFrame", "PlayerSpellsFrame", "WorldMapFrame", "MerchantFrame", "BankFrame",
         "MailFrame", "OpenMailFrame", "TradeFrame", "QuestFrame", "GossipFrame", "ClassTrainerFrame",
-        "AuctionHouseFrame" }
+        "AuctionHouseFrame", "ChatConfigFrame", "TaxiFrame", "LFGParentFrame", "LFGParentFrameCloseButton",
+        "DeathRecapFrame" }
     local API = { "PanelTemplates_SelectTab", "PanelTemplates_DeselectTab", "PanelTemplates_GetSelectedTab" }
     for _, name in ipairs(WINDOWS) do API[#API + 1] = name end
     local TAB_ART = { "Left", "Middle", "Right", "LeftActive", "MiddleActive", "RightActive",
@@ -180,6 +181,40 @@ return function(check)
         auction:Show()
         check("the auction house is hooked when its addon loads and skinned on first show",
             module.Hooked.AuctionHouseFrame == true and auction.NineSlice.alpha == 0 and #env.printed == 0)
+
+        module = load(nil, function()
+            local config = CreateFrame("Frame", "ChatConfigFrame", UIParent)
+            config.Border, config.Header = CreateFrame("Frame", nil, config), CreateFrame("Frame", nil, config)
+            config.Header.CenterBG, config.Header.Text = config.Header:CreateTexture(), config.Header:CreateFontString()
+            local taxi = CreateFrame("Frame", "TaxiFrame", UIParent)
+            for _, key in ipairs({ "TopLeftCorner", "BotRightCorner", "BottomLeftCorner", "TopBorder", "LeftBorder" }) do
+                taxi[key] = taxi:CreateTexture()
+            end
+            local lfg = CreateFrame("Frame", "LFGParentFrame", UIParent)
+            lfg.regions = { lfg:CreateTexture(), lfg:CreateTexture(), lfg:CreateFontString() }
+            function lfg:GetRegions() return unpack(self.regions) end
+            LFGParentFrameCloseButton = makeCloseButton(lfg)
+            local recap = CreateFrame("Frame", "DeathRecapFrame", UIParent)
+            recap.CloseXButton = makeCloseButton(recap)
+            for _, frame in ipairs({ config, taxi, lfg, recap }) do frame.shown = false end
+        end)
+        ChatConfigFrame:Show()
+        check("a dialog-border window loses its border frame and header art and gets a gold heading",
+            ChatConfigFrame.Border.alpha == 0 and ChatConfigFrame.Header.CenterBG.alpha == 0
+            and ChatConfigFrame.Header.Text.fontPath == RikUI.Media.font and ChatConfigFrame.Header.Text.textColor[3] == 0
+            and #ChatConfigFrame.rikBorder == 4)
+        TaxiFrame:Show()
+        check("a basic or translucent template window loses its corner and border pieces",
+            TaxiFrame.TopLeftCorner.alpha == 0 and TaxiFrame.BotRightCorner.alpha == 0
+            and TaxiFrame.BottomLeftCorner.alpha == 0 and TaxiFrame.LeftBorder.alpha == 0 and TaxiFrame.rikBackdrop ~= nil)
+        LFGParentFrame:Show()
+        check("a hand-drawn window has its own textures faded, but not its text or the RikUI regions",
+            LFGParentFrame.regions[1].alpha == 0 and LFGParentFrame.regions[2].alpha == 0
+            and rawget(LFGParentFrame.regions[3], "alpha") == nil and rawget(LFGParentFrame.rikBackdrop, "alpha") == nil)
+        DeathRecapFrame:Show()
+        check("the close button is also found by its global name or as CloseXButton",
+            LFGParentFrameCloseButton.rikLabel.text == "x" and DeathRecapFrame.CloseXButton.rikLabel.text == "x")
+        check("none of the new windows printed anything", #env.printed == 0)
 
         module = load(nil, function() PanelTemplates_SelectTab, PanelTemplates_DeselectTab = nil, nil end)
         MerchantFrame:Show()
