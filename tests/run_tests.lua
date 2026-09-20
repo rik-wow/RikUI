@@ -260,6 +260,8 @@ local comboOk, comboErr = pcall(function() dofile("tests/combopoints.test.lua")(
 check("Combo point test suite completes", comboOk, comboErr)
 local durabilityOk, durabilityErr = pcall(function() dofile("tests/durability.test.lua")(check) end)
 check("Durability test suite completes", durabilityOk, durabilityErr)
+local popupsOk, popupsErr = pcall(function() dofile("tests/popups.test.lua")(check) end)
+check("Popup test suite completes", popupsOk, popupsErr)
 
 -- report
 if #failures == 0 then

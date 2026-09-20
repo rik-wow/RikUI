@@ -111,6 +111,10 @@ dark skin: no parchment or portrait ring, a gold title, a flat close button and
 flat tabs with a blue accent on the selected one. Disable the `panels` module
 and reload for the stock look. See [panel skin](docs/panels.md).
 
+Confirmation popups, the Escape menu and the release-spirit button get the
+same flat look: no stone border, flat buttons with gold text, a fade-in each
+time they show. See [popups](docs/popups.md).
+
 The loot window is a compact flat list at the cursor: icon, quality-coloured
 name and stack size, click to loot, Escape to close. Auto-loot is untouched.
 The group roll frames get the same flat skin with need, greed and pass left
@@ -160,7 +164,7 @@ shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [durability](docs/durability.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [durability](docs/durability.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [popups](docs/popups.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.

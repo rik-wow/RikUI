@@ -71,6 +71,8 @@ questtracker.lua
 questtracker-blocks.lua
 panels.lua
 panels-skin.lua
+popups.lua
+popups-skin.lua
 loot.lua
 loot-rolls.lua
 tooltip.lua
