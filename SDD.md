@@ -620,6 +620,7 @@ showTimestamps              "%H:%M "
 chatBubbles                 1
 chatBubblesParty            0
 screenshotQuality           10
+damageMeterEnabled          1
 ```
 
 Some of these names might differ on 12.x. `data/cvars.lua` checks

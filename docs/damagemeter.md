@@ -5,6 +5,18 @@ Forever ships Blizzard's own damage meter: `Blizzard_DamageMeter` names the
 `damagemeter.lua` gives it the RikUI look. Disable the `damagemeter` module in
 `/rik config` and reload for the stock meter.
 
+## Turning the meter on
+
+The meter is off by default on 69913. Blizzard hides the whole `DamageMeter`
+frame unless the `damageMeterEnabled` setting is on,
+`C_DamageMeter.IsDamageMeterAvailable()` answers true and the Edit Mode
+visibility setting allows it (always, in combat, in a group, hidden). RikUI
+never hides it. Three ways to switch it on: `/rik apply` or `/rik cvars`
+(the setting is in RikUI's list), the Damage Meter section of the Advanced
+Options page in the game's options (it is defined in `AdvancedOptions.lua`), or `/console damageMeterEnabled 1`. If the checkbox's tooltip in
+the options shows a reason under its text, the client itself reports the meter
+as unavailable and no setting will show it.
+
 ## What you see
 
 The header bar is flat with a one-pixel edge. The timer, the session and type

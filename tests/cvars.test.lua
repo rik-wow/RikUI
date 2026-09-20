@@ -8,6 +8,7 @@ return function(check)
         autoLootDefault = 1, SpellQueueWindow = 400,
         floatingCombatTextCombatDamage = 1, floatingCombatTextCombatHealing = 1,
         showTimestamps = "%H:%M ", chatBubbles = 1, chatBubblesParty = 0, screenshotQuality = 10,
+        damageMeterEnabled = 1,
     }
     local values, reads, writes, behavior
     local function reset()
@@ -54,13 +55,13 @@ return function(check)
     local cvars = RikUI.CVars
     check("CVar API is exposed", type(cvars) == "table")
     assert(cvars, "CVar API missing")
-    local seen, listMatches = {}, #cvars.List == 13
+    local seen, listMatches = {}, #cvars.List == 14
     for _, entry in ipairs(cvars.List) do
         listMatches = listMatches and not seen[entry.name] and expected[entry.name] == entry.value
             and type(entry.label) == "string" and entry.label:match("%S") ~= nil
         seen[entry.name] = true
     end
-    check("labelled CVar catalogue contains exactly the SDD settings and values", listMatches and count(seen) == 13)
+    check("labelled CVar catalogue contains exactly the SDD settings and values", listMatches and count(seen) == 14)
 
     local selection = { autoLootDefault = true, showTimestamps = true, cameraSmoothStyle = false, unknown = true }
     local prior = cvars.Apply(selection)
@@ -84,7 +85,7 @@ return function(check)
     reset()
     values.showTimestamps = ""
     local snapshot = cvars.Snapshot()
-    check("snapshot reads every listed CVar without writing", #reads == 13 and #writes == 0 and count(snapshot) == 13)
+    check("snapshot reads every listed CVar without writing", #reads == 14 and #writes == 0 and count(snapshot) == 14)
     check("snapshot preserves empty and nonnumeric strings", snapshot.showTimestamps == ""
         and snapshot.autoLootDefault == "old:autoLootDefault")
     values.autoLootDefault = "changed"
@@ -95,15 +96,15 @@ return function(check)
     reset()
     values.cameraSmoothStyle = nil
     prior = cvars.Apply()
-    check("unknown CVar is never written while remaining settings apply", #writes == 12
+    check("unknown CVar is never written while remaining settings apply", #writes == 13
         and prior.cameraSmoothStyle == nil and values.screenshotQuality == "10")
-    check("full apply reports exactly one line per applied or skipped CVar", #env.printed == 13
+    check("full apply reports exactly one line per applied or skipped CVar", #env.printed == 14
         and contains("Skipped cameraSmoothStyle") and not contains("Applied cameraSmoothStyle"))
     check("nil selection applies every known SDD value as a string", values.cameraDistanceMaxZoomFactor == "2.6"
         and values.nameplateShowFriends == "0" and values.SpellQueueWindow == "400" and values.showTimestamps == "%H:%M ")
     env.printed, writes = {}, {}
     snapshot = cvars.Snapshot()
-    check("snapshot omits unknown values and reports the omission", count(snapshot) == 12
+    check("snapshot omits unknown values and reports the omission", count(snapshot) == 13
         and snapshot.cameraSmoothStyle == nil and #writes == 0 and #env.printed == 1
         and contains("Skipped cameraSmoothStyle"))
 
@@ -119,7 +120,7 @@ return function(check)
     check("rejected writes retain original values for undo", prior.cameraSmoothStyle == "old:cameraSmoothStyle"
         and prior.nameplateShowEnemies == "old:nameplateShowEnemies"
         and prior.nameplateShowFriends == "old:nameplateShowFriends")
-    check("false nil and thrown writes are never reported applied", #env.printed == 13
+    check("false nil and thrown writes are never reported applied", #env.printed == 14
         and contains("Skipped cameraDistanceMaxZoomFactor") and contains("Skipped cameraSmoothStyle")
         and contains("Skipped nameplateShowEnemies") and contains("Skipped nameplateShowFriends")
         and not contains("Applied cameraSmoothStyle") and not contains("Applied nameplateShowEnemies")
@@ -138,7 +139,7 @@ return function(check)
     C_CVar = nil
     local missingOk, missingSnapshot = pcall(cvars.Snapshot)
     check("missing CVar API produces skips and an empty snapshot", missingOk and next(missingSnapshot) == nil
-        and #env.printed == 13 and contains("Skipped autoLootDefault"))
+        and #env.printed == 14 and contains("Skipped autoLootDefault"))
     reset()
     C_CVar.SetCVar = nil
     local missingSetterOk = pcall(cvars.Apply, { autoLootDefault = true })
@@ -150,7 +151,7 @@ return function(check)
     check("slash help advertises cvars", contains("/rik cvars"))
     env.printed = {}
     SlashCmdList.RIKUI("cvars")
-    check("slash command applies the complete catalogue", #writes == 13 and #env.printed == 13
+    check("slash command applies the complete catalogue", #writes == 14 and #env.printed == 14
         and values.autoLootDefault == "1" and values.screenshotQuality == "10")
     C_CVar = originalAPI
 end

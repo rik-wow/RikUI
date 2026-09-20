@@ -17,6 +17,8 @@ cvars.List = {
     { name = "chatBubbles", value = 1, label = "Show chat bubbles" },
     { name = "chatBubblesParty", value = 0, label = "Hide party chat bubbles" },
     { name = "screenshotQuality", value = 10, label = "Maximum screenshot quality" },
+    -- Off by default on 69913; Blizzard hides the whole meter while it is off.
+    { name = "damageMeterEnabled", value = 1, label = "Enable the built-in damage meter" },
 }
 
 local function skip(name, reason, opts)
