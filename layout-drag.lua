@@ -10,6 +10,7 @@ layout.Overlays, layout.Guides = {}, {}
 
 local TINT, ACCENT, BLOCKED = { 0.3, 0.75, 1, 0.16 }, { 0.3, 0.75, 1, 1 }, { 1, 0.3, 0.25, 1 }
 local SNAP_THRESHOLD, SNAP_GAP, BAND_WIDTH, SWEEP_SECONDS, PULSE_SECONDS, PULSE_LOW = 8, 4, 64, 1.6, 0.8, 0.35
+local LOCK_SIZE, LOCK_INSET, LOCK_HOVER, LOCK_FADE = 18, 2, 0.35, 0.12
 local drag
 
 function layout.IsDragging() return drag ~= nil end
@@ -38,6 +39,53 @@ local function paintEdge(overlay, color)
     for _, line in ipairs(overlay.edge) do line:SetVertexColor(unpack(color)) end
 end
 
+-- An open padlock: a body with a shackle swung to the right, the same glyph the chat's padlock draws.
+local function padlock(button)
+    local body, shackle = button:CreateTexture(nil, "ARTWORK"), button:CreateTexture(nil, "ARTWORK")
+    for _, part in ipairs({ body, shackle }) do
+        part:SetTexture(skin.FLAT)
+        part:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3])
+    end
+    body:SetSize(9, 6)
+    body:SetPoint("BOTTOM", button, "BOTTOM", 0, 3)
+    shackle:SetSize(4, 5)
+    shackle:SetPoint("BOTTOM", body, "TOP", 3, 0)
+end
+
+local function lockTip(button, key)
+    button.glow:SetAlpha(LOCK_HOVER)
+    motion.Play(button.glow.fade)
+    if type(GameTooltip) ~= "table" then return end
+    GameTooltip:SetOwner(button, "ANCHOR_TOP")
+    GameTooltip:SetText("Lock " .. layout.Label(key))
+    GameTooltip:Show()
+end
+
+-- The overlay covers the whole frame, so a lock control the frame has of its own (the chat's padlock)
+-- lies under it. Every overlay therefore carries its own lock button: a child of the overlay, which the
+-- client gives the click before the overlay, whatever else is on screen.
+local function addLock(overlay, key)
+    local button = CreateFrame("Button", nil, overlay)
+    button:SetSize(LOCK_SIZE, LOCK_SIZE)
+    button:SetPoint("TOPRIGHT", overlay, "TOPRIGHT", -LOCK_INSET, -LOCK_INSET)
+    skin.Fill(button, skin.BACKING)
+    skin.Outline(button, ACCENT)
+    padlock(button)
+    button.glow = button:CreateTexture(nil, "OVERLAY")
+    button.glow:SetAllPoints(button)
+    button.glow:SetTexture(media.highlight)
+    button.glow:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3])
+    button.glow:SetAlpha(0)
+    button.glow.fade = motion.Tween(button.glow, 0, LOCK_HOVER, LOCK_FADE)
+    button:SetScript("OnEnter", function(self) lockTip(self, key) end)
+    button:SetScript("OnLeave", function(self)
+        self.glow:SetAlpha(0)
+        if type(GameTooltip) == "table" then GameTooltip:Hide() end
+    end)
+    button:SetScript("OnClick", function() layout.SetUnlocked(key, false) end)
+    overlay.lock = button
+end
+
 local function newOverlay(key)
     local overlay = CreateFrame("Frame", nil, UIParent)
     overlay:SetFrameStrata("DIALOG")
@@ -56,6 +104,7 @@ local function newOverlay(key)
     overlay:SetScript("OnMouseUp", function(_, button) if button == "LeftButton" then layout.EndDrag() end end)
     overlay:Hide()
     layout.Overlays[key] = overlay
+    addLock(overlay, key)
     if layout.AddGrip then layout.AddGrip(overlay, key) end
     return overlay
 end

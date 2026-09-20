@@ -121,6 +121,23 @@ return function(check)
 
         SlashCmdList.RIKUI("move")
         check("/rik move unlocks everything without the key", layout.IsUnlocked("player") and layout.IsUnlocked("target"))
+        -- The overlay covers the whole frame, so whatever lock control the frame has of its own (the chat's
+        -- padlock) is under it. Every overlay carries its own lock button instead.
+        local lockButton = overlay.lock
+        check("every overlay has a lock button in its top right corner", lockButton ~= nil
+            and lockButton.points[1][1] == "TOPRIGHT" and lockButton.points[1][2] == overlay
+            and layout.Overlays.target.lock ~= nil and lockButton.width == 18)
+        env.runScript(lockButton, "OnEnter")
+        check("hovering it fades a highlight in and says what it does", lockButton.glow.alpha > 0
+            and lockButton.glow.fade.plays == 1 and GameTooltip:IsShown())
+        env.runScript(lockButton, "OnLeave")
+        check("and leaving takes both away", lockButton.glow.alpha == 0 and not GameTooltip:IsShown())
+        env.runScript(lockButton, "OnMouseDown", "LeftButton")
+        check("pressing the lock button does not start a drag", not layout.IsDragging())
+        env.click(lockButton)
+        check("clicking it locks that frame only", not layout.IsUnlocked("player") and layout.IsUnlocked("target")
+            and not overlay:IsShown() and layout.Overlays.target:IsShown())
+        layout.SetUnlocked("player", true)
         cursor = { 150, 500 }
         env.runScript(overlay, "OnMouseDown", "LeftButton")
         cursor = { 250, 600 }

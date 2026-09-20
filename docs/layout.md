@@ -8,6 +8,11 @@ Release the key: unlocked frames keep a blue overlay with a pulsing edge and a
 sweeping band, and stay draggable until you lock them again, log out or enter
 combat. `/rik move` does the same as the master tag without the key.
 
+Every overlay has a small lock button in its top right corner that locks that
+one frame. It is part of the overlay, so it is always clickable: the overlay
+covers the whole frame, and a lock control the frame has of its own (the chat's
+padlock) lies under it while everything is unlocked.
+
 Drag an unlocked frame by its overlay. The frame follows at once. It snaps to
 other frames' edges and centres, to a 4-unit gap beside them, and to the screen
 edges and centre lines, with a blue guide line where it snapped; hold Shift to
