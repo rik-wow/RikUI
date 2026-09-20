@@ -78,6 +78,7 @@ skin.lua
 controls.lua
 dialogs.lua
 lossofcontrol.lua
+extrabuttons.lua
 menus.lua
 chatbubbles.lua
 totems.lua
