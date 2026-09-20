@@ -1,7 +1,7 @@
 -- Flat strip replacing the micro menu and the bag bar. Micro buttons are secure click delegates to
 -- the stock buttons, so every panel opens through Blizzard's own handler in and out of combat; bag
 -- buttons call the client's bag toggles. MicroMenu and BagsBar park only once the strip exists.
-local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
+local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
 local micromenu = { Buttons = {}, Bags = {} }
 core.MicroMenu = micromenu
 
@@ -43,7 +43,7 @@ local function decorate(button, offset)
     background:SetAllPoints(button)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    button.rikBorder = unitframes.Edges(button, EDGE, "BORDER")
+    button.rikBorder = ui.Edges(button, EDGE, "BORDER")
     for _, line in ipairs(button.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(button)

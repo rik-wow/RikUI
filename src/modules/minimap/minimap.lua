@@ -2,7 +2,7 @@
 -- time and player coordinates below. Cluster art and buttons park through the shared hide helper;
 -- the mail, queue and tracking frames move into the holder so they stay reachable. Every parent
 -- and anchor write on a Blizzard frame runs through the combat queue.
-local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
+local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
 local minimap = { Parked = {}, Adopted = {} }
 core.Minimap = minimap
 
@@ -128,7 +128,7 @@ end
 local function createHolder()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     holder:SetSize(SIZE + 2 * EDGE, SIZE + 2 * EDGE)
-    holder.rikBorder = unitframes.Edges(holder, EDGE, "BORDER")
+    holder.rikBorder = ui.Edges(holder, EDGE, "BORDER")
     for _, line in ipairs(holder.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     holder.zone = label("label", "BOTTOM", "TOP", TEXT_GAP)
     holder.clock = label("small", "TOPLEFT", "BOTTOMLEFT", -TEXT_GAP)

@@ -1,6 +1,6 @@
 -- Flat skin for Blizzard's group loot roll frames. Only art, the timer texture and the name font
 -- change; the need, greed and pass buttons and every script stay Blizzard's.
-local core, media, unitframes = RikUI, RikUI.Media, RikUI.UnitFrames
+local core, media, ui = RikUI, RikUI.Media, RikUI.UI
 local loot = core.Loot
 
 local ROLL_PREFIX, ROLL_FRAMES, EDGE = "GroupLootFrame", 4, 1
@@ -16,7 +16,7 @@ end
 local function skinIcon(iconFrame)
     if not isRegion(iconFrame) then return end
     if isRegion(iconFrame.Border) then iconFrame.Border:SetAlpha(0) end
-    iconFrame.rikBorder = unitframes.Edges(iconFrame, EDGE, "OVERLAY")
+    iconFrame.rikBorder = ui.Edges(iconFrame, EDGE, "OVERLAY")
     for _, line in ipairs(iconFrame.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
 end
 

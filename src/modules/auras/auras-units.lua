@@ -90,4 +90,4 @@ function unitauras:Debug(sample)
     sample("GetAuraDataByIndex(target,1,HARMFUL)", auras.Api("C_UnitAuras", "GetAuraDataByIndex"), "target", 1, "HARMFUL")
 end
 
-core:RegisterModule("unitauras", unitauras)
+core:RegisterModule("unitauras", unitauras, { dependencies = { "unitframes" } })

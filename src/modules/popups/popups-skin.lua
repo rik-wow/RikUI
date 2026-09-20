@@ -1,7 +1,7 @@
 -- The popup skin. Dialog art lives in a Border child frame (DialogBorderTemplate), so one alpha
 -- write removes it. Every key is touched only when it holds a region, so a frame that lacks one
 -- keeps that piece stock. Art is faded, never hidden: Blizzard's own Show calls then change nothing.
-local core, media, unitframes, motion = RikUI, RikUI.Media, RikUI.UnitFrames, RikUI.Motion
+local core, media, ui, motion = RikUI, RikUI.Media, RikUI.UI, RikUI.Motion
 local skin = core.Popups.Skin
 
 local EDGE, BUTTON_INSET, ICON_CROP = 1, 2, 0.08
@@ -40,7 +40,7 @@ local function fill(owner, color, inset)
 end
 
 local function outline(owner)
-    local lines = unitframes.Edges(owner, EDGE, "BORDER")
+    local lines = ui.Edges(owner, EDGE, "BORDER")
     for _, line in ipairs(lines) do line:SetVertexColor(unpack(LINE)) end
     return lines
 end

@@ -3,7 +3,7 @@
 -- is a StatusBar with the range i-1..i and every pip gets the same raw count: the widget clamps it,
 -- so the right pips light with no comparison in Lua. Which pip changed is never known, so the
 -- flash follows the power event, not the value.
-local core, media, layout, unitframes, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames, RikUI.Motion
+local core, media, layout, ui, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI, RikUI.Motion
 local combo = { Pips = {} }
 core.ComboPoints = combo
 
@@ -67,7 +67,7 @@ local function createPip(index)
     background:SetAllPoints(pip)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    pip.rikBorder = unitframes.Edges(pip, EDGE, "BORDER")
+    pip.rikBorder = ui.Edges(pip, EDGE, "BORDER")
     for _, line in ipairs(pip.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     pip.bar = CreateFrame("StatusBar", nil, pip)
     pip.bar:SetAllPoints(pip)

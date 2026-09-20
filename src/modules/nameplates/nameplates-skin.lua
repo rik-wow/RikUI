@@ -4,7 +4,7 @@
 -- text moves onto the overlay and the bar's RikUI regions live on it. The name sits in its own
 -- plaque on top of the bar.
 -- UpdateAnchors resets fonts, anchors, sizes and atlases on each layout pass; Apply runs after it.
-local core, media, unitframes = RikUI, RikUI.Media, RikUI.UnitFrames
+local core, media, ui = RikUI, RikUI.Media, RikUI.UI
 local nameplates = core.Nameplates
 local skin = {}
 nameplates.Skin = skin
@@ -244,7 +244,7 @@ end
 function skin.Color(frame, unit)
     local parts = nameplates.Parts[frame]
     if not parts then return end
-    local color = unitframes.HealthColor(unit)
+    local color = ui.HealthColor(unit)
     parts.bar:SetStatusBarColor(color.r, color.g, color.b)
 end
 

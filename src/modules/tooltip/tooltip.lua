@@ -1,6 +1,6 @@
 -- Tooltip anchor, flat skin and fonts. Lines, colours and the unit health bar live in
 -- src/modules/tooltip/tooltip-data.lua. Nothing here is protected, so every write also runs in combat.
-local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
+local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
 local tooltip = { Skinned = {}, Options = { title = "Tooltips", settings = {} } }
 core.Tooltip = tooltip
 
@@ -67,7 +67,7 @@ local function skin(frame)
     frame.rikBackground = frame:CreateTexture(nil, "BACKGROUND")
     frame.rikBackground:SetAllPoints()
     frame.rikBackground:SetColorTexture(unpack(BACKGROUND))
-    frame.rikBorder = unitframes.Edges(frame, EDGE, "BORDER")
+    frame.rikBorder = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     tooltip.Skinned[frame] = true
     tooltip.HideBackdrop(frame)

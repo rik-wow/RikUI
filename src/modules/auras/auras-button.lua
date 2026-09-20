@@ -2,7 +2,7 @@
 -- descendant of the button and is handed to the button's own API once, inside the container's
 -- initializeFrame call; the button then drives icon, count, border colour, cooldown, tooltip
 -- and right-click cancel in secure code and RikUI never touches it again.
-local core, media, unitframes, auras = RikUI, RikUI.Media, RikUI.UnitFrames, RikUI.Auras
+local core, media, ui, auras = RikUI, RikUI.Media, RikUI.UI, RikUI.Auras
 local EDGE, ICON_CROP, COUNT_INSET = 1, 0.07, 2
 local BACKGROUND = { 0.055, 0.065, 0.08, 0.95 }
 local PRESERVE_ASSET_STYLE = 3 -- Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset on 69913
@@ -66,7 +66,7 @@ local function countText(button, swipe)
 end
 
 local function border(button, harmful)
-    local lines = unitframes.Edges(button, EDGE, "OVERLAY")
+    local lines = ui.Edges(button, EDGE, "OVERLAY")
     for _, line in ipairs(lines) do
         if harmful then
             button:AddDispelTypeTexture(line, dispelOptions())

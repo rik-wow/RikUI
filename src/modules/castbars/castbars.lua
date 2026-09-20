@@ -1,6 +1,6 @@
 -- Player, target, focus and pet castbars. Cast values only reach sinks (src/modules/castbars/castbars-status.lua); this
 -- file owns frames, layout, events and the stock casting bar.
-local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
+local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
 local castbars = { Bars = {} }
 core.CastBars = castbars
 
@@ -69,7 +69,7 @@ local function decorate(frame)
     frame.background = frame:CreateTexture(nil, "BACKGROUND")
     frame.background:SetAllPoints()
     frame.background:SetColorTexture(unpack(BACKGROUND))
-    frame.border = unitframes.Edges(frame, EDGE, "BORDER")
+    frame.border = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.border) do line:SetVertexColor(unpack(BORDER)) end
     frame.icon = icon(frame)
     frame.bar = statusBar(frame)

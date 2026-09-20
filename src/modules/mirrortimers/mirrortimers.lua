@@ -2,7 +2,7 @@
 -- range with MIRROR_TIMER_START and the bars poll GetMirrorTimerProgress while they run. Whether
 -- that value is secret on 69913 is unverified, so it goes reader-to-sink in milliseconds and the
 -- seconds text is worked out inside pcall: a secret blanks the text instead of raising.
-local core, media, layout, unitframes, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames, RikUI.Motion
+local core, media, layout, ui, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI, RikUI.Motion
 local timers = { Bars = {}, Active = {} }
 core.MirrorTimers = timers
 
@@ -73,7 +73,7 @@ local function createBar(index)
     background:SetAllPoints(bar)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    bar.rikBorder = unitframes.Edges(bar, EDGE, "BORDER")
+    bar.rikBorder = ui.Edges(bar, EDGE, "BORDER")
     for _, line in ipairs(bar.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     bar.bar = CreateFrame("StatusBar", nil, bar)
     bar.bar:SetAllPoints(bar)

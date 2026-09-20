@@ -5,7 +5,7 @@
 -- the edit box's own alpha when it activates and deactivates chat, and a tween there would fight it.
 -- Colours are written with three components: the fourth component of SetVertexColor is the region's
 -- alpha on this client, and writing it undid an earlier SetAlpha(0) (the washed-out bar of 2026-09-20).
-local core, motion, unitframes = RikUI, RikUI.Motion, RikUI.UnitFrames
+local core, motion, ui = RikUI, RikUI.Motion, RikUI.UI
 local chat = core.Chat
 
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
@@ -39,7 +39,7 @@ local function glow(art)
     local frame = CreateFrame("Frame", nil, art)
     frame:SetPoint("TOPLEFT", art, "TOPLEFT", -GLOW_OUTSET, GLOW_OUTSET)
     frame:SetPoint("BOTTOMRIGHT", art, "BOTTOMRIGHT", GLOW_OUTSET, -GLOW_OUTSET)
-    frame.lines = unitframes.Edges(frame, EDGE, "BORDER")
+    frame.lines = ui.Edges(frame, EDGE, "BORDER")
     frame:SetAlpha(0)
     frame.fade = motion.Tween(frame, 0, 1, FADE_SECONDS)
     art.glow = frame

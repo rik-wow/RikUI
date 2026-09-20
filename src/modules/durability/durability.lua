@@ -1,7 +1,7 @@
 -- A flat alert pill replacing DurabilityFrame's armoured figure. The client raises
 -- UPDATE_INVENTORY_ALERTS and answers GetInventoryAlertStatus per slot: 1 worn, 2 broken. That is
 -- inventory state, not a unit value, so it is counted; the reads still run under pcall.
-local core, media, layout, unitframes, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames, RikUI.Motion
+local core, media, layout, ui, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI, RikUI.Motion
 local durability = {}
 core.Durability = durability
 
@@ -125,7 +125,7 @@ local function decorate()
     background:SetAllPoints(pill)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    pill.rikBorder = unitframes.Edges(pill, EDGE, "BORDER")
+    pill.rikBorder = ui.Edges(pill, EDGE, "BORDER")
     for _, line in ipairs(pill.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     pill.alert = pill:CreateTexture(nil, "ARTWORK")
     pill.alert:SetAllPoints(pill)

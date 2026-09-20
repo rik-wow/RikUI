@@ -1,7 +1,7 @@
 -- Copy window and clickable addresses for the chat module. Lines come from GetMessageInfo with
 -- secret strings skipped. Addresses become "addon" hyperlinks: on 69913 SetItemRef hands that link
 -- type to EventRegistry and stops, so a click never reaches the item tooltip.
-local core, media, unitframes = RikUI, RikUI.Media, RikUI.UnitFrames
+local core, media, ui = RikUI, RikUI.Media, RikUI.UI
 local chat = core.Chat
 
 local WINDOW_NAME, WIDTH, HEIGHT, PAD, TITLE_HEIGHT, CLOSE_SIZE, EDGE = "RikUIChatCopy", 560, 400, 8, 24, 18, 1
@@ -175,7 +175,7 @@ local function createWindow()
     window.rikBackground = window:CreateTexture(nil, "BACKGROUND")
     window.rikBackground:SetAllPoints()
     window.rikBackground:SetColorTexture(unpack(BACKGROUND))
-    window.rikBorder = unitframes.Edges(window, EDGE, "BORDER")
+    window.rikBorder = ui.Edges(window, EDGE, "BORDER")
     for _, line in ipairs(window.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     window.title = window:CreateFontString(nil, "OVERLAY")
     media.Font(window.title, "label")

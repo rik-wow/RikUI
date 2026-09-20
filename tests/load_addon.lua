@@ -15,7 +15,8 @@ end
 function loader.Core(addonName, namespace)
     addonName, namespace = addonName or "RikUI", namespace or {}
     for _, path in ipairs(loader.Manifest()) do
-        if path:match("^src/core/") or path == "src/ui/primitives.lua" then
+        if path:match("^src/core/") or path == "src/ui/primitives.lua"
+            or path == "src/ui/unit-colors.lua" then
             assert(loadfile(path))(addonName, namespace)
         end
     end

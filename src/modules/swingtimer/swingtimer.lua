@@ -2,7 +2,7 @@
 -- PLAYER_SWING carries the duration and the bars run on the clock from there, so no unit value is
 -- read. A bar shows only while its swing type is swinging, which needs neither UnitAttackSpeed nor
 -- the showSwingTimer setting the stock frames follow.
-local core, media, layout, unitframes, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames, RikUI.Motion
+local core, media, layout, ui, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI, RikUI.Motion
 local swing = { Bars = {} }
 core.SwingTimer = swing
 
@@ -116,7 +116,7 @@ local function createBar(info)
     background:SetAllPoints(bar)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    bar.rikBorder = unitframes.Edges(bar, EDGE, "BORDER")
+    bar.rikBorder = ui.Edges(bar, EDGE, "BORDER")
     for _, line in ipairs(bar.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     bar.bar = CreateFrame("StatusBar", nil, bar)
     bar.bar:SetAllPoints(bar)

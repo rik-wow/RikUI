@@ -190,6 +190,26 @@ return function(check)
         env.runScript(holder, "OnUpdate", 0.4)
         check("the raid range poll fades once the interval passes", two.alpha == raid.FadeAlpha)
 
+
+        local readRange, rangeReads, visibility = UnitInRange, 0, {}
+        UnitInRange = function(unit) rangeReads = rangeReads + 1; return readRange(unit) end
+        for _, frame in ipairs(frames) do
+            visibility[frame] = rawget(frame, "IsVisible")
+            frame.IsVisible = function() return false end
+        end
+        env.runScript(holder, "OnUpdate", 0.6)
+        check("hidden raid members perform no range API reads", rangeReads == 0)
+        one.IsVisible = function() return true end
+        rangeReads = 0
+        env.runScript(holder, "OnUpdate", 0.6)
+        check("range polling reads only the visible member", rangeReads == 1)
+        two.IsVisible = function() return env.SECRET end
+        rangeReads = 0
+        env.runScript(holder, "OnUpdate", 0.6)
+        check("secret visibility keeps range updates without comparison", rangeReads == 2)
+        for _, frame in ipairs(frames) do frame.IsVisible = visibility[frame] end
+        UnitInRange = readRange
+
         local oneSets = one.health.sets
         units.raid2.health = 60
         env.fire("UNIT_HEALTH", "raid2")

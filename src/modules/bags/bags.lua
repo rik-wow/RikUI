@@ -3,7 +3,7 @@
 -- so the bag bindings, merchants and the mailbox run untainted, and the holder mirrors whether any
 -- stock container frame is shown. The stock frames park through the shared hide helper, where they
 -- keep their shown flag but never draw. src/modules/bags/bags-items.lua owns the item buttons.
-local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
+local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
 local bags = { Parked = {}, Total = 0, Used = 0 }
 core.Bags = bags
 
@@ -53,7 +53,7 @@ local function flat(frame, fill)
     frame.rikBackground = frame:CreateTexture(nil, "BACKGROUND")
     frame.rikBackground:SetAllPoints()
     frame.rikBackground:SetColorTexture(unpack(fill))
-    frame.rikBorder = unitframes.Edges(frame, EDGE, "BORDER")
+    frame.rikBorder = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
 end
 

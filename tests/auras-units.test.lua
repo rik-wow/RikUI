@@ -155,8 +155,9 @@ return function(check)
         check("player and unit containers coexist under both modules", RikUI.Auras.Rows.buffs.container ~= nil
             and module.Containers.target ~= nil and auraReads == 0)
         module = load({ modules = { auras = false, unitframes = false } })
-        check("missing unit frames skip the containers with one line", next(module.Containers) == nil
-            and printedContains("Unit auras attach") and #env.printed == 1)
+        check("disabled unit frames block unit aura activation", next(module.Containers) == nil
+            and RikUI:GetModuleState("unitauras") == "blocked"
+            and printedContains("dependency unavailable: unitframes") and #env.printed == 1)
         module = load({ modules = { auras = false } }, true)
         check("combat login defers container creation", next(module.Containers) == nil)
         env.inCombat = false

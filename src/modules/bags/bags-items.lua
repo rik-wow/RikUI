@@ -4,7 +4,7 @@
 -- frame carrying its ID, and RikUI never calls the mixin's Initialize, SetBagID or UpdateCooldown:
 -- those write Lua fields (bagID, hasItem) the secure handlers read later. RikUI draws on its own
 -- rik* regions and on the template's Cooldown frame only.
-local core, media, unitframes = RikUI, RikUI.Media, RikUI.UnitFrames
+local core, media, ui = RikUI, RikUI.Media, RikUI.UI
 local bags = core.Bags
 
 local BAG_IDS = { 0, 1, 2, 3, 4 }
@@ -49,7 +49,7 @@ local function decorate(button)
     button.rikIcon:SetPoint("TOPLEFT", button, "TOPLEFT", EDGE, -EDGE)
     button.rikIcon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -EDGE, EDGE)
     button.rikIcon:SetTexCoord(ICON_MIN, ICON_MAX, ICON_MIN, ICON_MAX)
-    button.rikBorder = unitframes.Edges(button, EDGE, "OVERLAY")
+    button.rikBorder = ui.Edges(button, EDGE, "OVERLAY")
     button.rikCount = button:CreateFontString(nil, "OVERLAY")
     media.Font(button.rikCount, "count")
     button.rikCount:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -COUNT_INSET, COUNT_INSET)

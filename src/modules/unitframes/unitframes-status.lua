@@ -2,13 +2,9 @@
 -- straight into StatusBar and FontString sinks that accept secret values.
 local core, unitframes = RikUI, RikUI.UnitFrames
 local VALUE_FORMAT, LEVEL_FORMAT, UNKNOWN_LEVEL = "%d / %d", "%d", "??"
-local colors = {
-    neutral = { r = 0.6, g = 0.6, b = 0.6 },
-    disconnected = { r = 0.5, g = 0.5, b = 0.5 },
-    tapped = { r = 0.55, g = 0.57, b = 0.61 },
-    power = { r = 0, g = 0.5, b = 1 },
-}
-unitframes.Colors = colors
+-- Preserve the public aliases for existing extensions.
+unitframes.Colors = core.UI.Colors
+unitframes.HealthColor, unitframes.PowerColor = core.UI.HealthColor, core.UI.PowerColor
 local warnings = {}
 
 local function warnOnce(operation, reason)
@@ -39,46 +35,6 @@ end
 local function feed(bar, operation, reader, unit)
     local ok, reason = core.Secret.Apply(function(current, maximum) fill(bar, current, maximum) end, reader, unit)
     if not ok then clear(bar); warnOnce(operation, reason) end
-end
-
--- Lookups into Blizzard colour tables use only readable keys; anything else is neutral.
-local function lookup(table, key, fallback)
-    if type(table) ~= "table" or key == nil then return fallback end
-    return table[key] or fallback
-end
-
-local function flag(reader, unit)
-    local ok, value = core.Secret.Read(reader, unit)
-    if ok and readable(value, "boolean") then return value end
-    if not ok then warnOnce("state", value) end
-end
-
-local function classColor(unit)
-    local ok, _, classFilename = core.Secret.Read(UnitClass, unit)
-    if not ok then warnOnce("class", classFilename); return colors.neutral end
-    if not readable(classFilename, "string") then return colors.neutral end
-    return lookup(RAID_CLASS_COLORS, classFilename, colors.neutral)
-end
-
-local function reactionColor(unit)
-    local ok, reaction = core.Secret.Read(UnitReaction, unit, "player")
-    if not ok then warnOnce("reaction", reaction); return colors.neutral end
-    if not readable(reaction, "number") then return colors.neutral end
-    return lookup(FACTION_BAR_COLORS, reaction, colors.neutral)
-end
-
-function unitframes.HealthColor(unit)
-    if flag(UnitIsConnected, unit) == false then return colors.disconnected end
-    if flag(UnitIsTapDenied, unit) == true then return colors.tapped end
-    if flag(UnitIsPlayer, unit) == true then return classColor(unit) end
-    return reactionColor(unit)
-end
-
-function unitframes.PowerColor(unit)
-    local ok, _, token = core.Secret.Read(UnitPowerType, unit)
-    if not ok then warnOnce("power type", token); return colors.power end
-    if not readable(token, "string") then return colors.power end
-    return lookup(PowerBarColor, token, colors.power)
 end
 
 local function tint(bar, color)
@@ -154,6 +110,10 @@ end
 
 -- Shared by the party and raid frames. A failed read leaves the member opaque.
 function unitframes.FadeByRange(frame, fadeAlpha)
+    if type(frame.IsVisible) == "function" then
+        local ok, visible = pcall(frame.IsVisible, frame)
+        if ok and not core.Secret.IsSecret(visible) and visible == false then return end
+    end
     local ok, reason = core.Secret.Apply(function(inRange, checked) applyRange(frame, fadeAlpha, inRange, checked) end,
         UnitInRange, frame.unit)
     if ok then return end

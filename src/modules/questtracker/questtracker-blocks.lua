@@ -2,7 +2,7 @@
 -- so the holder's height follows from the row count and nothing measures text. A long title or
 -- objective truncates. A quest seen for the first time fades in, a changed objective flashes its
 -- line and a quest that turns complete glows once; an unchanged render replays nothing.
-local core, media, unitframes, motion = RikUI, RikUI.Media, RikUI.UnitFrames, RikUI.Motion
+local core, media, ui, motion = RikUI, RikUI.Media, RikUI.UI, RikUI.Motion
 local tracker = core.QuestTracker
 local view = tracker.View
 view.Blocks = {}
@@ -46,7 +46,7 @@ local function createHeader(holder)
     header:SetPoint("TOPRIGHT", holder, "TOPRIGHT", 0, 0)
     header:SetHeight(HEADER_HEIGHT)
     flatTexture(header, "BACKGROUND", BACKING):SetAllPoints(header)
-    header.rikBorder = unitframes.Edges(header, EDGE, "BORDER")
+    header.rikBorder = ui.Edges(header, EDGE, "BORDER")
     for _, line in ipairs(header.rikBorder) do line:SetVertexColor(unpack(LINE_COLOR)) end
     header.label = text(header, "small", "LEFT")
     header.label:SetPoint("LEFT", header, "LEFT", PAD, 0)

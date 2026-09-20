@@ -3,7 +3,7 @@
 -- showTimestamps setting owned by a profile flag, tabs faded until hovered and a copy button per
 -- frame. src/modules/chat/chat-copy.lua owns the copy window and the address links. Only the parent writes are
 -- protected, and those run through the hide helper's combat queue.
-local core, media, unitframes = RikUI, RikUI.Media, RikUI.UnitFrames
+local core, media, ui = RikUI, RikUI.Media, RikUI.UI
 local chat = { Parked = {}, Frames = {}, Options = { title = "Chat", settings = {} } }
 core.Chat = chat
 
@@ -55,7 +55,7 @@ function chat.Flat(frame, fill)
     frame.rikBackground = frame:CreateTexture(nil, "BACKGROUND")
     frame.rikBackground:SetAllPoints()
     frame.rikBackground:SetColorTexture(unpack(fill))
-    frame.rikBorder = unitframes.Edges(frame, EDGE, "BORDER")
+    frame.rikBorder = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(chat.Colors.border)) end
 end
 

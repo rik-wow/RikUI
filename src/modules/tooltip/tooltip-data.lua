@@ -2,7 +2,7 @@
 -- Every value is guarded by issecretvalue before it is compared or formatted. The health bar is
 -- Blizzard's GUID-watched GameTooltip.StatusBar: its SetWatch is written for tainted callers and
 -- its secure mixin feeds SetValue, so nothing here reads UnitHealth or writes a bar value.
-local core, media, unitframes, tooltip = RikUI, RikUI.Media, RikUI.UnitFrames, RikUI.Tooltip
+local core, media, ui, tooltip = RikUI, RikUI.Media, RikUI.UI, RikUI.Tooltip
 local ITEM_LEVEL_FORMAT, SPELL_ID_FORMAT = "Item level %d", "Spell ID %d"
 local LINE_COLOR, GUILD_COLOR = { r = 0.7, g = 0.7, b = 0.7 }, { r = 0.55, g = 0.75, b = 1 }
 local HANDLER_TYPES = { "Unit", "Item", "Spell" } -- Enum.TooltipDataType keys
@@ -69,7 +69,7 @@ local function watchHealth(frame, guid, unit)
     local bar = tooltip.Child(frame, "StatusBar")
     if not bar or type(bar.SetWatch) ~= "function" then return end
     styleBar(bar)
-    local color = unit and unitframes.HealthColor(unit) or unitframes.Colors.neutral
+    local color = unit and ui.HealthColor(unit) or ui.Colors.neutral
     bar:SetStatusBarColor(color.r, color.g, color.b)
     if not readable(guid, "string") or bar:IsShown() then return end
     local ok, reason = pcall(bar.SetWatch, bar, guid)
@@ -81,7 +81,7 @@ local function onUnit(frame, data)
     local guid = type(data) == "table" and data.guid or nil
     local unit = unitToken(frame, guid)
     if unit then
-        tint(line(frame, 1), unitframes.HealthColor(unit))
+        tint(line(frame, 1), ui.HealthColor(unit))
         tintGuild(frame, unit)
     end
     if guid ~= nil then watchHealth(frame, guid, unit) end

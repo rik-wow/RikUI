@@ -2,7 +2,7 @@
 -- numbers are secret for addon code on 69913 is unverified, so they go reader-to-sink into the
 -- StatusBars and every sum or comparison runs inside pcall: a secret drops the rested segment or
 -- the tooltip numbers instead of raising. StatusTrackingBarManager parks only once the bar exists.
-local core, media, layout, unitframes, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames, RikUI.Motion
+local core, media, layout, ui, motion = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI, RikUI.Motion
 local xpbar = { Rows = {} }
 core.XPBar = xpbar
 
@@ -48,7 +48,7 @@ local function createRow(key, color, tooltip)
     background:SetAllPoints(row)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    row.rikBorder = unitframes.Edges(row, EDGE, "BORDER")
+    row.rikBorder = ui.Edges(row, EDGE, "BORDER")
     for _, line in ipairs(row.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     if key == "xp" then row.rested = statusBar(row, RESTED_COLOR) end
     row.bar = statusBar(row, color)

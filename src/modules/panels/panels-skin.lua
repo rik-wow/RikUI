@@ -1,7 +1,7 @@
 -- The skin itself. It only knows the chrome keys the Mainline window templates share and touches a
 -- key only when it holds a region, so a window that lacks one keeps that piece stock. Stripped art
 -- is faded, never hidden: Blizzard's own Show calls on it then change nothing.
-local core, media, unitframes, motion = RikUI, RikUI.Media, RikUI.UnitFrames, RikUI.Motion
+local core, media, ui, motion = RikUI, RikUI.Media, RikUI.UI, RikUI.Motion
 local skin = core.Panels.Skin
 
 local EDGE, CLOSE_INSET, TAB_INSET, ACCENT_HEIGHT = 1, 5, 2, 2
@@ -44,7 +44,7 @@ local function fill(owner, color, inset)
 end
 
 local function outline(owner)
-    local lines = unitframes.Edges(owner, EDGE, "BORDER")
+    local lines = ui.Edges(owner, EDGE, "BORDER")
     for _, line in ipairs(lines) do line:SetVertexColor(unpack(LINE)) end
     return lines
 end

@@ -148,7 +148,7 @@ return function(check)
         profile.modules.unitframes, profile.modules.auras, profile.modules.unitauras = false, false, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
-            "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua", "src/modules/nameplates/nameplates.lua",
+            "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua", "src/modules/nameplates/nameplates.lua",
             "src/modules/nameplates/nameplates-skin.lua", "src/modules/nameplates/nameplates-target.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end

@@ -2,7 +2,7 @@
 -- and loots with LootSlot from a plain click; auto-loot stays the client's. The stock frame is
 -- parked with its events dropped because both its hide path and its open path call CloseLoot.
 -- src/modules/loot/loot-rolls.lua skins the group roll frames.
-local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
+local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
 local loot = { Rows = {}, SkinnedRolls = {}, Options = { title = "Loot", settings = {} } }
 core.Loot = loot
 
@@ -35,7 +35,7 @@ local function flat(frame, layer)
     background:SetAllPoints(frame)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    frame.rikBorder = unitframes.Edges(frame, EDGE, "BORDER")
+    frame.rikBorder = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
 end
 loot.Flat = flat
