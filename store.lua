@@ -9,7 +9,7 @@ local core = RikUI
 local store = {}
 core.Store = store
 
-local PREFIX, VERSION, CHUNK, MAX_CHUNKS, TICK_SECONDS = "rikuiStore_", "v2", 180, 120, 5
+local PREFIX, VERSION, CHUNK, MAX_CHUNKS, TICK_SECONDS, TOUCH_SECONDS = "rikuiStore_", "v2", 180, 120, 5, 0.2
 local SKIP_KEYS = { chatHistory = true }
 local status = { saves = 0, chunks = 0, bytes = 0, restored = {}, failure = nil }
 local lastText = {}
@@ -230,6 +230,21 @@ function store.Flush()
     if not store.Available() then return end
     flushOne("account", core.DB)
     flushOne(store.CharacterKey(), core.CharDB)
+end
+
+-- core:Changed() lands here. One save a moment later covers a burst of changes (a drag reports its
+-- place on every frame); without a timer API the save happens at once.
+local touched = false
+function store.Touch()
+    if touched then return end
+    local function save()
+        touched = false
+        store.Flush()
+        if store.FlushMacros then store.FlushMacros() end
+    end
+    if type(C_Timer) ~= "table" or type(C_Timer.After) ~= "function" then return save() end
+    touched = true
+    C_Timer.After(TOUCH_SECONDS, save)
 end
 
 core:RegisterEvent("PLAYER_LOGIN", function()

@@ -112,6 +112,7 @@ function layout.Reset()
     for key, group in pairs(layout.Groups) do
         core.Profile.positions[key] = position(group.defaults, ORIGIN)
     end
+    if core.Changed then core:Changed() end
     layout.Apply()
     return true
 end
@@ -121,6 +122,7 @@ function layout.SetScale(scale)
     if not core.Profile then return nil, "Still loading." end
     if not finite(scale) or scale < 0.25 or scale > 3 then return nil, "Usage: /rik scale <0.25-3>" end
     core.Profile.scale = scale
+    if core.Changed then core:Changed() end
     layout.Apply()
     return true
 end

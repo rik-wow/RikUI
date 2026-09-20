@@ -130,6 +130,7 @@ end
 
 -- The wizard waits on this: Apply runs through the combat queue and ends some time after it returns.
 local function notify(context)
+    core:Changed()
     local callback = context.onComplete
     if type(callback) ~= "function" then return end
     local ok, reason = pcall(callback, context.result)

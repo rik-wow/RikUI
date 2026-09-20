@@ -112,6 +112,7 @@ end
 
 function wizard.Skip()
     core.CharDB.wizardDone = true
+    core:Changed()
     wizard.Close()
     core:Print(SKIPPED)
 end

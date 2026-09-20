@@ -71,6 +71,7 @@ local function refreshChat()
 end
 
 local function refresh()
+    core:Changed()
     layout.LockAll()
     refreshChat()
     layout.Apply()

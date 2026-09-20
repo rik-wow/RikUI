@@ -63,6 +63,7 @@ function layout.SaveRect(key, rect, profile, scale)
     local anchored = geometry.ToAnchor(rect, group.defaults.point, group.defaults.relativePoint, screen)
     profile.positions[key] = { point = anchored.point, relativePoint = anchored.relativePoint,
         x = anchored.x / scale, y = anchored.y / scale }
+    core:Changed()
     return true
 end
 
@@ -73,6 +74,7 @@ local function saveFromCenter(key, frame, profile, x, y)
     if not parentX or not parentY then return false end
     local ratio = UIParent:GetEffectiveScale() / frame:GetEffectiveScale()
     profile.positions[key] = { point = "CENTER", relativePoint = "CENTER", x = x - parentX * ratio, y = y - parentY * ratio }
+    core:Changed()
     return true
 end
 

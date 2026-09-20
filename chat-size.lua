@@ -44,6 +44,7 @@ function chat.SetSize(width, height)
     if not validSize(size) then return false end
     chat.Settings().size = size
     chat.ApplySize()
+    core:Changed()
     return true
 end
 

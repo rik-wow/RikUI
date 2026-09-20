@@ -51,6 +51,7 @@ function options.Commit(row, value)
     local function apply()
         local ok, reason = spec.set(value)
         if ok == nil and reason then core:Print(reason) end
+        if core.Changed then core:Changed() end
         options.RefreshList(row.list)
     end
     if spec.protected and InCombatLockdown() then

@@ -211,6 +211,7 @@ function chat.ResetPosition()
     dragStop()
     core.Profile.positions[KEY] = nil
     chat.Settings().size = nil
+    core:Changed()
     firstSize()
     chat.Restore()
     layout.Apply()

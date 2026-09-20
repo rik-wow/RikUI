@@ -121,6 +121,12 @@ local function initialize(_, loadedAddon)
     bind()
 end
 
+-- Code that changes a setting says so, and the settings store saves a moment later. Nobody should
+-- have to wait for the store's ticker, which stays only as a net for changes nobody reported.
+function core:Changed()
+    if self.Store and self.Store.Touch then self.Store.Touch() end
+end
+
 -- Module enable/disable changes still take effect on reload.
 function core:SetProfile(name)
     if not initialized then return nil, "Still loading." end
@@ -134,6 +140,7 @@ function core:SetProfile(name)
     if self.Layout and self.Layout.StopMoving then self.Layout.StopMoving() end
     self.Profile = mergeDefaults(self.DB.profiles[name], PROFILE_DEFAULTS)
     self.CharDB.profile = name
+    self:Changed()
     if self.Bars then self.Bars.ApplyLayout()
     elseif self.Layout then self.Layout.Apply() end
     return true

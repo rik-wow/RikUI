@@ -19,12 +19,13 @@ return function(check)
             end,
         }
     end
-    local tickers = {}
+    local tickers, timers = {}, {}
     local function boot(db, charDB, withStore)
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
-        registered, tickers = {}, {}
+        registered, tickers, timers = {}, {}, {}
         if bare then C_CVar = { GetCVar = function() end, SetCVar = function() end } else fakeCVars() end
-        C_Timer = { NewTicker = function(seconds, callback) tickers[#tickers + 1] = callback; return {} end }
+        C_Timer = { NewTicker = function(seconds, callback) tickers[#tickers + 1] = callback; return {} end,
+            After = function(seconds, callback) timers[#timers + 1] = { seconds = seconds, run = callback } end }
         UnitName, GetRealmName = function() return "Peepee Jameson" end, function() return "Classic Beta PvE" end
         RikUI, RikUIDB, RikUICharDB = nil, db, charDB
         assert(loadfile("core.lua"))("RikUI", {})
@@ -104,6 +105,19 @@ return function(check)
         core.Profile.scale = 1.3
         tickers[1]()
         check("and writes again after a change", core.Store.Status().saves > saves)
+        -- Nobody should have to wait for the ticker: a change asks for a save at once.
+        core.Profile.scale = 0.75
+        saves = core.Store.Status().saves
+        core:Changed()
+        core:Changed()
+        core:Changed()
+        check("a change asks for one save a moment later, however often it is reported", #timers == 1
+            and timers[1].seconds <= 0.25 and core.Store.Status().saves == saves)
+        timers[1].run()
+        check("and that save happens without the ticker", core.Store.Status().saves > saves
+            and core.Store.Load("account").profiles.Default.scale == 0.75)
+        core:Changed()
+        check("a later change asks again", #timers == 2)
         env.printed = {}
         SlashCmdList.RIKUI("store")
         check("/rik store reports the store's state", printed("Store available=true") and printed("chunks="))
