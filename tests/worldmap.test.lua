@@ -36,6 +36,12 @@ return function(check)
         local frame = CreateFrame("Frame", "WorldMapFrame", UIParent)
         frame.ScrollContainer = CreateFrame("Frame", nil, frame)
         frame.BorderFrame = CreateFrame("Frame", nil, frame)
+        local createTexture = frame.CreateTexture
+        function frame:CreateTexture(...)
+            local texture = createTexture(self, ...)
+            texture.owner = self
+            return texture
+        end
         frame.QuestLog = CreateFrame("Frame", nil, frame)
         frame.QuestLog.QuestsFrame = CreateFrame("Frame", nil, frame.QuestLog)
         local scroll = CreateFrame("Frame", nil, frame.QuestLog.QuestsFrame)
@@ -48,6 +54,11 @@ return function(check)
         scroll.SearchBox.Left = scroll.SearchBox:CreateTexture()
         local header = CreateFrame("Button", nil, scroll)
         header.Background = header:CreateTexture()
+        header.normal = header:CreateTexture()
+        header.highlight = header:CreateTexture()
+        header.CollapseButton = CreateFrame("Button", nil, header)
+        function header:GetNormalTexture() return self.normal end
+        function header:GetHighlightTexture() return self.highlight end
         header.Text = header:CreateFontString()
         scroll.headerRow = header
         scroll.headerFramePool = { EnumerateActive = function()
@@ -88,6 +99,7 @@ return function(check)
         local frame, bar = WorldMapFrame, WorldMapFrame.NavBar
         check("nothing is skinned before the map opens", bar.rikFill == nil and rawget(bar.art[1], "alpha") == nil)
         frame:Show()
+        check("header background belongs below navigation siblings", module.Header.owner == frame)
         check("opaque header ends above the map", module.Header.color[4] == 1
             and module.Header.points[2][1] == "BOTTOMLEFT"
             and module.Header.points[2][2] == frame.ScrollContainer
@@ -96,6 +108,9 @@ return function(check)
         check("native quest panel loses ornate chrome without hiding content",
             scroll.Background.alpha == 0 and scroll.BorderFrame.Border.alpha == 0
             and scroll.BorderFrame.TopDetail.alpha == 0 and scroll.alpha ~= 0)
+        check("native category button artwork is removed and collapse remains visible",
+            scroll.headerRow.normal.alpha == 0 and scroll.headerRow.highlight.texture == RikUI.Skin.FLAT
+            and scroll.headerRow.CollapseButton.alpha ~= 0)
         check("quest headers and search share flat skin",
             scroll.headerRow.Background.alpha == 0 and scroll.SearchBox.Left.alpha == 0
             and scroll.headerRow.Text.fontPath == RikUI.Media.font)

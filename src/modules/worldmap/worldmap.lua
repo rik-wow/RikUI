@@ -137,6 +137,14 @@ local function questRows(pool, header)
     for row in pool:EnumerateActive() do
         if header then
             flatSurface(row, skin.CONTROL, { "Left", "Middle", "Right", "Background" })
+            -- ListHeaderVisualTemplate uses button-state textures, not named slices.
+            local normal = type(row.GetNormalTexture) == "function" and row:GetNormalTexture()
+            if skin.IsRegion(normal) then normal:SetAlpha(0) end
+            local highlight = type(row.GetHighlightTexture) == "function" and row:GetHighlightTexture()
+            if skin.IsRegion(highlight) then
+                highlight:SetTexture(skin.FLAT)
+                highlight:SetVertexColor(1, 1, 1, 0.08)
+            end
         end
         skin.Typeface(row.Text)
         skin.Typeface(row.ButtonText)
@@ -152,6 +160,7 @@ local function questChrome(frame)
     local border = scroll.BorderFrame
     if isFrame(border) then skin.Strip(border, { "Border", "TopDetail", "Shadow" }) end
     flatSurface(scroll.SearchBox, skin.CONTROL, { "Left", "Middle", "Right" })
+    flatSurface(_G.QuestLogCount, skin.CONTROL, { "Left", "Middle", "Right" })
     questRows(scroll.headerFramePool, true)
     questRows(scroll.titleFramePool)
     questRows(scroll.objectiveFramePool)
@@ -161,7 +170,8 @@ end
 local function shell(frame)
     local chrome, canvas = frame.BorderFrame, frame.ScrollContainer
     if isFrame(chrome) and isFrame(canvas) and not worldmap.Header then
-        local fill = chrome:CreateTexture(nil, "BACKGROUND", nil, -8)
+        -- BorderFrame is above the navigation siblings; its background would occlude them.
+        local fill = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
         fill:SetTexture(skin.FLAT)
         fill:SetVertexColor(0.055, 0.065, 0.08, 1)
         -- These two corners bound only the area above the canvas, at either map size.
