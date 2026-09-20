@@ -83,6 +83,16 @@ return function(check)
         module = load(nil, function() QueueStatusFrame:Show() end)
         check("a tooltip already showing at login is skinned at once", QueueStatusFrame.NineSlice.alpha == 0)
 
+        module = load(nil, function()
+            local marker = CreateFrame("Frame", "SuperTrackedFrame", UIParent)
+            marker.DistanceText, marker.Icon = label(marker, 12), marker:CreateTexture()
+        end)
+        check("the quest navigation marker's distance text takes the typeface and its icon is left alone",
+            SuperTrackedFrame.DistanceText.fontPath == RikUI.Media.font and SuperTrackedFrame.DistanceText.fontSize == 12
+            and rawget(SuperTrackedFrame.Icon, "alpha") == nil and SuperTrackedFrame.rikFill == nil
+            and #env.printed == 0)
+        SuperTrackedFrame = nil
+
         module = load(nil, function() QueueStatusFrame, FramerateFrame = nil, nil end)
         check("missing frames are skipped silently", #env.printed == 0)
 

@@ -81,6 +81,7 @@ lossofcontrol.lua
 extrabuttons.lua
 toasts.lua
 banners.lua
+damagemeter.lua
 menus.lua
 chatbubbles.lua
 totems.lua

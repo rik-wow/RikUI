@@ -26,6 +26,12 @@ line and the frame is not retried.
 `FramerateFrame` (Ctrl+R by default) is two font strings, `Label` and
 `FramerateText`. They get the typeface at login. There is no art to remove.
 
+## Quest navigation marker
+
+`SuperTrackedFrame` is the on-screen marker that points at the tracked quest.
+Only its `DistanceText` takes the typeface, once at login. The icon, its ring
+and the arrow are the marker itself and stay.
+
 ## What is not written
 
 Neither frame is moved, resized, reparented, shown, hidden or given a new

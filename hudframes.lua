@@ -10,6 +10,7 @@ local QUEUE, FRAMERATE = "QueueStatusFrame", "FramerateFrame"
 local QUEUE_ART = { "NineSlice" }
 local ENTRY_TEXT = { "Title", "Status", "SubTitle", "TimeInQueue", "AverageWait", "ExtraText" }
 local FRAMERATE_TEXT = { "Label", "FramerateText" }
+local MARKER, MARKER_TEXT = "SuperTrackedFrame", { "DistanceText" }
 local warnings, skinned, failed = {}, {}, {}
 local counts = { hooked = 0, skinned = 0, fonts = 0 }
 
@@ -82,9 +83,18 @@ local function restyleFramerate()
     if ok then counts.fonts = written else warn("font " .. FRAMERATE, written) end
 end
 
+-- The on-screen quest navigation marker: only its distance text; the icon and arrow are the marker.
+local function restyleMarker()
+    local frame = _G[MARKER]
+    if not isFrame(frame) then return end
+    local ok, reason = pcall(typefaces, frame, MARKER_TEXT)
+    if not ok then warn("font " .. MARKER, reason) end
+end
+
 function hudframes:OnEnable()
     hookQueue()
     restyleFramerate()
+    restyleMarker()
 end
 
 function hudframes:Debug()
