@@ -70,6 +70,8 @@ local function wrapFrame(frame)
         self.parent = value
     end
     function frame:GetParent() return self.parent end
+    function frame:SetFrameLevel(level) self.level = level end
+    function frame:SetFrameStrata(strata) self.strata = strata end
     function frame:SetAttribute(key, value)
         assert(not InCombatLockdown(), "attribute written in combat")
         self.attributes[key] = value

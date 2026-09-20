@@ -264,6 +264,11 @@ local popupsOk, popupsErr = pcall(function() dofile("tests/popups.test.lua")(che
 check("Popup test suite completes", popupsOk, popupsErr)
 local screenOk, screenErr = pcall(function() dofile("tests/screentext.test.lua")(check) end)
 check("Screen text test suite completes", screenOk, screenErr)
+-- Later suites share one loop: a chunk of Lua holds at most 200 locals.
+for _, suite in ipairs({ "menus" }) do
+    local suiteOk, suiteErr = pcall(function() dofile("tests/" .. suite .. ".test.lua")(check) end)
+    check(suite .. " test suite completes", suiteOk, suiteErr)
+end
 
 -- report
 if #failures == 0 then
