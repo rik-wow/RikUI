@@ -52,6 +52,7 @@ function stub.region(value)
     value.shown = true
     function value:SetTexture(texture) self.texture = texture end
     function value:SetVertexColor(...) self.color = { ... } end
+    function value:SetTexCoord(...) self.coords = { ... } end
     function value:SetTextColor(...) self.textColor = { ... } end
     function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
     function value:SetWordWrap(wrap) self.wordWrap = wrap end

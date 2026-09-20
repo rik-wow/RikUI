@@ -100,6 +100,10 @@ Rogues and druids get combo points as five flat pips between the player and
 target frames, gold with a red fifth, easing and flashing as they build. See
 [combo points](docs/combopoints.md).
 
+Shamans get their active totems as a row of flat icons under the player cast
+bar, each with a sweep and a countdown. The row is display only. See
+[totem row](docs/totems.md).
+
 Watched quests are a compact list under the minimap: level-tagged titles in
 their difficulty colour, one line per objective, green when ready to turn in.
 Progress flashes its line, click opens the quest log, shift-click stops
@@ -176,7 +180,7 @@ shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [durability](docs/durability.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [popups](docs/popups.md), [screen text](docs/screentext.md), [menus](docs/menus.md), [chat bubbles](docs/chatbubbles.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [durability](docs/durability.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [popups](docs/popups.md), [screen text](docs/screentext.md), [menus](docs/menus.md), [chat bubbles](docs/chatbubbles.md), [totem row](docs/totems.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.
