@@ -262,6 +262,8 @@ local durabilityOk, durabilityErr = pcall(function() dofile("tests/durability.te
 check("Durability test suite completes", durabilityOk, durabilityErr)
 local popupsOk, popupsErr = pcall(function() dofile("tests/popups.test.lua")(check) end)
 check("Popup test suite completes", popupsOk, popupsErr)
+local screenOk, screenErr = pcall(function() dofile("tests/screentext.test.lua")(check) end)
+check("Screen text test suite completes", screenOk, screenErr)
 
 -- report
 if #failures == 0 then

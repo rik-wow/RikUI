@@ -220,7 +220,12 @@ function hooksecurefunc(a, b, c)
     if type(a) == "table" then tbl, name, fn = a, b, c end
     local orig = tbl[name]
     if type(orig) ~= "function" then error("hooksecurefunc(): " .. tostring(name) .. " is not a function", 2) end
-    tbl[name] = function(...) orig(...) fn(...) end
+    -- Like the client, the hook runs after the original and the original's returns are kept.
+    tbl[name] = function(...)
+        local results = { orig(...) }
+        fn(...)
+        return unpack(results, 1, table.maxn(results))
+    end
     table.insert(env.hooks, name)
 end
 
