@@ -111,7 +111,7 @@ flat regions added; `font` = font objects only.
 | CommunitiesSecure dialogs, secure transfer dialog | none | none | 0 | dialogs | `interiors-social` (may be forbidden) |
 | Player choice, splash, trait frame, collections and transmog interiors, stopwatch close button | none | none | 0 | panels | `interiors-misc` |
 | `/rik config` panel | `options*.lua` | own | 1 | controls design | `options-polish` |
-| First-login wizard | `wizard.lua` (empty) | not built | n/a | options, presets | `wizard` |
+| First-login wizard | `wizard*.lua` | own | 2 | setup, layouts | `wizard-beta-acceptance` (pages fade, controls fade on hover; no eased values to show) |
 
 ## Counts
 

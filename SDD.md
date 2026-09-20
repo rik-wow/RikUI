@@ -520,7 +520,8 @@ load order:
 | `damagemeter.lua` | Blizzard's damage meter, which loads on camelot: a post-hook on `DamageMeter:SetupSessionWindow` plus a pass over `DamageMeterSessionWindow1..8` at login; per window a flat header anchored to the faded `Header` texture with an edge, the typeface on four strings by key path and the controls walk; per entry (rows of both scroll boxes through `OnAcquiredFrame`, and `LocalPlayerEntry`) the RikUI statusbar texture, typeface, faded shadow art and cropped icon through Blizzard's getters; window alpha, background opacity, colours, values and layout are the meter's settings and are never written. Redesigned after the first look in game: a per-entry post-hook on `UpdateBackground` (Blizzard restores the shadow art there), the row event registered before the list is walked, an own track and bar edge, an in-bounds `OVERLAY` icon edge because the row clips its children, glyph header buttons, an accent rule, a fade for newly created rows only (rows are re-acquired on every data refresh), hover tweens, and `RikUIDamageMeterHolder` under layout key `damagemeter`, re-hung after `ApplySystemAnchor` except while Edit Mode is open (delivered) |
 | `layout-geometry.lua`, `layout-rects.lua`, `layout-unlock.lua`, `layout-drag.lua`, `Bindings.xml` | the frame arrangement system on top of `layout.lua`, resting on one rule: no two layout groups overlap. Pure rectangle arithmetic with a seeded property test; a rectangle per group computed from saved position, size and scale, so hidden groups still block; positions saved on the group's own anchor; `floating` and `exclusive` groups; a settle pass at login, on a screen change, on a resize and on a late registration that moves only the offending group; a held key (binding, or Ctrl+Alt+Shift while unbound) that shows a lock tag per group and a master tag; a session-only unlocked set whose groups get a pulsing, sweeping overlay; a cursor-driven drag engine that snaps, draws guides, resolves collisions, follows live and commits on release or on combat; the bag header and chat tab drag through it; replaces `layout-movers.lua` (delivered) |
 | `editmode.lua` | Edit Mode never overrides RikUI: `EditMode.Guard(frame, label, reapply)` post-hooks a system frame's own `UpdateSystem`, `ApplySystemAnchor` and `UpdateSystemSetting` and re-applies RikUI's size or place afterwards through the combat queue; nothing is written while Edit Mode is open and `EditMode.Exit` restores; used by the chat size, the damage meter and the minimap cluster's kept frames (delivered) |
-| `wizard.lua` | the first-login flow |
+| `data/layouts.lua`, `layout-audit.lua`, `layout-presets.lua` | four whole-screen layouts (Centered, Classic, HUD, Healer) placing every layout key from constants (margin 16, gap 4), audited with plain numbers on 16:9, 16:10 and 21:9; Centered is the registry's source for default places; `/rik layout list|undo|<name>`, an options dropdown and `setup.Apply`'s `layoutPreset`; the chat's width is fitted to the screen; the current layout is derived from the saved positions (delivered) |
+| `wizard.lua`, `wizard-controls.lua`, `wizard-preview.lua`, `wizard-pages.lua` | the first-login flow: a flat window with six pages (welcome, role with a main-bar preview, keybinds drawn as key caps, layout cards pictured from the layouts' rectangles, modules and settings, summary with step switches), one state table, one Apply through `setup.Apply` with `onComplete`; opens once per character and on `/rik setup`, stays away in combat; a class without a preset still gets binds, settings and layout (delivered) |
 | `options.lua` | `/rik config` panel, hooked into Settings too |
 | `importexport.lua` | strings |
 | `libs/LibDeflate.lua` | embedded, unchanged |
@@ -568,7 +569,11 @@ container frames through the same helper, only when replaced, passing
 ## Wizard (first login)
 
 Runs when `RikUICharDB.applied == nil`, or on `/rik setup`. Five pages, a
-Back/Next footer, a summary at the end with one Apply button.
+Back/Next footer, a summary at the end with one Apply button. As built
+(2026-09-20) it has six: the layout got a page of its own once there were four
+layouts to choose from, Classic among them; see [docs/wizard.md](docs/wizard.md).
+The role page uses cards, and community presets are not offered until
+import/export exists.
 
 1. Welcome. "Warrior detected. RikUI will set up bars, binds, macros, settings
    and layout. Nothing is applied until the last page." Skip button.

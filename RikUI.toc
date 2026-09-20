@@ -104,6 +104,8 @@ tooltip.lua
 tooltip-data.lua
 wizard-controls.lua
 wizard.lua
+wizard-preview.lua
+wizard-pages.lua
 options-widgets.lua
 options-controls.lua
 options.lua

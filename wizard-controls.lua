@@ -129,13 +129,23 @@ function controls.Card(parent, width, height, onClick)
 end
 
 -- A key cap for the keyboard picture: dim when the key is not part of the scheme.
-function controls.KeyCap(parent, size, text, active)
-    local cap = CreateFrame("Frame", nil, parent)
-    cap:SetSize(size, size)
-    skin.Fill(cap, skin.CONTROL)
-    skin.Outline(cap, active and ACCENT or skin.LINE)
-    cap.label = controls.Text(cap, "small", text, active and { 1, 1, 1 } or MUTED)
-    cap.label:SetPoint("CENTER", cap, "CENTER", 0, 0)
+local function paintCap(cap, active)
     cap.active = active == true
+    cap.lit:SetAlpha(cap.active and 1 or 0)
+    cap.label:SetTextColor(cap.active and 1 or MUTED[1], cap.active and 1 or MUTED[2], cap.active and 1 or MUTED[3], 1)
+end
+
+function controls.KeyCap(parent, width, height, text, active)
+    local cap = CreateFrame("Frame", nil, parent)
+    cap:SetSize(width, height)
+    skin.Fill(cap, skin.CONTROL)
+    skin.Outline(cap)
+    cap.lit = CreateFrame("Frame", nil, cap)
+    cap.lit:SetAllPoints()
+    skin.Outline(cap.lit, ACCENT)
+    cap.label = controls.Text(cap, "small", text)
+    cap.label:SetPoint("CENTER", cap, "CENTER", 0, 0)
+    cap.SetActive = paintCap
+    paintCap(cap, active)
     return cap
 end
