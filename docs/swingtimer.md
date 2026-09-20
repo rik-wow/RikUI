@@ -12,8 +12,9 @@ Each bar is 200px wide and 14px tall on the dark backing with the 1px edge the
 nameplates use: the weapon label left, the time to the next swing right, a 2px
 white spark on the fill edge. Main hand is light steel, off hand darker steel,
 ranged green. A bar shows only while that weapon is swinging. With two weapons
-the off hand bar stacks 3px under the main hand; when one stops the other
-moves up.
+the off hand bar stacks 3px over the main hand, because the stance and pet
+rows sit just under the default position; when one stops the other moves
+down.
 
 Out of range, the fill, spark and texts dim to 40% and the time turns red.
 
@@ -84,7 +85,7 @@ bottom-managed frames disturbs the managed container. Beta checklist:
 1. Fully restart the client (new TOC entry). Attack a mob: a `Main hand` bar
    appears between the cast bars, fills, flashes and restarts on every swing,
    and the stock swing bar is gone.
-2. Dual wield or shoot: a second bar stacks under the first.
+2. Dual wield or shoot: a second bar stacks over the first.
 3. Step out of melee range while attacking: the bar dims and the time turns
    red. Step back in: it returns.
 4. Stop attacking: the bar goes about half a second after the last swing.

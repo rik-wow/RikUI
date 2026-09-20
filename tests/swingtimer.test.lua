@@ -69,8 +69,8 @@ return function(check)
             and main.fade.plays == 1 and main.flashAnim.plays == 2)
 
         env.fire("PLAYER_SWING", 1.8, OFF)
-        check("an off hand swing stacks a second bar under the first", off.shown == true and offset(main) == 0
-            and offset(off) < 0 and off.bar.color[1] ~= main.bar.color[1])
+        check("an off hand swing stacks a second bar over the first", off.shown == true and offset(main) == 0
+            and offset(off) > 0 and off.bar.color[1] ~= main.bar.color[1])
         advance(main, 2.6)
         advance(main, 0.7)
         check("a bar past its linger clears and the rest restack", main.shown == false and offset(off) == 0

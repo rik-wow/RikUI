@@ -33,15 +33,16 @@ local function isFrame(value)
     return (kind == "table" or kind == "userdata") and type(value.SetParent) == "function"
 end
 
--- The bars are unprotected, so showing, hiding and restacking are safe in combat.
+-- The bars are unprotected, so showing, hiding and restacking are safe in combat. They stack
+-- upwards: the companion rows end just under the default position.
 local function arrange()
     local offset = 0
     for _, bar in ipairs(order) do
         bar:SetShown(bar.endTime ~= nil)
         if bar.endTime then
             bar:ClearAllPoints()
-            bar:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, -offset)
-            bar:SetPoint("TOPRIGHT", holder, "TOPRIGHT", 0, -offset)
+            bar:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT", 0, offset)
+            bar:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", 0, offset)
             offset = offset + HEIGHT + GAP
         end
     end
