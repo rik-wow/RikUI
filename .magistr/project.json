@@ -13,7 +13,7 @@
     "formatter": "none"
   },
   "quality_gate": {
-    "check": "luajit -e \"assert(loadfile('RikProbe/RikProbe.lua'))\"",
+    "check": "python tests/check_manifest.py",
     "test": "luajit tests/run_tests.lua",
     "lint": "echo 'no lint configured'"
   },

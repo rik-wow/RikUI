@@ -1,0 +1,200 @@
+# RikUI architecture
+
+RikUI uses explicit Lua services and feature folders. `RikUI.toc` is the production
+composition root: the client executes each file in order, then the lifecycle
+service restores settings and activates enabled modules. There is no runtime
+filesystem scan, dependency loader, or third-party framework.
+
+## Source ownership
+
+| Location | Responsibility |
+| --- | --- |
+| `src/core/` | Namespace, diagnostics, events, profiles, module activation, commands, combat queue, lifecycle |
+| `src/platform/` | Blizzard frame parking and Edit Mode integration |
+| `src/ui/` | Media, drawing primitives, unit colors, motion and skin helpers |
+| `src/layout/` | Geometry, group registry, placement, dragging and layout presets |
+| `src/persistence/` | Bounded codec, CVar transport, macro transport and save scheduling |
+| `src/character/` | Key bindings, macros and macro undo |
+| `src/setup/` | Preset resolution, Apply/Undo and character setup |
+| `src/configuration/` | Options and first-login wizard |
+| `src/modules/<feature>/` | Feature-owned frames, events, state and client adapters |
+| `data/`, `presets/` | Declarative catalogues and bundled presets |
+| `media/` | Assets; their installed paths are stable |
+| `tests/` | Stubbed behavior, source composition and manifest validation |
+| `RikProbe/` | Separate client capability probe addon |
+
+The repository root remains the installable addon root. Keep `RikUI.toc` and
+`Bindings.xml` there and install the complete `src/` tree alongside the data and
+media folders. Addon identity, SavedVariables names and media paths are unchanged.
+The import/export file is still a reserved placeholder; LibDeflate is not bundled.
+
+File boundaries follow responsibilities, not line counts. A feature can have a
+registration file, frame factory, status readers and skinning helpers in its own
+folder. Helpers used across unrelated features belong in an appropriate service.
+For example, `RikUI.UI.Edges`, `HealthColor` and `PowerColor` do not require the
+unit-frame feature. The old `UnitFrames` helper names remain compatibility aliases.
+
+## Loading and activation are separate
+
+Files define local functions and publish APIs under `RikUI`. The bootstrap also
+publishes `namespace.Core` through the addon-private table supplied by the client.
+`RikUI.Runtime` is internal coordination state; features should use the public
+methods below rather than calling lifecycle internals.
+
+1. The TOC loads the core services before their consumers. Each service's file
+   dependencies must already exist before its top-level code runs.
+2. `ADDON_LOADED` for RikUI restores the available store, repairs typed defaults,
+   binds `DB`, `CharDB` and `Profile`, and configures module flags.
+3. `PLAYER_LOGIN` offers late restore to the macro transport, rebinds settings,
+   and starts modules in registration order, activating dependencies first.
+4. A late module registration starts another activation pass. A hook that already
+   succeeded or failed is never called again.
+
+`RegisterModule(name, module, { dependencies = { "provider" } })` declares an
+**activation** dependency. Use it when the consumer needs the provider's enabled
+behavior: `unitauras` requires live `unitframes`. A helper defined at file load
+only needs TOC order; do not require an enabled feature just to reuse a factory.
+
+`GetModuleState(name)` returns `state, reason`. States are `registered`,
+`disabled`, `enabling`, `enabled`, `failed` and `blocked`. Missing, disabled,
+failed or cyclic dependencies block their consumers while unrelated modules
+continue. A later provider registration can unblock a consumer that never ran.
+An unknown name returns nil. Module enable flags and non-removable hooks require
+a reload to change; profile switching does not implement live module teardown.
+
+If `OnEnable` throws, the runtime reports the error and removes its owned event
+subscriptions. It does not roll back created frames, post-hooks, timers or queued
+service work. Shared services own pending flags and must finish accepted jobs.
+Write activation in small, idempotent steps and check prerequisites before
+installing irreversible hooks.
+
+## Public runtime contracts
+
+- `RegisterEvent(event, callback, owner?)` calls `callback(event, ...)` in
+  subscription order. Duplicate callback/owner pairs are ignored. Omitting the
+  owner inherits the module currently enabling or handling an owned callback.
+  `UnregisterEvent(event, callback)` removes all subscriptions of that callback
+  for the event; `UnregisterOwner(owner)` removes that owner's subscriptions.
+  Additions start with the next dispatch, including a nested dispatch; removals
+  take effect immediately. Each callback has its own error boundary.
+- `Combat.Queue(callback, key?)` runs immediately when safe or appends work for
+  after combat. Deferred work is FIFO. Reusing a nonempty string key replaces
+  the pending callback at its original queue position. Use feature-prefixed keys
+  such as `"example:layout"`. `Cancel(key)` cancels an outstanding keyed job;
+  `Pending()` reports live queued jobs. Jobs added during a drain join its tail.
+  Re-entering combat pauses the drain; a failing job does not stop the others.
+- `RegisterCommand(name, callback, description)` adds a lowercase `/rik`
+  command. The callback gets trimmed arguments with case preserved.
+  `HasCommand(name)` supports configuration controls for optional features.
+- `Changed()` schedules persistence after modifying plain configuration.
+  `SetProfile(name)` returns `true` or `nil, reason`, cancels dragging and
+  applies the chosen layout outside combat and pending setup operations.
+- `Secret.Read(reader, ...)` preserves all `pcall` return slots, including nil.
+  `Secret.Apply(sink, reader, ...)` forwards successful results to a protected
+  sink call. Neither turns unavailable data into zero. Inspect the success flag
+  and `Secret.IsSecret(value)` before any operation on returned client values.
+
+Use local functions for private behavior and publish only intentionally shared
+methods. Keep feature state in its namespace or local upvalues. Namespaced
+Blizzard frame globals and binding globals are intentional integration points.
+Do not add global utility functions, mutate shared standard-library tables, or
+pass opaque client values to persistence.
+
+## Adding a feature
+
+Create `src/modules/example/example.lua`:
+
+```lua
+local core = RikUI
+local example = {}
+core.Example = example
+
+local function refresh()
+    -- Read ordinary configuration from core.Profile here.
+    -- Update only this feature's frames.
+end
+
+function example:OnEnable()
+    core:RegisterEvent("PLAYER_ENTERING_WORLD", refresh)
+    core.Combat.Queue(function()
+        -- Construct protected frames outside combat.
+        refresh()
+    end, "example:initialize")
+end
+
+core:RegisterModule("example", example)
+```
+
+Add its files to the TOC after the services it reads at file load. Add a dependency
+option only if it requires another activated module. Register shared positions
+through `RikUI.Layout`; use `RikUI.Hide` to park stock frames. Add settings to the
+existing options conventions and persistent defaults to their owning schema.
+Pair the change with a focused feature fixture. Add load-order edges to
+`tests/architecture.test.lua` when introducing a new service dependency.
+
+Protect client API boundaries that can be absent or fail. Keep secret-bearing
+values flowing from readers into supported sinks; a Lua stub cannot emulate the
+client's secret-value enforcement or protected-frame taint rules.
+
+## Persistence boundaries
+
+`codec.lua` owns the version-2 deterministic wire representation. Its dictionary
+is append-only: reordering tokens changes existing saved data. Keys are sorted;
+the encoder rejects cycles, non-finite numbers and excessive nesting or size.
+The bounds are 32 table levels, 8,192 visited nodes and 21,600 encoded bytes.
+Unsupported nested values retain the previous omission behavior. Encode/decode
+return `nil, reason` on failure; decoded `false` is a valid result.
+
+`store.lua` owns CVar chunking, checksums, registration and scheduling. It checks
+header bounds before reading chunks, verifies chunk lengths and checksums, and
+encodes each account/character payload once per flush. The fallback poll still
+detects direct DB mutations by older call sites.
+
+`store-macros.lua` owns compact default-diff snapshots and the restart transport.
+Its pruning is cycle/depth/node bounded. Snapshot construction does not mutate
+the last accepted character snapshot before encoding succeeds. Invalid input
+does not write partial payloads. A client write failure is reported, but the
+client transport does not provide an atomic transaction across multiple writes.
+
+Profile repair preserves valid false values and unknown settings, replacing
+wrong types, non-finite defaulted numbers and cycles through known schema fields.
+This is schema repair for known defaults, not a general migration engine or
+validator for every feature setting.
+The existing settings names, dictionary and transport version remain compatible.
+
+## Cost and verification
+
+The event bus has one native frame and does not copy subscriber arrays on each
+dispatch. Removed entries compact after the outermost dispatch only when needed.
+The combat queue advances indices instead of shifting the entire array per job,
+making drain bookkeeping linear in the queued entry count. Keyed coalescing
+releases superseded callbacks. Hidden party/raid frames skip range queries only
+when visibility is a readable false; unknown or secret visibility uses the
+existing safe path. These are verified algorithmic changes, not an FPS claim.
+
+From the repository root:
+
+```text
+luajit tests/run_tests.lua
+python tests/check_manifest.py
+git diff --check
+```
+
+The Lua suite compiles and loads the real TOC in an isolated environment, checks
+file-load global ownership and prerequisite order, and exercises lifecycle,
+events, queueing, settings and feature behavior. Reduced feature fixtures use
+`tests/load_addon.lua` to compose the core from the production manifest.
+The Python guard checks that every production Lua file under `src/`, `data/`
+and `presets/` appears exactly once with canonical case and safe relative paths.
+It also rejects leftover root runtime Lua files and checks the SVG/TGA inventory
+against the literal icon registry, then compiles all runtime, probe and test Lua
+files using LuaJIT without executing them. The Lua suite validates built TGA headers.
+The project's standard `check` gate runs this guard. Developer verification needs
+Python 3 and LuaJIT; the installed addon has no new runtime dependencies.
+
+Native validation still requires the Forever client: restart after installing
+the moved source tree, inspect `/rik help` and `/rik debug`, switch a profile,
+exercise combat enter/leave, reload with a module disabled and inspect dependent
+unit auras, then relog/restart to verify settings. Check party/raid visibility and
+range changes in real groups, and inspect Lua/taint errors. Automated stubs do
+not establish native secure behavior, client compatibility or visual correctness.

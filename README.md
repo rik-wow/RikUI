@@ -4,7 +4,10 @@ RikUI is a Classic-style interface and character setup addon for the WoW:
 Forever beta. The current target is interface 16001; see [SDD.md](SDD.md)
 for measured client limitations and implementation scope.
 
-Install this directory as `Interface/AddOns/RikUI` inside the beta client.
+Install this directory as `Interface/AddOns/RikUI` inside the beta client,
+including the complete `src/`, `data/`, `presets/` and `media/` folders.
+See [architecture and extension guide](docs/architecture.md) for source ownership,
+module contracts and verification commands.
 **Fully exit and restart the client after adding or updating media files.**
 A UI reload alone may not discover new font or texture assets.
 
@@ -209,8 +212,6 @@ stack counts, quality-coloured borders, a search box that dims what does not
 match, a Sort button and your money. Clicks, drags, right-click use and
 vendor selling run on Blizzard's own item buttons. The bank stays Blizzard's.
 Drag it by its title to move it; the place is remembered.
-`src/modules/bags/bags-items.lua` and `src/modules/chat/chat-move.lua` are new files, so fully restart the
-client after updating.
 Disable the `bags` module to get the stock bags back. See [bags](docs/bags.md).
 
 Hold the frame-lock key (Key Bindings, RikUI section; Ctrl+Alt+Shift while unbound) to show a lock on every frame, click a lock to free that frame, then drag it: frames snap to each other and to the screen, and can never overlap. `/rik move` unlocks or locks everything at once.

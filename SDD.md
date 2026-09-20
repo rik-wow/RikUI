@@ -465,17 +465,22 @@ show up in the wizard's role dropdown under a "Community" heading.
 
 ## Modules
 
-Each module is one file, registers itself with the core, has an `enabled`
-toggle in the profile, and can be turned off without breaking the others. In
-load order:
+Feature files are grouped by responsibility under `src/modules/`; shared
+runtime, UI, layout and persistence services have their own folders. Modules
+register with the core and declare activation dependencies when they need another
+enabled feature. Shared helpers remain available independently of feature toggles.
+See [architecture](docs/architecture.md) for contracts. `RikUI.toc` owns load order;
+the following table describes responsibilities:
 
 | File | Does |
 |---|---|
-| `src/core/core.lua` | saved vars, profile defaults, event bus, `/rik` router, `Print`, `Debug`, secret helpers, combat queue |
+| `src/core/*.lua` | bootstrap, diagnostics and secret helpers; separate event, profile, module lifecycle, command and combat services |
+| `src/ui/primitives.lua`, `src/ui/unit-colors.lua` | shared edges and secret-aware colors, independent of feature activation |
+| `src/persistence/*.lua` | bounded deterministic codec and CVar/macro transports |
 | `data/spells.lua` | spell name -> {id per rank, icon, level} for ghost icons. Generated table |
 | `data/cvars.lua` | the cvar list with labels and default values |
 | `presets/*.lua` | one per class |
-| `setup*.lua` | preset resolution, ordered Apply, persistent snapshots and Undo; future role guess / level-up placement |
+| `src/setup/setup*.lua` | preset resolution, ordered Apply, persistent snapshots and Undo; future role guess / level-up placement |
 | `src/character/bindings.lua` | the global key scheme, clear/apply, hotkey label formatting ("s1", "M4") |
 | `src/character/macros.lua`, `src/character/macros-undo.lua` | create/edit/find macros, per-character first; scoped undo identities and restoration |
 | `src/modules/bars/bars.lua` | overlay action bars, stance/pet bars, ghost layer, button skin, hide Blizzard bars |
@@ -523,8 +528,8 @@ load order:
 | `data/layouts.lua`, `src/layout/layout-audit.lua`, `src/layout/layout-presets.lua` | four whole-screen layouts (Centered, Classic, HUD, Healer) placing every layout key from constants (margin 16, gap 4), audited with plain numbers on 16:9, 16:10 and 21:9; Centered is the registry's source for default places; `/rik layout list|undo|<name>`, an options dropdown and `setup.Apply`'s `layoutPreset`; the chat's width is fitted to the screen; the current layout is derived from the saved positions (delivered) |
 | `src/configuration/wizard/wizard.lua`, `src/configuration/wizard/wizard-controls.lua`, `src/configuration/wizard/wizard-preview.lua`, `src/configuration/wizard/wizard-pages.lua` | the first-login flow: a flat window with six pages (welcome, role with a main-bar preview, keybinds drawn as key caps, layout cards pictured from the layouts' rectangles, modules and settings, summary with step switches), one state table, one Apply through `setup.Apply` with `onComplete`; opens once per character and on `/rik setup`, stays away in combat; a class without a preset still gets binds, settings and layout (delivered) |
 | `src/configuration/options/options.lua` | `/rik config` panel, hooked into Settings too |
-| `src/configuration/options/importexport.lua` | strings |
-| `libs/LibDeflate.lua` | embedded, unchanged |
+| `src/configuration/options/importexport.lua` | reserved placeholder; import/export remains planned |
+| LibDeflate | planned dependency; not currently bundled |
 
 Hiding Blizzard: `src/platform/hide.lua` owns `RikUI.Hide.Frame(frame, keepEvents)`,
 `Hide.Restore(frame, onRestored)` and `Hide.IsHidden(frame)`. Every Blizzard
@@ -665,50 +670,41 @@ Defaults merged on `ADDON_LOADED`, deep-merge, one function, no library.
 
 ## File layout
 
-```
+```text
 RikUI/
   RikUI.toc
-  src/core/core.lua
-  src/setup/setup.lua
-  src/character/bindings.lua
-  src/character/macros.lua
-  src/modules/bars/bars.lua
-  src/modules/unitframes/unitframes.lua
-  src/modules/castbars/castbars.lua
-  src/modules/auras/auras.lua
-  src/modules/auras/auras-button.lua
-  src/modules/auras/auras-units.lua
-  src/modules/minimap/minimap.lua
-  src/modules/chat/chat.lua
-  src/modules/chat/chat-skin.lua
-  src/modules/chat/chat-copy.lua
-  src/modules/chat/chat-move.lua
-  src/modules/bags/bags.lua
-  src/modules/bags/bags-items.lua
-  src/modules/tooltip/tooltip.lua
-  src/modules/tooltip/tooltip-data.lua
-  src/configuration/wizard/wizard.lua
-  src/configuration/options/options.lua
-  src/configuration/options/importexport.lua
-  data/
-    spells.lua
-    cvars.lua
-  presets/
-    warrior.lua ... druid.lua
-    community/
-  libs/
-    LibDeflate.lua
-  media/
-    statusbar.tga, font.ttf, button borders
-  .pkgmeta
-  .github/workflows/release.yml
+  Bindings.xml
+  src/
+    core/             # bootstrap, events, profiles, modules, commands, combat, lifecycle
+    platform/         # Blizzard frame parking and Edit Mode
+    ui/               # media, primitives, unit colors, motion, skin
+    layout/           # geometry, placement, presets, dragging
+    persistence/      # codec, CVar storage, macro storage
+    character/        # bindings and macros
+    setup/            # preset application and undo
+    configuration/
+      options/
+      wizard/
+    modules/
+      bars/
+      unitframes/
+      auras/
+      ...             # one folder per feature
+  data/               # spells, CVars, layouts
+  presets/            # bundled Warrior preset
+  media/              # fonts, textures, source and built icons
+  RikProbe/           # separate capability probe addon
+  tests/
+  docs/
   README.md
-  SDD.md   (this file)
+  SDD.md
   LICENSE
 ```
 
-Repo root is the addon root because the BigWigs packager wants the TOC there.
-`package-as: RikUI`. GitHub repo `rikui`, CurseForge project "RikUI".
+The repository root is the addon root. Install the complete source tree without
+flattening directories. Release packaging and the remaining class presets are
+separate planned work. [Architecture](docs/architecture.md) documents ownership,
+extension contracts and validation.
 
 ## Milestones
 
