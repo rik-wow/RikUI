@@ -16,13 +16,20 @@ local function invalid(value, default)
     return type(value) == "number" and (value ~= value or value == math.huge or value == -math.huge)
 end
 
-local function mergeDefaults(target, defaults)
-    if type(target) ~= "table" then target = {} end
+local function mergeDefaults(target, defaults, ancestors)
+    ancestors = ancestors or {}
+    if type(target) ~= "table" or ancestors[target] then target = {} end
+    ancestors[target] = true
     for key, value in pairs(defaults) do
-        if type(value) == "table" then target[key] = mergeDefaults(target[key], value)
+        if type(value) == "table" then target[key] = mergeDefaults(target[key], value, ancestors)
         elseif invalid(target[key], value) then target[key] = value end
     end
+    ancestors[target] = nil
     return target
+end
+
+local function normalizeProfile(profile)
+    return mergeDefaults(profile, PROFILE_DEFAULTS, { [RikUIDB] = true, [RikUIDB.profiles] = true })
 end
 
 function runtime.BindProfile()
@@ -30,10 +37,10 @@ function runtime.BindProfile()
     RikUICharDB = mergeDefaults(RikUICharDB, CHARACTER_DEFAULTS)
     if RikUICharDB.profile == "" then RikUICharDB.profile = DEFAULT_PROFILE end
     for name, profile in pairs(RikUIDB.profiles) do
-        RikUIDB.profiles[name] = mergeDefaults(profile, PROFILE_DEFAULTS)
+        RikUIDB.profiles[name] = normalizeProfile(profile)
     end
     local name = RikUICharDB.profile
-    RikUIDB.profiles[name] = mergeDefaults(RikUIDB.profiles[name], PROFILE_DEFAULTS)
+    RikUIDB.profiles[name] = normalizeProfile(RikUIDB.profiles[name])
     core.DB, core.CharDB, core.Profile = RikUIDB, RikUICharDB, RikUIDB.profiles[name]
     runtime.ConfigureModules()
 end
@@ -51,7 +58,8 @@ function core:SetProfile(name)
     end
     if type(name) ~= "string" or type(self.DB.profiles[name]) ~= "table" then return nil, "Unknown profile." end
     if self.Layout and self.Layout.StopMoving then self.Layout.StopMoving() end
-    self.Profile = mergeDefaults(self.DB.profiles[name], PROFILE_DEFAULTS)
+    self.Profile = normalizeProfile(self.DB.profiles[name])
+    self.DB.profiles[name] = self.Profile
     self.CharDB.profile = name
     self:Changed()
     if self.Bars then self.Bars.ApplyLayout()

@@ -61,13 +61,17 @@ end
 function runtime.StartModules()
     if starting then return end
     starting = true
-    -- A newly registered provider can unblock consumers that never started.
-    -- Failed hooks are never retried: they may have installed irreversible hooks.
-    for _, name in ipairs(order) do
-        if records[name].state == "blocked" then records[name].state = "registered" end
-    end
-    local index = 1
-    while index <= #order do enable(order[index]); index = index + 1 end
+    local count
+    repeat
+        count = #order
+        -- Only new registrations justify another pass over blocked consumers.
+        -- Failed hooks never retry: they may have installed irreversible hooks.
+        for _, name in ipairs(order) do
+            if records[name].state == "blocked" then records[name].state = "registered" end
+        end
+        local index = 1
+        while index <= #order do enable(order[index]); index = index + 1 end
+    until #order == count
     starting = false
 end
 

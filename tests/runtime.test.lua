@@ -198,6 +198,38 @@ return function(check)
     core.Layout.Apply()
     check("module failure does not strand shared service pending work", afterDrain > 0 and applied > afterDrain)
 
+    core, calls = fresh(), {}
+    core:RegisterModule("dynamicconsumer", { OnEnable = function() calls[#calls + 1] = "consumer" end },
+        { dependencies = { "dynamicprovider" } })
+    core:RegisterModule("registrar", { OnEnable = function()
+        calls[#calls + 1] = "registrar"
+        core:RegisterModule("dynamicprovider", { OnEnable = function() calls[#calls + 1] = "provider" end })
+    end })
+    ready(core)
+    check("provider registered during activation unblocks earlier consumer",
+        table.concat(calls, ",") == "registrar,provider,consumer"
+        and core:GetModuleState("dynamicconsumer") == "enabled")
+
+    local cyclicAccount = {}
+    cyclicAccount.profiles = cyclicAccount
+    core = ready(fresh(cyclicAccount))
+    check("account alias cannot corrupt known default types", core.DB.version == 1
+        and core.DB.profiles ~= core.DB and core.Profile.scale == 1)
+
+    local cyclicProfile, profileContainer = {}, {}
+    cyclicProfile.chat = cyclicProfile
+    profileContainer.Default, profileContainer.Alias = cyclicProfile, profileContainer
+    core = ready(fresh({ profiles = profileContainer }))
+    check("profile schema cycles are repaired without leaking nested defaults",
+        core.Profile.chat ~= core.Profile and core.Profile.chat.fontSize == 14 and core.Profile.fontSize == nil)
+    check("profile container alias becomes a distinct profile",
+        core.DB.profiles.Alias ~= core.DB.profiles and core.DB.profiles.Alias.scale == 1)
+    local other = { scale = 0.9 }
+    other.chat = other
+    core.DB.profiles.Other = other
+    check("profile switch repairs known schema cycles", core:SetProfile("Other")
+        and core.Profile.scale == 0.9 and core.Profile.chat ~= core.Profile and core.Profile.fontSize == nil)
+
     core = fresh()
     env.inCombat = true
     local survived = false
