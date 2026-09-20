@@ -78,6 +78,10 @@ local function wrapFrame(frame)
     function frame:SetValue(value, easing) self.value, self.easing = value, easing end
     function frame:SetStatusBarTexture(texture) self.texture = texture end
     function frame:SetStatusBarColor(...) self.color = { ... } end
+    function frame:GetStatusBarTexture()
+        self.fill = self.fill or stub.region({ kind = "Texture" })
+        return self.fill
+    end
     local texture, font = frame.CreateTexture, frame.CreateFontString
     function frame:CreateTexture(...) return stub.region(texture(self, ...)) end
     function frame:CreateFontString(...) return stub.region(font(self, ...)) end
