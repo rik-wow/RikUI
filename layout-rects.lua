@@ -40,7 +40,7 @@ function layout.Rect(key)
 end
 
 local function blocks(group, other)
-    if group.floating or other.floating then return false end
+    if layout.Floats(group) or layout.Floats(other) then return false end
     return not (group.exclusive and group.exclusive == other.exclusive)
 end
 
@@ -133,7 +133,7 @@ local function settleAll(screen)
     local placed, moved = {}, {}
     for _, key in ipairs(ordered()) do
         local group, rect = layout.Groups[key], layout.Rect(key)
-        if rect and not group.floating then
+        if rect and not layout.Floats(group) then
             local obstacles = {}
             for _, other in ipairs(placed) do
                 if blocks(group, layout.Groups[other.key]) then obstacles[#obstacles + 1] = other end
@@ -148,7 +148,7 @@ end
 
 local function settleOne(key, screen)
     local group, rect = layout.Groups[key], layout.Rect(key)
-    if not rect or group.floating then return {} end
+    if not rect or layout.Floats(group) then return {} end
     local _, didMove = makeRoom(key, rect, layout.Obstacles(key), screen)
     return didMove and { group.label or key } or {}
 end

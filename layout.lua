@@ -31,7 +31,17 @@ function layout.GetScale()
     return finite(scale) and scale > 0 and scale or 1
 end
 
+-- floating is true, or a function for a group that floats only some of the time (the loot list while
+-- it opens at the cursor).
+function layout.Floats(group)
+    local floating = group.floating
+    if type(floating) == "function" then return floating() == true end
+    return floating == true
+end
+
 local function applyGroup(key, group)
+    -- A group that floats by its own say places itself; a layout pass must not pull it away.
+    if type(group.floating) == "function" and group.floating() == true then return end
     local saved = layout.GetPosition(key)
     for _, frame in ipairs(group.frames) do
         frame:SetScale(layout.GetScale())
@@ -54,7 +64,7 @@ end
 -- What the arrangement system (layout-rects.lua) needs to know about a group. label names it to the
 -- player; grow is the direction a frame that changes size grows in ("UP", "DOWN", "LEFT", "RIGHT");
 -- onLimit(room) hears how far it may grow; floating marks a reference place other things float over
--- (the tooltip anchor), which neither blocks nor is blocked; groups with the same exclusive tag are
+-- (the tooltip anchor), which neither blocks nor is blocked, and may be a function; groups with the same exclusive tag are
 -- never shown together (party and raid) and do not block each other.
 local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive" }
 

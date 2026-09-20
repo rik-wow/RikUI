@@ -121,6 +121,11 @@ return function(check)
         check("opening loot shows one row per slot", holder:IsShown() and shownRows(module) == 3)
         check("the list opens at the cursor by default", holder.point[1] == "TOPLEFT" and holder.point[3] == "BOTTOMLEFT"
             and holder.point[4] < 500 and holder.point[5] > 400)
+        RikUI.Layout.Apply()
+        check("a layout pass leaves a list that stands at the cursor where it is", holder.point[3] == "BOTTOMLEFT"
+            and holder.point[5] > 400)
+        check("a list at the cursor floats: it neither blocks other groups nor is settled",
+            RikUI.Layout.Floats(group) == true)
         local coin, cloth, blade = module.Rows[1], module.Rows[2], module.Rows[3]
         check("a row shows the icon, the name in the RikUI font and the quantity", cloth.icon.texture == 132889
             and cloth.name.text == "Linen Cloth" and cloth.name.fontPath == RikUI.Media.font and cloth.count.text == "3")
@@ -178,6 +183,8 @@ return function(check)
         env.fire("LOOT_OPENED", false)
         check("the layout position is kept when the cursor option is off", module.Holder:IsShown()
             and module.Holder.point[2] == UIParent and module.Holder.point[3] == "CENTER")
+        check("with the cursor option off the list takes part in the arrangement",
+            RikUI.Layout.Floats(RikUI.Layout.Groups.loot) == false)
         local option = module.Options.settings[1]
         check("the options panel exposes the cursor setting", option.key == "lootAtCursor" and option.get() == false)
         option.set(true)

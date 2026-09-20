@@ -15,6 +15,13 @@ the cursor" in `/rik config` and it opens at its [layout](layout.md) position
 instead: key `loot`, default right of the screen centre (`TOPLEFT` on `CENTER`, `x=200, y=140`, so the list grows downward), movable with
 `/rik move`.
 
+At the cursor the list places itself and is outside the arrangement, like a
+tooltip: `floating = loot.AtCursor` makes layout passes skip it, it blocks
+nothing and nothing moves it. At its layout position it is a group like any
+other. It is never capped, because a hidden row would be an item you cannot
+loot; a list that grows into a neighbour moves itself to the nearest free
+place instead, and that place is saved.
+
 Click a row to loot it; a modified click (shift-click into chat, ctrl-click to
 the dressing room) goes through `HandleModifiedItemClick` like the stock rows.
 Hovering shows the stock loot tooltip (`SetLootItem`, or `SetLootCurrency` for

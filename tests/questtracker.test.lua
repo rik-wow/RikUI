@@ -143,6 +143,21 @@ return function(check)
         check("an unwatched quest leaves and the list closes up", view.Blocks[1].questID == 22
             and view.Blocks[2].questID == 33 and view.Blocks[3].shown == false and holder.height == 18 + 4 + 26 + 6 + 26)
 
+        -- The arrangement system tells the list how tall it may get: the room down to the next frame.
+        local group = RikUI.Layout.Groups.questtracker
+        check("the list registers as a frame that grows downward and listens for its room",
+            group.grow == "DOWN" and type(group.onLimit) == "function" and group.label == "Quest tracker")
+        group.onLimit(70 - holder.height)
+        check("a list capped at 70 shows the quests that fit and says how many are hidden",
+            view.Blocks[1].shown == true and view.Blocks[2].shown == false and view.More.shown == true
+            and view.More.text == "+1 more" and holder.height == 18 + 4 + 26 + 6 + 14
+            and view.Header.count.text == "2")
+        group.onLimit(200 - holder.height)
+        check("with room again every quest shows and the line goes", view.Blocks[2].shown == true
+            and view.More.shown == false and holder.height == 80)
+        group.onLimit(nil)
+        check("a client that reports no room leaves the list uncapped", view.Blocks[2].shown == true and holder.height == 80)
+
         env.click(view.Blocks[1])
         check("clicking a quest opens it in the quest log", stub.opened[1] == 22 and #stub.removed == 0)
         env.shiftDown = true

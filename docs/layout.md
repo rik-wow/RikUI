@@ -97,7 +97,7 @@ one and still blocks.
 | `label` | Name shown to the player |
 | `grow` | `UP`, `DOWN`, `LEFT` or `RIGHT`: the direction a frame that changes size grows in |
 | `onLimit(room)` | Called after every layout pass with the room left along `grow`, in the frame's own units |
-| `floating` | A reference place other things float over (the tooltip anchor): neither blocks nor is blocked |
+| `floating` | A reference place other things float over (the tooltip anchor): neither blocks nor is blocked. May be a function for a group that floats only some of the time (the loot list at the cursor); while it returns true, `Apply` does not position the group either |
 | `exclusive` | Groups with the same tag are never shown together (party and raid) and do not block each other |
 
 | Function | Purpose |
@@ -115,6 +115,20 @@ was entered. A keyed call before the first full pass does nothing, because
 frames are still registering. It waits out combat through `core.Combat.Queue`,
 prints one line naming what it moved, and never moves a neighbour: the frame
 that changed is the one that gives way. `/rik undo` does not cover these moves.
+
+### Frames that change size
+
+Two behaviours, chosen by whether hiding content costs the player anything.
+The quest tracker caps itself: it declares `grow = "DOWN"`, takes the room from
+`onLimit` and ends in `+N more` ([quest tracker](questtracker.md)). Everything
+else relocates: the loot list, quest timers, bag window, damage meter and chat
+window keep their full size, and the size-change hook in `Register` calls
+`Settle(key)`, which moves that one frame to the nearest free place and saves
+it there. The loot list is not capped on purpose: a hidden row would be an item
+that cannot be looted. While it opens at the cursor (the default) it floats and
+no layout pass touches it; without that, the resize hook could pull an open
+list from the cursor to its saved place. Party, raid and aura holders reserve their largest size
+up front and never change.
 
 The defaults were audited by loading the whole addon on a 1365x768 UIParent
 (16:9). That found and fixed: the focus frame over the player frame (now

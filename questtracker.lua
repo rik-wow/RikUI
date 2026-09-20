@@ -81,6 +81,15 @@ function tracker.Refresh()
     tracker.View.Render(holder, quests, collapsed())
 end
 
+-- room is how much further the list may grow; nil when the client reports no screen size.
+function tracker.SetRoom(room)
+    local limit = type(room) == "number" and holder and holder:GetHeight() + room or nil
+    local view = tracker.View
+    if limit == view.Limit or (limit and view.Limit and math.abs(limit - view.Limit) < 0.5) then return end
+    view.Limit = limit
+    view.Render(holder, quests, collapsed())
+end
+
 function tracker.Request()
     if pending or not holder then return end
     pending = true
@@ -111,7 +120,9 @@ end
 local function build()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     tracker.View.Build(holder)
-    layout.Register(holder, KEY, DEFAULTS)
+    -- The list grows downward; the arrangement system reports the room down to the next frame and the
+    -- list caps itself there, so it can never grow into a neighbour.
+    layout.Register(holder, KEY, DEFAULTS, { label = "Quest tracker", grow = "DOWN", onLimit = tracker.SetRoom })
     tracker.Holder = holder
     tracker.Refresh()
     parkStock()

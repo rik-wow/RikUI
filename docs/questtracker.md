@@ -52,6 +52,17 @@ under `questtracker`, so `/rik move`, `/rik move reset` and `/rik scale` apply.
 The default is `TOPRIGHT` of the screen at `x=-126, y=-260`, left of the two right-hand bars. The list grows
 downward from there.
 
+The list never grows into the frame under it. It registers with `grow = "DOWN"`
+and `onLimit = tracker.SetRoom`; after every layout pass the layout reports the
+room down to the next frame or the screen edge, and `view.Limit` becomes the
+tallest the list may get (its current height plus that room, so a render that
+shortens the list does not change the limit). Quests are laid out in watch
+order until the next one would not fit with a 14px line under it; that line
+reads `+N more` in grey. Later quests stay hidden even if a shorter one would
+fit, so the order on screen is always the watch order. Move the list or the
+frame under it and the cap follows. A client that reports no screen size gives
+no room figure and the list is uncapped.
+
 ## Stock frame
 
 `ObjectiveTrackerFrame` is parked with its events kept, only after the list is
@@ -84,7 +95,10 @@ watched hiding the list and the list returning in combat; a failing read
 reported once with the last list kept; the stock tracker parked; the debug
 line; a collapsed profile after a reload; a combat login building nothing until
 regen; a client without quest info or difficulty colours; a client without the
-quest log API; a disabled module leaving everything untouched.
+quest log API; a disabled module leaving everything untouched; the growth
+direction, limit callback and label given to the layout; a list capped at 70
+units showing one quest and `+1 more`; the full list back when the room
+returns; no cap without a room figure.
 
 The stub cannot show how the list looks or whether addon code may open the
 quest map in combat. Beta checklist:
@@ -98,6 +112,8 @@ quest map in combat. Beta checklist:
    Shift-click one to stop tracking it.
 5. Collapse the list, reload, and check it stays collapsed.
 6. `/rik move`, drag the list, lock, reload.
+7. Drag the list to just above another frame with more quests watched than
+   fit: the list must stop short of that frame and end in `+N more`.
 
 ## Source evidence
 

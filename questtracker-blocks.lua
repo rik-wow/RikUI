@@ -15,6 +15,7 @@ local OBJECTIVE_COLOR, FINISHED_COLOR = { 0.85, 0.85, 0.85 }, { 0.5, 0.5, 0.5 }
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local FADE_SECONDS, FLASH_SECONDS, FLASH_ALPHA, GLOW_SECONDS, GLOW_ALPHA = 0.15, 0.4, 0.3, 0.6, 0.35
 local HIGHLIGHT_ALPHA = 0.5
+local MORE_HEIGHT, MORE_COLOR = 14, { 0.6, 0.65, 0.7 }
 local EXPANDED_GLYPH, COLLAPSED_GLYPH = "-", "+"
 local CLICK_HINT, SHIFT_HINT = "Click: open in the quest log", "Shift-click: stop tracking"
 local seen = {}
@@ -195,15 +196,45 @@ local function updateHeader(count, collapsed)
     view.Header.glyph:SetText(collapsed and COLLAPSED_GLYPH or EXPANDED_GLYPH)
 end
 
+-- The "+N more" line that stands in for the quests a capped list has no room for.
+local function moreLine(holder)
+    if view.More then return view.More end
+    view.More = holder:CreateFontString(nil, "OVERLAY")
+    media.Font(view.More, "small")
+    view.More:SetTextColor(unpack(MORE_COLOR))
+    view.More:SetJustifyH("LEFT")
+    view.More:Hide()
+    return view.More
+end
+
+-- Whether a block ending at bottom fits under view.Limit, keeping room for the "+N more" line when
+-- quests follow it. view.Limit is the tallest the list may get; nil means no cap.
+local function fits(bottom, following)
+    if not view.Limit then return true end
+    return bottom + (following > 0 and BLOCK_GAP + MORE_HEIGHT or 0) <= view.Limit
+end
+
+local function showMore(holder, hidden, offset)
+    local line = moreLine(holder)
+    line:SetShown(hidden > 0)
+    if hidden == 0 then return offset end
+    line:ClearAllPoints()
+    line:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, -offset)
+    line:SetText("+" .. hidden .. " more")
+    return offset + MORE_HEIGHT + BLOCK_GAP
+end
+
 function view.Render(holder, quests, collapsed, expanding)
-    local offset, current = HEADER_HEIGHT + GAP, {}
+    local offset, current, hidden = HEADER_HEIGHT + GAP, {}, 0
     for index, quest in ipairs(quests) do
         local frame = view.Blocks[index] or createBlock(holder)
         view.Blocks[index] = frame
         local snapshot, isNew = fillBlock(frame, quest, not collapsed)
         current[quest.id] = snapshot
-        frame:SetShown(not collapsed)
-        if not collapsed then
+        local shown = not collapsed and hidden == 0 and fits(offset + frame:GetHeight(), #quests - index)
+        if not collapsed and not shown then hidden = hidden + 1 end
+        frame:SetShown(shown)
+        if shown then
             place(frame, holder, offset)
             offset = offset + frame:GetHeight() + BLOCK_GAP
             if isNew or expanding then motion.Play(frame.fade) end
@@ -212,6 +243,7 @@ function view.Render(holder, quests, collapsed, expanding)
     for index = #quests + 1, #view.Blocks do view.Blocks[index]:Hide() end
     seen = current
     updateHeader(#quests, collapsed)
+    offset = showMore(holder, hidden, offset)
     local open = not collapsed and #quests > 0
     holder:SetSize(WIDTH, open and offset - BLOCK_GAP or HEADER_HEIGHT)
     holder:SetShown(#quests > 0)
