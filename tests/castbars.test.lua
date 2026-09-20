@@ -3,7 +3,8 @@ return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
     local API = { "UnitCastingInfo", "UnitChannelInfo", "UnitCastingDuration", "UnitChannelDuration", "C_DurationUtil",
-        "C_StringUtil", "GetTime", "PlayerCastingBarFrame", "CastingBarFrame" }
+        "C_StringUtil", "GetTime", "PlayerCastingBarFrame", "CastingBarFrame",
+        "PetCastingBarFrame" }
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local casts, channels, now, writes, bindings, formatters = {}, {}, 100, 0, {}, {}
@@ -103,6 +104,7 @@ return function(check)
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         PlayerCastingBarFrame = (not missingStock) and stockFrame("PlayerCastingBarFrame") or nil
         CastingBarFrame = nil
+        PetCastingBarFrame = (not missingStock) and stockFrame("PetCastingBarFrame") or nil
         for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
             "unitframes.lua", "unitframes-status.lua", "castbars.lua", "castbars-status.lua" }) do
             assert(loadfile(file))("RikUI", {})
@@ -307,6 +309,31 @@ return function(check)
         check("a secret duration value is treated as unavailable", player.bar.timer == nil and near(player.bar.max, 2.5))
         env.fire("UNIT_SPELLCAST_STOP", "player", "Cast-1", 116)
         UnitCastingDuration = function(unit) return casts[unit] and casts[unit].duration end
+
+        module = load()
+        local focus, pet = module.Bars.castfocus, module.Bars.castpet
+        groups = RikUI.Layout.Groups
+        check("focus and pet castbars exist at their unit frame's width", focus and pet and focus.unit == "focus"
+            and pet.unit == "pet" and focus.width == 160 and pet.width == 110 and module.Bars.castplayer.width == 220)
+        check("the focus bar has a shield and the pet bar does not", focus.shield ~= nil and pet.shield == nil)
+        local df, dpf = groups.focus.defaults, groups.petframe.defaults
+        local dcf, dcp = groups.castfocus.defaults, groups.castpet.defaults
+        check("the focus bar sits above the focus frame and the pet bar under the pet frame",
+            dcf.x == df.x and dcf.y >= df.y + 36 and dcp.x == dpf.x and dcp.y + pet.height <= dpf.y)
+        check("the stock pet casting bar is parked with events dropped",
+            PetCastingBarFrame.parent == RikUIHiddenFrames and PetCastingBarFrame.unregistered == 1)
+        casts.focus = secretCast({ id = "f1" })
+        env.fire("PLAYER_FOCUS_CHANGED")
+        check("a focus change picks up an in-progress cast", focus.shown == true and pet.shown == false)
+        casts.focus = nil
+        env.fire("PLAYER_FOCUS_CHANGED")
+        check("a focus change with no cast hides the bar", focus.shown == false)
+        casts.pet = secretCast({ id = "p1" })
+        env.fire("UNIT_SPELLCAST_START", "pet", "Cast-9", 1)
+        check("a pet cast shows the pet bar only", pet.shown == true and focus.shown == false)
+        casts.pet = nil
+        env.fire("UNIT_PET", "player")
+        check("a pet change with no cast hides the pet bar", pet.shown == false and #env.printed == 0)
 
         module = load(nil, true)
         check("combat login defers bar creation and stock hiding", next(module.Bars) == nil

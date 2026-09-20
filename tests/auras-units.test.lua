@@ -108,6 +108,18 @@ return function(check)
         check("unit buttons never cancel auras", ownButton.cancelButtons == nil and otherButton.cancelButtons == nil
             and buffButton.cancelButtons == nil)
         check("the module never reads auras itself", auraReads == 0)
+        local focus = module.Containers.focus
+        check("the focus container sits above the focus cast bar at the frame's width", focus
+            and focus.parent == frames.focus and focus.unit == "focus"
+            and point(focus, "BOTTOMLEFT", frames.focus, "TOPLEFT", 0, 30) and near(focus.flow.lineSize, 160))
+        check("the focus container holds own debuffs at the medium size, then other debuffs and buffs",
+            order(focus, "owndebuffs", "debuffs", "buffs")
+            and focus.groups.owndebuffs.options.layout.elementWidth == 26
+            and focus.groups.debuffs.options.layout.elementWidth == 22 and focus.groups.buffs.options.maxFrameCount == 8)
+        local focusUpdates, targetBefore = focus.updates, target.updates
+        env.fire("PLAYER_FOCUS_CHANGED")
+        check("a focus change refreshes the focus container only", focus.updates == focusUpdates + 1
+            and target.updates == targetBefore and auraReads == 0)
 
         local targetUpdates, petUpdates = target.updates, pet.updates
         env.fire("PLAYER_TARGET_CHANGED")
@@ -136,7 +148,7 @@ return function(check)
         env.printed = {}
         SlashCmdList.RIKUI("debug")
         local output = table.concat(env.printed, "\n")
-        check("debug reports the unit containers", output:find("Unit auras containers=2", 1, true) ~= nil)
+        check("debug reports the unit containers", output:find("Unit auras containers=3", 1, true) ~= nil)
 
         module = load()
         check("player and unit containers coexist under both modules", RikUI.Auras.Rows.buffs.container ~= nil

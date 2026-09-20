@@ -25,6 +25,13 @@ and the target frame (`x=140, y=272`). To make room, the pet frame default now
 sits to the left of the player frame (`x=-313, y=300`), mirroring the
 target-of-target frame on the right.
 
+Two smaller bars follow the same rules. `castpet` (110 wide) sits under the pet
+frame at `x=-313, y=272`. `castfocus` (160 wide, with the shield) sits above the
+focus frame at `x=-288, y=380`: under the focus frame the pet frame is in the
+way. The focus aura row starts above that bar, which leaves a 26 pixel band
+empty while the focus is not casting. `PLAYER_FOCUS_CHANGED` re-reads the focus
+cast and `UNIT_PET` for the player re-reads the pet cast.
+
 ## Secret rules
 
 On this beta the client documents `UnitCastingInfo` and `UnitChannelInfo` as
@@ -67,7 +74,9 @@ Once both RikUI bars exist and the module is enabled, `PlayerCastingBarFrame`
 `RikUI.Hide.Frame(frame, false)`: its events are unregistered until reload.
 Hiding happens only out of combat and after `PLAYER_ENTERING_WORLD` rechecks.
 Missing globals are ignored. The Blizzard target spell bar is a child of the
-already parked `TargetFrame`.
+already parked `TargetFrame`, and the focus spell bar of the parked
+`FocusFrame`. `PetCastingBarFrame` hangs off `UIParent` on 69913, so parking
+`PetFrame` left it on screen; it is parked here with the player bar.
 
 ## Diagnostics
 

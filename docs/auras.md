@@ -100,6 +100,11 @@ frame's visibility driver and follow it in `/rik move` and `/rik scale`. With
 the `unitframes` module disabled there is nothing to attach to and the module
 prints one `Unit auras attach` line.
 
+The focus frame has a third container: own debuffs at 26 pixels, then other
+casters' debuffs and buffs at 22, eight each, 160 wide. It starts 30 pixels
+above the frame because the [focus cast bar](castbars.md) takes the space in
+between. `PLAYER_FOCUS_CHANGED` refreshes it.
+
 ## Events
 
 The containers register `UNIT_AURA` for their own unit. A unit token that now
@@ -150,7 +155,7 @@ updates. Beta checklist on the Warrior:
 1. Reload out of combat. The Blizzard buff and debuff frames should be gone,
    your buffs should appear top right with icons, borders and countdown
    numbers, and `/rik debug` should print `Auras containers=2` and
-   `Unit auras containers=2` with no `Auras container` or `Auras button`
+   `Unit auras containers=3` with no `Auras container` or `Auras button`
    line.
 2. Cast Battle Shout and right-click it: it should be cancelled. Apply a
    sharpening stone: it should appear as the first buff with a countdown.

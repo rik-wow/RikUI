@@ -1,20 +1,28 @@
--- Player and target castbars. Cast values only reach sinks (castbars-status.lua); this
+-- Player, target, focus and pet castbars. Cast values only reach sinks (castbars-status.lua); this
 -- file owns frames, layout, events and the stock casting bar.
 local core, media, layout, unitframes = RikUI, RikUI.Media, RikUI.Layout, RikUI.UnitFrames
 local castbars = { Bars = {} }
 core.CastBars = castbars
 
-local WIDTH, HEIGHT, EDGE, TEXT_INSET, ICON_CROP = 220, 22, 1, 4, 0.08
+local HEIGHT, EDGE, TEXT_INSET, ICON_CROP = 22, 1, 4, 0.08
+-- width is the matching unit frame's width.
 local UNITS = {
-    { key = "castplayer", unit = "player", shield = false },
-    { key = "casttarget", unit = "target", shield = true },
+    { key = "castplayer", unit = "player", width = 220, shield = false },
+    { key = "casttarget", unit = "target", width = 220, shield = true },
+    { key = "castfocus", unit = "focus", width = 160, shield = true },
+    { key = "castpet", unit = "pet", width = 110, shield = false },
 }
--- Directly under the player and target frames, which sit at y=300.
+-- Directly under the player, target and pet frames, which sit at y=300. The focus bar goes above its
+-- frame (y=340, 36 high): under it the pet frame is in the way. The focus aura row starts above it.
 local DEFAULTS = {
     castplayer = { point = "BOTTOM", relativePoint = "BOTTOM", x = -140, y = 272 },
     casttarget = { point = "BOTTOM", relativePoint = "BOTTOM", x = 140, y = 272 },
+    castfocus = { point = "BOTTOM", relativePoint = "BOTTOM", x = -288, y = 380 },
+    castpet = { point = "BOTTOM", relativePoint = "BOTTOM", x = -313, y = 272 },
 }
-local STOCK_FRAMES = { "PlayerCastingBarFrame", "CastingBarFrame" }
+-- PetCastingBarFrame hangs off UIParent, so parking PetFrame leaves it; the focus spell bar is a
+-- child of the parked FocusFrame.
+local STOCK_FRAMES = { "PlayerCastingBarFrame", "CastingBarFrame", "PetCastingBarFrame" }
 local BACKGROUND, BORDER, SHIELD = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0.32, 1 }, { 0.75, 0.8, 0.9, 0.9 }
 local FRAME_PREFIX = "RikUICast_"
 local stockPending = false
@@ -71,7 +79,7 @@ end
 local function createBar(spec)
     local frame = CreateFrame("Frame", FRAME_PREFIX .. spec.unit, UIParent)
     frame.key, frame.unit = spec.key, spec.unit
-    frame:SetSize(WIDTH, HEIGHT)
+    frame:SetSize(spec.width, HEIGHT)
     decorate(frame)
     if spec.shield then frame.shield = shield(frame) end
     frame:SetScript("OnUpdate", function(self) castbars.Tick(self) end)
@@ -142,6 +150,10 @@ local HANDLERS = {
 local function registerEvents()
     for event, handler in pairs(HANDLERS) do core:RegisterEvent(event, onCastEvent(handler)) end
     core:RegisterEvent("PLAYER_TARGET_CHANGED", function() castbars.Refresh("target") end)
+    core:RegisterEvent("PLAYER_FOCUS_CHANGED", function() castbars.Refresh("focus") end)
+    core:RegisterEvent("UNIT_PET", function(_, unit)
+        if core.Secret.IsSecret(unit) or unit == "player" then castbars.Refresh("pet") end
+    end)
     core:RegisterEvent("PLAYER_ENTERING_WORLD", function()
         castbars.Refresh()
         castbars.UpdateStockVisibility()

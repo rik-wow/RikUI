@@ -66,8 +66,9 @@ focus use the unit menu's Set Focus on any RikUI frame or a `/focus` macro;
 both are Blizzard's. The stock `FocusFrame` is parked with the others.
 
 A client that does not know `PLAYER_FOCUS_CHANGED` prints one
-`Could not register event` line and everything else keeps working. There is
-no focus cast bar or aura row yet.
+`Could not register event` line and everything else keeps working. The focus
+cast bar is in [castbars](castbars.md) and the focus aura row in
+[auras](auras.md).
 
 Beta checklist: `/focus` a mob, check the frame appears above the pet frame
 with name and health; hit the mob and watch the bar move; `/clearfocus` and
