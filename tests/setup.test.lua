@@ -32,7 +32,7 @@ return function(check)
         known = { ["Heroic Strike"] = 284, ["Rend"] = 772, ["Charge"] = 100 }
         items, settings = { Hearthstone = 6948 }, {}
         for _, entry in ipairs(core.CVars.List) do settings[entry.name] = "old" end
-        settings.nameplateMotion = nil -- valid unknown-CVar skip
+        settings.nameplateStackingTypes = nil -- valid unknown-CVar skip
         core.Spells.HighestKnownRank = function(name) return known[name] end
         GetActionInfo = function(slot)
             local action = actions[slot]
@@ -175,7 +175,8 @@ return function(check)
     check("Apply names, once, the spells it expected at this level and did not find, and none above the level",
         countLines("not in your spellbook") == 1 and countLines("Pummel") == 0)
     check("a setting this client does not know is counted as skipped and named once",
-        result.steps.cvars.skipped == 1 and countLines("nameplateMotion") == 1)
+        result.steps.cvars.placed == 14 and result.steps.cvars.skipped == 1
+        and countLines("nameplateStackingTypes") == 1)
     check("one summary per step without per-binding/cvar chatter", countLines() == 8
         and countLines("Setup macros:") == 1 and countLines("Setup bars:") == 1
         and countLines("Setup binds:") == 1 and countLines("Setup cvars:") == 1
@@ -369,7 +370,7 @@ return function(check)
             and snapshot.bars[1].id == 999 and snapshot.bars[8].id == 42
             and snapshot.binds.keys.Q == "TOGGLEBAG1" and snapshot.cvars.autoLootDefault == "old")
         check("snapshot excludes undesignated slots and unknown CVars", snapshot.bars[25] == nil
-            and snapshot.cvars.nameplateMotion == nil)
+            and snapshot.cvars.nameplateStackingTypes == nil)
         check("Apply advertises undo once", countLines("type /rik undo to revert") == 1)
         macroData[130] = { name = "Unrelated", icon = 55, body = "/say keep" }
         env.printed, calls = {}, {}
@@ -585,12 +586,12 @@ return function(check)
         setup = fresh()
         local createBeforeCVar = CreateMacro
         CreateMacro = function(...)
-            settings.nameplateMotion = "new"
+            settings.nameplateStackingTypes = "new"
             return createBeforeCVar(...)
         end
         result = setup.Apply("WARRIOR")
         check("Apply never writes a CVar absent from initial snapshot", result.status == "applied"
-            and settings.nameplateMotion == "new" and RikUICharDB.undo.cvars.nameplateMotion == nil)
+            and settings.nameplateStackingTypes == "new" and RikUICharDB.undo.cvars.nameplateStackingTypes == nil)
 
         setup = fresh()
         local originalProfile = core.Profile
@@ -713,6 +714,31 @@ return function(check)
     local undone = setup.Undo()
     check("and Undo puts that macro back", undone.status == "undone" and actions[70] and actions[70].kind == "macro")
     GetActionText = savedText
+
+    setup = fresh()
+    settings.nameplateStackingTypes = "1D"
+    C_CVar.SetCVarBitfield = function(name, index, value)
+        record("cvar")
+        assert(name == "nameplateStackingTypes" and value == true)
+        local bit = require("bit")
+        settings[name] = settings[name]:sub(1, 1)
+            .. string.char(bit.bor(settings[name]:byte(2), bit.lshift(1, index - 1)))
+        return true
+    end
+    result = setup.Apply("WARRIOR", nil, only("cvars"))
+    check("setup applies all 15 supported 69913 settings without an unknown warning",
+        result.status == "applied" and result.steps.cvars.placed == 15
+        and result.steps.cvars.skipped == 0 and countLines("unknown on this client") == 0)
+    check("setup preserves the stacking snapshot before enabling both bits",
+        RikUICharDB.undo.cvars.nameplateStackingTypes == "1D" and settings.nameplateStackingTypes == "1G")
+    check("setup applies the replacement friendly and outgoing text settings",
+        settings.nameplateShowFriendlyPlayers == "0" and settings.nameplateShowFriendlyNpcs == "0"
+        and settings.floatingCombatTextCombatDamage_v2 == "1" and settings.floatingCombatTextCombatHealing_v2 == "1")
+    undone = setup.Undo()
+    check("setup undo restores encoded stacking and the renamed scalar settings",
+        undone.status == "undone" and settings.nameplateStackingTypes == "1D"
+        and settings.nameplateShowFriendlyPlayers == "old" and settings.nameplateShowFriendlyNpcs == "old"
+        and settings.floatingCombatTextCombatDamage_v2 == "old" and settings.floatingCombatTextCombatHealing_v2 == "old")
 
     for _, name in ipairs(globals) do _G[name] = savedGlobals[name] end
 end

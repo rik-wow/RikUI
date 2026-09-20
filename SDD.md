@@ -617,12 +617,13 @@ All toggleable in the wizard. Values are what I run on the beta.
 cameraDistanceMaxZoomFactor 2.6
 cameraSmoothStyle           0
 nameplateShowEnemies        1
-nameplateShowFriends        0
-nameplateMotion             1        -- stacking
+nameplateShowFriendlyPlayers 0
+nameplateShowFriendlyNpcs    0
+nameplateStackingTypes       bits 1 and 2 enabled -- native SetCVarBitfield, not a scalar
 autoLootDefault             1
 SpellQueueWindow            400
-floatingCombatTextCombatDamage 1
-floatingCombatTextCombatHealing 1
+floatingCombatTextCombatDamage_v2 1
+floatingCombatTextCombatHealing_v2 1
 showTimestamps              "%H:%M "
 chatBubbles                 1
 chatBubblesParty            0
@@ -630,8 +631,19 @@ screenshotQuality           10
 damageMeterEnabled          1
 ```
 
-Some of these names might differ on 12.x. `data/cvars.lua` checks
-`C_CVar.GetCVarInfo` before setting and skips unknowns with a chat line.
+The catalogue has 15 settings. The 69913 [nameplate settings source](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_SettingsDefinitions_Frame/Nameplates.lua)
+separates friendly players and NPCs and uses a stacking bitfield. RikUI enables
+its enemy and friendly bits with `C_CVar.SetCVarBitfield`, preserving other bits;
+undo restores the original encoded string. A scalar `1` is not a stacking mask.
+
+The outgoing damage/healing names have the `_v2` suffix. Both exact names were
+found in the installed `WowB.exe` on 2026-09-20; the old names were rejected
+by the user's `/rik apply`. They are separate from the incoming scrolling-text
+switch `enableFloatingCombatText`.
+
+`data/cvars.lua` checks `C_CVar.GetCVarInfo` before setting and skips unknowns
+with a chat line. The corrected catalogue and bitfield handling are covered by
+the harness; applying them in the client still needs a smoke check.
 
 ## Saved variables
 

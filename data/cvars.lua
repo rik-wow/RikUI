@@ -7,12 +7,14 @@ cvars.List = {
     { name = "cameraDistanceMaxZoomFactor", value = 2.6, label = "Maximum camera zoom" },
     { name = "cameraSmoothStyle", value = 0, label = "Disable camera following" },
     { name = "nameplateShowEnemies", value = 1, label = "Show enemy nameplates" },
-    { name = "nameplateShowFriends", value = 0, label = "Hide friendly nameplates" },
-    { name = "nameplateMotion", value = 1, label = "Stack nameplates" },
+    { name = "nameplateShowFriendlyPlayers", value = 0, label = "Hide friendly player nameplates" },
+    { name = "nameplateShowFriendlyNpcs", value = 0, label = "Hide friendly NPC nameplates" },
+    -- NamePlateStackType: enemy bit 1, friendly bit 2. The CVar is an encoded bitfield.
+    { name = "nameplateStackingTypes", value = 1, bits = { 1, 2 }, label = "Stack nameplates" },
     { name = "autoLootDefault", value = 1, label = "Enable auto loot" },
     { name = "SpellQueueWindow", value = 400, label = "Spell queue window (400 ms)" },
-    { name = "floatingCombatTextCombatDamage", value = 1, label = "Show floating damage" },
-    { name = "floatingCombatTextCombatHealing", value = 1, label = "Show floating healing" },
+    { name = "floatingCombatTextCombatDamage_v2", value = 1, label = "Show floating damage" },
+    { name = "floatingCombatTextCombatHealing_v2", value = 1, label = "Show floating healing" },
     { name = "showTimestamps", value = "%H:%M ", label = "Show chat timestamps (24-hour)" },
     { name = "chatBubbles", value = 1, label = "Show chat bubbles" },
     { name = "chatBubblesParty", value = 0, label = "Hide party chat bubbles" },
@@ -51,15 +53,28 @@ local function capture(selection, opts)
     return prior, stats
 end
 
-local function applyEntry(entry, opts)
-    if not C_CVar or type(C_CVar.SetCVar) ~= "function" then
-        return nil, "CVar setter unavailable"
-    end
-    local value = tostring(entry.value)
-    local ok, accepted = pcall(C_CVar.SetCVar, entry.name, value)
+local function writeValue(name, value, index)
+    local setter = C_CVar and C_CVar[index and "SetCVarBitfield" or "SetCVar"]
+    if type(setter) ~= "function" then return nil, "CVar setter unavailable" end
+    local ok, accepted
+    if index then ok, accepted = pcall(setter, name, index, value == 1)
+    else ok, accepted = pcall(setter, name, tostring(value)) end
     if not ok then return nil, "CVar write failed" end
     if accepted ~= true then return nil, "CVar write rejected" end
-    if not (opts and opts.quiet) then core:Print("Applied " .. entry.name .. " = " .. value) end
+    return true
+end
+
+local function applyEntry(entry, opts)
+    if entry.bits then
+        for _, index in ipairs(entry.bits) do
+            local ok, reason = writeValue(entry.name, entry.value, index)
+            if not ok then return nil, reason .. " at bit " .. index end
+        end
+    else
+        local ok, reason = writeValue(entry.name, entry.value)
+        if not ok then return nil, reason end
+    end
+    if not (opts and opts.quiet) then core:Print("Applied " .. entry.name .. " = " .. tostring(entry.value)) end
     return true
 end
 

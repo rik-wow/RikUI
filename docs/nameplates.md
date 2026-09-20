@@ -34,7 +34,8 @@ RikUI font in place of the border art and the shield.
 
 Friendly plates that show only a name keep Blizzard's name placement. Which
 plates exist is still up to the `nameplateShowEnemies` and
-`nameplateShowFriends` settings the [setup engine](setup.md) writes.
+`nameplateShowFriendlyPlayers` / `nameplateShowFriendlyNpcs` settings the
+[setup engine](setup.md) writes.
 
 ## Animations
 

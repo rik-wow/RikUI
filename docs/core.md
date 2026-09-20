@@ -68,9 +68,11 @@ Check for Lua errors, then `/reload` and repeat.
 
 `data/cvars.lua` exposes `RikUI.CVars`; loading it never applies settings.
 
-- `CVars.List` is the ordered catalogue of `{ name, value, label }` entries
+- `CVars.List` is the ordered catalogue of `{ name, value, label, bits? }` entries
   from the SDD. Treat the catalogue as read-only; the wizard can render labels
-  and use each CVar name as its checkbox key.
+  and use each CVar name as its checkbox key. An entry with `bits` applies
+  `value == 1` to each one-based bit index through `C_CVar.SetCVarBitfield`.
+  Stacking sets enemy bit 1 and friendly bit 2, preserving all other bits.
 - `CVars.Apply(selection)` accepts a map such as
   `{ autoLootDefault = true, showTimestamps = true }`. Only literal `true`
   selects an entry; false, absent and unlisted names are ignored. Omit selection
@@ -83,15 +85,18 @@ Check for Lua errors, then `/reload` and repeat.
   failed reads are omitted with a skip line; successful reads are silent.
 - Apply prints one applied/skipped line per selected listed entry. It guards
   lookups and writes separately, continues after errors, and reports success only
-  when `C_CVar.SetCVar` returns true. Values are sent as strings, preserving the
-  trailing space in `"%H:%M "`. This follows the
-  [Blizzard CVar API contract](https://raw.githubusercontent.com/Gethe/wow-ui-source/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/CVarDocumentation.lua).
+  when the setter returns true. A bitfield entry succeeds only if every bit
+  write succeeds; a partial failure retains its original snapshot for undo.
+  Scalar values are sent as strings, preserving the trailing space in
+  `"%H:%M "`. Restore always writes the saved string, including the complete
+  encoded bitfield. This follows the
+  [69913 CVar API contract](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/CVarDocumentation.lua).
 
-After `/reload`, `/rik cvars` applies all 13 settings for a live smoke check.
+After `/reload`, `/rik cvars` applies all 15 settings for a live smoke check.
 Expect one applied/skipped line per setting and no Lua error. This command
-changes game settings; it does not persist its return snapshot. Persistent undo
-belongs to the later setup/undo chunk. The stub suite covers command routing and
-failure handling; it cannot establish which settings this beta build accepts.
+changes game settings without persisting its snapshot; `/rik apply` saves one
+for `/rik undo`. The corrected 69913 names, bit writes and undo pass harness
+coverage; runtime acceptance still needs a client check.
 
 ## Settings store (`store.lua`)
 
