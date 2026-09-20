@@ -138,6 +138,7 @@ return function(check)
             and second.rikAccent.shown == true and second.selected == true)
 
         WorldMapFrame:Show()
+        check("world map has no competing panel alpha animation", rawget(WorldMapFrame, "rikFade") == nil)
         check("the map window strips the chrome on its border frame and takes no fill",
             WorldMapFrame.BorderFrame.NineSlice.alpha == 0 and #WorldMapFrame.BorderFrame.rikBorder == 4
             and rawget(WorldMapFrame, "rikBackdrop") == nil and rawget(WorldMapFrame.BorderFrame, "rikBackdrop") == nil

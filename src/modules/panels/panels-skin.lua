@@ -166,7 +166,7 @@ function skin.Apply(frame, target)
     skinClose(findClose(chrome, target.name))
     skinInset(frame.Inset)
     skinTabs(frame)
-    frame.rikFade = motion.Tween(frame, 0, 1, FADE_SECONDS)
+    if target.fade ~= false then frame.rikFade = motion.Tween(frame, 0, 1, FADE_SECONDS) end
 end
 
 function skin.FadeIn(frame) motion.Play(frame.rikFade) end

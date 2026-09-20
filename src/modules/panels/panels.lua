@@ -11,7 +11,7 @@ core.Panels = panels
 -- frame level would cover the map, so the map gets no fill.
 local TARGETS = {
     { name = "CharacterFrame" }, { name = "PlayerSpellsFrame" },
-    { name = "WorldMapFrame", chrome = "BorderFrame", fill = false },
+    { name = "WorldMapFrame", chrome = "BorderFrame", fill = false, fade = false },
     { name = "MerchantFrame" }, { name = "BankFrame" }, { name = "MailFrame" }, { name = "OpenMailFrame" },
     { name = "TradeFrame" }, { name = "QuestFrame" }, { name = "GossipFrame" },
     -- The rest of Blizzard's windows. Most load on demand; one the client lacks is skipped.
@@ -59,7 +59,7 @@ local function show(frame, target)
     if not panels.Skinned[name] then return end
     -- Every show, not only the first: windows build controls as their tabs and lists fill.
     if core.Controls then core.Controls.Walk(frame) end
-    panels.Skin.FadeIn(frame)
+    if target.fade ~= false then panels.Skin.FadeIn(frame) end
 end
 
 local function hook(target)

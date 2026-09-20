@@ -150,6 +150,7 @@ function worldmap:OnEnable()
 end
 
 function worldmap:Debug()
+    if self.DebugTools then self.DebugTools() end
     core:Print("World map bar=" .. tostring(state.bar) .. " crumbs=" .. state.crumbs
         .. " failed=" .. tostring(state.failed) .. " tools=" .. tostring(worldmap.Toolbar ~= nil)
         .. " reveal=" .. tostring(core.Profile and core.Profile.worldmap and not core.Profile.worldmap.fog))

@@ -53,8 +53,10 @@ worldmap-terrain.lua owns a reusable texture layer on the native exploration pin
 It uses the current art ID and tile dimensions, excludes already explored
 rectangles, crops partial tiles to the file's power-of-two dimensions, and
 registers textures with the canvas mask. Reveal textures use the exploration
-provider's artwork layer below native explored textures and join its load group
-while the pin is waiting for assets. It post-hooks instance RefreshOverlays
+provider's artwork layer below native explored textures. Addon textures do not
+join the native load group: an unavailable reveal asset must never hold the
+entire native exploration pin at alpha zero. Its native sizing method runs
+before drawing, and native alpha is restored only when it is not awaiting assets. It post-hooks instance RefreshOverlays
 so map, exploration and art-layer changes clear stale textures. It does not
 replace a data provider, write global mixins, alter native texture pools, or
 change native fog-of-war gameplay overlays.
@@ -65,7 +67,10 @@ textures. Conditional/phased terrain is intentionally not guessed. Normal mode
 allocates no terrain textures. A pin reuses at most 256 textures.
 
 Map opening defers addon construction to the next frame and refreshes native
-map providers after layout, including the first opening after login. Closing the
+canvas geometry and explicitly rebuilds detail layers before refreshing providers.
+RefreshAll alone skips cached detail layers and does not initialize pin dimensions.
+The panels module leaves world-map alpha animation to Blizzard's movement fader.
+This applies to the first opening after login as well. Closing the
 map before the deferred callback cancels that work; combat defers it safely.
 
 ## Code boundaries
@@ -80,7 +85,9 @@ No quest snapshot is persisted. Only user preferences enter the profile.
 The existing breadcrumb skin keeps one decoration per button and does not fade
 its own regions on repeated refreshes.
 
-/rik debug includes bar, crumbs, failed, tools and reveal state.
+/rik debug includes bar, crumbs, failed, tools and reveal state, plus current map
+ID, frame alpha, canvas dimensions, detail loading, and exploration pin dimensions,
+alpha and waiting state. Capture it with the map open if rendering fails.
 
 ## Verification
 

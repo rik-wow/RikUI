@@ -6,12 +6,14 @@ return function(check)
     local saved = {}
     for _, name in ipairs(names) do saved[name] = _G[name] end
     local mapID, explored, quests, markers, opened, watched, tracked, pin, canvas, ready, refreshes, loading
+    local details, sized, nativeLoads
     local files = { "src/ui/skin.lua", "src/modules/worldmap/worldmap.lua", "data/map-terrain.lua",
         "src/modules/worldmap/worldmap-terrain.lua", "src/modules/worldmap/worldmap-navigation.lua",
         "src/modules/worldmap/worldmap-tools.lua" }
     local function prepare()
         mapID, explored, markers = 1411, {}, true
         ready, refreshes, loading = false, 0, {}
+        details, sized, nativeLoads = false, false, 0
         quests = { { questID = 2, title = "Second", isHeader = false }, { questID = 1, title = "First", isHeader = false } }
         C_Map = { GetMapArtID = function() return 1194 end,
             GetBestMapForUnit = function() return 1411 end,
@@ -35,6 +37,15 @@ return function(check)
             assert(ready, "canvas accessed during cold OnShow")
             return canvas
         end
+        function WorldMapFrame:OnFrameSizeChanged()
+            assert(ready, "sizing before layout")
+            sized = true
+            pin:OnCanvasSizeChanged()
+        end
+        function WorldMapFrame:ForceRefreshDetailLayers()
+            assert(sized, "detail rebuild before geometry")
+            details = true
+        end
         function WorldMapFrame:RefreshAll()
             assert(ready, "native refresh ran before layout")
             refreshes = refreshes + 1
@@ -46,10 +57,19 @@ return function(check)
         function WorldMapFrame:AddMaskableTexture() end
         pin = CreateFrame("Frame", nil, canvas)
         function pin:GetMap() return WorldMapFrame end
-        function pin:RefreshOverlays() end
+        pin:SetSize(0, 0)
+        pin:SetAlpha(0)
+        function pin:OnCanvasSizeChanged()
+            if sized then self:SetSize(1002, 668) end
+        end
+        function pin:RefreshAlpha() self:SetAlpha(1) end
+        function pin:RefreshOverlays()
+            -- Ordinary refresh does not rebuild clean-but-invalid detail layers.
+            if details then self.isWaitingForLoad = false; self:RefreshAlpha() end
+        end
         pin.dataProvider = { GetDrawLayer = function() return "ARTWORK", 0 end }
         pin.isWaitingForLoad = true
-        pin.textureLoadGroup = { AddTexture = function(_, texture) loading[texture] = true end }
+        pin.textureLoadGroup = { AddTexture = function(_, texture) loading[texture] = true; nativeLoads = nativeLoads + 1 end }
         function WorldMapFrame:EnumeratePinsByTemplate()
             local once = false
             return function() if not once then once = true; return pin end end
@@ -77,7 +97,12 @@ return function(check)
         module.SetOption("fog", false)
         check("reveal draws client terrain assets", #pin.created > 0 and pin.created[1].texture == 271443)
         check("reveal uses exploration artwork layer", pin.created[1].layer == "ARTWORK")
-        check("reveal participates in native texture loading", loading[pin.created[1]] == true)
+        check("first-open terrain is sized and visible without navigation",
+            details and pin.width == 1002 and pin.height == 668 and pin.alpha == 1 and mapID == 1411)
+        pin.isWaitingForLoad = true
+        module.Terrain.Refresh(WorldMapFrame)
+        check("addon assets cannot block native exploration loading", nativeLoads == 0)
+        pin.isWaitingForLoad = false
         local count = #pin.created
         module.SetOption("fog", true)
         check("normal fog hides all addon terrain immediately", pin.created[1].shown == false)
@@ -121,6 +146,9 @@ return function(check)
         C_QuestLog.GetInfo = function() error("unavailable") end
         rows = module.Navigation.Quests(mapID, false)
         check("failed quest reads leave no stale rows", #rows == 0)
+        module = load({ worldmap = { fog = false } })
+        check("saved reveal preference works on the first zone opening",
+            #pin.created > 0 and pin.created[1].shown and pin.alpha == 1 and pin.width == 1002 and mapID == 1411)
         module = load(nil, true)
         check("combat first-open defers toolbar creation", module.Toolbar == nil)
         env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")

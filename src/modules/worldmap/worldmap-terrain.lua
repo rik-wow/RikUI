@@ -42,9 +42,8 @@ local function tile(pin, record, overlay, asset, layer, count)
     texture:SetTexture(file, nil, nil, "TRILINEAR")
     texture:SetVertexColor(0.75, 0.82, 0.9, 1)
     texture:Show()
-    if pin.isWaitingForLoad and pin.textureLoadGroup then
-        pin.textureLoadGroup:AddTexture(texture)
-    end
+    -- Addon assets must not hold the native exploration pin at alpha zero.
+    -- The client streams these textures independently of its native load group.
 end
 local function draw(pin, record)
     hide(record)
@@ -59,6 +58,10 @@ local function draw(pin, record)
     local layers = C_Map.GetMapArtLayers(id)
     local layer = layers and layers[index]
     if not layer or layer.tileWidth <= 0 or layer.tileHeight <= 0 then return end
+    -- A permanent exploration pin can predate the first canvas layout.
+    -- Reapply its native dimensions before placing top-left anchored artwork.
+    pin:OnCanvasSizeChanged()
+    if not pin.isWaitingForLoad then pin:RefreshAlpha() end
     local seen, count = explored(id), 0
     for _, overlay in ipairs(overlays) do
         if not seen[key(overlay[1], overlay[2], overlay[3], overlay[4])] then

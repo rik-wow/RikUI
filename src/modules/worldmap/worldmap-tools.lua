@@ -172,6 +172,10 @@ local function opened()
         if not frame:IsShown() then return end
         core.Combat.Queue(function()
             if not frame:IsShown() then return end
+            -- RefreshAll alone skips clean cached detail layers and never sizes pins.
+            -- Repeat the geometry/detail portion of map navigation on the current map.
+            if type(frame.OnFrameSizeChanged) == "function" then frame:OnFrameSizeChanged() end
+            if type(frame.ForceRefreshDetailLayers) == "function" then frame:ForceRefreshDetailLayers() end
             if type(frame.RefreshAll) == "function" then frame:RefreshAll(true) end
             build()
             map.RequestTools()
@@ -193,6 +197,22 @@ local function attach()
         toolbar.coords:SetText(nav.Coordinates(frame))
     end)
     if frame:IsShown() then opened() end
+end
+function map.DebugTools()
+    if not frame then core:Print("World map canvas not attached"); return end
+    local canvas = nav.Call(frame.GetCanvasContainer, frame)
+    core:Print("World map id=" .. tostring(nav.Call(frame.GetMapID, frame))
+        .. " alpha=" .. tostring(nav.Call(frame.GetAlpha, frame))
+        .. " canvas=" .. tostring(canvas and nav.Call(canvas.GetWidth, canvas))
+        .. "x" .. tostring(canvas and nav.Call(canvas.GetHeight, canvas))
+        .. " detailsLoaded=" .. tostring(nav.Call(frame.AreDetailLayersLoaded, frame)))
+    if type(frame.EnumeratePinsByTemplate) ~= "function" then return end
+    for pin in frame:EnumeratePinsByTemplate("MapExplorationPinTemplate") do
+        core:Print("World map exploration=" .. tostring(nav.Call(pin.GetWidth, pin))
+            .. "x" .. tostring(nav.Call(pin.GetHeight, pin))
+            .. " alpha=" .. tostring(nav.Call(pin.GetAlpha, pin))
+            .. " waiting=" .. tostring(pin.isWaitingForLoad))
+    end
 end
 function map.EnableTools()
     attach()
