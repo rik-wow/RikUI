@@ -20,10 +20,10 @@ end
 local function button(parent, label, width, action, hint)
     local control = CreateFrame("Button", nil, parent)
     control:SetSize(width, 20)
-    skin.Fill(control, skin.CONTROL)
     control:SetHighlightTexture(media.highlight)
     control.label = text(control, label)
     control.label:SetPoint("CENTER")
+    control.label:SetTextColor(0.8, 0.85, 0.92)
     control:SetScript("OnClick", action)
     if hint then control:SetScript("OnEnter", function() tooltip(control, label, hint) end) end
     control:SetScript("OnLeave", function() GameTooltip:Hide() end)

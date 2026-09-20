@@ -4,9 +4,12 @@ The map uses one quest interface: Blizzard's existing right-hand quest log,
 including search, objectives, tracking and quest details. Native map markers,
 breadcrumbs, filters, coordinate readout and the quest-panel toggle stay in place.
 
-RikUI uses a solid charcoal header and quest-list surface with thin borders.
-The native quest frame's filigree and parchment background are removed; section
-headers and search share the same flat treatment. Quest titles and objectives
+RikUI uses continuous charcoal surfaces across the header and full quest panel,
+including the scrollbar gutter. Breadcrumbs and category headers use subtle
+bottom dividers instead of outlined boxes. Map actions are text controls with
+hover feedback; the quest count is unboxed. Search keeps a field boundary.
+Neutral navigation and category text distinguish structure from native quest
+status colors. The native quest frame's filigree and parchment are removed. Quest titles and objectives
 use the RikUI typeface while retaining native status colors and icons.
 
 Two small controls share the title row, leaving the terrain and coordinates clear:

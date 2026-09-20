@@ -11,7 +11,17 @@ core.WorldMap = worldmap
 local MAP = "WorldMapFrame"
 local CRUMB_ART = { "arrowUp", "arrowDown", "selected" }
 local CRUMB_TEXTURES = { "GetNormalTexture", "GetPushedTexture", "GetHighlightTexture" }
-local SEPARATOR_INSET, EDGE = 4, 1
+local SEPARATOR_INSET, EDGE = 8, 1
+local SURFACE = { 0.055, 0.065, 0.08, 1 }
+local function divider(owner)
+    local line = owner:CreateTexture(nil, "BORDER")
+    line:SetTexture(skin.FLAT)
+    line:SetVertexColor(0.22, 0.25, 0.3, 0.5)
+    line:SetHeight(1)
+    line:SetPoint("BOTTOMLEFT", owner, "BOTTOMLEFT", 8, 0)
+    line:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", -8, 0)
+    return line
+end
 -- The disc and the ring of the round canvas buttons; the icon stays. The backing sits inside the
 -- ring's transparent margin.
 local OVERLAY_KEYS = { "WorldMapTrackingOptionsButton", "WorldMapTrackingPinButton" }
@@ -76,8 +86,14 @@ end
 
 local function skinCrumbs(bar)
     if type(bar.navList) ~= "table" then return end
-    for _, button in ipairs(bar.navList) do
-        if skin.IsRegion(button) then skinCrumb(button) end
+    for index, button in ipairs(bar.navList) do
+        if skin.IsRegion(button) then
+            skinCrumb(button)
+            if skin.IsRegion(button.text) then
+                local active = index == #bar.navList
+                button.text:SetTextColor(active and 0.95 or 0.65, active and 0.96 or 0.72, active and 1 or 0.8)
+            end
+        end
     end
 end
 
@@ -85,8 +101,8 @@ local function skinBar(bar)
     fadeStock(bar)
     if skin.IsRegion(bar.overlay) then fadeStock(bar.overlay) end
     if not bar.rikFill then
-        bar.rikFill = skin.Fill(bar, skin.CONTROL)
-        bar.rikBorder = skin.Outline(bar)
+        bar.rikFill = skin.Fill(bar, SURFACE)
+        bar.rikBorder = { divider(bar) }
     end
     skinCrumbs(bar)
 end
@@ -136,7 +152,8 @@ local function questRows(pool, header)
     if not pool or type(pool.EnumerateActive) ~= "function" then return end
     for row in pool:EnumerateActive() do
         if header then
-            flatSurface(row, skin.CONTROL, { "Left", "Middle", "Right", "Background" })
+            skin.Strip(row, { "Left", "Middle", "Right", "Background" })
+            if not surfaces[row] then surfaces[row] = { divider = divider(row) } end
             -- ListHeaderVisualTemplate uses button-state textures, not named slices.
             local normal = type(row.GetNormalTexture) == "function" and row:GetNormalTexture()
             if skin.IsRegion(normal) then normal:SetAlpha(0) end
@@ -149,6 +166,11 @@ local function questRows(pool, header)
         skin.Typeface(row.Text)
         skin.Typeface(row.ButtonText)
         skin.Typeface(row.Dash)
+        if header then
+            for _, label in ipairs({ row.Text, row.ButtonText }) do
+                if skin.IsRegion(label) then label:SetTextColor(0.72, 0.78, 0.85) end
+            end
+        end
     end
 end
 local function questChrome(frame)
@@ -156,11 +178,15 @@ local function questChrome(frame)
     local quests = isFrame(log) and log.QuestsFrame
     local scroll = isFrame(quests) and quests.ScrollFrame
     if not isFrame(scroll) then return end
-    flatSurface(scroll, { 0.055, 0.065, 0.08, 1 }, { "Background", "Edge" })
+    -- Back the whole native panel, including the scrollbar outside its scroll viewport.
+    -- Parenting to the log also hides this surface when the quest panel collapses.
+    if not surfaces[log] then surfaces[log] = { fill = skin.Fill(log, { 0.055, 0.065, 0.08, 1 }) } end
+    skin.Strip(scroll, { "Background", "Edge" })
     local border = scroll.BorderFrame
     if isFrame(border) then skin.Strip(border, { "Border", "TopDetail", "Shadow" }) end
     flatSurface(scroll.SearchBox, skin.CONTROL, { "Left", "Middle", "Right" })
-    flatSurface(_G.QuestLogCount, skin.CONTROL, { "Left", "Middle", "Right" })
+    if isFrame(_G.QuestLogCount) then skin.Strip(_G.QuestLogCount, { "Left", "Middle", "Right" }) end
+    if skin.IsRegion(_G.QuestLogQuestCount) then _G.QuestLogQuestCount:SetTextColor(0.72, 0.78, 0.85) end
     questRows(scroll.headerFramePool, true)
     questRows(scroll.titleFramePool)
     questRows(scroll.objectiveFramePool)
@@ -180,6 +206,8 @@ local function shell(frame)
         worldmap.Header = fill
         skin.Strip(chrome, { "InsetBorderTop" })
     end
+    local title = isFrame(chrome) and chrome.TitleContainer
+    if isFrame(title) and skin.IsRegion(title.TitleText) then title.TitleText:SetTextColor(0.9, 0.93, 0.98) end
     questChrome(frame)
 end
 

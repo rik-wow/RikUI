@@ -114,9 +114,9 @@ return function(check)
         check("quest headers and search share flat skin",
             scroll.headerRow.Background.alpha == 0 and scroll.SearchBox.Left.alpha == 0
             and scroll.headerRow.Text.fontPath == RikUI.Media.font)
-        check("the navigation bar's own art and its overlay art are faded and the bar gets a flat fill and edge",
+        check("navigation shares the header surface with one subtle divider",
             bar.art[1].alpha == 0 and bar.art[3].alpha == 0 and bar.overlay.art[2].alpha == 0
-            and bar.rikFill.texture == RikUI.Skin.FLAT and #bar.rikBorder == 4)
+            and bar.rikFill.texture == RikUI.Skin.FLAT and #bar.rikBorder == 1)
         check("the home breadcrumb goes flat with the typeface, a highlight and a separator on its right edge",
             flatCrumb(bar.home) and bar.home.text.fontSize == 12 and bar.home.rikSeparator.points[1][1] == "TOPRIGHT")
         check("the canvas is not written and the map is not moved", frame.ScrollContainer.rikFill == nil
