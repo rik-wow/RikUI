@@ -41,6 +41,7 @@ return function(check)
         function frame:SetHeight(h) self.height = h end
         function frame:SetWidth(w) self.width = w end
         function frame:SetFrameStrata(strata) self.strata = strata end
+        function frame:SetClampRectInsets(...) self.clamp = { ... } end
         function frame:GetFrameStrata() return self.strata or "LOW" end
         function frame:GetSize() return self.width, self.height end
         function frame:GetWidth() return self.width end
@@ -74,7 +75,7 @@ return function(check)
         end
         return true
     end
-    local function load(profile, combat, prepare)
+    local function load(profile, combat, prepare, configure)
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUIChatCopy = nil
         stub.install(env)
@@ -84,6 +85,7 @@ return function(check)
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs(FILES) do assert(loadfile(file))("RikUI", {}) end
+        if configure then configure() end
         env.fire("ADDON_LOADED", "RikUI")
         env.inCombat = combat == true
         env.fire("PLAYER_LOGIN")
@@ -256,7 +258,7 @@ return function(check)
         end)
         check("missing link APIs print one line each and the rest still applies", printedContains("Chat links")
             and printedContains("Chat clicks") and #env.printed == 2 and ChatFrame1.fontPath == RikUI.Media.font
-            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 8)
+            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 9)
         check("without Blizzard's size function SetFontSize writes the fonts itself", module.SetFontSize(15) == true
             and ChatFrame3.fontSize == 15 and ChatFrame3EditBox.fontSize == 15)
 
@@ -309,8 +311,18 @@ return function(check)
         check("the main chat window is a layout group from the first login, with the window's own size", holder ~= nil
             and group ~= nil and group.frames[1] == holder and group.label == "Chat" and holder.width == 430
             and holder.height == 180 and RikUI.Profile.chat.size.width == 430)
-        check("the window is centred on its holder", #ChatFrame1.points == 1 and ChatFrame1.points[1][1] == "CENTER"
-            and ChatFrame1.points[1][2] == holder)
+        check("the window hangs on its holder by one point", #ChatFrame1.points == 1 and ChatFrame1.points[1][1] == "TOPLEFT"
+            and ChatFrame1.points[1][2] == holder and ChatFrame1.points[1][4] == 0 and ChatFrame1.points[1][5] == 0)
+        -- Edit Mode clamps the window by its selection box, which reserves room for the button column,
+        -- the tabs and the edit box: the client then keeps the window away from the screen edge and the
+        -- window no longer stands where its holder and overlay are.
+        local function freed()
+            local clamp = ChatFrame1.clamp
+            return clamp ~= nil and clamp[1] == 0 and clamp[2] == 0 and clamp[3] == 0 and clamp[4] == 0
+        end
+        check("the window's screen clamp has no insets, so it can reach every edge the layout allows", freed())
+        ChatFrame1:SetClampRectInsets(-35, 35, 26, -50)
+        check("insets written by Edit Mode are taken away again", freed())
         check("the group can be resized within the chat's bounds", type(group.resize) == "table"
             and group.resize.minWidth == 250 and group.resize.maxHeight == 800)
         env.runScript(tab, "OnDragStart")
@@ -404,6 +416,23 @@ return function(check)
         env.fire("PLAYER_REGEN_ENABLED")
         check("leaving combat places the holder, then the window", module.Holder.points[#module.Holder.points][4] == 100
             and ChatFrame1.points[1][2] == module.Holder)
+        -- What you see of the chat is more than its message area: the panel's border, the tabs above,
+        -- the channel strip and the input bar below. The layout group covers all of it.
+        module = load(nil, false, sized, function()
+            RikUI.Layouts = { ChatFootprint = { left = 4, right = 4, top = 28, bottom = 50 } }
+        end)
+        env.fire("PLAYER_ENTERING_WORLD")
+        holder, group = module.Holder, RikUI.Layout.Groups.chat
+        check("the chat's rectangle covers the panel, the tabs, the strip and the input bar", holder.width == 438
+            and holder.height == 258 and RikUI.Profile.chat.size.width == 430 and RikUI.Profile.chat.size.height == 180)
+        check("the message area sits inside it, under the tabs", #ChatFrame1.points == 1 and ChatFrame1.points[1][1] == "TOPLEFT"
+            and ChatFrame1.points[1][2] == holder and ChatFrame1.points[1][4] == 4 and ChatFrame1.points[1][5] == -28)
+        check("the resize bounds are the window's bounds plus what surrounds it", group.resize.minWidth == 258
+            and group.resize.minHeight == 198 and group.resize.maxWidth == 1208)
+        group.resize.apply(508, 278)
+        check("a resize of the rectangle sizes the message area by the difference", ChatFrame1.width == 500
+            and ChatFrame1.height == 200 and holder.width == 508 and holder.height == 278
+            and RikUI.Profile.chat.size.height == 200)
         UIParent.GetWidth, UIParent.GetHeight, GetCursorPosition = savedWidth, savedHeight, savedCursor
 
         module = load({ modules = { chat = false } })

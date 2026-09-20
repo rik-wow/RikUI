@@ -22,16 +22,31 @@ local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
 -- The overlay of an unlocked group is a DIALOG frame over the whole window; the open padlock sits above it.
 local OPEN_STRATA = "FULLSCREEN_DIALOG"
 local HOVER_FADE = 0.12
-local holder, lockButton, anchoring, dragging = nil, nil, false, false
+local holder, lockButton, anchoring, dragging, clamping = nil, nil, false, false, false
+
+local NO_FOOTPRINT = { left = 0, right = 0, top = 0, bottom = 0 }
 
 local function isLocked() return not (layout.IsUnlocked and layout.IsUnlocked(KEY)) end
+
+-- What surrounds the message area: the panel's border, the tabs above, the channel strip and the input
+-- bar below. The layouts data holds the numbers, because it places the chat by its whole rectangle.
+function chat.Footprint()
+    return core.Layouts and core.Layouts.ChatFootprint or NO_FOOTPRINT
+end
+
+-- The holder's size for a window of this size.
+function chat.HolderSize(width, height)
+    local foot = chat.Footprint()
+    return width + foot.left + foot.right, height + foot.top + foot.bottom
+end
 
 local function anchor()
     local frame = _G[MAIN]
     anchoring = true
     local ok, reason = pcall(function()
+        local foot = chat.Footprint()
         frame:ClearAllPoints()
-        frame:SetPoint("CENTER", holder, "CENTER", 0, 0)
+        frame:SetPoint("TOPLEFT", holder, "TOPLEFT", foot.left, -foot.top)
     end)
     anchoring = false
     if not ok then chat.Warn("move", reason) end
@@ -40,6 +55,19 @@ end
 -- Edit Mode re-anchors its systems whenever a layout is applied; the window goes back on the holder.
 local function onNativePoint()
     if holder and not anchoring then anchor() end
+end
+
+-- Edit Mode sets the window's screen clamp from its selection box (EditModeSystemMixin:UpdateClampOffsets),
+-- which is larger than the window: it reserves the button column on the left, the tabs and the edit box.
+-- The client then keeps the window that far from the screen edge, so it cannot be moved there and no
+-- longer stands where its holder and overlay are. The layout engine keeps the chat on screen itself.
+local function freeClamp()
+    local frame = _G[MAIN]
+    if clamping or type(frame.SetClampRectInsets) ~= "function" then return end
+    clamping = true
+    local ok, reason = pcall(frame.SetClampRectInsets, frame, 0, 0, 0, 0)
+    clamping = false
+    if not ok then chat.Warn("clamp", reason) end
 end
 
 -- Padlock glyph: the shackle sits over the body when locked and swings right, in gold, when open.
@@ -71,17 +99,26 @@ local function holderSize()
     return _G[MAIN]:GetSize()
 end
 
+-- The arrangement system resizes the whole rectangle; the window takes what is left inside it.
+local function resizeOption()
+    local bounds, foot = chat.SizeBounds or {}, chat.Footprint()
+    local wide, tall = foot.left + foot.right, foot.top + foot.bottom
+    return { minWidth = bounds.minWidth + wide, minHeight = bounds.minHeight + tall, maxWidth = bounds.maxWidth + wide,
+        maxHeight = bounds.maxHeight + tall, apply = function(width, height) return chat.SetSize(width - wide, height - tall) end }
+end
+
 local function createHolder()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     chat.Holder = holder
     firstSize()
     local width, height = holderSize()
-    if type(width) == "number" and type(height) == "number" then holder:SetSize(width, height) end
-    local bounds = chat.SizeBounds or {}
-    layout.Register(holder, KEY, nil, { label = "Chat", onUnlock = refreshLock,
-        resize = chat.SetSize and { minWidth = bounds.minWidth, minHeight = bounds.minHeight, maxWidth = bounds.maxWidth,
-            maxHeight = bounds.maxHeight, apply = chat.SetSize } or nil })
+    if type(width) == "number" and type(height) == "number" then holder:SetSize(chat.HolderSize(width, height)) end
+    layout.Register(holder, KEY, nil, { label = "Chat", onUnlock = refreshLock, resize = chat.SetSize and resizeOption() or nil })
     hooksecurefunc(_G[MAIN], "SetPoint", onNativePoint)
+    if type(_G[MAIN].SetClampRectInsets) == "function" then
+        hooksecurefunc(_G[MAIN], "SetClampRectInsets", freeClamp)
+        freeClamp()
+    end
 end
 
 -- The layout places the holder through the combat queue; the window follows once it is placed.

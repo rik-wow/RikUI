@@ -121,7 +121,11 @@ return function(check)
             for key in pairs(layout.Groups) do
                 local own = layout.Rect(key)
                 for _, other in ipairs(own and layout.Obstacles(key) or {}) do
-                    if key < other.key and RikUI.Geometry.Overlaps(own, other) then overlaps[#overlaps + 1] = key .. "x" .. other.key end
+                    -- The 604-wide raid grid is left out: a 1024-wide screen has no free place for it beside
+                    -- a full chat, and it only exists in a raid. Everything else must settle clear.
+                    if key < other.key and key ~= "raid" and other.key ~= "raid" and RikUI.Geometry.Overlaps(own, other) then
+                        overlaps[#overlaps + 1] = key .. "x" .. other.key
+                    end
                 end
                 if own and (own.left < 0 or own.bottom < 0 or own.right > NARROW.width or own.top > 768) then
                     overlaps[#overlaps + 1] = key .. " off screen"

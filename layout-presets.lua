@@ -9,11 +9,14 @@ local copy = setup.CopyState
 
 local function names() return table.concat(layouts.Order, ", ") end
 
--- The widest chat that leaves GAP to the bar stack, between the audited width and Blizzard's.
+-- The widest message area whose whole rectangle still leaves GAP to the bar stack, between the
+-- audited width and Blizzard's.
 function layout.ChatSize(screen)
-    local room = screen and math.floor(screen.width / 2 - BAR_HALF_WIDTH - layouts.GAP - layouts.MARGIN) or 0
-    local width = math.max(layouts.Sizes.chat.width, math.min(CHAT_MAX_WIDTH, room))
-    return { width = width, height = layouts.Sizes.chat.height }
+    local foot = layouts.ChatFootprint
+    local room = screen and math.floor(screen.width / 2 - BAR_HALF_WIDTH - layouts.GAP - layouts.MARGIN
+        - foot.left - foot.right) or 0
+    local width = math.max(layouts.ChatSize.width, math.min(CHAT_MAX_WIDTH, room))
+    return { width = width, height = layouts.ChatSize.height }
 end
 
 -- A copy of a layout's positions for this screen: the chat holder is the window's centre, so its
@@ -22,7 +25,8 @@ function layout.PresetPositions(name)
     local entry = layouts[name]
     if type(entry) ~= "table" or type(entry.positions) ~= "table" then return nil end
     local positions = copy(entry.positions)
-    positions.chat.x = layouts.MARGIN + layout.ChatSize(layout.Screen()).width / 2
+    local foot = layouts.ChatFootprint
+    positions.chat.x = layouts.MARGIN + (layout.ChatSize(layout.Screen()).width + foot.left + foot.right) / 2
     return positions
 end
 

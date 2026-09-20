@@ -243,9 +243,23 @@ A new profile starts with the Centered layout's place (bottom left) and the
 fitted width (413x170 on 16:9). Place and size live in the profile
 (`positions.chat`, `chat.size`) and survive reloads and relogs.
 
-How it works: the window is centred on `RikUIChatHolder`, a RikUI frame kept
-the same size as the window, and the holder is the layout group, so the layout
-sees the chat's real rectangle. A `SetPoint` post-hook on `ChatFrame1` puts the
+How it works: the window hangs by its top left corner inside `RikUIChatHolder`,
+and the holder is the layout group. The holder is the size of everything you
+see of the chat, not only the message area: `Layouts.ChatFootprint` adds the
+panel's border left and right (4), the tabs above (28) and the channel strip
+and input bar below (50). So the overlay covers the whole chat, other frames
+snap against its tabs and its input bar and cannot be dropped on them, and the
+resize grip sizes the whole rectangle while the message area takes what is left
+inside it. The saved size (`chat.size`) stays the message area's.
+
+Blizzard also clamps the window to the screen, and Edit Mode sets that clamp's
+insets from its own selection box (`EditModeSystemMixin:UpdateClampOffsets`),
+which reserves the hidden button column on the left, the tabs and the edit
+box. The client then keeps the window that far from the screen edge: it could
+not be dragged to the left margin, and it no longer stood where its holder and
+overlay were (seen in game on 2026-09-20). `chat-move.lua` sets the insets to
+zero and answers every later write of them; the layout engine keeps the chat
+on screen itself. A `SetPoint` post-hook on `ChatFrame1` puts the
 window back on the holder whenever Edit Mode re-anchors it; post-hooks on
 `SetSize`, `SetWidth` and `SetHeight` answer any foreign size with the saved
 one ([Edit Mode guard](editmode.md)). A size chosen inside Edit Mode is adopted

@@ -46,7 +46,7 @@ return function(check)
             positions.player ~= RikUI.Layouts.classic.positions.player)
         local size = RikUI.Profile.chat.size
         check("the chat gets the width that fits between the margin and the bars on this screen",
-            size.width == 413 and size.height == 170 and near(positions.chat.x, 16 + 413 / 2)
+            size.width == 405 and size.height == 136 and near(positions.chat.x, 16 + 413 / 2)
             and positions.chat.point == "CENTER")
 
         positions.player.x = 40
@@ -69,13 +69,13 @@ return function(check)
 
         load({ chat = { size = { width = 500, height = 220 } } }, 1228)
         layout.ApplyPreset("hud")
-        check("the chat is part of a layout: it gets the layout's size", RikUI.Profile.chat.size.width == 345)
+        check("the chat is part of a layout: it gets the layout's size", RikUI.Profile.chat.size.width == 337)
         layout.UndoPreset()
         check("and undo brings the player's own size back", RikUI.Profile.chat.size.width == 500
             and RikUI.Profile.chat.size.height == 220)
         load(nil, 1228)
         layout.ApplyPreset("hud")
-        check("on 16:10 the chat narrows to the room beside the bars", RikUI.Profile.chat.size.width == 345
+        check("on 16:10 the chat narrows to the room beside the bars", RikUI.Profile.chat.size.width == 337
             and near(RikUI.Profile.positions.chat.x, 16 + 345 / 2))
         load(nil, 1820)
         layout.ApplyPreset("hud")

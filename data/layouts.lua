@@ -32,17 +32,23 @@ layouts.Sizes = {
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
     questtracker = { width = 240, height = 120 }, questtimers = { width = 220, height = 38 },
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
-    bags = { width = 394, height = 360 }, chat = { width = 344, height = 170 },
+    bags = { width = 394, height = 360 }, chat = { width = 344, height = 214 },
     damagemeter = { width = 260, height = 180 },
 }
--- Room outside the frame: the minimap's zone line above and clock below, the chat tabs above and edit
--- box below, the reputation row under the experience row.
-layouts.Pads = { minimap = { top = 16, bottom = 16 }, chat = { top = 22, bottom = 24 }, xpbar = { bottom = 10 } }
+-- Room outside the frame: the minimap's zone line above and clock below, the reputation row under the
+-- experience row.
+layouts.Pads = { minimap = { top = 16, bottom = 16 }, xpbar = { bottom = 10 } }
+-- The chat's rectangle is everything you see of it, not only the message area: the panel's border
+-- left and right, the tabs above, the channel strip and the input bar below. chat-move.lua sizes its
+-- holder with these, so the layout, the overlay and the audit all mean the same rectangle. The nominal
+-- chat above is a 336x136 message area plus this.
+layouts.ChatFootprint = { left = 4, right = 4, top = 28, bottom = 50 }
 -- Windows that float over the screen block nothing; party and raid are never shown together.
 layouts.Floating = { tooltip = true, bags = true }
 layouts.Exclusive = { party = "group", raid = "group" }
--- The chat window gets this size with a layout unless the player has sized it.
-layouts.ChatSize = { width = layouts.Sizes.chat.width, height = layouts.Sizes.chat.height }
+-- The message area a layout gives the chat on the narrowest screen; layout-presets.lua widens it.
+layouts.ChatSize = { width = layouts.Sizes.chat.width - layouts.ChatFootprint.left - layouts.ChatFootprint.right,
+    height = layouts.Sizes.chat.height - layouts.ChatFootprint.top - layouts.ChatFootprint.bottom }
 
 local function at(point, relativePoint, x, y) return { point = point, relativePoint = relativePoint, x = x, y = y } end
 local function bottom(x, y) return at("BOTTOM", "BOTTOM", x, y) end
@@ -71,9 +77,8 @@ local MINIMAP_BOTTOM = MINIMAP_Y - layouts.Sizes.minimap.height - layouts.Pads.m
 local AURAS_X = -(MARGIN + layouts.Sizes.minimap.width + GAP)
 local TIMERS_Y = MINIMAP_BOTTOM - GAP
 local TRACKER_Y = TIMERS_Y - layouts.Sizes.questtimers.height - GAP
--- The chat window is centred on its holder, bottom left above its edit box.
-local CHAT = at("CENTER", "BOTTOMLEFT", MARGIN + layouts.Sizes.chat.width / 2,
-    MARGIN + layouts.Pads.chat.bottom + layouts.Sizes.chat.height / 2)
+-- The chat's rectangle sits in the bottom left corner at the margin; it is anchored by its centre.
+local CHAT = at("CENTER", "BOTTOMLEFT", MARGIN + layouts.Sizes.chat.width / 2, MARGIN + layouts.Sizes.chat.height / 2)
 
 local function shared()
     return {

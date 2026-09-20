@@ -177,9 +177,13 @@ frames and the room kept for the ones that vary (tracker 240x120, chat 344x170,
 damage meter 260x180, loot 228x174, bags 394x360). A layout may override one
 (`healer.sizes`: the grid reaches under the tracker's column on 16:10, so it
 keeps room for one quest and the tracker's own cap does the rest).
-`Layouts.Pads` is room outside a frame: the minimap's zone line and clock, the
-chat tabs and edit box, the reputation row. The chat is 344 wide because on
-16:10 only 349 units lie between the margin and the bar stack.
+`Layouts.Pads` is room outside a frame: the minimap's zone line and clock and
+the reputation row. The chat has no pad: its rectangle is everything you see of
+it (`Layouts.ChatFootprint`: panel border, tabs, channel strip and input bar
+around the message area), 344x214 nominal for a 336x136 message area, because
+on 16:10 only 349 units lie between the margin and the bar stack and the pet's
+cast bar starts at 236. On a 1024-wide screen the 604-wide raid grid has no free
+place beside a full chat, so the 4:3 check leaves the raid grid out.
 
 `layout-audit.lua` has `Layouts.Rect(name, key, screen)` and
 `Layouts.Audit(name, screen)`, pure arithmetic returning sorted issues: a key

@@ -33,7 +33,9 @@ function chat.ApplySize()
     local ok, reason = pcall(_G[MAIN].SetSize, _G[MAIN], size.width, size.height)
     applying = false
     if not ok then chat.Warn("size", reason) end
-    if chat.Holder then chat.Holder:SetSize(size.width, size.height) end
+    if not chat.Holder then return end
+    if chat.HolderSize then chat.Holder:SetSize(chat.HolderSize(size.width, size.height))
+    else chat.Holder:SetSize(size.width, size.height) end
 end
 
 -- The arrangement system's grip and the whole-screen layouts set the size through here.
