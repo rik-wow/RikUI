@@ -79,6 +79,7 @@ controls.lua
 dialogs.lua
 lossofcontrol.lua
 extrabuttons.lua
+toasts.lua
 menus.lua
 chatbubbles.lua
 totems.lua
