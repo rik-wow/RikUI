@@ -26,6 +26,15 @@ function runtime.Invoke(context, callback, ...)
     return ok, result
 end
 
+-- Ownership is scoped to one callback, including nested calls and failures.
+function runtime.InvokeOwned(owner, context, callback, ...)
+    local previous = runtime.owner
+    runtime.owner = owner
+    local ok, result = runtime.Invoke(context, callback, ...)
+    runtime.owner = previous
+    return ok, result
+end
+
 -- Keep the pcall flag separate from every opaque return value, including nil slots.
 function core.Secret.Read(reader, ...)
     return pcall(reader, ...)

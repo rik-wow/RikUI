@@ -91,9 +91,13 @@ installing irreversible hooks.
   such as `"example:layout"`. `Cancel(key)` cancels an outstanding keyed job;
   `Pending()` reports live queued jobs. Jobs added during a drain join its tail.
   Re-entering combat pauses the drain; a failing job does not stop the others.
-- `RegisterCommand(name, callback, description)` adds a lowercase `/rik`
-  command. The callback gets trimmed arguments with case preserved.
+- `RegisterCommand(name, callback, description, owner?)` adds a lowercase `/rik`
+  command. The callback gets trimmed arguments with case preserved. Registration
+  captures the current callback/module owner unless an explicit owner is supplied.
+  Top-level registrations are unowned by default; pass the feature table as the
+  fourth argument when its subscriptions should belong to that feature.
   `HasCommand(name)` supports configuration controls for optional features.
+  `UnregisterOwner` removes event subscriptions, not commands or queued jobs.
 - `Changed()` schedules persistence after modifying plain configuration.
   `SetProfile(name)` returns `true` or `nil, reason`, cancels dragging and
   applies the chosen layout outside combat and pending setup operations.
@@ -101,6 +105,14 @@ installing irreversible hooks.
   `Secret.Apply(sink, reader, ...)` forwards successful results to a protected
   sink call. Neither turns unavailable data into zero. Inspect the success flag
   and `Secret.IsSecret(value)` before any operation on returned client values.
+
+Module activation, events, commands, module diagnostics and combat work use the
+internal `Runtime.InvokeOwned` boundary. It restores the previous owner after
+success or failure, including nested dispatch. Subscriptions and combat jobs
+created by a command inherit its captured owner; an unowned command does not
+borrow its caller's owner. Diagnostic callbacks use their module as owner.
+The helper retains `Runtime.Invoke`'s success flag and first-result contract;
+use `Secret.Read` when every return slot must be preserved.
 
 Use local functions for private behavior and publish only intentionally shared
 methods. Keep feature state in its namespace or local upvalues. Namespaced

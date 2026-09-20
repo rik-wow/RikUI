@@ -27,11 +27,10 @@ end
 local function activate(name)
     local module, record = core.Modules[name], records[name]
     record.state, record.reason = "enabling", nil
-    local previous = runtime.owner
-    runtime.owner = module
     local ok, reason = true, nil
-    if module.OnEnable then ok, reason = runtime.Invoke("Module " .. name, module.OnEnable, module) end
-    runtime.owner = previous
+    if module.OnEnable then
+        ok, reason = runtime.InvokeOwned(module, "Module " .. name, module.OnEnable, module)
+    end
     record.state = ok and "enabled" or "failed"
     if not ok then
         record.reason = type(reason) == "string" and not core.Secret.IsSecret(reason) and reason or "activation failed"

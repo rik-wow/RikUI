@@ -2,7 +2,7 @@
 local core, runtime = RikUI, RikUI.Runtime
 local commands, commandOrder = {}, {}
 local moduleOrder = runtime.moduleOrder
-local reportFailure, invoke = runtime.Report, runtime.Invoke
+local reportFailure, invokeOwned = runtime.Report, runtime.InvokeOwned
 
 local function reportValues(label, ok, ...)
     if not ok then reportFailure(label, ...) return end
@@ -24,17 +24,18 @@ function core:Debug()
             local function report(label, reader, ...)
                 reportValues(name .. "." .. label, self.Secret.Read(reader, ...))
             end
-            invoke("Debug " .. name, module.Debug, module, report)
+            invokeOwned(module, "Debug " .. name, module.Debug, module, report)
         end
     end
     if not reported then self:Print("No module diagnostic dependencies registered yet.") end
 end
 
-function core:RegisterCommand(name, callback, description)
+function core:RegisterCommand(name, callback, description, owner)
     assert(type(name) == "string" and name:match("^[a-z]+$"), "Command names use lowercase letters")
     assert(type(callback) == "function" and type(description) == "string", "Command needs a callback and description")
     assert(not commands[name], "Command already registered: " .. name)
-    commands[name] = { callback = callback, description = description }
+    if owner == nil then owner = runtime.owner end
+    commands[name] = { callback = callback, description = description, owner = owner }
     table.insert(commandOrder, name)
 end
 
@@ -63,5 +64,5 @@ SlashCmdList.RIKUI = function(message)
         showHelp()
         return
     end
-    invoke("Command " .. name, command.callback, args)
+    invokeOwned(command.owner, "Command " .. name, command.callback, args)
 end

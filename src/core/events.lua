@@ -75,10 +75,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
     for index = 1, count do
         local entry = handlers[index]
         if entry.callback then
-            local previous = runtime.owner
-            runtime.owner = entry.owner
-            runtime.Invoke(bucket.label, entry.callback, event, ...)
-            runtime.owner = previous
+            runtime.InvokeOwned(entry.owner, bucket.label, entry.callback, event, ...)
         end
     end
     bucket.depth = bucket.depth - 1

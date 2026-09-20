@@ -32,10 +32,7 @@ function runtime.DrainCombat()
         if entry.callback then
             if entry.key then keyed[entry.key] = nil end
             pending = pending - 1
-            local previous = runtime.owner
-            runtime.owner = entry.owner
-            runtime.Invoke("Combat queue", entry.callback)
-            runtime.owner = previous
+            runtime.InvokeOwned(entry.owner, "Combat queue", entry.callback)
         end
     end
     draining = false
@@ -46,7 +43,7 @@ function core.Combat.Queue(callback, key)
     assert(type(callback) == "function", "Combat.Queue needs a function")
     assert(key == nil or (type(key) == "string" and key ~= ""), "Combat queue key must be a nonempty string")
     if not InCombatLockdown() and not draining and pending == 0 then
-        return runtime.Invoke("Combat queue", callback)
+        return runtime.InvokeOwned(runtime.owner, "Combat queue", callback)
     end
     local entry = key and keyed[key]
     if entry then entry.callback, entry.owner = callback, runtime.owner

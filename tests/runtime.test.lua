@@ -231,6 +231,68 @@ return function(check)
         and core.Profile.scale == 0.9 and core.Profile.chat ~= core.Profile and core.Profile.fontSize == nil)
 
     core = fresh()
+    local commandOwner, explicitOwner, callerOwner = {}, {}, {}
+    local commandHits, explicitHits, callerHits, unownedHits = 0, 0, 0, 0
+    core:RegisterCommand("unowned", function()
+        core:RegisterEvent("UNIT_HEALTH", function() unownedHits = unownedHits + 1 end)
+    end, "Unowned command")
+    core:RegisterCommand("explicit", function()
+        core:RegisterEvent("UNIT_HEALTH", function() explicitHits = explicitHits + 1 end)
+        error("owned command fault")
+    end, "Explicit owner command", explicitOwner)
+    commandOwner.OnEnable = function()
+        core:RegisterCommand("owned", function()
+            SlashCmdList.RIKUI("explicit")
+            SlashCmdList.RIKUI("unowned")
+            core.Combat.Queue(function()
+                core:RegisterEvent("UNIT_HEALTH", function() commandHits = commandHits + 1 end)
+            end, "test:command")
+        end, "Inherited owner command")
+    end
+    core:RegisterModule("commandowner", commandOwner)
+    ready(core)
+    core:RegisterEvent("SPELLS_CHANGED", function()
+        SlashCmdList.RIKUI("owned")
+        core:RegisterEvent("UNIT_HEALTH", function() callerHits = callerHits + 1 end)
+    end, callerOwner)
+    env.inCombat = true
+    env.fire("SPELLS_CHANGED")
+    check("owned command errors stay isolated", reported("owned command fault")
+        and core.Combat.Pending() == 1)
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    env.fire("UNIT_HEALTH", "player")
+    check("nested commands and deferred work all run", commandHits == 1
+        and explicitHits == 1 and callerHits == 1 and unownedHits == 1)
+    core:UnregisterOwner(explicitOwner)
+    env.fire("UNIT_HEALTH", "player")
+    check("explicit command owner survives nested failure", explicitHits == 1 and commandHits == 2)
+    core:UnregisterOwner(commandOwner)
+    env.fire("UNIT_HEALTH", "player")
+    check("command registration captures module ownership through combat deferral", commandHits == 2
+        and callerHits == 3 and unownedHits == 3)
+    core:UnregisterOwner(callerOwner)
+    env.fire("UNIT_HEALTH", "player")
+    check("command dispatch restores caller ownership and isolates unowned commands",
+        callerHits == 3 and unownedHits == 4)
+    check("owner cleanup preserves command availability", core:HasCommand("owned") and core:HasCommand("explicit"))
+
+    core = fresh()
+    local diagnosticOwner, diagnosticHits = {}, 0
+    diagnosticOwner.Debug = function()
+        core:RegisterEvent("UNIT_HEALTH", function() diagnosticHits = diagnosticHits + 1 end)
+        error("owned debug fault")
+    end
+    core:RegisterModule("diagnosticowner", diagnosticOwner)
+    ready(core)
+    SlashCmdList.RIKUI("debug")
+    env.fire("UNIT_HEALTH", "player")
+    core:UnregisterOwner(diagnosticOwner)
+    env.fire("UNIT_HEALTH", "player")
+    check("module diagnostics preserve ownership and contain failures",
+        diagnosticHits == 1 and reported("owned debug fault"))
+
+    core = fresh()
     env.inCombat = true
     local survived = false
     core.Combat.Queue(function() error("queue fault") end)
