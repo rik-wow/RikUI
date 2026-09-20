@@ -17,6 +17,7 @@ presets/warrior.lua
 setup.lua
 setup-actions.lua
 setup-apply.lua
+layout-geometry.lua
 layout.lua
 layout-movers.lua
 motion.lua

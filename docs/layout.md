@@ -53,6 +53,28 @@ so a registration during asynchronous Apply cannot overwrite an uncaptured
 position. Undo restores the original profile's captured values. Unrelated
 saved position keys remain untouched.
 
+## Geometry
+
+`layout-geometry.lua` is the arithmetic under the arrangement system. It has no
+WoW API: a rect is `{ left, bottom, right, top }` in UIParent units and a screen
+is `{ width, height }`, so the rule the system rests on, that no two layout
+groups overlap, is proven by tests without a client. Rectangles that only touch
+do not overlap.
+
+| Function | Purpose |
+| --- | --- |
+| `FromAnchor(position, width, height, screen)`, `ToAnchor(rect, point, relativePoint, screen)` | Convert between a saved anchor position and a rectangle, for all nine points. Saving on the frame's own anchor is what keeps a growing frame growing in one direction |
+| `Overlaps`, `AnyOverlap`, `Clamp`, `Move`, `Rect` | Basics |
+| `Resolve(last, desired, obstacles, screen)` | The drag step: travel on x, then on y, stopping flush at the first obstacle in the path, so a blocked diagonal slides and a large move cannot tunnel. Needs a free `last`; otherwise falls back to `Nearest` |
+| `Nearest(rect, obstacles, screen)` | Closest free place: where it is, else flush against an obstacle, else the closest free cell of an 8-unit grid. Second result is false when the screen has no room |
+| `Snap(rect, obstacles, screen, threshold, gap)` | Per-axis offset to the nearest line within the threshold (screen edges and centre lines, obstacle edges, centres, and facing edges at the gap) plus the guide lines to draw |
+| `FreeExtent(rect, direction, obstacles, screen)` | Room to grow `UP`, `DOWN`, `LEFT` or `RIGHT` before the next obstacle in the path or the screen edge |
+
+`tests/layout-geometry.test.lua` checks each function with fixed numbers and
+ends with a property test: 2,000 scenes from a seeded generator, up to 30
+obstacles each placed through `Nearest`, five random moves through `Resolve`,
+asserting that no result overlaps anything or leaves the screen.
+
 ## Verification and limits
 
 Automated geometry tests use UIParent scale 0.75 and frame scale 0.8 to verify
