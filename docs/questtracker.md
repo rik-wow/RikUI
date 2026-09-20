@@ -49,7 +49,7 @@ prints one `Quest tracker read` line and keeps the last good list on screen.
 
 The holder is `RikUIQuestTracker`, registered with the [shared layout](layout.md)
 under `questtracker`, so `/rik move`, `/rik move reset` and `/rik scale` apply.
-The default is `TOPRIGHT` of the screen at `x=-16, y=-260`. The list grows
+The default is `TOPRIGHT` of the screen at `x=-126, y=-260`, left of the two right-hand bars. The list grows
 downward from there.
 
 ## Stock frame

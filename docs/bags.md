@@ -12,7 +12,7 @@ updating**, a `/reload` does not pick up new files.
 
 B, the backpack key, a bag key and everything else that goes through
 Blizzard's bag functions (bag buttons, merchants, the mailbox) open the same
-flat frame, bottom right above the tooltip anchor. Slots run ten to a row, backpack first, then bags 1 to 4 in
+flat frame at the bottom right, left of the two right-hand bars (`x=-126, y=350`). Slots run ten to a row, backpack first, then bags 1 to 4 in
 order. An item shows its icon, its stack count when above one, a cooldown
 swipe and a grey icon while it is locked (picked up, being sold). Uncommon
 and better items get a border in their quality colour; everything else keeps

@@ -47,7 +47,7 @@ The primary window is anchored to the `DamageMeter` frame, an Edit Mode system,
 and `CanMoveOrResizeSessionWindow` refuses to move it anywhere else. RikUI hangs
 that frame on its own holder, `RikUIDamageMeterHolder`, registered with the
 [shared layout](layout.md) under the key `damagemeter`. `/rik move` drags it,
-`/rik move reset` puts it back at the bottom right above the tooltip anchor, and
+`/rik move reset` puts it back at its default (`BOTTOMRIGHT`, `x=-126, y=60`), and
 Apply and Undo include it. The holder follows the meter's size, which is still
 set in Edit Mode. Edit Mode re-anchors its systems whenever a layout applies, so
 the hang is repeated after `ApplySystemAnchor`, except while Edit Mode is open:

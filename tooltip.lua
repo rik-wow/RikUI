@@ -42,7 +42,8 @@ end
 local function createAnchor()
     local frame = CreateFrame("Frame", ANCHOR_NAME, UIParent)
     frame:SetSize(ANCHOR_WIDTH, ANCHOR_HEIGHT)
-    layout.Register(frame, ANCHOR_KEY, DEFAULTS)
+    -- A place tooltips float over, not a frame: it neither blocks other groups nor is blocked.
+    layout.Register(frame, ANCHOR_KEY, DEFAULTS, { label = "Tooltip", floating = true })
     tooltip.Anchor = frame
     return frame
 end

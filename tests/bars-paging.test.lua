@@ -49,7 +49,7 @@ return function(check)
             } }, scale = 0.75,
         } } }, nil
         for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "data/bonus-pages.lua",
-            "layout.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-stock.lua" }) do
+            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

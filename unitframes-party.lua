@@ -83,7 +83,8 @@ local function createHolder()
         self.elapsed = 0
         eachMember(party.UpdateRange)
     end)
-    layout.Register(holder, LAYOUT_KEY, DEFAULT)
+    -- The raid grid replaces these frames, so the two share a place and never block each other.
+    layout.Register(holder, LAYOUT_KEY, DEFAULT, { label = "Party frames", exclusive = "group" })
     return holder
 end
 

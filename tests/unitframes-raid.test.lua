@@ -111,7 +111,7 @@ return function(check)
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         for _, name in ipairs(STOCK) do _G[name] = (not missingStock) and stockFrame(name) or nil end
         for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "layout.lua", "unitframes.lua", "unitframes-status.lua", "unitframes-party.lua" }) do
+            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua", "unitframes-party.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         -- A missing implementation is a red assertion rather than a crashed suite.
@@ -151,9 +151,11 @@ return function(check)
         check("one raid holder registers with the layout under its own key", groups.raid
             and groups.raid.frames[1] == holder and #groups.raid.frames == 1 and groups.raid1 == nil)
         local defaults, partyDefaults = groups.raid.defaults, groups.party.defaults
-        check("the raid grid defaults to the party position", defaults.point == partyDefaults.point
-            and defaults.relativePoint == partyDefaults.relativePoint and defaults.x == partyDefaults.x
-            and defaults.y == partyDefaults.y)
+        check("the raid grid has its own place at the top left and never blocks the party frames it replaces",
+            defaults.point == "TOPLEFT" and defaults.x == 20 and defaults.y == -120
+            and groups.raid.exclusive == "group" and groups.party.exclusive == "group")
+        check("the party frames keep theirs", partyDefaults.point == "LEFT"
+            and partyDefaults.x == 20 and partyDefaults.y == 0)
         check("slots fill columns of five from the top left", one.owner == holder and one.point[1] == "TOPLEFT"
             and one.point[2] == holder and one.point[4] == 0 and one.point[5] == 0
             and five.point[4] == 0 and near(five.point[5], 4 * two.point[5]) and two.point[5] < 0

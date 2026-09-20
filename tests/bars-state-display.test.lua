@@ -100,7 +100,7 @@ return function(check)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
         for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
-            "data/bonus-pages.lua", "layout.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-state.lua" }) do
+            "data/bonus-pages.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-state.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         RikUI.Bars.UpdateStockVisibility = function() end

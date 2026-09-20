@@ -88,7 +88,7 @@ return function(check)
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua",
-            "layout.lua", "unitframes.lua", "unitframes-status.lua", "panels.lua", "panels-skin.lua" }) do
+            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua", "panels.lua", "panels-skin.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

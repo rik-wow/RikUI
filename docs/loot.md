@@ -12,7 +12,7 @@ the stack size on the icon when it is more than one. Coins show as one line
 (`1 Silver, 20 Copper`). The list opens at the cursor, the way
 `lootUnderMouse` does for the stock window. Turn off "Open the loot list at
 the cursor" in `/rik config` and it opens at its [layout](layout.md) position
-instead: key `loot`, default `LEFT` of the screen at `x=320`, movable with
+instead: key `loot`, default right of the screen centre (`TOPLEFT` on `CENTER`, `x=200, y=140`, so the list grows downward), movable with
 `/rik move`.
 
 Click a row to loot it; a modified click (shift-click into chat, ctrl-click to

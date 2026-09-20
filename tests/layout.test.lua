@@ -47,12 +47,14 @@ return function(check)
     CreateFrame = renderer
     UIParent = renderer("Frame", "TestUIParent")
     UIParent.scale = 0.75
+    -- No screen size: this suite covers the legacy movers, which save drops by their centre.
+    UIParent.width, UIParent.height = nil, nil
     local defaults = { point = "CENTER", relativePoint = "CENTER", x = 25, y = -40 }
     local function boot(db, character, combat)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, db, character
         for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "layout.lua", "layout-movers.lua" }) do
+            "setup-snapshot.lua", "setup-undo.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "layout-movers.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

@@ -84,7 +84,7 @@ return function(check)
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         BuffFrame = (not missingStock) and stockFrame("BuffFrame") or nil
         DebuffFrame = (not missingStock) and stockFrame("DebuffFrame") or nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
+        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
             "unitframes.lua", "unitframes-status.lua", "auras.lua", "auras-button.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end

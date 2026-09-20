@@ -17,7 +17,7 @@ local UNITS = {
 local DEFAULTS = {
     castplayer = { point = "BOTTOM", relativePoint = "BOTTOM", x = -140, y = 272 },
     casttarget = { point = "BOTTOM", relativePoint = "BOTTOM", x = 140, y = 272 },
-    castfocus = { point = "BOTTOM", relativePoint = "BOTTOM", x = -288, y = 380 },
+    castfocus = { point = "BOTTOM", relativePoint = "BOTTOM", x = -340, y = 380 },
     castpet = { point = "BOTTOM", relativePoint = "BOTTOM", x = -313, y = 272 },
 }
 -- PetCastingBarFrame hangs off UIParent, so parking PetFrame leaves it; the focus spell bar is a

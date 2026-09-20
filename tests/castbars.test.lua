@@ -105,7 +105,7 @@ return function(check)
         PlayerCastingBarFrame = (not missingStock) and stockFrame("PlayerCastingBarFrame") or nil
         CastingBarFrame = nil
         PetCastingBarFrame = (not missingStock) and stockFrame("PetCastingBarFrame") or nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
+        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
             "unitframes.lua", "unitframes-status.lua", "castbars.lua", "castbars-status.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end

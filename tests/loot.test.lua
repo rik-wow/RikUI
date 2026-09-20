@@ -92,7 +92,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
+        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
             "unitframes.lua", "unitframes-status.lua", "loot.lua", "loot-rolls.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -177,7 +177,7 @@ return function(check)
         module = load({ lootAtCursor = false })
         env.fire("LOOT_OPENED", false)
         check("the layout position is kept when the cursor option is off", module.Holder:IsShown()
-            and module.Holder.point[1] ~= "TOPLEFT")
+            and module.Holder.point[2] == UIParent and module.Holder.point[3] == "CENTER")
         local option = module.Options.settings[1]
         check("the options panel exposes the cursor setting", option.key == "lootAtCursor" and option.get() == false)
         option.set(true)

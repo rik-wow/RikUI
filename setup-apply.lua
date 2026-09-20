@@ -9,8 +9,8 @@ setup.DefaultPositions = {
     main = { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 40 },
     bar2 = { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 82 },
     bar3 = { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 124 },
-    bar4 = { point = "RIGHT", relativePoint = "RIGHT", x = -40, y = 0 },
-    bar5 = { point = "RIGHT", relativePoint = "RIGHT", x = -82, y = 0 },
+    bar4 = { point = "RIGHT", relativePoint = "RIGHT", x = -40, y = -90 },
+    bar5 = { point = "RIGHT", relativePoint = "RIGHT", x = -82, y = -90 },
     stance = { point = "BOTTOMLEFT", relativePoint = "BOTTOM", x = -249, y = 166 },
     pet = { point = "BOTTOMLEFT", relativePoint = "BOTTOM", x = -249, y = 202 },
 }

@@ -47,28 +47,41 @@ function layout.Apply()
         pending = false
         for key, group in pairs(layout.Groups) do applyGroup(key, group) end
         if layout.RefreshMovers then layout.RefreshMovers() end
+        if layout.NotifyLimits then layout.NotifyLimits() end
     end)
 end
 
-function layout.Register(frame, key, defaults)
+-- What the arrangement system (layout-rects.lua) needs to know about a group. label names it to the
+-- player; grow is the direction a frame that changes size grows in ("UP", "DOWN", "LEFT", "RIGHT");
+-- onLimit(room) hears how far it may grow; floating marks a reference place other things float over
+-- (the tooltip anchor), which neither blocks nor is blocked; groups with the same exclusive tag are
+-- never shown together (party and raid) and do not block each other.
+local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive" }
+
+local function newGroup(key, defaults, opts)
+    defaults = position(defaults or setup.DefaultPositions[key], ORIGIN)
+    local group = { frames = {}, defaults = defaults }
+    for _, name in ipairs(OPTIONS) do group[name] = opts and opts[name] or nil end
+    layout.Groups[key] = group
+    setup.DefaultPositions[key] = position(defaults, ORIGIN)
+    return group
+end
+
+function layout.Register(frame, key, defaults, opts)
     assert(frame and type(key) == "string" and key ~= "", "Layout.Register needs a frame and key")
     assert(not frameKeys[frame] or frameKeys[frame] == key, "Frame already has a different layout key")
     if frameKeys[frame] then return layout.Groups[key] end
-    local group = layout.Groups[key]
-    if not group then
-        defaults = position(defaults or setup.DefaultPositions[key], ORIGIN)
-        group = { frames = {}, defaults = defaults }
-        layout.Groups[key] = group
-        setup.DefaultPositions[key] = position(defaults, ORIGIN)
-    end
+    local group = layout.Groups[key] or newGroup(key, defaults, opts)
     frameKeys[frame] = key
     group.frames[#group.frames + 1] = frame
     core.Combat.Queue(function()
         frame:HookScript("OnSizeChanged", function()
             if layout.RefreshMovers then layout.RefreshMovers() end
+            if layout.Settle then layout.Settle(key) end
         end)
     end)
     layout.Apply()
+    if layout.Settle then layout.Settle(key) end
     return group
 end
 

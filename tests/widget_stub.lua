@@ -99,7 +99,7 @@ end
 -- Fresh addon load for a furniture suite: resets the environment, loads the shared files and the
 -- module's own, then logs in. prepare() runs before the files load, to install or remove client API.
 local SHARED_FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua",
-    "layout.lua", "unitframes.lua", "unitframes-status.lua" }
+    "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua" }
 
 function stub.loadAddon(env, files, profile, combat, prepare)
     env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}

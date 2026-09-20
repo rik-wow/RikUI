@@ -53,6 +53,50 @@ so a registration during asynchronous Apply cannot overwrite an uncaptured
 position. Undo restores the original profile's captured values. Unrelated
 saved position keys remain untouched.
 
+## Arrangement: every group is a rectangle
+
+`layout-rects.lua` gives the registry one rule: no two layout groups overlap.
+A group's rectangle is computed from its saved position, its first frame's
+size and the layout scale, never read from the screen, so a group that is
+hidden right now (the target frame without a target, the loot list) still has
+one and still blocks.
+
+`layout.Register(frame, key, defaults, opts)` takes options:
+
+| Option | Meaning |
+| --- | --- |
+| `label` | Name shown to the player |
+| `grow` | `UP`, `DOWN`, `LEFT` or `RIGHT`: the direction a frame that changes size grows in |
+| `onLimit(room)` | Called after every layout pass with the room left along `grow`, in the frame's own units |
+| `floating` | A reference place other things float over (the tooltip anchor): neither blocks nor is blocked |
+| `exclusive` | Groups with the same tag are never shown together (party and raid) and do not block each other |
+
+| Function | Purpose |
+| --- | --- |
+| `layout.Rect(key)` | The group's rectangle in UIParent units; nil without a size or a screen size |
+| `layout.Obstacles(exceptKey)` | Every rectangle that group must stay clear of |
+| `layout.SaveRect(key, rect, profile)` | Saves on the group's own anchor point (the default's `point` and `relativePoint`), so a tracker anchored by its top right corner keeps growing downward after a move |
+| `layout.SaveCenter(key, frame, profile)` | For a frame dragged with `StartMoving`; goes through `SaveRect`. A client that reports no screen size keeps the old centre-based save |
+| `layout.Available(key)` | Room left along `grow` |
+| `layout.Settle(key)` | Without a key: the whole screen in a fixed order (bars, unit frames, cast bars, party and raid, minimap and auras, chat, tracker, then windows that come and go); an earlier group keeps its place, a later one moves to the nearest free place. With a key: only that group gives way |
+
+`Settle` runs on entering the world, on a UI scale or display size change, when
+a registered frame changes size, and when a group registers after the world
+was entered. A keyed call before the first full pass does nothing, because
+frames are still registering. It waits out combat through `core.Combat.Queue`,
+prints one line naming what it moved, and never moves a neighbour: the frame
+that changed is the one that gives way. `/rik undo` does not cover these moves.
+
+The defaults were audited by loading the whole addon on a 1365x768 UIParent
+(16:9). That found and fixed: the focus frame over the player frame (now
+`x=-340`), the loot list on the focus frame, the raid grid over the unit frames
+(now top left), the buff rows 16 units into the minimap block (now `x=-220`),
+bars 4 and 5 rising into the minimap block (now `y=-90`), and the quest
+tracker, quest timers, bags and damage meter standing in the two right-hand
+bars' column (now `x=-126`). `tests/layout-rects.test.lua` repeats the audit:
+every default that registers under the stubs must settle without a move.
+Groups that need a Blizzard frame the stubs lack are settled at login instead.
+
 ## Geometry
 
 `layout-geometry.lua` is the arithmetic under the arrangement system. It has no

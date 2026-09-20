@@ -62,7 +62,7 @@ return function(check)
         env.frames, env.printed, env.inCombat, env.timers, auraReads = {}, {}, false, {}, 0
         env.auraContainerMissing = missingContainer == true
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout.lua",
+        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
             "unitframes.lua", "unitframes-status.lua", "auras.lua", "auras-button.lua", "auras-units.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end

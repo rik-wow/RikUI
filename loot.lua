@@ -8,7 +8,8 @@ core.Loot = loot
 
 local HOLDER_NAME, KEY = "RikUILoot", "loot"
 local ROW_WIDTH, ROW_HEIGHT, ROW_GAP, PAD, EDGE, ICON = 220, 26, 2, 4, 1, 22
-local DEFAULTS = { point = "LEFT", relativePoint = "LEFT", x = 320, y = 0 }
+-- Right of the screen centre, anchored by its top so the list grows downward, clear of the unit frames.
+local DEFAULTS = { point = "TOPLEFT", relativePoint = "CENTER", x = 200, y = 140 }
 local CURSOR_X, CURSOR_Y = -30, 20
 local BACKGROUND, BORDER, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1 }
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"

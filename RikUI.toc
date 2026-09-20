@@ -19,6 +19,7 @@ setup-actions.lua
 setup-apply.lua
 layout-geometry.lua
 layout.lua
+layout-rects.lua
 layout-movers.lua
 motion.lua
 bindings.lua

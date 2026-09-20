@@ -21,8 +21,8 @@ local ROWS = {
 }
 -- Top right beside the minimap cluster; the debuff rows sit under the four buff rows.
 local DEFAULTS = {
-    buffs = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -200, y = -13 },
-    debuffs = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -200, y = -13 - 4 * STEP },
+    buffs = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -220, y = -13 },
+    debuffs = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -220, y = -13 - 4 * STEP },
 }
 local STOCK_FRAMES = { "BuffFrame", "DebuffFrame" }
 local warnings, stockPending = {}, false

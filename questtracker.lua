@@ -7,7 +7,7 @@ local tracker = { View = {} }
 core.QuestTracker = tracker
 
 local HOLDER_NAME, KEY = "RikUIQuestTracker", "questtracker"
-local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -16, y = -260 }
+local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -126, y = -260 }
 local REFRESH_DELAY = 0.1
 local REQUIRED = { "GetNumQuestWatches", "GetQuestIDForQuestWatchIndex", "GetLogIndexForQuestID", "IsComplete" }
 local EVENTS = { "QUEST_LOG_UPDATE", "QUEST_WATCH_LIST_CHANGED", "PLAYER_ENTERING_WORLD" }

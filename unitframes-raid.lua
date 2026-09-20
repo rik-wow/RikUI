@@ -9,7 +9,8 @@ local MEMBERS, ROWS, SPACING, POLL_SECONDS = 40, 5, 4, 0.5
 local COLUMNS = MEMBERS / ROWS
 local SIZE = { width = 72, height = 30, health = 22, power = 5, font = "small", powerText = false }
 -- The party holder's default: the party frames hide in a raid, so the spot is free.
-local DEFAULT = { point = "LEFT", relativePoint = "LEFT", x = 20, y = 0 }
+-- Top left: at the left centre the 604-wide grid covers the player, pet and focus frames.
+local DEFAULT = { point = "TOPLEFT", relativePoint = "TOPLEFT", x = 20, y = -120 }
 local LAYOUT_KEY, HOLDER_NAME = "raid", "RikUIRaid"
 local VISIBILITY = "[@%s,exists] show; hide"
 -- CompactRaidFrameManager stays: it holds the ready check, markers and raid settings.
@@ -38,7 +39,7 @@ local function createHolder()
         self.elapsed = 0
         eachMember(raid.UpdateRange)
     end)
-    layout.Register(holder, LAYOUT_KEY, DEFAULT)
+    layout.Register(holder, LAYOUT_KEY, DEFAULT, { label = "Raid grid", exclusive = "group" })
     return holder
 end
 

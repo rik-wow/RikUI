@@ -33,18 +33,6 @@ local function syncMover(mover, key, group)
     mover:Show()
 end
 
--- Stores where a frame (an overlay, or a frame that drags itself) was dropped as the saved
--- position of a layout key, as an offset from the screen centre in the frame's own scale.
-function layout.SaveCenter(key, frame, profile)
-    local x, y = frame:GetCenter()
-    local parentX, parentY = UIParent:GetCenter()
-    if not x or not y or not parentX or not parentY then return false end
-    local ratio = UIParent:GetEffectiveScale() / frame:GetEffectiveScale()
-    profile.positions[key] = { point = "CENTER", relativePoint = "CENTER",
-        x = x - parentX * ratio, y = y - parentY * ratio }
-    return true
-end
-
 local function saveDrop(mover)
     local profile = mover.dragProfile
     if not profile then return end

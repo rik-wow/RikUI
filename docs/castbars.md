@@ -27,7 +27,7 @@ target-of-target frame on the right.
 
 Two smaller bars follow the same rules. `castpet` (110 wide) sits under the pet
 frame at `x=-313, y=272`. `castfocus` (160 wide, with the shield) sits above the
-focus frame at `x=-288, y=380`: under the focus frame the pet frame is in the
+focus frame at `x=-340, y=380`: under the focus frame the pet frame is in the
 way. The focus aura row starts above that bar, which leaves a 26 pixel band
 empty while the focus is not casting. `PLAYER_FOCUS_CHANGED` re-reads the focus
 cast and `UNIT_PET` for the player re-reads the pet cast.

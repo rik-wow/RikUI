@@ -26,7 +26,7 @@ local DEFAULTS = {
     tot = { point = "BOTTOM", relativePoint = "BOTTOM", x = 313, y = 300 },
     petframe = { point = "BOTTOM", relativePoint = "BOTTOM", x = -313, y = 300 },
     -- Above the pet frame, right-aligned with it, clear of the party column on the left edge.
-    focus = { point = "BOTTOM", relativePoint = "BOTTOM", x = -288, y = 340 },
+    focus = { point = "BOTTOM", relativePoint = "BOTTOM", x = -340, y = 340 },
 }
 local STOCK_FRAMES = { "PlayerFrame", "TargetFrame", "PetFrame", "TargetFrameToT", "FocusFrame" }
 local EDGE, THREAT_EDGE, TEXT_INSET, POLL_SECONDS = 1, 2, 4, 0.5

@@ -16,7 +16,7 @@ local OWNER, SETUP, ANCHOR, WINDOW_PREFIX, MAX_WINDOWS = "DamageMeter", "SetupSe
 local CONTAINER, SOURCE, LIST, LOCAL_ENTRY = "MinimizeContainer", "SourceWindow", "ScrollBox", "LocalPlayerEntry"
 local HOLDER_NAME, LAYOUT_KEY = "RikUIDamageMeterHolder", "damagemeter"
 -- Right edge, above the tooltip anchor, which ends at y=330.
-local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -16, y = 340 }
+local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -126, y = 60 }
 -- Each string is named by the path of keys from the window down to it.
 local WINDOW_TEXT = { { "SessionTimer" }, { "SessionDropdown", "SessionName" },
     { "DamageMeterTypeDropdown", "TypeName" }, { CONTAINER, "NotActive" } }

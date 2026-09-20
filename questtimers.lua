@@ -11,7 +11,7 @@ core.QuestTimers = timers
 local HOLDER_NAME, KEY = "RikUIQuestTimers", "questtimers"
 local WIDTH, HEIGHT, GAP, TEXT_INSET, MAX_ROWS = 220, 18, 2, 5, 5
 -- The quest tracker starts at y = -260; two rows fit above it.
-local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -16, y = -218 }
+local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -126, y = -218 }
 local LOW_COLOR, TIME_COLOR = { 1, 0.15, 0.15 }, { 1, 0.82, 0 }
 local TICK_SECONDS, LOW_SECONDS, PULSE_SECONDS, PULSE_ALPHA = 1, 30, 0.4, 0.45
 local holder, warnings, sinceTick = nil, {}, 0

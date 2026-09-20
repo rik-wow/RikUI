@@ -8,7 +8,7 @@ return function(check)
     local API = { "CHAT_FRAMES", "NUM_CHAT_WINDOWS", "ChatFrameUtil", "EventRegistry", "SetItemRef", "ChatFontNormal",
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "ItemRefTooltip", "PlaySound",
         "SOUNDKIT", "GetTime" }
-    local FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout.lua",
+    local FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
         "layout-movers.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
         "chat-move.lua", "chat-lines.lua" }
     local GROUP_FORMATS = { CHAT_MSG_GUILD = "|Hchannel:GUILD|h[Guild]|h ", CHAT_MSG_PARTY = "|Hchannel:PARTY|h[Party]|h ",
