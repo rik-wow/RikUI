@@ -27,6 +27,14 @@ local TARGETS = {
     { name = "ItemSocketingFrame" }, { name = "ChatConfigFrame" }, { name = "RaidInfoFrame", regions = true },
     { name = "TaxiFrame" }, { name = "CollectionsJournal" }, { name = "GuildControlUI" }, { name = "DeathRecapFrame" },
     { name = "PVPMatchScoreboard" }, { name = "PVPMatchResults" }, { name = "CooldownViewerSettings" },
+    -- The last audit. The Camelot stable is PetStableFrame. The zone map is a canvas like the world
+    -- map: its border pieces are unnamed textures on BorderFrame and it gets no fill.
+    { name = "AchievementFrame", regions = true }, { name = "CalendarFrame", regions = true },
+    { name = "StopwatchFrame", regions = true }, { name = "SideDressUpFrame", regions = true },
+    { name = "BattlefieldMapFrame", chrome = "BorderFrame", regions = true, fill = false },
+    { name = "TransmogFrame" }, { name = "PetStableFrame" }, { name = "QuestLogPopupDetailFrame" },
+    { name = "InspectRecipeFrame" }, { name = "ItemUpgradeFrame" }, { name = "ClickBindingFrame" },
+    { name = "ArchaeologyFrame" },
 }
 local failed, warnings = {}, {}
 

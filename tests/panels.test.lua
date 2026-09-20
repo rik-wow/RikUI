@@ -7,7 +7,7 @@ return function(check)
     local WINDOWS = { "CharacterFrame", "PlayerSpellsFrame", "WorldMapFrame", "MerchantFrame", "BankFrame",
         "MailFrame", "OpenMailFrame", "TradeFrame", "QuestFrame", "GossipFrame", "ClassTrainerFrame",
         "AuctionHouseFrame", "ChatConfigFrame", "TaxiFrame", "LFGParentFrame", "LFGParentFrameCloseButton",
-        "DeathRecapFrame" }
+        "DeathRecapFrame", "CalendarFrame", "BattlefieldMapFrame", "PetStableFrame" }
     local API = { "PanelTemplates_SelectTab", "PanelTemplates_DeselectTab", "PanelTemplates_GetSelectedTab" }
     for _, name in ipairs(WINDOWS) do API[#API + 1] = name end
     local TAB_ART = { "Left", "Middle", "Right", "LeftActive", "MiddleActive", "RightActive",
@@ -215,6 +215,32 @@ return function(check)
         check("the close button is also found by its global name or as CloseXButton",
             LFGParentFrameCloseButton.rikLabel.text == "x" and DeathRecapFrame.CloseXButton.rikLabel.text == "x")
         check("none of the new windows printed anything", #env.printed == 0)
+
+        module = load(nil, function()
+            local calendar = CreateFrame("Frame", "CalendarFrame", UIParent)
+            calendar.regions = { calendar:CreateTexture(), calendar:CreateFontString() }
+            function calendar:GetRegions() return unpack(self.regions) end
+            local zone = CreateFrame("Frame", "BattlefieldMapFrame", UIParent)
+            zone.BorderFrame = CreateFrame("Frame", nil, zone)
+            zone.BorderFrame.regions = { zone.BorderFrame:CreateTexture(), zone.BorderFrame:CreateTexture() }
+            function zone.BorderFrame:GetRegions() return unpack(self.regions) end
+            zone.BorderFrame.CloseButton = makeCloseButton(zone.BorderFrame)
+            local stable = makeWindow("PetStableFrame")
+            for _, frame in ipairs({ calendar, zone, stable }) do frame.shown = false end
+        end)
+        CalendarFrame:Show()
+        check("the calendar's hand-drawn chrome is faded and replaced by the flat backdrop",
+            CalendarFrame.regions[1].alpha == 0 and rawget(CalendarFrame.regions[2], "alpha") == nil
+            and CalendarFrame.rikBackdrop ~= nil and #CalendarFrame.rikBorder == 4)
+        BattlefieldMapFrame:Show()
+        check("the zone map loses its border pieces, gets an edge and keeps its canvas free of a fill",
+            BattlefieldMapFrame.BorderFrame.regions[1].alpha == 0 and BattlefieldMapFrame.BorderFrame.regions[2].alpha == 0
+            and #BattlefieldMapFrame.BorderFrame.rikBorder == 4
+            and rawget(BattlefieldMapFrame.BorderFrame, "rikBackdrop") == nil
+            and BattlefieldMapFrame.BorderFrame.CloseButton.rikLabel.text == "x")
+        PetStableFrame:Show()
+        check("the Camelot pet stable is skinned under its own name",
+            PetStableFrame.NineSlice.alpha == 0 and PetStableFrame.rikFade.plays == 1 and #env.printed == 0)
 
         module = load(nil, function() PanelTemplates_SelectTab, PanelTemplates_DeselectTab = nil, nil end)
         MerchantFrame:Show()

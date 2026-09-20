@@ -70,9 +70,23 @@ The close button is looked up as `CloseButton`, then `CloseXButton`
 (`DeathRecapFrame`), then the global `<window>CloseButton`
 (`LFGParentFrame`).
 
-`CalendarFrame` and `AchievementFrame` stay stock. Their art is hand-drawn
-across dozens of child frames, so a pass over the top frame would leave most
-of it and look worse than the original.
+The last audit of the 69913 source added twelve more:
+
+- Hand-drawn (`regions`): `AchievementFrame`, `CalendarFrame`,
+  `StopwatchFrame`, `SideDressUpFrame`. Only the window chrome goes flat.
+  Calendar day buttons and achievement rows keep their own art, which needs a
+  look in game: if the mix reads worse than stock, drop the two targets.
+- `BattlefieldMapFrame` (the zone map, Shift-M) is a map canvas. Its border
+  pieces are unnamed textures on `BorderFrame`, so that frame is the chrome,
+  it is marked `regions`, and it gets no fill, like the world map.
+- Template windows: `TransmogFrame`, `PetStableFrame`,
+  `QuestLogPopupDetailFrame`, `InspectRecipeFrame`, `ItemUpgradeFrame`,
+  `ClickBindingFrame`, `ArchaeologyFrame`. The Camelot stable is
+  `PetStableFrame`; the `StableFrame` target never matched on this build.
+
+Still stock: `PlayerChoiceFrame`, `SplashFrame` and `GenericTraitFrame` are
+full-art layouts with no chrome to flatten. The stopwatch's close button is
+`StopwatchCloseButton` on its tab frame, which the lookup does not find.
 
 The controls inside every window are done by [window controls](controls.md).
 
