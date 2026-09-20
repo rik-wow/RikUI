@@ -92,3 +92,40 @@ Expect one applied/skipped line per setting and no Lua error. This command
 changes game settings; it does not persist its return snapshot. Persistent undo
 belongs to the later setup/undo chunk. The stub suite covers command routing and
 failure handling; it cannot establish which settings this beta build accepts.
+
+## Settings store (`store.lua`)
+
+On build 69913 the client was seen (2026-09-20) writing saved variables at
+logout and never reading them back: `RikProbeDB` reported "fresh" on every
+login, and RikUI's saved chat position was on disk while `/rik debug` after the
+reload printed `saved=none`. Every reload started from nothing. RikProbe's
+persistence section then showed three things that do survive a reload: a CVar
+an addon registers, the client's cache for a named user-placed frame, and an
+account macro. The store uses the first.
+
+`Store.Save(name, table)` encodes the table (`n<number>;`, `s<length>:<bytes>`,
+`t`, `f`, `{...}`; functions and frames are left out), armours it to letters,
+digits and underscore, splits it into 180-character chunks in CVars named
+`rikuiStore_<name>_<n>` and writes a header `rikuiStore_<name>` with the
+version, the chunk count, the length and a checksum. Every write is read back,
+so a client that truncates a value is noticed at once. `Store.Load(name)`
+checks length and checksum and refuses damaged text.
+
+`core.lua` calls `Store.Restore()` before it merges defaults: `RikUIDB` and
+`RikUICharDB` are taken from the store only when they are nil, so saved
+variables that did load always win. A restore prints one line at login. The
+account table is stored as `account`; a character's as `char<number>` made from
+its name and realm, because CVar names are ASCII. The chat history is left out
+(large, and only a convenience). Writes happen at `PLAYER_LOGOUT` and from a
+5-second ticker that writes only when the encoded text changed. `/rik store`
+prints availability, saves, chunks, size, what was restored and the last
+failure. A client without `C_CVar.RegisterCVar` has no store and nothing else
+changes.
+
+`tests/store.test.lua` covers the encoding round trip, damaged text, chunking,
+the checksum, a truncating client, the logout-then-login case with no saved
+variables, saved variables winning, the ticker writing only on change, the
+slash command, a client without CVar registration and a core without the file.
+Unverified in game: whether a custom CVar survives a full client restart (only
+`/reload` was probed), and the CVar value length limit (180 is a guess that the
+read-back check guards).

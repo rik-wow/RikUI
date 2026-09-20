@@ -95,6 +95,8 @@ end
 
 local function initialize(_, loadedAddon)
     if initialized or loadedAddon ~= addonName then return end
+    -- On a client that writes saved variables and never reads them back, store.lua has the settings.
+    if core.Store then core.Store.Restore() end
     RikUIDB = mergeDefaults(RikUIDB, ACCOUNT_DEFAULTS)
     RikUICharDB = mergeDefaults(RikUICharDB, CHARACTER_DEFAULTS)
     if type(RikUICharDB.profile) ~= "string" or RikUICharDB.profile == "" then

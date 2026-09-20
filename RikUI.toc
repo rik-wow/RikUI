@@ -23,6 +23,7 @@ layout-audit.lua
 layout.lua
 layout-rects.lua
 editmode.lua
+store.lua
 motion.lua
 bindings.lua
 macros.lua
