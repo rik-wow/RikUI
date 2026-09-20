@@ -175,6 +175,81 @@ local function SeedSavedVars()
 end
 
 ------------------------------------------------------------------------
+-- 2b. Persistence channels
+-- Saved variables stopped loading on 69913 (2026-09-20): written at logout, never read back. This
+-- section finds out what else survives a /reload. Each channel is READ first, then given a new stamp,
+-- so the next login shows whether the stamp came back.
+--   cvar   a custom console variable registered by the addon
+--   frame  the client's own cache for a named, user-placed frame (position and size)
+--   macro  an account macro named RikProbeStore (visible in your macro list; /probe forget removes it)
+------------------------------------------------------------------------
+local PERSIST_CVAR, PERSIST_MACRO, PERSIST_FRAME = "rikProbePersist", "RikProbeStore", "RikProbePersistFrame"
+local PERSIST_BASE_X, PERSIST_BASE_Y, PERSIST_W, PERSIST_H = 400, 500, 40, 20
+
+-- Created while the file loads: the client restores a user-placed frame's cached place when a frame
+-- of that name exists early enough, and an addon cannot know how early that is.
+local persistFrame = CreateFrame("Frame", PERSIST_FRAME, UIParent)
+persistFrame:SetSize(PERSIST_W, PERSIST_H)
+persistFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", PERSIST_BASE_X, PERSIST_BASE_Y)
+persistFrame:SetMovable(true)
+
+local function Stamp(previous)
+    local count = tonumber(tostring(previous or ""):match("n=(%d+)")) or 0
+    return date("%H:%M:%S") .. " n=" .. (count + 1), count + 1
+end
+
+local function ProbeCVar()
+    local register = Resolve("C_CVar.RegisterCVar")
+    if type(register) ~= "function" then return "C_CVar.RegisterCVar is " .. type(register) end
+    local registered, reason = pcall(register, PERSIST_CVAR, "")
+    local previous = Call(C_CVar.GetCVar, PERSIST_CVAR)
+    local stamp = Stamp(previous)
+    local written, why = pcall(C_CVar.SetCVar, PERSIST_CVAR, stamp)
+    return string.format("registered=%s%s read=%s wrote=%s%s", tostring(registered), registered and "" or " (" .. S(reason) .. ")",
+        S(previous), stamp, written and "" or " (write failed: " .. S(why) .. ")")
+end
+
+local function ProbeFrame()
+    local userPlaced = Call(persistFrame.IsUserPlaced, persistFrame)
+    local left, bottom = Call(persistFrame.GetLeft, persistFrame), Call(persistFrame.GetBottom, persistFrame)
+    local width, height = Call(persistFrame.GetWidth, persistFrame), Call(persistFrame.GetHeight, persistFrame)
+    local previous = type(left) == "number" and math.floor(left - PERSIST_BASE_X + 0.5) or nil
+    local count = (previous and previous > 0 and previous < 1000) and previous + 1 or 1
+    persistFrame:ClearAllPoints()
+    persistFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", PERSIST_BASE_X + count, PERSIST_BASE_Y + count)
+    persistFrame:SetSize(PERSIST_W + count, PERSIST_H + count)
+    local placed, reason = pcall(persistFrame.SetUserPlaced, persistFrame, true)
+    return string.format("read userPlaced=%s left=%s bottom=%s size=%sx%s (a restored n shows as left-%d) wrote n=%d%s",
+        S(userPlaced), S(left), S(bottom), S(width), S(height), PERSIST_BASE_X, count,
+        placed and "" or " (SetUserPlaced failed: " .. S(reason) .. ")")
+end
+
+local function ProbeMacro()
+    if InCombatLockdown() then return "skipped in combat" end
+    local _, _, body = Call(GetMacroInfo, PERSIST_MACRO)
+    local stamp = Stamp(body)
+    local text = "#rikprobe " .. stamp
+    local ok, reason
+    if body ~= nil then ok, reason = pcall(EditMacro, PERSIST_MACRO, PERSIST_MACRO, nil, text)
+    else ok, reason = pcall(CreateMacro, PERSIST_MACRO, "INV_Misc_QuestionMark", text, false) end
+    return string.format("read=%s wrote=%s%s", S(body), stamp, ok and "" or " (write failed: " .. S(reason) .. ")")
+end
+
+local function ProbePersistence()
+    R.persist = { cvar = ProbeCVar(), frame = ProbeFrame(), macro = ProbeMacro() }
+    Print("persistence cvar: " .. R.persist.cvar)
+    Print("persistence frame: " .. R.persist.frame)
+    Print("persistence macro: " .. R.persist.macro)
+end
+
+local function ForgetPersistence()
+    if InCombatLockdown() then return Print("cannot remove the macro in combat") end
+    local ok = pcall(DeleteMacro, PERSIST_MACRO)
+    pcall(persistFrame.SetUserPlaced, persistFrame, false)
+    Print("persistence probe: macro " .. (ok and "removed" or "not found") .. ", frame no longer user placed")
+end
+
+------------------------------------------------------------------------
 -- 3. Visibility state drivers
 ------------------------------------------------------------------------
 local VISIBILITY_CONDITIONS = {
@@ -476,6 +551,13 @@ local function PrintSavedVars()
     print("  RikProbeCharDB " .. tostring(R.savedVars.RikProbeCharDB))
 end
 
+local function PrintPersistence()
+    Print("persistence channels (read at login, then stamped; reload twice and compare n):")
+    for _, channel in ipairs({ "cvar", "frame", "macro" }) do
+        print("  " .. channel .. ": " .. tostring(R.persist and R.persist[channel] or "not probed"))
+    end
+end
+
 local function PrintVisibility()
     Print("visibility state drivers (green labels left of top centre; watch them as you change stance):")
     for _, condition in ipairs(VISIBILITY_CONDITIONS) do
@@ -532,6 +614,7 @@ local function PrintReport()
     PrintHeader()
     PrintApi()
     PrintSavedVars()
+    PrintPersistence()
     PrintVisibility()
     PrintStance()
     PrintSecrets()
@@ -547,6 +630,7 @@ local function PrintHelp()
     print("  /probe secrets   take a secret-value snapshot now and print it")
     print("  /probe stance    log the current stance state and ACTIONBUTTON1 mapping")
     print("  /probe fill      copy the spell in slot 1 into slot 73 (out of combat)")
+    print("  /probe forget    remove the persistence probe's macro and frame cache entry")
 end
 
 ------------------------------------------------------------------------
@@ -561,6 +645,7 @@ local function OnLogin()
     Try("event registration", RegisterDesignEvents)
     Try("login stance", function() Log("login " .. (RecordStance())) end)
     Try("login secret snapshot", SnapshotSecrets, "login")
+    Try("persistence channels", ProbePersistence)
     Print("loaded. /probe for the report, /probe help for commands.")
 end
 
@@ -597,6 +682,8 @@ SlashCmdList.RIKPROBE = function(input)
         Try("stance", LogButton1Mapping, "now")
     elseif cmd == "fill" then
         Try("fill", FillFixedSlot)
+    elseif cmd == "forget" then
+        Try("forget", ForgetPersistence)
     else
         PrintHelp()
     end
