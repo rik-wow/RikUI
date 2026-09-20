@@ -38,6 +38,7 @@ unitframes.lua
 unitframes-status.lua
 unitframes-party.lua
 unitframes-raid.lua
+combopoints.lua
 castbars.lua
 castbars-status.lua
 auras.lua

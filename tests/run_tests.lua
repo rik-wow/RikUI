@@ -256,6 +256,8 @@ local mirrorOk, mirrorErr = pcall(function() dofile("tests/mirrortimers.test.lua
 check("Mirror timer test suite completes", mirrorOk, mirrorErr)
 local swingOk, swingErr = pcall(function() dofile("tests/swingtimer.test.lua")(check) end)
 check("Swing timer test suite completes", swingOk, swingErr)
+local comboOk, comboErr = pcall(function() dofile("tests/combopoints.test.lua")(check) end)
+check("Combo point test suite completes", comboOk, comboErr)
 
 -- report
 if #failures == 0 then

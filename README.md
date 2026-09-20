@@ -92,6 +92,10 @@ that is swinging, with the time to the next swing, a flash on every swing and
 dimming with red time when the target is out of range. See
 [swing timer](docs/swingtimer.md).
 
+Rogues and druids get combo points as five flat pips between the player and
+target frames, gold with a red fifth, easing and flashing as they build. See
+[combo points](docs/combopoints.md).
+
 Watched quests are a compact list under the minimap: level-tagged titles in
 their difficulty colour, one line per objective, green when ready to turn in.
 Progress flashes its line, click opens the quest log, shift-click stops
@@ -152,7 +156,7 @@ shared scale (`/rik scale 1` restores normal size). These commands require
 leaving combat. See [moving frames](docs/layout.md).
 
 See [bar behavior and native checks](docs/bars.md), [unit frames](docs/unitframes.md),
-[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
+[castbars](docs/castbars.md), [auras](docs/auras.md), [tooltips](docs/tooltip.md), [minimap](docs/minimap.md), [chat](docs/chat.md), [bags](docs/bags.md), [micro menu](docs/micromenu.md), [XP bar](docs/xpbar.md), [mirror timers](docs/mirrortimers.md), [swing timer](docs/swingtimer.md), [combo points](docs/combopoints.md), [quest tracker](docs/questtracker.md), [panel skin](docs/panels.md), [loot](docs/loot.md), [nameplates](docs/nameplates.md),
 [setup](docs/setup.md),
 and [media licenses](media/LICENSES.md). Code and original textures are MIT;
 the bundled Noto Sans font is licensed under SIL OFL 1.1.
