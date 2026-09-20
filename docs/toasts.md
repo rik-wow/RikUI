@@ -1,6 +1,6 @@
 # Social toasts
 
-`toasts.lua` gives the social toasts the flat RikUI look: the Battle.net
+`src/modules/toasts/toasts.lua` gives the social toasts the flat RikUI look: the Battle.net
 "friend came online" toast, the play-time alert, the shard transfer notice and
 the two voice chat prompts. Disable the `toasts` module in `/rik config` and
 reload for the stock toasts.

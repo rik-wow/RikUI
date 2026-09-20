@@ -1,6 +1,6 @@
 # Durability alert
 
-`durability.lua` replaces the armoured figure that appears under the minimap
+`src/modules/durability/durability.lua` replaces the armoured figure that appears under the minimap
 when gear wears out. A small flat pill says how many pieces are worn or broken
 and `DurabilityFrame` is parked through the shared hide helper once the pill
 exists. Disable the `durability` module in `/rik config` and reload to get the

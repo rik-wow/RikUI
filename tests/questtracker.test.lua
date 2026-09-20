@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The list is plain unprotected frames fed from the quest log; the suite checks rendering, change
 -- animations, coalesced refreshes, clicks, collapse and the parking of the stock tracker. Whether
 -- the quest map opens for addon code in combat needs a beta check.
@@ -68,8 +69,8 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua", "questtracker.lua", "questtracker-blocks.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/questtracker/questtracker.lua", "src/modules/questtracker/questtracker-blocks.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

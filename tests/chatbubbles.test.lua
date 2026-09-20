@@ -33,7 +33,7 @@ return function(check)
         function ChatBubbleFont:SetFont(path, size, flags) self.font = { path, size, flags }; return true end
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "chatbubbles.lua" }, profile, false, function()
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/chatbubbles/chatbubbles.lua" }, profile, false, function()
             installClient()
             if prepare then prepare() end
         end)

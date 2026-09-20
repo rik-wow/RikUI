@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Target and pet aura containers hang under the unit frames; filter strings split own auras from others.
 return function(check)
     local env = require("wow_stub")
@@ -62,8 +63,8 @@ return function(check)
         env.frames, env.printed, env.inCombat, env.timers, auraReads = {}, {}, false, {}, 0
         env.auraContainerMissing = missingContainer == true
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-            "unitframes.lua", "unitframes-status.lua", "auras.lua", "auras-button.lua", "auras-units.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+            "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua", "src/modules/auras/auras-units.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

@@ -57,7 +57,7 @@ return function(check)
         boss.shown = false
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "banners.lua" }, profile, false, prepare or installClient)
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/banners/banners.lua" }, profile, false, prepare or installClient)
         return RikUI.Banners
     end
     local ok, reason = pcall(function()

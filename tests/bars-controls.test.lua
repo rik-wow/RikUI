@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local originalCreate, originalDriver = CreateFrame, RegisterStateDriver
@@ -81,8 +82,8 @@ return function(check)
     local function loadBars(combat)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "bars.lua", "bars-skin.lua", "bars-controls.lua", "bars-stock.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/character/bindings.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-controls.lua", "src/modules/bars/bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

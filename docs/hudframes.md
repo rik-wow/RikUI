@@ -1,6 +1,6 @@
 # Small HUD frames
 
-`hudframes.lua` covers two small stock frames that were left over: the queue
+`src/modules/hudframes/hudframes.lua` covers two small stock frames that were left over: the queue
 status tooltip and the framerate label. Disable the `hudframes` module in
 `/rik config` and reload for the stock look.
 

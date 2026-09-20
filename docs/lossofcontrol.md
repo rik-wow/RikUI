@@ -1,6 +1,6 @@
 # Loss of control
 
-`lossofcontrol.lua` gives Blizzard's loss-of-control alert the RikUI look: the
+`src/modules/lossofcontrol/lossofcontrol.lua` gives Blizzard's loss-of-control alert the RikUI look: the
 "Stunned 3.2 seconds" banner in the middle of the screen. The frame stays
 Blizzard's, so which effect is shown, for how long and with what text is still
 decided by Blizzard's code. Disable the `lossofcontrol` module in `/rik config`

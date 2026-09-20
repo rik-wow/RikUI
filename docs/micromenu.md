@@ -1,6 +1,6 @@
 # Micro menu and bags
 
-`micromenu.lua` replaces the bottom-right cluster with one flat row of 22px
+`src/modules/micromenu/micromenu.lua` replaces the bottom-right cluster with one flat row of 22px
 buttons: a button for every micro button the client shows, then the backpack,
 the four bag slots and the keyring. The Blizzard `MicroMenu` and `BagsBar` are
 parked through the [shared hide helper](../SDD.md) once the row exists. Disable
@@ -45,7 +45,7 @@ with a 2px gap and an 8px gap between the two groups.
 
 ## Stock frames
 
-`bars-stock.lua` used to park `MicroMenu` and `BagsBar` with the main action
+`src/modules/bars/bars-stock.lua` used to park `MicroMenu` and `BagsBar` with the main action
 bar. This module owns them now and parks them only after its row is built, so
 there is never a moment without a menu. `/rik stockbars show` returns both
 (the module follows `bars.UpdateStockVisibility` through a post-hook and

@@ -25,7 +25,7 @@ return function(check)
         C_GameRules = { IsGameRuleActive = function(rule) return rule == 7 and stub.repairDisabled end }
     end
     local function load(profile, combat, prepare)
-        widgets.loadAddon(env, { "durability.lua" }, profile, combat, function()
+        widgets.loadAddon(env, { "src/modules/durability/durability.lua" }, profile, combat, function()
             installClient()
             if prepare then prepare() end
         end)

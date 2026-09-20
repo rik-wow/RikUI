@@ -1,6 +1,6 @@
 # Banners
 
-`banners.lua` covers the three banners Blizzard plays in the middle of the
+`src/modules/banners/banners.lua` covers the three banners Blizzard plays in the middle of the
 screen: the event toasts (on 69913 this is the level-up display), the boss kill
 banner and the objective tracker's top banner. Disable the `banners` module in
 `/rik config` and reload for the stock look.

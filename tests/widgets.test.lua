@@ -57,7 +57,7 @@ return function(check)
         end)
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "widgets.lua" }, profile, false, function()
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/widgets/widgets.lua" }, profile, false, function()
             for _, name in ipairs(MIXINS) do _G[name] = { Setup = blizzardSetup } end
             if prepare then prepare() end
         end)

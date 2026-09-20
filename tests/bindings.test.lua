@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Native binding contracts; run through tests/run_tests.lua.
 return function(check)
     local env = require("wow_stub")
@@ -44,7 +45,7 @@ return function(check)
         local function fresh()
             env.frames, env.printed, env.inCombat = {}, {}, false
             RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-            assert(loadfile("core.lua"))("RikUI", {})
+            assert(loadfile("src/core/core.lua"))("RikUI", {})
             local state = {
                 keys = { ["1"] = "ORIGINAL_ONE", Q = "ORIGINAL_Q", ["6"] = "ACTIONBUTTON6",
                     ["CTRL-6"] = "LEGACY", ["ALT-1"] = "ALT_ACTION", F12 = "KEEP" },
@@ -111,7 +112,7 @@ return function(check)
                 state.bindingSet = set
                 -- WoW's successful SaveBindings has no return value.
             end
-            assert(loadfile("bindings.lua"))("RikUI", {})
+            assert(loadfile("src/character/bindings.lua"))("RikUI", {})
             assert(RikUI.Bindings, "bindings module exposes RikUI.Bindings")
             return RikUI.Bindings, state
         end

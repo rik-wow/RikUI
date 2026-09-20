@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Setup contracts exercise the real modules and real combat queue.
 return function(check)
     local env = require("wow_stub")
@@ -18,10 +19,10 @@ return function(check)
     local function fresh()
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUIDB, RikUICharDB = nil, nil
-        for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua",
-            "presets/warrior.lua", "setup.lua", "setup-actions.lua", "setup-apply.lua",
-            "macros.lua", "bindings.lua", "macros-undo.lua", "setup-snapshot.lua", "setup-undo.lua",
-            "setup-levelup.lua", "setup-talents.lua", "setup-role.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "data/spells.lua", "data/cvars.lua",
+            "presets/warrior.lua", "src/setup/setup.lua", "src/setup/setup-actions.lua", "src/setup/setup-apply.lua",
+            "src/character/macros.lua", "src/character/bindings.lua", "src/character/macros-undo.lua", "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua",
+            "src/setup/setup-levelup.lua", "src/setup/setup-talents.lua", "src/setup/setup-role.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         core = RikUI
@@ -611,9 +612,9 @@ return function(check)
         setup.Apply("WARRIOR", nil, only("bars"))
         local savedAccount, savedCharacter = RikUIDB, RikUICharDB
         env.frames = {}
-        for _, file in ipairs({ "core.lua", "data/spells.lua", "data/cvars.lua", "presets/warrior.lua",
-            "setup.lua", "setup-actions.lua", "setup-apply.lua", "macros.lua", "bindings.lua", "macros-undo.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "setup-levelup.lua", "setup-talents.lua", "setup-role.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "data/spells.lua", "data/cvars.lua", "presets/warrior.lua",
+            "src/setup/setup.lua", "src/setup/setup-actions.lua", "src/setup/setup-apply.lua", "src/character/macros.lua", "src/character/bindings.lua", "src/character/macros-undo.lua",
+            "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua", "src/setup/setup-levelup.lua", "src/setup/setup-talents.lua", "src/setup/setup-role.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         RikUIDB, RikUICharDB = savedAccount, savedCharacter

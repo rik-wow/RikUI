@@ -23,7 +23,7 @@ return function(check)
         return frame
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "lossofcontrol.lua" }, profile, false, prepare or alert)
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/lossofcontrol/lossofcontrol.lua" }, profile, false, prepare or alert)
         return RikUI.LossOfControl
     end
     local ok, reason = pcall(function()

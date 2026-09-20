@@ -1,6 +1,6 @@
 # Auras
 
-`auras.lua`, `auras-button.lua` and `auras-units.lua` show player buffs,
+`src/modules/auras/auras.lua`, `src/modules/auras/auras-button.lua` and `src/modules/auras/auras-units.lua` show player buffs,
 debuffs and weapon enchants at the top right, and target and pet auras above
 their unit frames. The rows are Blizzard aura containers wearing RikUI's flat
 skin: the client reads the auras and updates the icons in secure code, RikUI

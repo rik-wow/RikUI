@@ -22,7 +22,7 @@ return function(check)
         end
     end
     local function load(profile, combat, prepare)
-        widgets.loadAddon(env, { "mirrortimers.lua" }, profile, combat, function()
+        widgets.loadAddon(env, { "src/modules/mirrortimers/mirrortimers.lua" }, profile, combat, function()
             installClient()
             if prepare then prepare() end
         end)

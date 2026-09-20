@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- CVar contracts; run through tests/run_tests.lua.
 return function(check)
     local env = require("wow_stub")
@@ -73,7 +74,7 @@ return function(check)
     reset()
     env.frames, env.inCombat = {}, false
     RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-    assert(loadfile("core.lua"))("RikUI", {})
+    assert(loadfile("src/core/core.lua"))("RikUI", {})
     assert(loadfile("data/cvars.lua"))("RikUI", {})
     env.fire("ADDON_LOADED", "RikUI")
     env.fire("PLAYER_LOGIN")

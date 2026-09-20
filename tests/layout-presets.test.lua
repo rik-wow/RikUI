@@ -5,8 +5,8 @@ return function(check)
     local widgets = require("widget_stub")
     local restore = widgets.install()
     local savedWidth, savedHeight = UIParent.GetWidth, UIParent.GetHeight
-    local FILES = { "data/spells.lua", "data/cvars.lua", "presets/warrior.lua", "macros.lua", "macros-undo.lua", "bindings.lua",
-        "setup-actions.lua", "setup-snapshot.lua", "setup-undo.lua", "data/layouts.lua", "layout-audit.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "layout-presets.lua" }
+    local FILES = { "data/spells.lua", "data/cvars.lua", "presets/warrior.lua", "src/character/macros.lua", "src/character/macros-undo.lua", "src/character/bindings.lua",
+        "src/setup/setup-actions.lua", "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua", "data/layouts.lua", "src/layout/layout-audit.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/layout/layout-presets.lua" }
     local layout, player
     local function near(a, b) return type(a) == "number" and math.abs(a - b) < 0.01 end
     local function load(profile, width)

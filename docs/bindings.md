@@ -1,6 +1,6 @@
 # Bindings service
 
-`bindings.lua` exposes `RikUI.Bindings`; loading the file never changes bindings.
+`src/character/bindings.lua` exposes `RikUI.Bindings`; loading the file never changes bindings.
 The TOC already loads it after core and setup. Native commands preserve the
 client's action-page and stance resolution.
 

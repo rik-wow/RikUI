@@ -1,6 +1,6 @@
 # Quest timers
 
-`questtimers.lua` shows the countdown of timed quests as a flat list.
+`src/modules/questtimers/questtimers.lua` shows the countdown of timed quests as a flat list.
 Blizzard's `QuestTimerFrame` is a child of `ObjectiveTrackerFrame`, which the
 [quest tracker](questtracker.md) parks, so without this module a timed quest
 shows no countdown anywhere. Disable the `questtimers` module in `/rik config`

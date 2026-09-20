@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Stock-bar suppression retains native frame state and queues every parent write.
 return function(check)
     local env = require("wow_stub")
@@ -30,8 +31,8 @@ return function(check)
     local function fresh(profile, combat, missingMain, controls)
         env.frames, env.inCombat, env.printed = {}, false, {}
         RikUIDB, RikUICharDB = { profiles = { Default = profile or {} } }, nil
-        assert(loadfile("core.lua"))("RikUI", {})
-        assert(loadfile("hide.lua"))("RikUI", {})
+        assert(loadfile("src/core/core.lua"))("RikUI", {})
+        assert(loadfile("src/platform/hide.lua"))("RikUI", {})
         env.fire("ADDON_LOADED", "RikUI")
         RikUI.Bars = { Frames = {}, ControlFrames = {}, Options = { settings = {} },
             enabled = not (profile and profile.modules and profile.modules.bars == false) }
@@ -56,7 +57,7 @@ return function(check)
         ActionButton1:SetParent(frame(MainActionBar))
         local main = MainActionBar
         if missingMain then MainActionBar = nil end
-        assert(loadfile("bars-stock.lua"))("RikUI", {})
+        assert(loadfile("src/modules/bars/bars-stock.lua"))("RikUI", {})
         env.inCombat = combat == true
         RikUI.Bars.UpdateStockVisibility()
         return RikUI.Bars, main

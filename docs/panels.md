@@ -1,6 +1,6 @@
 # Panel skin
 
-`panels.lua` and `panels-skin.lua` put the flat RikUI look on Blizzard's
+`src/modules/panels/panels.lua` and `src/modules/panels/panels-skin.lua` put the flat RikUI look on Blizzard's
 windows without replacing anything inside them. Disable the `panels` module in
 `/rik config` and reload to get the stock look back; nothing is saved or
 changed permanently.

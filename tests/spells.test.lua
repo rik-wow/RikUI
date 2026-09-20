@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Spell contracts; run through tests/run_tests.lua.
 return function(check)
     local env = require("wow_stub")
@@ -50,7 +51,7 @@ return function(check)
     reset()
     env.frames, env.inCombat = {}, false
     RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-    assert(loadfile("core.lua"))("RikUI", {})
+    assert(loadfile("src/core/core.lua"))("RikUI", {})
     assert(loadfile("data/spells.lua"))("RikUI", {})
     check("spell module performs no API reads at load", #reads == 0 and #textures == 0)
     local spells, data = RikUI.Spells, RikUI.SpellData

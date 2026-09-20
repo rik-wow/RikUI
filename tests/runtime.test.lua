@@ -1,0 +1,210 @@
+-- Runtime resilience contracts; all client globals come from the existing stub.
+return function(check)
+    local env = require("wow_stub")
+    local loader = dofile("tests/load_addon.lua")
+    local function fresh(db, charDB)
+        env.frames, env.printed, env.inCombat = {}, {}, false
+        RikUI, RikUIDB, RikUICharDB = nil, db, charDB
+        return loader.Core()
+    end
+    local function ready(core)
+        env.fire("ADDON_LOADED", "RikUI")
+        env.fire("PLAYER_LOGIN")
+        return core
+    end
+    local function reported(text)
+        for _, line in ipairs(env.printed) do
+            if line:find(text, 1, true) then return true end
+        end
+        return false
+    end
+
+    local core, calls = fresh(), {}
+    local second = function() calls[#calls + 1] = "second" end
+    local late = function() calls[#calls + 1] = "late" end
+    local added = false
+    local first = function()
+        calls[#calls + 1] = "first"
+        core:UnregisterEvent("SPELLS_CHANGED", second)
+        if not added then added = true; core:RegisterEvent("SPELLS_CHANGED", late) end
+    end
+    check("event registration accepts an existing subscription", core:RegisterEvent("SPELLS_CHANGED", first)
+        and core:RegisterEvent("SPELLS_CHANGED", first))
+    core:RegisterEvent("SPELLS_CHANGED", second)
+    env.fire("SPELLS_CHANGED")
+    check("dispatch deduplicates, skips removed handlers and defers additions", table.concat(calls, ",") == "first")
+    env.fire("SPELLS_CHANGED")
+    check("new handlers receive next event in order", table.concat(calls, ",") == "first,first,late")
+    check("unsubscribe reports whether subscription existed", core:UnregisterEvent("SPELLS_CHANGED", first)
+        and not core:UnregisterEvent("SPELLS_CHANGED", first))
+    core:UnregisterEvent("SPELLS_CHANGED", late)
+    local nativeRegistered = false
+    for _, frame in ipairs(env.frames) do
+        if frame:IsEventRegistered("SPELLS_CHANGED") then nativeRegistered = true end
+    end
+    check("last unsubscribe releases native event", not nativeRegistered)
+
+    core, calls = fresh(), {}
+    local nested = false
+    core:RegisterEvent("SPELLS_CHANGED", function()
+        calls[#calls + 1] = nested and "inner-first" or "outer-first"
+        if not nested then nested = true; env.fire("SPELLS_CHANGED"); nested = false end
+    end)
+    core:RegisterEvent("SPELLS_CHANGED", function() calls[#calls + 1] = nested and "inner-last" or "outer-last" end)
+    env.fire("SPELLS_CHANGED")
+    check("nested dispatch preserves its own cursor", table.concat(calls, ",") ==
+        "outer-first,inner-first,inner-last,outer-last")
+
+    core, calls = fresh(), {}
+    local enablingState
+    core:RegisterModule("dependent", { OnEnable = function() calls[#calls + 1] = "dependent" end },
+        { dependencies = { "provider" } })
+    core:RegisterModule("provider", { OnEnable = function()
+        enablingState = core:GetModuleState("provider")
+        calls[#calls + 1] = "provider"
+    end })
+    check("new module state is registered", core:GetModuleState("provider") == "registered")
+    ready(core)
+    check("dependencies start before consumers", table.concat(calls, ",") == "provider,dependent")
+    check("module states expose activation", enablingState == "enabling"
+        and core:GetModuleState("provider") == "enabled" and core:GetModuleState("dependent") == "enabled")
+    env.fire("PLAYER_LOGIN")
+    check("repeated login does not restart modules", #calls == 2)
+
+    core = fresh({ profiles = { Default = { modules = { off = false } } } })
+    core:RegisterModule("off", { OnEnable = function() error("disabled module started") end })
+    ready(core)
+    check("disabled module does not start", core:GetModuleState("off") == "disabled")
+
+    core, calls = fresh(), {}
+    core:RegisterModule("consumer", { OnEnable = function() calls[#calls + 1] = "consumer" end },
+        { dependencies = { "broken" } })
+    core:RegisterModule("broken", { OnEnable = function()
+        core:RegisterEvent("SPELLS_CHANGED", function() calls[#calls + 1] = "leaked" end)
+        error("enable fault")
+    end })
+    core:RegisterModule("healthy", { OnEnable = function() calls[#calls + 1] = "healthy" end })
+    ready(core)
+    env.fire("SPELLS_CHANGED")
+    check("failure cleans owned events, blocks dependents and spares unrelated modules",
+        core:GetModuleState("broken") == "failed" and core:GetModuleState("consumer") == "blocked"
+        and table.concat(calls, ",") == "healthy" and reported("enable fault"))
+
+    core = fresh()
+    local cycleStarted = false
+    local cycleHook = function() cycleStarted = true end
+    core:RegisterModule("left", { OnEnable = cycleHook }, { dependencies = { "right" } })
+    core:RegisterModule("right", { OnEnable = cycleHook }, { dependencies = { "left" } })
+    core:RegisterModule("missing", { OnEnable = cycleHook }, { dependencies = { "absent" } })
+    ready(core)
+    check("cycles and missing dependencies do not execute hooks", not cycleStarted
+        and core:GetModuleState("left") == "blocked" and core:GetModuleState("right") == "blocked"
+        and core:GetModuleState("missing") == "blocked")
+
+    for _, hook in ipairs({ "Restore", "RestoreLate" }) do
+        core = fresh()
+        local started = false
+        core.Store = { Restore = function() end, RestoreLate = function() return false end }
+        core.Store[hook] = function() error("store " .. hook .. " fault") end
+        core:RegisterModule("healthy", { OnEnable = function() started = true end })
+        ready(core)
+        check("store " .. hook .. " errors do not prevent startup", started
+            and core.Profile.scale == 1 and reported("store " .. hook .. " fault"))
+    end
+
+    core = fresh({ profiles = { Default = { scale = "invalid", gryphons = "false",
+        tooltip = { hideInCombat = 1 }, chat = { timestamps = {} }, modules = { active = "yes" } } } },
+        { askRole = "yes", wizardDone = 0 })
+    core:RegisterModule("active", {})
+    ready(core)
+    check("invalid saved scalars recover to typed defaults", core.Profile.scale == 1
+        and core.Profile.gryphons == false and core.Profile.tooltip.hideInCombat == false
+        and core.Profile.chat.timestamps == true and core.CharDB.askRole == true and core.CharDB.wizardDone == false)
+    check("invalid module flags normalize consistently", core.Profile.modules.active == true
+        and core:GetModuleState("active") == "enabled")
+
+    core, calls = fresh(), {}
+    env.inCombat = true
+    core.Combat.Queue(function() calls[#calls + 1] = "stale" end, "layout")
+    core.Combat.Queue(function() calls[#calls + 1] = "other" end, "other")
+    core.Combat.Queue(function() calls[#calls + 1] = "latest" end, "layout")
+    core.Combat.Queue(function() calls[#calls + 1] = "cancelled" end, "cancel")
+    check("keyed combat work coalesces and cancels", core.Combat.Pending() == 3
+        and core.Combat.Cancel("cancel") and not core.Combat.Cancel("cancel") and core.Combat.Pending() == 2)
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    check("coalescing retains FIFO position", table.concat(calls, ",") == "latest,other" and core.Combat.Pending() == 0)
+    check("completed work is not cancellable", not core.Combat.Cancel("layout"))
+
+
+    core, calls = ready(fresh()), {}
+    core:RegisterModule("lateconsumer", { OnEnable = function() calls[#calls + 1] = "consumer" end },
+        { dependencies = { "lateprovider" } })
+    check("missing late provider blocks before activation", core:GetModuleState("lateconsumer") == "blocked")
+    core:RegisterModule("lateprovider", { OnEnable = function() calls[#calls + 1] = "provider" end })
+    check("new provider unblocks a consumer that never started",
+        table.concat(calls, ",") == "provider,consumer" and core:GetModuleState("lateconsumer") == "enabled")
+
+    core, calls = fresh(), {}
+    local healthy = { OnEnable = function()
+        core:RegisterEvent("SPELLS_CHANGED", function()
+            core:RegisterEvent("UNIT_HEALTH", function() calls[#calls + 1] = "healthy" end)
+        end)
+    end }
+    core:RegisterModule("healthyowner", healthy)
+    core:RegisterModule("failingowner", { OnEnable = function()
+        env.fire("SPELLS_CHANGED")
+        error("owner failure")
+    end })
+    ready(core)
+    env.fire("UNIT_HEALTH", "player")
+    check("nested event subscriptions inherit the handler owner", #calls == 1)
+    core:UnregisterOwner(healthy)
+    env.fire("UNIT_HEALTH", "player")
+    check("owner removal includes nested subscriptions", #calls == 1)
+
+    core = ready(fresh())
+    local owner, received = {}, 0
+    core:RegisterEvent("SPELLS_CHANGED", function()
+        core.Combat.Queue(function()
+            core:RegisterEvent("UNIT_HEALTH", function() received = received + 1 end)
+        end)
+    end, owner)
+    env.inCombat = true
+    env.fire("SPELLS_CHANGED")
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    core:UnregisterOwner(owner)
+    env.fire("UNIT_HEALTH", "player")
+    check("deferred work preserves subscription ownership", received == 0)
+
+
+    core = fresh()
+    check("malformed dependency list is rejected", not pcall(core.RegisterModule, core, "invalid", {}, { dependencies = false }))
+    core.Setup = { DefaultPositions = {} }
+    assert(loadfile("src/layout/layout.lua"))("RikUI", {})
+    local applied = 0
+    core.Layout.RefreshMovers = function() applied = applied + 1 end
+    core:RegisterModule("badlayoutuser", { OnEnable = function()
+        core.Layout.Apply()
+        error("layout caller failed")
+    end })
+    env.fire("ADDON_LOADED", "RikUI")
+    env.inCombat = true
+    env.fire("PLAYER_LOGIN")
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    local afterDrain = applied
+    core.Layout.Apply()
+    check("module failure does not strand shared service pending work", afterDrain > 0 and applied > afterDrain)
+
+    core = fresh()
+    env.inCombat = true
+    local survived = false
+    core.Combat.Queue(function() error("queue fault") end)
+    core.Combat.Queue(function() survived = true end)
+    core.Print = function() error("report fault") end
+    env.inCombat = false
+    check("broken diagnostic sink cannot strand work", pcall(env.fire, "PLAYER_REGEN_ENABLED")
+        and survived and core.Combat.Pending() == 0)
+end

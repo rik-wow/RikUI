@@ -1,6 +1,6 @@
 # Quest tracker
 
-`questtracker.lua` and `questtracker-blocks.lua` replace the stock objective
+`src/modules/questtracker/questtracker.lua` and `src/modules/questtracker/questtracker-blocks.lua` replace the stock objective
 tracker with a compact list of watched quests. `ObjectiveTrackerFrame` is
 parked through the [shared hide helper](../SDD.md) once the list exists.
 Disable the `questtracker` module in `/rik config` and reload to get the stock

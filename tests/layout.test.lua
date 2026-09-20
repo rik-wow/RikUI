@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Layout registry contracts; protected writes fail even when a callback catches errors.
 return function(check)
     local env = require("wow_stub")
@@ -53,8 +54,8 @@ return function(check)
     local function boot(db, character, combat)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, db, character
-        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

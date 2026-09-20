@@ -75,7 +75,7 @@ return function(check)
         return parts
     end
     local function load(profile, files)
-        widgets.loadAddon(env, files or { "skin.lua", "controls.lua" }, profile, false, function()
+        widgets.loadAddon(env, files or { "src/ui/skin.lua", "src/modules/controls/controls.lua" }, profile, false, function()
             CreateFont = function(name)
                 local object = { name = name }
                 function object:SetFont(path, size) self.fontPath, self.fontSize = path, size end
@@ -156,7 +156,7 @@ return function(check)
         module.Walk("WorldFrame")
         check("a walk over something that is not a frame does nothing", #env.printed == 1)
 
-        module = load(nil, { "panels.lua", "panels-skin.lua", "skin.lua", "controls.lua" })
+        module = load(nil, { "src/modules/panels/panels.lua", "src/modules/panels/panels-skin.lua", "src/ui/skin.lua", "src/modules/controls/controls.lua" })
         local merchant = frame("Frame", UIParent)
         merchant:Hide()
         MerchantFrame = merchant

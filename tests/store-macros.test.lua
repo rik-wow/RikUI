@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The second tier of the settings store. Measured on 69913 (2026-09-20): a CVar an addon registers
 -- survives /reload but not a client restart; an account macro survives both. So what differs from the
 -- defaults is also kept in account macros named "RikUI data N". The macro API is faked with a table
@@ -31,10 +32,10 @@ return function(check)
         C_Timer = { NewTicker = function(_, callback) tickers[#tickers + 1] = callback; return {} end }
         UnitName, GetRealmName = function() return character end, function() return "Classic Beta PvE" end
     end
-    local WITH_LAYOUT = { "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua",
-        "data/layouts.lua", "layout-audit.lua", "layout.lua", "layout-rects.lua", "motion.lua", "skin.lua", "layout-unlock.lua",
-        "layout-drag.lua", "layout-presets.lua", "store.lua", "store-macros.lua" }
-    local files = { "core.lua", "store.lua", "store-macros.lua" }
+    local WITH_LAYOUT = { "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua",
+        "data/layouts.lua", "src/layout/layout-audit.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua",
+        "src/layout/layout-drag.lua", "src/layout/layout-presets.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }
+    local files = { "src/core/core.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }
     local function boot(combat)
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         tickers = {}
@@ -185,12 +186,12 @@ return function(check)
         check("a few positions with no preset behind them are kept as they are", core.Profile.positions.chat.x == 219
             and core.Profile.positions.player == nil)
         UIParent.GetWidth, UIParent.GetHeight = savedWidth, savedHeight
-        files = { "core.lua", "store.lua", "store-macros.lua" }
+        files = { "src/core/core.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }
 
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "core.lua", "store.lua", "store-macros.lua" }) do assert(loadfile(file))("RikUI", {}) end
+        for _, file in ipairs({ "src/core/core.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }) do assert(loadfile(file))("RikUI", {}) end
         env.fire("ADDON_LOADED", "RikUI")
         env.fire("PLAYER_LOGIN")
         check("a client without the macro API keeps working without the second tier", RikUI.Profile ~= nil

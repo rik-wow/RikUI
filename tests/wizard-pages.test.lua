@@ -6,9 +6,9 @@ return function(check)
     local widgets = require("widget_stub")
     local restore = widgets.install()
     local savedClass, savedLevel = UnitClass, UnitLevel
-    local FILES = { "data/spells.lua", "data/cvars.lua", "presets/warrior.lua", "bindings.lua", "setup-talents.lua",
-        "data/layouts.lua", "layout-audit.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "layout-presets.lua",
-        "wizard-controls.lua", "wizard.lua", "wizard-preview.lua", "wizard-pages.lua" }
+    local FILES = { "data/spells.lua", "data/cvars.lua", "presets/warrior.lua", "src/character/bindings.lua", "src/setup/setup-talents.lua",
+        "data/layouts.lua", "src/layout/layout-audit.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/layout/layout-presets.lua",
+        "src/configuration/wizard/wizard-controls.lua", "src/configuration/wizard/wizard.lua", "src/configuration/wizard/wizard-preview.lua", "src/configuration/wizard/wizard-pages.lua" }
     local wizard, applied
     local function load(class, level)
         UnitClass = function() return class or "Warrior", (class or "Warrior"):upper(), 1 end

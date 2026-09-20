@@ -1,6 +1,6 @@
 # Totem row
 
-`totems.lua` shows your active totems as a row of flat icons. Blizzard's
+`src/modules/totems/totems.lua` shows your active totems as a row of flat icons. Blizzard's
 `TotemFrame` is a child of `PlayerFrame`, which the [unit frames](unitframes.md)
 park, so without this module a shaman sees no totems at all. Disable the
 `totems` module in `/rik config` and reload to remove the row; the stock frame

@@ -24,7 +24,7 @@ return function(check)
     end
     local function load(combat)
         cursor, sizes, notes = { 0, 0 }, {}, {}
-        widgets.loadAddon(env, { "skin.lua", "layout-unlock.lua", "layout-drag.lua", "layout-resize.lua" }, nil, combat)
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/layout/layout-resize.lua" }, nil, combat)
         layout = RikUI.Layout
         window, neighbour = box(300, 200), box(100, 100)
         layout.Register(window, "window", at(100, 600), { label = "Window", onUnlock = function(open) notes[#notes + 1] = open end,

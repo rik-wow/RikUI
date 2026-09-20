@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The icon set: every name the addon may ask for has an SVG source and a built TGA, every file on disk
 -- is a known name, and an unknown name is refused instead of silently drawing nothing in game.
 return function(check)
@@ -6,8 +7,8 @@ return function(check)
     local ok, reason = pcall(function()
         env.frames, env.printed = {}, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        assert(loadfile("core.lua"))("RikUI", {})
-        assert(loadfile("media.lua"))("RikUI", {})
+        assert(loadfile("src/core/core.lua"))("RikUI", {})
+        assert(loadfile("src/ui/media.lua"))("RikUI", {})
         local media = RikUI.Media
         local known, missing, sizes = 0, {}, {}
         for name in pairs(media.Icons) do

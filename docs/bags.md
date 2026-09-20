@@ -1,11 +1,11 @@
 # Bags
 
-`bags.lua` and `bags-items.lua` replace the five Blizzard bag windows with one
+`src/modules/bags/bags.lua` and `src/modules/bags/bags-items.lua` replace the five Blizzard bag windows with one
 frame that shows every slot of the backpack and the four bags. The bank stays
 Blizzard's. Disable the `bags` module in `/rik config` and reload to get the
 stock bags back.
 
-`bags-items.lua` is a new TOC entry. **Fully exit and restart the client after
+`src/modules/bags/bags-items.lua` is a new TOC entry. **Fully exit and restart the client after
 updating**, a `/reload` does not pick up new files.
 
 ## What you see

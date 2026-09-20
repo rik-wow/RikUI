@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Only parent writes on Blizzard frames are protected and they run through the hide helper's
 -- combat queue; the rendered edit box, tab fade timing and copy window need a beta check.
 return function(check)
@@ -7,8 +8,8 @@ return function(check)
     local API = { "CHAT_FRAMES", "NUM_CHAT_WINDOWS", "ChatFrameUtil", "EventRegistry", "SetItemRef", "ChatFontNormal",
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA",
         "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA", "ItemRefTooltip", "RikUIChatCopy" }
-    local FILES = { "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "layout-resize.lua", "editmode.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua", "chat-move.lua", "chat-size.lua" }
+    local FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/layout/layout-resize.lua", "src/platform/editmode.lua", "src/modules/chat/chat.lua", "src/modules/chat/chat-skin.lua", "src/modules/chat/chat-copy.lua", "src/modules/chat/chat-move.lua", "src/modules/chat/chat-size.lua" }
     local STOCK_FONT, URL = "Fonts\\FRIZQT__.TTF", "https://example.com/a?b=1"
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end

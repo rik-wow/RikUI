@@ -1,6 +1,6 @@
 # Setup wizard
 
-`wizard.lua` is the first-login flow: one window, a page per decision, and one
+`src/configuration/wizard/wizard.lua` is the first-login flow: one window, a page per decision, and one
 Apply on the last page. Nothing is changed before that click. It opens by
 itself on entering the world for a character that was never set up
 (`RikUICharDB.applied == nil` and `wizardDone` not set) and any time on
@@ -25,7 +25,7 @@ and every choice; it returns when combat ends.
 
 ## Pages
 
-`wizard-pages.lua` registers six; each only reads and writes the state.
+`src/configuration/wizard/wizard-pages.lua` registers six; each only reads and writes the state.
 
 1. Welcome: the detected class, what will be set up, that nothing is applied
    until the last page and that `/rik undo` reverts it.
@@ -38,7 +38,7 @@ and every choice; it returns when combat ends.
 3. Keybinds: the three key tiers from `Bindings.Scheme` drawn as key caps (main,
    Shift, Ctrl), Mouse 4/5 and A/D caps that light up with their two check boxes.
 4. Screen layout: one card per whole-screen [layout](layout.md), each with a
-   picture drawn by `wizard-preview.lua` from `Layouts.Rect`, the rectangles the
+   picture drawn by `src/configuration/wizard/wizard-preview.lua` from `Layouts.Rect`, the rectangles the
    audit checks, coloured by kind with a legend. The chosen card carries the
    accent edge and its description shows below. "Keep my current positions"
    skips the layout step.
@@ -61,7 +61,7 @@ and every choice; it returns when combat ends.
 | `Wizard.Options()` | The options for `setup.Apply`: the five step flags, `strafe`, `mouse45`, `cvarSelection` with only the chosen settings, `layoutPreset` (or `layout = false` when positions are kept), `allowEmpty` |
 | `Wizard.Apply()` | Writes the module flags to the profile, then calls `setup.Apply(class, role, opts)` with an `onComplete` |
 
-`wizard-controls.lua` holds the wizard's own controls (`RikUI.WizardControls`):
+`src/configuration/wizard/wizard-controls.lua` holds the wizard's own controls (`RikUI.WizardControls`):
 `Button`, a compact `Check` and `CheckGrid` for the long lists, a selectable
 `Card` and a `KeyCap`.
 

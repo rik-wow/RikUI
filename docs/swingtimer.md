@@ -1,7 +1,7 @@
 # Swing timer
 
 Forever ships its own swing timer: three stock bars fed by a `PLAYER_SWING`
-event. `swingtimer.lua` replaces them with flat bars for main hand, off hand
+event. `src/modules/swingtimer/swingtimer.lua` replaces them with flat bars for main hand, off hand
 and ranged, and parks `SwingTimerMainHandFrame`, `SwingTimerOffHandFrame` and
 `SwingTimerRangedFrame` once its own bars exist. Disable the `swingtimer`
 module in `/rik config` and reload to get the stock bars back.

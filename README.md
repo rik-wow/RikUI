@@ -209,7 +209,7 @@ stack counts, quality-coloured borders, a search box that dims what does not
 match, a Sort button and your money. Clicks, drags, right-click use and
 vendor selling run on Blizzard's own item buttons. The bank stays Blizzard's.
 Drag it by its title to move it; the place is remembered.
-`bags-items.lua` and `chat-move.lua` are new files, so fully restart the
+`src/modules/bags/bags-items.lua` and `src/modules/chat/chat-move.lua` are new files, so fully restart the
 client after updating.
 Disable the `bags` module to get the stock bags back. See [bags](docs/bags.md).
 

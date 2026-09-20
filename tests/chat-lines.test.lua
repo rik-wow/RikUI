@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Lines are delivered the way MessageEventHandler does it on 69913: filters first, then the tag
 -- and sender are composed, then AddMessage gets the text with the event name as its eighth
 -- argument. Whether the AddMessage wrapper spreads taint that matters needs a beta check.
@@ -8,9 +9,9 @@ return function(check)
     local API = { "CHAT_FRAMES", "NUM_CHAT_WINDOWS", "ChatFrameUtil", "EventRegistry", "SetItemRef", "ChatFontNormal",
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "ItemRefTooltip", "PlaySound",
         "SOUNDKIT", "GetTime" }
-    local FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
-        "chat-move.lua", "chat-lines.lua" }
+    local FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/chat/chat.lua", "src/modules/chat/chat-skin.lua", "src/modules/chat/chat-copy.lua",
+        "src/modules/chat/chat-move.lua", "src/modules/chat/chat-lines.lua" }
     local GROUP_FORMATS = { CHAT_MSG_GUILD = "|Hchannel:GUILD|h[Guild]|h ", CHAT_MSG_PARTY = "|Hchannel:PARTY|h[Party]|h ",
         CHAT_MSG_PARTY_LEADER = "|Hchannel:PARTY|h[Party Leader]|h ", CHAT_MSG_SAY = "", CHAT_MSG_YELL = "",
         CHAT_MSG_WHISPER = "" }

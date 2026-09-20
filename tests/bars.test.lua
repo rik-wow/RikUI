@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Contract tests use a recording renderer; native click/visual acceptance is separate.
 return function(check)
     local env = require("wow_stub")
@@ -99,8 +100,8 @@ return function(check)
     local function loadBars(profile, combat)
         env.frames, env.printed, env.timers, env.inCombat = {}, {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile or {} } }, nil
-        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "setup-snapshot.lua", "setup-undo.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

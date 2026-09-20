@@ -2,7 +2,7 @@
 
 Forever ships Blizzard's own damage meter: `Blizzard_DamageMeter` names the
 `camelot` game type in its TOC and carries a Camelot override file.
-`damagemeter.lua` gives it the RikUI look. Disable the `damagemeter` module in
+`src/modules/damagemeter/damagemeter.lua` gives it the RikUI look. Disable the `damagemeter` module in
 `/rik config` and reload for the stock meter.
 
 ## Turning the meter on

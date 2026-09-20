@@ -1,6 +1,6 @@
 # Alert toasts
 
-`alerts.lua` gives Blizzard's alert toasts the flat RikUI look: the "You won"
+`src/modules/alerts/alerts.lua` gives Blizzard's alert toasts the flat RikUI look: the "You won"
 loot toast, money, new recipes, achievements where the client has them, and
 every other toast the alert system shows. The toasts stay Blizzard's: their
 position, stacking, queueing, click behaviour, tooltips and slide and fade

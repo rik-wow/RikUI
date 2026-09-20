@@ -1,6 +1,6 @@
 # Popups and game menu
 
-`popups.lua` and `popups-skin.lua` put the flat RikUI look on the frames that
+`src/modules/popups/popups.lua` and `src/modules/popups/popups-skin.lua` put the flat RikUI look on the frames that
 interrupt play: the four static popups (`StaticPopup1` to `4`: confirmations,
 name prompts, resurrect offers), the Escape game menu (`GameMenuFrame`) and the
 release-spirit button (`GhostFrame`). Disable the `popups` module in

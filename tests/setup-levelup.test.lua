@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Conservative level-up placement through the real spellbook, core queue and writer.
 return function(check)
     local env = require("wow_stub")
@@ -63,12 +64,12 @@ return function(check)
             if combatAfterPlace then env.inCombat, combatAfterPlace = true, false end
         end
         if rejectLearned then env.KNOWN_EVENTS.LEARNED_SPELL_IN_SKILL_LINE = nil end
-        for _, file in ipairs({ "core.lua", "data/spells.lua", "presets/warrior.lua",
-            "setup.lua", "setup-actions.lua", "setup-apply.lua", "macros.lua", "setup-undo.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "data/spells.lua", "presets/warrior.lua",
+            "src/setup/setup.lua", "src/setup/setup-actions.lua", "src/setup/setup-apply.lua", "src/character/macros.lua", "src/setup/setup-undo.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         -- Loading the TOC entry is tested separately; a missing implementation is a red assertion.
-        local levelup = loadfile("setup-levelup.lua")
+        local levelup = loadfile("src/setup/setup-levelup.lua")
         if levelup then levelup("RikUI", {}) end
         env.KNOWN_EVENTS.LEARNED_SPELL_IN_SKILL_LINE = true
         setup = RikUI.Setup

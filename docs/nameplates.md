@@ -2,8 +2,8 @@
 
 Three files lay a RikUI design over Blizzard's nameplates without replacing
 them. The client still creates, positions, stacks and drives every plate.
-`nameplates.lua` owns the events, the pooled parts and the debuff row,
-`nameplates-skin.lua` the layout and the health bar, `nameplates-target.lua`
+`src/modules/nameplates/nameplates.lua` owns the events, the pooled parts and the debuff row,
+`src/modules/nameplates/nameplates-skin.lua` the layout and the health bar, `src/modules/nameplates/nameplates-target.lua`
 the target and threat indicators. Disable the `nameplates` module in
 `/rik config` and reload to get the stock plates back.
 
@@ -84,7 +84,7 @@ combat is not dependable. Nothing here reads or compares either.
 - Colour. `UnitFrames.HealthColor`, shared with the unit frames, which reads
   flags and reaction through the same guarded readers.
 - Debuffs. Blizzard's `CustomAuraContainerTemplate` with `HARMFUL|PLAYER`
-  through the shared factory in `auras.lua`.
+  through the shared factory in `src/modules/auras/auras.lua`.
 
 ## Layout pass
 

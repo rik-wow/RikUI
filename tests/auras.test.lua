@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Player aura rows are Blizzard aura containers configured once; the module never reads auras.
 return function(check)
     local env = require("wow_stub")
@@ -84,8 +85,8 @@ return function(check)
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         BuffFrame = (not missingStock) and stockFrame("BuffFrame") or nil
         DebuffFrame = (not missingStock) and stockFrame("DebuffFrame") or nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-            "unitframes.lua", "unitframes-status.lua", "auras.lua", "auras-button.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+            "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

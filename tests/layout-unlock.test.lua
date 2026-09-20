@@ -27,7 +27,7 @@ return function(check)
     local layout, player, target
     local function load(combat)
         keys, bound, cursor = {}, nil, { 0, 0 }
-        widgets.loadAddon(env, { "skin.lua", "layout-unlock.lua", "layout-drag.lua" }, nil, combat)
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua" }, nil, combat)
         layout = RikUI.Layout
         player, target = box(200, 50), box(200, 50)
         layout.Register(player, "player", at(100, 300), { label = "Player frame" })

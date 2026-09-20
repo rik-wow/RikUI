@@ -61,7 +61,7 @@ return function(check)
         dialog("CreateChannelPopup", { "Center", "TopEdge", "LeftEdge", "TopLeftCorner", "BottomRightCorner" })
     end
     local function load(profile, combat, install)
-        widgets.loadAddon(env, { "panels.lua", "panels-skin.lua", "skin.lua", "controls.lua", "dialogs.lua" },
+        widgets.loadAddon(env, { "src/modules/panels/panels.lua", "src/modules/panels/panels-skin.lua", "src/ui/skin.lua", "src/modules/controls/controls.lua", "src/modules/dialogs/dialogs.lua" },
             profile, combat, install or installClient)
         return RikUI.Dialogs
     end

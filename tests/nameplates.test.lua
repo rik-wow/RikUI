@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Health travels reader-to-sink into an own bar; target and threat state are copied from Blizzard's
 -- regions. Re-parenting Blizzard's text, the target CVars and the easing argument need a beta check.
 return function(check)
@@ -146,9 +147,9 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes, profile.modules.auras, profile.modules.unitauras = false, false, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-            "unitframes.lua", "unitframes-status.lua", "auras.lua", "auras-button.lua", "nameplates.lua",
-            "nameplates-skin.lua", "nameplates-target.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+            "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua", "src/modules/nameplates/nameplates.lua",
+            "src/modules/nameplates/nameplates-skin.lua", "src/modules/nameplates/nameplates-target.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

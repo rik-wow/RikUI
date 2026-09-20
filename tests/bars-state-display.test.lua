@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Recording widgets test cosmetic contracts; they do not emulate client protection.
 return function(check)
     local env = require("wow_stub")
@@ -99,8 +100,8 @@ return function(check)
     local ok, reason = pcall(function()
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "bindings.lua",
-            "data/bonus-pages.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-state.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/character/bindings.lua",
+            "data/bonus-pages.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-paging.lua", "src/modules/bars/bars-state.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         RikUI.Bars.UpdateStockVisibility = function() end

@@ -45,7 +45,7 @@ return function(check)
         end
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "extrabuttons.lua" }, profile, false, prepare or installClient)
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/extrabuttons/extrabuttons.lua" }, profile, false, prepare or installClient)
         return RikUI.ExtraButtons
     end
     local ok, reason = pcall(function()

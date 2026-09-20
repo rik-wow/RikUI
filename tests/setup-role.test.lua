@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Role inference and popup choices through the real core event/command paths.
 return function(check)
     local env = require("wow_stub")
@@ -49,13 +50,13 @@ return function(check)
             for _, dialog in ipairs(popups) do if dialog.which == which then dialog.shown = false end end
         end
         if rejectEvent then env.KNOWN_EVENTS.PLAYER_TALENT_UPDATE = nil end
-        for _, file in ipairs({ "core.lua", "data/spells.lua", "presets/warrior.lua", "setup.lua", "setup-talents.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "data/spells.lua", "presets/warrior.lua", "src/setup/setup.lua", "src/setup/setup-talents.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         setup = RikUI.Setup
         setup.IsApplying, setup.IsUndoing = function() return busy end, function() return false end
         setup.Apply = function(class, role, opts) calls[#calls + 1] = { class = class, role = role, opts = opts } end
-        local chunk = loadfile("setup-role.lua")
+        local chunk = loadfile("src/setup/setup-role.lua")
         if chunk then chunk("RikUI", {}) end
         env.KNOWN_EVENTS.PLAYER_TALENT_UPDATE = true
         env.fire("ADDON_LOADED", "RikUI")

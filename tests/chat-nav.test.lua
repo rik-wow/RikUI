@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Scrolling, sizing, history and typing. The stub models a ScrollingMessageFrame's offset and its
 -- clearing SetMaxLines; how the grip drags and how Edit Mode reacts to a resized main window need
 -- a beta check.
@@ -9,9 +10,9 @@ return function(check)
     local API = { "CHAT_FRAMES", "NUM_CHAT_WINDOWS", "ChatFrameUtil", "EventRegistry", "SetItemRef", "ChatFontNormal",
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "ItemRefTooltip", "ChatTypeInfo",
         "IsControlKeyDown" }
-    local FILES = { "core.lua", "hide.lua", "editmode.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
-        "chat-move.lua", "chat-lines.lua", "chat-history.lua", "chat-scroll.lua", "chat-size.lua", "chat-input.lua" }
+    local FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/platform/editmode.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/chat/chat.lua", "src/modules/chat/chat-skin.lua", "src/modules/chat/chat-copy.lua",
+        "src/modules/chat/chat-move.lua", "src/modules/chat/chat-lines.lua", "src/modules/chat/chat-history.lua", "src/modules/chat/chat-scroll.lua", "src/modules/chat/chat-size.lua", "src/modules/chat/chat-input.lua" }
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local savedCenter, savedScale = rawget(UIParent, "GetCenter"), rawget(UIParent, "GetEffectiveScale")

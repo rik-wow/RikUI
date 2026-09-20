@@ -1,6 +1,6 @@
 # UI widgets
 
-`widgets.lua` gives the bars Blizzard's UI widget system draws the flat RikUI
+`src/modules/widgets/widgets.lua` gives the bars Blizzard's UI widget system draws the flat RikUI
 frame: the score and resource bars at the top of the screen in battlegrounds,
 capture bars at world PvP towers and flags, and progress bars in scripted
 events. The widgets stay Blizzard's. Where they appear, what they show and how

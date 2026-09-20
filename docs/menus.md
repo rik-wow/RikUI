@@ -1,6 +1,6 @@
 # Menus
 
-`menus.lua` puts the flat RikUI backing under every menu Blizzard's Menu system
+`src/modules/menus/menus.lua` puts the flat RikUI backing under every menu Blizzard's Menu system
 opens: right-click menus on units, chat names and bags, dropdown lists in the
 options and in Blizzard's windows, and their submenus. The menus stay
 Blizzard's; their rows, checks, arrows and clicks are untouched. Disable the

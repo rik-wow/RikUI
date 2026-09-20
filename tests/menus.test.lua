@@ -35,7 +35,7 @@ return function(check)
         return frame
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "menus.lua" }, profile, false, function()
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/menus/menus.lua" }, profile, false, function()
             EventRegistry = registry()
             if prepare then prepare() end
         end)

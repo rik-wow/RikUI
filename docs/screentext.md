@@ -1,6 +1,6 @@
 # Screen text
 
-`screentext.lua` puts the RikUI font on the text Blizzard writes across the
+`src/modules/screentext/screentext.lua` puts the RikUI font on the text Blizzard writes across the
 middle of the screen: the zone name when you cross a border, the subzone and
 PvP lines under it, the red error line ("Out of range"), the auto-follow
 notice and raid warnings. Fonts only. No frame is moved, hidden or rescripted,

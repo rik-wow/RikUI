@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Real client rendering and combat secrecy require a separate beta observation.
 return function(check)
     local env = require("wow_stub")
@@ -7,11 +8,11 @@ return function(check)
     end
     env.frames, env.printed, env.inCombat = {}, {}, false
     RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-    assert(loadfile("core.lua"))("RikUI", {})
-    assert(loadfile("bars.lua"))("RikUI", {})
+    assert(loadfile("src/core/core.lua"))("RikUI", {})
+    assert(loadfile("src/modules/bars/bars.lua"))("RikUI", {})
     -- Diagnostic-only load avoids needing secure frame creation.
     RikUI.Bars.OnEnable = nil
-    assert(loadfile("bars-state.lua"))("RikUI", {})
+    assert(loadfile("src/modules/bars/bars-state.lua"))("RikUI", {})
     env.fire("ADDON_LOADED", "RikUI")
     local slots = {}
     GetActionCooldown = function(slot) slots.cooldown = slot; return env.SECRET, env.SECRET, 1, env.SECRET end

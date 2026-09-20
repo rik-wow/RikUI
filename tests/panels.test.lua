@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The skinner only ever sees the chrome keys the Mainline window templates share, so the suite
 -- fakes those keys. What the real windows look like, and whether Blizzard resets any stripped
 -- alpha, needs a beta check.
@@ -87,8 +88,8 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua", "panels.lua", "panels-skin.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/panels/panels.lua", "src/modules/panels/panels-skin.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

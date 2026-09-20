@@ -40,7 +40,7 @@ LibDeflate and the remaining class presets are added with their owning chunks.
   drain. Work queued during a drain is appended. Capture arguments in the closure.
 - `RikUI:Print(message)` prefixes a chat line. `RikUI.Data` and `RikUI.Presets`
   are the shared namespaces populated by later data chunks.
-- `RikUI.Hide.Frame(frame, keepEvents)` (from `hide.lua`) is the one helper for
+- `RikUI.Hide.Frame(frame, keepEvents)` (from `src/platform/hide.lua`) is the one helper for
   hiding Blizzard frames. It parks the frame under the hidden
   `RikUIHiddenFrames` container through the combat queue, so the call returns
   `true` immediately and the parent write happens out of combat; the latest
@@ -98,7 +98,7 @@ changes game settings without persisting its snapshot; `/rik apply` saves one
 for `/rik undo`. The corrected 69913 names, bit writes and undo pass harness
 coverage; runtime acceptance still needs a client check.
 
-## Settings store (`store.lua`)
+## Settings store (`src/persistence/store.lua`)
 
 On build 69913 the client was seen (2026-09-20) writing saved variables at
 logout and never reading them back: `RikProbeDB` reported "fresh" on every
@@ -116,7 +116,7 @@ version, the chunk count, the length and a checksum. Every write is read back,
 so a client that truncates a value is noticed at once. `Store.Load(name)`
 checks length and checksum and refuses damaged text.
 
-`core.lua` calls `Store.Restore()` before it merges defaults: `RikUIDB` and
+`src/core/core.lua` calls `Store.Restore()` before it merges defaults: `RikUIDB` and
 `RikUICharDB` are taken from the store only when they are nil, so saved
 variables that did load always win. A restore prints one line at login. The
 account table is stored as `account`; a character's as `char<number>` made from
@@ -135,7 +135,7 @@ Unverified in game: whether a custom CVar survives a full client restart (only
 `/reload` was probed), and the CVar value length limit (180 is a guess that the
 read-back check guards).
 
-### Across a client restart (`store-macros.lua`)
+### Across a client restart (`src/persistence/store-macros.lua`)
 
 Measured with RikProbe after a full exit and relaunch: the registered CVar came
 back empty, while the user-placed frame cache and the account macro kept
@@ -159,7 +159,7 @@ list; and the text is letters, digits and underscore throughout, so a saved
 position is about 30 characters. One entry per character is kept under
 `characters`, and a character's first save keeps the others'.
 
-Macros cannot be read while the addon loads, so `core.lua` asks
+Macros cannot be read while the addon loads, so `src/core/core.lua` asks
 `Store.RestoreLate()` at `PLAYER_LOGIN`, before any module starts, and only
 when neither saved variables nor the CVar tier had anything; it then merges
 defaults and binds the profile again. Writes come from the same five-second

@@ -72,7 +72,7 @@ return function(check)
         end
     end
     local function load(profile, combat, prepare)
-        widgets.loadAddon(env, { "popups.lua", "popups-skin.lua" }, profile, combat, function()
+        widgets.loadAddon(env, { "src/modules/popups/popups.lua", "src/modules/popups/popups-skin.lua" }, profile, combat, function()
             installClient()
             if prepare then prepare() end
         end)

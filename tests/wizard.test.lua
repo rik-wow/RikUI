@@ -6,8 +6,8 @@ return function(check)
     local widgets = require("widget_stub")
     local restore = widgets.install()
     local savedReload, savedSpecial = ReloadUI, UISpecialFrames
-    local FILES = { "data/cvars.lua", "data/layouts.lua", "layout-audit.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua",
-        "layout-presets.lua", "wizard-controls.lua", "wizard.lua" }
+    local FILES = { "data/cvars.lua", "data/layouts.lua", "src/layout/layout-audit.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua",
+        "src/layout/layout-presets.lua", "src/configuration/wizard/wizard-controls.lua", "src/configuration/wizard/wizard.lua" }
     local wizard, applied, reloads
     local function load(character, combat, profile)
         applied, reloads = {}, 0

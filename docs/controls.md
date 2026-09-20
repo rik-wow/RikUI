@@ -1,6 +1,6 @@
 # Window controls
 
-`controls.lua` flattens the controls inside Blizzard's windows: push buttons,
+`src/modules/controls/controls.lua` flattens the controls inside Blizzard's windows: push buttons,
 check boxes, edit boxes, sliders, scrollbars and dropdown buttons. The
 [panel skin](panels.md) only does a window's chrome; this module does what is
 inside it. Disable the `controls` module in `/rik config` and reload for the

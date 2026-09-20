@@ -1,6 +1,6 @@
 # XP and reputation bar
 
-`xpbar.lua` replaces the stock status tracking bars with up to two thin flat
+`src/modules/xpbar/xpbar.lua` replaces the stock status tracking bars with up to two thin flat
 rows: experience while the character is levelling, and the watched faction's
 reputation whenever a faction is watched. `StatusTrackingBarManager` is parked
 through the [shared hide helper](../SDD.md) once the bar exists. Disable the
@@ -25,7 +25,7 @@ Fills use the client's `ExponentialEaseOut` StatusBar interpolation. A row that
 was hidden gets its first value with `Immediate`, so it never sweeps in from a
 stale number. An experience gain (`PLAYER_XP_UPDATE`) plays a 0.25s white flash
 over the row; rested changes do not. A row that appears fades in over 0.15s.
-The tween and easing helpers live in `motion.lua` and are shared with the other
+The tween and easing helpers live in `src/ui/motion.lua` and are shared with the other
 furniture modules.
 
 ## Hover
@@ -44,7 +44,7 @@ above the bar stack; the stance and pet rows already sit there.
 
 ## Stock frames
 
-`bars-stock.lua` used to park `StatusTrackingBarManager` with the main action
+`src/modules/bars/bars-stock.lua` used to park `StatusTrackingBarManager` with the main action
 bar. This module owns it now and parks it only after its own bar is built, with
 events kept and the child containers untouched. `/rik stockbars show` returns
 it (the module follows `bars.UpdateStockVisibility` through a post-hook) and

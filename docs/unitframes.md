@@ -1,6 +1,6 @@
 # Unit frames
 
-`unitframes.lua` and `unitframes-status.lua` replace the Blizzard player,
+`src/modules/unitframes/unitframes.lua` and `src/modules/unitframes/unitframes-status.lua` replace the Blizzard player,
 target, target-of-target and pet frames with flat frames that never branch on
 a unit value. Disable the `unitframes` module in `/rik config` and reload to
 get the Blizzard frames back.
@@ -77,7 +77,7 @@ target frame's right-click menu and watch for "action blocked".
 
 ## Party frames
 
-`unitframes-party.lua` builds four fixed frames for `party1` to `party4`
+`src/modules/unitframes/unitframes-party.lua` builds four fixed frames for `party1` to `party4`
 through the same factory (`UnitFrames.Build`), so clicks, tooltips, colours,
 threat and the secret rules match the player frame. There is no
 `SecureGroupHeaderTemplate`: its `initialConfigFunction` is a secure snippet,
@@ -129,7 +129,7 @@ party frame, and no `Could not register event` line at login.
 
 ## Raid frames
 
-`unitframes-raid.lua` builds forty fixed frames for `raid1` to `raid40` through
+`src/modules/unitframes/unitframes-raid.lua` builds forty fixed frames for `raid1` to `raid40` through
 the same factory, so they get the same clicks, tooltips, class colours, threat
 border and secret-safe sinks. There is no `SecureGroupHeaderTemplate`, for the
 same reason as the party frames. That also fixes the order: slots follow the

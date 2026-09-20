@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Secret unit values must reach the sinks untouched; native rendering, clicks and menus need a beta check.
 return function(check)
     local env = require("wow_stub")
@@ -109,8 +110,8 @@ return function(check)
         env.frames, env.printed, env.inCombat, writes, drivers = {}, {}, false, 0, {}
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         for _, name in ipairs(STOCK) do _G[name] = (not missingStock) and stockFrame(name) or nil end
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

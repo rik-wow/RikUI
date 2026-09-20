@@ -1,6 +1,6 @@
 # World map navigation bar
 
-`worldmap.lua` flattens the breadcrumb bar inside the world map (World >
+`src/modules/worldmap/worldmap.lua` flattens the breadcrumb bar inside the world map (World >
 Eastern Kingdoms > Elwynn Forest). The map's window chrome is covered by the
 [panel skin](panels.md); this module covers what sits inside it. Disable the
 `worldmap` module in `/rik config` and reload for the stock bar.

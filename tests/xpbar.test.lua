@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The bar's numbers may be secret for addon code on 69913 (unverified), so the suite checks both
 -- the readable path and that a secret reaches the StatusBar sinks without arithmetic or a print.
 return function(check)
@@ -95,8 +96,8 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua", "xpbar.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/xpbar/xpbar.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

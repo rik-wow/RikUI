@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Options panel: data-driven controls, keyboard focus, pages from implemented modules, profiles.
 return function(check)
     local env = require("wow_stub")
@@ -38,9 +39,9 @@ return function(check)
         return frame
     end
     CreateFrame = function(...) return instrument(originalCreate(...)) end
-    local FILES = { "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "setup-snapshot.lua",
-        "setup-undo.lua", "setup-levelup.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua", "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "options-widgets.lua",
-        "options-controls.lua", "options.lua" }
+    local FILES = { "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/setup/setup-snapshot.lua",
+        "src/setup/setup-undo.lua", "src/setup/setup-levelup.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/configuration/options/options-widgets.lua",
+        "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua" }
     local function boot(db, character, prepare)
         env.frames, env.printed, env.inCombat, env.shiftDown = {}, {}, false, false
         env.settings = { registered = {}, opened = {} }
@@ -302,9 +303,9 @@ return function(check)
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = { modules = { bars = false } } } }, nil
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "setup-snapshot.lua", "setup-undo.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "bars.lua", "bars-skin.lua", "bars-stock.lua", "options-widgets.lua",
-            "options-controls.lua", "options.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-stock.lua", "src/configuration/options/options-widgets.lua",
+            "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

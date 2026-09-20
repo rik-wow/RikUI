@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Recording widgets for suites that check geometry, colours and animations. install() wraps
 -- CreateFrame so frames answer unknown lowercase fields with nil (the shared stub answers a no-op
 -- function, which makes absent regions look present) and returns a function that undoes the wrap.
@@ -105,8 +106,8 @@ end
 
 -- Fresh addon load for a furniture suite: resets the environment, loads the shared files and the
 -- module's own, then logs in. prepare() runs before the files load, to install or remove client API.
-local SHARED_FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua",
-    "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua" }
+local SHARED_FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+    "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua" }
 
 function stub.loadAddon(env, files, profile, combat, prepare)
     env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}

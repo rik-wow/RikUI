@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The CVar store: RikUI's settings survive a reload on a client that writes saved variables and never
 -- reads them back (seen on 69913, 2026-09-20). The CVar API is faked with a table that outlives the
 -- "reload"; whether a custom CVar survives a full client restart needs a beta check.
@@ -28,8 +29,8 @@ return function(check)
             After = function(seconds, callback) timers[#timers + 1] = { seconds = seconds, run = callback } end }
         UnitName, GetRealmName = function() return "Peepee Jameson" end, function() return "Classic Beta PvE" end
         RikUI, RikUIDB, RikUICharDB = nil, db, charDB
-        assert(loadfile("core.lua"))("RikUI", {})
-        if withStore ~= false then assert(loadfile("store.lua"))("RikUI", {}) end
+        assert(loadfile("src/core/core.lua"))("RikUI", {})
+        if withStore ~= false then assert(loadfile("src/persistence/store.lua"))("RikUI", {}) end
         env.fire("ADDON_LOADED", "RikUI")
         env.fire("PLAYER_LOGIN")
         return RikUI

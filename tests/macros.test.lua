@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Macro service contracts; run through tests/run_tests.lua.
 return function(check)
     local env = require("wow_stub")
@@ -59,8 +60,8 @@ return function(check)
             record.name, record.icon, record.body = name, icon, body
             return sortPool(index > 120, record)
         end
-        assert(loadfile("core.lua"))("RikUI", {})
-        assert(loadfile("macros.lua"))("RikUI", {})
+        assert(loadfile("src/core/core.lua"))("RikUI", {})
+        assert(loadfile("src/character/macros.lua"))("RikUI", {})
         local queue = RikUI.Combat.Queue
         RikUI.Combat.Queue = function(callback)
             queuedCalls = queuedCalls + 1

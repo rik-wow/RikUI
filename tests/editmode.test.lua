@@ -10,7 +10,7 @@ return function(check)
 
     local function load(combat, bare)
         state.active, state.callbacks = false, {}
-        widgets.loadAddon(env, { "editmode.lua" }, nil, combat, function()
+        widgets.loadAddon(env, { "src/platform/editmode.lua" }, nil, combat, function()
             EditModeManagerFrame, EventRegistry = nil, nil
             if bare then return end
             EditModeManagerFrame = CreateFrame("Frame", "EditModeManagerFrame", UIParent)

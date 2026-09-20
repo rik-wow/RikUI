@@ -2,7 +2,7 @@
 
 Blizzard's `ComboFrame` hangs off the `TargetFrame` that the
 [unit frames](unitframes.md) park, so rogues and druids had no combo points
-under RikUI. `combopoints.lua` draws them as five flat pips. Other classes get
+under RikUI. `src/modules/combopoints/combopoints.lua` draws them as five flat pips. Other classes get
 nothing. Disable the `combopoints` module in `/rik config` and reload to drop
 the row.
 

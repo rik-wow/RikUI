@@ -1,6 +1,6 @@
 # Chat bubbles
 
-`chatbubbles.lua` gives the speech bubbles over characters and NPCs the flat
+`src/modules/chatbubbles/chatbubbles.lua` gives the speech bubbles over characters and NPCs the flat
 RikUI look. The engine still creates, places, sizes and removes every bubble.
 Disable the `chatbubbles` module in `/rik config` and reload for the stock
 bubbles.

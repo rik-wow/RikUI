@@ -36,15 +36,15 @@ changes lock everything too.
 
 | File | Role |
 | --- | --- |
-| `layout.lua` | Registry, saved positions, scale, `Apply`, `Reset` |
-| `layout-geometry.lua` | Rectangle arithmetic, no WoW API |
-| `layout-rects.lua` | Rectangles per group, anchor-preserving save, growth room, settle pass |
-| `layout-unlock.lua` | Hold state, lock tags, master tag, unlocked set, `/rik move`, `/rik scale`, `/rik layout`, combat locking |
-| `layout-drag.lua` | Overlay animation, `BeginDrag`/`EndDrag`, snapping, guides, live follow |
+| `src/layout/layout.lua` | Registry, saved positions, scale, `Apply`, `Reset` |
+| `src/layout/layout-geometry.lua` | Rectangle arithmetic, no WoW API |
+| `src/layout/layout-rects.lua` | Rectangles per group, anchor-preserving save, growth room, settle pass |
+| `src/layout/layout-unlock.lua` | Hold state, lock tags, master tag, unlocked set, `/rik move`, `/rik scale`, `/rik layout`, combat locking |
+| `src/layout/layout-drag.lua` | Overlay animation, `BeginDrag`/`EndDrag`, snapping, guides, live follow |
 | `Bindings.xml` | The `RIKUI_UNLOCK` binding; `runOnUp` makes it a hold |
 
 `layout.IsMoving`, `layout.StopMoving` and `layout.RefreshMovers` keep their
-old names (`options.lua`, `core.lua` and `layout.lua` call them): something is
+old names (`src/configuration/options/options.lua`, `src/core/core.lua` and `src/layout/layout.lua` call them): something is
 unlocked, lock everything, and re-place tags and overlays. `/rik layout` prints
 the group count, the unlocked count and the key bound to the hold.
 
@@ -54,7 +54,7 @@ works; report it.
 
 ## Module contract
 
-Load after setup-apply.lua. `RikUI.Layout.Register(frame, key, defaults)`
+Load after src/setup/setup-apply.lua. `RikUI.Layout.Register(frame, key, defaults)`
 registers a persistent frame and applies its current profile position.
 Defaults are `{ point, relativePoint, x, y }`, anchored to `UIParent`.
 The first registration owns the key's defaults; subsequent frames with that
@@ -89,7 +89,7 @@ saved position keys remain untouched.
 
 ## Arrangement: every group is a rectangle
 
-`layout-rects.lua` gives the registry one rule: no two layout groups overlap.
+`src/layout/layout-rects.lua` gives the registry one rule: no two layout groups overlap.
 A group's rectangle is computed from its saved position, its first frame's
 size and the layout scale, never read from the screen, so a group that is
 hidden right now (the target frame without a target, the loot list) still has
@@ -125,7 +125,7 @@ that changed is the one that gives way. `/rik undo` does not cover these moves.
 
 A group registered with `resize = { minWidth, minHeight, maxWidth, maxHeight,
 apply(width, height) }` gets a grip on the bottom right corner of its overlay
-(`layout-resize.lua`). Dragging it keeps the group's top left corner and grows
+(`src/layout/layout-resize.lua`). Dragging it keeps the group's top left corner and grows
 or shrinks the rest, first the height and then the width, each stopping flush
 at the first group in the way (`Geometry.FreeExtent`) or at the screen edge,
 with the overlay's edge red while it is stopped. `apply` is the module's: it
@@ -190,7 +190,7 @@ on 16:10 only 349 units lie between the margin and the bar stack and the pet's
 cast bar starts at 236. On a 1024-wide screen the 604-wide raid grid has no free
 place beside a full chat, so the 4:3 check leaves the raid grid out.
 
-`layout-audit.lua` has `Layouts.Rect(name, key, screen)` and
+`src/layout/layout-audit.lua` has `Layouts.Rect(name, key, screen)` and
 `Layouts.Audit(name, screen)`, pure arithmetic returning sorted issues: a key
 not placed, off screen, under `MARGIN` from an edge, an overlap, neighbours
 under `GAP` apart. Floating windows (tooltip anchor, bags) block nothing; party
@@ -208,7 +208,7 @@ over the screen like a tooltip, so it neither blocks a drag nor is moved.
 The options panel's General page has the same choice as a "Layout preset"
 dropdown; it reads empty once a frame was moved by hand, because
 `layout.MatchingPreset()` compares the saved positions with each layout instead
-of remembering a name. `layout-presets.lua` does the work:
+of remembering a name. `src/layout/layout-presets.lua` does the work:
 `layout.ApplyPreset(name)` refuses combat and unknown names, keeps the old
 positions and chat size in `profile.layoutUndo`, writes a copy of every
 position, locks all frames, then runs `Apply` and the settle pass, so an unusual
@@ -238,7 +238,7 @@ and nothing off screen.
 
 ## Geometry
 
-`layout-geometry.lua` is the arithmetic under the arrangement system. It has no
+`src/layout/layout-geometry.lua` is the arithmetic under the arrangement system. It has no
 WoW API: a rect is `{ left, bottom, right, top }` in UIParent units and a screen
 is `{ width, height }`, so the rule the system rests on, that no two layout
 groups overlap, is proven by tests without a client. Rectangles that only touch

@@ -1,6 +1,6 @@
 # Tooltips
 
-`tooltip.lua` and `tooltip-data.lua` restyle the Blizzard tooltips instead of
+`src/modules/tooltip/tooltip.lua` and `src/modules/tooltip/tooltip-data.lua` restyle the Blizzard tooltips instead of
 replacing them: the client keeps building every line, RikUI moves the tooltip,
 flattens the backdrop, swaps the font, colours the unit name and adds the two
 numbers people always want, item level and spell ID. Disable the `tooltip`

@@ -91,7 +91,7 @@ return function(check)
         window(1, brokenList)
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "editmode.lua", "skin.lua", "controls.lua", "damagemeter.lua" }, profile, false, prepare or installClient)
+        widgets.loadAddon(env, { "src/platform/editmode.lua", "src/ui/skin.lua", "src/modules/controls/controls.lua", "src/modules/damagemeter/damagemeter.lua" }, profile, false, prepare or installClient)
         return RikUI.DamageMeter
     end
     local function anchoredTo(frame, holder)

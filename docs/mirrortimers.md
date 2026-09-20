@@ -1,6 +1,6 @@
 # Mirror timers
 
-`mirrortimers.lua` replaces the breath, fatigue and feign death bars. Up to
+`src/modules/mirrortimers/mirrortimers.lua` replaces the breath, fatigue and feign death bars. Up to
 three flat bars stack at the top of the screen and `MirrorTimerContainer` is
 parked through the shared hide helper once they exist. Disable the
 `mirrortimers` module in `/rik config` and reload to get the stock bars back.

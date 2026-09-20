@@ -33,7 +33,7 @@ return function(check)
         return frame
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "hudframes.lua" }, profile, false, function()
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/hudframes/hudframes.lua" }, profile, false, function()
             queueFrame()
             framerate()
             if prepare then prepare() end

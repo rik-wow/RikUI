@@ -4,7 +4,7 @@
 return function(check)
     local savedAddon = RikUI
     RikUI = {}
-    assert(loadfile("layout-geometry.lua"))("RikUI", {})
+    assert(loadfile("src/layout/layout-geometry.lua"))("RikUI", {})
     local g = RikUI.Geometry
     local SCREEN = { width = 1365, height = 768 }
     local POINTS = { "TOPLEFT", "TOP", "TOPRIGHT", "LEFT", "CENTER", "RIGHT", "BOTTOMLEFT", "BOTTOM", "BOTTOMRIGHT" }

@@ -1,6 +1,6 @@
 # Combat text
 
-`combattext.lua` puts floating combat text in the RikUI font: the scrolling
+`src/modules/combattext/combattext.lua` puts floating combat text in the RikUI font: the scrolling
 text for your own damage taken, heals and gains, and the damage numbers over
 enemies. Fonts only. What is shown, where it scrolls and how crits grow stay
 Blizzard's and the client's settings. Disable the `combattext` module in
@@ -24,7 +24,7 @@ font.
 The obvious place is file load, the earliest moment an addon runs. The module
 flag lives in the saved variables, though, and those arrive with
 `ADDON_LOADED`, after the files have run. So the write happens in an
-`ADDON_LOADED` callback for RikUI itself. `core.lua` registers its own handler
+`ADDON_LOADED` callback for RikUI itself. `src/core/core.lua` registers its own handler
 first and has read the flag by then, which lets a disabled module leave the
 global alone.
 

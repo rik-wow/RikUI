@@ -52,7 +52,7 @@ return function(check)
         return frame
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "worldmap.lua" }, profile, false, function()
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/worldmap/worldmap.lua" }, profile, false, function()
             map()
             if prepare then prepare() end
         end)

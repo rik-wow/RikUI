@@ -42,7 +42,7 @@ return function(check)
         return frame
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "alerts.lua" }, profile, false, function()
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/alerts/alerts.lua" }, profile, false, function()
             AlertFrame_ShowNewAlert = function(frame)
                 frame:Show()
                 frame.animIn:Play()

@@ -1,17 +1,17 @@
 # Chat
 
-`chat.lua` and `chat-copy.lua` keep Blizzard's chat frames (the client owns
+`src/modules/chat/chat.lua` and `src/modules/chat/chat-copy.lua` keep Blizzard's chat frames (the client owns
 message routing, tabs, docking and the edit box logic) and clean up what is
 around them: the RikUI font, no side buttons, a flat edit box, timestamps, a
 copy button on every window and clickable web addresses. Disable the `chat`
 module in `/rik config` and reload to get the stock chat back.
 
-`chat-copy.lua` is a new TOC entry. **Fully exit and restart the client after
+`src/modules/chat/chat-copy.lua` is a new TOC entry. **Fully exit and restart the client after
 updating**, a `/reload` does not pick up new files.
 
 ## One look
 
-`chat-skin.lua` (a new TOC entry, so restart the client once) puts the chat
+`src/modules/chat/chat-skin.lua` (a new TOC entry, so restart the client once) puts the chat
 on the same flat style as the bags, tooltips and minimap. Every piece draws
 from one palette in `chat.Colors` through one helper, `chat.Flat`: dark fill,
 one-pixel border.
@@ -67,7 +67,7 @@ browser for addons, so copying is the whole feature.
 
 ## Lines
 
-`chat-lines.lua` (a new TOC entry, so restart the client once) changes what a
+`src/modules/chat/chat-lines.lua` (a new TOC entry, so restart the client once) changes what a
 line looks like. Each piece has a checkbox on the Chat options page and
 applies without a reload.
 
@@ -107,7 +107,7 @@ switch short tags off and reload.
 
 ## Scrolling, history and typing
 
-`chat-scroll.lua`, `chat-history.lua`, `chat-input.lua` and `chat-size.lua` are
+`src/modules/chat/chat-scroll.lua`, `src/modules/chat/chat-history.lua`, `src/modules/chat/chat-input.lua` and `src/modules/chat/chat-size.lua` are
 new TOC entries, so restart the client once. Each feature has a checkbox on
 the Chat options page and applies without a reload.
 
@@ -136,7 +136,7 @@ the Chat options page and applies without a reload.
 
 ## Controls
 
-`chat-strip.lua`, `chat-tabs.lua` and `chat-clicks.lua` are new TOC entries, so
+`src/modules/chat/chat-strip.lua`, `src/modules/chat/chat-tabs.lua` and `src/modules/chat/chat-clicks.lua` are new TOC entries, so
 restart the client once. Each feature has a checkbox on the Chat options page
 and applies without a reload.
 
@@ -182,7 +182,7 @@ no strip and keeps its edit boxes where they were.
 
 ## The input bar and the window's motion
 
-`chat-editbox.lua` draws the input bar. Readable comes first: the typing area is
+`src/modules/chat/chat-editbox.lua` draws the input bar. Readable comes first: the typing area is
 an opaque dark field (`0.03, 0.035, 0.045` at 0.97) and nothing light ever spans
 it. The channel you are typing on shows in the one-pixel border and in a
 two-pixel accent bar on the left edge, which pulses once when the channel
@@ -191,7 +191,7 @@ glow in around the box in the channel's colour; opening the box fades its art
 in. All of that lives on a child frame of RikUI's own (`box.rikArt`), because
 Blizzard writes the edit box's own alpha when chat activates and deactivates
 (an unfocused IM-style box rests at 0.35), and a tween there would fight it.
-`chat-strip.lua` only tells it which channel the box is on
+`src/modules/chat/chat-strip.lua` only tells it which channel the box is on
 (`chat.PaintEditBox(box, color, key, animate)`). The "Edit box border in the
 channel's colour" option switches border, accent and glow to the neutral grey.
 
@@ -257,7 +257,7 @@ insets from its own selection box (`EditModeSystemMixin:UpdateClampOffsets`),
 which reserves the hidden button column on the left, the tabs and the edit
 box. The client then keeps the window that far from the screen edge: it could
 not be dragged to the left margin, and it no longer stood where its holder and
-overlay were (seen in game on 2026-09-20). `chat-move.lua` sets the insets to
+overlay were (seen in game on 2026-09-20). `src/modules/chat/chat-move.lua` sets the insets to
 zero, switches the window's screen clamping off altogether and answers every
 later write of either; the layout engine keeps the chat on screen itself. Zero
 insets alone were not enough: in game, a chat dragged flush into the bottom left

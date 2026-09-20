@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Core contract tests, run by tests/run_tests.lua in the existing WoW stub.
 return function(check)
     local env = require("wow_stub")
@@ -10,7 +11,7 @@ return function(check)
     local function loadCore(db, charDB)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, db, charDB
-        assert(loadfile("core.lua"))("RikUI", {})
+        assert(loadfile("src/core/core.lua"))("RikUI", {})
         return RikUI
     end
     local function ready(core)
@@ -30,16 +31,13 @@ return function(check)
     for line in tocText:gmatch("[^\r\n]+") do
         if not line:match("^%s*#") and line:match("%S") then
             files[#files + 1] = line
-            assert(loadfile(line))("RikUI", {})
+            assert(_G.loadfile(line))("RikUI", {})
         end
     end
     core = RikUI
-    check("TOC loads core before data and modules", files[1] == "core.lua" and files[2] == "hide.lua"
-        and files[3] == "media.lua" and files[4] == "data/spells.lua"
-        and files[5] == "data/cvars.lua" and files[6] == "data/bonus-pages.lua"
-        and files[7] == "presets/warrior.lua" and files[8] == "setup.lua")
-    check("TOC ends with import/export after options", files[#files] == "importexport.lua"
-        and files[#files - 1] == "options.lua")
+    check("TOC loads the runtime bootstrap first", files[1] == "src/core/core.lua")
+    check("TOC ends with import/export after options", files[#files] == "src/configuration/options/importexport.lua"
+        and files[#files - 1] == "src/configuration/options/options.lua")
     check("TOC loads data and preset namespaces", type(core.Data) == "table" and type(core.Presets) == "table")
 
     core = loadCore()

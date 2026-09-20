@@ -1,8 +1,9 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Warrior preset contracts; run through tests/run_tests.lua.
 return function(check)
     local env = require("wow_stub")
     env.frames, env.printed, env.inCombat = {}, {}, false
-    assert(loadfile("core.lua"))("RikUI", {})
+    assert(loadfile("src/core/core.lua"))("RikUI", {})
     assert(loadfile("data/spells.lua"))("RikUI", {})
 
     -- The class file must load with only its data namespace, without any WoW APIs.
@@ -145,7 +146,7 @@ return function(check)
         end
     end
 
-    assert(loadfile("setup.lua"))("RikUI", {})
+    assert(loadfile("src/setup/setup.lua"))("RikUI", {})
     check("setup exposes a read-only preset validator", RikUI.Setup and type(RikUI.Setup.ValidatePreset) == "function")
     if not RikUI.Setup then return end
     local validate = RikUI.Setup.ValidatePreset

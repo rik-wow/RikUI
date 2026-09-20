@@ -20,7 +20,7 @@ return function(check)
         end
     end
     local function load(class, profile, combat, prepare)
-        widgets.loadAddon(env, { "combopoints.lua" }, profile, combat, function()
+        widgets.loadAddon(env, { "src/modules/combopoints/combopoints.lua" }, profile, combat, function()
             installClient(class or "Rogue")
             if prepare then prepare() end
         end)

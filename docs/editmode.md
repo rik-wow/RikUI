@@ -1,6 +1,6 @@
 # Edit Mode guard
 
-`editmode.lua` keeps Blizzard's Edit Mode from overriding RikUI. Some frames RikUI
+`src/platform/editmode.lua` keeps Blizzard's Edit Mode from overriding RikUI. Some frames RikUI
 sizes or places are Edit Mode systems. Whenever Edit Mode applies a layout (login,
 a spec change, a layout switch, leaving Edit Mode) the system's `UpdateSystem`
 runs `ApplySystemAnchor` and then every `UpdateSystemSetting`, which re-anchors
@@ -29,15 +29,15 @@ reaches Edit Mode's call.
 
 | Frame | Guarded value | Where |
 | --- | --- | --- |
-| `ChatFrame1` | the size saved by RikUI's resize grip | `chat-size.lua` |
-| `ChatFrame1` | its place on the chat holder (a `SetPoint` post-hook that predates the guard) | `chat-move.lua` |
-| `DamageMeter` | hung on `RikUIDamageMeterHolder` | `damagemeter.lua` |
-| `MinimapCluster` | `Minimap`, the mail indicator, the queue button and the tracking frame stay on the RikUI holder; the cluster's header setting re-anchors the indicator | `minimap.lua` |
+| `ChatFrame1` | the size saved by RikUI's resize grip | `src/modules/chat/chat-size.lua` |
+| `ChatFrame1` | its place on the chat holder (a `SetPoint` post-hook that predates the guard) | `src/modules/chat/chat-move.lua` |
+| `DamageMeter` | hung on `RikUIDamageMeterHolder` | `src/modules/damagemeter/damagemeter.lua` |
+| `MinimapCluster` | `Minimap`, the mail indicator, the queue button and the tracking frame stay on the RikUI holder; the cluster's header setting re-anchors the indicator | `src/modules/minimap/minimap.lua` |
 
 Without a saved chat size nothing is enforced and Edit Mode's size stands.
 
 The chat size has a second line of defence, added after the first in-game
-report that the size still reverted on reload: `chat-size.lua` post-hooks the
+report that the size still reverted on reload: `src/modules/chat/chat-size.lua` post-hooks the
 window's own `SetSize`, `SetWidth` and `SetHeight` and answers any size that is
 not the saved one, whoever wrote it and by whatever route. RikUI's own write and
 a drag of RikUI's grip are left alone. A size set while Edit Mode is open (its
@@ -47,7 +47,7 @@ size had been chosen in Edit Mode, where RikUI saved nothing, and Edit Mode
 discarded it on exit (`ExitEditMode` runs `RevertAllChanges`; a Blizzard preset
 layout cannot be changed at all). The revert is then answered like any other
 foreign write. It is the mechanism
-that has kept the window's place since `chat-move.lua` hooked `SetPoint`.
+that has kept the window's place since `src/modules/chat/chat-move.lua` hooked `SetPoint`.
 `/rik debug` prints `Chat size saved=WxH now=WxH guarded=<bool> answered=<n>`:
 `saved=none` means the grip never saved a size, `guarded=false` means the window
 did not carry the Edit Mode methods as its own fields, and `answered` counts
@@ -55,11 +55,11 @@ how often a foreign size was put right.
 
 ## What needs no guard
 
-Every other Edit Mode system RikUI replaces is parked by `hide.lua` (action
+Every other Edit Mode system RikUI replaces is parked by `src/platform/hide.lua` (action
 bars, unit frames, cast bars, buff frames, objective tracker, loot frame, micro
 menu, bags bar, status tracking bars, durability, mirror timers). A parked frame
 has a hidden parent; Edit Mode may move or size it without anything showing, and
-`hide.lua` re-parks a frame Edit Mode re-parents. Frames that are only skinned in
+`src/platform/hide.lua` re-parks a frame Edit Mode re-parents. Frames that are only skinned in
 place (loss of control, extra and zone ability buttons, alerts, banners, the
 vehicle and possess bars) have no RikUI position or size to lose.
 

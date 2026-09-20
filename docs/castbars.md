@@ -1,6 +1,6 @@
 # Castbars
 
-`castbars.lua` and `castbars-status.lua` replace the Blizzard player casting
+`src/modules/castbars/castbars.lua` and `src/modules/castbars/castbars-status.lua` replace the Blizzard player casting
 bar with a flat bar under the player frame and add a second one under the
 target frame. Disable the `castbars` module in `/rik config` and reload to get
 the Blizzard casting bar back.

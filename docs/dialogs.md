@@ -1,6 +1,6 @@
 # Small dialogs
 
-`dialogs.lua` gives the small dialogs the same flat look as the
+`src/modules/dialogs/dialogs.lua` gives the small dialogs the same flat look as the
 [static popups](popups.md): the ready check, the role poll, the stack split
 box, the queue-ready dialogs, the ticket status box, the name autocomplete
 list, old-style dropdown lists, the colour picker, the add-friend box and the

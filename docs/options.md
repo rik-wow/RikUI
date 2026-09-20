@@ -64,9 +64,9 @@ Any module may set `module.Options = { title, settings }`. Each setting is
 `set` may return `nil, reason` to print a refusal. `RikUI.Options.Render(parent,
 specs)` builds a list, `RefreshList(list)` re-reads every getter and predicate,
 and `EnableKeyboard(panel, getRows)` attaches focus handling. Rows and focus
-live in `options-widgets.lua`, the control types in `options-controls.lua`
+live in `src/configuration/options/options-widgets.lua`, the control types in `src/configuration/options/options-controls.lua`
 (`RikUI.Options.Types[type] = { create, refresh, activate, adjust }`), and the
-pages in `options.lua`. Modules that are not loaded declare nothing, so the
+pages in `src/configuration/options/options.lua`. Modules that are not loaded declare nothing, so the
 panel never shows dead controls.
 
 ## Verification and limits

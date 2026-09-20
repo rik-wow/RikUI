@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The strip, the edit box colour, the tab dots and the name clicks all act through Blizzard's own
 -- entry points, which the suite fakes and records. Whether camelot gives each docked window its
 -- own edit box, and whether an invite from addon code is allowed, need a beta check.
@@ -10,10 +11,10 @@ return function(check)
         "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA", "GENERAL_CHAT_DOCK",
         "FCFDock_GetSelectedWindow", "GetChannelList", "IsInGroup", "IsInRaid", "IsInGuild", "C_GuildInfo",
         "C_PartyInfo", "C_FriendList", "IsAltKeyDown", "IsControlKeyDown" }
-    local FILES = { "core.lua", "hide.lua", "editmode.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
-        "chat-move.lua", "chat-lines.lua", "chat-history.lua", "chat-scroll.lua", "chat-size.lua", "chat-input.lua",
-        "chat-editbox.lua", "chat-strip.lua", "chat-tabs.lua", "chat-clicks.lua" }
+    local FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/platform/editmode.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/chat/chat.lua", "src/modules/chat/chat-skin.lua", "src/modules/chat/chat-copy.lua",
+        "src/modules/chat/chat-move.lua", "src/modules/chat/chat-lines.lua", "src/modules/chat/chat-history.lua", "src/modules/chat/chat-scroll.lua", "src/modules/chat/chat-size.lua", "src/modules/chat/chat-input.lua",
+        "src/modules/chat/chat-editbox.lua", "src/modules/chat/chat-strip.lua", "src/modules/chat/chat-tabs.lua", "src/modules/chat/chat-clicks.lua" }
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local state = {}

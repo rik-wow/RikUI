@@ -1,6 +1,6 @@
 # Macro service
 
-`macros.lua` exposes `RikUI.Macros` after core loads. It reads or writes nothing
+`src/character/macros.lua` exposes `RikUI.Macros` after core loads. It reads or writes nothing
 at load time. The service supports the target contract of 120 account macros
 (indices 1–120) and 18 character macros (121–138).
 
@@ -41,7 +41,7 @@ are retained because the client sorts macros. A later insertion may invalidate
 a previously returned index; call Find again immediately before placing a macro.
 
 Apply finishes queued macro work before placing macro actions. Its persistent
-journal in `macros-undo.lua` captures only preset macro names, distinguishes
+journal in `src/character/macros-undo.lua` captures only preset macro names, distinguishes
 original macros from new ones, and records each mutation's pool before writing.
 The Ensure `beforeWrite(index, pool, scope)` hook runs inside its queued callback.
 Undo resolves unique name/pool identities again for each operation, restores

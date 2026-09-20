@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Shared hide helper: reversible parking, combat queueing and native reattachment.
 return function(check)
     local env = require("wow_stub")
@@ -17,8 +18,8 @@ return function(check)
         env.frames, env.inCombat, env.printed = {}, false, {}
         EditModeManagerFrame.hooks.OnShow = nil
         RikUIDB, RikUICharDB = nil, nil
-        assert(loadfile("core.lua"))("RikUI", {})
-        assert(loadfile("hide.lua"))("RikUI", {})
+        assert(loadfile("src/core/core.lua"))("RikUI", {})
+        assert(loadfile("src/platform/hide.lua"))("RikUI", {})
         local hide = RikUI.Hide
         check("helper exposes Frame, Restore and IsHidden", type(hide.Frame) == "function"
             and type(hide.Restore) == "function" and type(hide.IsHidden) == "function")

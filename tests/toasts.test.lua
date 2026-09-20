@@ -46,7 +46,7 @@ return function(check)
         voice.AcceptButton, voice.children[1] = accept, accept
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "skin.lua", "controls.lua", "toasts.lua" }, profile, false, prepare or installClient)
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/controls/controls.lua", "src/modules/toasts/toasts.lua" }, profile, false, prepare or installClient)
         return RikUI.Toasts
     end
     local ok, reason = pcall(function()

@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Fixed party1-4 buttons. Native rendering, clicks, state drivers and secret errors need a beta check.
 return function(check)
     local env = require("wow_stub")
@@ -116,12 +117,12 @@ return function(check)
         env.frames, env.printed, env.inCombat, writes, drivers, templates = {}, {}, false, 0, {}, {}
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         for _, name in ipairs(STOCK) do _G[name] = (not missingStock) and stockFrame(name) or nil end
-        for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "unitframes.lua", "unitframes-status.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         -- A missing implementation is a red assertion rather than a crashed suite.
-        local chunk = loadfile("unitframes-party.lua")
+        local chunk = loadfile("src/modules/unitframes/unitframes-party.lua")
         if chunk then chunk("RikUI", {}) end
         env.fire("ADDON_LOADED", "RikUI")
         env.inCombat = combat == true
@@ -144,7 +145,7 @@ return function(check)
         fixture()
         local module = load()
         local party = module.Party
-        assert(party, "unitframes-party.lua did not register UnitFrames.Party")
+        assert(party, "src/modules/unitframes/unitframes-party.lua did not register UnitFrames.Party")
         local holder, frames = party.Holder, party.Frames
         local one, two, three, four = frames[1], frames[2], frames[3], frames[4]
         check("four fixed secure unit buttons exist for party1-4", one and two and three and four

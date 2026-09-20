@@ -18,7 +18,7 @@ return function(check)
         return object
     end
     local function load(profile, prepare)
-        widgets.loadAddon(env, { "combattext.lua" }, profile, false, function()
+        widgets.loadAddon(env, { "src/modules/combattext/combattext.lua" }, profile, false, function()
             CombatTextFont, DAMAGE_TEXT_FONT = fontObject(25), STOCK
             if prepare then prepare() end
         end)

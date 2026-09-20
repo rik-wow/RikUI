@@ -1,6 +1,6 @@
 # Extra buttons
 
-`extrabuttons.lua` gives the action buttons outside RikUI's bars the bar look:
+`src/modules/extrabuttons/extrabuttons.lua` gives the action buttons outside RikUI's bars the bar look:
 the extra action button (quest and encounter abilities), the zone ability
 buttons and the spell flyout. Disable the `extrabuttons` module in
 `/rik config` and reload for the stock buttons.

@@ -25,7 +25,7 @@ return function(check)
         }
     end
     local function load(profile, combat, prepare)
-        widgets.loadAddon(env, { "swingtimer.lua" }, profile, combat, function()
+        widgets.loadAddon(env, { "src/modules/swingtimer/swingtimer.lua" }, profile, combat, function()
             installClient()
             if prepare then prepare() end
         end)

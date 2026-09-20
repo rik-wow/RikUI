@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The four whole-screen layouts are data; this suite is what keeps them clean: every key placed, no
 -- overlap, neighbours at least GAP apart and everything at least MARGIN from the screen edge, on
 -- three aspect ratios. UIParent is always 768 high at the default UI scale, so only the width moves.
@@ -16,7 +17,7 @@ return function(check)
     local function loadData()
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "core.lua", "layout-geometry.lua", "data/layouts.lua", "layout-audit.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/layout/layout-geometry.lua", "data/layouts.lua", "src/layout/layout-audit.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         return RikUI.Layouts

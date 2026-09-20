@@ -1,3 +1,4 @@
+local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- The driver evaluator is a test model, not evidence of protected client behavior.
 return function(check)
     local env = require("wow_stub")
@@ -48,8 +49,8 @@ return function(check)
                 point = "BOTTOM", relativePoint = "BOTTOM", x = 31, y = 59,
             } }, scale = 0.75,
         } } }, nil
-        for _, file in ipairs({ "core.lua", "media.lua", "setup.lua", "setup-apply.lua", "data/bonus-pages.lua",
-            "layout-geometry.lua", "layout.lua", "layout-rects.lua", "bars.lua", "bars-skin.lua", "bars-paging.lua", "bars-stock.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "data/bonus-pages.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-paging.lua", "src/modules/bars/bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

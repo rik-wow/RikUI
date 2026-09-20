@@ -1,7 +1,7 @@
 # Loot
 
-`loot.lua` replaces Blizzard's loot window with a compact flat list and
-`loot-rolls.lua` gives the group roll frames the same skin. The stock
+`src/modules/loot/loot.lua` replaces Blizzard's loot window with a compact flat list and
+`src/modules/loot/loot-rolls.lua` gives the group roll frames the same skin. The stock
 `LootFrame` is parked through the [shared hide helper](../SDD.md). Disable the
 `loot` module in `/rik config` and reload to get the stock window back.
 

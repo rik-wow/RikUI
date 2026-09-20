@@ -19,7 +19,7 @@ return function(check)
         }
     end
     local function load(profile, combat, prepare)
-        widgets.loadAddon(env, { "skin.lua", "questtimers.lua" }, profile, combat, function()
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/questtimers/questtimers.lua" }, profile, combat, function()
             installClient()
             if prepare then prepare() end
         end)

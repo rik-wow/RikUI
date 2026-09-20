@@ -82,12 +82,12 @@ the fade hooks and are not protected, so they work in combat.
 
 ## Shared media and flat skin
 
-`media.lua` exports `RikUI.Media.font`, `statusbar`, `border`,
+`src/ui/media.lua` exports `RikUI.Media.font`, `statusbar`, `border`,
 `checked` and `highlight` paths. The bundled font is static hinted Noto Sans
 Regular; [media/LICENSES.md](../media/LICENSES.md) records the full provenance.
 Fully exit and restart WoW when installing new media; a reload may not find it.
 
-`bars-skin.lua` decorates every new fixed-slot, manual-page, bonus, stance and
+`src/modules/bars/bars-skin.lua` decorates every new fixed-slot, manual-page, bonus, stance and
 pet button. Icons are inset one UI unit and cropped to 0.07–0.93; four
 one-unit edges form the flat border. Buttons have no native normal art.
 Hover and mouse press use the bundled translucent texture. Hotkey/count
@@ -148,7 +148,7 @@ Primary API references used for the skin:
 
 ## Action button state
 
-`bars-state.lua` adds state to every fixed action-slot button in the five bars
+`src/modules/bars/bars-state.lua` adds state to every fixed action-slot button in the five bars
 and their bonus overlays. It uses per-slot `C_ActionBar.GetActionCooldownDuration`
 and `GetActionChargeDuration`, so macro and item cooldowns do not depend on
 guessing a spell ID. Objects go straight into `SetCooldownFromDurationObject`.
@@ -229,7 +229,7 @@ is inferred from form index or copied from another client. Missing mappings
 are tracked as backlog `bars-stance-beta-coverage`; the current base row is not
 a correct substitute for an unrecorded bonus page.
 
-`bars-paging.lua` creates fixed overlays and registers only visibility drivers.
+`src/modules/bars/bars-paging.lua` creates fixed overlays and registers only visibility drivers.
 Its `[bar:1,bonusbar:N]` conditions respect the native controller's rule that
 bonus pages apply only while selected page 1 is active. Each manual overlay
 uses `[bar:N] show; hide`; the base hides whenever a manual or recorded bonus
@@ -258,7 +258,7 @@ All page frames and drivers are installed out of combat through the existing
 queue. Subsequent page transitions use the native visibility driver, with no
 addon page-event handler changing protected attributes or showing/hiding bars.
 
-`bars-controls.lua` uses the shared button art and validated profile layout.
+`src/modules/bars/bars-controls.lua` uses the shared button art and validated profile layout.
 The stance row shows learned forms and an active highlight; its left clicks
 cast the spell ID returned by GetShapeshiftFormInfo. The pet row has ten fixed
 pet actions, active highlights, an autocast-available border and an enabled
@@ -310,7 +310,7 @@ belong to the separate multibar.
 
 ## Stock action bars
 
-`bars-stock.lua` parks MainActionBar and the four replaced MultiBar roots
+`src/modules/bars/bars-stock.lua` parks MainActionBar and the four replaced MultiBar roots
 through the shared `RikUI.Hide.Frame` helper (see [core](core.md)), always
 with `keepEvents` true. MainActionBar includes its gryphons (`EndCaps`) and
 page arrows (`ActionBarPageNumber`); the legacy MainMenuBarArtFrame is parked
