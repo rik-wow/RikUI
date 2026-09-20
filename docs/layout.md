@@ -116,6 +116,20 @@ frames are still registering. It waits out combat through `core.Combat.Queue`,
 prints one line naming what it moved, and never moves a neighbour: the frame
 that changed is the one that gives way. `/rik undo` does not cover these moves.
 
+### Frames the player resizes
+
+A group registered with `resize = { minWidth, minHeight, maxWidth, maxHeight,
+apply(width, height) }` gets a grip on the bottom right corner of its overlay
+(`layout-resize.lua`). Dragging it keeps the group's top left corner and grows
+or shrinks the rest, first the height and then the width, each stopping flush
+at the first group in the way (`Geometry.FreeExtent`) or at the screen edge,
+with the overlay's edge red while it is stopped. `apply` is the module's: it
+sizes its own frames and keeps the size. The place is saved on the group's own
+anchor on release, and combat ends a resize where it stands. The chat window is
+the first user. `onUnlock(open)` tells a module with a lock control of its own
+(the chat's padlock) when its group is unlocked or locked, and
+`layout.SetUnlocked(key, open)` lets that control toggle the same state.
+
 ### Frames that change size
 
 Two behaviours, chosen by whether hiding content costs the player anything.

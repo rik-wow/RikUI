@@ -8,7 +8,7 @@ return function(check)
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA",
         "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA", "ItemRefTooltip", "RikUIChatCopy" }
     local FILES = { "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua", "chat-move.lua" }
+        "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "layout-resize.lua", "editmode.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua", "chat-move.lua", "chat-size.lua" }
     local STOCK_FONT, URL = "Fonts\\FRIZQT__.TTF", "https://example.com/a?b=1"
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
@@ -39,6 +39,12 @@ return function(check)
         function frame:GetParent() return self.parent end
         function frame:SetSize(w, h) self.width, self.height = w, h end
         function frame:SetHeight(h) self.height = h end
+        function frame:SetWidth(w) self.width = w end
+        function frame:SetFrameStrata(strata) self.strata = strata end
+        function frame:GetFrameStrata() return self.strata or "LOW" end
+        function frame:GetSize() return self.width, self.height end
+        function frame:GetWidth() return self.width end
+        function frame:GetHeight() return self.height end
         function frame:SetPoint(...) self.points = self.points or {}; table.insert(self.points, { ... }) end
         function frame:ClearAllPoints() self.points = nil end
         function frame:SetAlpha(alpha) self.alpha = alpha end
@@ -250,7 +256,7 @@ return function(check)
         end)
         check("missing link APIs print one line each and the rest still applies", printedContains("Chat links")
             and printedContains("Chat clicks") and #env.printed == 2 and ChatFrame1.fontPath == RikUI.Media.font
-            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 4)
+            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 8)
         check("without Blizzard's size function SetFontSize writes the fonts itself", module.SetFontSize(15) == true
             and ChatFrame3.fontSize == 15 and ChatFrame3EditBox.fontSize == 15)
 
@@ -289,83 +295,121 @@ return function(check)
         check("a profile without the panel still loses Blizzard's art", not ChatFrame1.rikPanel:IsShown()
             and not ChatFrame1Background:IsShown())
 
-        module = load()
-        local tab = ChatFrame1Tab
-        ChatFrame1.centerX, ChatFrame1.centerY = 200, 150
-        check("the main chat window starts locked and untouched", RikUI.Profile.chat.locked == true
-            and ChatFrame1.points == nil and module.Holder == nil and RikUI.Layout.Groups.chat == nil)
+        -- The main window is a layout group from login on. UIParent is 1365x768; the window is 430x180.
+        local savedWidth, savedHeight, savedCursor = UIParent.GetWidth, UIParent.GetHeight, GetCursorPosition
+        UIParent.GetWidth, UIParent.GetHeight = function() return 1365 end, function() return 768 end
+        local cursor = { 0, 0 }
+        GetCursorPosition = function() return cursor[1], cursor[2] end
+        local function sized() ChatFrame1.width, ChatFrame1.height = 430, 180 end
+        local function tick() env.runScript(RikUI.Layout.DragDriver, "OnUpdate", 0.016) end
+        module = load(nil, false, sized)
+        env.fire("PLAYER_ENTERING_WORLD")
+        local tab, holder, layout = ChatFrame1Tab, module.Holder, RikUI.Layout
+        local group = layout.Groups.chat
+        check("the main chat window is a layout group from the first login, with the window's own size", holder ~= nil
+            and group ~= nil and group.frames[1] == holder and group.label == "Chat" and holder.width == 430
+            and holder.height == 180 and RikUI.Profile.chat.size.width == 430)
+        check("the window is centred on its holder", #ChatFrame1.points == 1 and ChatFrame1.points[1][1] == "CENTER"
+            and ChatFrame1.points[1][2] == holder)
+        check("the group can be resized within the chat's bounds", type(group.resize) == "table"
+            and group.resize.minWidth == 250 and group.resize.maxHeight == 800)
         env.runScript(tab, "OnDragStart")
-        check("dragging the tab of a locked window does nothing", module.Holder == nil and ChatFrame1.points == nil)
+        check("dragging the tab of a locked window does nothing", not layout.IsDragging() and not layout.IsUnlocked("chat"))
         env.printed = {}
         SlashCmdList.RIKUI("chat unlock")
-        check("/rik chat unlock saves the flag and says how to drag", RikUI.Profile.chat.locked == false
-            and printedContains("drag") and not RikUI.Layout.IsMoving())
+        check("/rik chat unlock unlocks the chat's layout group and says how to move and resize it",
+            layout.IsUnlocked("chat") and printedContains("drag") and printedContains("grip"))
+        local overlay = layout.Overlays.chat
+        check("the unlocked chat has the arrangement system's overlay and resize grip", overlay ~= nil and overlay:IsShown()
+            and overlay.grip ~= nil)
+        local before = layout.Rect("chat")
+        cursor = { 500, 400 }
         env.runScript(tab, "OnDragStart")
-        local holder = module.Holder
-        check("an unlocked tab drag puts a holder on the window's centre and moves it", holder ~= nil
-            and holder.moving == true and holder.movable == true and ChatFrame1.points[1][1] == "CENTER"
-            and ChatFrame1.points[1][2] == holder and #ChatFrame1.points == 1)
-        holder.centerX, holder.centerY = 500, 380
+        cursor = { 540, 430 }
+        tick()
         env.runScript(tab, "OnDragStop")
-        local dropped = RikUIDB.profiles.Default.positions.chat
-        check("the drop is saved in the profile and registered with the layout", holder.moving == false
-            and type(dropped) == "table" and dropped.point == "CENTER" and dropped.x == 100 and dropped.y == 80
-            and RikUI.Layout.Groups.chat.frames[1] == holder and holder.points[1][4] == 100)
+        local after, dropped = layout.Rect("chat"), RikUIDB.profiles.Default.positions.chat
+        check("an unlocked tab drag moves the chat through the drag engine and saves the drop", not layout.IsDragging()
+            and type(dropped) == "table" and math.abs(after.left - before.left - 40) < 0.01
+            and math.abs(after.bottom - before.bottom - 30) < 0.01)
+        cursor = { after.right, after.bottom }
+        env.runScript(overlay.grip, "OnMouseDown", "LeftButton")
+        cursor = { after.right + 70, after.bottom - 20 }
+        env.runScript(layout.ResizeDriver, "OnUpdate", 0.016)
+        env.runScript(overlay.grip, "OnMouseUp", "LeftButton")
+        check("the grip resizes the window and its holder and saves the size", RikUI.Profile.chat.size.width == 500
+            and RikUI.Profile.chat.size.height == 200 and ChatFrame1.width == 500 and holder.height == 200
+            and math.abs(layout.Rect("chat").left - after.left) < 0.01)
         ChatFrame1:ClearAllPoints()
         ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 32, 95)
         check("an Edit Mode re-anchor is answered by putting the window back on the holder",
             #ChatFrame1.points == 1 and ChatFrame1.points[1][2] == holder)
         SlashCmdList.RIKUI("chat lock")
         env.runScript(tab, "OnDragStart")
-        check("/rik chat lock stops further drags", RikUI.Profile.chat.locked == true and holder.moving == false)
+        check("/rik chat lock locks the group and stops further drags", not layout.IsUnlocked("chat")
+            and not layout.IsDragging() and not overlay:IsShown())
         SlashCmdList.RIKUI("chat reset")
-        check("/rik chat reset forgets the position", RikUIDB.profiles.Default.positions.chat == nil
-            and printedContains("reload"))
+        check("/rik chat reset forgets the place and the size and says so", RikUIDB.profiles.Default.positions.chat == nil
+            and printedContains("default place") and RikUI.Profile.chat.size ~= nil)
         SlashCmdList.RIKUI("chat sideways")
         check("an unknown chat argument prints the usage", printedContains("Usage: /rik chat"))
 
-        module = load()
+        module = load(nil, false, sized)
+        env.fire("PLAYER_ENTERING_WORLD")
+        layout = RikUI.Layout
         local lock, copy = rawget(ChatFrame1, "rikLock"), rawget(ChatFrame1, "rikCopy")
-        ChatFrame1.centerX, ChatFrame1.centerY = 200, 150
         check("the main window has a lock button left of its copy button, other windows do not", lock ~= nil
             and lock.parent == ChatFrame1 and lock.points[1][1] == "TOPRIGHT"
             and lock.points[1][4] < copy.points[1][4] and rawget(ChatFrame2, "rikLock") == nil)
         check("a locked button rests dim with a closed white shackle", lock.alpha == 0.35
             and lock.shackle.color[3] == 1 and lock.shackle.point[4] == 0)
         env.runScript(lock, "OnDragStart")
-        check("dragging a locked button does nothing", module.Holder == nil)
+        check("dragging a locked button does nothing", not layout.IsDragging())
         env.click(lock)
-        check("a click unlocks: saved flag, full alpha, gold open shackle", RikUI.Profile.chat.locked == false
+        check("a click unlocks the layout group: full alpha, gold open shackle", layout.IsUnlocked("chat")
             and lock.alpha == 1 and lock.shackle.color[3] < 1 and lock.shackle.point[4] > 0)
+        check("the open padlock rises above the overlay that covers the window, so it can lock again",
+            lock.strata == "FULLSCREEN_DIALOG" and layout.Overlays.chat.strata == "DIALOG")
+        env.click(lock)
+        check("a second click locks and the padlock goes back to the window's strata", not layout.IsUnlocked("chat")
+            and lock.strata == "LOW" and lock.alpha == 0.35)
+        env.click(lock)
         env.runScript(lock, "OnEnter")
         check("hovering explains the button", GameTooltip:IsShown() and lock.alpha == 1)
         env.runScript(lock, "OnLeave")
         check("an unlocked button stays bright after the cursor leaves", lock.alpha == 1)
+        cursor = { 300, 300 }
         env.runScript(lock, "OnDragStart")
-        module.Holder.centerX, module.Holder.centerY = 500, 380
+        check("dragging the unlocked button drags the chat", layout.IsDragging())
         env.runScript(lock, "OnDragStop")
-        check("dragging the unlocked button moves the window and saves the drop", module.Holder.moving == false
-            and ChatFrame1.points[1][2] == module.Holder and RikUIDB.profiles.Default.positions.chat.x == 100)
+        layout.LockAll()
+        check("locking every frame from the arrangement system dims the padlock too", lock.alpha == 0.35
+            and lock.shackle.point[4] == 0)
+        layout.UnlockAll()
+        check("and unlocking every frame opens it", lock.alpha == 1)
+        env.inCombat = true
+        env.fire("PLAYER_REGEN_DISABLED")
+        env.printed = {}
         env.click(lock)
-        check("a second click locks again and dims the button", RikUI.Profile.chat.locked == true
-            and lock.alpha == 0.35 and lock.shackle.point[4] == 0)
-        SlashCmdList.RIKUI("chat unlock")
-        check("the slash command keeps the button in step", lock.alpha == 1)
+        check("in combat the padlock says why it stays locked", not layout.IsUnlocked("chat") and printedContains("combat"))
+        env.inCombat = false
 
-        module = load({ positions = { chat = { point = "CENTER", relativePoint = "CENTER", x = 100, y = 80 } } })
+        module = load({ positions = { chat = { point = "CENTER", relativePoint = "CENTER", x = 100, y = 80 } } }, false, sized)
         check("a saved position is applied at the next login", module.Holder ~= nil
-            and module.Holder.points[1][4] == 100 and module.Holder.points[1][5] == 80
+            and module.Holder.points[#module.Holder.points][4] == 100 and module.Holder.points[#module.Holder.points][5] == 80
             and ChatFrame1.points[1][2] == module.Holder)
-        module = load({ positions = { chat = { point = "CENTER", relativePoint = "CENTER", x = 100, y = 80 } } }, true)
+        module = load({ positions = { chat = { point = "CENTER", relativePoint = "CENTER", x = 100, y = 80 } } }, true, sized)
         check("a combat login leaves the window alone until the holder is placed", ChatFrame1.points == nil)
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
-        check("leaving combat places the holder, then the window", module.Holder.points[1][4] == 100
+        check("leaving combat places the holder, then the window", module.Holder.points[#module.Holder.points][4] == 100
             and ChatFrame1.points[1][2] == module.Holder)
+        UIParent.GetWidth, UIParent.GetHeight, GetCursorPosition = savedWidth, savedHeight, savedCursor
 
         module = load({ modules = { chat = false } })
         env.runScript(ChatFrame1Tab, "OnDragStart")
-        check("a disabled module never moves the chat window", ChatFrame1.points == nil and module.Holder == nil)
+        check("a disabled module never takes the chat window over", ChatFrame1.points == nil and module.Holder == nil
+            and RikUI.Layout.Groups.chat == nil)
         check("a disabled module leaves fonts, buttons, tabs, timestamps, filters and hooks untouched",
             ChatFrame1.fontPath == STOCK_FONT and ChatFontNormal.fontPath == nil
             and ChatFrame1ButtonFrame.parent == ChatFrame1 and ChatFrame1EditBoxLeft.alpha == nil

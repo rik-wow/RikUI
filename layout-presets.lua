@@ -16,7 +16,8 @@ function layout.ChatSize(screen)
     return { width = width, height = layouts.Sizes.chat.height }
 end
 
--- A copy of a layout's positions for this screen: the chat holder is the window's centre.
+-- A copy of a layout's positions for this screen: the chat holder is the window's centre, so its
+-- place follows the width a layout gives the chat here.
 function layout.PresetPositions(name)
     local entry = layouts[name]
     if type(entry) ~= "table" or type(entry.positions) ~= "table" then return nil end
@@ -80,7 +81,8 @@ function layout.ApplyPreset(name)
     local chat = chatSettings()
     core.Profile.layoutUndo = { positions = copy(core.Profile.positions), chatSize = copy(chat.size) or false }
     for key, position in pairs(positions) do core.Profile.positions[key] = position end
-    if type(chat.size) ~= "table" then chat.size = layout.ChatSize(layout.Screen()) end
+    -- The chat is part of a layout: it gets the layout's size, and undo brings the old one back.
+    chat.size = layout.ChatSize(layout.Screen())
     refresh()
     core:Print("Layout: " .. layouts[name].label .. ". /rik layout undo reverts it; hold the lock key to move a frame.")
     return true

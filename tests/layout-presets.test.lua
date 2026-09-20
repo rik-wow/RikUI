@@ -69,7 +69,10 @@ return function(check)
 
         load({ chat = { size = { width = 500, height = 220 } } }, 1228)
         layout.ApplyPreset("hud")
-        check("a chat size the player chose is kept", RikUI.Profile.chat.size.width == 500)
+        check("the chat is part of a layout: it gets the layout's size", RikUI.Profile.chat.size.width == 345)
+        layout.UndoPreset()
+        check("and undo brings the player's own size back", RikUI.Profile.chat.size.width == 500
+            and RikUI.Profile.chat.size.height == 220)
         load(nil, 1228)
         layout.ApplyPreset("hud")
         check("on 16:10 the chat narrows to the room beside the bars", RikUI.Profile.chat.size.width == 345

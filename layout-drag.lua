@@ -56,6 +56,7 @@ local function newOverlay(key)
     overlay:SetScript("OnMouseUp", function(_, button) if button == "LeftButton" then layout.EndDrag() end end)
     overlay:Hide()
     layout.Overlays[key] = overlay
+    if layout.AddGrip then layout.AddGrip(overlay, key) end
     return overlay
 end
 
@@ -133,6 +134,16 @@ local function follow(key, rect)
     if layout.Overlays[key] then place(layout.Overlays[key], rect) end
 end
 
+layout.Follow = follow
+
+-- The overlay's edge turns red while something is in the way of a drag or a resize.
+function layout.MarkBlocked(key, blocked)
+    local overlay = layout.Overlays[key]
+    if not overlay or overlay.blocked == blocked then return end
+    overlay.blocked = blocked
+    paintEdge(overlay, blocked and BLOCKED or ACCENT)
+end
+
 local function step()
     if not drag or InCombatLockdown() then return end
     local x, y = cursorPosition()
@@ -149,18 +160,14 @@ local function step()
     drag.last = rect
     showGuides(blocked and {} or guides, drag.screen)
     follow(drag.key, rect)
-    local overlay = layout.Overlays[drag.key]
-    if overlay and overlay.blocked ~= blocked then
-        overlay.blocked = blocked
-        paintEdge(overlay, blocked and BLOCKED or ACCENT)
-    end
+    layout.MarkBlocked(drag.key, blocked)
 end
 
 -- Starts dragging a group by the cursor. The overlay calls this, and so do frames that are dragged
 -- by a handle of their own (the bag header, the chat tab).
 function layout.BeginDrag(key)
     local rect, screen = layout.Rect(key), layout.Screen()
-    if drag or InCombatLockdown() or not rect or not screen or not core.Profile then return false end
+    if drag or (layout.IsResizing and layout.IsResizing()) or InCombatLockdown() or not rect or not screen or not core.Profile then return false end
     local x, y = cursorPosition()
     drag = { key = key, start = rect, last = rect, cursorX = x, cursorY = y, screen = screen,
         obstacles = layout.Obstacles(key) }
@@ -174,11 +181,7 @@ function layout.EndDrag()
     drag = nil
     guide("x"):Hide()
     guide("y"):Hide()
-    local overlay = layout.Overlays[key]
-    if overlay and overlay.blocked then
-        overlay.blocked = false
-        paintEdge(overlay, ACCENT)
-    end
+    layout.MarkBlocked(key, false)
     layout.SaveRect(key, rect, core.Profile)
     layout.Apply()
 end

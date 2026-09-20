@@ -1,23 +1,29 @@
--- Moving the main chat window without Edit Mode or /rik move. On 69913 ChatFrame1 is an Edit Mode
--- system: its tab's drag handler returns early ("Default frame is managed via edit mode"), while
--- undocked windows still lock, unlock and drag from their own tab menu. RikUI adds the missing
--- piece: with the window unlocked, dragging the ChatFrame1 tab moves a small holder the window is
--- centred on. Docked tabs and the edit box follow the window. The drop is saved under the layout
--- key chat, and the window is only ever touched once a position has been saved. Nothing here is
--- protected, so it also works in combat.
+-- The main chat window is a member of RikUI's arrangement system like every other frame. On 69913
+-- ChatFrame1 is an Edit Mode system (its tab's drag handler returns early, "Default frame is managed
+-- via edit mode"), so RikUI takes the window over from the first login: it is centred on a holder of
+-- its own size, the holder is a layout group under the key chat, and the window gets the lock tag,
+-- the overlay, the drag engine and the resize grip of the arrangement system. The padlock on the
+-- window and dragging its first tab are shortcuts onto the same unlock state and the same drag.
+-- Edit Mode re-anchoring the window is answered by putting it back on the holder. Nothing here is
+-- protected.
 local core, layout = RikUI, RikUI.Layout
 local chat = core.Chat
 
-local HOLDER_NAME, KEY, HOLDER_SIZE = "RikUIChatHolder", "chat", 2
+local HOLDER_NAME, KEY = "RikUIChatHolder", "chat"
 local MAIN, TAB = "ChatFrame1", "ChatFrame1Tab"
 local USAGE = "Usage: /rik chat lock|unlock|reset"
-local UNLOCKED = "Chat unlocked: drag the padlock button or the first chat tab, then click the padlock to lock."
-local RESET = "Chat position forgotten; reload to hand the window back to Blizzard's layout."
+local UNLOCKED = "Chat unlocked: drag it by its overlay, its first tab or the padlock; resize it by the corner grip. "
+    .. "Click the padlock to lock."
+local RESET = "Chat window back at its default place and size."
 local TIP_LOCKED, TIP_UNLOCKED = "Click to unlock the chat window", "Drag to move the chat window. Click to lock."
 -- The copy button takes the corner (16 wide, inset 2); the padlock sits two pixels left of it.
 local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, SHACKLE_SWING = 16, 20, 2, 0.35, 3
 local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
-local holder, lockButton, adopted, anchoring, dragging, engine = nil, nil, false, false, false, false
+-- The overlay of an unlocked group is a DIALOG frame over the whole window; the open padlock sits above it.
+local OPEN_STRATA = "FULLSCREEN_DIALOG"
+local holder, lockButton, anchoring, dragging = nil, nil, false, false
+
+local function isLocked() return not (layout.IsUnlocked and layout.IsUnlocked(KEY)) end
 
 local function anchor()
     local frame = _G[MAIN]
@@ -32,83 +38,11 @@ end
 
 -- Edit Mode re-anchors its systems whenever a layout is applied; the window goes back on the holder.
 local function onNativePoint()
-    if adopted and not anchoring then anchor() end
+    if holder and not anchoring then anchor() end
 end
-
-local function ensureHolder()
-    if holder then return end
-    holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
-    holder:SetSize(HOLDER_SIZE, HOLDER_SIZE)
-    holder:SetMovable(true)
-    chat.Holder = holder
-    hooksecurefunc(_G[MAIN], "SetPoint", onNativePoint)
-end
-
--- First move only: the holder starts on the window's centre, wherever Edit Mode put it.
-local function placeOnWindow()
-    local x, y = _G[MAIN]:GetCenter()
-    if not x or not y then return false end
-    local ratio = _G[MAIN]:GetEffectiveScale() / holder:GetEffectiveScale()
-    holder:ClearAllPoints()
-    holder:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x * ratio, y * ratio)
-    return true
-end
-
-local function adopt()
-    if adopted then return true end
-    ensureHolder()
-    if not placeOnWindow() then return false end
-    adopted = true
-    anchor()
-    return true
-end
-
-local function dragStart()
-    if dragging or chat.Settings().locked ~= false then return end
-    if not adopt() then
-        chat.Warn("move", "chat window position unavailable")
-        return
-    end
-    dragging = true
-    -- Once the window has a saved place the arrangement engine drags it; the first drag, and any
-    -- drag in combat, is the client's, and the drop is settled when it registers.
-    engine = layout.BeginDrag ~= nil and layout.BeginDrag(KEY) == true
-    if not engine then holder:StartMoving() end
-end
-
-local function saveDrop()
-    if not layout.SaveCenter(KEY, holder, core.Profile) then return false end
-    layout.Register(holder, KEY, core.Profile.positions[KEY])
-    layout.Apply()
-    return true
-end
-
-local function dragStop()
-    if not dragging then return end
-    dragging = false
-    if engine then
-        engine = false
-        layout.EndDrag()
-        return
-    end
-    holder:StopMovingOrSizing()
-    if not saveDrop() then chat.Warn("move", "drop position unavailable") end
-end
-
--- After a resize the window's centre has moved: the holder goes back under it and the drop is saved.
-function chat.AdoptCurrent()
-    ensureHolder()
-    if not placeOnWindow() then return false end
-    adopted = true
-    anchor()
-    return saveDrop()
-end
-
-local function isLocked() return chat.Settings().locked ~= false end
 
 -- Padlock glyph: the shackle sits over the body when locked and swings right, in gold, when open.
 local function refreshLock()
-    if chat.RefreshGrip then chat.RefreshGrip() end
     if not lockButton then return end
     local locked = isLocked()
     local color = locked and LOCKED_COLOR or UNLOCKED_COLOR
@@ -117,11 +51,66 @@ local function refreshLock()
     lockButton.body:SetVertexColor(color[1], color[2], color[3], 1)
     lockButton.rest = locked and LOCK_ALPHA or 1
     lockButton:SetAlpha(lockButton.rest)
+    lockButton:SetFrameStrata(locked and lockButton.homeStrata or OPEN_STRATA)
+end
+
+-- A new character's chat starts with the size a whole-screen layout gives it; without the layouts
+-- (or a screen size) the window keeps the size it has.
+local function firstSize()
+    if chat.SavedSize and chat.SavedSize() then return end
+    local fitted = layout.ChatSize and layout.Screen and layout.Screen() and layout.ChatSize(layout.Screen()) or nil
+    local width, height = _G[MAIN]:GetSize()
+    if fitted then width, height = fitted.width, fitted.height end
+    if chat.SetSize then chat.SetSize(width, height) end
+end
+
+local function holderSize()
+    local size = chat.SavedSize and chat.SavedSize()
+    if size then return size.width, size.height end
+    return _G[MAIN]:GetSize()
+end
+
+local function createHolder()
+    holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
+    chat.Holder = holder
+    firstSize()
+    local width, height = holderSize()
+    if type(width) == "number" and type(height) == "number" then holder:SetSize(width, height) end
+    local bounds = chat.SizeBounds or {}
+    layout.Register(holder, KEY, nil, { label = "Chat", onUnlock = refreshLock,
+        resize = chat.SetSize and { minWidth = bounds.minWidth, minHeight = bounds.minHeight, maxWidth = bounds.maxWidth,
+            maxHeight = bounds.maxHeight, apply = chat.SetSize } or nil })
+    hooksecurefunc(_G[MAIN], "SetPoint", onNativePoint)
+end
+
+-- The layout places the holder through the combat queue; the window follows once it is placed.
+local function adopt()
+    if not holder then createHolder() end
+    core.Combat.Queue(anchor)
+end
+
+-- A whole-screen layout or a reset changed the saved place or size: the window follows.
+function chat.Restore()
+    adopt()
+    if chat.ApplySize then chat.ApplySize() end
+end
+
+local function dragStart()
+    if dragging or isLocked() or not layout.BeginDrag then return end
+    dragging = layout.BeginDrag(KEY) == true
+end
+
+local function dragStop()
+    if not dragging then return end
+    dragging = false
+    layout.EndDrag()
 end
 
 function chat.SetLocked(locked)
-    chat.Settings().locked = locked == true
-    if locked == true then dragStop() else core:Print(UNLOCKED) end
+    if not layout.SetUnlocked then return nil, "The frame arrangement is unavailable." end
+    if locked == true then dragStop() end
+    if not layout.SetUnlocked(KEY, locked ~= true) then return nil, "Cannot unlock the chat window in combat." end
+    if locked ~= true then core:Print(UNLOCKED) end
     refreshLock()
     return true
 end
@@ -148,36 +137,30 @@ local function createLockButton()
     lockButton.body, lockButton.shackle = lockPart(8, 5), lockPart(4, 4)
     lockButton.body:SetPoint("BOTTOM", lockButton, "BOTTOM", 0, 3)
     lockButton:RegisterForDrag("LeftButton")
-    lockButton:SetScript("OnClick", function() chat.SetLocked(not isLocked()) end)
+    lockButton:SetScript("OnClick", function()
+        local ok, reason = chat.SetLocked(not isLocked())
+        if not ok and reason then core:Print(reason) end
+    end)
     lockButton:SetScript("OnDragStart", dragStart)
     lockButton:SetScript("OnDragStop", dragStop)
     lockButton:SetScript("OnEnter", showLockTip)
     lockButton:SetScript("OnLeave", function(self) self:SetAlpha(self.rest); GameTooltip:Hide() end)
     _G[MAIN].rikLock = lockButton
+    local strata = lockButton:GetFrameStrata()
+    lockButton.homeStrata = type(strata) == "string" and strata or "LOW"
     refreshLock()
 end
 
+-- Forgets the saved place and size; the window goes to the default layout's place and fitted size.
 function chat.ResetPosition()
     dragStop()
     core.Profile.positions[KEY] = nil
     chat.Settings().size = nil
-    adopted = false
+    firstSize()
+    chat.Restore()
+    layout.Apply()
     core:Print(RESET)
 end
-
--- The layout places the holder through the combat queue; the window follows once it is placed.
-local function restore()
-    if type(core.Profile.positions[KEY]) ~= "table" then return end
-    ensureHolder()
-    layout.Register(holder, KEY, core.Profile.positions[KEY])
-    core.Combat.Queue(function()
-        adopted = true
-        anchor()
-    end)
-end
-
--- A whole-screen layout writes a position for the window; it is adopted the same way a saved one is.
-chat.Restore = restore
 
 function chat.EnableMove()
     local tab = _G[TAB]
@@ -188,18 +171,20 @@ function chat.EnableMove()
     tab:HookScript("OnDragStart", dragStart)
     tab:HookScript("OnDragStop", dragStop)
     createLockButton()
-    restore()
+    adopt()
 end
 
 core:RegisterCommand("chat", function(args)
     if not core.Profile then core:Print("Still loading."); return end
     if not chat.enabled then core:Print("The chat module is disabled."); return end
     local action = args:lower()
-    if action == "lock" then chat.SetLocked(true); core:Print("Chat locked.")
-    elseif action == "unlock" then chat.SetLocked(false)
+    local ok, reason = true, nil
+    if action == "lock" then ok, reason = chat.SetLocked(true)
+    elseif action == "unlock" then ok, reason = chat.SetLocked(false)
     elseif action == "reset" then chat.ResetPosition()
-    else core:Print(USAGE) end
+    else core:Print(USAGE); return end
+    if not ok and reason then core:Print(reason) elseif action == "lock" then core:Print("Chat locked.") end
 end, "Lock, unlock or reset the main chat window: /rik chat lock|unlock|reset")
 
 table.insert(chat.Options.settings, { type = "checkbox", key = "locked", label = "Lock the main chat window",
-    get = function() return chat.Settings().locked ~= false end, set = chat.SetLocked })
+    get = isLocked, set = chat.SetLocked })

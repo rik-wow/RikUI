@@ -81,6 +81,7 @@ screentext.lua
 skin.lua
 layout-unlock.lua
 layout-drag.lua
+layout-resize.lua
 layout-presets.lua
 controls.lua
 dialogs.lua

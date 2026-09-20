@@ -10,7 +10,7 @@ return function(check)
         { name = "21:9", width = 1820, height = 768 } }
     local NARROW = { name = "4:3", width = 1024, height = 768 }
     -- Frames whose registered size is one row of something that grows; the nominal size is the room kept.
-    local GROWS = { loot = true, bags = true }
+    local GROWS = { loot = true, bags = true, chat = true }
     local function near(a, b) return type(a) == "number" and math.abs(a - b) < 0.01 end
 
     local function loadData()
@@ -24,6 +24,8 @@ return function(check)
     local function loadEverything(width)
         UIParent.GetWidth, UIParent.GetHeight = function() return width end, function() return 768 end
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
+        -- Fresh chat frames: the ones other suites leave behind carry hooks of addon instances long gone.
+        require("chat_stub").install(env)
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
         for line in io.lines("RikUI.toc") do
             line = line:gsub("\r", "")
@@ -96,7 +98,7 @@ return function(check)
                 wrong[#wrong + 1] = string.format("%s is %sx%s, nominal %dx%d", key, tostring(frame:GetWidth()),
                     tostring(frame:GetHeight()), size.width, size.height)
             end
-            local wanted, default = everything.centered.positions[key], group.defaults
+            local wanted, default = layout.PresetPositions("centered")[key], group.defaults
             if wanted and (wanted.point ~= default.point or wanted.relativePoint ~= default.relativePoint
                 or not near(wanted.x, default.x) or not near(wanted.y, default.y)) then
                 drift[#drift + 1] = string.format("%s default %s/%s %s,%s", key, default.point, default.relativePoint,

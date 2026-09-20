@@ -180,44 +180,46 @@ whisper is told apart) and an `OnShow` hook. Name clicks are a post-hook on
 through `C_FriendList.SendWho` as `n-"Name"`. A client without `OpenChat` gets
 no strip and keeps its edit boxes where they were.
 
-## Resizing the chat window
+## Moving and resizing the chat window
 
-On this client the main window's size belongs to Edit Mode: Blizzard hides its
-resize button and never shows it again. While the window is unlocked with the
-padlock, RikUI shows its own gold grip in the bottom-right corner. Drag it to
-size the window between 250x120 and 1200x800. On release the size is saved in
-the profile next to the position, and the move holder is put back under the
-window's new centre, so the window does not jump. `/rik chat reset` forgets
-the size as well as the position. The saved size is applied at login and again
-on entering the world, because Edit Mode may write its own size when it
-applies a layout; if you resize the chat in Edit Mode, RikUI's size wins on
-the next loading screen.
+The main chat window (`ChatFrame1`, with every tab docked to it) is a member of
+RikUI's [frame arrangement](layout.md) like every other frame, from the first
+login on. On this client it is an Edit Mode system: Blizzard's tab drag handler
+returns early for it, its resize button is hidden, and Edit Mode writes its own
+place and size whenever it applies a layout. RikUI takes the window over
+instead and Edit Mode has no say in where it is or how big it is.
 
-## Moving the chat window
+- Hold the lock key (or Ctrl+Alt+Shift) and click the Chat tag, or use
+  `/rik move`: the chat gets the same overlay as every frame. Drag the overlay
+  to move it; it snaps and cannot be dropped on another frame.
+- Drag the grip in the overlay's bottom right corner to resize it between
+  250x120 and 1200x800. The top left corner stays where it is, and the window
+  stops flush against the first frame in the way.
+- The small padlock in the window's top right corner, left of the copy button,
+  is a shortcut to the same lock: click it to unlock only the chat (it turns
+  gold with an open shackle and rises above the overlay so it can be clicked
+  again), drag it or the first tab to move the window, click it to lock.
+  `/rik chat unlock`, `/rik chat lock` and the "Lock the main chat window"
+  checkbox do the same. Like every unlock it lasts until you lock it, log out or
+  enter combat.
+- `/rik chat reset` forgets the saved place and size: the window goes back to
+  the default layout's place and the width that fits this screen.
+- A [whole-screen layout](layout.md) places and sizes the chat with everything
+  else; `/rik layout undo` brings your own size back.
 
-`chat-move.lua` is a new TOC entry, so fully restart the client once.
+A new profile starts with the Centered layout's place (bottom left) and the
+fitted width (413x170 on 16:9). Place and size live in the profile
+(`positions.chat`, `chat.size`) and survive reloads and relogs.
 
-On this client the main chat window (`ChatFrame1`, with every tab docked to
-it) is an Edit Mode system: Blizzard's tab drag handler returns early for it,
-so unlocking it from the tab menu does not make it draggable. RikUI adds that
-back without Edit Mode and without `/rik move`:
-
-1. Click the small padlock in the main chat window's top-right corner, left
-   of the copy button. It turns gold with an open shackle and stays bright
-   while the window is unlocked. `/rik chat unlock` and the "Lock the main
-   chat window" checkbox on the Chat options page do the same.
-2. Drag the padlock itself, or the first tab (General), with the left button.
-   The window, its docked tabs and the edit box move together. This also
-   works in combat.
-3. Click the padlock again (or `/rik chat lock`) when done. The lock state is
-   saved per profile.
-
-The drop is saved in the profile's positions under `chat`, so it survives
-reloads and relogs and follows the profile. After the first move a `Chat
-window` overlay also shows up in `/rik move`. `/rik chat reset` forgets the
-position; reload afterwards and the window is back where Blizzard's layout
-puts it. RikUI never touches the window's position until you have moved it
-once. The size is covered under [Resizing the chat window](#resizing-the-chat-window).
+How it works: the window is centred on `RikUIChatHolder`, a RikUI frame kept
+the same size as the window, and the holder is the layout group, so the layout
+sees the chat's real rectangle. A `SetPoint` post-hook on `ChatFrame1` puts the
+window back on the holder whenever Edit Mode re-anchors it; post-hooks on
+`SetSize`, `SetWidth` and `SetHeight` answer any foreign size with the saved
+one ([Edit Mode guard](editmode.md)). A size chosen inside Edit Mode is adopted
+as the saved size instead of being fought, so nothing is lost if you do resize
+there. Nothing here is protected, so all of it also works in combat except
+unlocking, which the arrangement system refuses there.
 
 Windows you have undocked are not Edit Mode systems. They keep Blizzard's own
 behaviour: right-click their tab, Unlock Window, drag the tab, Lock Window,

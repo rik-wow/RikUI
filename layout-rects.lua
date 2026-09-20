@@ -8,8 +8,8 @@ local core, layout, geometry = RikUI, RikUI.Layout, RikUI.Geometry
 -- The settle order: a group earlier in the list keeps its place, a later one gives way. Bars and
 -- unit frames first, windows that come and go last. Groups not listed follow in alphabetical order.
 local ORDER = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar", "player", "target", "tot",
-    "petframe", "focus", "castplayer", "casttarget", "castfocus", "castpet", "party", "raid", "minimap", "buffs",
-    "debuffs", "chat", "questtimers", "questtracker", "micromenu", "damagemeter", "bags", "loot" }
+    "petframe", "focus", "castplayer", "casttarget", "castfocus", "castpet", "chat", "party", "raid", "minimap", "buffs",
+    "debuffs", "questtimers", "questtracker", "micromenu", "damagemeter", "bags", "loot" }
 local rank, settled, pending = {}, false, {}
 for index, key in ipairs(ORDER) do rank[key] = index end
 

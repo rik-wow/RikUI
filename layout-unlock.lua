@@ -74,6 +74,16 @@ local function setUnlocked(key, open)
     if not open then everything = false end
     if layout.Tags[key] then paint(layout.Tags[key], open) end
     if layout.RefreshOverlay then layout.RefreshOverlay(key) end
+    local group = layout.Groups[key]
+    if group and type(group.onUnlock) == "function" then group.onUnlock(open == true) end
+end
+
+-- For a module with a lock control of its own (the chat's padlock): the same state the tags toggle.
+function layout.SetUnlocked(key, open)
+    if not layout.Groups[key] or (open and InCombatLockdown()) then return false end
+    if (unlocked[key] == true) == (open == true) then return true end
+    setUnlocked(key, open == true)
+    return true
 end
 
 local function tagFor(key)
@@ -120,6 +130,7 @@ end
 
 function layout.LockAll()
     if layout.EndDrag then layout.EndDrag() end
+    if layout.EndResize then layout.EndResize() end
     everything = false
     for key in pairs(layout.Groups) do setUnlocked(key, false) end
     refreshMaster()

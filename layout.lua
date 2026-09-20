@@ -65,14 +65,18 @@ end
 -- player; grow is the direction a frame that changes size grows in ("UP", "DOWN", "LEFT", "RIGHT");
 -- onLimit(room) hears how far it may grow; floating marks a reference place other things float over
 -- (the tooltip anchor), which neither blocks nor is blocked, and may be a function; groups with the same exclusive tag are
--- never shown together (party and raid) and do not block each other.
-local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive" }
+-- never shown together (party and raid) and do not block each other; resize holds the bounds and the
+-- apply(width, height) of a group the player may resize (layout-resize.lua); onUnlock(open) hears when
+-- the group is unlocked or locked.
+local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive", "resize", "onUnlock" }
 
 -- The Centered layout (data/layouts.lua) is the default look and the one source for default places.
 -- The position a module registers with is the fallback for a key that layout does not know.
 local function defaultFor(key, registered)
-    local centered = core.Layouts and core.Layouts.centered
-    return centered and centered.positions[key] or registered or setup.DefaultPositions[key]
+    -- layout-presets.lua fits the chat's place to the screen; the raw data is for the narrowest one.
+    local fitted = layout.PresetPositions and core.Layouts and layout.PresetPositions(core.Layouts.Order[1])
+    local centered = fitted or (core.Layouts and core.Layouts.centered and core.Layouts.centered.positions)
+    return centered and centered[key] or registered or setup.DefaultPositions[key]
 end
 
 local function newGroup(key, defaults, opts)

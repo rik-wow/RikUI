@@ -1,36 +1,48 @@
--- Resizing the main chat window without Edit Mode. On 69913 the default chat frame's size belongs
--- to Edit Mode: Blizzard hides its ResizeButton and FCF_UpdateResizeButton never shows it again, and
--- Edit Mode writes its stored size back on every layout apply, which editmode.lua answers.
--- RikUI adds its own corner grip, visible while the window is unlocked with the padlock. The window
--- is centred on the move holder, and sizing from one corner shifts that centre, so after a drag
--- the holder is re-placed on the window and the drop saved (chat.AdoptCurrent). The size lives in
--- the profile next to the position; /rik chat reset forgets both. Nothing here is protected.
+-- The main chat window's size belongs to RikUI. On 69913 the default chat frame is an Edit Mode
+-- system: Edit Mode writes its stored size on every layout apply. RikUI keeps the size in the profile,
+-- resizes through the arrangement system's grip (layout-resize.lua calls chat.SetSize) and answers
+-- every foreign write of the window's size with the saved one. The move holder (chat-move.lua) is
+-- kept the same size as the window, so the layout sees the chat's real rectangle. Nothing here is
+-- protected.
 local core = RikUI
 local chat = core.Chat
 
 local MAIN = "ChatFrame1"
-local GRIP_SIZE, GRIP_INSET, DOT, DOT_STEP = 14, 1, 2, 4
-local MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT = 250, 120, 1200, 800
-local CORNER = "BOTTOMRIGHT"
--- Three rows of dots stepping down to the corner, the usual grip shape.
-local DOTS = { { 0, 0 }, { 1, 0 }, { 2, 0 }, { 1, 1 }, { 2, 1 }, { 2, 2 } }
 local SETTERS = { "SetSize", "SetWidth", "SetHeight" }
-local grip, sizing, applying, guarded, answered = nil, false, false, false, 0
+chat.SizeBounds = { minWidth = 250, minHeight = 120, maxWidth = 1200, maxHeight = 800 }
+local bounds = chat.SizeBounds
+local applying, guarded, answered = false, false, 0
 
 local function validSize(size)
     if type(size) ~= "table" then return false end
     local width, height = size.width, size.height
-    return type(width) == "number" and type(height) == "number" and width >= MIN_WIDTH and width <= MAX_WIDTH
-        and height >= MIN_HEIGHT and height <= MAX_HEIGHT
+    return type(width) == "number" and type(height) == "number" and width >= bounds.minWidth
+        and width <= bounds.maxWidth and height >= bounds.minHeight and height <= bounds.maxHeight
+end
+
+-- The saved size, or nil when none was chosen yet.
+function chat.SavedSize()
+    local size = chat.Settings().size
+    return validSize(size) and size or nil
 end
 
 function chat.ApplySize()
-    local size = chat.Settings().size
-    if not validSize(size) then return end
+    local size = chat.SavedSize()
+    if not size then return end
     applying = true
     local ok, reason = pcall(_G[MAIN].SetSize, _G[MAIN], size.width, size.height)
     applying = false
     if not ok then chat.Warn("size", reason) end
+    if chat.Holder then chat.Holder:SetSize(size.width, size.height) end
+end
+
+-- The arrangement system's grip and the whole-screen layouts set the size through here.
+function chat.SetSize(width, height)
+    local size = { width = width, height = height }
+    if not validSize(size) then return false end
+    chat.Settings().size = size
+    chat.ApplySize()
+    return true
 end
 
 local function differs(size)
@@ -39,23 +51,21 @@ local function differs(size)
     return math.abs(width - size.width) > 0.5 or math.abs(height - size.height) > 0.5
 end
 
--- Whoever writes the window's size, by whatever route, is answered with the saved size. This is the
--- mechanism that keeps the window's place (chat-move.lua hooks SetPoint the same way). RikUI's own
--- write and a drag of the grip are left alone; a size set while Edit Mode is open is adopted instead.
--- A size chosen inside Edit Mode (its resize handle or its width and height sliders) is the player's
--- choice, so it becomes the saved size. Edit Mode throws an unsaved change away when it closes, and a
--- Blizzard preset layout cannot be changed at all; the revert is then answered like any other write.
+-- A size chosen inside Edit Mode (its resize handle or its sliders) is still the player's choice, so
+-- it becomes the saved size instead of being fought. Edit Mode throws an unsaved change away when it
+-- closes; that revert is then answered like any other foreign write.
 local function adoptEditModeSize()
     local width, height = _G[MAIN]:GetSize()
-    local size = { width = width, height = height }
-    if validSize(size) then chat.Settings().size = size end
+    if chat.SetSize(width, height) and core.Layout.Settle then core.Layout.Settle("chat") end
 end
 
+-- Whoever writes the window's size, by whatever route, is answered with the saved size. It is the
+-- mechanism that keeps the window's place (chat-move.lua hooks SetPoint the same way).
 local function onNativeSize()
-    if applying or sizing then return end
+    if applying then return end
     if core.EditMode.IsActive() then return adoptEditModeSize() end
-    local size = chat.Settings().size
-    if not validSize(size) or not differs(size) then return end
+    local size = chat.SavedSize()
+    if not size or not differs(size) then return end
     answered = answered + 1
     chat.ApplySize()
 end
@@ -66,62 +76,14 @@ local function sizeText(width, height)
 end
 
 function chat.SizeDebug()
-    local size = chat.Settings().size
-    local saved = validSize(size) and sizeText(size.width, size.height) or "none"
-    core:Print("Chat size saved=" .. saved .. " now=" .. sizeText(_G[MAIN]:GetSize()) .. " guarded=" .. tostring(guarded)
-        .. " answered=" .. answered)
-end
-
-local function start()
-    if sizing or chat.Settings().locked ~= false then return end
-    local frame = _G[MAIN]
-    sizing = true
-    frame:SetResizable(true)
-    frame:SetResizeBounds(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
-    frame:StartSizing(CORNER)
-end
-
-local function stop()
-    if not sizing then return end
-    sizing = false
-    local frame = _G[MAIN]
-    frame:StopMovingOrSizing()
-    local width, height = frame:GetSize()
-    local size = { width = width, height = height }
-    if validSize(size) then chat.Settings().size = size end
-    if not chat.AdoptCurrent() then chat.Warn("size", "chat window position unavailable") end
-end
-
-function chat.RefreshGrip()
-    if grip then grip:SetShown(chat.Settings().locked == false) end
-end
-
-local function createGrip()
-    local frame = _G[MAIN]
-    grip = CreateFrame("Button", nil, frame)
-    grip:SetSize(GRIP_SIZE, GRIP_SIZE)
-    grip:SetPoint(CORNER, frame, CORNER, -GRIP_INSET, GRIP_INSET)
-    for _, dot in ipairs(DOTS) do
-        local texture = grip:CreateTexture(nil, "ARTWORK")
-        texture:SetTexture(core.Media.border)
-        texture:SetVertexColor(unpack(chat.Colors.selected))
-        texture:SetSize(DOT, DOT)
-        texture:SetPoint(CORNER, grip, CORNER, -(2 - dot[1]) * DOT_STEP, dot[2] * DOT_STEP)
-    end
-    grip:SetScript("OnMouseDown", start)
-    grip:SetScript("OnMouseUp", stop)
-    grip:SetScript("OnHide", stop)
-    frame.rikGrip = grip
-    chat.RefreshGrip()
+    local size = chat.SavedSize()
+    core:Print("Chat size saved=" .. (size and sizeText(size.width, size.height) or "none") .. " now="
+        .. sizeText(_G[MAIN]:GetSize()) .. " guarded=" .. tostring(guarded) .. " answered=" .. answered)
 end
 
 function chat.EnableSize()
-    if not chat.IsFrame(_G[MAIN]) or type(chat.AdoptCurrent) ~= "function" then return end
-    createGrip()
+    if not chat.IsFrame(_G[MAIN]) then return end
     chat.ApplySize()
-    -- The window is an Edit Mode system: every layout apply writes the size stored in the Edit Mode
-    -- layout (login, a spec change, a layout switch, leaving Edit Mode). The saved size goes back
-    -- after each one.
     guarded = core.EditMode.Guard(_G[MAIN], "chat size", chat.ApplySize)
     for _, setter in ipairs(SETTERS) do
         if type(_G[MAIN][setter]) == "function" then hooksecurefunc(_G[MAIN], setter, onNativeSize) end

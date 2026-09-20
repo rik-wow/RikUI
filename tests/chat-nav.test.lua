@@ -80,23 +80,13 @@ return function(check)
         check("and back on shows it for a scrolled window", button.shown == true)
         frame:ScrollToBottom()
 
-        local grip = frame.rikGrip
-        check("the resize grip is hidden while the window is locked", grip ~= nil and grip.shown == false)
-        chat.SetLocked(false)
-        check("unlocking shows the grip", grip.shown == true)
-        env.runScript(grip, "OnMouseDown", "LeftButton")
-        check("pressing the grip sizes the window from its corner within bounds", frame.sizing == "BOTTOMRIGHT"
-            and frame.resizable == true and frame.bounds[1] == 250 and frame.bounds[2] == 120)
-        frame.width, frame.height = 520, 260
-        env.runScript(grip, "OnMouseUp", "LeftButton")
-        check("releasing it saves the size and re-centres the window on its holder", frame.sizing == nil
-            and RikUI.Profile.chat.size.width == 520 and RikUI.Profile.chat.size.height == 260
-            and chat.Holder ~= nil and frame.points[1][2] == chat.Holder
-            and type(RikUI.Profile.positions.chat) == "table")
-        chat.SetLocked(true)
-        check("locking hides the grip again", grip.shown == false)
-        chat.ResetPosition()
-        check("resetting the chat window forgets the size too", RikUI.Profile.chat.size == nil)
+        check("the window has no grip of its own: resizing belongs to the arrangement system",
+            rawget(frame, "rikGrip") == nil)
+        check("the arrangement system's grip sets the size through the chat, window and holder together",
+            chat.SetSize(520, 260) == true and RikUI.Profile.chat.size.width == 520 and frame.width == 520
+            and frame.height == 260 and chat.Holder.width == 520 and chat.Holder.height == 260)
+        check("a size outside the bounds is refused", chat.SetSize(100, 50) == false and frame.width == 520
+            and RikUI.Profile.chat.size.height == 260)
         env.printed = {} -- unlocking and resetting each print one line of guidance
 
         check("scrollback is raised to a thousand lines", frame.maxLines == 1000 and ChatFrame3.maxLines == 1000)
@@ -159,8 +149,9 @@ return function(check)
         end)
         editing = true
         ChatFrame1:SetSize(520, 300)
-        check("a size set while Edit Mode is open is adopted as the saved size", RikUI.Profile.chat.size ~= nil
-            and RikUI.Profile.chat.size.width == 520 and RikUI.Profile.chat.size.height == 300)
+        check("a size set while Edit Mode is open is adopted as the saved size, and the holder follows",
+            RikUI.Profile.chat.size ~= nil and RikUI.Profile.chat.size.width == 520
+            and RikUI.Profile.chat.size.height == 300 and chat.Holder.width == 520)
         ChatFrame1:SetSize(100, 50)
         check("a size outside the bounds is not adopted", RikUI.Profile.chat.size.width == 520)
         editing = false
@@ -181,13 +172,8 @@ return function(check)
         SlashCmdList.RIKUI("debug")
         check("debug reports the saved size, the size now and how often the guard answered",
             widgets.printedContains(env, "Chat size saved=480x240 now=480x240 guarded=false answered=3"), env.printed[2])
-        chat.SetLocked(false)
-        env.runScript(ChatFrame1.rikGrip, "OnMouseDown", "LeftButton")
-        ChatFrame1:SetSize(600, 300)
-        check("while the grip sizes the window nothing is answered", ChatFrame1.width == 600)
-        env.runScript(ChatFrame1.rikGrip, "OnMouseUp", "LeftButton")
-        check("and the new size is what is saved", RikUI.Profile.chat.size.width == 600 and RikUI.Profile.chat.size.height == 300)
-        chat.SetLocked(true)
+        check("RikUI's own resize is not answered as a foreign write", chat.SetSize(600, 300) == true
+            and ChatFrame1.width == 600 and RikUI.Profile.chat.size.width == 600)
         env.printed = {}
         chat = load(nil, nil, function()
             function ChatFrame1:UpdateSystem() self:SetSize(430, 120) end
