@@ -75,6 +75,23 @@ local function pickup(kind, id)
     return PickupMacro(id)
 end
 
+-- On 69913 a macro slot answers ("macro", <ID of the spell the macro casts>, "spell"), not the
+-- macro's index, so a macro in a slot is identified by its name, which GetActionText returns.
+function setup.MacroNameInSlot(slot)
+    if type(GetActionText) ~= "function" then return nil end
+    local ok, name = pcall(GetActionText, slot)
+    if ok and type(name) == "string" and name ~= "" then return name end
+end
+
+function setup.SlotHolds(slot, kind, id)
+    local placedKind, placedID = GetActionInfo(slot)
+    if placedKind ~= kind then return false end
+    if kind ~= "macro" then return placedID == id end
+    local name = setup.MacroNameInSlot(slot)
+    if not name then return placedID == id end
+    return name == GetMacroInfo(id)
+end
+
 local function writeAction(slot, kind, id)
     local oldKind = GetActionInfo(slot)
     ClearCursor()
@@ -87,8 +104,7 @@ local function writeAction(slot, kind, id)
     if GetCursorInfo() ~= kind then return nil, "pickup failed for slot " .. slot end
     PlaceAction(slot)
     ClearCursor()
-    local placedKind, placedID = GetActionInfo(slot)
-    if placedKind ~= kind or placedID ~= id then return nil, "placement rejected at slot " .. slot end
+    if not setup.SlotHolds(slot, kind, id) then return nil, "placement rejected at slot " .. slot end
     return { placed = oldKind and 0 or 1, skipped = 0, edited = oldKind and 1 or 0 }
 end
 

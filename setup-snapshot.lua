@@ -3,6 +3,32 @@ local core, setup = RikUI, RikUI.Setup
 local SNAPSHOT_VERSION = 1
 setup.UndoVersion = SNAPSHOT_VERSION
 
+-- The macro pool index behind a macro slot. On 69913 GetActionInfo answers with the ID of the spell
+-- the macro casts, so the slot's macro is found by the name GetActionText returns; the reported id
+-- is only trusted when that macro carries the same name. The lowest index wins a name clash.
+local function macroIndexInSlot(slot, id, pool)
+    local name = setup.MacroNameInSlot(slot)
+    if not name then return id end
+    if pool[id] and pool[id].name == name then return id end
+    local found
+    for index, value in pairs(pool) do
+        if value.name == name and (not found or index < found) then found = index end
+    end
+    return found
+end
+
+local function captureMacro(slot, id)
+    local pool, reason = core.Macros.Snapshot()
+    if not pool then return nil, reason end
+    local index = macroIndexInSlot(slot, id, pool)
+    -- A slot naming a macro that no longer exists has nothing Undo could put back.
+    if not index then return {} end
+    local identity
+    identity, reason = core.Macros.CaptureIdentity(index, pool)
+    if not identity then return nil, reason end
+    return { kind = "macro", id = index, macro = identity }
+end
+
 local function captureAction(slot)
     local kind, id = GetActionInfo(slot)
     if kind == nil then return {} end
@@ -10,14 +36,8 @@ local function captureAction(slot)
         return nil, "unsupported action in slot " .. slot .. ": " .. tostring(kind)
     end
     if type(id) ~= "number" or id <= 0 then return nil, "unreadable action in slot " .. slot end
-    local action = { kind = kind, id = id }
-    if kind == "macro" then
-        local pool, reason = core.Macros.Snapshot()
-        if not pool then return nil, reason end
-        action.macro, reason = core.Macros.CaptureIdentity(id, pool)
-        if not action.macro then return nil, reason end
-    end
-    return action
+    if kind == "macro" then return captureMacro(slot, id) end
+    return { kind = kind, id = id }
 end
 
 local function captureBars(preset)

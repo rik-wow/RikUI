@@ -686,5 +686,31 @@ return function(check)
         and actions[1].id == originalID and macroData[121].body == "/say original macro"
         and RikUICharDB.applied.role == "dps")
 
+    -- Seen on 69913: a macro slot answers ("macro", <ID of the spell the macro casts>, "spell"), not
+    -- the macro's index. The macro's name is only available from GetActionText.
+    setup = fresh()
+    local savedText = GetActionText
+    GetActionInfo = function(slot)
+        local action = actions[slot]
+        if not action then return end
+        if action.kind == "macro" then return "macro", 100, "spell" end
+        return action.kind, action.id
+    end
+    GetActionText = function(slot)
+        local action = actions[slot]
+        if action and action.kind == "macro" then return macroData[action.id].name end
+    end
+    local first = setup.Apply("WARRIOR")
+    check("a macro is placed although the client reports the spell it casts instead of its index",
+        first.status == "applied" and actions[70] and actions[70].kind == "macro")
+    env.printed = {}
+    local second = setup.Apply("WARRIOR")
+    check("a second Apply snapshots the placed macro by its name instead of failing on the spell ID",
+        second.status == "applied" and RikUICharDB.undo.bars[70].macro.name == "Charge"
+        and countLines("macro missing") == 0)
+    local undone = setup.Undo()
+    check("and Undo puts that macro back", undone.status == "undone" and actions[70] and actions[70].kind == "macro")
+    GetActionText = savedText
+
     for _, name in ipairs(globals) do _G[name] = savedGlobals[name] end
 end

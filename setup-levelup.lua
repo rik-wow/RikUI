@@ -74,8 +74,9 @@ local function placeMacro(context, job)
     index, reason = core.Macros.Find(job.name)
     if reason then reportSkip(context, job, reason); return end
     if not index then reportSkip(context, job, "macro is missing; run /rik apply"); return end
-    local kind, currentID = GetActionInfo(job.slot)
-    if kind == "macro" and currentID == index then reported[job.slot] = nil; return end
+    -- Compared by name: a macro slot does not report the macro's index on 69913.
+    if setup.SlotHolds(job.slot, "macro", index) then reported[job.slot] = nil; return end
+    local kind = GetActionInfo(job.slot)
     if kind then reportOccupied(context, job, kind); return end
     placeAction(context, job, "macro", index)
 end
