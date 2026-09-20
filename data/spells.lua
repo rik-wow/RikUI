@@ -113,6 +113,30 @@ function spells.Icon(name)
     return texture or entry.icon
 end
 
+-- A spell the character has but the catalogue misses: same name, other ID. Forever reissued some
+-- spells under new IDs, and the lookup above is strict on IDs on purpose.
+local function namedIDs(name)
+    local ids = {}
+    for lineIndex = 1, C_SpellBook.GetNumSpellBookSkillLines() do
+        local line = C_SpellBook.GetSpellBookSkillLineInfo(lineIndex)
+        for slot = line.itemIndexOffset + 1, line.itemIndexOffset + line.numSpellBookItems do
+            local item = C_SpellBook.GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)
+            if item and item.name == name then ids[#ids + 1] = tostring(item.spellID or item.actionID) end
+        end
+    end
+    return ids
+end
+
+local function reportUncatalogued(name)
+    local ok, ids = pcall(namedIDs, name)
+    if not ok or #ids == 0 then
+        core:Print("The spellbook has no entry named " .. name .. "; it is not trained on this character.")
+        return
+    end
+    core:Print("The spellbook has " .. name .. " as ID " .. table.concat(ids, ", ")
+        .. ", which the RikUI catalogue does not list. Report these IDs.")
+end
+
 local function showSpell(name)
     if name == "" then core:Print("Usage: /rik spells <name>") return end
     local entry = entryFor(name)
@@ -125,6 +149,7 @@ local function showSpell(name)
     end
     core:Print(name .. " known ranks: " .. (#labels > 0 and table.concat(labels, ", ") or "none")
         .. "; highest: " .. tostring(highestRank(entry, known) or "none"))
+    if #labels == 0 then reportUncatalogued(name) end
 end
 
 core:RegisterCommand("spells", showSpell, "Show known ranks: /rik spells <name>")

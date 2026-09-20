@@ -128,6 +128,10 @@ return function(check)
     items[4] = { spellID = 12345, itemType = 71, name = "Test Ability" }
     check("same name with an unrelated spell ID is not a known catalogue rank",
         spells.HighestKnownRank("Test Ability") == nil)
+    env.printed = {}
+    SlashCmdList.RIKUI("spells Test Ability")
+    check("the diagnostic names a spellbook entry that carries the spell's name under an uncatalogued ID",
+        contains("known ranks: none") and contains("spellbook has Test Ability as ID 12345"))
     reset()
     items[3] = { actionID = 900, itemType = 71 }
     items[13] = { itemType = 0 }

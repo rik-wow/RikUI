@@ -172,7 +172,9 @@ return function(check)
     check("cursor is empty after Apply", cursor == nil)
     check("layout positions are saved independently", core.Profile.positions.main.point == "BOTTOM"
         and core.Profile.positions.main ~= setup.DefaultPositions.main)
-    check("one summary per step without per-binding/cvar chatter", countLines() == 6
+    check("Apply names, once, the spells it expected at this level and did not find, and none above the level",
+        countLines("not in your spellbook") == 1 and countLines("Pummel") == 0)
+    check("one summary per step without per-binding/cvar chatter", countLines() == 7
         and countLines("Setup macros:") == 1 and countLines("Setup bars:") == 1
         and countLines("Setup binds:") == 1 and countLines("Setup cvars:") == 1
         and countLines("Setup layout:") == 1)
@@ -200,7 +202,7 @@ return function(check)
     env.inCombat = false
     env.fire("PLAYER_REGEN_ENABLED")
     check("nested queue completion drains entire sequence in order", result.status == "applied"
-        and actions[73].id == 284 and RikUICharDB.applied ~= nil and countLines() == 6)
+        and actions[73].id == 284 and RikUICharDB.applied ~= nil and countLines() == 7)
 
     setup = fresh()
     combatAfterMacro = true

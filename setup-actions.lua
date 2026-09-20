@@ -58,6 +58,17 @@ local function resolveAction(entry, preset)
     return "item", id, reason
 end
 
+-- A spell the preset expects at this level that the spellbook lookup did not find. An empty slot
+-- says nothing about why, so Apply names these after the bars step. Stance pages repeat the main
+-- bar, hence the set.
+setup.Missing = {}
+
+local function noteMissing(entry, kind, id)
+    if kind ~= "spell" or id or type(entry.level) ~= "number" then return end
+    local level = type(UnitLevel) == "function" and UnitLevel("player") or nil
+    if type(level) == "number" and entry.level <= level then setup.Missing[entry.spell] = true end
+end
+
 local function pickup(kind, id)
     if kind == "spell" then return C_Spell.PickupSpell(id) end
     if kind == "item" then return C_Item.PickupItem(id) end
@@ -86,6 +97,7 @@ function setup.WriteSlot(slot, entry, preset)
     local readOK, kind, id, reason = pcall(resolveAction, entry, preset)
     if not readOK then return nil, "action lookup failed for slot " .. slot .. ": " .. tostring(kind) end
     if reason then return nil, "slot " .. slot .. ": " .. reason end
+    noteMissing(entry, kind, id)
     return setup.RestoreSlot(slot, { kind = kind, id = id })
 end
 

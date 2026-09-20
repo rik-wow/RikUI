@@ -26,6 +26,13 @@ local function summarize(name, stats, suffix)
         name, stats.placed, stats.skipped, stats.edited, suffix or ""))
 end
 
+local function reportMissing()
+    local names = sortedKeys(setup.Missing)
+    if #names == 0 then return end
+    core:Print("Setup spells: not in your spellbook although your level allows them: " .. table.concat(names, ", ")
+        .. ". Check one with /rik spells <name>.")
+end
+
 local function macroOperations(context)
     local preset = context.preset
     local operations = {}
@@ -132,6 +139,7 @@ local function runOperations(context, name, operations, index, nextStep)
     local operation = operations[index]
     if not operation then
         summarize(name, context.result.steps[name])
+        if name == "bars" then reportMissing() end
         runStep(context, nextStep)
         return
     end
@@ -190,6 +198,7 @@ function setup.Apply(class, role, opts)
     local context = { preset = preset, opts = copy(opts), result = result,
         charDB = core.CharDB, profile = core.Profile, profileName = core.CharDB.profile }
     active = context
+    setup.Missing = {}
     context.result.steps.snapshot = counts()
     queueOperation(context, "snapshot", function()
         if context.opts.layout ~= false then context.layout = setup.LayoutPositions(context.preset) end
