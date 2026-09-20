@@ -151,6 +151,26 @@ return function(check)
         ChatFrame1:UpdateSystem()
         check("Edit Mode applying its layout does not reset the saved chat size", ChatFrame1.width == 480
             and ChatFrame1.height == 240)
+        -- Whoever writes the size, by whatever route: the window's own setters are answered too.
+        chat = load({ chat = { size = { width = 480, height = 240 } } })
+        ChatFrame1:SetSize(430, 120)
+        check("a size written straight onto the window is answered with the saved size", ChatFrame1.width == 480
+            and ChatFrame1.height == 240)
+        ChatFrame1:SetWidth(300)
+        ChatFrame1:SetHeight(100)
+        check("and so are the width and the height alone", ChatFrame1.width == 480 and ChatFrame1.height == 240)
+        env.printed = {}
+        SlashCmdList.RIKUI("debug")
+        check("debug reports the saved size, the size now and how often the guard answered",
+            widgets.printedContains(env, "Chat size saved=480x240 now=480x240 guarded=false answered=3"), env.printed[2])
+        chat.SetLocked(false)
+        env.runScript(ChatFrame1.rikGrip, "OnMouseDown", "LeftButton")
+        ChatFrame1:SetSize(600, 300)
+        check("while the grip sizes the window nothing is answered", ChatFrame1.width == 600)
+        env.runScript(ChatFrame1.rikGrip, "OnMouseUp", "LeftButton")
+        check("and the new size is what is saved", RikUI.Profile.chat.size.width == 600 and RikUI.Profile.chat.size.height == 300)
+        chat.SetLocked(true)
+        env.printed = {}
         chat = load(nil, nil, function()
             function ChatFrame1:UpdateSystem() self:SetSize(430, 120) end
         end)

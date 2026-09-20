@@ -36,6 +36,17 @@ reaches Edit Mode's call.
 
 Without a saved chat size nothing is enforced and Edit Mode's size stands.
 
+The chat size has a second line of defence, added after the first in-game
+report that the size still reverted on reload: `chat-size.lua` post-hooks the
+window's own `SetSize`, `SetWidth` and `SetHeight` and answers any size that is
+not the saved one, whoever wrote it and by whatever route. RikUI's own write, a
+drag of RikUI's grip and an open Edit Mode are left alone. It is the mechanism
+that has kept the window's place since `chat-move.lua` hooked `SetPoint`.
+`/rik debug` prints `Chat size saved=WxH now=WxH guarded=<bool> answered=<n>`:
+`saved=none` means the grip never saved a size, `guarded=false` means the window
+did not carry the Edit Mode methods as its own fields, and `answered` counts
+how often a foreign size was put right.
+
 ## What needs no guard
 
 Every other Edit Mode system RikUI replaces is parked by `hide.lua` (action

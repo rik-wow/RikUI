@@ -14,7 +14,8 @@ local MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT = 250, 120, 1200, 800
 local CORNER = "BOTTOMRIGHT"
 -- Three rows of dots stepping down to the corner, the usual grip shape.
 local DOTS = { { 0, 0 }, { 1, 0 }, { 2, 0 }, { 1, 1 }, { 2, 1 }, { 2, 2 } }
-local grip, sizing = nil, false
+local SETTERS = { "SetSize", "SetWidth", "SetHeight" }
+local grip, sizing, applying, guarded, answered = nil, false, false, false, 0
 
 local function validSize(size)
     if type(size) ~= "table" then return false end
@@ -26,8 +27,39 @@ end
 function chat.ApplySize()
     local size = chat.Settings().size
     if not validSize(size) then return end
+    applying = true
     local ok, reason = pcall(_G[MAIN].SetSize, _G[MAIN], size.width, size.height)
+    applying = false
     if not ok then chat.Warn("size", reason) end
+end
+
+local function differs(size)
+    local width, height = _G[MAIN]:GetSize()
+    if type(width) ~= "number" or type(height) ~= "number" then return true end
+    return math.abs(width - size.width) > 0.5 or math.abs(height - size.height) > 0.5
+end
+
+-- Whoever writes the window's size, by whatever route, is answered with the saved size. This is the
+-- mechanism that keeps the window's place (chat-move.lua hooks SetPoint the same way). RikUI's own
+-- write, a drag of the grip and an open Edit Mode are left alone.
+local function onNativeSize()
+    if applying or sizing or core.EditMode.IsActive() then return end
+    local size = chat.Settings().size
+    if not validSize(size) or not differs(size) then return end
+    answered = answered + 1
+    chat.ApplySize()
+end
+
+local function sizeText(width, height)
+    if type(width) ~= "number" or type(height) ~= "number" then return "none" end
+    return string.format("%dx%d", width, height)
+end
+
+function chat.SizeDebug()
+    local size = chat.Settings().size
+    local saved = validSize(size) and sizeText(size.width, size.height) or "none"
+    core:Print("Chat size saved=" .. saved .. " now=" .. sizeText(_G[MAIN]:GetSize()) .. " guarded=" .. tostring(guarded)
+        .. " answered=" .. answered)
 end
 
 local function start()
@@ -80,6 +112,9 @@ function chat.EnableSize()
     -- The window is an Edit Mode system: every layout apply writes the size stored in the Edit Mode
     -- layout (login, a spec change, a layout switch, leaving Edit Mode). The saved size goes back
     -- after each one.
-    core.EditMode.Guard(_G[MAIN], "chat size", chat.ApplySize)
+    guarded = core.EditMode.Guard(_G[MAIN], "chat size", chat.ApplySize)
+    for _, setter in ipairs(SETTERS) do
+        if type(_G[MAIN][setter]) == "function" then hooksecurefunc(_G[MAIN], setter, onNativeSize) end
+    end
     core:RegisterEvent("PLAYER_ENTERING_WORLD", chat.ApplySize)
 end
