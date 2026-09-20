@@ -221,6 +221,7 @@ function chat:Debug(sample)
     core:Print("Chat frames=" .. frameCount() .. " parked=" .. #chat.Parked .. " links=" .. tostring(chat.LinksReady == true))
     sample("GetCVar(" .. TIMESTAMP_CVAR .. ")", function() return C_CVar.GetCVar(TIMESTAMP_CVAR) end)
     if chat.SizeDebug and chat.IsFrame(ChatFrame1) then chat.SizeDebug() end
+    if chat.PlaceDebug and chat.IsFrame(ChatFrame1) then chat.PlaceDebug() end
 end
 
 table.insert(chat.Options.settings, { type = "slider", key = "fontSize", label = "Font size",

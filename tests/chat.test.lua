@@ -42,6 +42,11 @@ return function(check)
         function frame:SetWidth(w) self.width = w end
         function frame:SetFrameStrata(strata) self.strata = strata end
         function frame:SetClampRectInsets(...) self.clamp = { ... } end
+        function frame:GetClampRectInsets() return unpack(self.clamp or { 0, 0, 0, 0 }) end
+        function frame:SetClampedToScreen(clamped) self.clamped = clamped end
+        function frame:IsClampedToScreen() return self.clamped == true end
+        function frame:GetLeft() return self.left end
+        function frame:GetBottom() return self.bottom end
         function frame:GetFrameStrata() return self.strata or "LOW" end
         function frame:GetSize() return self.width, self.height end
         function frame:GetWidth() return self.width end
@@ -258,7 +263,7 @@ return function(check)
         end)
         check("missing link APIs print one line each and the rest still applies", printedContains("Chat links")
             and printedContains("Chat clicks") and #env.printed == 2 and ChatFrame1.fontPath == RikUI.Media.font
-            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 9)
+            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 10)
         check("without Blizzard's size function SetFontSize writes the fonts itself", module.SetFontSize(15) == true
             and ChatFrame3.fontSize == 15 and ChatFrame3EditBox.fontSize == 15)
 
@@ -323,6 +328,16 @@ return function(check)
         check("the window's screen clamp has no insets, so it can reach every edge the layout allows", freed())
         ChatFrame1:SetClampRectInsets(-35, 35, 26, -50)
         check("insets written by Edit Mode are taken away again", freed())
+        check("the window is not clamped to the screen at all: the layout keeps the chat on screen",
+            ChatFrame1.clamped == false)
+        ChatFrame1:SetClampedToScreen(true)
+        check("and clamping switched back on by the client is switched off again", ChatFrame1.clamped == false)
+        ChatFrame1.left, ChatFrame1.bottom, holder.left, holder.bottom = 40, 66, 16, 16
+        env.printed = {}
+        SlashCmdList.RIKUI("debug")
+        check("debug reports where the holder and the window stand, the saved place and the clamp",
+            printedContains("Chat place holder=16,16 window=40,66 offset=24,50 saved=none clamped=false insets=0,0,0,0"),
+            env.printed[#env.printed])
         check("the group can be resized within the chat's bounds", type(group.resize) == "table"
             and group.resize.minWidth == 250 and group.resize.maxHeight == 800)
         env.runScript(tab, "OnDragStart")

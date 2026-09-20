@@ -258,8 +258,15 @@ which reserves the hidden button column on the left, the tabs and the edit
 box. The client then keeps the window that far from the screen edge: it could
 not be dragged to the left margin, and it no longer stood where its holder and
 overlay were (seen in game on 2026-09-20). `chat-move.lua` sets the insets to
-zero and answers every later write of them; the layout engine keeps the chat
-on screen itself. A `SetPoint` post-hook on `ChatFrame1` puts the
+zero, switches the window's screen clamping off altogether and answers every
+later write of either; the layout engine keeps the chat on screen itself. Zero
+insets alone were not enough: in game, a chat dragged flush into the bottom left
+corner came back about a margin away from it after a reload, although the saved
+position was intact (the stub reproduces the save and the reload correctly, so
+the client moved the window, not RikUI). `/rik debug` prints
+`Chat place holder=x,y window=x,y offset=dx,dy saved=... clamped=... insets=...`:
+the offset should be the footprint's left and bottom (4,50); anything else means
+the client holds the window somewhere other than on its holder. A `SetPoint` post-hook on `ChatFrame1` puts the
 window back on the holder whenever Edit Mode re-anchors it; post-hooks on
 `SetSize`, `SetWidth` and `SetHeight` answer any foreign size with the saved
 one ([Edit Mode guard](editmode.md)). A size chosen inside Edit Mode is adopted

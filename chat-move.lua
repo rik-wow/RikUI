@@ -63,11 +63,34 @@ end
 -- longer stands where its holder and overlay are. The layout engine keeps the chat on screen itself.
 local function freeClamp()
     local frame = _G[MAIN]
-    if clamping or type(frame.SetClampRectInsets) ~= "function" then return end
+    if clamping then return end
     clamping = true
-    local ok, reason = pcall(frame.SetClampRectInsets, frame, 0, 0, 0, 0)
+    local ok, reason = pcall(function()
+        if type(frame.SetClampRectInsets) == "function" then frame:SetClampRectInsets(0, 0, 0, 0) end
+        -- Zero insets were not enough in game: after a reload the window still stood away from a holder
+        -- that was flush in the corner. The layout engine keeps the chat on screen, so the client's own
+        -- clamping is switched off altogether.
+        if type(frame.SetClampedToScreen) == "function" then frame:SetClampedToScreen(false) end
+    end)
     clamping = false
     if not ok then chat.Warn("clamp", reason) end
+end
+
+local function number(value) return type(value) == "number" and string.format("%d", math.floor(value + 0.5)) or "?" end
+
+-- Where the holder and the window really stand; the offset between them should be the footprint.
+function chat.PlaceDebug()
+    local frame, saved = _G[MAIN], core.Profile.positions[KEY]
+    if not holder then return core:Print("Chat place holder=none") end
+    local left, bottom, windowLeft, windowBottom = holder:GetLeft(), holder:GetBottom(), frame:GetLeft(), frame:GetBottom()
+    local both = type(left) == "number" and type(windowLeft) == "number" and type(bottom) == "number"
+        and type(windowBottom) == "number"
+    local insets = type(frame.GetClampRectInsets) == "function" and { frame:GetClampRectInsets() } or {}
+    core:Print("Chat place holder=" .. number(left) .. "," .. number(bottom) .. " window=" .. number(windowLeft) .. ","
+        .. number(windowBottom) .. " offset=" .. (both and number(windowLeft - left) .. "," .. number(windowBottom - bottom) or "?")
+        .. " saved=" .. (type(saved) == "table" and saved.point .. " " .. number(saved.x) .. "," .. number(saved.y) or "none")
+        .. " clamped=" .. tostring(type(frame.IsClampedToScreen) == "function" and frame:IsClampedToScreen())
+        .. " insets=" .. number(insets[1]) .. "," .. number(insets[2]) .. "," .. number(insets[3]) .. "," .. number(insets[4]))
 end
 
 -- The padlock icon: closed and white when locked, open and gold when unlocked.
@@ -114,10 +137,10 @@ local function createHolder()
     if type(width) == "number" and type(height) == "number" then holder:SetSize(chat.HolderSize(width, height)) end
     layout.Register(holder, KEY, nil, { label = "Chat", onUnlock = refreshLock, resize = chat.SetSize and resizeOption() or nil })
     hooksecurefunc(_G[MAIN], "SetPoint", onNativePoint)
-    if type(_G[MAIN].SetClampRectInsets) == "function" then
-        hooksecurefunc(_G[MAIN], "SetClampRectInsets", freeClamp)
-        freeClamp()
+    for _, method in ipairs({ "SetClampRectInsets", "SetClampedToScreen" }) do
+        if type(_G[MAIN][method]) == "function" then hooksecurefunc(_G[MAIN], method, freeClamp) end
     end
+    freeClamp()
 end
 
 -- The layout places the holder through the combat queue; the window follows once it is placed.
