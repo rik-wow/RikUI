@@ -53,7 +53,12 @@ function stub.region(value)
     recordCommon(value)
     value.shown = true
     function value:SetTexture(texture) self.texture = texture end
-    function value:SetVertexColor(...) self.color = { ... } end
+    -- On the client the fourth component IS the region's alpha: SetVertexColor(r, g, b, 1) undoes an
+    -- earlier SetAlpha(0). Modelled here so a suite sees a texture that was meant to stay invisible.
+    function value:SetVertexColor(...)
+        self.color = { ... }
+        if select("#", ...) >= 4 then self.alpha = (select(4, ...)) end
+    end
     function value:SetTexCoord(...) self.coords = { ... } end
     function value:SetTextColor(...) self.textColor = { ... } end
     function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end

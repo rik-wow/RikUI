@@ -210,7 +210,7 @@ return function(check)
         LFGParentFrame:Show()
         check("a hand-drawn window has its own textures faded, but not its text or the RikUI regions",
             LFGParentFrame.regions[1].alpha == 0 and LFGParentFrame.regions[2].alpha == 0
-            and rawget(LFGParentFrame.regions[3], "alpha") == nil and rawget(LFGParentFrame.rikBackdrop, "alpha") == nil)
+            and rawget(LFGParentFrame.regions[3], "alpha") == nil and rawget(LFGParentFrame.rikBackdrop, "alpha") ~= 0)
         DeathRecapFrame:Show()
         check("the close button is also found by its global name or as CloseXButton",
             LFGParentFrameCloseButton.rikLabel.text == "x" and DeathRecapFrame.CloseXButton.rikLabel.text == "x")

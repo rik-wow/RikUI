@@ -13,7 +13,7 @@ return function(check)
     local FILES = { "core.lua", "hide.lua", "editmode.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
         "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
         "chat-move.lua", "chat-lines.lua", "chat-history.lua", "chat-scroll.lua", "chat-size.lua", "chat-input.lua",
-        "chat-strip.lua", "chat-tabs.lua", "chat-clicks.lua" }
+        "chat-editbox.lua", "chat-strip.lua", "chat-tabs.lua", "chat-clicks.lua" }
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local state = {}
@@ -115,24 +115,68 @@ return function(check)
         env.click(button(chat, "W"))
         check("the reply button hands over to Blizzard's reply", state.replied == ChatFrame1)
 
-        check("the edit box border takes the channel's colour", sameColor(box.rikBorder[1].color, ChatTypeInfo.CHANNEL2)
-            and box.rikFlashAnim.plays == 1 and sameColor(box.rikFlash.color, ChatTypeInfo.CHANNEL2))
+        local art = box.rikArt
+        check("the edit box border and a two-pixel accent bar take the channel's colour",
+            sameColor(box.rikBorder[1].color, ChatTypeInfo.CHANNEL2) and sameColor(art.accent.color, ChatTypeInfo.CHANNEL2)
+            and art.accent.width == 2 and art.accentPulse.plays == 1)
+        -- The typing area must stay dark: a full-size light texture washed the text out in game, because
+        -- the fourth component of SetVertexColor is the alpha and undid the SetAlpha(0) before it.
+        local field = art.field.color
+        check("the typing area is an opaque dark field and nothing light spans it", field[1] < 0.1 and field[2] < 0.1
+            and field[3] < 0.1 and field[4] >= 0.95 and rawget(box, "rikFlash") == nil and art.accent.alpha ~= 0)
         box:UpdateHeader()
-        check("a header refresh on the same channel does not flash again", box.rikFlashAnim.plays == 1)
+        check("a header refresh on the same channel does not pulse again", art.accentPulse.plays == 1)
         env.click(button(chat, "G"))
-        check("switching channel recolours and flashes once more", sameColor(box.rikBorder[1].color, ChatTypeInfo.GUILD)
-            and box.rikFlashAnim.plays == 2)
+        check("switching channel recolours and pulses once more", sameColor(box.rikBorder[1].color, ChatTypeInfo.GUILD)
+            and sameColor(art.accent.color, ChatTypeInfo.GUILD) and art.accentPulse.plays == 2)
+        check("the focus glow rests invisible", art.glow.alpha == 0)
+        env.runScript(box, "OnEditFocusGained")
+        check("taking the focus fades a glow in around the box in the channel's colour", art.glow.alpha == 1
+            and art.glow.fade.plays == 1 and sameColor(art.glow.lines[1].color, ChatTypeInfo.GUILD))
+        env.runScript(box, "OnEditFocusLost")
+        check("losing the focus takes it away", art.glow.alpha == 0)
+        env.runScript(box, "OnShow")
+        check("the box's art fades in when the box opens, on a frame of RikUI's own", art.fade.plays == 1
+            and rawget(box, "fade") == nil)
         local selected = RikUI.Chat.Colors.selected
         check("the active channel's button carries the selected border",
             button(chat, "G").rikBorder[1].color[1] == selected[1] and button(chat, "2").rikBorder[1].color[1] ~= selected[1])
         option(chat, "editColor").set(false)
-        check("switching the edit box colour off returns the plain border",
-            box.rikBorder[1].color[1] == RikUI.Chat.Colors.border[1])
+        check("switching the edit box colour off returns the plain border and a neutral accent",
+            box.rikBorder[1].color[1] == RikUI.Chat.Colors.border[1] and art.accent.color[1] == RikUI.Chat.Colors.border[1])
         option(chat, "editColor").set(true)
         option(chat, "channelStrip").set(false)
         check("switching the strip off hides it and puts the edit boxes back under their panels",
             holder.shown == false and box.points[1][2] == ChatFrame1.rikPanel)
         option(chat, "channelStrip").set(true)
+
+        -- Motion on the window itself. Blizzard fades tabs and its own textures; RikUI only ever tweens
+        -- regions and frames of its own.
+        local tab, panel = ChatFrame1Tab, ChatFrame1.rikPanel
+        check("the panel behind the window fades in once at login", panel.fade ~= nil and panel.fade.plays == 1)
+        check("a tab has a hover highlight and a selection underline, both invisible at rest",
+            tab.rikHover ~= nil and tab.rikHover.alpha == 0 and tab.rikUnderline ~= nil and tab.rikUnderline.alpha == 0
+            and tab.rikUnderline.height == 2)
+        env.runScript(tab, "OnEnter")
+        check("hovering a tab fades a soft highlight in", tab.rikHover.alpha == 0.35 and tab.rikHover.fade.plays == 1
+            and tab.rikHover.fade.animation.to == 0.35)
+        env.runScript(tab, "OnLeave")
+        check("leaving takes it away", tab.rikHover.alpha == 0)
+        FCFTab_UpdateColors(tab, true)
+        local gold = RikUI.Chat.Colors.selected
+        check("selecting a tab fades a gold underline in under its label", tab.rikUnderline.alpha == 1
+            and tab.rikUnderline.fade.plays == 1 and tab.rikUnderline.color[1] == gold[1] and tab.rikUnderline.color[4] == nil)
+        FCFTab_UpdateColors(tab, true)
+        check("a repeated colour update does not replay it", tab.rikUnderline.fade.plays == 1)
+        FCFTab_UpdateColors(tab, false)
+        check("deselecting takes the underline away", tab.rikUnderline.alpha == 0)
+        local copy, lock = ChatFrame1.rikCopy, ChatFrame1.rikLock
+        env.runScript(copy, "OnEnter")
+        env.runScript(lock, "OnEnter")
+        check("the copy and padlock buttons fade to full brightness under the cursor instead of snapping",
+            copy.alpha == 1 and copy.rikHoverFade.plays == 1 and lock.alpha == 1 and lock.rikHoverFade.plays == 1)
+        env.runScript(copy, "OnLeave")
+        env.runScript(lock, "OnLeave")
         check("and back on restores both", holder.shown == true and box.points[1][2] == holder)
 
         check("tabs stay visible without the mouse", CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA == 1

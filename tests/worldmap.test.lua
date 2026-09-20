@@ -102,8 +102,8 @@ return function(check)
         frame:Show()
         check("a breadcrumb and the bar are decorated once while restored art is faded again",
             bar.home.rikHighlight == highlight and bar.rikFill == fill and bar.home.arrowUp.alpha == 0)
-        check("later passes never fade the bar's own fill and edge", rawget(bar.rikFill, "alpha") == nil
-            and rawget(bar.rikBorder[1], "alpha") == nil and bar.art[2].alpha == 0)
+        check("later passes never fade the bar's own fill and edge", rawget(bar.rikFill, "alpha") ~= 0
+            and rawget(bar.rikBorder[1], "alpha") ~= 0 and bar.art[2].alpha == 0)
         env.inCombat = true
         bar:Refresh()
         env.inCombat = false

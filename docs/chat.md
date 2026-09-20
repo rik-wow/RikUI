@@ -180,6 +180,38 @@ whisper is told apart) and an `OnShow` hook. Name clicks are a post-hook on
 through `C_FriendList.SendWho` as `n-"Name"`. A client without `OpenChat` gets
 no strip and keeps its edit boxes where they were.
 
+## The input bar and the window's motion
+
+`chat-editbox.lua` draws the input bar. Readable comes first: the typing area is
+an opaque dark field (`0.03, 0.035, 0.045` at 0.97) and nothing light ever spans
+it. The channel you are typing on shows in the one-pixel border and in a
+two-pixel accent bar on the left edge, which pulses once when the channel
+changes and not on every header refresh. Taking the focus fades a one-pixel
+glow in around the box in the channel's colour; opening the box fades its art
+in. All of that lives on a child frame of RikUI's own (`box.rikArt`), because
+Blizzard writes the edit box's own alpha when chat activates and deactivates
+(an unfocused IM-style box rests at 0.35), and a tween there would fight it.
+`chat-strip.lua` only tells it which channel the box is on
+(`chat.PaintEditBox(box, color, key, animate)`). The "Edit box border in the
+channel's colour" option switches border, accent and glow to the neutral grey.
+
+The window itself: the panel behind it fades in once at login; a tab fades a
+soft blue highlight in under the cursor; the selected tab carries a two-pixel
+gold underline that fades in when the tab becomes selected, beside its gold
+border; the copy and padlock buttons fade to full brightness under the cursor
+instead of snapping. RikUI only tweens regions and frames of its own: Blizzard
+fades the tabs and its own window textures itself.
+
+Found in game on 2026-09-20: the bar was washed pale and typed text was nearly
+unreadable. The old channel flash was a full-size white texture hidden with
+`SetAlpha(0)` and then coloured with `SetVertexColor(r, g, b, 1)`. On this
+client the fourth component of `SetVertexColor` is the region's alpha, so the
+colour write made the flash fully visible again; in Say the colour is white,
+and an unfocused box at 0.35 showed it as a pale wash. Colours on regions whose
+alpha matters are now written with three components, the full-size flash is
+gone, and `tests/widget_stub.lua` models the fourth component as alpha so a
+suite can see a texture that was meant to stay invisible.
+
 ## Moving and resizing the chat window
 
 The main chat window (`ChatFrame1`, with every tab docked to it) is a member of

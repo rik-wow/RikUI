@@ -61,6 +61,7 @@ chat-history.lua
 chat-scroll.lua
 chat-size.lua
 chat-input.lua
+chat-editbox.lua
 chat-strip.lua
 chat-tabs.lua
 chat-clicks.lua

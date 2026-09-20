@@ -21,6 +21,7 @@ local LOCK_SIZE, LOCK_OFFSET, LOCK_INSET, LOCK_ALPHA, SHACKLE_SWING = 16, 20, 2,
 local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
 -- The overlay of an unlocked group is a DIALOG frame over the whole window; the open padlock sits above it.
 local OPEN_STRATA = "FULLSCREEN_DIALOG"
+local HOVER_FADE = 0.12
 local holder, lockButton, anchoring, dragging = nil, nil, false, false
 
 local function isLocked() return not (layout.IsUnlocked and layout.IsUnlocked(KEY)) end
@@ -124,6 +125,7 @@ end
 
 local function showLockTip(self)
     self:SetAlpha(1)
+    if self.rest < 1 and core.Motion then core.Motion.Play(self.rikHoverFade) end
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
     GameTooltip:SetText(isLocked() and TIP_LOCKED or TIP_UNLOCKED)
     GameTooltip:Show()
@@ -146,6 +148,7 @@ local function createLockButton()
     lockButton:SetScript("OnEnter", showLockTip)
     lockButton:SetScript("OnLeave", function(self) self:SetAlpha(self.rest); GameTooltip:Hide() end)
     _G[MAIN].rikLock = lockButton
+    lockButton.rikHoverFade = core.Motion and core.Motion.Tween(lockButton, LOCK_ALPHA, 1, HOVER_FADE) or nil
     local strata = lockButton:GetFrameStrata()
     lockButton.homeStrata = type(strata) == "string" and strata or "LOW"
     refreshLock()

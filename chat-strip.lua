@@ -5,16 +5,16 @@
 -- ever sent. UpdateHeader is the one place the active channel changes, so a post-hook on it drives
 -- the edit box colour and the selected mark. Docked windows hide each other, so the strip belongs
 -- to the screen and is only anchored to the main window; nothing here is protected.
-local core, media, motion = RikUI, RikUI.Media, RikUI.Motion
+local core, media = RikUI, RikUI.Media
 local chat = core.Chat
 chat.Strip = { Buttons = {} }
 
 local MAIN, HOLDER_NAME = "ChatFrame1", "RikUIChatStrip"
 local HEIGHT, BUTTON_WIDTH, GAP, PANEL_GAP, EDIT_GAP = 18, 20, 2, 2, 2
-local FLASH_ALPHA, FLASH_SECONDS, REST_ALPHA = 0.35, 0.3, 0.75
+local REST_ALPHA = 0.75
 local REPLY, CHANNEL = "REPLY", "CHANNEL"
 local REFRESH_EVENTS = { "GROUP_ROSTER_UPDATE", "PLAYER_GUILD_UPDATE", "CHAT_MSG_CHANNEL_NOTICE", "PLAYER_ENTERING_WORLD" }
-local holder, pool, hooked, lastKey, activeBox = nil, {}, {}, {}, nil
+local holder, pool, hooked, activeBox = nil, {}, {}, nil
 
 local function ask(name)
     local reader = _G[name]
@@ -153,18 +153,11 @@ local function boxInfo(box)
     return typeInfo(CHANNEL .. tostring(target)) or typeInfo(CHANNEL), kind .. tostring(target)
 end
 
-local function tint(box, r, g, b)
-    for _, line in ipairs(box.rikBorder or {}) do line:SetVertexColor(r, g, b, 1) end
-end
-
--- The flash plays only when the channel really changed, not on every header refresh.
+-- The box's look is chat-editbox.lua's; this file only says which channel it is on.
 local function paint(box, animate)
     local info, key = boxInfo(box)
-    if not colorOn() or not info then return tint(box, unpack(chat.Colors.border)) end
-    tint(box, info.r, info.g, info.b)
-    box.rikFlash:SetVertexColor(info.r, info.g, info.b, 1)
-    if animate and lastKey[box] ~= key then motion.Play(box.rikFlashAnim) end
-    lastKey[box] = key
+    if not colorOn() or not info then return chat.PaintEditBox(box, nil, nil, false) end
+    chat.PaintEditBox(box, { info.r, info.g, info.b }, key, animate)
 end
 
 local function onHeader(box)
@@ -177,11 +170,7 @@ local function hookBox(frame)
     local box = frame.editBox
     if hooked[box] or not chat.IsFrame(box) or type(box.UpdateHeader) ~= "function" then return end
     hooked[box] = true
-    box.rikFlash = box:CreateTexture(nil, "ARTWORK")
-    box.rikFlash:SetAllPoints(box)
-    box.rikFlash:SetTexture("Interface\\BUTTONS\\WHITE8X8")
-    box.rikFlash:SetAlpha(0)
-    box.rikFlashAnim = motion.Tween(box.rikFlash, FLASH_ALPHA, 0, FLASH_SECONDS)
+    chat.DressEditBox(box)
     hooksecurefunc(box, "UpdateHeader", onHeader)
     paint(box, false)
 end
