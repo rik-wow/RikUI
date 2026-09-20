@@ -64,7 +64,7 @@ return function(check)
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs({ "core.lua", "hide.lua", "media.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
-            "unitframes.lua", "unitframes-status.lua", "minimap.lua" }) do
+            "editmode.lua", "unitframes.lua", "unitframes-status.lua", "minimap.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -98,6 +98,30 @@ return function(check)
             and QueueStatusButton.point[1] == "BOTTOMLEFT")
         check("the tracking frame sits in the holder unseen with its button ignoring the mouse",
             cluster.Tracking.parent == holder and cluster.Tracking.alpha == 0 and cluster.Tracking.Button.mouse == false)
+
+        -- The cluster is an Edit Mode system: its header setting re-anchors the indicator and the map
+        -- container's children to the cluster whenever a layout applies.
+        module = load(nil, false, function()
+            function MinimapCluster:UpdateSystem()
+                self.IndicatorFrame:ClearAllPoints()
+                self.IndicatorFrame:SetPoint("BOTTOMRIGHT", self.Tracking, "TOPRIGHT")
+                self.Tracking:ClearAllPoints()
+                self.Tracking:SetPoint("TOPLEFT", self, "TOPLEFT", 9, -17)
+            end
+        end)
+        holder, cluster, map = module.Holder, MinimapCluster, Minimap
+        cluster:UpdateSystem()
+        check("Edit Mode applying its layout leaves the indicator and the tracking frame on the holder",
+            cluster.IndicatorFrame.point[1] == "TOPRIGHT" and cluster.IndicatorFrame.point[2] == holder
+            and cluster.Tracking.point[2] == holder and map.point[2] == holder and #module.Adopted == 3)
+        env.inCombat = true
+        cluster:UpdateSystem()
+        check("in combat the answer waits", cluster.IndicatorFrame.point[1] == "BOTTOMRIGHT")
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("and lands when combat ends", cluster.IndicatorFrame.point[2] == holder)
+        module = load()
+        holder, cluster, map = module.Holder, MinimapCluster, Minimap
 
         check("the zone label shows the zone name in the friendly colour at login", holder.zone.text == "Northshire Valley"
             and color(holder.zone.color, { 0.1, 1, 0.1 }) and holder.zone.fontPath == media.font)

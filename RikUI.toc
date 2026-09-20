@@ -20,6 +20,7 @@ setup-apply.lua
 layout-geometry.lua
 layout.lua
 layout-rects.lua
+editmode.lua
 motion.lua
 bindings.lua
 macros.lua

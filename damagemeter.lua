@@ -211,7 +211,7 @@ local function createHolder(owner)
     follow(owner)
     core.Layout.Register(meter.Holder, LAYOUT_KEY, DEFAULTS)
     owner:HookScript("OnSizeChanged", follow)
-    if type(owner[ANCHOR]) == "function" then hooksecurefunc(owner, ANCHOR, hang) end
+    core.EditMode.Guard(owner, "damage meter", hang)
     hang(owner)
 end
 

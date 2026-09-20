@@ -1,5 +1,6 @@
 -- Resizing the main chat window without Edit Mode. On 69913 the default chat frame's size belongs
--- to Edit Mode: Blizzard hides its ResizeButton and FCF_UpdateResizeButton never shows it again.
+-- to Edit Mode: Blizzard hides its ResizeButton and FCF_UpdateResizeButton never shows it again, and
+-- Edit Mode writes its stored size back on every layout apply, which editmode.lua answers.
 -- RikUI adds its own corner grip, visible while the window is unlocked with the padlock. The window
 -- is centred on the move holder, and sizing from one corner shifts that centre, so after a drag
 -- the holder is re-placed on the window and the drop saved (chat.AdoptCurrent). The size lives in
@@ -76,6 +77,9 @@ function chat.EnableSize()
     if not chat.IsFrame(_G[MAIN]) or type(chat.AdoptCurrent) ~= "function" then return end
     createGrip()
     chat.ApplySize()
-    -- Edit Mode may write its own size when a layout is applied on entering the world.
+    -- The window is an Edit Mode system: every layout apply writes the size stored in the Edit Mode
+    -- layout (login, a spec change, a layout switch, leaving Edit Mode). The saved size goes back
+    -- after each one.
+    core.EditMode.Guard(_G[MAIN], "chat size", chat.ApplySize)
     core:RegisterEvent("PLAYER_ENTERING_WORLD", chat.ApplySize)
 end

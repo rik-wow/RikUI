@@ -168,6 +168,16 @@ local function keep(entry)
     minimap.Adopted[#minimap.Adopted + 1] = frame
 end
 
+-- The cluster is an Edit Mode system. Its header setting re-anchors the indicator frame, and a layout
+-- apply may re-place the map's container; the frames RikUI keeps go back onto the holder after it.
+local function reattach()
+    attach(Minimap, "TOPLEFT", EDGE, -EDGE)
+    for _, entry in ipairs(KEEP) do
+        local frame = resolve(entry.path)
+        if frame then attach(frame, entry.point, entry.x, entry.y) end
+    end
+end
+
 local function park()
     for _, path in ipairs(ART) do
         local frame = resolve(path)
@@ -211,6 +221,7 @@ local function build()
     park()
     installMouse()
     minimap.UpdateZone()
+    if core.EditMode then core.EditMode.Guard(MinimapCluster, "minimap", reattach) end
 end
 
 function minimap:OnEnable()

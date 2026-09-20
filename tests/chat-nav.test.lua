@@ -9,7 +9,7 @@ return function(check)
     local API = { "CHAT_FRAMES", "NUM_CHAT_WINDOWS", "ChatFrameUtil", "EventRegistry", "SetItemRef", "ChatFontNormal",
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "ItemRefTooltip", "ChatTypeInfo",
         "IsControlKeyDown" }
-    local FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
+    local FILES = { "core.lua", "hide.lua", "editmode.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua", "layout-geometry.lua", "layout.lua", "layout-rects.lua",
         "motion.lua", "skin.lua", "layout-unlock.lua", "layout-drag.lua", "unitframes.lua", "unitframes-status.lua", "chat.lua", "chat-skin.lua", "chat-copy.lua",
         "chat-move.lua", "chat-lines.lua", "chat-history.lua", "chat-scroll.lua", "chat-size.lua", "chat-input.lua" }
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
@@ -144,6 +144,18 @@ return function(check)
 
         chat = load({ chat = { size = { width = 480, height = 240 } } })
         check("a saved size is applied at login", ChatFrame1.width == 480 and ChatFrame1.height == 240)
+        -- ChatFrame1 is an Edit Mode system: a layout apply writes the size stored in the Edit Mode layout.
+        chat = load({ chat = { size = { width = 480, height = 240 } } }, nil, function()
+            function ChatFrame1:UpdateSystem() self:SetSize(430, 120) end
+        end)
+        ChatFrame1:UpdateSystem()
+        check("Edit Mode applying its layout does not reset the saved chat size", ChatFrame1.width == 480
+            and ChatFrame1.height == 240)
+        chat = load(nil, nil, function()
+            function ChatFrame1:UpdateSystem() self:SetSize(430, 120) end
+        end)
+        ChatFrame1:UpdateSystem()
+        check("without a saved size Edit Mode's size stands", ChatFrame1.width == 430 and ChatFrame1.height == 120)
         chat = load({ chat = { size = { width = "wide" } } })
         check("a damaged saved size is ignored", ChatFrame1.width == nil and #env.printed == 0)
 
