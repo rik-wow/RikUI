@@ -47,28 +47,37 @@ function skin.Fill(owner, color, inset)
     return texture
 end
 
-local function line(owner, first, second, inset, color)
+local function line(owner, target, first, second, inset, color)
     local texture = owner:CreateTexture(nil, "BORDER")
     texture:SetTexture(media.border)
     texture:SetVertexColor(unpack(color))
     for _, point in ipairs({ first, second }) do
         local direction = CORNERS[point]
-        texture:SetPoint(point, owner, point, direction[1] * inset, direction[2] * inset)
+        texture:SetPoint(point, target, point, direction[1] * inset, direction[2] * inset)
     end
     if first:sub(1, 3) == second:sub(1, 3) then texture:SetHeight(EDGE) else texture:SetWidth(EDGE) end
     return texture
 end
 
--- Four one-pixel lines, pulled in by inset so they can frame an inset fill.
-function skin.Outline(owner, color, inset)
+-- Four one-pixel lines, pulled in by inset so they can frame an inset fill. With a target the lines
+-- are still created on owner but frame the target, which is how a texture gets an edge.
+function skin.Outline(owner, color, inset, target)
     local lines = {}
-    inset, color = inset or 0, color or skin.LINE
-    for index, pair in ipairs(SIDES) do lines[index] = line(owner, pair[1], pair[2], inset, color) end
+    inset, color, target = inset or 0, color or skin.LINE, target or owner
+    for index, pair in ipairs(SIDES) do lines[index] = line(owner, target, pair[1], pair[2], inset, color) end
     return lines
 end
 
 function skin.Font(region, role)
     if skin.IsRegion(region) and type(region.SetFont) == "function" then media.Font(region, role) end
+end
+
+-- The RikUI typeface at the string's own size, leaving the colour Blizzard gave it.
+function skin.Typeface(region, fallbackSize)
+    if not skin.IsRegion(region) or type(region.SetFont) ~= "function" then return end
+    local ok, _, size = pcall(region.GetFont, region)
+    size = ok and type(size) == "number" and size > 0 and size or fallbackSize or media.sizes.label
+    region:SetFont(media.font, size, "OUTLINE")
 end
 
 function skin.CropIcon(icon)

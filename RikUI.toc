@@ -78,6 +78,7 @@ skin.lua
 menus.lua
 chatbubbles.lua
 totems.lua
+alerts.lua
 loot.lua
 loot-rolls.lua
 tooltip.lua
