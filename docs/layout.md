@@ -87,6 +87,15 @@ Nested `Layout.Apply()` calls from appearance callbacks coalesce into the
 current pass. Completion hooks may still request a new pass when resizing
 and settling changes positions.
 
+During `Apply`, the floating predicate and `onApply` run with the callback owner
+captured by the group's first registration. This normally inherits the enabling
+module or owned callback; pass `opts.owner = feature` to set it explicitly.
+Top-level registrations are unowned by default. Later frames sharing the key
+keep the first owner's context. Events, combat jobs and nested registrations
+created during refresh inherit that context; the requesting caller's owner is
+restored even when a frame or callback fails. Coalescing and combat deferral do
+not transfer ownership to the module requesting `Apply`.
+
 `Layout.Reset()` and `Layout.SetScale(number)` return `true`, or `nil, reason`
 on refusal. `Bars.ApplyLayout()` delegates to `Layout.Apply()`; bar gryphon
 refresh is registered through `onApply` and needs no separate feature queue.
@@ -118,6 +127,7 @@ one and still blocks.
 | `label` | Name shown to the player |
 | `grow` | `UP`, `DOWN`, `LEFT` or `RIGHT`: the direction a frame that changes size grows in |
 | `onLimit(room)` | Called after every layout pass with the room left along `grow`, in the frame's own units |
+| `owner` | Optional ownership override for the floating predicate and `onApply` during `Apply`; otherwise captured from the first registration's context |
 | `onApply(frame)` | Refreshes feature appearance for each frame after placement; the first registration owns the group's callback |
 | `floating` | A reference place other things float over (the tooltip anchor): neither blocks nor is blocked. May be a function for a group that floats only some of the time (the loot list at the cursor); while it returns true, `Apply` does not position the group either |
 | `exclusive` | Groups with the same tag are never shown together (party and raid) and do not block each other |

@@ -156,4 +156,85 @@ return function(check)
     end })
     check("a frame registered during refresh is included without recursive passes", third.writes == 1
         and third.point[4] == 25 and first.writes == 2 and second.writes == 1)
+
+    for _, deferred in ipairs({ false, true }) do
+        core, layout = boot()
+        local mode = deferred and "deferred" or "immediate"
+        local groupOwner, explicitOwner, callerOwner = {}, {}, {}
+        local watching, childRegistered = false, false
+        local hits, handlers = {}, {}
+        for _, name in ipairs({ "owned", "floating", "explicit", "unowned", "caller", "child" }) do
+            local key = name
+            hits[key] = 0
+            handlers[key] = function() hits[key] = hits[key] + 1 end
+        end
+        local function subscribe(name)
+            core:RegisterEvent("UNIT_HEALTH", handlers[name])
+        end
+        local function appearance()
+            if not watching then return end
+            subscribe("owned")
+            if not childRegistered then
+                childRegistered = true
+                core.Combat.Queue(function()
+                    layout.Register(frame("child"), "child", defaults, {
+                        onApply = function() subscribe("child") end,
+                    })
+                end)
+            end
+            error("owned appearance failure")
+        end
+        layout.Register(frame("unowned"), "unowned", defaults, {
+            onApply = function() if watching then subscribe("unowned") end end,
+        })
+        groupOwner.OnEnable = function()
+            layout.Register(frame("owned"), "owned", defaults, {
+                floating = function()
+                    if watching then subscribe("floating") end
+                    return false
+                end,
+                onApply = appearance,
+            })
+            layout.Register(frame("explicit"), "explicit", defaults, {
+                owner = explicitOwner,
+                onApply = function() if watching then subscribe("explicit") end end,
+            })
+        end
+        callerOwner.OnEnable = function()
+            -- Later frames share the first registration's options and owner.
+            layout.Register(frame("sibling"), "owned", defaults, {
+                owner = callerOwner,
+                onApply = function() error("later registration replaced callback") end,
+            })
+            core:RegisterEvent("SPELLS_CHANGED", function()
+                layout.Apply()
+                subscribe("caller")
+            end)
+        end
+        core:RegisterModule("layoutowner", groupOwner)
+        core:RegisterModule("layoutcaller", callerOwner)
+        watching, env.inCombat = true, deferred
+        env.fire("SPELLS_CHANGED")
+        if deferred then
+            check("owned layout callbacks wait through combat", not childRegistered and core.Combat.Pending() == 1)
+        end
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        env.fire("UNIT_HEALTH", "player")
+        check(mode .. " layout callbacks subscribe and survive appearance errors",
+            hits.owned == 1 and hits.floating == 1 and hits.explicit == 1 and hits.unowned == 1
+            and hits.caller == 1 and hits.child == 1 and reported("owned appearance failure"))
+        core:UnregisterOwner(groupOwner)
+        env.fire("UNIT_HEALTH", "player")
+        check(mode .. " refresh retains the first group owner's appearance and predicate subscriptions",
+            hits.owned == 1 and hits.floating == 1 and hits.explicit == 2 and hits.caller == 2)
+        check(mode .. " refresh child work and nested registration inherit the group owner", hits.child == 1)
+        core:UnregisterOwner(explicitOwner)
+        env.fire("UNIT_HEALTH", "player")
+        check(mode .. " refresh honors explicit ownership", hits.explicit == 2 and hits.caller == 3)
+        core:UnregisterOwner(callerOwner)
+        env.fire("UNIT_HEALTH", "player")
+        check(mode .. " refresh restores caller ownership and keeps unowned groups independent",
+            hits.caller == 3 and hits.unowned == 4)
+    end
 end

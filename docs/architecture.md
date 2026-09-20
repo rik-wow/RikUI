@@ -39,7 +39,10 @@ Features attach cosmetic refreshes through `Layout.Register(..., { onApply = cal
 the callback receives each frame after placement. Bars use this for gryphon art,
 so the core profile service does not call the Bars feature and there is only one
 layout refresh queue. Frame failures are isolated, including within a shared
-group. See [the layout contract](layout.md#module-contract) for callback ordering,
+group. Per-frame refreshes use `Runtime.InvokeOwned` with the group's first
+registration owner (`opts.owner` can override it), so floating predicates and
+appearance callbacks retain feature ownership across coalescing and combat
+deferral. See [the layout contract](layout.md#module-contract) for callback ordering,
 floating frames, reentry and completion behavior.
 
 ## Loading and activation are separate

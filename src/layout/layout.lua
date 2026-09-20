@@ -5,7 +5,7 @@ core.Layout = layout
 local POINTS = { TOP = true, TOPLEFT = true, TOPRIGHT = true, LEFT = true, CENTER = true,
     RIGHT = true, BOTTOM = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
 local ORIGIN = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 }
-local frameKeys, registrations, pending = {}, {}, false
+local frameKeys, registrations, groupOwners, pending = {}, {}, {}, false
 
 local function finite(value)
     return type(value) == "number" and value == value and math.abs(value) < math.huge
@@ -54,7 +54,7 @@ end
 local function applyRegistered()
     -- Append-only registration order also includes frames registered by a callback.
     for _, entry in ipairs(registrations) do
-        core.Runtime.Invoke(entry.label, applyFrame, entry.frame, entry.key)
+        core.Runtime.InvokeOwned(groupOwners[entry.key], entry.label, applyFrame, entry.frame, entry.key)
     end
 end
 
@@ -93,6 +93,10 @@ local function newGroup(key, defaults, opts)
     defaults = position(defaultFor(key, defaults), ORIGIN)
     local group = { frames = {}, defaults = defaults }
     for _, name in ipairs(OPTIONS) do group[name] = opts and opts[name] or nil end
+    -- The first registration owns every refresh callback, even when another module requests it.
+    local owner = opts and opts.owner
+    if owner == nil then owner = core.Runtime.owner end
+    groupOwners[key] = owner
     layout.Groups[key] = group
     setup.DefaultPositions[key] = position(defaults, ORIGIN)
     return group
