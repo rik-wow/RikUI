@@ -39,8 +39,14 @@ Without a saved chat size nothing is enforced and Edit Mode's size stands.
 The chat size has a second line of defence, added after the first in-game
 report that the size still reverted on reload: `chat-size.lua` post-hooks the
 window's own `SetSize`, `SetWidth` and `SetHeight` and answers any size that is
-not the saved one, whoever wrote it and by whatever route. RikUI's own write, a
-drag of RikUI's grip and an open Edit Mode are left alone. It is the mechanism
+not the saved one, whoever wrote it and by whatever route. RikUI's own write and
+a drag of RikUI's grip are left alone. A size set while Edit Mode is open (its
+resize handle or its width and height sliders) is adopted as the saved size:
+the debug line from the game read `saved=none guarded=true`, which means the
+size had been chosen in Edit Mode, where RikUI saved nothing, and Edit Mode
+discarded it on exit (`ExitEditMode` runs `RevertAllChanges`; a Blizzard preset
+layout cannot be changed at all). The revert is then answered like any other
+foreign write. It is the mechanism
 that has kept the window's place since `chat-move.lua` hooked `SetPoint`.
 `/rik debug` prints `Chat size saved=WxH now=WxH guarded=<bool> answered=<n>`:
 `saved=none` means the grip never saved a size, `guarded=false` means the window

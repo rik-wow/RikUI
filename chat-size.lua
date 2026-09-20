@@ -41,9 +41,19 @@ end
 
 -- Whoever writes the window's size, by whatever route, is answered with the saved size. This is the
 -- mechanism that keeps the window's place (chat-move.lua hooks SetPoint the same way). RikUI's own
--- write, a drag of the grip and an open Edit Mode are left alone.
+-- write and a drag of the grip are left alone; a size set while Edit Mode is open is adopted instead.
+-- A size chosen inside Edit Mode (its resize handle or its width and height sliders) is the player's
+-- choice, so it becomes the saved size. Edit Mode throws an unsaved change away when it closes, and a
+-- Blizzard preset layout cannot be changed at all; the revert is then answered like any other write.
+local function adoptEditModeSize()
+    local width, height = _G[MAIN]:GetSize()
+    local size = { width = width, height = height }
+    if validSize(size) then chat.Settings().size = size end
+end
+
 local function onNativeSize()
-    if applying or sizing or core.EditMode.IsActive() then return end
+    if applying or sizing then return end
+    if core.EditMode.IsActive() then return adoptEditModeSize() end
     local size = chat.Settings().size
     if not validSize(size) or not differs(size) then return end
     answered = answered + 1

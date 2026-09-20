@@ -151,6 +151,24 @@ return function(check)
         ChatFrame1:UpdateSystem()
         check("Edit Mode applying its layout does not reset the saved chat size", ChatFrame1.width == 480
             and ChatFrame1.height == 240)
+        -- A size chosen inside Edit Mode is the player's choice: it becomes the saved size, so it survives
+        -- Edit Mode discarding it on exit (a Blizzard preset layout cannot be changed) and a reload.
+        local editing = false
+        chat = load(nil, nil, function()
+            function EditModeManagerFrame:IsEditModeActive() return editing end
+        end)
+        editing = true
+        ChatFrame1:SetSize(520, 300)
+        check("a size set while Edit Mode is open is adopted as the saved size", RikUI.Profile.chat.size ~= nil
+            and RikUI.Profile.chat.size.width == 520 and RikUI.Profile.chat.size.height == 300)
+        ChatFrame1:SetSize(100, 50)
+        check("a size outside the bounds is not adopted", RikUI.Profile.chat.size.width == 520)
+        editing = false
+        ChatFrame1:SetSize(430, 120)
+        check("when Edit Mode closes and reverts its unsaved change the adopted size comes back",
+            ChatFrame1.width == 520 and ChatFrame1.height == 300)
+        EditModeManagerFrame.IsEditModeActive = nil
+
         -- Whoever writes the size, by whatever route: the window's own setters are answered too.
         chat = load({ chat = { size = { width = 480, height = 240 } } })
         ChatFrame1:SetSize(430, 120)
