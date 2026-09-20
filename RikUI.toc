@@ -79,6 +79,7 @@ menus.lua
 chatbubbles.lua
 totems.lua
 alerts.lua
+widgets.lua
 loot.lua
 loot-rolls.lua
 tooltip.lua
