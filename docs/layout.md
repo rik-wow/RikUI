@@ -178,6 +178,33 @@ takes a key's default from it, and the position a module passes is only the
 fallback for a key it does not know. The bag window is now `floating`: it opens
 over the screen like a tooltip, so it neither blocks a drag nor is moved.
 
+### Applying one
+
+`/rik layout list` prints the four with the current one marked, `/rik layout
+<name>` applies one and `/rik layout undo` reverts the last apply (one step).
+The options panel's General page has the same choice as a "Layout preset"
+dropdown; it reads empty once a frame was moved by hand, because
+`layout.MatchingPreset()` compares the saved positions with each layout instead
+of remembering a name. `layout-presets.lua` does the work:
+`layout.ApplyPreset(name)` refuses combat and unknown names, keeps the old
+positions and chat size in `profile.layoutUndo`, writes a copy of every
+position, locks all frames, then runs `Apply` and the settle pass, so an unusual
+screen still ends without overlaps.
+
+The chat window is part of a layout. Its width is fitted to the screen
+(`layout.ChatSize`: the room between the left margin and the bar stack, at
+least 344 and at most 430; 413 on 16:9) and its holder is centred on that
+width. A size the player chose with the grip is kept. The chat module adopts the
+window when a layout gives it a position (`chat.Restore`), and the
+[Edit Mode guard](editmode.md) keeps that size.
+
+Setup takes the same layouts: `setup.Apply(class, role, { layoutPreset = name })`
+merges the module defaults, then the layout, then the class preset's own
+positions (`setup.LayoutPositions`). The snapshot captures exactly those keys,
+so `/rik undo` puts the old positions back. `tests/layout-presets.test.lua`
+covers apply, undo, refusals, the chat width on three screens, the slash
+command, the dropdown row and the setup merge.
+
 `tests/layouts.test.lua`: each layout places every key and audits clean on
 1365, 1228 and 1820 wide screens; the audit's four kinds of issue on a broken
 layout; named alignments (player and target flush with the bar ends, the right

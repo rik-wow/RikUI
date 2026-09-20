@@ -84,6 +84,7 @@ local function layoutSpecs(specs)
         min = SCALE_MIN, max = SCALE_MAX, step = SCALE_STEP,
         get = function() return core.Layout.GetScale() end,
         set = function(value) return core.Layout.SetScale(value) end }
+    if core.Layout.PresetOption then specs[#specs + 1] = core.Layout.PresetOption() end
     specs[#specs + 1] = action("move", "Frame positions", "Move frames", moveFrames)
     specs[#specs + 1] = action("reset", "Default positions", "Reset positions", function() run("move reset") end)
 end

@@ -176,6 +176,9 @@ local function restore()
     end)
 end
 
+-- A whole-screen layout writes a position for the window; it is adopted the same way a saved one is.
+chat.Restore = restore
+
 function chat.EnableMove()
     local tab = _G[TAB]
     if not chat.IsFrame(tab) or type(tab.HookScript) ~= "function" then

@@ -201,10 +201,11 @@ core:RegisterCommand("scale", function(args)
     core:Print(ok and ("Frame scale: " .. core.Profile.scale) or reason)
 end, "Scale every registered frame: /rik scale <0.25-3>")
 
-core:RegisterCommand("layout", function()
+core:RegisterCommand("layout", function(args)
+    if args ~= "" and layout.PresetCommand then return layout.PresetCommand(args) end
     core:Print("Layout groups=" .. count(layout.Groups) .. " unlocked=" .. count(unlocked)
         .. " key=" .. tostring(type(GetBindingKey) == "function" and GetBindingKey(BINDING) or nil))
-end, "Show the frame arrangement state")
+end, "Show the frame arrangement state, or apply a layout: /rik layout [list|undo|<name>]")
 
 core:RegisterEvent("MODIFIER_STATE_CHANGED", onModifier)
 -- Every rectangle changes with the screen; layout-rects.lua settles again, and nothing stays unlocked.

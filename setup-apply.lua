@@ -82,8 +82,11 @@ local function barOperations(preset)
     return operations
 end
 
-function setup.LayoutPositions(preset)
+-- Defaults, then the chosen whole-screen layout, then the class preset's own positions.
+function setup.LayoutPositions(preset, layoutName)
     local positions = copy(setup.DefaultPositions)
+    local chosen = layoutName and core.Layout and core.Layout.PresetPositions and core.Layout.PresetPositions(layoutName)
+    for key, value in pairs(chosen or {}) do positions[key] = value end
     for key, value in pairs(preset.positions or {}) do positions[key] = copy(value) end
     return positions
 end
@@ -197,6 +200,10 @@ function setup.ValidateOptions(opts)
         if opts[name] ~= nil and type(opts[name]) ~= "boolean" then return name .. " must be a boolean" end
     end
     if opts.cvarSelection ~= nil and type(opts.cvarSelection) ~= "table" then return "cvarSelection must be a table" end
+    if opts.layoutPreset ~= nil then
+        local presets = core.Layout and core.Layout.PresetPositions
+        if not presets or not presets(opts.layoutPreset) then return "layoutPreset must name a layout" end
+    end
 end
 
 function setup.Apply(class, role, opts)
@@ -215,7 +222,9 @@ function setup.Apply(class, role, opts)
     setup.Missing = {}
     context.result.steps.snapshot = counts()
     queueOperation(context, "snapshot", function()
-        if context.opts.layout ~= false then context.layout = setup.LayoutPositions(context.preset) end
+        if context.opts.layout ~= false then
+            context.layout = setup.LayoutPositions(context.preset, context.opts.layoutPreset)
+        end
         local snapshot, failure = setup.CaptureSnapshot(context.preset, context.opts,
             context.profile, context.charDB, context.profileName, context.layout)
         if not snapshot then fail(context, "snapshot", failure); return end
