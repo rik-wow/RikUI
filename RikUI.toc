@@ -81,6 +81,8 @@ totems.lua
 alerts.lua
 widgets.lua
 combattext.lua
+questtimers.lua
+hudframes.lua
 loot.lua
 loot-rolls.lua
 tooltip.lua
