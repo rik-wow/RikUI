@@ -53,6 +53,13 @@ return function(check)
             if slot.icon.alpha == 1 and slot.icon.texture then bright = bright + 1 elseif slot.icon.texture then dimmed = dimmed + 1 end
         end
         check("spells above the character's level are drawn dim", bright > 0 and dimmed > 0)
+        -- A macro slot has no level of its own; it waits for the spells it casts (Execute is level 24).
+        local execute
+        for _, slot in ipairs(role.bar.slots) do
+            if slot.entry and slot.entry.macro == "Execute" then execute = slot end
+        end
+        check("a macro is dim until the character can learn a spell it casts", execute ~= nil
+            and execute.icon.texture ~= nil and execute.icon.alpha ~= 1)
         env.click(role.cards[2])
         check("choosing Protection changes the state and the preview", wizard.State.role == "tank" and role.cards[2].isChosen == true
             and role.cards[1].isChosen == false and role.bar.slots[1].icon.texture == RikUI.SpellData["Sunder Armor"].icon)

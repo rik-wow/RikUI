@@ -73,6 +73,17 @@ function preview.Bar(parent)
     return bar
 end
 
+-- Setup leaves a macro's slot empty until the character knows one of the spells it lists, so the
+-- macro comes at the lowest of their levels. A macro that lists none is placed at once.
+local function macroLevel(macro)
+    local lowest
+    for _, name in ipairs(macro.spells or {}) do
+        local data = core.SpellData[name]
+        if data and data.level and (not lowest or data.level < lowest) then lowest = data.level end
+    end
+    return lowest
+end
+
 local function entryArt(entry, preset)
     if type(entry) ~= "table" then return nil, nil end
     if entry.spell then
@@ -80,7 +91,8 @@ local function entryArt(entry, preset)
         return data and data.icon or nil, entry.level or (data and data.level)
     end
     local macro = entry.macro and preset.macros and preset.macros[entry.macro]
-    return macro and macro.icon or nil, nil
+    if not macro then return nil, nil end
+    return macro.icon, macroLevel(macro)
 end
 
 -- A slot whose spell the character's level does not allow yet is drawn dim, the way a ghost slot is.
