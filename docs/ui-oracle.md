@@ -57,7 +57,7 @@ flat regions added; `font` = font objects only.
 | Mirror timers (breath, fatigue) | `mirrortimers.lua` | own | 3 | layout | `hud-extras-beta-acceptance` |
 | Totem row | `totems.lua` | own | 2 | unit frames | `interiors-misc` (dismissal) |
 | Loss of control | `lossofcontrol.lua` | skin with own animated regions | 3 | skin, motion | `ui-final-beta-acceptance` |
-| Damage meter | `damagemeter.lua` | skin | 1 | skin, controls | `damagemeter-motion` |
+| Damage meter | `damagemeter.lua` | skin with own track, glyph buttons, row fade and hover; hung on a RikUI holder for `/rik move` | 2 | skin, motion, layout, controls | `ui-last-beta-acceptance` (bar easing is a client limit) |
 | Floating combat text | `combattext.lua` | font | 1 | media | `screentext-own` (engine limit: font only) |
 
 ## Screen text and toasts
@@ -115,7 +115,7 @@ flat regions added; `font` = font objects only.
 
 ## Counts
 
-Tier 3: 9 surfaces. Tier 2: 12. Tier 1: 20. Tier 0: 16. The tier 0 rows are
+Tier 3: 9 surfaces. Tier 2: 13. Tier 1: 19. Tier 0: 16. The tier 0 rows are
 the ones the user's rule forbids; the tier 1 rows are full replacements that
 lack motion.
 
@@ -128,7 +128,7 @@ The dependency edges above give this order; each step is one roadmap chunk.
    `auras-motion`, `bars-motion`: the pieces on screen every second of play.
 3. `spell-activation-overlay`, `vehicle-bar`: only if Forever shows them.
 4. `alerts-own`, `screentext-own`, `widgets-rest`.
-5. `hud-polish`, `chat-polish`, `damagemeter-motion`.
+5. `hud-polish`, `chat-polish`. (`damagemeter-motion` is done.)
 6. `interiors-character` first (it builds the shared item-button and row pass),
    then `interiors-spells-talents`, `interiors-quests-map`,
    `interiors-commerce`, `interiors-social`, `interiors-misc`.

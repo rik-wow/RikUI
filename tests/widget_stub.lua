@@ -86,7 +86,12 @@ local function wrapFrame(frame)
         return self.fill
     end
     local texture, font = frame.CreateTexture, frame.CreateFontString
-    function frame:CreateTexture(...) return stub.region(texture(self, ...)) end
+    -- The draw layer is recorded: an edge under an icon and an edge over it differ only in that.
+    function frame:CreateTexture(name, layer, ...)
+        local region = stub.region(texture(self, name, layer, ...))
+        region.layer = layer
+        return region
+    end
     function frame:CreateFontString(...) return stub.region(font(self, ...)) end
     return frame
 end

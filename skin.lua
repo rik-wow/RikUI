@@ -50,8 +50,8 @@ function skin.Fill(owner, color, inset)
     return texture
 end
 
-local function line(owner, target, first, second, inset, color)
-    local texture = owner:CreateTexture(nil, "BORDER")
+local function line(owner, target, first, second, inset, color, layer)
+    local texture = owner:CreateTexture(nil, layer)
     texture:SetTexture(media.border)
     texture:SetVertexColor(unpack(color))
     for _, point in ipairs({ first, second }) do
@@ -63,11 +63,13 @@ local function line(owner, target, first, second, inset, color)
 end
 
 -- Four one-pixel lines, pulled in by inset so they can frame an inset fill. With a target the lines
--- are still created on owner but frame the target, which is how a texture gets an edge.
-function skin.Outline(owner, color, inset, target)
+-- are still created on owner but frame the target, which is how a texture gets an edge. The lines
+-- draw in BORDER, under an ARTWORK icon; a caller that cannot frame outside the icon (a clipping
+-- parent) passes OVERLAY as layer and frames at the icon's own bounds.
+function skin.Outline(owner, color, inset, target, layer)
     local lines = {}
-    inset, color, target = inset or 0, color or skin.LINE, target or owner
-    for index, pair in ipairs(SIDES) do lines[index] = line(owner, target, pair[1], pair[2], inset, color) end
+    inset, color, target, layer = inset or 0, color or skin.LINE, target or owner, layer or "BORDER"
+    for index, pair in ipairs(SIDES) do lines[index] = line(owner, target, pair[1], pair[2], inset, color, layer) end
     return lines
 end
 
