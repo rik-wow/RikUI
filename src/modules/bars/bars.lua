@@ -5,7 +5,7 @@ core.Bars = bars
 local BUTTONS, BUTTON_SIZE, BUTTON_GAP = 12, 36, 6
 local FADE_SECONDS, LEAVE_DELAY = 0.2, 0.05
 local BAR_ORDER = { "main", "bar2", "bar3", "bar4", "bar5" }
-local pending, layoutPending = {}, false
+local pending = {}
 
 local function finite(value)
     return type(value) == "number" and value == value and math.abs(value) < math.huge
@@ -105,21 +105,16 @@ end
 
 local function position(bar)
     local key = bar.positionKey or bar.key
-    core.Layout.Register(bar, key, setup.DefaultPositions[key] or setup.DefaultPositions.main)
-    bars.UpdateGryphons(bar)
+    core.Layout.Register(bar, key, setup.DefaultPositions[key] or setup.DefaultPositions.main,
+        { onApply = bars.UpdateGryphons })
 end
 
--- Kept for companion factories and callers that also refresh gryphon art.
+-- Companion factories share the layout and appearance contract.
 bars.PositionFrame = position
 
+-- Compatibility entry point; Layout owns scheduling and appearance refresh.
 function bars.ApplyLayout()
-    if layoutPending or not core.Profile then return end
-    layoutPending = true
-    core.Combat.Queue(function()
-        layoutPending = false
-        core.Layout.Apply()
-        for _, bar in pairs(bars.Frames) do bars.UpdateGryphons(bar) end
-    end)
+    core.Layout.Apply()
 end
 
 local TOOLTIP_FALLBACK_ANCHOR, tooltipWarned = "ANCHOR_RIGHT", {}

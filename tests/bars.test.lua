@@ -290,6 +290,12 @@ return function(check)
         bars = loadBars({ gryphons = true })
         check("saved gryphon preference survives initialization", RikUI.Profile.gryphons == true
             and bars.Frames.main.gryphons[1].shown)
+        RikUI.Profile.gryphons = false
+        RikUI.Layout.Apply()
+        check("shared layout refresh updates bar appearance", not bars.Frames.main.gryphons[1].shown)
+        RikUI.DB.profiles.Ornate = { gryphons = true, scale = 0.75 }
+        check("profile switching refreshes bar geometry and appearance through Layout", RikUI:SetProfile("Ornate")
+            and bars.Frames.main.scale == 0.75 and bars.Frames.main.gryphons[1].shown)
         bars = loadBars({ modules = { bars = false } })
         check("disabled module creates no bars", next(bars.Frames) == nil)
         bars = loadBars(nil, true)

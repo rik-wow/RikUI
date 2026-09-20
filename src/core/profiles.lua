@@ -62,7 +62,6 @@ function core:SetProfile(name)
     self.DB.profiles[name] = self.Profile
     self.CharDB.profile = name
     self:Changed()
-    if self.Bars then self.Bars.ApplyLayout()
-    elseif self.Layout then self.Layout.Apply() end
+    if self.Layout then self.Layout.Apply() end
     return true
 end

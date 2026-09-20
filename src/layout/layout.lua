@@ -5,7 +5,7 @@ core.Layout = layout
 local POINTS = { TOP = true, TOPLEFT = true, TOPRIGHT = true, LEFT = true, CENTER = true,
     RIGHT = true, BOTTOM = true, BOTTOMLEFT = true, BOTTOMRIGHT = true }
 local ORIGIN = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 }
-local frameKeys, pending = {}, false
+local frameKeys, registrations, pending = {}, {}, false
 
 local function finite(value)
     return type(value) == "number" and value == value and math.abs(value) < math.huge
@@ -39,14 +39,22 @@ function layout.Floats(group)
     return floating == true
 end
 
-local function applyGroup(key, group)
-    -- A group that floats by its own say places itself; a layout pass must not pull it away.
-    if type(group.floating) == "function" and group.floating() == true then return end
-    local saved = layout.GetPosition(key)
-    for _, frame in ipairs(group.frames) do
+local function applyFrame(frame, key)
+    local group = layout.Groups[key]
+    -- Self-positioning groups retain their anchors, but still refresh their appearance.
+    if type(group.floating) ~= "function" or group.floating() ~= true then
+        local saved = layout.GetPosition(key)
         frame:SetScale(layout.GetScale())
         frame:ClearAllPoints()
         frame:SetPoint(saved.point, UIParent, saved.relativePoint, saved.x, saved.y)
+    end
+    if group.onApply then group.onApply(frame) end
+end
+
+local function applyRegistered()
+    -- Append-only registration order also includes frames registered by a callback.
+    for _, entry in ipairs(registrations) do
+        core.Runtime.Invoke(entry.label, applyFrame, entry.frame, entry.key)
     end
 end
 
@@ -54,10 +62,12 @@ function layout.Apply()
     if pending or not core.Profile then return end
     pending = true
     core.Combat.Queue(function()
+        -- Keep the guard through callbacks: nested refresh requests join this pass.
+        core.Runtime.Invoke("Layout refresh", applyRegistered)
         pending = false
-        for key, group in pairs(layout.Groups) do applyGroup(key, group) end
-        if layout.RefreshMovers then layout.RefreshMovers() end
-        if layout.NotifyLimits then layout.NotifyLimits() end
+        -- Completion may settle resized frames and request a new geometry pass.
+        if layout.RefreshMovers then core.Runtime.Invoke("Layout movers", layout.RefreshMovers) end
+        if layout.NotifyLimits then core.Runtime.Invoke("Layout limits", layout.NotifyLimits) end
     end)
 end
 
@@ -67,8 +77,8 @@ end
 -- (the tooltip anchor), which neither blocks nor is blocked, and may be a function; groups with the same exclusive tag are
 -- never shown together (party and raid) and do not block each other; resize holds the bounds and the
 -- apply(width, height) of a group the player may resize (src/layout/layout-resize.lua); onUnlock(open) hears when
--- the group is unlocked or locked.
-local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive", "resize", "onUnlock" }
+-- the group is unlocked or locked; onApply(frame) refreshes each frame's appearance after placement.
+local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive", "resize", "onUnlock", "onApply" }
 
 -- The Centered layout (data/layouts.lua) is the default look and the one source for default places.
 -- The position a module registers with is the fallback for a key that layout does not know.
@@ -92,9 +102,12 @@ function layout.Register(frame, key, defaults, opts)
     assert(frame and type(key) == "string" and key ~= "", "Layout.Register needs a frame and key")
     assert(not frameKeys[frame] or frameKeys[frame] == key, "Frame already has a different layout key")
     if frameKeys[frame] then return layout.Groups[key] end
+    assert(opts == nil or type(opts) == "table", "Layout options must be a table")
+    assert(not opts or opts.onApply == nil or type(opts.onApply) == "function", "Layout onApply must be a function")
     local group = layout.Groups[key] or newGroup(key, defaults, opts)
     frameKeys[frame] = key
     group.frames[#group.frames + 1] = frame
+    registrations[#registrations + 1] = { frame = frame, key = key, label = "Layout " .. key }
     core.Combat.Queue(function()
         frame:HookScript("OnSizeChanged", function()
             if layout.RefreshMovers then layout.RefreshMovers() end

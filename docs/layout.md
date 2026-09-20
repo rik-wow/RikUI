@@ -57,7 +57,7 @@ works; report it.
 Load after src/setup/setup-apply.lua. `RikUI.Layout.Register(frame, key, defaults)`
 registers a persistent frame and applies its current profile position.
 Defaults are `{ point, relativePoint, x, y }`, anchored to `UIParent`.
-The first registration owns the key's defaults; subsequent frames with that
+The first registration owns the key's defaults and options; subsequent frames with that
 key move together. Re-registering the same frame is idempotent; assigning it a
 different key is rejected. Modules should register durable top-level frames
 and leave position/scale ownership to Layout.
@@ -71,9 +71,25 @@ operations include them. Existing default bar anchors remain unchanged.
 fields, and applies `Profile.scale` (invalid/nonpositive saved scale falls
 back to 1). It runs at login, on registration and after profile selection.
 Combat calls coalesce through the core queue and use the latest selected
-profile when executed. `Layout.Reset()` and `Layout.SetScale(number)` return
-`true`, or `nil, reason` on refusal. `Bars.ApplyLayout()` remains the
-compatibility entry point that also refreshes gryphon art.
+profile when executed. Frames apply in registration order; a frame registered
+during an appearance callback joins the end of that pass. A frame write,
+floating predicate or appearance callback failure is reported with the group
+key and does not stop other frames, including siblings in the same group.
+Mover and growth-limit refreshes have separate error boundaries.
+
+Use `opts.onApply(frame)` for feature-owned appearance such as bar gryphons.
+It runs after that frame's geometry succeeds, or without geometry changes when
+a functional `floating` predicate returns true. Boolean `floating = true` still
+marks a nonblocking group whose saved anchor is applied. The callback receives
+each actual frame sharing the key, including later registrations. Keep it
+cosmetic: do not change profiles, saved positions or frame dimensions here.
+Nested `Layout.Apply()` calls from appearance callbacks coalesce into the
+current pass. Completion hooks may still request a new pass when resizing
+and settling changes positions.
+
+`Layout.Reset()` and `Layout.SetScale(number)` return `true`, or `nil, reason`
+on refusal. `Bars.ApplyLayout()` delegates to `Layout.Apply()`; bar gryphon
+refresh is registered through `onApply` and needs no separate feature queue.
 
 `RikUI:SetProfile(name)` selects an existing profile, merges missing defaults,
 cancels the mover and applies positions/scale. It refuses unknown profiles,
@@ -102,6 +118,7 @@ one and still blocks.
 | `label` | Name shown to the player |
 | `grow` | `UP`, `DOWN`, `LEFT` or `RIGHT`: the direction a frame that changes size grows in |
 | `onLimit(room)` | Called after every layout pass with the room left along `grow`, in the frame's own units |
+| `onApply(frame)` | Refreshes feature appearance for each frame after placement; the first registration owns the group's callback |
 | `floating` | A reference place other things float over (the tooltip anchor): neither blocks nor is blocked. May be a function for a group that floats only some of the time (the loot list at the cursor); while it returns true, `Apply` does not position the group either |
 | `exclusive` | Groups with the same tag are never shown together (party and raid) and do not block each other |
 
