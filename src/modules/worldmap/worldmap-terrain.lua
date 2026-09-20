@@ -28,7 +28,10 @@ local function tile(pin, record, overlay, asset, layer, count)
     if width <= 0 or height <= 0 then return end
     local texture = record.textures[count]
     if not texture then
-        texture = pin:CreateTexture(nil, "BACKGROUND", nil, -1)
+        -- Draw above base terrain, below the native explored overlays.
+        local drawLayer, subLevel = "ARTWORK", 0
+        if pin.dataProvider then drawLayer, subLevel = pin.dataProvider:GetDrawLayer() end
+        texture = pin:CreateTexture(nil, drawLayer, nil, math.max(-8, subLevel - 1))
         record.textures[count] = texture
         pin:GetMap():AddMaskableTexture(texture)
     end
@@ -39,6 +42,9 @@ local function tile(pin, record, overlay, asset, layer, count)
     texture:SetTexture(file, nil, nil, "TRILINEAR")
     texture:SetVertexColor(0.75, 0.82, 0.9, 1)
     texture:Show()
+    if pin.isWaitingForLoad and pin.textureLoadGroup then
+        pin.textureLoadGroup:AddTexture(texture)
+    end
 end
 local function draw(pin, record)
     hide(record)

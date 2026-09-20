@@ -161,12 +161,29 @@ local function build()
     map.Toolbar, map.Drawer = toolbar, drawer
     map.RefreshTools()
 end
+-- OnShow can run while the native canvas is still being sized. Finish on the
+-- next frame, then rebuild native providers once with the settled dimensions.
+local opening
+local function opened()
+    if opening then return end
+    opening = true
+    C_Timer.After(0, function()
+        opening = false
+        if not frame:IsShown() then return end
+        core.Combat.Queue(function()
+            if not frame:IsShown() then return end
+            if type(frame.RefreshAll) == "function" then frame:RefreshAll(true) end
+            build()
+            map.RequestTools()
+        end, "worldmap:tools")
+    end)
+end
 local function attach()
     if frame then return end
     local candidate = WorldMapFrame
     if not candidate or type(candidate.GetCanvasContainer) ~= "function" then return end
     frame = candidate
-    frame:HookScript("OnShow", function() core.Combat.Queue(build, "worldmap:tools"); map.RequestTools() end)
+    frame:HookScript("OnShow", opened)
     if type(frame.OnMapChanged) == "function" then hooksecurefunc(frame, "OnMapChanged", map.RequestTools) end
     local elapsed = 0
     frame:HookScript("OnUpdate", function(_, dt)
@@ -175,7 +192,7 @@ local function attach()
         elapsed = 0
         toolbar.coords:SetText(nav.Coordinates(frame))
     end)
-    if frame:IsShown() then core.Combat.Queue(build, "worldmap:tools") end
+    if frame:IsShown() then opened() end
 end
 function map.EnableTools()
     attach()

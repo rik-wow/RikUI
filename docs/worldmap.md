@@ -35,14 +35,16 @@ quest markers.
 ## Reveal-all architecture and data
 
 data/map-terrain.lua contains numeric asset metadata from the exact target
-Forever build, 1.60.1.69913: 519 unconditional base-layer overlays across 48 map
+Forever build, 1.60.1.69913: 1,073 unconditional base-layer overlays across 84 map
 art IDs. It contains no copied addon implementation or bundled Blizzard artwork.
 
 Sources:
 - [WorldMapOverlay CSV](https://wago.tools/db2/WorldMapOverlay/csv?build=1.60.1.69913)
 - [WorldMapOverlayTile CSV](https://wago.tools/db2/WorldMapOverlayTile/csv?build=1.60.1.69913)
 
-Rows are grouped by UiMapArtID, excluding PlayerConditionID != 0 and Flags != 0.
+Rows are grouped by UiMapArtID, excluding PlayerConditionID != 0. Both Flags 0
+and Flags 4 records are retained; filtering out nonzero flags removed valid terrain.
+Records without base-layer tiles are omitted.
 Each entry stores texture width, height, X/Y offsets, and tiles joined through
 WorldMapOverlayID. Tile entries store RowIndex, ColIndex and FileDataID; only
 LayerIndex 0 is included. Preserve this build provenance when regenerating data.
@@ -50,7 +52,9 @@ LayerIndex 0 is included. Preserve this build provenance when regenerating data.
 worldmap-terrain.lua owns a reusable texture layer on the native exploration pin.
 It uses the current art ID and tile dimensions, excludes already explored
 rectangles, crops partial tiles to the file's power-of-two dimensions, and
-registers textures with the canvas mask. It post-hooks instance RefreshOverlays
+registers textures with the canvas mask. Reveal textures use the exploration
+provider's artwork layer below native explored textures and join its load group
+while the pin is waiting for assets. It post-hooks instance RefreshOverlays
 so map, exploration and art-layer changes clear stale textures. It does not
 replace a data provider, write global mixins, alter native texture pools, or
 change native fog-of-war gameplay overlays.
@@ -59,6 +63,10 @@ Only the base art layer is supplied. Unsupported map art keeps normal artwork;
 the map toggle is unavailable there, and switching maps clears previous reveal
 textures. Conditional/phased terrain is intentionally not guessed. Normal mode
 allocates no terrain textures. A pin reuses at most 256 textures.
+
+Map opening defers addon construction to the next frame and refreshes native
+map providers after layout, including the first opening after login. Closing the
+map before the deferred callback cancels that work; combat defers it safely.
 
 ## Code boundaries
 
