@@ -4,7 +4,7 @@
 return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
-    local NAMES = { "ExtraActionBarFrame", "ZoneAbilityFrame", "SpellFlyout" }
+    local NAMES = { "ExtraActionBarFrame", "ZoneAbilityFrame", "SpellFlyout", "PossessActionBar", "OverrideActionBar" }
     local saved = {}
     for _, name in ipairs(NAMES) do saved[name] = _G[name] end
     local restore = widgets.install()
@@ -118,6 +118,30 @@ return function(check)
         ExtraActionBarFrame:Show()
         check("a button that refuses the skin is reported once and not retried", #env.printed == 1
             and widgets.printedContains(env, "ExtraButtons skin") and module.Edges[ExtraActionBarFrame.button] == nil)
+
+        module = load(nil, function()
+            installClient()
+            local possess = holder("PossessActionBar")
+            possess.actionButtons = { button(possess, "icon"), button(possess, "icon") }
+            local override = holder("OverrideActionBar")
+            override.SpellButton1, override.SpellButton2 = button(override, "icon"), button(override, "icon")
+        end)
+        local possess, override = PossessActionBar, OverrideActionBar
+        local cancel = possess.actionButtons[2]
+        local keysBefore = ownKeys(cancel)
+        possess:Show()
+        check("both possess buttons get the cropped icon and the bar edge from the bar's button list",
+            module.Edges[possess.actionButtons[1]] ~= nil and cancel.icon.coords[1] > 0 and cancel.normal.alpha == 0
+            and module.Edges[cancel][1].points[1][4] == -1 and module.Fades[cancel].plays == 1)
+        local untouched = true
+        for key in pairs(cancel) do
+            if not keysBefore[key] then untouched = false end
+        end
+        check("nothing is written on the secure possess button or its bar", untouched and next(cancel.attributes) == nil
+            and cancel.points == nil and possess.points == nil and possess:GetScript("OnShow") == nil)
+        override:Show()
+        check("the override bar's spell buttons are skinned by key", module.Edges[override.SpellButton1] ~= nil
+            and module.Edges[override.SpellButton2] ~= nil and #env.printed == 0)
 
         module = load({ modules = { extrabuttons = false } })
         ExtraActionBarFrame:Show()

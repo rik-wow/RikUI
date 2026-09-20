@@ -24,6 +24,14 @@ the extra bar's own intro and outro animations are Blizzard's.
 | `ExtraActionBarFrame` | `.button` (`ExtraActionButton1`) | the holder's `OnShow` |
 | `ZoneAbilityFrame` | pooled children of `SpellButtonContainer` | `OnShow` and after every `UpdateDisplayedZoneAbilities`, hooked on the frame instance |
 | `SpellFlyout` | its child buttons | `OnShow` |
+| `PossessActionBar` | the buttons in its `actionButtons` list (mind control, cancel) | `OnShow` |
+| `OverrideActionBar` | `SpellButton1` to `SpellButton6` | `OnShow` |
+
+The override (vehicle) bar keeps its hand-drawn frame: that art changes with a
+texture kit per vehicle, and Forever is unlikely to have vehicles at all. Only
+its six spell buttons get the bar look. Beta check for the possess bar: mind
+control a mob as a priest, or use any possess effect, and look at the two
+buttons above the bars.
 
 A button is recognised by its `icon` or `Icon` key. A holder the client lacks
 is skipped.

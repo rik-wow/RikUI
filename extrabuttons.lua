@@ -13,6 +13,7 @@ local FLYOUT_ART = { "End", "HorizontalMiddle", "VerticalMiddle", "Start" }
 local ICON_KEYS, FONT_KEYS = { "icon", "Icon" }, { HotKey = "hotkey", Count = "count" }
 -- The edge sits one pixel outside the icon: it is drawn in a lower layer and the icon would cover it.
 local EDGE_INSET = -1
+local OVERRIDE_KEY, OVERRIDE_BUTTONS = "SpellButton", 6
 local failed, warnings = setmetatable({}, weak), {}
 local counts = { hooked = 0, skinned = 0, failed = 0 }
 
@@ -103,7 +104,20 @@ local function flyout(frame)
     skinChildren(frame)
 end
 
+-- The possess bar lists its buttons; the override (vehicle) bar keys them. The vehicle bar's own
+-- hand-drawn frame stays: it changes with a texture kit per vehicle.
+local function possessBar(frame)
+    if type(frame.actionButtons) ~= "table" then return end
+    for _, button in ipairs(frame.actionButtons) do skinButton(button) end
+end
+
+local function overrideBar(frame)
+    for index = 1, OVERRIDE_BUTTONS do skinButton(frame[OVERRIDE_KEY .. index]) end
+end
+
 function extras:OnEnable()
+    hook("PossessActionBar", possessBar)
+    hook("OverrideActionBar", overrideBar)
     hook("ExtraActionBarFrame", function(frame) skinButton(frame.button) end)
     hook("SpellFlyout", flyout)
     local zone = hook("ZoneAbilityFrame", zoneAbilities)
