@@ -19,6 +19,7 @@ local STATE_TEXTURES = { "GetNormalTexture", "GetPushedTexture", "GetDisabledTex
 local ICON_KEYS = { "icon", "Icon", "IconTexture" }
 local STEP_GLYPHS = { ScrollUpButton = "^", ScrollDownButton = "v" }
 local skinned, failed = setmetatable({}, { __mode = "k" }), setmetatable({}, { __mode = "k" })
+local watched = setmetatable({}, { __mode = "k" })
 local warnings, counts = {}, { skinned = 0, failed = 0 }
 
 local function warn(operation, reason)
@@ -179,9 +180,30 @@ function controls.Skin(frame)
     if not ok then warn("skin " .. kind, reason) end
 end
 
-local function visit(frame, depth)
+local visit
+
+local function acquiredEvent()
+    local mixin = ScrollBoxListMixin
+    return type(mixin) == "table" and type(mixin.Event) == "table" and mixin.Event.OnAcquiredFrame or nil
+end
+
+-- A scroll list builds rows as it scrolls, long after the window's show. Blizzard's own row
+-- decoration listens for the same event. A refused registration is not tried again.
+local function watchRows(frame)
+    local event = acquiredEvent()
+    if watched[frame] or not event or type(frame.RegisterCallback) ~= "function"
+        or type(frame.ForEachFrame) ~= "function" then return end
+    watched[frame] = true
+    local ok, reason = pcall(frame.RegisterCallback, frame, event, function(_, row)
+        if controls.enabled then visit(row, 0) end
+    end, controls)
+    if not ok then warn("watch", reason) end
+end
+
+function visit(frame, depth)
     if not isFrame(frame) or refuses(frame, "IsForbidden") then return end
     if not refuses(frame, "IsProtected") then controls.Skin(frame) end
+    watchRows(frame)
     if depth >= MAX_DEPTH or type(frame.GetChildren) ~= "function" then return end
     for _, child in ipairs({ frame:GetChildren() }) do visit(child, depth + 1) end
 end

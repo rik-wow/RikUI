@@ -28,7 +28,8 @@ Once per toast:
   a transparent margin around its panel;
 - the icon cropped and framed. The icon is `frame.Icon`, `frame.lootItem.Icon`
   or, on achievement-style toasts, `frame.Icon.Texture`; the lines are created
-  on the toast and anchored to the icon texture;
+  on the toast and anchored one pixel outside the icon texture, because they
+  sit in a lower layer and the icon would cover them at its own bounds;
 - `SetFont` with the RikUI font on every font string among the toast's and its
   `lootItem`'s regions, at the size each string reports. `SetTextColor` is
   never called.

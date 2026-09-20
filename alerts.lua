@@ -13,7 +13,7 @@ local BACKGROUNDS = { "Background", "PvPBackground", "RatedPvPBackground", "BGAt
     "IconBG", "Watermark" }
 local ANIMATED, ICON_ART = { "glow", "shine" }, { "Overlay", "Bling", "IconBorder", "Border" }
 -- The toast art keeps a transparent margin around its panel; the flat panel sits inside it.
-local INSET = 8
+local INSET, ICON_EDGE_INSET = 8, -1
 local skinned, failed = setmetatable({}, { __mode = "k" }), setmetatable({}, { __mode = "k" })
 local warnings, counts = {}, { hooked = false, skinned = 0, failed = 0 }
 
@@ -52,7 +52,8 @@ local function decorate(frame)
     local icon = findIcon(frame)
     if icon then
         skin.CropIcon(icon)
-        frame.rikIconBorder = skin.Outline(frame, nil, 0, icon)
+        -- One pixel outside the icon: the lines are in a lower layer and the icon would cover them.
+        frame.rikIconBorder = skin.Outline(frame, nil, ICON_EDGE_INSET, icon)
     end
     typefaces(frame:GetRegions())
     if skin.IsRegion(frame.lootItem) then typefaces(frame.lootItem:GetRegions()) end

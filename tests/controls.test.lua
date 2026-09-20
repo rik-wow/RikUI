@@ -170,6 +170,42 @@ return function(check)
         check("and again on the next show, for controls the window built meanwhile", later.rikFill ~= nil)
         MerchantFrame = nil
 
+        module = load()
+        local savedMixin = ScrollBoxListMixin
+        ScrollBoxListMixin = { Event = { OnAcquiredFrame = "OnAcquiredFrame" } }
+        local list = frame("Frame", UIParent)
+        local box = frame("Frame", list)
+        box.callbacks = {}
+        function box:ForEachFrame() end
+        function box:RegisterCallback(event, callback, owner)
+            table.insert(self.callbacks, { event = event, callback = callback, owner = owner })
+        end
+        local early = pushButton(frame("Frame", box))
+        module.Walk(list)
+        check("a walk registers for a scroll box list's acquired-frame event and still skins the rows it has",
+            #box.callbacks == 1 and box.callbacks[1].event == "OnAcquiredFrame" and early.rikFill ~= nil)
+        module.Walk(list)
+        check("a second walk does not register again", #box.callbacks == 1)
+        local acquired = box.callbacks[1]
+        local row = frame("Frame")
+        local rowButton = pushButton(row)
+        acquired.callback(acquired.owner, row, {}, true)
+        check("a row handed out after the open is flat without a reopen", rowButton.rikFill ~= nil
+            and rowButton.Left.alpha == 0 and #env.printed == 0)
+        local lockedRow = frame("Frame")
+        function lockedRow:IsForbidden() return true end
+        local lockedButton = pushButton(lockedRow)
+        acquired.callback(acquired.owner, lockedRow, {}, true)
+        check("a forbidden row is skipped like any forbidden frame", lockedButton.rikFill == nil)
+        local refusing = frame("Frame", UIParent)
+        function refusing:ForEachFrame() end
+        function refusing:RegisterCallback() error("registry locked") end
+        module.Walk(refusing)
+        module.Walk(refusing)
+        check("a scroll box that refuses the registration is reported once and not asked again",
+            #env.printed == 1 and widgets.printedContains(env, "Controls watch"))
+        ScrollBoxListMixin = savedMixin
+
         module = load({ modules = { controls = false } })
         local stock = window()
         module.Walk(stock.root)

@@ -48,8 +48,17 @@ because windows build controls as tabs and lists fill. A weak table remembers
 what is done, so a repeat walk only reads. [Small dialogs](dialogs.md) call the
 same walk.
 
-Rows a scroll list creates after the window opened stay stock until the next
-open.
+Rows a scroll list creates after the window opened are covered too. When a
+walk meets a scroll box list (a frame with `RegisterCallback` and
+`ForEachFrame`), it registers once for
+`ScrollBoxListMixin.Event.OnAcquiredFrame`, the event Blizzard's own
+`ScrollUtil` uses to decorate rows, and walks each row the list hands out.
+The row goes through the same walk, so forbidden and protected frames stay
+skipped and a control is still skinned once. Registered lists live in a weak
+table. A list that refuses the registration is reported once as
+`Controls watch` and not asked again. Beta check: open the auction house or
+the friends list, scroll far down, and look for stock buttons inside rows; also
+watch for "action blocked" in windows with scrolling lists.
 
 ## What is written
 

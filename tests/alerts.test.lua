@@ -65,6 +65,8 @@ return function(check)
         check("the loot icon is cropped, loses its border art and gets an edge anchored to the icon",
             icon.coords[1] > 0 and loot.lootItem.IconBorder.alpha == 0 and #loot.rikIconBorder == 4
             and loot.rikIconBorder[1].points[1][2] == icon)
+        check("the icon edge sits one pixel outside the icon, where the icon cannot cover it",
+            loot.rikIconBorder[1].points[1][4] == -1)
         check("text takes the RikUI typeface at Blizzard's size and keeps its colour",
             loot.ItemName.fontPath == RikUI.Media.font and loot.ItemName.fontSize == 14 and loot.Label.fontSize == 12
             and loot.lootItem.Count.fontPath == RikUI.Media.font and rawget(loot.ItemName, "textColor") == nil)
