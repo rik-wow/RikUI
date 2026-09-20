@@ -112,6 +112,21 @@ return function(check)
         SlashCmdList.RIKUI("undo")
         check("/rik undo puts the old positions back", RikUI.Profile.positions.player == nil
             and layout.MatchingPreset() == "centered")
+        load()
+        local heard
+        local priest = { allowEmpty = true, macros = false, bars = false, binds = false, cvars = false, layoutPreset = "classic",
+            onComplete = function(outcome) heard = outcome end }
+        result = RikUI.Setup.Apply("PRIEST", nil, priest)
+        check("a class without a preset still gets its layout, and the caller hears when setup ends",
+            type(result) == "table" and heard == result and result.status == "applied" and layout.MatchingPreset() == "classic"
+            and RikUICharDB.applied == nil)
+        check("without allowEmpty a class without a preset is refused as before",
+            RikUI.Setup.Apply("PRIEST", nil, { layoutPreset = "classic" }) == nil)
+        heard = nil
+        local broken = RikUI.Setup.Apply("WARRIOR", "nonsense", { onComplete = function(outcome) heard = outcome end })
+        check("a refusal before setup starts is a return value, not a callback", broken == nil and heard == nil)
+        check("setup refuses a callback that is not a function",
+            RikUI.Setup.ValidateOptions({ onComplete = "soon" }) == "onComplete must be a function")
         check("setup refuses a layout that does not exist",
             RikUI.Setup.ValidateOptions({ layoutPreset = "nonsense" }) == "layoutPreset must name a layout"
             and RikUI.Setup.ValidateOptions({ layoutPreset = "hud" }) == nil)

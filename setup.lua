@@ -50,6 +50,12 @@ local function resolvePage(preset, overrides, page)
     return slots
 end
 
+-- For a class that has no preset yet: nothing on the bars and no macros, so Apply still does
+-- binds, settings and layout.
+function setup.EmptyPreset(class)
+    return { class = class, role = "none", empty = true, version = 0, bars = {}, macros = {} }
+end
+
 function setup.Resolve(class, role)
     local preset = core.Presets[class]
     if not preset then return nil, "No preset for " .. tostring(class) end

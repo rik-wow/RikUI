@@ -128,11 +128,20 @@ local function operationsFor(name, context)
     return { function(done) done(writeLayout(context.layout, context.profile)) end }
 end
 
+-- The wizard waits on this: Apply runs through the combat queue and ends some time after it returns.
+local function notify(context)
+    local callback = context.onComplete
+    if type(callback) ~= "function" then return end
+    local ok, reason = pcall(callback, context.result)
+    if not ok then core:Print("Setup completion: " .. tostring(reason)) end
+end
+
 local function fail(context, name, reason)
     if context.result.status == "failed" then return end
     context.result.status, context.result.error = "failed", tostring(reason)
     summarize(name, context.result.steps[name], "; failed: " .. tostring(reason))
     active = nil
+    notify(context)
 end
 
 local function queueOperation(context, name, operation, done)
@@ -173,10 +182,15 @@ end
 runStep = function(context, index)
     local name = STEP_ORDER[index]
     if not name then
-        context.charDB.applied = { class = context.preset.class, role = context.preset.role,
-            at = time(), presetVersion = context.preset.version or 1 }
+        -- A class without a preset gets binds, settings and layout; nothing is recorded as applied,
+        -- so level-up placement has no preset to look for.
+        if not context.preset.empty then
+            context.charDB.applied = { class = context.preset.class, role = context.preset.role,
+                at = time(), presetVersion = context.preset.version or 1 }
+        end
         context.result.status, active = "applied", nil
         core:Print("Setup complete; type /rik undo to revert.")
+        notify(context)
         return
     end
     context.result.steps[name] = counts()
@@ -196,10 +210,11 @@ end
 
 function setup.ValidateOptions(opts)
     if type(opts) ~= "table" then return "options must be a table" end
-    for _, name in ipairs({ "macros", "bars", "binds", "cvars", "layout", "strafe", "mouse45" }) do
+    for _, name in ipairs({ "macros", "bars", "binds", "cvars", "layout", "strafe", "mouse45", "allowEmpty" }) do
         if opts[name] ~= nil and type(opts[name]) ~= "boolean" then return name .. " must be a boolean" end
     end
     if opts.cvarSelection ~= nil and type(opts.cvarSelection) ~= "table" then return "cvarSelection must be a table" end
+    if opts.onComplete ~= nil and type(opts.onComplete) ~= "function" then return "onComplete must be a function" end
     if opts.layoutPreset ~= nil then
         local presets = core.Layout and core.Layout.PresetPositions
         if not presets or not presets(opts.layoutPreset) then return "layoutPreset must name a layout" end
@@ -214,9 +229,10 @@ function setup.Apply(class, role, opts)
     if reason then return reject(reason) end
     local preset
     preset, reason = setup.Resolve(class, role)
+    if not preset and opts.allowEmpty and not core.Presets[class] then preset = setup.EmptyPreset(class) end
     if not preset then return reject(reason) end
     local result = { status = "running", steps = {}, class = class, role = preset.role }
-    local context = { preset = preset, opts = copy(opts), result = result,
+    local context = { preset = preset, opts = copy(opts), result = result, onComplete = opts.onComplete,
         charDB = core.CharDB, profile = core.Profile, profileName = core.CharDB.profile }
     active = context
     setup.Missing = {}

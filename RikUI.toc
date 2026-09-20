@@ -102,6 +102,7 @@ loot.lua
 loot-rolls.lua
 tooltip.lua
 tooltip-data.lua
+wizard-controls.lua
 wizard.lua
 options-widgets.lua
 options-controls.lua
