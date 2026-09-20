@@ -74,6 +74,9 @@ local function skinClose(button)
     highlight:SetTexture(media.highlight)
 end
 
+-- Shared with dialogs.lua, which has close buttons but no window chrome.
+skin.Close = skinClose
+
 local function skinInset(inset)
     if not isRegion(inset) or type(inset.CreateTexture) ~= "function" then return end
     strip(inset, INSET_ART)
