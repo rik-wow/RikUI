@@ -1,7 +1,7 @@
 -- The flat look for the world map's navigation bar. The map's chrome is the panels module's job;
 -- this file covers the breadcrumb bar inside it. WorldMapNavBarMixin:Refresh rebuilds the
 -- breadcrumbs on every map change, so it is post-hooked on the bar itself, not on the global NavBar
--- functions that other windows share. Only alpha, fonts and new child regions are written. The two
+-- functions that other windows share. The obsolete portrait inset is removed out of combat. The two
 -- round buttons on the canvas get a flat backing too. The map is where taint does the most damage,
 -- so the content overlays (bounty board, action button, threat frame) are never touched.
 local core, media, skin = RikUI, RikUI.Media, RikUI.Skin
@@ -193,7 +193,16 @@ local function questChrome(frame)
     skin.Typeface(scroll.EmptyText)
     skin.Typeface(scroll.NoSearchResultsText)
 end
+local function alignNavigation(frame)
+    core.Combat.Queue(function()
+        local bar, spacer = frame.NavBar, frame.TitleCanvasSpacerFrame
+        if not isFrame(bar) or not isFrame(spacer) then return end
+        -- Replace only the portrait inset; retain the native right/bottom anchors.
+        bar:SetPoint("TOPLEFT", spacer, "TOPLEFT", 8, -25)
+    end, "worldmap:navigation")
+end
 local function shell(frame)
+    if not worldmap.Backing then worldmap.Backing = skin.Fill(frame, SURFACE, 1) end
     local chrome, canvas = frame.BorderFrame, frame.ScrollContainer
     if isFrame(chrome) and isFrame(canvas) and not worldmap.Header then
         -- BorderFrame is above the navigation siblings; its background would occlude them.
@@ -212,6 +221,7 @@ local function shell(frame)
 end
 
 local function onShow(frame)
+    alignNavigation(frame)
     local ok, reason = pcall(shell, frame)
     if not ok then warn("chrome", reason) end
     skinOverlays(frame)
@@ -229,6 +239,9 @@ local function attachSkin()
     if worldmap.HookedFrame or not isFrame(frame) then return end
     worldmap.HookedFrame = frame
     frame:HookScript("OnShow", onShow)
+    for _, method in ipairs({ "Minimize", "Maximize" }) do
+        if type(frame[method]) == "function" then hooksecurefunc(frame, method, alignNavigation) end
+    end
     if frame:IsShown() then onShow(frame) end
 end
 

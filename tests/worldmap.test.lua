@@ -35,6 +35,13 @@ return function(check)
     local function map()
         local frame = CreateFrame("Frame", "WorldMapFrame", UIParent)
         frame.ScrollContainer = CreateFrame("Frame", nil, frame)
+        frame.TitleCanvasSpacerFrame = CreateFrame("Frame", nil, frame)
+        function frame:Minimize()
+            self.NavBar:SetPoint("TOPLEFT", self.TitleCanvasSpacerFrame, "TOPLEFT", 64, -25)
+        end
+        function frame:Maximize()
+            self.NavBar:SetPoint("TOPLEFT", self.TitleCanvasSpacerFrame, "TOPLEFT", 8, -25)
+        end
         frame.BorderFrame = CreateFrame("Frame", nil, frame)
         local createTexture = frame.CreateTexture
         function frame:CreateTexture(...)
@@ -99,6 +106,14 @@ return function(check)
         local frame, bar = WorldMapFrame, WorldMapFrame.NavBar
         check("nothing is skinned before the map opens", bar.rikFill == nil and rawget(bar.art[1], "alpha") == nil)
         frame:Show()
+        check("full backing closes gaps below child content",
+            module.Backing.owner == frame and module.Backing.layer == "BACKGROUND"
+            and module.Backing.color[4] == 1 and module.Backing.points[2][1] == "BOTTOMRIGHT")
+        check("breadcrumbs remove obsolete portrait inset", bar.point[4] == 8)
+        frame:Minimize()
+        check("minimizing preserves compact breadcrumb inset", bar.point[4] == 8)
+        frame:Maximize()
+        check("maximizing preserves compact breadcrumb inset", bar.point[4] == 8)
         check("header background belongs below navigation siblings", module.Header.owner == frame)
         check("opaque header ends above the map", module.Header.color[4] == 1
             and module.Header.points[2][1] == "BOTTOMLEFT"
