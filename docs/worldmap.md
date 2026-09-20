@@ -1,36 +1,23 @@
 # World map
 
-The world map keeps Blizzard's canvas, zoom, quest pins and interactions, with a
-RikUI breadcrumb skin, compact toolbar and optional quest drawer. Disable the
-worldmap module in /rik config and reload to return to the native presentation.
+The map uses one quest interface: Blizzard's existing right-hand quest log,
+including search, objectives, tracking and quest details. Native map markers,
+breadcrumbs, filters, coordinate readout and the quest-panel toggle stay in place.
 
-## Controls
+RikUI adds a compact two-button strip along the bottom edge, clear of the native
+coordinates and quest-panel toggle:
 
-- **Fog: on / Reveal all:** normal exploration fog is the default. Reveal all
-  draws unexplored terrain in a subtle blue tint; clicking again restores normal
-  fog immediately. This never changes exploration progress or achievements.
-- **Pins:** switches the native questPOI setting. Blizzard continues to own
-  quest markers, objective areas, tooltips and route behavior. This setting is
-  client-owned, so changes made elsewhere are reflected in the toolbar.
-- **Quest list:** opens a six-row, paged list. This map shows quests with supplied
-  objective coordinates on the displayed map; All quests also shows log entries
-  without coordinates. Completed quests sort first, followed by tracked quests.
-  Click a quest to select its native route and open details; Shift-click toggles
-  tracking. The list refreshes on quest and map events.
-- **Player / Up:** return to your current zone or navigate to the parent map.
-- Player coordinates refresh five times per second while the map is visible.
-  Missing or restricted positions display --.
+- **Fog of war: on/off** shows the current state. On preserves normal exploration;
+  off reveals terrain in blue without changing exploration progress.
+- **My location** returns to the player's current zone.
 
-Fog, list visibility and the map-only filter are stored per RikUI profile. These
-settings also appear on the World map page in /rik config. The list starts
-collapsed to keep the map clear. Quest actions and navigation are guarded during
-combat; creating the toolbar waits until combat ends. Native map interactions
-continue to work independently.
+The duplicate quest drawer, Pins and Up buttons, second coordinate readout and
+permanent navigation instructions have been removed. Navigation tips live in the
+My location tooltip. Old quest-drawer preferences are ignored and no longer
+appear in settings. Fog is saved per profile and remains available in /rik config.
 
-Quest locations come from C_QuestLog.GetQuestsOnMap. This is not an external
-quest database: when the client supplies no location, the UI says so rather than
-inventing a pin. Native quest-offer providers remain responsible for available
-quest markers.
+Creating controls and returning to the player wait for or are guarded during
+combat. Disable the worldmap module and reload to restore native presentation.
 
 ## Reveal-all architecture and data
 
@@ -76,9 +63,9 @@ map before the deferred callback cancels that work; combat defers it safely.
 ## Code boundaries
 
 - worldmap.lua: breadcrumb and round-button skin; supports late map loading.
-- worldmap-navigation.lua: readable quest snapshots and guarded native actions.
+- worldmap-navigation.lua: guarded return-to-player action and safe API reads.
 - worldmap-terrain.lua: reversible unexplored-art rendering.
-- worldmap-tools.lua: toolbar, quest drawer, profile controls and coalesced refresh.
+- worldmap-tools.lua: compact bottom controls, profile controls and coalesced refresh.
 
 Client API failures and secret values never become invented coordinates.
 No quest snapshot is persisted. Only user preferences enter the profile.
@@ -92,20 +79,20 @@ alpha and waiting state. Capture it with the map open if rendering fails.
 ## Verification
 
 Automated checks cover reveal/restore, reused textures, newly explored regions,
-unknown art, dataset tile geometry and allocation bounds, quest filtering,
-native selection/tracking, marker controls, player/parent navigation, secret and
+unknown art, dataset tile geometry and allocation bounds, single-list presentation,
+legacy preferences, return-to-player navigation, secret and
 failing reads, combat-first-open and disabled-module behavior. Existing skin,
 manifest, global-ownership and layout checks remain enabled.
 
 Native acceptance still requires the Forever client:
 
 1. Restart after installing the new TOC entries. Open a partially explored zone;
-   toggle Reveal all, zoom and pan, explore an area, then return to Fog: on.
+   turn fog off, zoom and pan, explore an area, then turn fog on.
 2. Cross zone/continent/dungeon boundaries and change floors. Check for stale
    tiles, incorrect crops, protected-action errors and map clipping.
-3. Open the quest list; switch filters and pages, click a quest, Shift-click to
-   track/untrack, and toggle Pins. Test missing-location quests and an empty log.
-4. Check toolbar/drawer placement in minimized and maximized maps, with the
+3. Use the native quest list: search, select, track and collapse it. Confirm no
+   second list or coordinate readout appears, including with old saved profiles.
+4. Check bottom controls in minimized and maximized maps, with the
    native quest panel open, at small UI scales and with gamepad controls.
 5. Repeat during combat; verify only the intended guarded actions are deferred
    or refused, then switch profiles and restart to check persistence.

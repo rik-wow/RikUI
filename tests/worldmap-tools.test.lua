@@ -1,34 +1,24 @@
 return function(check)
     local env, widgets = require("wow_stub"), require("widget_stub")
     local restore = widgets.install()
-    local names = { "WorldMapFrame", "C_Map", "C_MapExplorationInfo", "C_QuestLog", "C_CVar",
-        "C_SuperTrack", "QuestMapFrame_OpenToQuestDetails" }
+    local names = { "WorldMapFrame", "C_Map", "C_MapExplorationInfo" }
     local saved = {}
     for _, name in ipairs(names) do saved[name] = _G[name] end
-    local mapID, explored, quests, markers, opened, watched, tracked, pin, canvas, ready, refreshes, loading
+    local mapID, explored, pin, canvas, ready, refreshes, loading
     local details, sized, nativeLoads
     local files = { "src/ui/skin.lua", "src/modules/worldmap/worldmap.lua", "data/map-terrain.lua",
         "src/modules/worldmap/worldmap-terrain.lua", "src/modules/worldmap/worldmap-navigation.lua",
         "src/modules/worldmap/worldmap-tools.lua" }
     local function prepare()
-        mapID, explored, markers = 1411, {}, true
+        mapID, explored = 1411, {}
         ready, refreshes, loading = false, 0, {}
         details, sized, nativeLoads = false, false, 0
-        quests = { { questID = 2, title = "Second", isHeader = false }, { questID = 1, title = "First", isHeader = false } }
         C_Map = { GetMapArtID = function() return 1194 end,
             GetBestMapForUnit = function() return 1411 end,
             GetMapInfo = function() return { parentMapID = 1414 } end,
             GetMapArtLayers = function() return { { tileWidth = 256, tileHeight = 256 } } end,
             GetPlayerMapPosition = function() return { GetXY = function() return 0.3, 0.4 end } end }
         C_MapExplorationInfo = { GetExploredMapTextures = function() return explored end }
-        C_QuestLog = { GetNumQuestLogEntries = function() return #quests end,
-            GetInfo = function(i) return quests[i] end, IsComplete = function(id) return id == 1 end,
-            GetQuestWatchType = function() return nil end,
-            GetQuestsOnMap = function() return { { questID = 1, x = 0.2, y = 0.5 } } end,
-            AddQuestWatch = function(id) watched = id end, RemoveQuestWatch = function() watched = nil end }
-        C_CVar = { GetCVarBool = function() return markers end, SetCVar = function(_, value) markers = value == "1" end }
-        C_SuperTrack = { SetSuperTrackedQuestID = function(id) tracked = id end }
-        QuestMapFrame_OpenToQuestDetails = function(id) opened = id end
         WorldMapFrame = CreateFrame("Frame", nil, UIParent)
         canvas = CreateFrame("Frame", nil, WorldMapFrame)
         function canvas:GetCurrentLayerIndex() return 1 end
@@ -118,34 +108,26 @@ return function(check)
         WorldMapFrame:OnMapChanged(); env.flushTimers()
         check("unknown map clears old terrain", pin.created[1].shown == false)
         C_Map.GetMapArtID = function() return 1194 end
-        module.SetOption("quests", true)
-        check("zone quest list shows real location", module.Drawer.rows[1].quest.id == 1
-            and module.Drawer.rows[1].detail:GetText():find("20.0, 50.0", 1, true))
-        module.SetOption("zoneOnly", false)
-        check("all quests retains missing locations honestly", module.Drawer.rows[2].quest.location == "Location unavailable on this map")
-        module.Navigation.Select(module.Drawer.rows[1].quest)
-        check("quest selection routes through native details and supertracking", opened == 1 and tracked == 1)
-        module.Navigation.Watch(module.Drawer.rows[1].quest)
-        check("quest can be watched", watched == 1)
-        module.Navigation.ToggleMarkers()
-        check("marker control updates native questPOI", markers == false)
-        module.Navigation.Parent(WorldMapFrame)
-        check("up navigates to parent", mapID == 1414)
-        module.Navigation.Player(WorldMapFrame)
-        check("player navigates home", mapID == 1411)
-        check("player coordinates are readable", module.Navigation.Coordinates(WorldMapFrame) == "Player: 30.0, 40.0")
+        check("one quest interface and one coordinate display",
+            module.Drawer == nil and module.Toolbar.quests == nil and module.Toolbar.coords == nil)
+        check("compact tools dock at bottom edge", module.Toolbar.height == 28
+            and module.Toolbar.point[1] == "BOTTOMRIGHT" and module.Toolbar.width == 246)
+        check("fog state is explicit", module.Toolbar.fog.label:GetText() == "Fog of war: off")
+        mapID = 1414
+        env.click(module.Toolbar.player)
+        check("my location returns to current zone", mapID == 1411)
         env.inCombat = true
-        module.Navigation.Parent(WorldMapFrame)
-        check("navigation is guarded in combat", mapID == 1411)
+        mapID = 1414
+        env.click(module.Toolbar.player)
+        check("navigation is guarded in combat", mapID == 1414)
         env.inCombat = false
-        C_Map.GetPlayerMapPosition = function() return env.SECRET end
-        check("secret coordinate data is not formatted", module.Navigation.Coordinates(WorldMapFrame) == "Player: --")
-        quests[1].title = env.SECRET
-        local rows = module.Navigation.Quests(mapID, false)
-        check("secret quest data is excluded", #rows == 1)
-        C_QuestLog.GetInfo = function() error("unavailable") end
-        rows = module.Navigation.Quests(mapID, false)
-        check("failed quest reads leave no stale rows", #rows == 0)
+        C_Map.GetBestMapForUnit = function() return env.SECRET end
+        check("secret player location is rejected", module.Navigation.Player(WorldMapFrame) == false and mapID == 1414)
+        C_Map.GetBestMapForUnit = function() error("unavailable") end
+        check("failed player location is rejected", module.Navigation.Player(WorldMapFrame) == false and mapID == 1414)
+        module = load({ worldmap = { quests = true, zoneOnly = false } })
+        check("old drawer preferences cannot create a second quest list", module.Drawer == nil
+            and #module.Options.settings == 1)
         module = load({ worldmap = { fog = false } })
         check("saved reveal preference works on the first zone opening",
             #pin.created > 0 and pin.created[1].shown and pin.alpha == 1 and pin.width == 1002 and mapID == 1411)

@@ -7,7 +7,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = f
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },
     questtracker = { collapsed = false },
-    worldmap = { fog = true, quests = false, zoneOnly = true },
+    worldmap = { fog = true },
     xpbar = { compact = false, text = true, animations = true, ticks = true } }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }
 local CHARACTER_DEFAULTS = { profile = DEFAULT_PROFILE, askRole = true, wizardDone = false }
