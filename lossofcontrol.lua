@@ -10,7 +10,7 @@ local FRAME_NAME = "LossOfControlFrame"
 local ART = { "blackBg", "RedLineTop", "RedLineBottom" }
 -- The size and anchor of Blizzard's shadow texture, which the panel replaces.
 local PANEL_WIDTH, PANEL_HEIGHT, PANEL_POINT = 256, 58, "BOTTOM"
-local ACCENT_HEIGHT, ACCENT_COLOR = 2, { 0.9, 0.15, 0.15, 1 }
+local ACCENT_HEIGHT, ACCENT_COLOR, ICON_EDGE_INSET = 2, { 0.9, 0.15, 0.15, 1 }, -1
 local PULSE_FROM, PULSE_TO, PULSE_SECONDS = 1, 0.35, 0.6
 local ACCENT_SIDES = { { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" } }
 local skinned, warned = false, false
@@ -61,7 +61,8 @@ local function apply(frame)
     end
     if skin.IsRegion(frame.Icon) then
         skin.CropIcon(frame.Icon)
-        frame.rikIconBorder = skin.Outline(frame, nil, 0, frame.Icon)
+        -- One pixel outside the icon: the lines are in a lower layer than the icon and would be covered.
+        frame.rikIconBorder = skin.Outline(frame, nil, ICON_EDGE_INSET, frame.Icon)
     end
     typefaces(frame)
     loc.Fade = motion.Tween(frame.rikPanel, 0, 1, skin.FADE_SECONDS)

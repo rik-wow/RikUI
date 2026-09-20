@@ -39,7 +39,8 @@ return function(check)
             and frame.rikAccents[1].color[1] > 0.8 and frame.rikAccents[1].color[2] < 0.3
             and frame.rikAccents[1].height == 2 and frame.rikAccents[2].points[1][1] == "BOTTOMLEFT")
         check("the icon is cropped and gets an edge anchored to it", frame.Icon.coords[1] > 0
-            and #frame.rikIconBorder == 4 and frame.rikIconBorder[1].points[1][2] == frame.Icon)
+            and #frame.rikIconBorder == 4 and frame.rikIconBorder[1].points[1][2] == frame.Icon
+            and frame.rikIconBorder[1].points[1][4] == -1)
         check("the three strings take the typeface at Blizzard's size and keep their colour",
             frame.AbilityName.fontPath == RikUI.Media.font and frame.AbilityName.fontSize == 24
             and frame.TimeLeft.NumberText.fontSize == 20 and frame.TimeLeft.SecondsText.fontPath == RikUI.Media.font
