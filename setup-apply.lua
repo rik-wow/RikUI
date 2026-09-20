@@ -33,6 +33,19 @@ local function reportMissing()
         .. ". Check one with /rik spells <name>.")
 end
 
+-- The snapshot leaves out a setting the client does not know, so Apply never visits it. Without
+-- this it would vanish from the summary instead of showing as skipped.
+local function reportUnknownSettings(context, stats)
+    local wanted, unknown = context.opts.cvarSelection, {}
+    for _, entry in ipairs(core.CVars.List) do
+        local selected = wanted == nil or wanted[entry.name] == true
+        if selected and context.snapshot.cvars[entry.name] == nil then unknown[#unknown + 1] = entry.name end
+    end
+    if #unknown == 0 then return end
+    stats.skipped = stats.skipped + #unknown
+    core:Print("Setup settings: unknown on this client, skipped: " .. table.concat(unknown, ", "))
+end
+
 local function macroOperations(context)
     local preset = context.preset
     local operations = {}
@@ -105,6 +118,7 @@ local function operationsFor(name, context)
             local selection = {}
             for cvar in pairs(context.snapshot.cvars) do selection[cvar] = true end
             local _, stats = core.CVars.Apply(selection, { quiet = true })
+            reportUnknownSettings(context, stats)
             done(stats, stats.error)
         end }
     end
