@@ -51,6 +51,29 @@ left of the player (`x=-313`). The large frames are 220x44 and the small ones
 110x30. The [castbars](castbars.md) sit directly under the player and target
 frames.
 
+## Focus frame
+
+Added 2026-09-20. A fifth frame shows your focus: 160 by 36, between the large
+player and target frames and the small pet and target-of-target ones, with the
+same health bar, power bar, name, level, colours, threat edge and tooltip,
+because it is built by the same factory. It sits above the pet frame by
+default on layout key `focus` and moves with `/rik move`.
+
+It shows only while a focus exists (`[@focus,exists] show; hide`) and refreshes
+on `PLAYER_FOCUS_CHANGED` plus the shared unit events. Left click targets the
+focus, right click opens the unit menu, which holds Clear Focus. To set a
+focus use the unit menu's Set Focus on any RikUI frame or a `/focus` macro;
+both are Blizzard's. The stock `FocusFrame` is parked with the others.
+
+A client that does not know `PLAYER_FOCUS_CHANGED` prints one
+`Could not register event` line and everything else keeps working. There is
+no focus cast bar or aura row yet.
+
+Beta checklist: `/focus` a mob, check the frame appears above the pet frame
+with name and health; hit the mob and watch the bar move; `/clearfocus` and
+check it hides; confirm the stock focus frame is gone; try Set Focus from the
+target frame's right-click menu and watch for "action blocked".
+
 ## Party frames
 
 `unitframes-party.lua` builds four fixed frames for `party1` to `party4`
@@ -163,8 +186,8 @@ combat.
 
 ## Stock frames
 
-Once all four RikUI frames exist and the module is enabled, `PlayerFrame`,
-`TargetFrame`, `PetFrame` and `TargetFrameToT` (falling back to
+Once all five RikUI frames exist and the module is enabled, `PlayerFrame`,
+`TargetFrame`, `PetFrame`, `FocusFrame` and `TargetFrameToT` (falling back to
 `TargetFrame.totFrame`) are parked through `RikUI.Hide.Frame(frame, false)`:
 no native handler needs to keep running for these units, so their events are
 unregistered until reload. Hiding happens only out of combat and after

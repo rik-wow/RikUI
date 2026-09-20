@@ -5,7 +5,7 @@ return function(check)
     local API = { "UnitHealth", "UnitHealthMax", "UnitPower", "UnitPowerMax", "UnitPowerType", "UnitClass",
         "UnitReaction", "UnitIsPlayer", "UnitLevel", "UnitName", "UnitExists", "UnitThreatSituation",
         "GetThreatStatusColor", "UnitIsConnected", "UnitIsTapDenied" }
-    local STOCK = { "PlayerFrame", "TargetFrame", "PetFrame", "TargetFrameToT" }
+    local STOCK = { "PlayerFrame", "TargetFrame", "PetFrame", "TargetFrameToT", "FocusFrame" }
     local saved, savedStock = {}, {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
     for _, name in ipairs(STOCK) do savedStock[name] = _G[name] end
@@ -200,6 +200,28 @@ return function(check)
             and TargetFrame.parent == RikUIHiddenFrames and PetFrame.parent == RikUIHiddenFrames
             and TargetFrameToT.parent == RikUIHiddenFrames and PlayerFrame.unregistered == 1
             and TargetFrameToT.unregistered == 1)
+
+        local focus = frames.focus
+        check("a focus frame exists between the two sizes, shown only while a focus exists",
+            focus ~= nil and focus.template == "SecureUnitButtonTemplate" and focus:GetAttribute("unit") == "focus"
+            and drivers[focus] == "[@focus,exists] show; hide" and focus.width < player.width and focus.width > pet.width)
+        check("the focus frame has its own layout key above the pet frame and the stock focus frame is parked",
+            groups.focus.frames[1] == focus and groups.focus.defaults.y > groups.petframe.defaults.y
+            and FocusFrame.parent == RikUIHiddenFrames and FocusFrame.unregistered == 1)
+        units.focus = { health = 40, healthMax = 50, power = 5, powerMax = 10, powerToken = "MANA",
+            name = "Defias Mage", level = 14, isPlayer = false, reaction = 2 }
+        env.fire("PLAYER_FOCUS_CHANGED")
+        check("a focus change refreshes the focus frame", focus.name.text == "Defias Mage" and focus.health.value == 40)
+        units.focus = nil
+        env.KNOWN_EVENTS.PLAYER_FOCUS_CHANGED = nil
+        local bare = load()
+        env.KNOWN_EVENTS.PLAYER_FOCUS_CHANGED = true
+        check("a client without the focus event says so once and still builds every frame",
+            bare.Frames.focus ~= nil and bare.Frames.player ~= nil and #env.printed == 1
+            and printedContains("PLAYER_FOCUS_CHANGED"))
+        module = load()
+        frames = module.Frames
+        player, target, tot, pet = frames.player, frames.target, frames.tot, frames.petframe
 
         local playerSets, targetSets = player.power.sets, target.power.sets
         units.target.power = 45

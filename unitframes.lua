@@ -5,6 +5,7 @@ local unitframes = { Frames = {} }
 core.UnitFrames = unitframes
 
 local LARGE = { width = 220, height = 44, health = 28, power = 13, font = "label", powerText = true }
+local MEDIUM = { width = 160, height = 36, health = 23, power = 10, font = "small", powerText = false }
 local SMALL = { width = 110, height = 30, health = 19, power = 8, font = "small", powerText = false }
 local UNITS = {
     { key = "player", unit = "player", size = LARGE, threat = { "player" } },
@@ -14,6 +15,8 @@ local UNITS = {
         visibility = "[@targettarget,exists] show; hide", poll = true },
     -- "pet" is the pet action row's layout key, so the frame uses its own.
     { key = "petframe", unit = "pet", size = SMALL, threat = { "pet" }, visibility = "[@pet,exists] show; hide" },
+    { key = "focus", unit = "focus", size = MEDIUM, threat = { "player", "focus" },
+        visibility = "[@focus,exists] show; hide" },
 }
 -- Centre-bottom above the bar stack and the companion rows (which end at y=232);
 -- the castbars sit directly under the player and target frames.
@@ -22,8 +25,10 @@ local DEFAULTS = {
     target = { point = "BOTTOM", relativePoint = "BOTTOM", x = 140, y = 300 },
     tot = { point = "BOTTOM", relativePoint = "BOTTOM", x = 313, y = 300 },
     petframe = { point = "BOTTOM", relativePoint = "BOTTOM", x = -313, y = 300 },
+    -- Above the pet frame, right-aligned with it, clear of the party column on the left edge.
+    focus = { point = "BOTTOM", relativePoint = "BOTTOM", x = -288, y = 340 },
 }
-local STOCK_FRAMES = { "PlayerFrame", "TargetFrame", "PetFrame", "TargetFrameToT" }
+local STOCK_FRAMES = { "PlayerFrame", "TargetFrame", "PetFrame", "TargetFrameToT", "FocusFrame" }
 local EDGE, THREAT_EDGE, TEXT_INSET, POLL_SECONDS = 1, 2, 4, 0.5
 local BACKGROUND, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0.32, 1 }
 local FRAME_PREFIX = "RikUIUnit_"
@@ -219,6 +224,8 @@ local function registerTargetEvents()
         unitframes.Refresh("target")
         unitframes.Refresh("targettarget")
     end)
+    -- core refuses an event the client does not know, so a build without focus loses nothing.
+    core:RegisterEvent("PLAYER_FOCUS_CHANGED", function() unitframes.Refresh("focus") end)
     core:RegisterEvent("UNIT_TARGET", function(_, unit)
         if core.Secret.IsSecret(unit) or unit == "target" then unitframes.Refresh("targettarget") end
     end)
