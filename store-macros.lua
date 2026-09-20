@@ -1,0 +1,228 @@
+-- The settings store's second tier. Measured with RikProbe on 69913 (2026-09-20): a CVar an addon
+-- registers survives /reload but comes back empty after a client restart; an account macro survives
+-- both. So what differs from the defaults is also written to account macros named "RikUI data N",
+-- each a single comment line ("#rikui i/n <checksum> <text>") that does nothing when pressed. Only the
+-- difference is kept, so one or two macros usually do. Macros cannot be written in combat; the ticker
+-- tries again. core.lua asks for this tier at login, only when neither saved variables nor the CVar
+-- tier had anything. The undo snapshot and the chat history are not kept across a restart.
+local core, store = RikUI, RikUI.Store
+
+local NAME, HEADER, ICON = "RikUI data ", "#rikui ", "INV_Misc_QuestionMark"
+local BODY_LIMIT, MAX_MACROS, TICK_SECONDS = 255, 12, 5
+-- Left out of this tier: copies kept for undo and the chat history are large and only conveniences.
+local SKIP = { undo = true, chatHistory = true, layoutUndo = true }
+local FULL = "the account macro list is full, so settings cannot be kept across a client restart"
+local DAMAGED = "RikUI's macros are damaged (edited or partly deleted); settings were not restored from them."
+local state = { data = nil, lastText = nil, used = 0, complained = {}, restored = false }
+
+function store.MacrosAvailable()
+    return type(GetMacroInfo) == "function" and type(CreateMacro) == "function" and type(EditMacro) == "function"
+        and type(DeleteMacro) == "function"
+end
+
+local function complain(message)
+    if state.complained[message] then return end
+    state.complained[message] = true
+    core:Print("Settings store: " .. message)
+end
+
+local function pruneTable(value, defaults, isModules)
+    local result = {}
+    for key, entry in pairs(value) do
+        local default = nil
+        if type(defaults) == "table" then default = defaults[key] end
+        local kept
+        if SKIP[key] then kept = nil
+        elseif type(entry) == "table" then kept = pruneTable(entry, default, key == "modules")
+        elseif entry ~= default and not (isModules and entry == true) then kept = entry end
+        if kept ~= nil then result[key] = kept end
+    end
+    return next(result) ~= nil and result or nil
+end
+
+-- A copy of value holding only what differs from defaults; nil when nothing does. A module that is
+-- on is the default, whatever its name.
+function store.Prune(value, defaults)
+    if type(value) ~= "table" then return nil end
+    return pruneTable(value, defaults, false)
+end
+
+local function samePlace(a, b)
+    return a.point == b.point and a.relativePoint == b.relativePoint and math.abs((a.x or 0) - (b.x or 0)) < 0.01
+        and math.abs((a.y or 0) - (b.y or 0)) < 0.01
+end
+
+-- What it takes to describe positions starting from a preset: the frames that stand elsewhere, and
+-- false for the frames the preset places but the player never had a saved place for.
+local function differences(positions, preset)
+    local moved, cost = {}, 0
+    for key, wanted in pairs(preset) do
+        local saved = positions[key]
+        if type(saved) ~= "table" then moved[key], cost = false, cost + 1
+        elseif not samePlace(saved, wanted) then moved[key], cost = saved, cost + 1 end
+    end
+    for key, saved in pairs(positions) do
+        if preset[key] == nil then moved[key], cost = saved, cost + 1 end
+    end
+    return moved, cost
+end
+
+-- A whole layout is thirty-five positions, and it is almost always a preset with a few frames moved.
+-- The cheapest description wins; without the layouts, or when no preset helps, positions stay as they are.
+local function packPositions(profile)
+    local layout, positions = core.Layout, profile.positions
+    if type(positions) ~= "table" or not (layout and layout.PresetPositions and core.Layouts) then return end
+    local best, bestCost, bestName = nil, 0, nil
+    for _ in pairs(positions) do bestCost = bestCost + 1 end
+    for _, name in ipairs(core.Layouts.Order) do
+        local moved, cost = differences(positions, layout.PresetPositions(name))
+        if cost < bestCost then best, bestCost, bestName = moved, cost, name end
+    end
+    if not bestName then return end
+    profile.positions = nil
+    profile.layoutPacked = { base = bestName, moved = next(best) ~= nil and best or nil }
+end
+
+local function unpackPositions(profile)
+    local packed, layout = profile.layoutPacked, core.Layout
+    profile.layoutPacked = nil
+    if type(packed) ~= "table" or not (layout and layout.PresetPositions) then return end
+    local positions = layout.PresetPositions(packed.base)
+    if not positions then return end
+    for key, place in pairs(packed.moved or {}) do
+        if place == false then positions[key] = nil else positions[key] = place end
+    end
+    profile.positions = positions
+end
+
+local function pruneAccount(db)
+    local result = { profiles = {} }
+    for name, profile in pairs(db.profiles or {}) do
+        local pruned = store.Prune(profile, core.Defaults.profile)
+        if pruned then packPositions(pruned) end
+        result.profiles[name] = pruned
+    end
+    if next(result.profiles) == nil then result.profiles = nil end
+    return next(result) ~= nil and result or nil
+end
+
+local function checksum(text)
+    local a, b = 1, 0
+    for index = 1, #text do
+        a = (a + text:byte(index)) % 65521
+        b = (b + a) % 65521
+    end
+    return b * 65536 + a
+end
+
+local function body(name)
+    local _, _, text = GetMacroInfo(name)
+    if type(text) ~= "string" then return nil end
+    return (text:gsub("[\r\n]+$", ""))
+end
+
+-- The text the macros hold, or nil plus whether macros were there at all.
+local function readText()
+    local first = body(NAME .. 1)
+    if not first then return nil, false end
+    local total, sum = first:match("^#rikui 1/(%d+) (%d+) ")
+    total = tonumber(total)
+    if not total or total > MAX_MACROS then return nil, true end
+    local parts = {}
+    for index = 1, total do
+        local text = body(NAME .. index)
+        local chunk = text and text:match("^#rikui " .. index .. "/" .. total .. " " .. sum .. " (.*)$")
+        if not chunk then return nil, true end
+        parts[index] = chunk
+    end
+    local text = table.concat(parts)
+    if checksum(text) ~= tonumber(sum) then return nil, true end
+    state.used = total
+    return text, true
+end
+
+local function writeMacro(name, text)
+    if body(name) ~= nil then return EditMacro(name, name, nil, text) ~= nil end
+    return CreateMacro(name, ICON, text, false) ~= nil
+end
+
+local function writeText(text)
+    local sum = checksum(text)
+    local room = BODY_LIMIT - #(HEADER .. MAX_MACROS .. "/" .. MAX_MACROS .. " " .. sum .. " ")
+    local total = math.max(1, math.ceil(#text / room))
+    if total > MAX_MACROS then return false, "the settings are too large for the macro store" end
+    for index = 1, total do
+        local chunk = text:sub((index - 1) * room + 1, index * room)
+        local ok, written = pcall(writeMacro, NAME .. index, HEADER .. index .. "/" .. total .. " " .. sum .. " " .. chunk)
+        if not ok or not written then return false, FULL end
+    end
+    for index = total + 1, math.max(state.used, total) do pcall(DeleteMacro, NAME .. index) end
+    state.used = total
+    return true
+end
+
+-- Everything this tier holds: the account's settings and one entry per character that ever saved.
+local function snapshot()
+    local data = state.data or {}
+    data.account = pruneAccount(core.DB)
+    data.characters = data.characters or {}
+    data.characters[store.CharacterKey()] = store.Prune(core.CharDB, core.Defaults.character)
+    state.data = data
+    return data
+end
+
+function store.FlushMacros()
+    if not store.MacrosAvailable() or not core.DB or InCombatLockdown() then return end
+    local text = store.Encode(snapshot())
+    if text == state.lastText then return end
+    local ok, reason = writeText(text)
+    if ok then state.lastText = text else complain(reason) end
+end
+
+local function overlay(target, source)
+    for key, value in pairs(source) do
+        if type(value) == "table" then
+            if type(target[key]) ~= "table" then target[key] = {} end
+            overlay(target[key], value)
+        else
+            target[key] = value
+        end
+    end
+end
+
+-- Called by core.lua at login, before modules start. True when settings were put back, so the core
+-- merges defaults and binds the profile again.
+function store.RestoreLate()
+    local status = store.Status()
+    if not store.MacrosAvailable() or status.loaded or status.restored.account or status.restored.character then return false end
+    local text, present = readText()
+    local data = text and store.Decode(text) or nil
+    if type(data) ~= "table" then
+        if present then complain(DAMAGED) end
+        return false
+    end
+    state.data, state.lastText = data, text
+    if type(data.account) == "table" then
+        overlay(RikUIDB, data.account)
+        for _, profile in pairs(RikUIDB.profiles or {}) do unpackPositions(profile) end
+    end
+    local own = type(data.characters) == "table" and data.characters[store.CharacterKey()] or nil
+    if type(own) == "table" then overlay(RikUICharDB, own) end
+    state.restored = true
+    return true
+end
+
+core:RegisterEvent("PLAYER_LOGIN", function()
+    if not store.MacrosAvailable() then return end
+    if state.restored then
+        core:Print("Saved variables did not load on this client; settings were restored from RikUI's macros "
+            .. "(\"RikUI data\" in your macro list; leave them be).")
+    elseif not state.data then
+        -- Other characters' entries must survive this character's first save.
+        local text = readText()
+        local data = text and store.Decode(text) or nil
+        if type(data) == "table" then state.data = data end
+    end
+    if type(C_Timer) == "table" and type(C_Timer.NewTicker) == "function" then C_Timer.NewTicker(TICK_SECONDS, store.FlushMacros) end
+end)
+core:RegisterEvent("PLAYER_LOGOUT", store.FlushMacros)

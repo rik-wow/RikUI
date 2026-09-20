@@ -9,7 +9,7 @@ local core = RikUI
 local store = {}
 core.Store = store
 
-local PREFIX, VERSION, CHUNK, MAX_CHUNKS, TICK_SECONDS = "rikuiStore_", "v1", 180, 120, 5
+local PREFIX, VERSION, CHUNK, MAX_CHUNKS, TICK_SECONDS = "rikuiStore_", "v2", 180, 120, 5
 local SKIP_KEYS = { chatHistory = true }
 local status = { saves = 0, chunks = 0, bytes = 0, restored = {}, failure = nil }
 local lastText = {}
@@ -19,25 +19,35 @@ function store.Available()
         and type(C_CVar.SetCVar) == "function"
 end
 
--- value := n<number>; | s<length>:<bytes> | t | f | {<key><value>...}
-local function write(value, out, top)
-    local kind = type(value)
-    if kind == "number" then out[#out + 1] = "n" .. string.format("%.17g", value) .. ";"
-    elseif kind == "string" then out[#out + 1] = "s" .. #value .. ":" .. value
-    elseif kind == "boolean" then out[#out + 1] = value and "t" or "f"
-    elseif kind == "table" then
-        out[#out + 1] = "{"
-        for key, entry in pairs(value) do
-            local keyKind, entryKind = type(key), type(entry)
-            local storable = (keyKind == "string" or keyKind == "number")
-                and (entryKind == "number" or entryKind == "string" or entryKind == "boolean" or entryKind == "table")
-            if storable and not (top and SKIP_KEYS[key]) then
-                write(key, out)
-                write(entry, out)
-            end
-        end
-        out[#out + 1] = "}"
+-- Keys in a fixed order: the same settings always encode to the same text, whatever order the table
+-- was built in, so "did anything change" is a string comparison.
+local function sortedKeys(value)
+    local keys = {}
+    for key in pairs(value) do
+        if type(key) == "string" or type(key) == "number" then keys[#keys + 1] = key end
     end
+    table.sort(keys, function(a, b)
+        if type(a) ~= type(b) then return type(a) == "number" end
+        return a < b
+    end)
+    return keys
+end
+
+-- Words that repeat in every saved position and setting get a two-character code. APPEND ONLY: a code
+-- is the word's place in this list, and stored text outlives the addon version that wrote it.
+local WORDS = { "point", "relativePoint", "x", "y", "CENTER", "TOP", "BOTTOM", "LEFT", "RIGHT", "TOPLEFT", "TOPRIGHT",
+    "BOTTOMLEFT", "BOTTOMRIGHT", "positions", "profiles", "Default", "modules", "chat", "size", "width", "height",
+    "scale", "characters", "account", "wizardDone", "applied", "askRole", "profile", "class", "role", "at",
+    "presetVersion", "version", "community", "layout", "base", "moved", "locked", "fontSize", "gryphons", "tooltip",
+    "questtracker", "collapsed", "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar", "player", "target",
+    "focus", "tot", "petframe", "party", "raid", "castplayer", "casttarget", "castfocus", "castpet", "buffs", "debuffs",
+    "minimap", "micromenu", "durability", "mirrortimers", "swingtimer", "combopoints", "totems", "questtimers", "loot",
+    "bags", "damagemeter", "WARRIOR", "dps", "tank", "nameplateCVars" }
+local DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
+local CODES = {}
+for index, word in ipairs(WORDS) do
+    local high, low = math.floor(index / 36), index % 36
+    CODES[word] = DIGITS:sub(high + 1, high + 1) .. DIGITS:sub(low + 1, low + 1)
 end
 
 local function armour(text)
@@ -48,17 +58,46 @@ local function unarmour(text)
     return (text:gsub("_(%x%x)", function(hex) return string.char(tonumber(hex, 16)) end))
 end
 
+-- The shortest text that reads back as the same number.
+local function numberText(value)
+    local short = tostring(value)
+    return tonumber(short) == value and short or string.format("%.17g", value)
+end
+
+-- The text is letters, digits and underscore throughout, so a CVar and a macro both hold it as it is:
+-- value := n<number>z | s<length>z<armoured bytes> | k<two-character word code> | t | f | T<key><value>...E
+local function write(value, out, top)
+    local kind = type(value)
+    if kind == "number" then out[#out + 1] = "n" .. armour(numberText(value)) .. "z"
+    elseif kind == "string" then
+        local safe = armour(value)
+        out[#out + 1] = CODES[value] and "k" .. CODES[value] or "s" .. #safe .. "z" .. safe
+    elseif kind == "boolean" then out[#out + 1] = value and "t" or "f"
+    elseif kind == "table" then
+        out[#out + 1] = "T"
+        for _, key in ipairs(sortedKeys(value)) do
+            local entryKind = type(value[key])
+            local storable = entryKind == "number" or entryKind == "string" or entryKind == "boolean" or entryKind == "table"
+            if storable and not (top and SKIP_KEYS[key]) then
+                write(key, out)
+                write(value[key], out)
+            end
+        end
+        out[#out + 1] = "E"
+    end
+end
+
 function store.Encode(value)
     local out = {}
     write(value, out, true)
-    return armour(table.concat(out))
+    return table.concat(out)
 end
 
 local read
 
 local function readTable(text, at)
     local result = {}
-    while text:sub(at, at) ~= "}" do
+    while text:sub(at, at) ~= "E" do
         if at > #text then return nil end
         local key, value
         key, at = read(text, at)
@@ -70,32 +109,36 @@ local function readTable(text, at)
     return result, at + 1
 end
 
+local function readWord(text, at)
+    local high, low = DIGITS:find(text:sub(at + 1, at + 1), 1, true), DIGITS:find(text:sub(at + 2, at + 2), 1, true)
+    local word = high and low and #text >= at + 2 and WORDS[(high - 1) * 36 + low - 1] or nil
+    if word == nil then return nil end
+    return word, at + 3
+end
+
 read = function(text, at)
     local tag = text:sub(at, at)
     if tag == "t" then return true, at + 1 end
     if tag == "f" then return false, at + 1 end
-    if tag == "{" then return readTable(text, at + 1) end
+    if tag == "T" then return readTable(text, at + 1) end
+    if tag == "k" then return readWord(text, at) end
+    local stop = (tag == "n" or tag == "s") and text:find("z", at + 1, true) or nil
+    if not stop then return nil end
     if tag == "n" then
-        local stop = text:find(";", at, true)
-        local number = stop and tonumber(text:sub(at + 1, stop - 1))
+        local number = tonumber((unarmour(text:sub(at + 1, stop - 1))))
         if number == nil then return nil end
         return number, stop + 1
     end
-    if tag == "s" then
-        local colon = text:find(":", at, true)
-        local length = colon and tonumber(text:sub(at + 1, colon - 1))
-        if not length or colon + length > #text then return nil end
-        return text:sub(colon + 1, colon + length), colon + length + 1
-    end
-    return nil
+    local length = tonumber(text:sub(at + 1, stop - 1))
+    if not length or stop + length > #text then return nil end
+    return unarmour(text:sub(stop + 1, stop + length)), stop + length + 1
 end
 
 -- false is a legal value, so failure is nil plus a reason.
 function store.Decode(text)
     if type(text) ~= "string" or text == "" or not text:match("^[%w_]+$") then return nil, "not store text" end
-    local plain = unarmour(text)
-    local ok, value, stop = pcall(read, plain, 1)
-    if not ok or value == nil or stop ~= #plain + 1 then return nil, "damaged store text" end
+    local ok, value, stop = pcall(read, text, 1)
+    if not ok or value == nil or stop ~= #text + 1 then return nil, "damaged store text" end
     return value
 end
 
@@ -157,6 +200,7 @@ end
 
 -- Called by core.lua before defaults are merged. Saved variables that loaded are never replaced.
 function store.Restore()
+    status.loaded = RikUIDB ~= nil or RikUICharDB ~= nil
     if not store.Available() then return end
     if RikUIDB == nil then
         RikUIDB = store.Load("account")

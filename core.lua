@@ -93,10 +93,12 @@ function core:RegisterModule(name, module)
     return module
 end
 
-local function initialize(_, loadedAddon)
-    if initialized or loadedAddon ~= addonName then return end
-    -- On a client that writes saved variables and never reads them back, store.lua has the settings.
-    if core.Store then core.Store.Restore() end
+-- The settings store prunes against these, so it keeps only what differs.
+core.Defaults = { account = ACCOUNT_DEFAULTS, profile = PROFILE_DEFAULTS, character = CHARACTER_DEFAULTS }
+
+-- Merges defaults into the saved tables and binds the character's profile. Runs when the addon loads
+-- and once more at login if the settings store put settings back that late.
+local function bind()
     RikUIDB = mergeDefaults(RikUIDB, ACCOUNT_DEFAULTS)
     RikUICharDB = mergeDefaults(RikUICharDB, CHARACTER_DEFAULTS)
     if type(RikUICharDB.profile) ~= "string" or RikUICharDB.profile == "" then
@@ -108,8 +110,15 @@ local function initialize(_, loadedAddon)
     local name = RikUICharDB.profile
     RikUIDB.profiles[name] = mergeDefaults(RikUIDB.profiles[name], PROFILE_DEFAULTS)
     core.DB, core.CharDB, core.Profile = RikUIDB, RikUICharDB, RikUIDB.profiles[name]
-    initialized = true
     for _, moduleName in ipairs(moduleOrder) do configureModule(moduleName) end
+end
+
+local function initialize(_, loadedAddon)
+    if initialized or loadedAddon ~= addonName then return end
+    -- On a client that writes saved variables and never reads them back, store.lua has the settings.
+    if core.Store then core.Store.Restore() end
+    initialized = true
+    bind()
 end
 
 -- Module enable/disable changes still take effect on reload.
@@ -133,6 +142,9 @@ end
 local function login()
     if loggedIn or not initialized then return end
     loggedIn = true
+    -- Macros are not readable while the addon loads, so the store's restart tier answers here,
+    -- before any module starts.
+    if core.Store and core.Store.RestoreLate and core.Store.RestoreLate() then bind() end
     for _, name in ipairs(moduleOrder) do enableModule(name) end
 end
 

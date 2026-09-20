@@ -129,3 +129,37 @@ slash command, a client without CVar registration and a core without the file.
 Unverified in game: whether a custom CVar survives a full client restart (only
 `/reload` was probed), and the CVar value length limit (180 is a guess that the
 read-back check guards).
+
+### Across a client restart (`store-macros.lua`)
+
+Measured with RikProbe after a full exit and relaunch: the registered CVar came
+back empty, while the user-placed frame cache and the account macro kept
+counting. So CVars cover `/reload` only, and a second tier covers restarts:
+account macros named `RikUI data N`, each one comment line
+(`#rikui i/n <checksum> <text>`, at most 255 characters) that does nothing when
+pressed. They show in the macro list; deleting or editing one is caught by the
+checksum, said once, and nothing is half restored.
+
+Macros are scarce and visible, so this tier keeps only what differs from the
+defaults (`Store.Prune` against `core.Defaults`; a module that is on is the
+default) and leaves out the undo snapshots and the chat history. A layout is
+kept as the preset it is closest to plus the frames that were moved
+(`layoutPacked = { base, moved }`, `false` for a frame the preset places but the
+player had no saved place for), so a whole layout with a frame or two moved
+fits in one macro. The store's text format helps both tiers: keys are written in
+sorted order, so equal settings always give equal text and "did anything change"
+is a string comparison; the words every position repeats (`point`,
+`BOTTOMLEFT`, the layout keys) are two-character codes from an append-only
+list; and the text is letters, digits and underscore throughout, so a saved
+position is about 30 characters. One entry per character is kept under
+`characters`, and a character's first save keeps the others'.
+
+Macros cannot be read while the addon loads, so `core.lua` asks
+`Store.RestoreLate()` at `PLAYER_LOGIN`, before any module starts, and only
+when neither saved variables nor the CVar tier had anything; it then merges
+defaults and binds the profile again. Writes come from the same five-second
+change-only ticker and from `PLAYER_LOGOUT`, never in combat. A full macro list
+is reported once and the reload tier keeps working. `tests/store-macros.test.lua`
+covers pruning, macro shape, a restart, two characters, no write without a
+change, combat, growing and shrinking, a damaged macro, a full macro list, the
+layout packing round trip, and a client without the macro API.

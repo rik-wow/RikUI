@@ -44,13 +44,17 @@ return function(check)
         local core = boot()
         local store = core.Store
         local sample = { scale = 0.85, on = true, off = false, name = "a;b{c}:|\"\n", list = { 1, 2, { deep = "x" } },
+            note = string.rep("long enough to need more than one CVar ", 12),
             positions = { chat = { point = "CENTER", relativePoint = "BOTTOMLEFT", x = 219, y = 107.0000076293945 } } }
         local text = store.Encode(sample)
         local back = store.Decode(text)
         check("a settings table survives encoding: numbers, booleans, awkward strings and nesting", type(back) == "table"
             and back.scale == 0.85 and back.on == true and back.off == false and back.name == sample.name
             and back.list[3].deep == "x" and back.positions.chat.y == 107.0000076293945 and back.positions.chat.point == "CENTER")
-        check("the encoded text uses only letters, digits and underscore, which a CVar holds safely", text:match("^[%w_]+$") ~= nil)
+        check("the encoded text uses only letters, digits and underscore, which a CVar and a macro hold safely",
+            text:match("^[%w_]+$") ~= nil)
+        local place = store.Encode({ point = "CENTER", relativePoint = "BOTTOMLEFT", x = 219, y = 107 })
+        check("a saved position is short: the words every position repeats are two-character codes", #place <= 32, place)
         check("functions and frames are left out instead of breaking the save",
             store.Decode(store.Encode({ keep = 1, skip = function() end })).skip == nil)
         check("damaged text is refused, not half decoded", store.Decode(text:sub(1, #text - 7)) == nil

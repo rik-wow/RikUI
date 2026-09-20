@@ -24,6 +24,7 @@ layout.lua
 layout-rects.lua
 editmode.lua
 store.lua
+store-macros.lua
 motion.lua
 bindings.lua
 macros.lua
