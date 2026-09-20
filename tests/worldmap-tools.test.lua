@@ -110,9 +110,9 @@ return function(check)
         C_Map.GetMapArtID = function() return 1194 end
         check("one quest interface and one coordinate display",
             module.Drawer == nil and module.Toolbar.quests == nil and module.Toolbar.coords == nil)
-        check("compact tools dock at bottom edge", module.Toolbar.height == 28
-            and module.Toolbar.point[1] == "BOTTOMRIGHT" and module.Toolbar.width == 246)
-        check("fog state is explicit", module.Toolbar.fog.label:GetText() == "Fog of war: off")
+        check("compact tools share header and leave terrain clear", module.Toolbar.height == 22
+            and module.Toolbar.point[1] == "TOPLEFT" and module.Toolbar.width == 214)
+        check("fog state is explicit", module.Toolbar.fog.label:GetText() == "Fog: off")
         mapID = 1414
         env.click(module.Toolbar.player)
         check("my location returns to current zone", mapID == 1411)

@@ -35,6 +35,25 @@ return function(check)
     local function map()
         local frame = CreateFrame("Frame", "WorldMapFrame", UIParent)
         frame.ScrollContainer = CreateFrame("Frame", nil, frame)
+        frame.BorderFrame = CreateFrame("Frame", nil, frame)
+        frame.QuestLog = CreateFrame("Frame", nil, frame)
+        frame.QuestLog.QuestsFrame = CreateFrame("Frame", nil, frame.QuestLog)
+        local scroll = CreateFrame("Frame", nil, frame.QuestLog.QuestsFrame)
+        frame.QuestLog.QuestsFrame.ScrollFrame = scroll
+        scroll.Background = scroll:CreateTexture()
+        scroll.BorderFrame = CreateFrame("Frame", nil, scroll)
+        scroll.BorderFrame.Border = scroll.BorderFrame:CreateTexture()
+        scroll.BorderFrame.TopDetail = scroll.BorderFrame:CreateTexture()
+        scroll.SearchBox = CreateFrame("EditBox", nil, scroll)
+        scroll.SearchBox.Left = scroll.SearchBox:CreateTexture()
+        local header = CreateFrame("Button", nil, scroll)
+        header.Background = header:CreateTexture()
+        header.Text = header:CreateFontString()
+        scroll.headerRow = header
+        scroll.headerFramePool = { EnumerateActive = function()
+            local done
+            return function() if not done then done = true; return header end end
+        end }
         for _, key in ipairs({ "WorldMapTrackingOptionsButton", "WorldMapTrackingPinButton" }) do
             local round = CreateFrame("Button", nil, frame)
             for _, art in ipairs({ "Background", "Icon", "Border" }) do round[art] = round:CreateTexture() end
@@ -69,6 +88,17 @@ return function(check)
         local frame, bar = WorldMapFrame, WorldMapFrame.NavBar
         check("nothing is skinned before the map opens", bar.rikFill == nil and rawget(bar.art[1], "alpha") == nil)
         frame:Show()
+        check("opaque header ends above the map", module.Header.color[4] == 1
+            and module.Header.points[2][1] == "BOTTOMLEFT"
+            and module.Header.points[2][2] == frame.ScrollContainer
+            and module.Header.points[2][3] == "TOPLEFT")
+        local scroll = frame.QuestLog.QuestsFrame.ScrollFrame
+        check("native quest panel loses ornate chrome without hiding content",
+            scroll.Background.alpha == 0 and scroll.BorderFrame.Border.alpha == 0
+            and scroll.BorderFrame.TopDetail.alpha == 0 and scroll.alpha ~= 0)
+        check("quest headers and search share flat skin",
+            scroll.headerRow.Background.alpha == 0 and scroll.SearchBox.Left.alpha == 0
+            and scroll.headerRow.Text.fontPath == RikUI.Media.font)
         check("the navigation bar's own art and its overlay art are faded and the bar gets a flat fill and edge",
             bar.art[1].alpha == 0 and bar.art[3].alpha == 0 and bar.overlay.art[2].alpha == 0
             and bar.rikFill.texture == RikUI.Skin.FLAT and #bar.rikBorder == 4)

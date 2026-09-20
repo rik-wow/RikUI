@@ -124,7 +124,58 @@ local function skinOverlays(frame)
     end
 end
 
+-- Skin only presentation surfaces; never fill the high-level frame over the map.
+local surfaces = setmetatable({}, { __mode = "k" })
+local function flatSurface(owner, color, art)
+    if not isFrame(owner) then return end
+    if art then skin.Strip(owner, art) end
+    if surfaces[owner] then return end
+    surfaces[owner] = { fill = skin.Fill(owner, color), edge = skin.Outline(owner) }
+end
+local function questRows(pool, header)
+    if not pool or type(pool.EnumerateActive) ~= "function" then return end
+    for row in pool:EnumerateActive() do
+        if header then
+            flatSurface(row, skin.CONTROL, { "Left", "Middle", "Right", "Background" })
+        end
+        skin.Typeface(row.Text)
+        skin.Typeface(row.ButtonText)
+        skin.Typeface(row.Dash)
+    end
+end
+local function questChrome(frame)
+    local log = frame.QuestLog
+    local quests = isFrame(log) and log.QuestsFrame
+    local scroll = isFrame(quests) and quests.ScrollFrame
+    if not isFrame(scroll) then return end
+    flatSurface(scroll, { 0.055, 0.065, 0.08, 1 }, { "Background", "Edge" })
+    local border = scroll.BorderFrame
+    if isFrame(border) then skin.Strip(border, { "Border", "TopDetail", "Shadow" }) end
+    flatSurface(scroll.SearchBox, skin.CONTROL, { "Left", "Middle", "Right" })
+    questRows(scroll.headerFramePool, true)
+    questRows(scroll.titleFramePool)
+    questRows(scroll.objectiveFramePool)
+    skin.Typeface(scroll.EmptyText)
+    skin.Typeface(scroll.NoSearchResultsText)
+end
+local function shell(frame)
+    local chrome, canvas = frame.BorderFrame, frame.ScrollContainer
+    if isFrame(chrome) and isFrame(canvas) and not worldmap.Header then
+        local fill = chrome:CreateTexture(nil, "BACKGROUND", nil, -8)
+        fill:SetTexture(skin.FLAT)
+        fill:SetVertexColor(0.055, 0.065, 0.08, 1)
+        -- These two corners bound only the area above the canvas, at either map size.
+        fill:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
+        fill:SetPoint("BOTTOMLEFT", canvas, "TOPLEFT", 0, 0)
+        worldmap.Header = fill
+        skin.Strip(chrome, { "InsetBorderTop" })
+    end
+    questChrome(frame)
+end
+
 local function onShow(frame)
+    local ok, reason = pcall(shell, frame)
+    if not ok then warn("chrome", reason) end
     skinOverlays(frame)
     local bar = frame.NavBar
     if not isFrame(bar) then return end
@@ -147,6 +198,15 @@ function worldmap:OnEnable()
     if self.EnableTools then self.EnableTools() end
     attachSkin()
     core:RegisterEvent("ADDON_LOADED", attachSkin)
+    if type(QuestLogQuests_Update) == "function" then
+        hooksecurefunc("QuestLogQuests_Update", function()
+            local frame = worldmap.HookedFrame
+            if frame and frame:IsShown() then
+                local ok, reason = pcall(questChrome, frame)
+                if not ok then warn("quest chrome", reason) end
+            end
+        end)
+    end
 end
 
 function worldmap:Debug()

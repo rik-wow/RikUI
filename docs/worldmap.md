@@ -4,10 +4,14 @@ The map uses one quest interface: Blizzard's existing right-hand quest log,
 including search, objectives, tracking and quest details. Native map markers,
 breadcrumbs, filters, coordinate readout and the quest-panel toggle stay in place.
 
-RikUI adds a compact two-button strip along the bottom edge, clear of the native
-coordinates and quest-panel toggle:
+RikUI uses a solid charcoal header and quest-list surface with thin borders.
+The native quest frame's filigree and parchment background are removed; section
+headers and search share the same flat treatment. Quest titles and objectives
+use the RikUI typeface while retaining native status colors and icons.
 
-- **Fog of war: on/off** shows the current state. On preserves normal exploration;
+Two small controls share the title row, leaving the terrain and coordinates clear:
+
+- **Fog: on/off** shows the current state. On preserves normal exploration;
   off reveals terrain in blue without changing exploration progress.
 - **My location** returns to the player's current zone.
 
@@ -62,10 +66,10 @@ map before the deferred callback cancels that work; combat defers it safely.
 
 ## Code boundaries
 
-- worldmap.lua: breadcrumb and round-button skin; supports late map loading.
+- worldmap.lua: header, native quest-panel chrome, breadcrumbs and round buttons.
 - worldmap-navigation.lua: guarded return-to-player action and safe API reads.
 - worldmap-terrain.lua: reversible unexplored-art rendering.
-- worldmap-tools.lua: compact bottom controls, profile controls and coalesced refresh.
+- worldmap-tools.lua: compact header controls, profile controls and coalesced refresh.
 
 Client API failures and secret values never become invented coordinates.
 No quest snapshot is persisted. Only user preferences enter the profile.
@@ -92,7 +96,7 @@ Native acceptance still requires the Forever client:
    tiles, incorrect crops, protected-action errors and map clipping.
 3. Use the native quest list: search, select, track and collapse it. Confirm no
    second list or coordinate readout appears, including with old saved profiles.
-4. Check bottom controls in minimized and maximized maps, with the
+4. Check header controls in minimized and maximized maps, with the
    native quest panel open, at small UI scales and with gamepad controls.
 5. Repeat during combat; verify only the intended guarded actions are deferred
    or refused, then switch profiles and restart to check persistence.

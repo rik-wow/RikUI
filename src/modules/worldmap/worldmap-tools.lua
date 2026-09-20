@@ -1,7 +1,7 @@
 -- Two supplemental map controls; Blizzard owns the quest list and navigation.
 local core, map = RikUI, RikUI.WorldMap
 local nav, skin, media = map.Navigation, RikUI.Skin, RikUI.Media
-local TOOLBAR_WIDTH, TOOLBAR_HEIGHT = 246, 28
+local TOOLBAR_WIDTH, TOOLBAR_HEIGHT = 214, 22
 local toolbar, frame, pending
 local function settings() return core.Profile.worldmap end
 local function text(parent, label, role)
@@ -19,9 +19,8 @@ local function tooltip(owner, title, detail)
 end
 local function button(parent, label, width, action, hint)
     local control = CreateFrame("Button", nil, parent)
-    control:SetSize(width, 24)
+    control:SetSize(width, 20)
     skin.Fill(control, skin.CONTROL)
-    skin.Outline(control)
     control:SetHighlightTexture(media.highlight)
     control.label = text(control, label)
     control.label:SetPoint("CENTER")
@@ -39,9 +38,10 @@ end
 local function toggle(key) map.SetOption(key, not settings()[key]) end
 function map.RefreshTools()
     if not toolbar then return end
-    toolbar.fog.label:SetText(settings().fog and "Fog of war: on" or "Fog of war: off")
+    toolbar.fog.label:SetText(settings().fog and "Fog: on" or "Fog: off")
     local supported = map.Terrain.Available(frame)
     toolbar.fog:SetEnabled(supported or not settings().fog)
+    toolbar.fog.label:SetTextColor(settings().fog and 0.8 or 0.4, settings().fog and 0.82 or 0.8, 1)
     map.Terrain.Refresh(frame)
 end
 function map.RequestTools()
@@ -56,17 +56,16 @@ local function build()
     if toolbar then return end
     local canvas = frame:GetCanvasContainer()
     if not canvas then return end
-    toolbar = CreateFrame("Frame", "RikUIMapTools", canvas)
+    local host = frame.BorderFrame or frame
+    toolbar = CreateFrame("Frame", "RikUIMapTools", host)
     toolbar:SetSize(TOOLBAR_WIDTH, TOOLBAR_HEIGHT)
-    -- Reserve the lower-left coordinates and lower-right native quest toggle.
-    toolbar:SetPoint("BOTTOMRIGHT", canvas, "BOTTOMRIGHT", -40, 4)
+    -- Share the title row, leaving breadcrumbs and the entire terrain unobstructed.
+    toolbar:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -4)
     toolbar:SetFrameLevel(canvas:GetFrameLevel() + 50)
-    skin.Fill(toolbar, { 0.035, 0.045, 0.06, 0.95 })
-    skin.Outline(toolbar)
-    toolbar.fog = button(toolbar, "Fog of war: on", 134, function() toggle("fog") end,
+    toolbar.fog = button(toolbar, "Fog: on", 94, function() toggle("fog") end,
         "On: normal exploration. Off: reveal unexplored terrain in blue. Click to switch. Exploration progress is unchanged.")
     toolbar.fog:SetPoint("LEFT", 4, 0)
-    toolbar.player = button(toolbar, "My location", 100, function() nav.Player(frame) end,
+    toolbar.player = button(toolbar, "My location", 104, function() nav.Player(frame) end,
         "Return to your current zone. Use the map breadcrumbs or right-click to go up.")
     toolbar.player:SetPoint("LEFT", toolbar.fog, "RIGHT", 4, 0)
     map.Toolbar = toolbar
