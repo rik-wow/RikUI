@@ -186,6 +186,19 @@ return function(check)
         check("a missing anchor function prints one line and keeps the skin", printedContains("GameTooltip_SetDefaultAnchor")
             and #env.printed == 1 and rawget(GameTooltip, "rikBackground") ~= nil)
 
+        module = load(nil, false, function()
+            EmbeddedItemTooltip, QuickKeybindTooltip = stub.tooltip("EmbeddedItemTooltip"), nil
+        end)
+        check("a secondary tooltip gets the same flat background, edge and hidden backdrop",
+            rawget(EmbeddedItemTooltip, "rikBackground") ~= nil and #EmbeddedItemTooltip.rikBorder == 4
+            and EmbeddedItemTooltip.NineSlice.shown == false)
+        QuickKeybindTooltip = stub.tooltip("QuickKeybindTooltip")
+        env.fire("ADDON_LOADED", "Blizzard_QuickKeybind")
+        check("a tooltip that arrives with a later add-on is skinned when that add-on loads",
+            rawget(QuickKeybindTooltip, "rikBackground") ~= nil and QuickKeybindTooltip.NineSlice.shown == false
+            and #env.printed == 0)
+        EmbeddedItemTooltip, QuickKeybindTooltip = nil, nil
+
         module = load({ modules = { tooltip = false } })
         check("a disabled module leaves the tooltips untouched", module.Anchor == nil
             and rawget(GameTooltip, "rikBackground") == nil and GameTooltip.NineSlice.shown == true

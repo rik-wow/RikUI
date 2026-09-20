@@ -68,7 +68,15 @@ protected, so everything above also runs in combat.
 
 ## Skin
 
-`GameTooltip`, `ItemRefTooltip`, `ShoppingTooltip1` and `ShoppingTooltip2`
+`GameTooltip`, `ItemRefTooltip`, `ShoppingTooltip1` and `ShoppingTooltip2`,
+plus the secondary instances found in the 69913 source
+(`ItemRefShoppingTooltip1`/`2`, `EmbeddedItemTooltip`, `GameNoHeaderTooltip`,
+`GameSmallHeaderTooltip`, `BuffFrameTooltip`, `AuraButtonTooltip`,
+`PrivateAurasTooltip`, `LootHistoryExtraTooltip`, `QuickKeybindTooltip`,
+`SettingsTooltip`), each skipped when the client lacks it. The pass runs again
+on every `ADDON_LOADED`, so a tooltip from a load-on-demand add-on is covered.
+`ItemSocketingDescription` is a description area pinned inside the socketing
+window and is left alone. They
 get a background texture and four edge lines (`RikUI.UnitFrames.Edges`) and
 their `NineSlice` backdrop is hidden. `GameTooltip_OnHide` re-applies the
 default style through `SharedTooltip_SetBackdropStyle`, which shows the

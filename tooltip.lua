@@ -8,7 +8,12 @@ local ANCHOR_NAME, ANCHOR_KEY = "RikUITooltipAnchor", "tooltip"
 local ANCHOR_WIDTH, ANCHOR_HEIGHT = 250, 150 -- GameTooltipDefaultContainer's footprint
 -- Bottom right, above the space the micro menu and bag strip will take.
 local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -16, y = 180 }
-local TOOLTIPS = { "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }
+-- Every named GameTooltip instance on 69913 that floats. ItemSocketingDescription is left out: it is
+-- a description area pinned inside the socketing window.
+local TOOLTIPS = { "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2",
+    "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2", "EmbeddedItemTooltip", "GameNoHeaderTooltip",
+    "GameSmallHeaderTooltip", "BuffFrameTooltip", "AuraButtonTooltip", "PrivateAurasTooltip",
+    "LootHistoryExtraTooltip", "QuickKeybindTooltip", "SettingsTooltip" }
 local FONT_OBJECTS = { GameTooltipHeaderText = "label", GameTooltipText = "label", GameTooltipTextSmall = "small" }
 local ANCHOR_FUNCTION, BACKDROP_FUNCTION = "GameTooltip_SetDefaultAnchor", "SharedTooltip_SetBackdropStyle"
 local EDGE = 1
@@ -96,6 +101,8 @@ function tooltip:OnEnable()
     applyFonts()
     hook(ANCHOR_FUNCTION, anchorTooltip)
     hook(BACKDROP_FUNCTION, tooltip.HideBackdrop)
+    -- A tooltip that lives in a load-on-demand add-on arrives after login.
+    core:RegisterEvent("ADDON_LOADED", skinAll)
     if tooltip.RegisterData then tooltip.RegisterData() end
 end
 
