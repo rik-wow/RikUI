@@ -21,6 +21,29 @@ changed permanently.
 The Classic `SpellBookFrame` and `QuestLogFrame` files are excluded from the
 camelot game type, so they are not targets.
 
+### The rest of the windows
+
+Added on 2026-09-20 so every Blizzard window opens in the same look. The skin
+touches only the chrome keys a window has and a global that does not exist is
+skipped, so a name the client lacks costs nothing. `/rik debug` prints how many
+were found.
+
+Frame names found in the 69913 source tree: `ClassTrainerFrame`,
+`AuctionHouseFrame`, `FriendsFrame`, `CommunitiesFrame`, `MacroFrame`,
+`ProfessionsFrame`, `ProfessionsBookFrame`, `InspectFrame`, `DressUpFrame`,
+`ItemTextFrame`. Source files exist for `GuildRegistrarFrame`, `PetitionFrame`,
+`TabardFrame`, `HelpFrame` and `AddonList`.
+
+Names taken from long-standing convention and not read in source:
+`StableFrame`, `GuildBankFrame`, `TimeManagerFrame`, `GroupLootHistoryFrame`,
+`SettingsPanel`. Their addon folders exist in the tree.
+
+The tree holds every game type, so a name being in it does not mean Forever
+loads that addon. Which of these windows exist is only known in game. A window
+whose template differs from the shared chrome keeps whatever pieces it does
+not share; the auction house, communities and settings windows have the most
+content of their own and are the likeliest to look half-done.
+
 ## What changes
 
 On a window's first show:
@@ -100,6 +123,14 @@ how the fade behaves in combat are unverified. Beta checklist:
 4. Switch tabs in the merchant and spellbook windows; the blue accent should
    follow.
 5. Disable `panels` in `/rik config`, reload, and check the stock look is back.
+
+### Beta checklist for the added windows
+
+1. Visit a class trainer, the auction house and a stable master; open the
+   friends list, macros, professions, the addon list and the options window.
+2. Each should open flat with a working close button and tabs. Note any that
+   keep stock art or look half-skinned.
+3. `/rik debug`: `Panels hooked=<n>` rises as load-on-demand windows arrive.
 
 ## Source evidence
 

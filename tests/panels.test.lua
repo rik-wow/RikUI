@@ -5,7 +5,8 @@ return function(check)
     local env = require("wow_stub")
     local restoreCreate = require("widget_stub").install()
     local WINDOWS = { "CharacterFrame", "PlayerSpellsFrame", "WorldMapFrame", "MerchantFrame", "BankFrame",
-        "MailFrame", "OpenMailFrame", "TradeFrame", "QuestFrame", "GossipFrame" }
+        "MailFrame", "OpenMailFrame", "TradeFrame", "QuestFrame", "GossipFrame", "ClassTrainerFrame",
+        "AuctionHouseFrame" }
     local API = { "PanelTemplates_SelectTab", "PanelTemplates_DeselectTab", "PanelTemplates_GetSelectedTab" }
     for _, name in ipairs(WINDOWS) do API[#API + 1] = name end
     local TAB_ART = { "Left", "Middle", "Right", "LeftActive", "MiddleActive", "RightActive",
@@ -166,6 +167,19 @@ return function(check)
         SlashCmdList.RIKUI("debug")
         check("debug reports hooked and skinned windows", printedContains("Panels hooked=5 skinned=4"))
         check("windows the client does not have are skipped", module.Hooked.MailFrame == nil)
+
+        module = load(nil, function() makeWindow("ClassTrainerFrame") end)
+        ClassTrainerFrame:Show()
+        check("a window from the extended list that exists at login is skinned on first show",
+            module.Hooked.ClassTrainerFrame == true and ClassTrainerFrame.NineSlice.alpha == 0
+            and #ClassTrainerFrame.rikBorder == 4 and ClassTrainerFrame.rikFade.plays == 1)
+        local auction = makeWindow("AuctionHouseFrame")
+        check("a load-on-demand window from the extended list is unknown until its addon loads",
+            module.Hooked.AuctionHouseFrame == nil)
+        env.fire("ADDON_LOADED", "Blizzard_AuctionHouseUI")
+        auction:Show()
+        check("the auction house is hooked when its addon loads and skinned on first show",
+            module.Hooked.AuctionHouseFrame == true and auction.NineSlice.alpha == 0 and #env.printed == 0)
 
         module = load(nil, function() PanelTemplates_SelectTab, PanelTemplates_DeselectTab = nil, nil end)
         MerchantFrame:Show()

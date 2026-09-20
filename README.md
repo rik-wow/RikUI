@@ -106,7 +106,9 @@ Progress flashes its line, click opens the quest log, shift-click stops
 tracking and the header collapses the list. See [quest tracker](docs/questtracker.md).
 
 Blizzard's windows (character, spellbook and talents, map and quest log,
-merchant, bank, mail, trade, quest givers) keep their content and get the flat
+merchant, bank, mail, trade, quest givers, and since 2026-09-20 the trainer,
+auction house, friends, guild, macros, professions, inspect, dressing room,
+stable, help, addon list and options windows) keep their content and get the flat
 dark skin: no parchment or portrait ring, a gold title, a flat close button and
 flat tabs with a blue accent on the selected one. Disable the `panels` module
 and reload for the stock look. See [panel skin](docs/panels.md).

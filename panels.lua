@@ -14,6 +14,13 @@ local TARGETS = {
     { name = "WorldMapFrame", chrome = "BorderFrame", fill = false },
     { name = "MerchantFrame" }, { name = "BankFrame" }, { name = "MailFrame" }, { name = "OpenMailFrame" },
     { name = "TradeFrame" }, { name = "QuestFrame" }, { name = "GossipFrame" },
+    -- The rest of Blizzard's windows. Most load on demand; one the client lacks is skipped.
+    { name = "ClassTrainerFrame" }, { name = "AuctionHouseFrame" }, { name = "FriendsFrame" },
+    { name = "CommunitiesFrame" }, { name = "MacroFrame" }, { name = "ProfessionsFrame" },
+    { name = "ProfessionsBookFrame" }, { name = "InspectFrame" }, { name = "DressUpFrame" },
+    { name = "ItemTextFrame" }, { name = "StableFrame" }, { name = "TabardFrame" }, { name = "PetitionFrame" },
+    { name = "GuildRegistrarFrame" }, { name = "GuildBankFrame" }, { name = "HelpFrame" }, { name = "AddonList" },
+    { name = "TimeManagerFrame" }, { name = "GroupLootHistoryFrame" }, { name = "SettingsPanel" },
 }
 local failed, warnings = {}, {}
 
