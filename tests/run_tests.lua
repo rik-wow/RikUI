@@ -252,6 +252,8 @@ local lootOk, lootErr = pcall(function() dofile("tests/loot.test.lua")(check) en
 check("Loot test suite completes", lootOk, lootErr)
 local plateOk, plateErr = pcall(function() dofile("tests/nameplates.test.lua")(check) end)
 check("Nameplate test suite completes", plateOk, plateErr)
+local mirrorOk, mirrorErr = pcall(function() dofile("tests/mirrortimers.test.lua")(check) end)
+check("Mirror timer test suite completes", mirrorOk, mirrorErr)
 
 -- report
 if #failures == 0 then

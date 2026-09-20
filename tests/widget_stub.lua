@@ -74,10 +74,41 @@ local function wrapFrame(frame)
         assert(not InCombatLockdown(), "attribute written in combat")
         self.attributes[key] = value
     end
+    function frame:SetMinMaxValues(low, high) self.low, self.high = low, high end
+    function frame:SetValue(value, easing) self.value, self.easing = value, easing end
+    function frame:SetStatusBarTexture(texture) self.texture = texture end
+    function frame:SetStatusBarColor(...) self.color = { ... } end
     local texture, font = frame.CreateTexture, frame.CreateFontString
     function frame:CreateTexture(...) return stub.region(texture(self, ...)) end
     function frame:CreateFontString(...) return stub.region(font(self, ...)) end
     return frame
+end
+
+-- Fresh addon load for a furniture suite: resets the environment, loads the shared files and the
+-- module's own, then logs in. prepare() runs before the files load, to install or remove client API.
+local SHARED_FILES = { "core.lua", "hide.lua", "media.lua", "motion.lua", "setup.lua", "setup-apply.lua",
+    "layout.lua", "unitframes.lua", "unitframes-status.lua" }
+
+function stub.loadAddon(env, files, profile, combat, prepare)
+    env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
+    if prepare then prepare() end
+    profile = profile or {}
+    profile.modules = profile.modules or {}
+    if profile.modules.unitframes == nil then profile.modules.unitframes = false end
+    RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
+    for _, list in ipairs({ SHARED_FILES, files }) do
+        for _, file in ipairs(list) do assert(loadfile(file))("RikUI", {}) end
+    end
+    env.fire("ADDON_LOADED", "RikUI")
+    env.inCombat = combat == true
+    env.fire("PLAYER_LOGIN")
+end
+
+function stub.printedContains(env, text)
+    for _, line in ipairs(env.printed) do
+        if line:find(text, 1, true) then return true end
+    end
+    return false
 end
 
 function stub.install()

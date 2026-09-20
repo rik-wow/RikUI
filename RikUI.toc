@@ -63,6 +63,7 @@ bags.lua
 bags-items.lua
 micromenu.lua
 xpbar.lua
+mirrortimers.lua
 questtracker.lua
 questtracker-blocks.lua
 panels.lua
