@@ -20,9 +20,30 @@ local function installFrameArt(frame, name)
     end
 end
 
+-- ScrollingMessageFrame's scroll model: offset 0 is the newest line. SetMaxLines clears the window,
+-- as the client's does. Sizing calls are recorded.
+function stub.installScrolling(frame)
+    frame.offset, frame.maxLines, frame.sizing = 0, 128, nil
+    function frame:AtBottom() return self.offset == 0 end
+    function frame:ScrollUp() self.offset = math.min(#self.messages, self.offset + 1) end
+    function frame:ScrollDown() self.offset = math.max(0, self.offset - 1) end
+    function frame:PageUp() self.offset = math.min(#self.messages, self.offset + stub.PAGE) end
+    function frame:PageDown() self.offset = math.max(0, self.offset - stub.PAGE) end
+    function frame:ScrollToTop() self.offset = #self.messages end
+    function frame:ScrollToBottom() self.offset = 0 end
+    function frame:GetMaxLines() return self.maxLines end
+    function frame:SetMaxLines(lines) self.maxLines, self.messages = lines, {} end
+    function frame:SetResizable(flag) self.resizable = flag end
+    function frame:SetResizeBounds(...) self.bounds = { ... } end
+    function frame:StartSizing(corner) self.sizing = corner end
+    function frame:StopMovingOrSizing() self.sizing = nil end
+end
+stub.PAGE = 10
+
 local function installEditBox(frame, name)
     local box = CreateFrame("EditBox", name .. "EditBox", frame)
     frame.editBox = box
+    function box:SetAltArrowKeyMode(flag) self.altArrows = flag end
     for _, key in ipairs({ "Left", "Mid", "Right" }) do _G[name .. "EditBox" .. key] = box:CreateTexture() end
     box.focusLeft, box.focusMid, box.focusRight = box:CreateTexture(), box:CreateTexture(), box:CreateTexture()
     box.header = box:CreateFontString()
@@ -53,6 +74,7 @@ local function installFrame(id)
         if not line then return nil end
         return line.text, line.r, line.g, line.b
     end
+    stub.installScrolling(frame)
     frame.ScrollBar = CreateFrame("EventFrame", nil, frame)
     frame.ScrollToBottomButton = CreateFrame("Button", nil, frame)
     frame.buttonFrame = CreateFrame("Frame", name .. "ButtonFrame", frame)
@@ -152,7 +174,7 @@ local function installLinks()
 end
 
 local function installCVars()
-    stub.cvars = { showTimestamps = "none" }
+    stub.cvars = { showTimestamps = "none", chatClassColorOverride = "1" }
     C_CVar.GetCVar = function(name) return stub.cvars[name] end
     C_CVar.SetCVar = function(name, value)
         stub.cvars[name] = value
@@ -166,6 +188,12 @@ function stub.install(env)
     stub.env = env
     stub.sizeWrites, stub.alphaUpdates, stub.cvarWrites, stub.messageError = {}, {}, {}, nil
     CHAT_FRAMES, NUM_CHAT_WINDOWS = {}, stub.WINDOWS
+    ChatTypeInfo = { SAY = { sticky = 1, r = 1, g = 1, b = 1 }, YELL = { sticky = 0, r = 1, g = 0.25, b = 0.25 },
+        PARTY = { sticky = 1, r = 0.67, g = 0.67, b = 1 }, RAID = { sticky = 1, r = 1, g = 0.5, b = 0 },
+        GUILD = { sticky = 1, r = 0.25, g = 1, b = 0.25 }, OFFICER = { sticky = 0, r = 0.25, g = 0.75, b = 0.25 },
+        WHISPER = { sticky = 0, r = 1, g = 0.5, b = 1 }, BN_WHISPER = { sticky = 0, r = 0, g = 1, b = 0.96 },
+        CHANNEL = { sticky = 0, r = 1, g = 0.75, b = 0.75 }, CHANNEL1 = { r = 1, g = 0.75, b = 0.75 },
+        CHANNEL2 = { r = 0.9, g = 0.8, b = 0.5 } }
     for id = 1, stub.WINDOWS do installFrame(id) end
     installButtons()
     installFontFunctions()

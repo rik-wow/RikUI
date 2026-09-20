@@ -23,6 +23,14 @@ local function recordCommon(value)
     function value:SetHeight(h) self.height = h end
     function value:SetWidth(w) self.width = w end
     function value:GetHeight() return self.height end
+    function value:GetWidth() return self.width end
+    function value:GetSize() return self.width, self.height end
+    -- stub.center stands in for a laid-out frame's position; nil means the client has none yet.
+    function value:GetCenter()
+        if not stub.center then return nil end
+        return stub.center[1], stub.center[2]
+    end
+    function value:GetEffectiveScale() return 1 end
     function value:ClearAllPoints() self.points = {} end
     function value:SetPoint(...)
         -- rawget: a region keeps the shared metatable, which answers unknown fields with a function.

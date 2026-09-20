@@ -73,22 +73,34 @@ local function dragStart()
     holder:StartMoving()
 end
 
+local function saveDrop()
+    if not layout.SaveCenter(KEY, holder, core.Profile) then return false end
+    layout.Register(holder, KEY, core.Profile.positions[KEY])
+    layout.Apply()
+    return true
+end
+
 local function dragStop()
     if not dragging then return end
     dragging = false
     holder:StopMovingOrSizing()
-    if not layout.SaveCenter(KEY, holder, core.Profile) then
-        chat.Warn("move", "drop position unavailable")
-        return
-    end
-    layout.Register(holder, KEY, core.Profile.positions[KEY])
-    layout.Apply()
+    if not saveDrop() then chat.Warn("move", "drop position unavailable") end
+end
+
+-- After a resize the window's centre has moved: the holder goes back under it and the drop is saved.
+function chat.AdoptCurrent()
+    ensureHolder()
+    if not placeOnWindow() then return false end
+    adopted = true
+    anchor()
+    return saveDrop()
 end
 
 local function isLocked() return chat.Settings().locked ~= false end
 
 -- Padlock glyph: the shackle sits over the body when locked and swings right, in gold, when open.
 local function refreshLock()
+    if chat.RefreshGrip then chat.RefreshGrip() end
     if not lockButton then return end
     local locked = isLocked()
     local color = locked and LOCKED_COLOR or UNLOCKED_COLOR
@@ -140,6 +152,7 @@ end
 function chat.ResetPosition()
     dragStop()
     core.Profile.positions[KEY] = nil
+    chat.Settings().size = nil
     adopted = false
     core:Print(RESET)
 end

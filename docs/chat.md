@@ -104,6 +104,48 @@ installed while the option is on, and once installed it stays until a reload,
 passing text through when the option is off. If a chat error ever names RikUI,
 switch short tags off and reload.
 
+## Scrolling, history and typing
+
+`chat-scroll.lua`, `chat-history.lua`, `chat-input.lua` and `chat-size.lua` are
+new TOC entries, so restart the client once. Each feature has a checkbox on
+the Chat options page and applies without a reload.
+
+- **Jump button.** Scroll a window up and a small flat `v` button fades in at
+  its bottom-right corner. Lines that arrive while you read are counted on it
+  (`v 12`). Click it to return to the newest line. It follows post-hooks on
+  the window's own scroll methods, so key bindings keep it in step.
+- **Wheel modifiers.** Blizzard's wheel handler scrolls one line. Ctrl-wheel
+  jumps to the oldest or newest line and Shift-wheel pages.
+- **Scrollback and history.** Every window except the combat log keeps 1000
+  lines instead of Blizzard's default. At logout the last 200 readable lines
+  of each window are saved per character; after a reload or relog they come
+  back at 60% brightness above a `- earlier messages -` line. Secret lines are
+  never saved. Links in restored lines still work, except player links whose
+  line id the client has forgotten. Restored lines go through Blizzard's own
+  `AddMessage`, so they are not re-tagged and not counted as unread. Raising
+  the scrollback clears a window, which happens at login before anything is
+  restored; lines the client printed earlier in the login are lost. Switching
+  the option off deletes what was saved.
+- **Arrow-key history.** Up and Down in the edit box recall lines you sent,
+  without holding Alt (`SetAltArrowKeyMode(false)`).
+- **Sticky channels.** Party, raid, instance, guild, officer, whisper,
+  Battle.net whisper and numbered channels stay selected after you send a
+  line, by setting `ChatTypeInfo[type].sticky`. Blizzard's values are kept and
+  written back when the option is switched off.
+
+## Resizing the chat window
+
+On this client the main window's size belongs to Edit Mode: Blizzard hides its
+resize button and never shows it again. While the window is unlocked with the
+padlock, RikUI shows its own gold grip in the bottom-right corner. Drag it to
+size the window between 250x120 and 1200x800. On release the size is saved in
+the profile next to the position, and the move holder is put back under the
+window's new centre, so the window does not jump. `/rik chat reset` forgets
+the size as well as the position. The saved size is applied at login and again
+on entering the world, because Edit Mode may write its own size when it
+applies a layout; if you resize the chat in Edit Mode, RikUI's size wins on
+the next loading screen.
+
 ## Moving the chat window
 
 `chat-move.lua` is a new TOC entry, so fully restart the client once.
@@ -128,7 +170,7 @@ reloads and relogs and follows the profile. After the first move a `Chat
 window` overlay also shows up in `/rik move`. `/rik chat reset` forgets the
 position; reload afterwards and the window is back where Blizzard's layout
 puts it. RikUI never touches the window's position until you have moved it
-once. The size is still Blizzard's.
+once. The size is covered under [Resizing the chat window](#resizing-the-chat-window).
 
 Windows you have undocked are not Edit Mode systems. They keep Blizzard's own
 behaviour: right-click their tab, Unlock Window, drag the tab, Lock Window,
@@ -247,6 +289,22 @@ or written with both options off; a client without message filters; a disabled
 module. Beta check for this part: watch guild and trade chat for a few
 minutes, have someone say your name, and confirm `/reload` in combat raises no
 chat error.
+
+`tests/chat-nav.test.lua` models a window's scroll offset and its clearing
+`SetMaxLines`. It proves: the jump button hidden at the newest line, faded in
+once when scrolled up, counting arrivals, returning on click and counting from
+zero again; Ctrl-wheel, Shift-wheel and a plain wheel left alone; the button
+option off and on; the grip hidden while locked, shown when unlocked, sizing
+from the corner within bounds, the size saved and the window re-centred on its
+holder with the position saved, hidden again on lock and the size forgotten on
+reset; scrollback raised except on the combat log; readable lines saved with
+colours and secrets skipped; lines restored dimmed above the separator and not
+counted as unread; a second logout keeping original colours; the 200-line cap;
+history off deleting the store; arrow keys and sticky types on and off with
+Blizzard's values restored; a saved size applied and a damaged one ignored; a
+disabled module. Beta check for this part: scroll up in a busy channel and
+watch the count, resize and `/reload`, confirm the dimmed lines return, and
+open Edit Mode once to see whether the size holds.
 
 The stub cannot show how the flat edit box renders, when the tabs fade, or
 whether the voice and text-to-speech buttons exist on Forever. Beta

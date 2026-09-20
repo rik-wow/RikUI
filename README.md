@@ -113,7 +113,12 @@ corner opens its lines as selectable text, and web addresses in chat are
 links that open a box to copy from. Names are class-coloured, channel tags
 are short (`[G]`, `[P]`, `[2]`), your own name turns gold with a soft sound
 when someone says it, and repeated public spam shows once per ten seconds.
-Each of those, font size and timestamps are on the Chat options page. Click the padlock in the main chat window's corner to
+Scroll up and a small button counts what you are missing and takes you back;
+Ctrl-wheel jumps to either end and Shift-wheel pages. Windows keep 1000 lines
+and the last 200 come back dimmed after a reload. Up and Down recall what you
+sent, and whispers and channels stay selected after sending. Each of those,
+font size and timestamps are on the Chat options page. While unlocked, the
+gold grip in the corner resizes the window. Click the padlock in the main chat window's corner to
 unlock it, drag the padlock to move the window, click again to lock; no Edit
 Mode needed and the position is remembered (`/rik chat lock|unlock|reset`
 does the same). Disable the `chat` module to get the stock chat back. See

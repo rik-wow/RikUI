@@ -52,6 +52,10 @@ chat-skin.lua
 chat-copy.lua
 chat-move.lua
 chat-lines.lua
+chat-history.lua
+chat-scroll.lua
+chat-size.lua
+chat-input.lua
 bags.lua
 bags-items.lua
 micromenu.lua

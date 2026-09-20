@@ -24,6 +24,9 @@ local FRAME_CONTROLS = { "buttonFrame", "ScrollBar", "ScrollToBottomButton" }
 local EDIT_ART, EDIT_FOCUS = { "Left", "Mid", "Right" }, { "focusLeft", "focusMid", "focusRight" }
 local TAB_ART = { "Left", "Middle", "Right", "ActiveLeft", "ActiveMiddle", "ActiveRight",
     "HighlightLeft", "HighlightMiddle", "HighlightRight" }
+-- The other chat files, in the order they start. History comes first: raising the scrollback
+-- clears a window, and restored lines must land before the line and scroll hooks exist.
+local ENABLERS = { "EnableLinks", "EnableMove", "EnableHistory", "EnableLines", "EnableScroll", "EnableSize", "EnableInput" }
 local warnings = {}
 
 function chat.Warn(operation, reason)
@@ -199,9 +202,9 @@ function chat:OnEnable()
     fadeTabs()
     chat.ApplyTimestamps()
     if type(_G[SIZE_FUNCTION]) == "function" then hooksecurefunc(SIZE_FUNCTION, rememberSize) end
-    if chat.EnableLinks then chat.EnableLinks() end
-    if chat.EnableMove then chat.EnableMove() end
-    if chat.EnableLines then chat.EnableLines() end
+    for _, name in ipairs(ENABLERS) do
+        if chat[name] then chat[name]() end
+    end
 end
 
 local function frameCount()
