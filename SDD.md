@@ -503,6 +503,7 @@ load order:
 | `screentext.lua` | outlined RikUI font at Blizzard's own sizes on `ZoneTextFont`, `SubZoneTextFont`, `PVPInfoTextFont`, `ErrorFont` and the auto-follow text; pooled raid warning lines restyled once each from a post-hook on `RaidWarningFrame:AcquireOrEvictSlot` so the shared `GameFontNormalHuge` stays untouched; fonts only (delivered) |
 | `skin.lua` | shared flat-skin helpers for the modules below: fade or blank Blizzard art by key, flat fill, one-pixel edge, RikUI font, cropped icon; every helper skips a value that is not a region (delivered) |
 | `menus.lua` | flat backing under every Blizzard_Menu frame from the `MenuProxy.OnShow` and `MenuProxy.OnHide` registry events: the compositor forbids new regions on the menu and `SetFont` on its strings, so the backing is a pooled own frame anchored to the menu one level under it, never reparented; the pooled `common-dropdown-bg` texture is faded on every show because release resets it; fade-in (delivered) |
+| `chatbubbles.lua` | flat open-world chat bubbles: RikUI font written once to the `ChatBubbleFont` object so per-message colours survive; each say, yell, party and monster chat event opens a one-second burst of `C_ChatBubbles.GetAllChatBubbles` scans at 0.1s; a bubble's first child gets its nine-slice and tail faded, an inset fill and edge and a fade replayed on `OnShow`; forbidden bubbles are never touched, each bubble is visited once (delivered) |
 | `wizard.lua` | the first-login flow |
 | `options.lua` | `/rik config` panel, hooked into Settings too |
 | `importexport.lua` | strings |

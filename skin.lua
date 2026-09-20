@@ -1,8 +1,8 @@
 -- Shared pieces of the flat skin: fade or blank Blizzard art, add a flat fill, a one-pixel edge, the
 -- RikUI font and a cropped icon. Every helper skips a value that is not a region, so a frame that
 -- lacks a piece keeps that piece stock. Art is faded, never hidden: Blizzard's own Show calls then
--- change nothing. Loads after unitframes.lua, whose edge lines it reuses.
-local media, unitframes = RikUI.Media, RikUI.UnitFrames
+-- change nothing.
+local media = RikUI.Media
 local skin = {}
 RikUI.Skin = skin
 
@@ -11,6 +11,10 @@ skin.BACKING, skin.CONTROL = { 0.06, 0.07, 0.09, 0.95 }, { 0.1, 0.11, 0.14, 1 }
 skin.LINE, skin.GOLD = { 0.25, 0.28, 0.32, 1 }, { 1, 0.82, 0 }
 skin.FADE_SECONDS = 0.15
 local EDGE, ICON_CROP = 1, 0.08
+-- The direction that moves each corner towards the middle of its owner.
+local CORNERS = { TOPLEFT = { 1, -1 }, TOPRIGHT = { -1, -1 }, BOTTOMLEFT = { 1, 1 }, BOTTOMRIGHT = { -1, 1 } }
+local SIDES = { { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" }, { "TOPLEFT", "BOTTOMLEFT" },
+    { "TOPRIGHT", "BOTTOMRIGHT" } }
 
 function skin.IsRegion(value)
     local kind = type(value)
@@ -43,9 +47,23 @@ function skin.Fill(owner, color, inset)
     return texture
 end
 
-function skin.Outline(owner, color)
-    local lines = unitframes.Edges(owner, EDGE, "BORDER")
-    for _, line in ipairs(lines) do line:SetVertexColor(unpack(color or skin.LINE)) end
+local function line(owner, first, second, inset, color)
+    local texture = owner:CreateTexture(nil, "BORDER")
+    texture:SetTexture(media.border)
+    texture:SetVertexColor(unpack(color))
+    for _, point in ipairs({ first, second }) do
+        local direction = CORNERS[point]
+        texture:SetPoint(point, owner, point, direction[1] * inset, direction[2] * inset)
+    end
+    if first:sub(1, 3) == second:sub(1, 3) then texture:SetHeight(EDGE) else texture:SetWidth(EDGE) end
+    return texture
+end
+
+-- Four one-pixel lines, pulled in by inset so they can frame an inset fill.
+function skin.Outline(owner, color, inset)
+    local lines = {}
+    inset, color = inset or 0, color or skin.LINE
+    for index, pair in ipairs(SIDES) do lines[index] = line(owner, pair[1], pair[2], inset, color) end
     return lines
 end
 

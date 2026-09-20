@@ -76,6 +76,7 @@ popups-skin.lua
 screentext.lua
 skin.lua
 menus.lua
+chatbubbles.lua
 loot.lua
 loot-rolls.lua
 tooltip.lua
