@@ -11,3 +11,7 @@ The native roadmap is authoritative. Read .magistr/project.json before exporting
 
 Preserve existing objectives and worktree changes. Follow the requested scope; setup, review and planning do not authorize starting a roadmap chunk. $next implements one ready chunk; $next-loop is bounded. Recovery, acceptance, recorded checks and an atomic commit are required before completing work.
 <!-- /magistr:codex -->
+
+## Workbench defaults
+
+The user authorizes automatic application of Workbench writes within the requested task. Pass `autoApply: true` by default to Workbench `edit`, `files`, and write-producing `script` calls; for applying scripts also pass `dryRun: false`. This standing preference applies to future sessions and overrides the routing skill's preference for the confirmation-token flow. Continue to review changes and verify results. Respect protected paths, policy denials, unrelated changes, and the existing server lock.
