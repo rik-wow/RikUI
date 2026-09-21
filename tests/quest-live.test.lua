@@ -214,6 +214,21 @@ return function(check)
         p.Command("show")
         check("explicit window has quest rows and actual summary",p.View.Window:IsShown() and p.View.Window.rows[1].questID==10)
         dofile("tests/quest-status-fixture.lua")(check,p,env)
+        do
+            local function rowFor(id)
+                for _,row in ipairs(p.View.Window.rows) do
+                    if row:IsShown() and row.questID==id then return row end
+                end
+            end
+            p.Command("skip 10");env.flushTimers()
+            check("skipping removes quest from guidance",p.Controller.Get().selected.questID==11)
+            local skipped=rowFor(10)
+            check("skipped quest remains available for recovery",skipped~=nil)
+            check("skipped row offers Include",skipped and skipped.skip and skipped.skip.label:GetText()=="Include")
+            if skipped and skipped.skip then env.click(skipped.skip);env.flushTimers() end
+            check("include restores only the skipped quest",not p.Controller.Policy().skips[10])
+            if p.Controller.Policy().skips[10] then p.Command("skip 10");env.flushTimers() end
+        end
         env.click(p.View.Window.summary.pin)
         env.flushTimers()
         check("pin control persists bounded preference only",p.Controller.Policy().pins[10] and RikUI.CharDB.questPolicy.pins[10]

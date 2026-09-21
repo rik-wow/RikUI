@@ -149,16 +149,16 @@ local function close()
 end
 local function createWindow()
     window=CreateFrame("Frame","RikUIQuestPlannerWindow",UIParent)
-    window:SetSize(450,422); window:SetPoint("CENTER"); window:SetFrameStrata("DIALOG"); window:EnableMouse(true)
+    window:SetSize(700,422); window:SetPoint("CENTER"); window:SetFrameStrata("DIALOG"); window:EnableMouse(true)
     local fill=window:CreateTexture(nil,"BACKGROUND"); fill:SetAllPoints(); fill:SetColorTexture(.04,.05,.07,.98)
     window.heading=text(window,"heading"); window.heading:SetPoint("TOPLEFT",12,-10); window.heading:SetText("Quest planner")
     local exit=button(window,"Close",52,close); exit:SetPoint("TOPRIGHT",-8,-8)
-    window.summary=create(window); window.summary:SetPoint("TOPLEFT",12,-38); window.summary:SetWidth(426)
+    window.summary=create(window); window.summary:SetPoint("TOPLEFT",12,-38); window.summary:SetWidth(676)
     window.retry=button(window.summary,"Retry route",88,function() command("retry") end)
     window.retry:SetPoint("BOTTOMRIGHT",-4,0)
     window.rows={}
     for index=1,8 do
-        local row=button(window,"",370,function(self)
+        local row=button(window,"",416,function(self)
             if self.questID then planner.OpenQuest(self.questID) end
         end)
         row:SetPoint("TOPLEFT",12,-154-(index-1)*23)
@@ -166,7 +166,12 @@ local function createWindow()
         local pin=button(window,"Pin",52,function()
             if row.questID then command("pin "..row.questID) end
         end)
-        pin:SetPoint("LEFT",row,"RIGHT",0,0); row.pin=pin; window.rows[index]=row
+        pin:SetPoint("LEFT",row,"RIGHT",0,0); row.pin=pin
+        row.skip=button(window,"Skip",60,function()
+            if row.questID then command("skip "..row.questID) end
+        end)
+        row.skip:SetPoint("LEFT",pin,"RIGHT",0,0)
+        window.rows[index]=row
     end
     local previous=button(window,"Previous",80,function() page=math.max(1,page-1); view.Refresh() end)
     previous:SetPoint("BOTTOMLEFT",12,46)
@@ -194,13 +199,16 @@ function view.Refresh()
     local policy=planner.Controller.Policy()
     window.arrow.label:SetText(policy.arrow and "Arrow: on" or "Arrow: off")
     window.dungeons.label:SetText(policy.dungeons and "Dungeons: on" or "Dungeons: off")
-    local pages=math.max(1,math.ceil(#(model.quests or {})/8))
+    local quests=planner.Controller.Quests()
+    local pages=math.max(1,math.ceil(#quests/8))
     page=math.min(page,pages); window.page:SetText(page.."/"..pages)
     for index,row in ipairs(window.rows) do
-        local quest=model.quests and model.quests[(page-1)*8+index]
-        row:SetShown(quest~=nil); row.pin:SetShown(quest~=nil)
+        local quest=quests[(page-1)*8+index]
+        row:SetShown(quest~=nil); row.pin:SetShown(quest~=nil); row.skip:SetShown(quest~=nil)
         if quest then
-            row.questID=quest.questID; row.label:SetText((quest.kind=="turnin" and "Turn in: " or "")..quest.title)
+            row.questID=quest.questID; row.label:SetText((quest.skipped and "Skipped: " or quest.failed and "Failed: "
+                or quest.kind=="turnin" and "Turn in: " or "")..quest.title)
+            row.skip.label:SetText(quest.skipped and "Include" or "Skip")
             row.pin.label:SetText(policy.pins[quest.questID] and "Unpin" or "Pin")
         end
     end

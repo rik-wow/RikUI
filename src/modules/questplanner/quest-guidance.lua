@@ -132,11 +132,11 @@ function guidance.Signature(snapshot,status,ctx,dialog)
     if parts.limited then return nil,"Quest observations exceed the planning size limit" end
     return table.concat(parts)
 end
-function guidance.Observed(snapshot,ctx,policy,previous)
+function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded)
     local rows={}
     for _,id in ipairs(snapshot.order) do
         local quest,point=snapshot.quests[id],ctx.destinations[id]
-        if not policy.skips[id] and quest.failed~=true and not (point and policy.avoids[point.mapID]) then
+        if includeExcluded or (not policy.skips[id] and quest.failed~=true and not (point and policy.avoids[point.mapID])) then
             local detail
             for _,objective in ipairs(quest.objectives or {}) do if not objective.finished then detail=objective.text; break end end
             local hint=planner.Targets and planner.Targets.Match(snapshot,id,point)
@@ -145,7 +145,8 @@ function guidance.Observed(snapshot,ctx,policy,previous)
             rows[#rows+1]={questID=id,title=plain(quest.title),kind=quest.objectivesComplete and "turnin" or "objective",
                 destinationSignature=not stage.limited and table.concat(stage) or nil,
                 detail=plain(hint and hint.detail or detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
-                targetHint=hint,destination=schema.Clone(point),pinned=policy.pins[id]==true}
+                targetHint=hint,destination=schema.Clone(point),pinned=policy.pins[id]==true,
+                skipped=policy.skips[id]==true,avoided=point and policy.avoids[point.mapID]==true or false,failed=quest.failed==true}
         end
     end
     table.sort(rows,function(a,b)

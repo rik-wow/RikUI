@@ -26,6 +26,11 @@ function controller.Invalidate()
     notify()
 end
 function controller.Get() return schema.Clone(view) end
+function controller.Quests()
+    local snapshot,status=planner.GetSnapshot()
+    if not snapshot or not context or status.state=="stale" or status.state=="unavailable" then return {} end
+    return planner.Guidance.Observed(snapshot,context,policy,view.selected and view.selected.questID,true)
+end
 function controller.Policy() return schema.Clone(policy) end
 function controller.Stats() return schema.Clone(stats) end
 function controller.Context() return schema.Clone(context) end
