@@ -49,6 +49,9 @@ function planner.Command(arguments)
     elseif verb=="map" then planner.Navigation.Open(); return
     elseif verb=="export" then planner.TransferView.Open(false); return
     elseif verb=="inspect" then planner.TransferView.Open(true); return
+    elseif verb=="floor" then
+        if planner.Terrain then ok,reason=planner.Terrain.SelectFloor(value=="auto" and 0 or tonumber(value))
+        else reason="Terrain datasource is unavailable" end
     elseif verb=="pause" or verb=="resume" then ok,reason=controller.Set("paused",verb=="pause")
     elseif verb=="pin" or verb=="skip" or verb=="avoid" then
         local names={pin="pins",skip="skips",avoid="avoids"}
@@ -58,7 +61,7 @@ function planner.Command(arguments)
         else ok,reason=controller.Set(verb,value=="on") end
     else
         core:Print("/rik quests show | map | pause | resume | pin <questID> | skip <questID> | avoid <mapID>")
-        core:Print("/rik quests arrow on|off | dungeons on|off | export | inspect | reset | status")
+        core:Print("/rik quests arrow on|off | floor auto|<number> | dungeons on|off | export | inspect | reset | status")
         return
     end
     if not ok then core:Print("Quest planner: "..(reason or "command unavailable")) end

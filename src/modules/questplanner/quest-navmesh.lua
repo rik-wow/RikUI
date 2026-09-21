@@ -388,6 +388,22 @@ local function publish(data)
         Revision=function() return data.meta.revision end,
         Metadata=function() return schema.Clone(data.meta) end,
         Locate=function(_,point) return locate(data,point) end,
+        MarkerFloors=function(_,point)
+            local resolved,reason,matches=locate(data,point)
+            if resolved or reason~="Floor or polygon boundary is ambiguous"
+                or point.height~=nil or not approachCovered(data,point,0) then return {} end
+            local floors=distinctFloors(data,matches) or {}
+            table.sort(floors,function(a,b) return a.point[2]<b.point[2] end)
+            local result={}
+            for index,value in ipairs(floors) do
+                -- A one-yard height query must still resolve this floor uniquely.
+                local unique=locate(data,{x=point.x,z=point.z,height=value.point[2]})
+                if not unique or unique.id~=value.id then return {} end
+                result[index]={height=value.point[2],polygon=value.id,
+                    label=#floors==2 and (index==1 and "Lower floor" or "Upper floor") or ("Floor "..index.." of "..#floors)}
+            end
+            return result
+        end,
         LocateContinued=function(_,point,previous)
             local result,reason=locate(data,point)
             if not schema.PlainTable(point) or point.height~=nil or not schema.PlainTable(previous)

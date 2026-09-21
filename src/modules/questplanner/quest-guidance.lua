@@ -47,6 +47,16 @@ local function facingText(bearing,facing)
     if size>math.pi/9 then return angle<0 and "Bear right" or "Bear left" end
     return "Continue ahead"
 end
+local function ending(route,distance)
+    if route.destinationFloor then return {text=route.destinationFloor.label.." reached",
+        subtext="Check the quest target",distance=distance,ending=true} end
+    local floors=route.approach and (route.approach.kind=="observed-marker-common-approach"
+        or route.approach.kind=="observed-marker-uncertain-vicinity")
+    if floors and route.floorChoiceAvailable then return {text="Choose destination floor",
+        subtext="Use the Floor button",distance=distance,ending=true} end
+    return {text=floors and "Check the quest floor" or "Route ends nearby",
+        subtext=floors and "Marker covers multiple floors" or "Check the quest target",distance=distance,ending=true}
+end
 -- Distances are to the current steering aim, not invented named turns or interactions.
 function guidance.Instruction(route,position,facing,width,height)
     local point=route and route.next
@@ -57,15 +67,11 @@ function guidance.Instruction(route,position,facing,width,height)
     local dx,dy=(point.x-position.x)*width,(point.y-position.y)*height
     local distance=math.sqrt(dx*dx+dy*dy)
     local remaining=route.meters
-    if schema.Number(remaining,0,1000000) and remaining<=2 and distance<=2 then
-        local floors=route.approach and (route.approach.kind=="observed-marker-common-approach"
-            or route.approach.kind=="observed-marker-uncertain-vicinity")
-        return {text=floors and "Check the quest floor" or "Route ends nearby",
-            subtext=floors and "Marker covers multiple floors" or "Check the quest target",distance=distance,ending=true}
-    end
+    if schema.Number(remaining,0,1000000) and remaining<=2 and distance<=2 then return ending(route,distance) end
     local bearing=math.atan2(-dx,-dy)
     local text=facingText(bearing,facing).." · "..distanceText(distance)
     local subtext=schema.Number(remaining,0,1000000) and ("~"..distanceText(remaining).." remaining") or "Follow the route"
+    if route.destinationFloor then subtext=route.destinationFloor.label.." · "..subtext end
     return {text=text,subtext=subtext,distance=distance,bearing=bearing}
 end
 function guidance.MarkerInstruction(point,position,width,height,state)
@@ -127,7 +133,10 @@ function guidance.Observed(snapshot,ctx,policy,previous)
         if not policy.skips[id] and quest.failed~=true and not (point and policy.avoids[point.mapID]) then
             local detail
             for _,objective in ipairs(quest.objectives or {}) do if not objective.finished then detail=objective.text; break end end
+            local stage={bytes=0}
+            questSignature(stage,id,quest,ctx)
             rows[#rows+1]={questID=id,title=plain(quest.title),kind=quest.objectivesComplete and "turnin" or "objective",
+                destinationSignature=not stage.limited and table.concat(stage) or nil,
                 detail=plain(detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
                 destination=schema.Clone(point),pinned=policy.pins[id]==true}
         end

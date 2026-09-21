@@ -112,6 +112,60 @@ apply. The actual distillery test follows both target floors and returns: lower
 Target heights are enumerated model test cases, not claims about the quest's floor
 or observed player altitude. No height input is supplied during motion.
 
+## Explicit destination-floor routing
+
+`NavMesh.MarkerFloors` enumerates only exact marker overlaps with two to four
+distinct, individually resolvable modeled surfaces. It retains boundary,
+coverage and height-query ambiguity checks. It does not snap to nearby polygons,
+label a surface as a basement, or change connectivity/physical limits.
+`Terrain.SelectFloor` binds an explicit routing preference to the complete
+quest signature, exact marker/source and installed revision. It cancels pending
+guidance, then supplies the selected model height to the existing strict search.
+An unreachable chosen floor remains unreachable; it never silently selects another.
+
+The tracker/details Floor button cycles Auto → lower → upper → Auto (or up to
+four height-ordered surfaces). Commands: `/rik quests floor 1` and
+`/rik quests floor auto`. This is session-only state, not a verified target
+binding or persisted character observation. Instructions identify the selected
+floor; coordinate arrival still cannot complete a quest.
+
+Missing automatic target evidence remains a separate obligation. The pinned
+[Forever QuestInfoShared API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestInfoSharedDocumentation.lua)
+has no POI altitude or NPC/object identifier, and
+[GetNextWaypoint](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestLogDocumentation.lua)
+returns only map ID and two coordinates. Local questcache.wdb at 2026-09-21
+SHA256 `75e337a6185bed292235d29d82044b98ebd37b289b42678b00cbc49d5bba3f10`
+contains record 310 (1,162 payload bytes; SHA256
+`cd039bb85f50570c5acd84ca6d5efe4f827912da3e7536fa9255ca8227593dcc`).
+Its visible basement objective text agrees with the export; no exact 3D
+turn-in placement was established. No Classic target data is installed as Forever.
+
+Actual production-controller/steering replay of the installed companion plus
+the exact 9c563e01 packet now reaches both selected marker floors:
+lower 393.0966 (1,199 movement steps / 150 distinct instructions), upper 399.3549
+(1,041 / 143). Both have zero greater-than-90-degree steering reversals. The
+replay follows the connected surface without supplying player height, uses
+remaining route length as well as horizontal distance for arrival, and verifies
+arrival on the selected model floor. Map-ant geometry remains bounded.
+This proves modeled routing, not native walking or quest-target identity.
+
+Retained external JSON and matching HTML:
+
+- `D:/RikUI-local/nav-floor-final-1-310.json`,
+  SHA256 `356648037a3c7b3460dcd531aa19f00499bfb2b2dd1783f6f54eac392f342faa`.
+- `D:/RikUI-local/nav-floor-final-2-310.json`,
+  SHA256 `d6e43180c4a10677ad92eab4f9f6e998fd833d61187457839cd65e272f478b17`.
+- `D:/RikUI-local/nav-bitter-floor-routes-310.png`,
+  SHA256 `7110518ef58dfd298194c9b31d2f9936ffb8f6301029fd430db59fc8e2766214`.
+  Rendered by `tests/plot_quest_floors.py` and inspected as a static image.
+
+Reproduce with the existing `tests/quest-nav-visual.lua` CLI: argument 12 is
+`archived`, argument 13 is model-floor index 1 or 2. Use new external output
+prefixes. Final replays used stride .15, frame delta .02 and no side perturbation.
+Existing stair out-and-back replays and broader steering checks remain separate.
+Only existing Lua files change; the addon junction delivers them on reload.
+Native visuals/interactions and performance were not automated or accepted.
+
 ## Retained delivery and replay evidence
 
 External observation archive:

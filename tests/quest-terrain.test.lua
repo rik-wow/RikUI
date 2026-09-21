@@ -5,7 +5,7 @@ return function(check)
     RikUI={Secret={IsSecret=function() return false end}}
     env.frames={}
     local ok,reason=pcall(function()
-        for _,name in ipairs({"schema","nav-geometry","nav-search","navmesh","terrain"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
+        for _,name in ipairs({"schema","guidance","nav-geometry","nav-search","navmesh","terrain"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
         local p=RikUI.QuestPlanner
         local identity={product="forever",build="1.60.1.69913",locale="enUS"}
         local meta={format="rikui-navmesh-v1",identity=identity,revision="fixture-v1",modeledMaxStep=.3,uiMapID=1426,worldMapID=0,bounds={0,0,20,20},
@@ -118,6 +118,49 @@ return function(check)
         check("material invalidation immediately clears corridor and status",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="updating")
         local invalidatedRefreshes=refreshes;p.Terrain.Invalidate()
         check("repeated invalidation has no duplicate notification",refreshes==invalidatedRefreshes)
+        local floorShards=p.Schema.Clone(shards)
+        floorShards[1].polygons[4]={id=4,points={{10,10,10},{20,10,10},{20,10,20},{10,10,20}},portals={}}
+        assert(p.Terrain.Install(stackMeta,floorShards))
+        position={mapID=1426,x=.99,y=.99}
+        model={status="observed",selected={questID=310,kind="turnin",destinationSignature="stage-a",
+            destination={mapID=1426,x=.85,y=.85,scope="current-map-quest-poi"}}}
+        tick()
+        local choices=p.Terrain.Floors()
+        check("floor alternatives are sorted by modeled height",#choices.choices==2
+            and choices.choices[1].height==0 and choices.choices[2].height==10 and choices.selected==0)
+        choices.choices[1].height=99
+        check("published floor choices are detached",p.Terrain.Floors().choices[1].height==0)
+        check("invalid floor cannot alter route",not p.Terrain.SelectFloor(3) and not p.Terrain.SelectFloor(nil))
+        assert(p.Terrain.SelectFloor(1,choices.key));tick()
+        local lower=assert(p.Terrain.Guidance())
+        check("explicit lower floor routes beyond ambiguous marker approach",lower.destinationFloor.height==0
+            and lower.destinationFloor.source=="user-selected-model-floor" and lower.destinationFloor.questTargetVerified==false)
+        p.Terrain.Invalidate();tick()
+        check("ordinary refresh retains destination floor choice",p.Terrain.Floors().selected==1)
+        assert(p.Terrain.SelectFloor(2,choices.key));tick()
+        check("unreachable selected floor cannot silently switch floors",not p.Terrain.Guidance()
+            and p.Terrain.Status().status=="no-known-path" and p.Terrain.Floors().selected==2)
+        assert(p.Terrain.SelectFloor(1));tick()
+        model.selected.kind="objective";tick()
+        check("quest stage change resets floor choice",p.Terrain.Floors().selected==0)
+        check("stale visible control cannot apply a floor to new stage",not p.Terrain.SelectFloor(1,choices.key))
+        assert(p.Terrain.SelectFloor(1));tick()
+        model.selected.destinationSignature="stage-b";tick()
+        check("changed objective signature resets floor even at identical marker",p.Terrain.Floors().selected==0)
+        assert(p.Terrain.SelectFloor(1));tick()
+        model.selected.destination.x=.84;tick()
+        check("marker movement resets destination floor",p.Terrain.Floors().selected==0)
+        assert(p.Terrain.SelectFloor(1));tick()
+        position={mapID=1426,x=.84,y=.85}
+        p.Context.WorldPosition=function() return {mapID=0,x=16,z=15,height=0,verticalStatus="observed-altitude"} end
+        tick()
+        local arrival=p.Guidance.Instruction(p.Terrain.Guidance(),position,0,100,100)
+        check("floor arrival is a destination hint and never quest completion",arrival.ending
+            and arrival.text=="Lower floor reached" and model.selected.questID==310)
+        model.status="paused";tick()
+        check("paused route exposes no active destination floor control",#p.Terrain.Floors().choices==0)
+        model.status="observed";assert(p.Terrain.Install(stackMeta,floorShards));tick()
+        check("mesh installation resets model-specific floor choice",p.Terrain.Floors().selected==0)
         identity.build="changed"; tick()
         check("build changes reject installed terrain",p.Terrain.Status().status=="unavailable")
         p.enabled=false; tick()

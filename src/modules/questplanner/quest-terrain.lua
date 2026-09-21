@@ -5,6 +5,7 @@ planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local lastLocation,locationAge=nil,0
+local floorKey,floorChoices,floorIndex=nil,{},0
 local CONTINUITY_SECONDS=.5
 local STEERING_INTERVAL = .05
 local LOAD_MS, LOAD_BATCHES, LOAD_FALLBACK_BATCHES = 4, 32, 4
@@ -32,6 +33,7 @@ function terrain.Install(meta,shards)
     if not value then return nil,reason end
     if loader then loader:Cancel() end
     clear(true); mesh=nil; loader=value
+    floorKey,floorChoices,floorIndex=nil,{},0
     setState("loading","Preparing terrain guidance")
     return true
 end
@@ -44,6 +46,38 @@ local function selected()
     if not position then return nil,nil,"Player position is unavailable" end
     if not row or not row.destination or model.status=="paused" or model.status=="updating" then return nil,position end
     return row,position
+end
+local function destinationKey(row)
+    local target=row.destination
+    return string.format("%d:%d:%.17g:%.17g:%s:%s:%s:%s",row.questID,target.mapID,target.x,target.y,
+        target.scope or "",target.api or "",row.kind or "",row.destinationSignature or row.detail or "")
+end
+local function refreshFloors(row,goal)
+    local key=mesh:Revision()..":"..destinationKey(row)
+    if floorKey~=key then
+        floorKey,floorIndex=key,0
+        floorChoices=row.destination.scope=="current-map-quest-poi" and mesh:MarkerFloors(goal) or {}
+    end
+end
+function terrain.Floors()
+    if not mesh or not planner.enabled then return {choices={},selected=0} end
+    local row=selected()
+    if not row then return {choices={},selected=0} end
+    local snapshot=planner.GetSnapshot()
+    if not snapshot or not same(mesh:Metadata().identity,snapshot.identity) then return {choices={},selected=0} end
+    local goal=mesh:Project(row.destination.mapID,row.destination.x,row.destination.y)
+    if not goal then return {choices={},selected=0} end
+    refreshFloors(row,goal)
+    return {key=floorKey,choices=schema.Clone(floorChoices),selected=floorIndex}
+end
+function terrain.SelectFloor(index,key)
+    local floors=terrain.Floors()
+    if key and key~=floors.key then return nil,"Quest destination changed; choose its floor again" end
+    if #floors.choices==0 then return nil,"No distinct modeled floors at this quest marker" end
+    if not schema.Integer(index,0,#floors.choices) then return nil,"Choose an available floor or Auto" end
+    if floorIndex==index then return true end
+    floorIndex=index;terrain.Invalidate()
+    return true
 end
 local function remainingPoints(location,index)
     local aim,crossed,last=planner.NavGeometry.CorridorAim(route,location.point,index,lastAim)
@@ -63,6 +97,8 @@ local function trim(location)
     if not index then return nil end
     local points,aim=remainingPoints(location,index)
     local result={points={},meters=0,status="modeled",nativeVerified=false,revision=route.revision,detail="Terrain estimate; traversal unverified"}
+    if route.destinationFloor then result.destinationFloor=schema.Clone(route.destinationFloor) end
+    result.floorChoiceAvailable=#floorChoices>1
     if route.approach then
         result.approach=schema.Clone(route.approach)
         result.approach.marker=mesh:Unproject({route.approach.marker.x,0,route.approach.marker.z})
@@ -109,10 +145,12 @@ local function observeLocation(position)
 end
 local function requestRoute(row,location,start)
     local target=row.destination
-    local signature=string.format("%d:%d:%.17g:%.17g:%s:%s",row.questID,target.mapID,target.x,target.y,target.scope or "",target.api or "")
-    if selectedKey~=signature then clear();selectedKey=signature end
     local goal=mesh:Project(target.mapID,target.x,target.y)
     if not goal then clear();setState("outside-coverage","Destination is outside this terrain map");return end
+    refreshFloors(row,goal)
+    local signature=floorKey..":"..floorIndex
+    if selectedKey~=signature then clear();selectedKey=signature end
+    if floorIndex>0 then goal.height=floorChoices[floorIndex].height end
     display=trim(location)
     if display then setState(display.approach and "modeled-approach" or "modeled",display.detail);return end
     if request then return end
@@ -174,6 +212,11 @@ function terrain.Step()
                 route=result;lastAim=nil
                 local row=selected()
                 route.markerProvenance=row and schema.Clone(row.destination)
+                if floorIndex>0 then
+                    route.destinationFloor=schema.Clone(floorChoices[floorIndex])
+                    route.destinationFloor.source="user-selected-model-floor"
+                    route.destinationFloor.questTargetVerified=false
+                end
                 update()
             else display=nil; setState(result.status,result.detail) end
         end

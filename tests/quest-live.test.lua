@@ -275,6 +275,26 @@ return function(check)
         env.click(inline.arrowToggle);env.flushTimers()
         check("tracker arrow toggle can turn guidance off",not p.Controller.Policy().arrow
             and inline.arrowToggle.label:GetText()=="Arrow: off")
+        local selectedFloor,clickedKey=0,nil
+        p.Terrain={Guidance=function() end,Status=function() return {status="ready"} end,
+            Floors=function() return {key="floor-fixture",selected=selectedFloor,
+            choices={{height=0,label="Lower floor"},{height=10,label="Upper floor"}}} end,
+            SelectFloor=function(index,key) selectedFloor,clickedKey=index,key;return true end}
+        p.View.Refresh()
+        check("ambiguous destination exposes floor action in both views",inline.floor:IsShown()
+            and p.View.Window.summary.floor:IsShown() and not inline.arrowHint:IsShown())
+        env.click(inline.floor)
+        check("tracker floor action selects lower floor with displayed destination key",
+            selectedFloor==1 and clickedKey=="floor-fixture" and inline.floor.label:GetText()=="Lower floor")
+        env.click(p.View.Window.summary.floor)
+        check("details floor action synchronizes upper floor to tracker",
+            selectedFloor==2 and inline.floor.label:GetText()=="Upper floor")
+        env.click(inline.floor)
+        check("floor action restores Auto after last option",selectedFloor==0 and inline.floor.label:GetText()=="Floor: Auto")
+        p.Command("floor 2");check("floor command selects explicit alternative",selectedFloor==2)
+        p.Command("floor auto");check("floor command restores automatic approach",selectedFloor==0)
+        p.Terrain=nil;p.View.Refresh()
+        check("unavailable floor alternatives restore ordinary guidance",not inline.floor:IsShown() and inline.arrowHint:IsShown())
         env.inCombat=true
         check("existing inline refresh avoids combat reparenting",pcall(p.View.RenderInline,holder,22,200,false))
         env.inCombat=false

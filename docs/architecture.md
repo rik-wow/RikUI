@@ -63,7 +63,9 @@ and extracted assets/geometry are excluded from the repository and settings stor
 The terrain compiler separates geographic source profiles, collision coverage
 contracts and geometry validation. UnitPosition's raw vertical value is not an
 established floor measurement; horizontal grounding remains ambiguous when
-multiple modeled surfaces overlap.
+multiple modeled surfaces overlap. Explicit destination-floor choices are scoped
+to the quest observation, marker and mesh revision. They select a strict modeled
+route without asserting the quest target's actual floor or native altitude.
 
 ## Loading and activation are separate
 

@@ -226,6 +226,22 @@ return function(check)
         floorMeta.bounds={0,0,30,30};floorMeta.counts={polygons=8,portals=14}
         local floorMesh=assert(load(floorMeta,{{identity=identity,polygons=floorPolys}}))
         local marker={x=25,z=5}
+        local choices=floorMesh:MarkerFloors(marker)
+        check("explicit marker floor options follow height rather than polygon ID",#choices==2
+            and choices[1].height==0 and choices[2].height==10)
+        check("floor options do not manufacture a second surface",#floorMesh:MarkerFloors(start)==0)
+        check("invalid or already height-bound marker has no floor alternatives",
+            #floorMesh:MarkerFloors(42)==0 and #floorMesh:MarkerFloors({x=25,z=5,height=0})==0)
+        check("unlinked coincident surfaces cannot become floor choices",
+            #assert(load(stackedMeta,stacked)):MarkerFloors(start)==0)
+        local closeFloors=p.Schema.Clone(stacked)
+        for _,point in ipairs(closeFloors[1].polygons[4].points) do point[2]=.5 end
+        check("height query must uniquely resolve every offered floor",
+            #assert(load(stackedMeta,closeFloors)):MarkerFloors(start)==0)
+        local crowded=p.Schema.Clone(shards)
+        for id=4,7 do crowded[1].polygons[id]=square(id,0,0,(id-3)*10) end
+        local crowdedMeta=p.Schema.Clone(meta);crowdedMeta.counts.polygons=7
+        check("floor enumeration retains four-surface bound",#assert(load(crowdedMeta,crowded)):MarkerFloors(start)==0)
         local function walkFloors(points)
             local prior=assert(floorMesh:Locate({x=15,z=5}))
             for _,target in ipairs(points) do

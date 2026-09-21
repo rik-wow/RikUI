@@ -1,5 +1,6 @@
 -- Offline actual-data visual and movement replay. Same first four arguments as quest-marker-replay;
--- fifth is a NEW external output prefix. No private character identity is exported.
+-- fifth is a NEW external output prefix; optional thirteenth selects a modeled floor.
+-- No private character identity is exported. Floor choices never establish quest-target facts.
 local output=assert(arg[5],"external output prefix required")
 local stride=tonumber(arg[7]) or .35
 local delta=tonumber(arg[9]) or .2
@@ -27,13 +28,26 @@ end
 local questID=tonumber(arg[8]) or 99158
 local destination=assert(h.snapshot.context.destinations[questID],"scenario marker missing")
 local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
+local selectedFloor=tonumber(arg[13])
+if selectedFloor then goal.height=assert(mesh:MarkerFloors(goal)[selectedFloor],"modeled floor missing").height end
 local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true}))
 local route
 repeat route=job:Step(64) until route
 assert(route.status=="modeled",route.detail)
 local status,guidance=h.replay(start,questID,destination,arg[12]=="archived")
 assert(guidance,status)
+if selectedFloor then
+    assert(p.Terrain.SelectFloor(selectedFloor))
+    for _=1,20000 do
+        guidance,status=h.move(assert(mesh:Locate(start)).point,.2)
+        if guidance then break end
+        assert(status.status=="calculating" or status.status=="updating",status.detail)
+    end
+    assert(guidance and guidance.destinationFloor,"selected floor route unavailable")
+    assert(guidance.destinationFloor.height==goal.height and not guidance.destinationFloor.questTargetVerified)
+end
 local samples,reversals,hidden,closeAims={},0,0,0
+local sampleHeights={}
 local corridorIndex={}
 for index,id in ipairs(route.corridor) do corridorIndex[id]=index end
 local progress=1
@@ -64,7 +78,10 @@ for tick=1,6000 do
     assert(#worldDots<=256 and #miniDots<=96,"display pool overflow")
     displayFrames=displayFrames+1;displayPeak=math.max(displayPeak,(os.clock()-displayStart)*1000)
     local endpoint=assert(mesh:Project(g.points[#g.points].mapID,g.points[#g.points].x,g.points[#g.points].y))
-    if math.sqrt((pos[1]-endpoint.x)^2+(pos[3]-endpoint.z)^2)<.5 then done=true;break end
+    if g.meters<.5 and math.sqrt((pos[1]-endpoint.x)^2+(pos[3]-endpoint.z)^2)<.5 then
+        if selectedFloor then assert(math.abs(pos[2]-goal.height)<1,"arrival on wrong floor") end
+        done=true;break
+    end
     local target=assert(mesh:Project(g.next.mapID,g.next.x,g.next.y))
     local dx,dz=target.x-pos[1],target.z-pos[3]
     local distance=math.sqrt(dx*dx+dz*dz)
@@ -75,6 +92,7 @@ for tick=1,6000 do
     if lastDX and dx*lastDX+dz*lastDZ<0 then reversals=reversals+1 end
     lastDX,lastDZ=dx,dz
     samples[#samples+1]={pos[1],pos[3],target.x,target.z}
+    sampleHeights[#sampleHeights+1]=pos[2]
     -- Fixed steps deliberately cross waypoints, as a moving player does.
     local nextPoint={x=pos[1]+dx*stride,z=pos[3]+dz*stride}
     local located,reason=mesh:LocateContinued(nextPoint,{id=route.corridor[progress],point=pos})
@@ -111,8 +129,9 @@ end
 assert(h.meta.source.sha256:match("^[a-fA-F0-9]+$"),"invalid source hash")
 local data="{\"meshSourceSha256\":\""..h.meta.source.sha256.."\",\"startMap\":"..encode({tonumber(arg[3]),tonumber(arg[4])})
     ..",\"startSource\":\""..(arg[12]=="archived" and "archived world position" or "supplied map position").."\""
+    ..",\"selectedModelFloor\":"..(selectedFloor or "null")..",\"targetModelHeight\":"..(goal.height or "null")
     ..",\"stride\":"..stride..",\"polygons\":"..encode(polygons)..",\"corridor\":"..encode(route.corridor)
-    ..",\"coarse\":"..encode(route.points)..",\"samples\":"..encode(samples)
+    ..",\"coarse\":"..encode(route.points)..",\"samples\":"..encode(samples)..",\"sampleHeights\":"..encode(sampleHeights)
     ..",\"marker\":"..encode({goal.x,goal.z})..",\"complete\":"..tostring(done)
     ..",\"reversals\":"..reversals..",\"hidden\":"..hidden.."}"
 local function write(suffix,value)

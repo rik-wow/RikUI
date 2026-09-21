@@ -37,6 +37,29 @@ replay reaches the approach without backward flips. See
 This repairs modeled routing in this slice; it does not establish full world
 coverage, native traversal or a verified quest-action corpus.
 
+### Explicit destination floors
+
+When a current-map quest marker overlaps two to four distinguishable modeled
+floors, the tracker and details show a **Floor: Auto** button. Clicking cycles
+from Auto through floors in ascending height; with two, these are **Lower floor**
+and **Upper floor**. `/rik quests floor 1`, `floor 2`, or `floor auto` provide
+the same control. A chosen floor produces a strict route through existing
+portals, including stairs. An unreachable choice never falls back to a different
+floor. Arrow instructions and both map paths use that selected corridor.
+
+The choice is session-local and bound to quest ID, complete quest observation
+signature, marker coordinates/source, and mesh revision. Quest stage/marker or
+mesh changes reset it; ordinary refreshes retain it. This preference never becomes
+a quest fact, player altitude, completion, or a setting-transport payload.
+
+Automatic exact quest-floor identification is **not implemented**: the current
+Forever waypoint/POI API returns no target height or NPC/object identity. The
+Bitter Rivals cache contains basement objective text, but that does not establish
+a verified 3D handover target. Neither the nearest floor nor completed objective
+prose is promoted into a turn-in placement. Auto retains the common approach;
+explicit floor selection lets the user continue on either real modeled route.
+See [the two-floor replay evidence](../tools/terrain/MOVEMENT.md#explicit-destination-floor-routing).
+
 ## Product decisions
 
 The default objective is fast leveling with sensible risk and travel limits.

@@ -42,6 +42,23 @@ function view.RefreshInstruction(hint)
     if inline and inline:IsShown() then instruction(inline,model,hint) end
     if window and window:IsShown() then instruction(window.summary,model,hint) end
 end
+local function destinationFloor(frame)
+    local floors=planner.Terrain and planner.Terrain.Floors and planner.Terrain.Floors()
+    local available=floors and #floors.choices>1
+    frame.floor:SetShown(available==true)
+    frame.arrowHint:SetShown(not available)
+    if not available then return end
+    frame.floor.selection=floors
+    local choice=floors.choices[floors.selected]
+    frame.floor.label:SetText(choice and choice.label or "Floor: Auto")
+end
+local function chooseFloor(control)
+    local floors=control.selection
+    if not floors then return end
+    local ok,reason=planner.Terrain.SelectFloor((floors.selected+1)%(#floors.choices+1),floors.key)
+    if not ok then core:Print(reason) end
+    view.Refresh()
+end
 local function details(frame,model)
     local title=model.selected and ((model.calculated and "Next: " or "Quest: ")..model.selected.title) or "Quest planner"
     frame.title:SetText(title)
@@ -50,6 +67,7 @@ local function details(frame,model)
     frame.pause.label:SetText(planner.Controller.Policy().paused and "Resume" or "Pause")
     frame.pin.label:SetText(model.selected and planner.Controller.Policy().pins[model.selected.questID] and "Unpin" or "Pin")
     frame.arrowToggle.label:SetText(planner.Controller.Policy().arrow and "Arrow: on" or "Arrow: off")
+    destinationFloor(frame)
     frame.model=model
 end
 local function tooltip(frame)
@@ -62,6 +80,9 @@ local function tooltip(frame)
         if route then GameTooltip:AddLine(string.format("Terrain estimate: %.0f yd, %.0fs running; traversal unverified",route.meters,route.seconds),1,.7,.2,true)
         elseif state and state.detail then GameTooltip:AddLine(state.detail,1,.7,.2,true) end
         if route and route.approach then GameTooltip:AddLine(route.detail,1,.7,.2,true) end
+        if route and route.destinationFloor then
+            GameTooltip:AddLine(route.destinationFloor.label.." selected by you; quest target floor remains unverified.",1,.7,.2,true)
+        end
     end
     if model.reason then GameTooltip:AddLine(model.reason,.7,.8,.9,true) end
     if model.change then GameTooltip:AddLine(model.change,1,.8,.3,true) end
@@ -71,6 +92,17 @@ local function tooltip(frame)
     end
     if model.deferredPins and #model.deferredPins>0 then GameTooltip:AddLine("Pinned quests awaiting a feasible plan: "..#model.deferredPins,1,.8,.3,true) end
     GameTooltip:Show()
+end
+local function floorControl(frame)
+    frame.floor=button(frame,"Floor: Auto",124,chooseFloor)
+    frame.floor:SetPoint("LEFT",frame.arrowToggle,"RIGHT",4,0);frame.floor:Hide()
+    frame.floor:SetScript("OnEnter",function(control)
+        GameTooltip:SetOwner(control,"ANCHOR_LEFT");GameTooltip:SetText("Destination floor")
+        GameTooltip:AddLine("Click to cycle Auto, then modeled floors from lowest to highest.",1,1,1,true)
+        GameTooltip:AddLine("Chooses a walking destination; it does not confirm which floor contains the quest target.",1,.7,.2,true)
+        GameTooltip:Show()
+    end)
+    frame.floor:SetScript("OnLeave",function() GameTooltip:Hide() end)
 end
 local function create(parent)
     local frame=CreateFrame("Frame",nil,parent)
@@ -86,6 +118,7 @@ local function create(parent)
     frame.arrowToggle:SetPoint("BOTTOMLEFT",4,22)
     frame.arrowHint=text(frame);frame.arrowHint:SetPoint("LEFT",frame.arrowToggle,"RIGHT",4,0)
     frame.arrowHint:SetText("Direction guide")
+    floorControl(frame)
     frame.pause=button(frame,"Pause",48,function()
         command(planner.Controller.Policy().paused and "resume" or "pause")
     end)
