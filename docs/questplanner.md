@@ -428,6 +428,28 @@ Dun Morogh speed or native performance claim.
 
 ## Live controller and guidance
 
+Tracker and arrow instructions now refresh from live position and facing every
+50 ms: turn/bear/continue plus yards to the current steering aim, with estimated
+remaining route length underneath. At the modeled endpoint they ask the player
+to check the quest target; proximity never completes a quest. Missing facing
+uses a compass direction in the tracker. Unavailable routes retain the diagnostic
+status and explicit destination-bearing fallback.
+
+Animated yellow dots follow the terrain route on both world map and minimap,
+independently of the optional arrow. They never extend across an unverified
+marker gap. World-map dots use canvas coordinates; minimap dots use the readable
+[C_Minimap view radius](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/MinimapDocumentation.lua),
+map world size and current rotation, hiding when scale is unavailable.
+Clipping respects RikUI's square minimap or the native circular boundary.
+Pools cap at 256 world-map and 96 minimap dots, with at most 16 new textures per
+surface per update; sampling caps at 2,048 segments and 1,024 candidate dots.
+
+Widget replays exercise both maps, animation direction, rotation, changing
+instructions, unavailable scale and invalidation. Installed-mesh movement replay
+also exercises display projection on the archived quest marker. These establish
+modeled calculations and widget calls, not actual native rendering or walking.
+
+
 The controller reads bounded current attributes, up to 40 active quest waypoints
 and completion flags, and the selected quest's contextual reward XP. It does
 not change quest selection or assume an arbitrary-ID XP API. A read-only fallback

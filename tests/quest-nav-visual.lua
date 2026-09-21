@@ -7,6 +7,9 @@ assert(delta>=.01 and delta<=.25,"frame delta outside replay bounds")
 assert(stride>=.05 and stride<=1.4,"stride outside modeled replay bounds")
 local h=dofile("tests/quest-marker-replay.lua")
 local p,mesh=RikUI.QuestPlanner,h.mesh
+dofile("src/modules/questplanner/quest-guidance.lua")
+local displayFrames,displayPeak=0,0
+local hints={}
 if arg[6]=="legacy" then
     -- Reproduce the old exit-midpoint steering for before/after comparisons.
     p.NavGeometry.CorridorAim=function(route,_,index)
@@ -36,6 +39,19 @@ for tick=1,6000 do
     local g,state=h.move(pos,delta)
     peak=math.max(peak,(os.clock()-before)*1000)
     if not g then error("movement lost guidance: "..state.status.." at "..tick) end
+    local displayStart=os.clock()
+    local position=assert(mesh:Unproject(pos))
+    local hint=assert(p.Guidance.Instruction(g,position,0,h.meta.projection.width,h.meta.projection.height))
+    hints[hint.text]=true
+    local world,mini={},{}
+    for _,point in ipairs(g.points) do
+        world[#world+1]={point.x*1000,point.y*600}
+        mini[#mini+1]=p.NavGeometry.MinimapPoint(point,position,h.meta.projection.width,h.meta.projection.height,200,200,100,0)
+    end
+    local worldDots=p.NavGeometry.ScreenAnts(world,1000,600,(tick*delta*20)%14,256,false)
+    local miniDots=p.NavGeometry.ScreenAnts(mini,200,200,(tick*delta*20)%14,96,true)
+    assert(#worldDots<=256 and #miniDots<=96,"display pool overflow")
+    displayFrames=displayFrames+1;displayPeak=math.max(displayPeak,(os.clock()-displayStart)*1000)
     local endpoint=assert(mesh:Project(g.points[#g.points].mapID,g.points[#g.points].x,g.points[#g.points].y))
     if math.sqrt((pos[1]-endpoint.x)^2+(pos[3]-endpoint.z)^2)<.5 then done=true;break end
     local target=assert(mesh:Project(g.next.mapID,g.next.x,g.next.y))
@@ -56,6 +72,10 @@ for tick=1,6000 do
     assert(index>=progress,"movement reversed polygon progress")
     progress=index;pos=located.point
 end
+local uniqueHints=0
+for _ in pairs(hints) do uniqueHints=uniqueHints+1 end
+assert(uniqueHints>1,"actual movement did not change instructions")
+print(string.format("Route display: %d frames, %d distinct instructions, %.3f ms peak headless display CPU",displayFrames,uniqueHints,displayPeak))
 local function encode(value)
     if type(value)=="number" then return string.format("%.12g",value) end
     local result={}

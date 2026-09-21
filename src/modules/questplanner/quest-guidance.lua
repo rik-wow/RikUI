@@ -31,6 +31,37 @@ function guidance.RouteStatus(model,terrain)
     end
     return TERRAIN_STATUS[terrain.status] or "Walking route is unavailable"
 end
+local COMPASS={"N","NE","E","SE","S","SW","W","NW"}
+local function distanceText(yards) return string.format("%d yd",math.max(0,math.floor(yards+.5))) end
+local function facingText(bearing,facing)
+    if not schema.Number(facing,0,math.pi*2) then
+        return "Head "..COMPASS[math.floor((-bearing%(2*math.pi))/(math.pi/4)+.5)%8+1]
+    end
+    local angle=(bearing-facing+math.pi)%(2*math.pi)-math.pi
+    local size=math.abs(angle)
+    if size>math.pi*.75 then return "Turn around" end
+    if size>math.pi/3 then return angle<0 and "Turn right" or "Turn left" end
+    if size>math.pi/9 then return angle<0 and "Bear right" or "Bear left" end
+    return "Continue ahead"
+end
+-- Distances are to the current steering aim, not invented named turns or interactions.
+function guidance.Instruction(route,position,facing,width,height)
+    local point=route and route.next
+    if not point or not position or point.mapID~=position.mapID
+        or not schema.Number(width,1,100000) or not schema.Number(height,1,100000)
+        or not schema.Number(point.x,0,1) or not schema.Number(point.y,0,1)
+        or not schema.Number(position.x,0,1) or not schema.Number(position.y,0,1) or not math.atan2 then return nil end
+    local dx,dy=(point.x-position.x)*width,(point.y-position.y)*height
+    local distance=math.sqrt(dx*dx+dy*dy)
+    local remaining=route.meters
+    if schema.Number(remaining,0,1000000) and remaining<=2 and distance<=2 then
+        return {text="Route ends nearby",subtext="Check the quest target",distance=distance,ending=true}
+    end
+    local bearing=math.atan2(-dx,-dy)
+    local text=facingText(bearing,facing).." · "..distanceText(distance)
+    local subtext=schema.Number(remaining,0,1000000) and ("~"..distanceText(remaining).." remaining") or "Follow the route"
+    return {text=text,subtext=subtext,distance=distance,bearing=bearing}
+end
 local function signatureField(parts,value)
     if parts.limited then return end
     local text=type(value)..":"..tostring(value)

@@ -39,7 +39,7 @@ return function(check)
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
         for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","actions","simulation","optimizer",
-            "context","gossip","journal","dataset","guidance","controller","view","navigation","transfer-view","commands"}) do
+            "context","gossip","journal","dataset","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         dofile("src/modules/questplanner/questplanner.lua")
@@ -166,6 +166,7 @@ return function(check)
             end
             return frame
         end
+        dofile("tests/quest-route-display-fixture.lua")(check,p,env,canvas,arrow)
         p.Terrain={Guidance=function() return {points={
             {mapID=1426,x=.45,y=.5},{mapID=1426,x=.45,y=.4},{mapID=1426,x=.5,y=.4}}} end}
         p.Navigation.Refresh()

@@ -27,11 +27,26 @@ local function selectedCommand(name)
     local id=selectedID()
     if id then command(name.." "..id) end
 end
+local function instruction(frame,model,hint)
+    if hint and model.selected and model.status~="paused" and model.status~="updating" then
+        local value=hint.text.."\n"..hint.subtext
+        if frame.status:GetText()~=value then frame.status:SetText(value) end
+        frame.arrowHint:SetText("Estimated route")
+    else
+        frame.status:SetText(planner.Guidance.RouteStatus(model,planner.Terrain and planner.Terrain.Status()))
+        frame.arrowHint:SetText("Direction guide")
+    end
+end
+function view.RefreshInstruction(hint)
+    local model=planner.Controller.Get()
+    if inline and inline:IsShown() then instruction(inline,model,hint) end
+    if window and window:IsShown() then instruction(window.summary,model,hint) end
+end
 local function details(frame,model)
     local title=model.selected and ((model.calculated and "Next: " or "Quest: ")..model.selected.title) or "Quest planner"
     frame.title:SetText(title)
     frame.detail:SetText(model.selected and model.selected.detail or model.detail)
-    frame.status:SetText(planner.Guidance.RouteStatus(model,planner.Terrain and planner.Terrain.Status()))
+    instruction(frame,model,planner.Navigation and planner.Navigation.Instruction and planner.Navigation.Instruction())
     frame.pause.label:SetText(planner.Controller.Policy().paused and "Resume" or "Pause")
     frame.pin.label:SetText(model.selected and planner.Controller.Policy().pins[model.selected.questID] and "Unpin" or "Pin")
     frame.arrowToggle.label:SetText(planner.Controller.Policy().arrow and "Arrow: on" or "Arrow: off")

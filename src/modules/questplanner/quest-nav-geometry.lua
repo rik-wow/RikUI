@@ -186,6 +186,46 @@ function geometry.CorridorAim(route,origin,index)
     if crossed then return target,crossed,index+1 end
     return gate,{},index
 end
+-- Screen-space sampling keeps animation work bounded even for mostly off-screen routes.
+local function clipAxis(a,d,low,high,first,last)
+    if math.abs(d)<.000001 then if a<low or a>high then return nil end;return first,last end
+    local enter,leave=(low-a)/d,(high-a)/d
+    if enter>leave then enter,leave=leave,enter end
+    first,last=math.max(first,enter),math.min(last,leave)
+    if first>last then return nil end
+    return first,last
+end
+function geometry.ScreenAnts(points,width,height,phase,limit,round)
+    local result,total,attempts={},0,0
+    local gap,margin=14,3
+    for at=2,math.min(#points,2049) do
+        local a,b=points[at-1],points[at]
+        local dx,dy=b[1]-a[1],b[2]-a[2]
+        local length=math.sqrt(dx*dx+dy*dy)
+        local first,last=clipAxis(a[1],dx,margin,width-margin,0,1)
+        if first then first,last=clipAxis(a[2],dy,margin,height-margin,first,last) end
+        if first and length>.000001 then
+            local nextDistance=math.ceil((total+first*length-phase)/gap)*gap+phase
+            while nextDistance<=total+last*length and #result<limit and attempts<1024 do
+                attempts=attempts+1
+                local t=(nextDistance-total)/length
+                local x,y=a[1]+dx*t,a[2]+dy*t
+                if not round or ((x-width/2)/(width/2-margin))^2+((y-height/2)/(height/2-margin))^2<=1 then
+                    result[#result+1]={x,y}
+                end
+                nextDistance=nextDistance+gap
+            end
+        end
+        total=total+length
+        if #result>=limit or attempts>=1024 then break end
+    end
+    return result
+end
+function geometry.MinimapPoint(point,position,mapWidth,mapHeight,width,height,radius,rotation)
+    local x,y=(point.x-position.x)*mapWidth,(point.y-position.y)*mapHeight
+    local c,s=math.cos(rotation),math.sin(rotation)
+    return {width/2+(x*c-y*s)*width/(2*radius),height/2+(x*s+y*c)*height/(2*radius)}
+end
 function geometry.Bounds(points)
     local bounds={points[1][1],points[1][3],points[1][1],points[1][3]}
     for _,point in ipairs(points) do
