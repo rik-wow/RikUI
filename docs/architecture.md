@@ -66,6 +66,12 @@ established floor measurement; horizontal grounding remains ambiguous when
 multiple modeled surfaces overlap. Explicit destination-floor choices are scoped
 to the quest observation, marker and mesh revision. They select a strict modeled
 route without asserting the quest target's actual floor or native altitude.
+`quest-targets.lua` owns reviewed navigation annotations separately from world
+facts and optimizer actions. Matching binds exact identity, quest stage and marker;
+floor inference additionally binds mesh revision and every reviewed surface.
+The initial Bitter Rivals annotation selects the modeled basement automatically,
+retains an explicit inference/source tag and allows user override. Reported
+interaction instructions do not establish inventory, temporary access or completion.
 
 ## Loading and activation are separate
 

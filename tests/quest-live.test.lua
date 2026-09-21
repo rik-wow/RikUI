@@ -39,7 +39,7 @@ return function(check)
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
         for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","actions","simulation","optimizer",
-            "context","gossip","journal","dataset","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
+            "context","gossip","journal","dataset","targets","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         dofile("src/modules/questplanner/questplanner.lua")
@@ -275,9 +275,9 @@ return function(check)
         env.click(inline.arrowToggle);env.flushTimers()
         check("tracker arrow toggle can turn guidance off",not p.Controller.Policy().arrow
             and inline.arrowToggle.label:GetText()=="Arrow: off")
-        local selectedFloor,clickedKey=0,nil
+        local selectedFloor,clickedKey,automaticFloor=0,nil,nil
         p.Terrain={Guidance=function() end,Status=function() return {status="ready"} end,
-            Floors=function() return {key="floor-fixture",selected=selectedFloor,
+            Floors=function() return {key="floor-fixture",selected=selectedFloor,automatic=automaticFloor,
             choices={{height=0,label="Lower floor"},{height=10,label="Upper floor"}}} end,
             SelectFloor=function(index,key) selectedFloor,clickedKey=index,key;return true end}
         p.View.Refresh()
@@ -293,6 +293,13 @@ return function(check)
         check("floor action restores Auto after last option",selectedFloor==0 and inline.floor.label:GetText()=="Floor: Auto")
         p.Command("floor 2");check("floor command selects explicit alternative",selectedFloor==2)
         p.Command("floor auto");check("floor command restores automatic approach",selectedFloor==0)
+        automaticFloor={label="Basement",basis="Quest text and reviewed model; inferred."};p.View.Refresh()
+        check("automatic annotation is named in both floor controls",inline.floor.label:GetText()=="Auto: Basement"
+            and p.View.Window.summary.floor.label:GetText()=="Auto: Basement")
+        env.runScript(inline.floor,"OnEnter")
+        local explainsInference=false
+        for _,line in ipairs(GameTooltip.lines) do if line.text==automaticFloor.basis then explainsInference=true end end
+        check("automatic floor tooltip explains inference",explainsInference)
         p.Terrain=nil;p.View.Refresh()
         check("unavailable floor alternatives restore ordinary guidance",not inline.floor:IsShown() and inline.arrowHint:IsShown())
         env.inCombat=true

@@ -3,7 +3,7 @@
 local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={}
 RikUI["Secret"]={IsSecret=function() return false end}
-for _,name in ipairs({"schema","transfer","nav-geometry","nav-search","navmesh"}) do
+for _,name in ipairs({"schema","transfer","nav-geometry","nav-search","navmesh","targets","guidance"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p,meta,shards=RikUI.QuestPlanner
@@ -40,6 +40,8 @@ local snapshot=assert(p.Transfer.Decode(wire:gsub("[\r\n]+$","")))
 assert(snapshot.identity.build==meta.identity.build and snapshot.identity.locale==meta.identity.locale
     and snapshot.identity.product==meta.identity.product,"identity mismatch")
 local context=snapshot.context
+local observed={}
+for _,row in ipairs(p.Guidance.Observed(snapshot,context,{pins={},skips={},avoids={}})) do observed[row.questID]=row end
 -- Drive the production terrain coordinator with detached recorded observations.
 local liveModel,livePosition,liveWorld
 local onUpdate
@@ -65,7 +67,9 @@ assert(p.Terrain.Status().status~="invalid","terrain did not load")
 local function runtimeReplay(start,questID,destination,archived)
     livePosition=mesh:Unproject({start.x,0,start.z})
     liveWorld=archived and context.worldPosition or nil
-    liveModel={status="observed",selected={questID=questID,destination=p.Schema.Clone(destination)}}
+    local selected=p.Schema.Clone(assert(observed[questID],"observed quest missing"))
+    selected.destination=p.Schema.Clone(destination)
+    liveModel={status="observed",selected=selected}
     p.Terrain.Invalidate()
     for frame=1,20000 do
         -- Each archived/screenshot case is an independent cold start, not motion
@@ -98,6 +102,8 @@ local maxSlice=0
 local function replay(label,start,questID,destination)
     local runtimeStatus,runtimeRoute=runtimeReplay(start,questID,destination,label=="archived")
     local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
+    local automatic=p.Targets.Floor(observed[questID].targetHint,meta.revision,mesh:MarkerFloors(goal),destination)
+    if automatic then goal.height=automatic.height end
     local located,issue=mesh:Locate(start)
     if not located then
         assert(runtimeStatus=="unknown-location" and not runtimeRoute,"runtime start admission differs")
@@ -113,7 +119,7 @@ local function replay(label,start,questID,destination)
         assert(runtimeStatus==(result.approach and "modeled-approach" or "modeled") and runtimeRoute,
             "production terrain failed to publish the modeled route")
         local endpoint=result.points[#result.points]
-        assert(mesh:Locate({x=endpoint[1],z=endpoint[3]}),"endpoint not uniquely grounded")
+        assert(mesh:Locate({x=endpoint[1],z=endpoint[3],height=goal.height}),"endpoint not uniquely grounded")
         assert(result.nativeVerified==false)
         checkCorridor(result)
         local displayed=runtimeRoute.points[#runtimeRoute.points]

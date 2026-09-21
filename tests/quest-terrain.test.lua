@@ -140,6 +140,19 @@ return function(check)
         assert(p.Terrain.SelectFloor(2,choices.key));tick()
         check("unreachable selected floor cannot silently switch floors",not p.Terrain.Guidance()
             and p.Terrain.Status().status=="no-known-path" and p.Terrain.Floors().selected==2)
+        p.Targets={Floor=function() return {height=10,index=2,label="Fixture floor",
+            source="quest-text-model-inference",questTargetVerified=false} end}
+        model.selected.targetHint={id="fixture"}
+        tick()
+        check("unreachable automatic floor cannot degrade to reachable other floor",not p.Terrain.Guidance()
+            and p.Terrain.Status().status=="no-known-path" and p.Terrain.Floors().selected==0)
+        assert(p.Terrain.SelectFloor(1));tick()
+        check("user can override an inferred floor",p.Terrain.Guidance().destinationFloor.source=="user-selected-model-floor"
+            and p.Terrain.Guidance().destinationFloor.height==0)
+        assert(p.Terrain.SelectFloor(0));tick()
+        check("returning to Auto reapplies bound inference",not p.Terrain.Guidance() and p.Terrain.Floors().automatic.height==10)
+        model.selected.targetHint=nil;p.Targets=nil;tick()
+        check("removing annotation clears automatic selection",p.Terrain.Floors().automatic==nil)
         assert(p.Terrain.SelectFloor(1));tick()
         model.selected.kind="objective";tick()
         check("quest stage change resets floor choice",p.Terrain.Floors().selected==0)

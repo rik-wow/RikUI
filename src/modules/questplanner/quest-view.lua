@@ -50,7 +50,7 @@ local function destinationFloor(frame)
     if not available then return end
     frame.floor.selection=floors
     local choice=floors.choices[floors.selected]
-    frame.floor.label:SetText(choice and choice.label or "Floor: Auto")
+    frame.floor.label:SetText(choice and choice.label or floors.automatic and ("Auto: "..floors.automatic.label) or "Floor: Auto")
 end
 local function chooseFloor(control)
     local floors=control.selection
@@ -75,13 +75,16 @@ local function tooltip(frame)
     GameTooltip:SetOwner(frame,"ANCHOR_LEFT")
     GameTooltip:SetText(model.selected and model.selected.title or "Quest planner")
     GameTooltip:AddLine(model.detail or "",1,1,1,true)
+    local hint=model.selected and model.selected.targetHint
+    if hint then GameTooltip:AddLine("Reported interaction: "..hint.instructions,1,1,1,true) end
     if planner.Terrain then
         local route,state=planner.Terrain.Guidance(),planner.Terrain.Status()
         if route then GameTooltip:AddLine(string.format("Terrain estimate: %.0f yd, %.0fs running; traversal unverified",route.meters,route.seconds),1,.7,.2,true)
         elseif state and state.detail then GameTooltip:AddLine(state.detail,1,.7,.2,true) end
         if route and route.approach then GameTooltip:AddLine(route.detail,1,.7,.2,true) end
         if route and route.destinationFloor then
-            GameTooltip:AddLine(route.destinationFloor.label.." selected by you; quest target floor remains unverified.",1,.7,.2,true)
+            local floor=route.destinationFloor
+            GameTooltip:AddLine(floor.basis or (floor.label.." selected by you; quest target floor remains unverified."),1,.7,.2,true)
         end
     end
     if model.reason then GameTooltip:AddLine(model.reason,.7,.8,.9,true) end
@@ -99,6 +102,8 @@ local function floorControl(frame)
     frame.floor:SetScript("OnEnter",function(control)
         GameTooltip:SetOwner(control,"ANCHOR_LEFT");GameTooltip:SetText("Destination floor")
         GameTooltip:AddLine("Click to cycle Auto, then modeled floors from lowest to highest.",1,1,1,true)
+        local automatic=control.selection and control.selection.automatic
+        if automatic then GameTooltip:AddLine(automatic.basis,1,.7,.2,true) end
         GameTooltip:AddLine("Chooses a walking destination; it does not confirm which floor contains the quest target.",1,.7,.2,true)
         GameTooltip:Show()
     end)

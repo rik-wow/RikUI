@@ -163,8 +163,55 @@ Reproduce with the existing `tests/quest-nav-visual.lua` CLI: argument 12 is
 `archived`, argument 13 is model-floor index 1 or 2. Use new external output
 prefixes. Final replays used stride .15, frame delta .02 and no side perturbation.
 Existing stair out-and-back replays and broader steering checks remain separate.
-Only existing Lua files change; the addon junction delivers them on reload.
+That explicit-floor delivery changed only existing Lua files and loaded on reload;
+the automatic annotation delivery below adds a TOC entry.
 Native visuals/interactions and performance were not automated or accepted.
+
+## Automatic basement annotation
+
+The user's 2026-09-21 clarification identifies an interaction dependency: have
+Thunder Ale, give it to Jarven when he is guarding, then use the barrel after he
+leaves. It does not establish an item/NPC/object ID, a timer, exact positions or
+the character's current stage. Public 60.tools records for
+[Bitter Rivals](https://www.60.tools/quests/310) and
+[Distracting Jarven](https://www.60.tools/quests/308) label their details as Classic;
+those details are not installed as verified Forever facts.
+
+`quest-targets.lua` contains a reviewed, content-specific navigation annotation.
+The generic matcher requires Forever 1.60.1.69913/enUS, quest 310, its exact title
+and completed single log objective, and the archived map marker/source
+(normalized-coordinate roundoff tolerance 1e-7). The geometry resolver additionally
+requires revision d1981b5a... and exactly the two reviewed surfaces at
+393.09662169989 and 399.3549 yards, each within 0.05 yard of its recorded height.
+This supports an explicitly labeled **quest-text/model inference**: route to the
+basement surface. It does not measure a target height, choose the nearest floor,
+change geometry, or install a quest action/XP/duration.
+
+Auto now selects that floor for this record; Lower/Upper remain explicit overrides.
+Changed build/locale, stage/text, marker/source, mesh or competing surfaces reject
+the annotation. An unreachable inferred floor cannot silently route to another.
+The conditional reported Jarven/ale/barrel instruction is available in the quest
+tooltip; temporary access is never inferred from proximity or historical completion.
+
+Actual archived world-position replay, with no manual floor argument and no
+player altitude during movement, reaches the lower floor in 1,199 steps, zero
+reversals, 150 changing instructions. Its corridor, route points, movement samples
+and modeled heights exactly equal the previously reviewed explicit lower route.
+All nine nearby rounded-coordinate samples also produce the modeled basement route.
+Overriding Auto with the upper floor still completes 1,041 steps / zero reversals.
+These are headless model simulations, not native movement or interaction acceptance.
+
+- Automatic JSON/HTML: `D:/RikUI-local/nav-auto-basement-310-v1.json` and matching HTML.
+  JSON SHA256 `c68f1c5d28e9ade0db8c5f87955adb511283c2da4f75988fa7de289ddf26218d`.
+- Explicit override replay: `D:/RikUI-local/nav-auto-override-upper-310-v1.json`
+  and matching HTML.
+- Reproduce with the same CLI above, omit argument 13 for Auto. The harness now
+  selects through production `Guidance.Observed` before the terrain coordinator.
+
+This adds a target module to RikUI.toc. The addon junction supplies its files,
+but the client needs a full restart to discover the new TOC entry. Terrain
+companion contents are unchanged. General target identity/3D acquisition, full
+world coverage, corpus and native acceptance remain open.
 
 ## Retained delivery and replay evidence
 
@@ -186,8 +233,8 @@ Installed at the client's `Interface/AddOns/RikUIQuestTerrain`; all files compar
 byte for byte. Backup: `D:/RikUI-local/RikUIQuestTerrain-before-reference-step-69913`.
 File inventory and TOC bytes are unchanged; existing client sessions need a reload.
 
-Production Lua with the **installed copy and exact archived world position**
-returns a quest-310 common approach: 43 polygons, 5,963 search operations,
+Before the automatic annotation, production Lua with the **installed copy and exact archived world position**
+returned a quest-310 common approach: 43 polygons, 5,963 search operations,
 287.305-yard center graph, 0.1323-yard horizontal marker gap. Center-graph length
 is not a claim about the smoothed path's walking distance. The independent
 movement replay completes 1,305 steps with zero greater-than-90-degree reversals,

@@ -103,6 +103,7 @@ src/modules/questplanner/quest-context.lua
 src/modules/questplanner/quest-gossip.lua
 src/modules/questplanner/quest-journal.lua
 src/modules/questplanner/quest-dataset.lua
+src/modules/questplanner/quest-targets.lua
 src/modules/questplanner/quest-guidance.lua
 src/modules/questplanner/quest-controller.lua
 src/modules/questplanner/quest-terrain.lua

@@ -29,13 +29,19 @@ local questID=tonumber(arg[8]) or 99158
 local destination=assert(h.snapshot.context.destinations[questID],"scenario marker missing")
 local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
 local selectedFloor=tonumber(arg[13])
-if selectedFloor then goal.height=assert(mesh:MarkerFloors(goal)[selectedFloor],"modeled floor missing").height end
+local automatic=p.Targets.Floor(p.Targets.Match(h.snapshot,questID,destination),h.meta.revision,mesh:MarkerFloors(goal),destination)
+if selectedFloor then goal.height=assert(mesh:MarkerFloors(goal)[selectedFloor],"modeled floor missing").height
+elseif automatic then goal.height=automatic.height end
 local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true}))
 local route
 repeat route=job:Step(64) until route
 assert(route.status=="modeled",route.detail)
 local status,guidance=h.replay(start,questID,destination,arg[12]=="archived")
 assert(guidance,status)
+if automatic and not selectedFloor then
+    assert(p.Terrain.Floors().selected==0 and guidance.destinationFloor.source=="quest-text-model-inference")
+    assert(guidance.destinationFloor.height==goal.height and not guidance.destinationFloor.questTargetVerified)
+end
 if selectedFloor then
     assert(p.Terrain.SelectFloor(selectedFloor))
     for _=1,20000 do
@@ -79,7 +85,7 @@ for tick=1,6000 do
     displayFrames=displayFrames+1;displayPeak=math.max(displayPeak,(os.clock()-displayStart)*1000)
     local endpoint=assert(mesh:Project(g.points[#g.points].mapID,g.points[#g.points].x,g.points[#g.points].y))
     if g.meters<.5 and math.sqrt((pos[1]-endpoint.x)^2+(pos[3]-endpoint.z)^2)<.5 then
-        if selectedFloor then assert(math.abs(pos[2]-goal.height)<1,"arrival on wrong floor") end
+        if goal.height then assert(math.abs(pos[2]-goal.height)<1,"arrival on wrong floor") end
         done=true;break
     end
     local target=assert(mesh:Project(g.next.mapID,g.next.x,g.next.y))
@@ -129,7 +135,8 @@ end
 assert(h.meta.source.sha256:match("^[a-fA-F0-9]+$"),"invalid source hash")
 local data="{\"meshSourceSha256\":\""..h.meta.source.sha256.."\",\"startMap\":"..encode({tonumber(arg[3]),tonumber(arg[4])})
     ..",\"startSource\":\""..(arg[12]=="archived" and "archived world position" or "supplied map position").."\""
-    ..",\"selectedModelFloor\":"..(selectedFloor or "null")..",\"targetModelHeight\":"..(goal.height or "null")
+    ..",\"selectedModelFloor\":"..(selectedFloor or "null")..",\"automaticModelFloor\":"..(not selectedFloor and automatic and automatic.index or "null")
+    ..",\"targetModelHeight\":"..(goal.height or "null")
     ..",\"stride\":"..stride..",\"polygons\":"..encode(polygons)..",\"corridor\":"..encode(route.corridor)
     ..",\"coarse\":"..encode(route.points)..",\"samples\":"..encode(samples)..",\"sampleHeights\":"..encode(sampleHeights)
     ..",\"marker\":"..encode({goal.x,goal.z})..",\"complete\":"..tostring(done)

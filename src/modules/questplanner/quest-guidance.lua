@@ -48,8 +48,11 @@ local function facingText(bearing,facing)
     return "Continue ahead"
 end
 local function ending(route,distance)
-    if route.destinationFloor then return {text=route.destinationFloor.label.." reached",
-        subtext="Check the quest target",distance=distance,ending=true} end
+    if route.destinationFloor then
+        local inferred=route.destinationFloor.source=="quest-text-model-inference"
+        return {text=route.destinationFloor.label..(inferred and " approach reached" or " reached"),
+            subtext="Check the quest target",distance=distance,ending=true}
+    end
     local floors=route.approach and (route.approach.kind=="observed-marker-common-approach"
         or route.approach.kind=="observed-marker-uncertain-vicinity")
     if floors and route.floorChoiceAvailable then return {text="Choose destination floor",
@@ -103,7 +106,10 @@ local function questSignature(parts,id,row,ctx)
         signatureField(parts,objective.numRequired);signatureField(parts,objective.finished)
     end
     local point,reward=ctx.destinations[id],ctx.rewards[id]
-    if point then signatureField(parts,string.format("point:%d:%.5f:%.5f",point.mapID,point.x,point.y)) end
+    if point then
+        signatureField(parts,string.format("point:%d:%.17g:%.17g",point.mapID,point.x,point.y))
+        signatureField(parts,point.api);signatureField(parts,point.scope)
+    end
     if reward then
         signatureField(parts,"reward");signatureField(parts,reward.xp);signatureField(parts,reward.level)
     end
@@ -133,12 +139,13 @@ function guidance.Observed(snapshot,ctx,policy,previous)
         if not policy.skips[id] and quest.failed~=true and not (point and policy.avoids[point.mapID]) then
             local detail
             for _,objective in ipairs(quest.objectives or {}) do if not objective.finished then detail=objective.text; break end end
+            local hint=planner.Targets and planner.Targets.Match(snapshot,id,point)
             local stage={bytes=0}
             questSignature(stage,id,quest,ctx)
             rows[#rows+1]={questID=id,title=plain(quest.title),kind=quest.objectivesComplete and "turnin" or "objective",
                 destinationSignature=not stage.limited and table.concat(stage) or nil,
-                detail=plain(detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
-                destination=schema.Clone(point),pinned=policy.pins[id]==true}
+                detail=plain(hint and hint.detail or detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
+                targetHint=hint,destination=schema.Clone(point),pinned=policy.pins[id]==true}
         end
     end
     table.sort(rows,function(a,b)

@@ -52,13 +52,27 @@ signature, marker coordinates/source, and mesh revision. Quest stage/marker or
 mesh changes reset it; ordinary refreshes retain it. This preference never becomes
 a quest fact, player altitude, completion, or a setting-transport payload.
 
-Automatic exact quest-floor identification is **not implemented**: the current
-Forever waypoint/POI API returns no target height or NPC/object identity. The
-Bitter Rivals cache contains basement objective text, but that does not establish
-a verified 3D handover target. Neither the nearest floor nor completed objective
-prose is promoted into a turn-in placement. Auto retains the common approach;
-explicit floor selection lets the user continue on either real modeled route.
-See [the two-floor replay evidence](../tools/terrain/MOVEMENT.md#explicit-destination-floor-routing).
+Automatic exact quest-floor identification remains unavailable: the current
+Forever waypoint/POI API returns no target height or NPC/object identity.
+
+A reviewed navigation annotation now makes **Auto: Basement** route Bitter Rivals
+downstairs for the exact 69913/enUS record and installed mesh. Admission requires
+the observed title, completed objective text/type, marker/source and both reviewed
+surface heights. The basement objective and lower model surface support an
+explicit inference, not a measured NPC/object placement. The tooltip explains
+that basis; manual Lower/Upper choices still override it. Changed records or
+geometry fall back to ordinary unresolved-floor handling.
+
+The selected quest detail says **Basement barrel; check Jarven**. Its tooltip
+preserves the user's reported sequence: if Jarven guards it, give him Thunder Ale,
+then use the barrel after he leaves. Inventory, guard presence, availability
+window and current sequence stage are unknown; no automatic progression or
+optimizer action is invented. This is one navigation annotation, not the full
+Forever action corpus or a general basement-text guessing rule.
+
+The new target module adds a TOC entry, so this delivery requires one full client
+restart. [Automatic and explicit replay evidence](../tools/terrain/MOVEMENT.md#automatic-basement-annotation)
+establishes modeled routes only; native walking and interactions remain unverified.
 
 ## Product decisions
 
