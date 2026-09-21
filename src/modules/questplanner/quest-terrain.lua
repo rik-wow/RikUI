@@ -40,15 +40,22 @@ local function selected()
     if not position then return nil,nil,"Player position is unavailable" end
     return row,position
 end
+local function remainingPoints(location,index)
+    local aim,crossed,last=planner.NavGeometry.CorridorAim(route,location.point,index)
+    local points={location.point}
+    for _,point in ipairs(crossed) do points[#points+1]=point end
+    points[#points+1]=aim
+    if last<#route.corridor then
+        for at=last*2+1,#route.points do points[#points+1]=route.points[at] end
+    elseif aim~=route.points[#route.points] then points[#points+1]=route.points[#route.points] end
+    return points,aim
+end
 local function trim(location)
     if not route then return nil end
     local index
     for at,id in ipairs(route.corridor) do if id==location.id then index=at; break end end
     if not index then return nil end
-    local points={location.point}
-    if index<#route.corridor then
-        for at=index*2+1,#route.points do points[#points+1]=route.points[at] end
-    else points[#points+1]=route.points[#route.points] end
+    local points,aim=remainingPoints(location,index)
     local result={points={},meters=0,status="modeled",nativeVerified=false,revision=route.revision,detail="Terrain estimate; traversal unverified"}
     if route.approach then
         result.approach=schema.Clone(route.approach)
@@ -63,7 +70,7 @@ local function trim(location)
     local speed=planner.Context.RunSpeed and planner.Context.RunSpeed()
     result.speedSource=speed and "current-run-speed" or "default-run-speed"
     result.seconds=result.meters/(speed or 7)
-    result.next=result.points[2]
+    result.next=mesh:Unproject(aim)
     return result
 end
 local function admissible()

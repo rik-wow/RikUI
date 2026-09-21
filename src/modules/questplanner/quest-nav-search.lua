@@ -30,6 +30,15 @@ local function response(job,status,detail)
     return {status=status,detail=detail,metrics={work=job.work,visited=job.visited},
         confidence="derived-model",nativeVerified=false,revision=job.data.meta.revision}
 end
+local function attachCorridor(job,order,result)
+    result.corridor,result.portals,result.surfaces={},{},{}
+    for index=#order,1,-1 do
+        local id=order[index]
+        result.corridor[#result.corridor+1]=id
+        result.surfaces[#result.surfaces+1]=schema.Clone(job.data.polygons[id].points)
+        if index<#order then result.portals[#result.portals+1]=schema.Clone(job.previous[id].portal) end
+    end
+end
 local function finish(job)
     local order,id={},job.goal.id
     while id do
@@ -50,8 +59,7 @@ local function finish(job)
     for index=2,#points do meters=meters+geometry.Distance(points[index-1],points[index]) end
     local result=response(job,"modeled","Terrain corridor estimate; game traversal is unverified")
     result.points,result.meters,result.seconds=points,meters,meters/job.speed
-    result.corridor={}
-    for index=#order,1,-1 do result.corridor[#result.corridor+1]=order[index] end
+    attachCorridor(job,order,result)
     result.shortestWithinCenterGraph=true
     result.globalOptimal=false
     return result

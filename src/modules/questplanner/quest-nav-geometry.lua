@@ -3,6 +3,7 @@ local planner, schema = RikUI.QuestPlanner, RikUI.QuestPlanner.Schema
 local geometry = {}
 planner.NavGeometry = geometry
 local EPSILON, EDGE_TOLERANCE = .00001, .002
+local LOOKAHEAD_PORTALS, PORTAL_MARGIN, CONTINUATION = 12, .0001, .25
 function geometry.Point(value)
     return schema.List(value,3) and #value==3 and schema.Number(value[1],-100000,100000)
         and schema.Number(value[2],-100000,100000) and schema.Number(value[3],-100000,100000)
@@ -94,6 +95,50 @@ function geometry.ClosestBoundary(points,x,z)
         end
     end
     return closest,distance and math.sqrt(distance)
+end
+-- A shortcut must cross every directed corridor portal, in order, on both modeled
+-- surfaces. Convexity then keeps each intervening segment inside its polygon.
+local function crossings(route,origin,target,first,last)
+    local rx,rz=target[1]-origin[1],target[3]-origin[3]
+    local previous,result=0,{}
+    for index=first,last-1 do
+        local gate=route.portals[index]
+        local a,b=gate.left,gate.right
+        local sx,sz=b[1]-a[1],b[3]-a[3]
+        local denominator=rx*sz-rz*sx
+        if math.abs(denominator)<EPSILON then return nil end
+        local qx,qz=a[1]-origin[1],a[3]-origin[3]
+        local t,u=(qx*sz-qz*sx)/denominator,(qx*rz-qz*rx)/denominator
+        if t<previous or t>1 or u<=PORTAL_MARGIN or u>=1-PORTAL_MARGIN then return nil end
+        local x,z=origin[1]+t*rx,origin[3]+t*rz
+        local from,to=route.surfaces[index],route.surfaces[index+1]
+        if not geometry.Contains(from,x,z) or not geometry.Contains(to,x,z) then return nil end
+        result[#result+1]={x,geometry.Height(from,x,z),z}
+        previous=t
+    end
+    return result
+end
+function geometry.CorridorAim(route,origin,index)
+    if index==#route.corridor then return route.points[#route.points],{},index end
+    if not route.portals or not route.surfaces then
+        return route.points[index*2+1],{},index
+    end
+    -- At most 12 portals ahead: 78 candidate intersection tests plus one fallback.
+    for last=math.min(#route.corridor,index+LOOKAHEAD_PORTALS),index+1,-1 do
+        local target=last==#route.corridor and route.points[#route.points] or route.points[last*2]
+        local crossed=crossings(route,origin,target,index,last)
+        if crossed then return target,crossed,last end
+    end
+    -- A short continuation beyond the first portal avoids stopping on its boundary.
+    local gate=route.portals[index].midpoint
+    local center=route.points[(index+1)*2]
+    local distance=geometry.Distance(gate,center)
+    local ratio=distance>0 and math.min(1,CONTINUATION/distance) or 1
+    local target={}
+    for at=1,3 do target[at]=gate[at]+ratio*(center[at]-gate[at]) end
+    local crossed=crossings(route,origin,target,index,index+1)
+    if crossed then return target,crossed,index+1 end
+    return gate,{},index
 end
 function geometry.Bounds(points)
     local bounds={points[1][1],points[1][3],points[1][1],points[1][3]}

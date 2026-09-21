@@ -708,3 +708,58 @@ to update map/arrow geometry through the existing navigation refresh. This
 changes presentation and stale-state handling, not terrain physics or quest
 facts. Widget and controller replays cover these states; native visual review
 and an actual usable route from the supplied indoor points remain unverified.
+
+## Corridor steering and offline visualization
+
+The arrow now looks ahead within the selected polygon corridor instead of aiming
+at every exit midpoint. A candidate segment must cross each directed portal in
+order, away from its corners, and lie on both adjoining modeled surfaces.
+Convex polygon containment keeps the intervening segments inside that corridor.
+The horizon is bounded to 12 portals (78 candidate intersection checks plus one
+fallback). If no farther center is visible, a checked short continuation into
+the next polygon is attempted; otherwise the original exit midpoint remains.
+The map shows the accepted leading shortcut followed by the remaining corridor.
+A* still optimizes its center graph, not a globally shortest continuous route.
+
+No polygon is added, no floor is selected by proximity, and the physical profile
+is unchanged. Player admission and the one-yard observed-marker approach contract
+remain strict. Looking ahead never draws the unverified final gap or completes a
+quest. Native arrow visibility was reported by the user; native traversal and
+post-change steering acceptance remain unverified.
+
+For an isolated visual of the actual installed companion, run:
+
+```text
+luajit tests/quest-nav-visual.lua "<terrain addon>" "<archived packet>" 0.533 0.465 "<new external output prefix>" require-complete
+```
+
+This scenario replay decodes the external packet, loads production Lua and all
+companion shards, and emits a standalone HTML viewer plus numeric JSON. It
+simulates movement through the production terrain coordinator, checks unique
+floor admission and monotonically advancing corridor membership, and records
+arrow targets, sharp reversals and near-waypoint hides. Outputs contain mesh
+geometry and scenario positions, not the character name or full quest log.
+Keep them outside Git. The viewer provides playback, a time slider, pan/zoom,
+polygon/height tooltips and route overlays; it makes no network requests.
+Its source hash identifies the companion geometry.
+
+Use `legacy` instead of `require-complete` to reproduce the old exit-midpoint
+follower. An optional seventh argument sets simulated stride (.05–1.4 yards;
+default .35). The replay uses .2-second refreshes; it is not native movement.
+The strict zero-reversal assertion applies to this scenario, not every possible
+route, since real corridors can require sharp turns.
+
+```text
+python -B tests/plot_quest_nav.py "<before.json>" "<after.json>" "<new comparison.png>"
+```
+
+The optional static renderer uses Matplotlib (verified with 3.11.1) and NumPy.
+It refuses mismatched meshes/corridors or incomplete movement, and never
+overwrites an existing image. For the rounded 53.3,46.5 start and archived Dawn
+marker, both followers reached the modeled approach: the old one took 861
+.35-yard steps with one reversal over 90 degrees and 108 near-waypoint hides;
+lookahead took 783 with zero reversals and one hide near the endpoint.
+The two extreme screenshot-rounding samples also completed at a 1.4-yard stride
+without reversals. Desktop refresh timing was at most 1 ms at coarse clock
+resolution; native performance is not established. Earlier archived indoor
+starts still fail for their previously recorded coverage/connectivity reasons.

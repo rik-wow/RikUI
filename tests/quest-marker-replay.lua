@@ -146,3 +146,9 @@ if arg[3] then
     for status,count in pairs(counts) do print("Screenshot samples only (not exact native position):",status,count) end
 end
 print(string.format("Maximum headless search slice %.3f ms; no native traversal tested",maxSlice))
+-- Offline visualization/movement harness; never loaded by the addon.
+return {mesh=mesh,raw=raw,meta=meta,snapshot=snapshot,replay=runtimeReplay,
+    move=function(point)
+        livePosition=mesh:Unproject(point);liveWorld=nil;onUpdate(nil,.2)
+        return p.Terrain.Guidance(),p.Terrain.Status()
+    end}
