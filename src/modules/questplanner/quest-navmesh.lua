@@ -32,10 +32,41 @@ local function metadata(raw)
     end
     return value
 end
+local MAX_WIRE_ID=2147483647 -- Preserve the previous generic-copy numeric ceiling.
+local POLYGON_FIELDS={id=true,points=true,portals=true}
+local PORTAL_FIELDS={to=true,left=true,right=true}
+local function fields(raw,allowed)
+    if not schema.PlainTable(raw) then return false end
+    for name in pairs(raw) do
+        if not schema.Text(name) or not allowed[name] then return false end
+    end
+    return true
+end
+local function copyPoint(raw)
+    if not geometry.Point(raw) then return nil end
+    return {raw[1],raw[2],raw[3]}
+end
+-- The wire shape is fixed and bounded; do not recursively copy arbitrary fields.
+local function copyPolygon(raw)
+    if not fields(raw,POLYGON_FIELDS) or not schema.Integer(raw.id,1,MAX_WIRE_ID)
+        or not schema.List(raw.points,6) or #raw.points<3
+        or not schema.List(raw.portals,32) then return nil end
+    local value={id=raw.id,points={},portals={}}
+    for at,point in ipairs(raw.points) do
+        value.points[at]=copyPoint(point)
+        if not value.points[at] then return nil end
+    end
+    for at,portal in ipairs(raw.portals) do
+        if not fields(portal,PORTAL_FIELDS) or not schema.Integer(portal.to,1,MAX_WIRE_ID) then return nil end
+        local left,right=copyPoint(portal.left),copyPoint(portal.right)
+        if not left or not right then return nil end
+        value.portals[at]={to=portal.to,left=left,right=right}
+    end
+    return value
+end
 local function polygon(raw)
-    local value=schema.CopyLimited(raw,1024,4096,8)
-    if not schema.PlainTable(value) or not schema.Integer(value.id,1,4294967295) or not geometry.Convex(value.points)
-        or not schema.List(value.portals,32) then return nil,"invalid polygon" end
+    local value=copyPolygon(raw)
+    if not value or not geometry.Convex(value.points) then return nil,"invalid polygon" end
     value.center={0,0,0}
     for _,point in ipairs(value.points) do for axis=1,3 do value.center[axis]=value.center[axis]+point[axis]/#value.points end end
     value.bounds=geometry.Bounds(value.points)

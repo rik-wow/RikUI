@@ -5,6 +5,7 @@ planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local STEERING_INTERVAL = .05
+local LOAD_MS, LOAD_BATCHES, LOAD_FALLBACK_BATCHES = 4, 32, 4
 local state={status="unavailable",detail="Terrain datasource is not installed"}
 local display
 local function setState(status,detail)
@@ -116,10 +117,10 @@ end
 local function loadSlice()
     local clock=type(debugprofilestop)=="function" and debugprofilestop
     local started=clock and clock()
-    for _=1,4 do
+    for _=1,clock and LOAD_BATCHES or LOAD_FALLBACK_BATCHES do
         local value,reason,done=loader:Step(64)
         if done then return value,reason,true end
-        if clock and clock()-started>=2 then return end
+        if clock and clock()-started>=LOAD_MS then return end
     end
 end
 function terrain.Step()

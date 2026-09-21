@@ -112,11 +112,17 @@ return function(check)
             Step=function(_,budget) calls=calls+1;assert(budget==64) end,
             Cancel=function() end,
         } end
-        debugprofilestop=function() time=time+3;return time end
+        debugprofilestop=function() time=time+5;return time end
         p.enabled=true;assert(p.Terrain.Install(meta,shards));p.Terrain.Step()
         check("loader yields once measured frame budget is spent",calls==1)
         debugprofilestop=nil;p.Terrain.Step()
         check("loader has a hard work bound without a native clock",calls==5)
+        debugprofilestop=function() return 0 end;p.Terrain.Step()
+        check("fast loading uses available budget but retains hard cap",calls==37)
+        local before=calls;p.Terrain.Invalidate();p.Terrain.Step()
+        check("quest invalidation continues existing terrain preparation",calls==before+32)
+        p.enabled=false;before=calls;p.Terrain.Step()
+        check("disabled planner performs no terrain validation",calls==before)
     end)
     RikUI,env.frames,debugprofilestop=previous,frames,previousClock
     check("terrain guidance fixture completes",ok,reason)

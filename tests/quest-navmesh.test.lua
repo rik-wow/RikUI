@@ -29,6 +29,25 @@ return function(check)
         check("scalar manifest fails without throwing",not p.NavMesh.Begin(42,{}))
         local mesh=assert(load())
         check("scalar navigation policy rejected",not mesh:Begin({x=1,z=1},{x=2,z=2},true))
+        local mutations={
+            function(v) v.extra={} end,
+            function(v) v.points[1][1]=0/0 end,
+            function(v) v.points[1][4]=0 end,
+            function(v) v.points[2]=nil end,
+            function(v) v.points[1]=v.points end,
+            function(v) setmetatable(v.points[1],{}) end,
+            function(v) v.portals[1].extra={} end,
+            function(v) v.portals[1].left[1]=math.huge end,
+            function(v) v.id=2147483648 end,
+            function(v) v.portals[1].to=2147483648 end,
+        }
+        for index,mutate in ipairs(mutations) do
+            local invalid=p.Schema.Clone(shards);mutate(invalid[1].polygons[1])
+            check("fixed-shape polygon parsing rejects malformed input "..index,not load(meta,invalid))
+        end
+        local stopped=assert(p.NavMesh.Begin(meta,shards));stopped:Step(1);stopped:Cancel()
+        local value,problem,done=stopped:Step(64)
+        check("cancelled preparation never publishes partial mesh",not value and problem=="cancelled" and done)
         local start,goal={x=1,z=1},{x=19,z=19}
         local function path(graph,from,to,options,budget)
             local job,issue=graph:Begin(from,to,options)

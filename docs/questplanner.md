@@ -810,9 +810,22 @@ position snap. Legacy WMO liquid type 15 with root flag 4 clear is correctly tre
 as no liquid; an actual liquid chunk/flag still excludes the footprint.
 Empty MODD may omit MODI; nonempty doodads still require valid reference tables.
 
-The larger loader remains incremental: at most four 64-work batches per frame,
-stopping after a batch when the available profiler reports 2 ms elapsed.
-This is a target checked between batches, not a hard wall-clock guarantee.
+The larger loader remains incremental. With a profiler it uses a 4 ms target,
+checked after each 64-work batch, and never exceeds 32 batches in one frame.
+Without a profiler it retains the conservative four-batch cap. This is a yield
+target, not a hard wall-clock guarantee against a slow batch or garbage collection.
+Polygon input uses a detached fixed-shape copy instead of recursive arbitrary-data
+copying: only id/points/portals and to/left/right fields are admitted. The previous
+31-bit positive-integer copy ceiling for IDs remains; all numeric, convexity, source-bound,
+exclusion, target-boundary and vertical-step validation remains in force.
+Cancellation never publishes a partially checked mesh. Quest invalidation does not
+restart terrain preparation.
+
+An installed-data replay with LuaJIT compilation disabled reduced preparation from
+495 frames to 200–208 frames (about 8.3 seconds to 3.3–3.5 seconds at a hypothetical
+steady 60 FPS). One measured run used 810 ms CPU with a 9 ms peak loading frame.
+These are headless interpreter measurements, not native WoW load-time guarantees.
+Reload still reconstructs the mesh; no unverified persistent cache was introduced.
 Caps are 65,536 total polygons, 131,072 portals, 512 shards, 1,024 polygons per shard
 or spatial cell, and 4,096 portals per shard. Search remains sliced and bounded.
 
