@@ -125,6 +125,12 @@ def group(data,root_flags=None):
         unsupported=unsupported,doodadReferences=list(unpack('<'+'H'*(len(doodad_refs)//2),doodad_refs)))
 
 
+def unsupported_doodad_flags(flags):
+    # MODD high-byte bit 2 is InteriorLighting, not collision/placement behavior.
+    # wowlib's SMODoodadDef enum and TrinityCore's collision extractor agree.
+    # Other bits remain unsupported until their collision implications are checked.
+    return flags & ~2
+
 def selected_doodads(wmo,index):
     if not isinstance(index,int) or not 0<=index<len(wmo['sets']):t.fail('WMO-selected-set-range')
     sets=sorted({0,index});selected=set()
@@ -248,7 +254,7 @@ def build(geometry_path,directory,recursive_path):
             world=c.transformed(gr,placement);add(world,gr['indices']);wmo_vertices.extend(world)
             counts['WMOGroupInstances']+=1;counts['WMOGroupTriangles']+=len(gr['indices'])//3
             percounts['groupTriangles']+=len(gr['indices'])//3
-        flagged=[i for i in selected if wmo['doodads'][i]['flags']!=0]
+        flagged=[i for i in selected if unsupported_doodad_flags(wmo['doodads'][i]['flags'])]
         rowaudit['unsupportedDoodadFlagIndices']=flagged
         if flagged:
             unsupported.append(dict(placementID=uid,fileDataID=ident,reason='WMO-doodad-flags',
@@ -256,7 +262,7 @@ def build(geometry_path,directory,recursive_path):
         for idx in selected:
             dd=wmo['doodads'][idx];did=dd['reference']
             if not did:t.fail('WMO-selected-null-doodad')
-            if dd['flags']!=0:
+            if unsupported_doodad_flags(dd['flags']):
                 counts['selectedDoodadInstances']+=1;counts['unsupportedDoodadFlagInstances']+=1
                 continue
             if did not in models:

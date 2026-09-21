@@ -62,6 +62,18 @@ class WestTests(unittest.TestCase):
         self.assertIn('WMO-liquid-not-modeled',w.group(replace(raw,'MOGP',
             lambda p:p+b'QILM'+struct.pack('<I',0)),0)['unsupported'])
 
+    def test_grizzled_lighting_flag_is_not_a_collision_exclusion(self):
+        raw=(SOURCE/'collision/111052.bin').read_bytes()
+        self.assertEqual(t.digest(raw),'2b006747370121b7a32106dcb27ee4a024f8e84eca37bca741a7654c9df9eaa1')
+        parsed=w.root(raw);_,selected=w.selected_doodads(parsed,0)
+        self.assertEqual(len(selected),122)
+        self.assertTrue(any(parsed['doodads'][i]['flags']==2 for i in selected))
+        self.assertFalse(any(w.unsupported_doodad_flags(parsed['doodads'][i]['flags']) for i in selected))
+        self.assertNotIn(350747,[row['placementID'] for row in MANIFEST['exclusions']])
+        row=next(r for r in MANIFEST['wmoAudit']['placements'] if r['placementID']==350747)
+        self.assertEqual(row['unsupportedDoodadFlagIndices'],[])
+        self.assertEqual(row['counts']['groupTriangles'],8800)
+
     def test_empty_doodads_can_omit_reference_table(self):
         raw=(SOURCE/'collision/108125.bin').read_bytes()
         self.assertEqual(w.root(raw)['doodads'],[])

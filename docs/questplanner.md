@@ -439,7 +439,10 @@ to the visible portal interval, then continues along that ray inside the entered
 polygon. Polygon centers are fallback candidates, not mandatory steering targets.
 A bounded ten-step containment search and ordered crossing proof constrain the
 ray. The active corridor and arrow refresh every frame to avoid stale aims after
-lateral movement; loading and search budgets are unchanged.
+lateral movement. If the final destination lies behind a visible portal, steering
+uses the local corridor direction rather than its midpoint. A previously valid aim
+is retained or adjusted within the checked visible window when a new choice would
+reverse direction; every retained segment is re-proved from the new position.
 
 Tracker instructions refresh every 50 ms and the arrow every frame: turn/bear/continue plus yards to the current steering aim, with estimated
 remaining route length underneath. At the modeled endpoint they ask the player
@@ -647,16 +650,30 @@ admission and first tries exact target containment. An ambiguous exact target
 is rejected. Only an uncovered target can request a nearby modeled endpoint;
 ordinary dataset destinations and current waypoints retain exact semantics.
 
-The fixed one-yard horizontal displacement limit is an engineering bound for
-marker approximation, not a measured interaction range or permission to walk
-through a gap. Candidate polygon boundaries come from at most four existing
-spatial cells (512 entries each), visited incrementally. Candidate boundary
-heights differing by more than the mesh's modeled step are ambiguous. The
-chosen nearest endpoint is inset 0.005 yards toward its polygon center, remains
-within the one-yard bound, and must have unique horizontal containment without
-using an invented altitude. A marker outside source bounds or within one yard
-of an excluded footprint is rejected. This conservative procedure can reject
-a valid route; it does not search farther until something becomes reachable.
+The default one-yard displacement bound remains available to callers; live
+quest-map POIs use an explicit eight-yard vicinity bound. This is assistance
+policy, not measured marker accuracy, interaction range or permission to walk
+through a gap. Candidate boundaries come from at most four existing spatial
+cells, visited incrementally. The nearest endpoint is inset 0.005 yards, remains
+inside the bound, and must have unique horizontal containment. Equally near
+surfaces (within a .25-yard nearest-distance band) whose boundary heights differ
+by more than the modeled step remain ambiguous. Distant hills elsewhere in the
+vicinity do not compete with the nearest cave floor. Source bounds and excluded
+footprints still constrain the entire vicinity. The selected endpoint must be
+connected by actual portals; no farther reachable endpoint is substituted.
+
+When an established unique floor becomes horizontally ambiguous during motion,
+short displacements may preserve the previous modeled surface. Each displacement
+is at most three yards, at most .5 seconds old, and must traverse explicit portals
+in order, with a hard 64-polygon limit. Startup ambiguity, stale observations,
+uncovered ground and unlinked walls cannot bootstrap a floor. Explicit native
+altitude takes precedence. This is modeled continuity, never a native height read.
+A fresh mesh, missing position, pause, invalidation or changed destination resets it.
+
+Terrain search now uses available frame time: a two-millisecond threshold checked
+between 64-operation batches, at most 16 batches per frame, or four when no clock
+is available. These are scheduling bounds; an indivisible batch can exceed the
+threshold. The total search-work limit and physical agent profile are unchanged.
 
 The normal directed portal search must connect the admitted start to that
 endpoint. It never connects disconnected components or adds a segment from the

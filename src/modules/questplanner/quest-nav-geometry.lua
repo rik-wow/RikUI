@@ -5,6 +5,7 @@ planner.NavGeometry = geometry
 local EPSILON, EDGE_TOLERANCE = .00001, .002
 local LOOKAHEAD_PORTALS, PORTAL_MARGIN, CONTINUATION = 64, .0001, .25
 local LOOKAHEAD_YARDS = 24
+local MAX_CONTINUITY_POLYGONS = 64
 local ANTICIPATION, CONTINUATION_TRIES = 6, 6
 function geometry.Point(value)
     return schema.List(value,3) and #value==3 and schema.Number(value[1],-100000,100000)
@@ -98,6 +99,50 @@ function geometry.ClosestBoundary(points,x,z)
     end
     return closest,distance and math.sqrt(distance)
 end
+-- Follow a short observed displacement through explicit portals from the previous
+-- modeled floor. This is continuity evidence, never a new native altitude reading.
+local function motionCrossing(origin,target,gate,after)
+    local rx,rz=target.x-origin[1],target.z-origin[3]
+    local a,b=gate.left,gate.right
+    local sx,sz=b[1]-a[1],b[3]-a[3]
+    local denominator=rx*sz-rz*sx
+    if math.abs(denominator)<EPSILON then return end
+    local qx,qz=a[1]-origin[1],a[3]-origin[3]
+    local t,u=(qx*sz-qz*sx)/denominator,(qx*rz-qz*rx)/denominator
+    if t<after-EPSILON or t<0 or t>1 or u<0 or u>1 then return end
+    return t,origin[1]+t*rx,origin[3]+t*rz
+end
+local function motionNeighbors(data,origin,target,node,queue,seen)
+    for _,gate in ipairs(data.polygons[node.id].portals) do
+        if not seen[gate.to] then
+            local t,x,z=motionCrossing(origin,target,gate,node.t)
+            if t and geometry.Contains(data.polygons[node.id].points,x,z)
+                and geometry.Contains(data.polygons[gate.to].points,x,z) then
+                seen[gate.to]=true
+                queue[#queue+1]={id=gate.to,t=t}
+            end
+        end
+    end
+end
+function geometry.FollowSurface(data,previous,target,limit)
+    if not previous or not data.polygons[previous.id] or not geometry.Point(previous.point) then return end
+    local surface=data.polygons[previous.id].points
+    local origin=previous.point
+    local height=geometry.Height(surface,origin[1],origin[3])
+    if not height or math.abs(height-origin[2])>EDGE_TOLERANCE then return end
+    if (target.x-origin[1])^2+(target.z-origin[3])^2>limit^2 then return end
+    local queue,seen,matches={{id=previous.id,t=0}},{[previous.id]=true},{}
+    for at=1,MAX_CONTINUITY_POLYGONS do
+        local node=queue[at]
+        if not node then return matches end
+        local points=data.polygons[node.id].points
+        if geometry.Contains(points,target.x,target.z) then
+            local y=geometry.Height(points,target.x,target.z)
+            if y then matches[#matches+1]={id=node.id,point={target.x,y,target.z},floorSource="modeled-continuity"} end
+        else motionNeighbors(data,origin,target,node,queue,seen) end
+    end
+    -- Too many crossed surfaces is a new location problem, not permission to snap.
+end
 -- A shortcut must cross every directed corridor portal, in order, on both modeled
 -- surfaces. Convexity then keeps each intervening segment inside its polygon.
 local function crossings(route,origin,target,first,last)
@@ -130,7 +175,16 @@ local function clipHalfPlane(lo,hi,a,b)
     if lo>=hi then return nil end
     return lo,hi
 end
-local function visiblePortal(route,origin,first,last)
+local function rayPortalFraction(origin,goal,a,b)
+    local rx,rz=goal[1]-origin[1],goal[3]-origin[3]
+    local sx,sz=b[1]-a[1],b[3]-a[3]
+    local denominator=rx*sz-rz*sx
+    if math.abs(denominator)<EPSILON then return end
+    local qx,qz=a[1]-origin[1],a[3]-origin[3]
+    if (qx*sz-qz*sx)/denominator<=0 then return end
+    return (qx*rz-qz*rx)/denominator
+end
+local function visiblePortal(route,origin,first,last,preferred)
     local target=route.portals[last-1]
     local a,b=target.left,target.right
     local lo,hi=PORTAL_MARGIN*2,1-PORTAL_MARGIN*2
@@ -145,16 +199,11 @@ local function visiblePortal(route,origin,first,last)
             if not lo then return end
         end
     end
-    local goal=route.points[#route.points]
-    local rx,rz=goal[1]-origin[1],goal[3]-origin[3]
-    local sx,sz=b[1]-a[1],b[3]-a[3]
-    local denominator=rx*sz-rz*sx
-    local t=(lo+hi)/2
-    if math.abs(denominator)>EPSILON then
-        local qx,qz=a[1]-origin[1],a[3]-origin[3]
-        local forward=(qx*sz-qz*sx)/denominator
-        if forward>0 then t=(qx*rz-qz*rx)/denominator end
-    end
+    -- When the destination lies behind this portal (a cave bend/U-turn), use
+    -- the local corridor direction instead of dragging the aim to its midpoint.
+    local goal=preferred or route.points[#route.points]
+    local t=rayPortalFraction(origin,goal,a,b)
+        or rayPortalFraction(origin,route.points[last*2] or goal,a,b) or (lo+hi)/2
     -- Keep an interior angular margin without pulling every aim to a polygon center.
     local inset=(hi-lo)*.02
     t=math.max(lo+inset,math.min(hi-inset,t))
@@ -180,8 +229,8 @@ local function rayContinuation(route,origin,gate,first,last)
     local proof=crossings(route,origin,target,first,last)
     if proof then return target,proof,last end
 end
-local function portalAim(route,origin,first,last)
-    local gate=visiblePortal(route,origin,first,last)
+local function portalAim(route,origin,first,last,preferred)
+    local gate=visiblePortal(route,origin,first,last,preferred)
     if not gate then return end
     local ray,proof=rayContinuation(route,origin,gate,first,last)
     if ray then return ray,proof,last end
@@ -209,7 +258,7 @@ local function lookaheadEnd(route,origin,index)
     end
     return last
 end
-function geometry.CorridorAim(route,origin,index)
+local function corridorAim(route,origin,index)
     if index==#route.corridor then return route.points[#route.points],{},index end
     if not route.portals or not route.surfaces then
         return route.points[index*2+1],{},index
@@ -234,6 +283,28 @@ function geometry.CorridorAim(route,origin,index)
     local crossed=crossings(route,origin,target,index,index+1)
     if crossed then return target,crossed,index+1 end
     return gate,{},index
+end
+function geometry.CorridorAim(route,origin,index,previous)
+    local target,proof,last=corridorAim(route,origin,index)
+    if not previous or previous.index<index or previous.index-index>LOOKAHEAD_PORTALS
+        or not route.surfaces or not route.portals then return target,proof,last end
+    local old=previous.point
+    local dx,dz=old[1]-origin[1],old[3]-origin[3]
+    if dx*(target[1]-origin[1])+dz*(target[3]-origin[3])>=0
+        or dx*dx+dz*dz<=1 then return target,proof,last end
+    local surface=route.surfaces[previous.index]
+    if not surface or not geometry.Contains(surface,old[1],old[3]) then return target,proof,last end
+    local retained=crossings(route,origin,old,index,previous.index)
+    -- Retain a still-visible aim only to suppress opposite-direction oscillation.
+    -- Crossing a wall, a passed polygon or a necessary corner invalidates it.
+    if retained then return old,retained,previous.index end
+    for at=lookaheadEnd(route,origin,index),index+1,-1 do
+        local adjusted,crossed=portalAim(route,origin,index,at,old)
+        if adjusted and dx*(adjusted[1]-origin[1])+dz*(adjusted[3]-origin[3])>0 then
+            return adjusted,crossed,at
+        end
+    end
+    return target,proof,last
 end
 -- Screen-space sampling keeps animation work bounded even for mostly off-screen routes.
 local function clipAxis(a,d,low,high,first,last)

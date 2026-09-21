@@ -28,8 +28,17 @@ The exact 203171 M2 v274 GnomereganVent collision arrays match the unmodified
 pinned wow.export loader; its hash-specific evidence is recorded in
 m2-274-collision-profiles.json. No general v274 compatibility is inferred.
 
-Unsupported WMO root 7801267 LOD layout and placement 350747 doodad flags each
-remove their whole MODF footprint. Six MH2O cells in 31_41 (x14/15,y11/12/13)
+Unsupported WMO root 7801267 LOD layout still removes its whole MODF footprint.
+Placement 350747 is now decoded: MODD high-byte flag 2 is InteriorLighting
+([wowlib enum](https://skarndev.github.io/wowlib/python/wmo/root-chunks/)), not
+collision behavior. The pinned TrinityCore extractor likewise retains the
+instance transform and model collision independently of this flag. Other
+unverified flag bits remain unsupported. Tests toggle this lighting flag across
+real colliding doodads and require identical collision arrays.
+
+The former flag gate erased outdoor ground above the cave, including the user's
+42.9,47.2 screenshot location. Its removal restores 4,112 polygons without changing
+radius, height, climb, slope or creating movement links. Six MH2O cells in 31_41 (x14/15,y11/12/13)
 remove their entire horizontal MCNK footprints, on all floors, with radius
 padding. Their layout is checked against the pinned source and
 [ADT loader framing](https://github.com/Kruithne/wow.export/blob/c2fd7bde36a712be78a5da896c995b84fbfa2545/src/js/3D/loaders/ADTLoader.js).
@@ -52,9 +61,11 @@ collision, bakes twice and compares every output byte, then compiles the local
 RikUIQuestTerrain companion. Output paths are disjoint and new. No assets enter Git.
 
 The delivery reproduced 410 files identically and compiled 414 companion files:
-408 shards, 37,644 polygons, 73,648 directed portals, approximately 14.3 MB.
-Final retained manifest SHA256:
-88043ddd25a5608fd6c3554578000a37721d3e911039e684867ed8d6c7550dc5.
+408 shards, 41,756 polygons, 81,476 directed portals, approximately 15.7 MB.
+Lighting-corrected retained manifest SHA256:
+8d03f166107abeeb9ba61d887edc2ea7274a5f1127d5a29bdd4548b7f5b9fa78.
+The compiler's offline byte cap is 32 MiB; runtime polygon/portal/shard caps
+remain unchanged. Original 16 MiB JSON cap rejected the restored 17.4 MB input.
 Path-specific parser/source provenance means another directory can change the
 manifest hash even with identical shard geometry. Use that run's printed hash.
 
@@ -71,7 +82,21 @@ over exact 203171 bytes and includes all converted collision positions/indices.
 The test compares every value, not only counts. Original-region parser/topology
 reproduction remains available through portable_region.py.
 
-## Actual results and limits
+## Grizzled Den replay
+
+The rounded screenshot center 42.9,47.2 now has a 131-polygon modeled route to
+the archived quest 313 POI vicinity. The final 4.8437-yard gap is not traversed or
+drawn as walkable. Five of nine rounding samples route; four require prior
+floor continuity or native altitude because outdoor and cave surfaces overlap.
+No floor is guessed on a cold start. A simulated .12-yard/60fps traversal completes
+4,394 steps with zero reversals. Adding .15-yard sideways perturbations initially
+exposed eight aim reversals at the cave bend. Replacing behind-portal midpoint
+bias with local corridor direction and rechecked aim continuity completes 4,411
+steps with zero reversals and 312 distinct instructions.
+The replay HTML/JSON and static PNG remain outside Git. This demonstrates
+production Lua against real geometry, not actual native walking.
+
+## Earlier western results and limits
 
 The old installed region did not cover either current screenshot position or
 Frostmane marker. Merely expanding at the old raster covered 4/9 rounding samples;

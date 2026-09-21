@@ -101,7 +101,7 @@ local function replay(label,start,questID,destination)
         assert(runtimeStatus=="unknown-location" and not runtimeRoute,"runtime start admission differs")
         print(label,questID,"unknown-start",issue);return "unknown-start"
     end
-    local job,reason=mesh:BeginMarkerApproach(start,goal,{maxWork=32768})
+    local job,reason=mesh:BeginMarkerApproach(start,goal,{maxWork=32768,markerRadius=8})
     if not job then print(label,questID,"unknown-target",reason);return "unknown-target" end
     local result
     repeat
@@ -119,7 +119,7 @@ local function replay(label,start,questID,destination)
         assert(math.abs(projected.x-endpoint[1])<.00001 and math.abs(projected.z-endpoint[3])<.00001,
             "production guidance endpoint differs")
         if result.approach then
-            assert(result.approach.gap<=1 and not result.approach.finalLegVerified)
+            assert(result.approach.gap<=result.approach.radius and result.approach.radius<=8 and not result.approach.finalLegVerified)
             assert(math.sqrt((endpoint[1]-goal.x)^2+(endpoint[3]-goal.z)^2)>.0001,"gap drawn")
         end
         print(label,questID,result.status,string.format("%.3f yd; gap %.4f; %d polygons; work %d; endpoint checks %d",

@@ -60,7 +60,7 @@ for _,probe in ipairs(probes) do
     local a,b=assert(centers[probe.from]),assert(centers[probe.to])
     local first,last={x=a[1],height=a[2],z=a[3]},{x=b[1],height=b[2],z=b[3]}
     local locatedStart,locatedGoal=assert(mesh:Locate(first)),assert(mesh:Locate(last))
-    local job=assert(mesh:Begin(first,last,{maxWork=65536}))
+    local job=assert(mesh:Begin(first,last,{maxWork=131072}))
     local route
     repeat
         local before=os.clock(); route=job:Step(64)

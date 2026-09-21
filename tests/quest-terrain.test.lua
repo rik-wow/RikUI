@@ -74,6 +74,13 @@ return function(check)
         tick()
         check("explicit established height can disambiguate modeled floor",p.Terrain.Guidance()~=nil)
         p.Context.WorldPosition=nil
+        position.x,position.y=.89,.95; tick()
+        position.x=.91;env.runScript(driver,"OnUpdate",.05)
+        check("live motion preserves established floor under overlapping geometry",p.Terrain.Guidance()~=nil)
+        env.runScript(driver,"OnUpdate",.6)
+        check("stale continuity cannot choose an overlapping floor after a pause",not p.Terrain.Guidance()
+            and p.Terrain.Status().status=="unknown-location")
+        position.x,position.y=.99,.99
         assert(p.Terrain.Install(meta,shards)); tick()
         position.x,position.y=.85,.95; tick()
         guidance=assert(p.Terrain.Guidance())

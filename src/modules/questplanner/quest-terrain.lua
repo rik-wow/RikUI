@@ -4,10 +4,13 @@ local schema,terrain=planner.Schema,{}
 planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local selectedKey,lastAttempt,elapsed=nil,nil,0
+local lastLocation,locationAge=nil,0
+local CONTINUITY_SECONDS=.5
 local STEERING_INTERVAL = .05
 local LOAD_MS, LOAD_BATCHES, LOAD_FALLBACK_BATCHES = 4, 32, 4
+local SEARCH_MS, SEARCH_BATCHES, SEARCH_FALLBACK_BATCHES = 2, 16, 4
 local state={status="unavailable",detail="Terrain datasource is not installed"}
-local display
+local display,lastAim
 local function setState(status,detail)
     if state.status==status and state.detail==detail then return end
     state={status=status,detail=detail}
@@ -17,6 +20,7 @@ local function same(a,b) return a.product==b.product and a.build==b.build and a.
 local function clear()
     if request then request:Cancel(); request=nil end
     route,display,selectedKey,lastAttempt=nil,nil,nil,nil
+    lastLocation,locationAge,lastAim=nil,0,nil
 end
 function terrain.Invalidate()
     clear()
@@ -43,7 +47,8 @@ local function selected()
     return row,position
 end
 local function remainingPoints(location,index)
-    local aim,crossed,last=planner.NavGeometry.CorridorAim(route,location.point,index)
+    local aim,crossed,last=planner.NavGeometry.CorridorAim(route,location.point,index,lastAim)
+    lastAim={point=aim,index=last}
     local points={location.point}
     for _,point in ipairs(crossed) do points[#points+1]=point end
     points[#points+1]=aim
@@ -101,8 +106,11 @@ local function update()
         start={x=world.x,z=world.z}
         if world.verticalStatus=="observed-altitude" then start.height=world.height end
     end
-    local location,problem=mesh:Locate(start)
+    local location,problem=mesh:LocateContinued(start,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
     if not location then clear(); setState("unknown-location",problem); return end
+    lastLocation,locationAge=location,0
+    -- Search starts on this modeled surface; this does not establish native altitude.
+    start.height=start.height or location.point[2]
     display=trim(location)
     if display then setState(display.approach and "modeled-approach" or "modeled",display.detail); return end
     if request then return end
@@ -111,7 +119,8 @@ local function update()
     lastAttempt=attempt
     local speed=planner.Context.RunSpeed and planner.Context.RunSpeed()
     local begin=target.scope=="current-map-quest-poi" and mesh.BeginMarkerApproach or mesh.Begin
-    request,problem=begin(mesh,start,goal,{maxWork=32768,speed=speed or 7})
+    -- Quest-map POIs represent a vicinity, not an exact standing/interaction position.
+    request,problem=begin(mesh,start,goal,{maxWork=32768,speed=speed or 7,markerRadius=8})
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
 local function loadSlice()
@@ -121,6 +130,15 @@ local function loadSlice()
         local value,reason,done=loader:Step(64)
         if done then return value,reason,true end
         if clock and clock()-started>=LOAD_MS then return end
+    end
+end
+local function searchSlice()
+    local clock=type(debugprofilestop)=="function" and debugprofilestop
+    local started=clock and clock()
+    for _=1,clock and SEARCH_BATCHES or SEARCH_FALLBACK_BATCHES do
+        local result=request:Step(64)
+        if result then return result end
+        if clock and clock()-started>=SEARCH_MS then return end
     end
 end
 function terrain.Step()
@@ -133,11 +151,11 @@ function terrain.Step()
             if value then update() end
         end
     elseif request then
-        local result=request:Step(64)
+        local result=searchSlice()
         if result then
             request=nil
             if result.status=="modeled" then
-                route=result
+                route=result;lastAim=nil
                 local row=selected()
                 route.markerProvenance=row and schema.Clone(row.destination)
                 update()
@@ -149,6 +167,7 @@ function terrain.Start()
     if driver then return end
     driver=CreateFrame("Frame")
     driver:SetScript("OnUpdate",function(_,delta)
+        locationAge=locationAge+delta
         terrain.Step()
         elapsed=elapsed+delta
         if route and planner.enabled then

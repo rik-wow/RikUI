@@ -6,6 +6,7 @@ HERE=pathlib.Path(__file__).parent
 if not os.environ.get('RIKUI_TERRAIN_ACQUISITION'):
     raise RuntimeError('Set RIKUI_TERRAIN_ACQUISITION to the verified external acquisition directory')
 ROOT=pathlib.Path(os.environ['RIKUI_TERRAIN_ACQUISITION'])
+GEOMETRY=pathlib.Path(os.environ.get('RIKUI_TERRAIN_GEOMETRY',str(HERE/'geometry-full.json')))
 
 def chunk(tag,data):return tag[::-1].encode()+struct.pack('<I',len(data))+data
 
@@ -67,7 +68,7 @@ class WMOTests(unittest.TestCase):
         result=json.loads((HERE/'wmo-transform-validation.json').read_text())
         self.assertEqual(result['cases'],384);self.assertLess(result['maxErrorYards'],0.002)
     def test_complete_artifact_retains_advisory_header_counts(self):
-        result=w.build(HERE/'geometry-full.json',ROOT,ROOT/'recursive-dependencies-manifest.json')
+        result=w.build(GEOMETRY,ROOT,ROOT/'recursive-dependencies-manifest.json')
         self.assertEqual(result['audit']['counts']['selectedDoodadInstances'],707)
         self.assertEqual(result['audit']['counts']['demonstratedEmpty274Instances'],9)
         self.assertEqual({r['placementID'] for r in result['audit']['placements']},{100929,100930,101588,125539})
@@ -78,8 +79,31 @@ class WMOTests(unittest.TestCase):
         self.assertEqual(len(result['audit']['headerCountNotes']),3)
         self.assertTrue(all(r['reason']=='MOHD-count-advisory-MODD-framing-authoritative' for r in result['audit']['headerCountNotes']))
         self.assertTrue(all(i<len(result['positions'])//3 for i in result['indices']))
+    def test_interior_lighting_does_not_change_static_collision(self):
+        geometry=GEOMETRY
+        receipt=ROOT/'recursive-dependencies-manifest.json'
+        original=w.build(geometry,ROOT,receipt)
+        parser=w.root
+        def interior(data):
+            result=parser(data)
+            for row in result['doodads']:row['flags']|=2
+            return result
+        with mock.patch.object(w,'root',side_effect=interior):
+            lit=w.build(geometry,ROOT,receipt)
+        self.assertEqual(lit['positions'],original['positions'])
+        self.assertEqual(lit['indices'],original['indices'])
+        self.assertEqual(lit['audit']['unsupported'],[])
+        self.assertGreater(lit['audit']['counts']['collisionDoodadInstances'],0)
+
+    def test_unknown_doodad_flag_bits_remain_unsupported(self):
+        self.assertFalse(w.unsupported_doodad_flags(0))
+        self.assertFalse(w.unsupported_doodad_flags(2))
+        for bit in (1,4,8,16,32,64,128):
+            self.assertTrue(w.unsupported_doodad_flags(bit))
+            self.assertTrue(w.unsupported_doodad_flags(bit|2))
+
     def test_forged_geometry_placements_are_rejected(self):
-        data=json.loads((HERE/'geometry-full.json').read_text());data['placements'][0]['position'][0]+=1
+        data=json.loads((GEOMETRY).read_text());data['placements'][0]['position'][0]+=1
         with tempfile.TemporaryDirectory(prefix='rikui-wmo-test-') as directory:
             p=pathlib.Path(directory)/'bad.json';p.write_text(json.dumps(data))
             with self.assertRaisesRegex(ValueError,'WMO-placement-provenance'):w.build(p,ROOT,ROOT/'recursive-dependencies-manifest.json')
@@ -136,6 +160,6 @@ class CountSemanticsTests(unittest.TestCase):
             result=parser(data,root_flags);result['doodadReferences'].append(65535);return result
         with mock.patch.object(w,'group',side_effect=bad):
             with self.assertRaisesRegex(ValueError,'WMO-group-doodad-reference-range'):
-                w.build(HERE/'geometry-full.json',ROOT,ROOT/'recursive-dependencies-manifest.json')
+                w.build(GEOMETRY,ROOT,ROOT/'recursive-dependencies-manifest.json')
 
 if __name__=='__main__':unittest.main()

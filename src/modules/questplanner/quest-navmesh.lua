@@ -200,20 +200,21 @@ local function locate(data,point)
 end
 -- One yard is a marker-displacement bound, not an interaction or movement radius.
 local APPROACH_RADIUS,APPROACH_INSET=1,.005
+local MAX_MARKER_RADIUS,NEAREST_SURFACE_BAND,CONTINUITY_DISTANCE=8,.25,3
 local function inside(box,x,z) return x>=box[1] and x<=box[3] and z>=box[2] and z<=box[4] end
-local function approachCovered(data,goal)
+local function approachCovered(data,goal,radius)
     if not inside(data.meta.bounds,goal.x,goal.z) then return false end
     for _,box in ipairs(data.meta.exclusions or {}) do
         -- Do not approach across an excluded footprint even when the marker is just outside it.
-        if goal.x+APPROACH_RADIUS>=box[1] and goal.x-APPROACH_RADIUS<=box[3]
-            and goal.z+APPROACH_RADIUS>=box[2] and goal.z-APPROACH_RADIUS<=box[4] then return false end
+        if goal.x+radius>=box[1] and goal.x-radius<=box[3]
+            and goal.z+radius>=box[2] and goal.z-radius<=box[4] then return false end
     end
     return true
 end
-local function candidate(data,id,goal)
+local function candidate(data,id,goal,radius)
     local poly=data.polygons[id]
     local point,gap=geometry.ClosestBoundary(poly.points,goal.x,goal.z)
-    if not gap or gap>APPROACH_RADIUS then return nil end
+    if not gap or gap>radius then return nil end
     local distance=geometry.Distance(point,poly.center)
     local t=math.min(1,APPROACH_INSET/math.max(distance,APPROACH_INSET))
     local x,z=point[1]+t*(poly.center[1]-point[1]),point[3]+t*(poly.center[3]-point[3])
@@ -221,18 +222,32 @@ local function candidate(data,id,goal)
     if not height then return nil end
     return {id=id,point={x,height,z},gap=math.sqrt((x-goal.x)^2+(z-goal.z)^2),height=point[2]}
 end
-local function approachEndpoint(data,goal,metrics)
-    local best,low,high,seen=nil,nil,nil,{}
-    for x=math.floor((goal.x-APPROACH_RADIUS)/CELL),math.floor((goal.x+APPROACH_RADIUS)/CELL) do
-        for z=math.floor((goal.z-APPROACH_RADIUS)/CELL),math.floor((goal.z+APPROACH_RADIUS)/CELL) do
+local function approachFloor(data,best,candidates)
+    if not best then return nil,"No modeled approach within marker vicinity" end
+    -- Nearby equally plausible floors remain ambiguous; distant hills do not compete.
+    local low,high=best.height,best.height
+    for _,value in ipairs(candidates) do
+        if value.gap<=best.gap+NEAREST_SURFACE_BAND then
+            low=math.min(low,value.height);high=math.max(high,value.height)
+            if high-low>data.meta.modeledMaxStep then return nil,"Marker approach floor is ambiguous" end
+        end
+        coroutine.yield()
+    end
+    local resolved,reason=locate(data,{x=best.point[1],z=best.point[3]})
+    if not resolved or resolved.id~=best.id then return nil,reason or "Marker approach floor is ambiguous" end
+    return best
+end
+local function approachEndpoint(data,goal,metrics,radius)
+    local best,seen,candidates=nil,{},{}
+    for x=math.floor((goal.x-radius)/CELL),math.floor((goal.x+radius)/CELL) do
+        for z=math.floor((goal.z-radius)/CELL),math.floor((goal.z+radius)/CELL) do
             for _,id in ipairs(data.cells[x..":"..z] or {}) do
                 if not seen[id] then
                     seen[id]=true; metrics.endpointChecks=metrics.endpointChecks+1
-                    local value=candidate(data,id,goal)
+                    local value=candidate(data,id,goal,radius)
                     if value then
-                        low=math.min(low or value.height,value.height); high=math.max(high or value.height,value.height)
-                        if high-low>data.meta.modeledMaxStep then return nil,"Marker approach floor is ambiguous" end
-                        if value.gap<=APPROACH_RADIUS and (not best or value.gap<best.gap
+                        candidates[#candidates+1]=value
+                        if value.gap<=radius and (not best or value.gap<best.gap
                             or (value.gap==best.gap and value.id<best.id)) then best=value end
                     end
                 end
@@ -240,16 +255,13 @@ local function approachEndpoint(data,goal,metrics)
             end
         end
     end
-    if not best then return nil,"No modeled approach within one yard of marker" end
-    local resolved,reason=locate(data,{x=best.point[1],z=best.point[3]})
-    if not resolved or resolved.id~=best.id then return nil,reason or "Marker approach floor is ambiguous" end
-    return best
+    return approachFloor(data,best,candidates)
 end
 local function approachResult(data,status,detail,metrics)
     return {status=status,detail=detail,metrics=metrics,nativeVerified=false,revision=data.meta.revision}
 end
 local function approachWorker(data,start,goal,options,metrics)
-    local endpoint,reason=approachEndpoint(data,goal,metrics)
+    local endpoint,reason=approachEndpoint(data,goal,metrics,options.markerRadius or APPROACH_RADIUS)
     if not endpoint then return approachResult(data,"unknown-target",reason,metrics) end
     local job,issue=planner.NavSearch.Begin(data,start,{x=endpoint.point[1],z=endpoint.point[3]},options,locate)
     if not job then return approachResult(data,"unknown-target",issue,metrics) end
@@ -259,7 +271,7 @@ local function approachWorker(data,start,goal,options,metrics)
             result.metrics.endpointChecks=metrics.endpointChecks
             if result.status=="modeled" then
                 result.approach={kind="observed-marker-vicinity",marker=schema.Clone(goal),gap=endpoint.gap,
-                    radius=APPROACH_RADIUS,finalLegVerified=false,interactionVerified=false}
+                    radius=options.markerRadius or APPROACH_RADIUS,finalLegVerified=false,interactionVerified=false}
                 result.detail="Modeled approach; final gap and interaction unverified"
             end
             return result
@@ -273,10 +285,13 @@ local function beginApproach(data,start,goal,options)
     local last,reason=locate(data,goal)
     if last then return planner.NavSearch.Begin(data,start,goal,options,locate) end
     if reason~="outside known navigation polygons" then return nil,reason end
-    if goal.height~=nil or not approachCovered(data,goal) then return nil,"Marker approach outside sourced coverage" end
     local settings=schema.Copy(options or {})
     if not schema.PlainTable(settings) or not schema.Integer(settings.maxWork or 16384,1,65536)
-        or not schema.Number(settings.speed or 7,.1,100) then return nil,"invalid navigation limits" end
+        or not schema.Number(settings.speed or 7,.1,100)
+        or not schema.Number(settings.markerRadius or APPROACH_RADIUS,1,MAX_MARKER_RADIUS) then return nil,"invalid navigation limits" end
+    if goal.height~=nil or not approachCovered(data,goal,settings.markerRadius or APPROACH_RADIUS) then
+        return nil,"Marker approach outside sourced coverage"
+    end
     local metrics={endpointChecks=0}
     local worker=coroutine.create(function() return approachWorker(data,schema.Clone(start),schema.Clone(goal),settings,metrics) end)
     local cancelled,output=false,nil
@@ -300,6 +315,18 @@ local function publish(data)
         Revision=function() return data.meta.revision end,
         Metadata=function() return schema.Clone(data.meta) end,
         Locate=function(_,point) return locate(data,point) end,
+        LocateContinued=function(_,point,previous)
+            local result,reason=locate(data,point)
+            if result or not schema.PlainTable(point) or point.height~=nil or not previous
+                or reason~="Floor or polygon boundary is ambiguous" then return result,reason end
+            local matches=geometry.FollowSurface(data,previous,point,CONTINUITY_DISTANCE)
+            if matches and #matches>0 then
+                local continued=boundaryMatches(data,matches)
+                if continued then return continued end
+            end
+            -- A disconnected floor cannot replace established continuity at an overlap.
+            return nil,reason or "Movement left the connected walking surface"
+        end,
         Project=function(_,mapID,x,y)
             if mapID~=data.meta.uiMapID or not schema.Number(x,0,1) or not schema.Number(y,0,1) then return nil end
             local p=data.meta.projection

@@ -16,7 +16,9 @@ PROJECTION={'originX':-3877.0832519531,'originY':1802.0832519531,'width':4924.99
 PROJECTION_SOURCE={'url':'https://wago.tools/db2/UiMapAssignment/csv?build=1.60.1.69913','sha256':'79267e8be8034e47daab14350411b3acc0b1f64e86efc9d821a217497254ca0a','rowID':46736,'uiMapID':1426,'mapID':0,'areaID':1,'region':[-7160.4165039062,-3122.9165039062,-1000000,-3877.0832519531,1802.0832519531,1000000],'interpretation':'Nav X=game world Y; Nav Z=game world X; UI axes reverse these extents.'}
 MAX_MANIFEST=2*1024*1024
 MAX_SHARD=2*1024*1024
-MAX_TOTAL=16*1024*1024
+# Offline JSON/Lua byte bound; polygon, portal, shard and runtime limits remain independent.
+# Restored cave collision produces 17.4 MB of JSON within the existing graph limits.
+MAX_TOTAL=32*1024*1024
 MAX_SHARDS=512
 MAX_POLYGONS=65536
 MAX_PORTALS=131072

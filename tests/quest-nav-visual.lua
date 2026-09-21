@@ -22,7 +22,7 @@ local start=assert(mesh:Project(h.meta.uiMapID,assert(tonumber(arg[3])),assert(t
 local questID=tonumber(arg[8]) or 99158
 local destination=assert(h.snapshot.context.destinations[questID],"scenario marker missing")
 local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
-local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=32768}))
+local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=32768,markerRadius=8}))
 local route
 repeat route=job:Step(64) until route
 assert(route.status=="modeled",route.detail)
@@ -68,7 +68,7 @@ for tick=1,6000 do
     samples[#samples+1]={pos[1],pos[3],target.x,target.z}
     -- Fixed steps deliberately cross waypoints, as a moving player does.
     local nextPoint={x=pos[1]+dx*stride,z=pos[3]+dz*stride}
-    local located,reason=mesh:Locate(nextPoint)
+    local located,reason=mesh:LocateContinued(nextPoint,{id=route.corridor[progress],point=pos})
     assert(located,"steering left known floor: "..tostring(reason))
     local index=assert(corridorIndex[located.id],"movement left the selected corridor")
     assert(index>=progress,"movement reversed polygon progress")

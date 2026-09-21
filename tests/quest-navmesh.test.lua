@@ -68,6 +68,14 @@ return function(check)
             and approached.approach.marker.x==near.x and approached.approach.finalLegVerified==false)
         check("approach slicing preserves endpoint and cost",approach(mesh,start,near,128).meters==approached.meters)
         check("marker outside bounded radius stays unknown",approach(mesh,start,{x=8,z=15}).status=="unknown-target")
+        local vicinity=assert(mesh:BeginMarkerApproach(start,{x=6,z=15},{markerRadius=8}))
+        local vicinityResult
+        repeat vicinityResult=vicinity:Step(1) until vicinityResult
+        check("quest vicinity stops on a connected surface without drawing the final gap",
+            vicinityResult.status=="modeled" and vicinityResult.approach.gap>4
+            and vicinityResult.approach.radius==8 and vicinityResult.approach.finalLegVerified==false)
+        check("vicinity cannot expand without bound",
+            not mesh:BeginMarkerApproach(start,near,{markerRadius=9}))
         check("marker outside source bounds cannot pull a route outward",not mesh:BeginMarkerApproach(start,{x=20.1,z=15}))
         check("connected boundary marker uses an exact route",approach(mesh,start,{x=10,z=5}).approach==nil)
         check("missing start is never snapped",not mesh:BeginMarkerApproach({x=9.6,z=15},goal))
@@ -172,6 +180,23 @@ return function(check)
         local taller=p.Schema.Clone(meta); taller.counts.polygons=4
         local layered=assert(load(taller,layers))
         check("2D location cannot choose overlapping floors",not layered:Locate(start))
+        local previousFloor={id=2,point={11,0,5}}
+        local continued=layered:LocateContinued({x=9,z=5},previousFloor)
+        check("short portal-crossing motion retains the previous modeled floor",
+            continued and continued.id==1 and continued.floorSource=="modeled-continuity")
+        check("continuity cannot bootstrap an ambiguous starting floor",
+            not layered:LocateContinued(start,nil))
+        check("continuity cannot choose a floor after a large displacement",
+            not layered:LocateContinued(start,previousFloor))
+        check("explicit observed height overrides modeled continuity",
+            layered:LocateContinued({x=9,z=5,height=10},previousFloor).id==4)
+        check("invalid continuation point returns a failure",not layered:LocateContinued(false,previousFloor))
+        local disconnectedLayers=p.Schema.Clone(layers)
+        disconnectedLayers[1].polygons[1].portals={}
+        disconnectedLayers[1].polygons[2].portals={disconnectedLayers[1].polygons[2].portals[2]}
+        local disconnectedMeta=p.Schema.Clone(taller);disconnectedMeta.counts.portals=2
+        check("continuity cannot cross an unlinked wall",
+            not assert(load(disconnectedMeta,disconnectedLayers)):LocateContinued({x=9,z=5},previousFloor))
         check("approach cannot resolve a competing player floor",not layered:BeginMarkerApproach(start,near))
         local targetLayers=p.Schema.Clone(shards)
         targetLayers[1].polygons[4]=square(4,10,10,10)

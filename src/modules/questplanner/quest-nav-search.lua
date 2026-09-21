@@ -2,7 +2,8 @@
 local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
 local geometry,search=planner.NavGeometry,{}
 planner.NavSearch=search
-local MAX_WORK,MAX_PATH=65536,1024
+-- Offline whole-region probes may use a larger budget; live callers still request 32768.
+local MAX_WORK,MAX_PATH=131072,1024
 local function less(a,b) return a.priority<b.priority or (a.priority==b.priority and a.id<b.id) end
 local function push(heap,value)
     local index=#heap+1
