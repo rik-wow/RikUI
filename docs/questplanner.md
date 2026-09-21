@@ -709,16 +709,40 @@ changes presentation and stale-state handling, not terrain physics or quest
 facts. Widget and controller replays cover these states; native visual review
 and an actual usable route from the supplied indoor points remain unverified.
 
+## Breadcrumb anticipation replay
+
+The installed western mesh and archived Frostmane marker were replayed from the
+rounded 35.5,46.6 screenshot position. At a .35-yard stride, sub-three-yard steering
+aims outside the final six yards dropped from five samples to one; both versions
+completed with zero reversals. With the updated 50 ms terrain cadence, a 60 Hz,
+seven-yard/second simulation completed 5,012 movement samples with zero reversals;
+a delayed 200 ms update / 1.4-yard stride completed 418 samples with zero reversals.
+These are modeled player inputs, not a capture of the user's movement. Tight-corner
+fixtures sample off-center starts and reject segments through the missing quadrant;
+portal winding and arrow-only refresh are covered separately. Native steering feel
+and performance remain unverified. This Lua-only change loads with reload and adds
+no terrain files or TOC entries.
+
 ## Corridor steering and offline visualization
 
 The arrow now looks ahead within the selected polygon corridor instead of aiming
 at every exit midpoint. A candidate segment must cross each directed portal in
 order, away from its corners, and lie on both adjoining modeled surfaces.
 Convex polygon containment keeps the intervening segments inside that corridor.
-The horizon is bounded to 12 portals (78 candidate intersection checks plus one
-fallback). If no farther center is visible, a checked short continuation into
-the next polygon is attempted; otherwise the original exit midpoint remains.
-The map shows the accepted leading shortcut followed by the remaining corridor.
+The horizon is bounded to 12 portals. For each future polygon, the follower first
+tries its center (or the final endpoint). If that is occluded, it clips the entrance
+portal to the angular windows of earlier portals, then tries an interior continuation
+of up to six yards, halving it at most five times. Every candidate still passes the
+ordered portal and surface checks. This can anticipate a bend before entering its
+polygon without requiring the player to touch the old center breadcrumb. The old
+quarter-yard continuation and exit midpoint remain conservative last fallbacks.
+The maximum is 546 portal intersection tests plus angular clipping and one fallback;
+there is no unbounded search in steering. This is local visibility, not a globally
+shortest continuous path.
+
+Terrain steering and arrow orientation refresh on a 50 ms cadence, with at most one
+refresh per frame after a delay; map geometry stays on its 200 ms cadence. The map
+shows the accepted leading shortcut followed by the remaining corridor.
 A* still optimizes its center graph, not a globally shortest continuous route.
 
 No polygon is added, no floor is selected by proximity, and the physical profile

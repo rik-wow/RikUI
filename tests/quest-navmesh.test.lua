@@ -57,9 +57,10 @@ return function(check)
         local route=assert(path(mesh,start,goal))
         check("portal path follows L corridor around missing quadrant",route.status=="modeled" and #route.points==7)
         local aim,crossed,last=p.NavGeometry.CorridorAim(route,{1,0,9},1)
-        check("steering cannot cut the absent quadrant",last==2 and aim[1]==15 and aim[3]==5)
-        check("steering crosses the real portal before entering next polygon",#crossed==1
-            and crossed[1][1]==10 and crossed[1][3]>0 and crossed[1][3]<10)
+        check("occluded destination uses visible portal interval beyond the bend",last==3 and aim[1]>10 and aim[3]>10)
+        check("anticipation crosses both real portals in order",#crossed==2
+            and crossed[1][1]==10 and crossed[1][3]>0 and crossed[1][3]<10
+            and crossed[2][3]==10 and crossed[2][1]>10 and crossed[2][1]<20)
         local fromNext=p.NavGeometry.CorridorAim(route,{15,0,5},2)
         check("steering advances beyond boundary toward final endpoint",fromNext==route.points[#route.points])
         local atEnd,_,endIndex=p.NavGeometry.CorridorAim(route,{18,0,18},3)
@@ -70,8 +71,25 @@ return function(check)
         local straight=assert(path(mesh,{x=1,z=5},{x=19,z=5}))
         local ahead,gates,final=p.NavGeometry.CorridorAim(straight,{9.8,0,5},1)
         check("near portal points beyond it instead of back to midpoint",ahead[1]==19 and final==2 and #gates==1)
-        local corner,_,cornerIndex=p.NavGeometry.CorridorAim(route,{1,0,1},1)
-        check("exact shared corner cannot bypass the required corridor",cornerIndex==2 and corner[3]==5)
+        local corner,cornerGates,cornerIndex=p.NavGeometry.CorridorAim(route,{1,0,1},1)
+        check("anticipation bypasses the corner vertex through portal interiors",cornerIndex==3 and #cornerGates==2
+            and cornerGates[1][3]<10 and cornerGates[2][1]>10 and corner[3]>10)
+        local contained=true
+        for x=.1,9.9,.7 do for z=.1,9.9,.7 do
+            local target,proof,reached=p.NavGeometry.CorridorAim(route,{x,0,z},1)
+            contained=contained and #proof==reached-1
+            for step=0,100 do
+                local tx,tz=x+(target[1]-x)*step/100,z+(target[3]-z)*step/100
+                contained=contained and tx>=0 and tx<=20 and tz>=0 and tz<=20
+                    and (tx>=10 or tz<=10)
+            end
+        end end
+        check("off-center approaches never cross missing L-corridor quadrant",contained)
+        local reversed=p.Schema.Clone(route)
+        for _,gate in ipairs(reversed.portals) do gate.left,gate.right=gate.right,gate.left end
+        local reversedAim,reversedProof=p.NavGeometry.CorridorAim(reversed,{1,0,9},1)
+        check("visible interval does not depend on portal endpoint winding",
+            p.NavGeometry.Distance(aim,reversedAim)<.00001 and #reversedProof==#crossed)
         local exact=2*math.sqrt(32)+20
         check("center-graph distance matches independent geometry",math.abs(route.meters-exact)<.000001)
         check("derived path never claims native or continuous global optimality",route.nativeVerified==false and not route.globalOptimal)

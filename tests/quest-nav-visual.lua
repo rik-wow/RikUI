@@ -2,6 +2,8 @@
 -- fifth is a NEW external output prefix. No private character identity is exported.
 local output=assert(arg[5],"external output prefix required")
 local stride=tonumber(arg[7]) or .35
+local delta=tonumber(arg[9]) or .2
+assert(delta>=.01 and delta<=.25,"frame delta outside replay bounds")
 assert(stride>=.05 and stride<=1.4,"stride outside modeled replay bounds")
 local h=dofile("tests/quest-marker-replay.lua")
 local p,mesh=RikUI.QuestPlanner,h.mesh
@@ -21,7 +23,7 @@ repeat route=job:Step(64) until route
 assert(route.status=="modeled",route.detail)
 local status,guidance=h.replay(start,questID,destination,false)
 assert(guidance,status)
-local samples,reversals,hidden={},0,0
+local samples,reversals,hidden,closeAims={},0,0,0
 local corridorIndex={}
 for index,id in ipairs(route.corridor) do corridorIndex[id]=index end
 local progress=1
@@ -31,7 +33,7 @@ local done=false
 local peak=0
 for tick=1,6000 do
     local before=os.clock()
-    local g,state=h.move(pos)
+    local g,state=h.move(pos,delta)
     peak=math.max(peak,(os.clock()-before)*1000)
     if not g then error("movement lost guidance: "..state.status.." at "..tick) end
     local endpoint=assert(mesh:Project(g.points[#g.points].mapID,g.points[#g.points].x,g.points[#g.points].y))
@@ -40,6 +42,7 @@ for tick=1,6000 do
     local dx,dz=target.x-pos[1],target.z-pos[3]
     local distance=math.sqrt(dx*dx+dz*dz)
     if math.abs(dx)+math.abs(dz)<1 then hidden=hidden+1 end
+    if distance<3 and math.sqrt((pos[1]-endpoint.x)^2+(pos[3]-endpoint.z)^2)>6 then closeAims=closeAims+1 end
     assert(distance>.000001,"stuck on exact waypoint")
     dx,dz=dx/distance,dz/distance
     if lastDX and dx*lastDX+dz*lastDZ<0 then reversals=reversals+1 end
@@ -105,4 +108,5 @@ fit();frame();
 write(".html",(html:gsub("DATA",function() return data end,1)))
 print(string.format("MOVEMENT complete=%s steps=%d reversals=%d hidden=%d max-refresh=%.3fms output=%s",
     tostring(done),#samples,reversals,hidden,peak,output))
+print("CLOSE_AIMS (<3yd outside final6yd)",closeAims)
 if arg[6]=="require-complete" then assert(done and reversals==0,"movement regression") end

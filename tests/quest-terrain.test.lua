@@ -36,7 +36,13 @@ return function(check)
         tick()
         local guidance=assert(p.Terrain.Guidance())
         check("installed region produces live modeled corridor",guidance.status=="modeled" and not guidance.nativeVerified)
-        check("bearing looks into next polygon without cutting the corner",guidance.next.x==.85 and guidance.next.y==.95)
+        check("bearing anticipates beyond bend while retaining portal crossings",guidance.next.x<.9 and guidance.next.y<.9
+            and guidance.points[2].y>.9 and guidance.points[3].x<.9)
+        local oldStart=guidance.points[1].x
+        position.x=.98
+        env.runScript(driver,"OnUpdate",.05)
+        check("steering observes motion within fifty milliseconds",p.Terrain.Guidance().points[1].x~=oldStart)
+        position.x=.99;tick()
         local initial=guidance.meters
         local unchangedRefreshes=refreshes; tick()
         check("unchanged modeled state does not refresh widgets",refreshes==unchangedRefreshes)

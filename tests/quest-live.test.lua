@@ -137,7 +137,16 @@ return function(check)
         arrow.icon.SetRotation=function(_,value) angle=value end
         p.Navigation.Refresh()
         check("east target while facing north points right",math.abs(angle+math.pi/2)<.000001)
-        facing=3*math.pi/2; p.Navigation.Refresh()
+        facing=3*math.pi/2
+        local oldPointCalls,pointCalls=canvas.GetWidth,0
+        canvas.GetWidth=function(...) pointCalls=pointCalls+1;return oldPointCalls(...) end
+        for _,driver in ipairs(env.frames) do
+            if driver.scripts.OnUpdate then env.runScript(driver,"OnUpdate",.05) end
+        end
+        check("arrow observes facing within fifty milliseconds",math.abs(math.sin(angle))<.000001 and math.cos(angle)>.9999)
+        check("fast arrow refresh does not redraw map geometry",pointCalls==0)
+        canvas.GetWidth=oldPointCalls
+        p.Navigation.Refresh()
         check("east target while facing east points forward",math.abs(math.sin(angle))<.000001 and math.cos(angle)>.9999)
         GetPlayerFacing=function() return nil end; p.Navigation.Refresh()
         check("unavailable orientation hides arrow",not arrow:IsShown())

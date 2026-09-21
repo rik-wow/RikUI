@@ -3,6 +3,8 @@ local core,planner,media=RikUI,RikUI.QuestPlanner,RikUI.Media
 local navigation={}
 planner.Navigation=navigation
 local pins,frame,arrow,elapsed={},nil,nil,0
+local bearingElapsed=0
+local MAP_INTERVAL, BEARING_INTERVAL = .2, .05
 local lines,lineHolder={},nil
 local MAX_ROUTE_LINES,NEW_LINES_PER_REFRESH=2048,32
 local function hideLines() for _,line in ipairs(lines) do line:Hide() end end
@@ -93,22 +95,29 @@ local function bearing()
     arrow.icon:SetRotation(math.atan2(-dx,-dy)-facing)
     arrow:Show()
 end
+local function refreshBearing()
+    local readable,failure=pcall(bearing)
+    if not readable then if arrow then arrow:Hide() end; navigation.lastError=tostring(failure) end
+end
 function navigation.Refresh()
     local ok,reason=pcall(draw)
     if not ok then hidePins(); navigation.lastError=tostring(reason) end
-    local readable,failure=pcall(bearing)
-    if not readable then if arrow then arrow:Hide() end; navigation.lastError=tostring(failure) end
+    refreshBearing()
 end
 function navigation.Start()
     core.Combat.Queue(function()
         if not arrow then arrowBuild() end
         local driver=CreateFrame("Frame")
         driver:SetScript("OnUpdate",function(_,delta)
-            elapsed=elapsed+delta
-            if elapsed<.2 then return end; elapsed=0
-            frame=WorldMapFrame
-            if planner.Controller.Policy().arrow or (frame and frame:IsShown()) then navigation.Refresh()
-            else hidePins(); arrow:Hide() end
+            elapsed=elapsed+delta; bearingElapsed=bearingElapsed+delta
+            if elapsed>=MAP_INTERVAL then
+                elapsed=elapsed%MAP_INTERVAL; bearingElapsed=0
+                frame=WorldMapFrame
+                navigation.Refresh()
+            elseif bearingElapsed>=BEARING_INTERVAL then
+                bearingElapsed=bearingElapsed%BEARING_INTERVAL
+                refreshBearing()
+            end
         end)
     end,"questplanner:navigation")
 end

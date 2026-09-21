@@ -4,6 +4,7 @@ local schema,terrain=planner.Schema,{}
 planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local selectedKey,lastAttempt,elapsed=nil,nil,0
+local STEERING_INTERVAL = .05
 local state={status="unavailable",detail="Terrain datasource is not installed"}
 local display
 local function setState(status,detail)
@@ -149,6 +150,6 @@ function terrain.Start()
     driver:SetScript("OnUpdate",function(_,delta)
         terrain.Step()
         elapsed=elapsed+delta
-        if elapsed>=.2 then elapsed=0; if planner.enabled then update() end end
+        if elapsed>=STEERING_INTERVAL then elapsed=elapsed%STEERING_INTERVAL; if planner.enabled then update() end end
     end)
 end

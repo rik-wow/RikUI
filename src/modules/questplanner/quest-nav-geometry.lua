@@ -4,6 +4,7 @@ local geometry = {}
 planner.NavGeometry = geometry
 local EPSILON, EDGE_TOLERANCE = .00001, .002
 local LOOKAHEAD_PORTALS, PORTAL_MARGIN, CONTINUATION = 12, .0001, .25
+local ANTICIPATION, CONTINUATION_TRIES = 6, 6
 function geometry.Point(value)
     return schema.List(value,3) and #value==3 and schema.Number(value[1],-100000,100000)
         and schema.Number(value[2],-100000,100000) and schema.Number(value[3],-100000,100000)
@@ -118,16 +119,61 @@ local function crossings(route,origin,target,first,last)
     end
     return result
 end
+-- Clip a future portal to the angular window of every earlier portal.
+-- This only proposes a target: crossings still proves order and surface membership.
+local function clipHalfPlane(lo,hi,a,b)
+    if a<0 and b<0 then return nil end
+    if a>=0 and b>=0 then return lo,hi end
+    local cut=a/(a-b)
+    if a<0 then lo=math.max(lo,cut) else hi=math.min(hi,cut) end
+    if lo>=hi then return nil end
+    return lo,hi
+end
+local function visiblePortal(route,origin,first,last)
+    local target=route.portals[last-1]
+    local a,b=target.left,target.right
+    local lo,hi=PORTAL_MARGIN*2,1-PORTAL_MARGIN*2
+    for at=first,last-2 do
+        local gate=route.portals[at]
+        local sign=cross(origin,gate.left,gate.right)
+        if math.abs(sign)>EPSILON then
+            sign=sign>0 and 1 or -1
+            lo,hi=clipHalfPlane(lo,hi,sign*cross(origin,gate.left,a),sign*cross(origin,gate.left,b))
+            if not lo then return end
+            lo,hi=clipHalfPlane(lo,hi,-sign*cross(origin,gate.right,a),-sign*cross(origin,gate.right,b))
+            if not lo then return end
+        end
+    end
+    local t=(lo+hi)/2
+    return {a[1]+t*(b[1]-a[1]),a[2]+t*(b[2]-a[2]),a[3]+t*(b[3]-a[3])}
+end
+local function portalAim(route,origin,first,last)
+    local gate=visiblePortal(route,origin,first,last)
+    if not gate then return end
+    local center=route.points[last*2]
+    local distance=geometry.Distance(gate,center)
+    local ratio=distance>0 and math.min(1,ANTICIPATION/distance) or 1
+    -- Try progressively shorter interior continuations, always with corridor proof.
+    for _=1,CONTINUATION_TRIES do
+        local target={}
+        for at=1,3 do target[at]=gate[at]+ratio*(center[at]-gate[at]) end
+        local crossed=crossings(route,origin,target,first,last)
+        if crossed then return target,crossed,last end
+        ratio=ratio/2
+    end
+end
 function geometry.CorridorAim(route,origin,index)
     if index==#route.corridor then return route.points[#route.points],{},index end
     if not route.portals or not route.surfaces then
         return route.points[index*2+1],{},index
     end
-    -- At most 12 portals ahead: 78 candidate intersection tests plus one fallback.
+    -- At most 12 portals ahead; each candidate has at most six checked continuations.
     for last=math.min(#route.corridor,index+LOOKAHEAD_PORTALS),index+1,-1 do
         local target=last==#route.corridor and route.points[#route.points] or route.points[last*2]
         local crossed=crossings(route,origin,target,index,last)
         if crossed then return target,crossed,last end
+        local visible,proof=portalAim(route,origin,index,last)
+        if visible then return visible,proof,last end
     end
     -- A short continuation beyond the first portal avoids stopping on its boundary.
     local gate=route.portals[index].midpoint
