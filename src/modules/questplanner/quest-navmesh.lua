@@ -260,6 +260,38 @@ end
 local function approachResult(data,status,detail,metrics)
     return {status=status,detail=detail,metrics=metrics,nativeVerified=false,revision=data.meta.revision}
 end
+local function reachableCandidates(data,goal,last,options,metrics)
+    local radius=options.markerRadius or APPROACH_RADIUS
+    local result,seen={},{}
+    if not options.reachableApproach or goal.height~=nil or not approachCovered(data,goal,radius) then return result end
+    for x=math.floor((goal.x-radius)/CELL),math.floor((goal.x+radius)/CELL) do
+        for z=math.floor((goal.z-radius)/CELL),math.floor((goal.z+radius)/CELL) do
+            for _,id in ipairs(data.cells[x..":"..z] or {}) do
+                if not seen[id] then
+                    seen[id]=true;metrics.endpointChecks=metrics.endpointChecks+1
+                    local value=candidate(data,id,goal,radius)
+                    if value and value.gap<=radius
+                        and math.abs(value.point[2]-last.point[2])<=data.meta.modeledMaxStep then
+                        local unique=locate(data,{x=value.point[1],z=value.point[3]})
+                        if unique and unique.id==id then result[#result+1]=value end
+                    end
+                end
+                coroutine.yield()
+            end
+        end
+    end
+    return result
+end
+local function exactApproachWorker(data,start,goal,last,options,metrics)
+    local candidates=reachableCandidates(data,goal,last,options,metrics)
+    local job,issue=planner.NavSearch.Begin(data,start,goal,options,locate,candidates)
+    if not job then return approachResult(data,"unknown-target",issue,metrics) end
+    while true do
+        local result=job:Step(1)
+        if result then result.metrics.endpointChecks=metrics.endpointChecks;return result end
+        coroutine.yield()
+    end
+end
 local function approachWorker(data,start,goal,options,metrics)
     local endpoint,reason=approachEndpoint(data,goal,metrics,options.markerRadius or APPROACH_RADIUS)
     if not endpoint then return approachResult(data,"unknown-target",reason,metrics) end
@@ -283,17 +315,22 @@ local function beginApproach(data,start,goal,options)
     local first,issue=locate(data,start)
     if not first then return nil,issue end
     local last,reason=locate(data,goal)
-    if last then return planner.NavSearch.Begin(data,start,goal,options,locate) end
-    if reason~="outside known navigation polygons" then return nil,reason end
+    if not last and reason~="outside known navigation polygons" then return nil,reason end
     local settings=schema.Copy(options or {})
     if not schema.PlainTable(settings) or not schema.Integer(settings.maxWork or 16384,1,262145)
         or not schema.Number(settings.speed or 7,.1,100)
         or not schema.Number(settings.markerRadius or APPROACH_RADIUS,1,MAX_MARKER_RADIUS) then return nil,"invalid navigation limits" end
-    if goal.height~=nil or not approachCovered(data,goal,settings.markerRadius or APPROACH_RADIUS) then
+    if last and not settings.reachableApproach then return planner.NavSearch.Begin(data,start,goal,settings,locate) end
+    if settings.reachableApproach~=nil and type(settings.reachableApproach)~="boolean" then return nil,"invalid navigation limits" end
+    if not last and (goal.height~=nil or not approachCovered(data,goal,settings.markerRadius or APPROACH_RADIUS)) then
         return nil,"Marker approach outside sourced coverage"
     end
+    start,goal=schema.Clone(start),schema.Clone(goal)
     local metrics={endpointChecks=0}
-    local worker=coroutine.create(function() return approachWorker(data,schema.Clone(start),schema.Clone(goal),settings,metrics) end)
+    local worker=coroutine.create(function()
+        if last then return exactApproachWorker(data,schema.Clone(start),schema.Clone(goal),last,settings,metrics) end
+        return approachWorker(data,schema.Clone(start),schema.Clone(goal),settings,metrics)
+    end)
     local cancelled,output=false,nil
     return {
         Cancel=function() cancelled=true end,

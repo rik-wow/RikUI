@@ -121,7 +121,7 @@ local function update()
     local begin=target.scope=="current-map-quest-poi" and mesh.BeginMarkerApproach or mesh.Begin
     -- Quest-map POIs represent a vicinity, not an exact standing/interaction position.
     local maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1)
-    request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8})
+    request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true})
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
 local function loadSlice()

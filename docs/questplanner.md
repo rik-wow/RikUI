@@ -659,8 +659,31 @@ inside the bound, and must have unique horizontal containment. Equally near
 surfaces (within a .25-yard nearest-distance band) whose boundary heights differ
 by more than the modeled step remain ambiguous. Distant hills elsewhere in the
 vicinity do not compete with the nearest cave floor. Source bounds and excluded
-footprints still constrain the entire vicinity. The selected endpoint must be
-connected by actual portals; no farther reachable endpoint is substituted.
+footprints still constrain the entire vicinity. For an uncovered marker, the
+nearest unambiguous endpoint must still connect through actual portals.
+
+For an exactly resolved observed marker on an isolated component, live guidance
+also enables `reachableApproach`. If the full directed search proves the exact
+marker unreachable, it may retain a route to the closest reachable unique
+endpoint within eight yards. Endpoint height must differ from the resolved
+marker floor by no more than the existing modeled step; explicit target altitude,
+ambiguous floors and excluded neighborhoods disable this fallback. Exact dataset
+destinations remain strict. This is a partial approach, not repaired connectivity:
+no final segment crosses the missing connection, and final-leg/interaction
+verification remains false. The result records kind
+`observed-marker-reachable-vicinity` and reason `exact-marker-disconnected`.
+Candidate collection, graph search and final selection are sliced and cancellable;
+work exhaustion never authorizes a partial-search fallback.
+
+From the rounded Brewnall screenshot center 30.4,46.3, actual archived markers
+317/384 previously resolved onto an isolated eight-polygon patch. The new route
+ends 3.4573 yards from that marker through 208 real polygons. Eight of nine
+rounding samples route; one start remains uncovered. Production movement replay
+completes 2,961 off-center steps with zero reversals. The final portal aim turns
+toward the endpoint before entering its polygon, avoiding an overshoot-and-return
+at this approach. Bitter Rivals' current marker is absent from the archives:
+these results do not establish that screenshot's exact destination or native
+walking. Full-map terrain installation remains unfinished.
 
 When an established unique floor becomes horizontally ambiguous during motion,
 short displacements may preserve the previous modeled surface. Each displacement

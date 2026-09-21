@@ -229,9 +229,24 @@ local function rayContinuation(route,origin,gate,first,last)
     local proof=crossings(route,origin,target,first,last)
     if proof then return target,proof,last end
 end
+local function finalPortalAim(route,origin,gate,first,last)
+    if last~=#route.corridor then return end
+    local endpoint=route.points[#route.points]
+    local ratio=1
+    for _=1,CONTINUATION_TRIES do
+        local target={}
+        for at=1,3 do target[at]=gate[at]+ratio*(endpoint[at]-gate[at]) end
+        local proof=crossings(route,origin,target,first,last)
+        if proof then return target,proof,last end
+        ratio=ratio/2
+    end
+end
 local function portalAim(route,origin,first,last,preferred)
     local gate=visiblePortal(route,origin,first,last,preferred)
     if not gate then return end
+    -- Turn into the final approach instead of overshooting its entrance ray.
+    local final,finalProof=finalPortalAim(route,origin,gate,first,last)
+    if final then return final,finalProof,last end
     local ray,proof=rayContinuation(route,origin,gate,first,last)
     if ray then return ray,proof,last end
     local center=route.points[last*2]

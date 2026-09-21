@@ -203,6 +203,45 @@ return function(check)
         disconnected[1].polygons[3].portals={}
         local less=p.Schema.Clone(meta); less.counts.portals=2
         check("nearby polygons without portals stay disconnected",path(assert(load(less,disconnected)),start,goal).status=="no-known-path")
+        local function reachable(graph,from,to,settings)
+            local pending=assert(graph:BeginMarkerApproach(from,to,settings or {markerRadius=8,reachableApproach=true}))
+            local result
+            repeat result=pending:Step(1) until result
+            return result
+        end
+        local broken=assert(load(less,disconnected))
+        local vicinityGoal={x=15,z=15}
+        local partial=reachable(broken,start,vicinityGoal)
+        check("disconnected marker can retain a real route to nearby reachable ground",
+            partial.status=="modeled" and partial.approach.kind=="observed-marker-reachable-vicinity"
+            and partial.approach.gap>5 and partial.approach.gap<5.01
+            and partial.corridor[#partial.corridor]==2
+            and partial.points[#partial.points][3]<10)
+        check("reachable approach never fabricates the missing final connection",
+            partial.approach.finalLegVerified==false and partial.approach.interactionVerified==false
+            and partial.approach.marker.z==15)
+        local exactPreferred=reachable(mesh,start,vicinityGoal)
+        check("connected exact marker remains preferred to nearby candidates",
+            exactPreferred.status=="modeled" and exactPreferred.approach==nil)
+        local pendingReachable=assert(broken:BeginMarkerApproach(start,vicinityGoal,
+            {markerRadius=8,reachableApproach=true}))
+        check("reachable candidate collection yields",pendingReachable:Step(1)==nil)
+        pendingReachable:Cancel()
+        check("reachable candidate cancellation publishes no approach",
+            pendingReachable:Step(128).status=="cancelled")
+        check("reachable approach stays within its finite vicinity",
+            reachable(broken,start,{x=15,z=19}).status=="no-known-path")
+        check("explicit target altitude disables approximate reachable approach",
+            reachable(broken,start,{x=15,z=15,height=0}).status=="no-known-path")
+        check("exhausted work cannot publish a partial search as a reachable approach",
+            reachable(broken,start,vicinityGoal,{markerRadius=8,reachableApproach=true,maxWork=1}).status=="budget-exhausted")
+        local higher=p.Schema.Clone(disconnected)
+        higher[1].polygons[3]=square(3,10,10,10)
+        check("reachable approach cannot choose ground on a different floor",
+            reachable(assert(load(less,higher)),start,vicinityGoal).status=="no-known-path")
+        local exclusionMeta=p.Schema.Clone(less);exclusionMeta.exclusions={{7.5,14,8,15}}
+        check("excluded marker vicinity cannot enable reachable approach",
+            reachable(assert(load(exclusionMeta,disconnected)),start,vicinityGoal).status=="no-known-path")
         local layers=p.Schema.Clone(shards); layers[1].polygons[#layers[1].polygons+1]=square(4,0,0,10)
         local taller=p.Schema.Clone(meta); taller.counts.polygons=4
         local layered=assert(load(taller,layers))
@@ -232,6 +271,8 @@ return function(check)
         check("competing approach floors remain ambiguous",ambiguous.status=="unknown-target"
             and ambiguous.detail:find("ambiguous",1,true)~=nil)
         check("exact stacked target never falls back",not targetMesh:BeginMarkerApproach(start,goal))
+        check("reachable policy cannot resolve an ambiguous target floor",
+            not targetMesh:BeginMarkerApproach(start,goal,{markerRadius=8,reachableApproach=true}))
         check("disconnected nearest approach cannot invent a portal",
             approach(assert(load(less,disconnected)),start,near).status=="no-known-path")
         local excluded=p.Schema.Clone(meta); excluded.exclusions={{8.8,14,9,16}}

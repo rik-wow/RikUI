@@ -66,6 +66,24 @@ local function finish(job)
     result.globalOptimal=false
     return result
 end
+local function reachableApproach(job)
+    local best
+    for _,value in ipairs(job.alternatives or {}) do
+        if job.closed[value.id] and (not best or value.gap<best.gap
+            or (value.gap==best.gap and value.id<best.id)) then best=value end
+        coroutine.yield()
+    end
+    if not best then return response(job,"no-known-path","No connected corridor in this datasource") end
+    job.goal=best
+    local result=finish(job)
+    if result.status=="modeled" then
+        result.approach={kind="observed-marker-reachable-vicinity",marker=schema.Clone(job.marker),
+            gap=best.gap,radius=job.radius,finalLegVerified=false,interactionVerified=false,
+            reason="exact-marker-disconnected"}
+        result.detail="Reachable approach; final gap is outside the connected walking model"
+    end
+    return result
+end
 local function run(job)
     while #job.heap>0 do
         if job.work>=job.maxWork then return response(job,"budget-exhausted","navigation work limit") end
@@ -88,9 +106,9 @@ local function run(job)
         end
         coroutine.yield()
     end
-    return response(job,"no-known-path","No connected corridor in this datasource")
+    return reachableApproach(job)
 end
-function search.Begin(data,start,goal,options,locate)
+function search.Begin(data,start,goal,options,locate,alternatives)
     local settings=schema.Copy(options or {})
     if not schema.PlainTable(settings) then return nil,"invalid navigation policy" end
     local maxWork,speed=settings.maxWork or 16384,settings.speed or 7
@@ -100,7 +118,8 @@ function search.Begin(data,start,goal,options,locate)
     local last,failure=locate(data,goal)
     if not last then return nil,failure end
     local job={data=data,start=first,goal=last,maxWork=maxWork,speed=speed,work=0,visited=0,
-        heap={},distance={},previous={},closed={}}
+        heap={},distance={},previous={},closed={},alternatives=alternatives,
+        marker=alternatives and schema.Clone(goal),radius=settings.markerRadius or 1}
     job.distance[first.id]=geometry.Distance(first.point,data.polygons[first.id].center)
     push(job.heap,{id=first.id,cost=job.distance[first.id],priority=job.distance[first.id]+geometry.Distance(data.polygons[first.id].center,data.polygons[last.id].center)})
     local worker=coroutine.create(function() return run(job) end)
