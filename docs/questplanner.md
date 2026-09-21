@@ -428,6 +428,13 @@ Dun Morogh speed or native performance claim.
 
 ## Live controller and guidance
 
+Steering looks ahead along approximately 24 yards of portal geometry, retaining
+a minimum 12-portal horizon and a hard 64-portal cap. This prevents dense mesh
+subdivision from shortening the aim to a nearby breadcrumb. Progress follows
+the currently occupied corridor polygon, including off-center movement; touching
+a center or previous aim is unnecessary. Every forward shortcut still proves
+ordered crossings through the actual portals and modeled surfaces.
+
 Tracker and arrow instructions now refresh from live position and facing every
 50 ms: turn/bear/continue plus yards to the current steering aim, with estimated
 remaining route length underneath. At the modeled endpoint they ask the player

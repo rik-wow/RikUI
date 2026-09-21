@@ -109,6 +109,33 @@ return function(check)
         local reversedAim,reversedProof=p.NavGeometry.CorridorAim(reversed,{1,0,9},1)
         check("visible interval does not depend on portal endpoint winding",
             p.NavGeometry.Distance(aim,reversedAim)<.00001 and #reversedProof==#crossed)
+        -- Same open strip split into many tiny polygons must not become node chasing.
+        local dense={corridor={},surfaces={},portals={},points={{.05,0,2}}}
+        for index=1,100 do
+            local x=(index-1)*.1
+            dense.corridor[index]=index
+            dense.surfaces[index]={{x,0,0},{x+.1,0,0},{x+.1,0,10},{x,0,10}}
+            dense.points[#dense.points+1]={x+.05,0,5}
+            if index<100 then
+                local gate={left={x+.1,0,0},right={x+.1,0,10},midpoint={x+.1,0,5}}
+                dense.portals[index]=gate;dense.points[#dense.points+1]=gate.midpoint
+            end
+        end
+        dense.points[#dense.points+1]={9.95,0,2}
+        local far,proof,reached=p.NavGeometry.CorridorAim(dense,{.05,0,2},1)
+        check("dense corridor aims several yards ahead without touching centers",far[1]>.05+6 and reached>12 and #proof==reached-1)
+        local passed,passedProof,passedIndex=p.NavGeometry.CorridorAim(dense,{1.47,0,8},15)
+        check("off-center progress advances from current polygon without reaching old aim",
+            passed[1]>1.47+6 and passedIndex>reached and #passedProof==passedIndex-15)
+        check("dense lookahead remains bounded",reached<=65 and passedIndex<=79)
+        local broad=p.Schema.Clone(dense)
+        for _,surface in ipairs(broad.surfaces) do for _,point in ipairs(surface) do point[1]=point[1]*100 end end
+        for _,point in ipairs(broad.points) do point[1]=point[1]*100 end
+        for _,gate in ipairs(broad.portals) do
+            gate.left[1]=gate.left[1]*100;gate.right[1]=gate.right[1]*100;gate.midpoint[1]=gate.midpoint[1]*100
+        end
+        local _,_,broadLast=p.NavGeometry.CorridorAim(broad,{5,0,2},1)
+        check("spatial horizon preserves existing broad-polygon anticipation",broadLast==13)
         local exact=2*math.sqrt(32)+20
         check("center-graph distance matches independent geometry",math.abs(route.meters-exact)<.000001)
         check("derived path never claims native or continuous global optimality",route.nativeVerified==false and not route.globalOptimal)

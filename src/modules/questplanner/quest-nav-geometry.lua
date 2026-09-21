@@ -3,7 +3,8 @@ local planner, schema = RikUI.QuestPlanner, RikUI.QuestPlanner.Schema
 local geometry = {}
 planner.NavGeometry = geometry
 local EPSILON, EDGE_TOLERANCE = .00001, .002
-local LOOKAHEAD_PORTALS, PORTAL_MARGIN, CONTINUATION = 12, .0001, .25
+local LOOKAHEAD_PORTALS, PORTAL_MARGIN, CONTINUATION = 64, .0001, .25
+local LOOKAHEAD_YARDS = 24
 local ANTICIPATION, CONTINUATION_TRIES = 6, 6
 function geometry.Point(value)
     return schema.List(value,3) and #value==3 and schema.Number(value[1],-100000,100000)
@@ -162,13 +163,25 @@ local function portalAim(route,origin,first,last)
         ratio=ratio/2
     end
 end
+local function lookaheadEnd(route,origin,index)
+    local last=index
+    local previous,distance=origin,0
+    for at=index,math.min(#route.corridor-1,index+LOOKAHEAD_PORTALS-1) do
+        local point=route.portals[at].midpoint
+        distance=distance+geometry.Distance(previous,point)
+        previous,last=point,at+1
+        -- Spatial horizon adapts to tessellation; the hard cap bounds proof work.
+        if distance>=LOOKAHEAD_YARDS and at-index+1>=12 then break end
+    end
+    return last
+end
 function geometry.CorridorAim(route,origin,index)
     if index==#route.corridor then return route.points[#route.points],{},index end
     if not route.portals or not route.surfaces then
         return route.points[index*2+1],{},index
     end
-    -- At most 12 portals ahead; each candidate has at most six checked continuations.
-    for last=math.min(#route.corridor,index+LOOKAHEAD_PORTALS),index+1,-1 do
+    -- Aim through the visible corridor, not at the next breadcrumb to be collected.
+    for last=lookaheadEnd(route,origin,index),index+1,-1 do
         local target=last==#route.corridor and route.points[#route.points] or route.points[last*2]
         local crossed=crossings(route,origin,target,index,last)
         if crossed then return target,crossed,last end
