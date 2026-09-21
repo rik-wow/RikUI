@@ -260,3 +260,29 @@ reads. Their counts do not verify objective transitions. Combat and disabled
 module checks were explicitly not run. Copy-window/clipboard/restart behavior
 and live performance remain acceptance obligations of the content/interface
 workstream; synthetic tests do not satisfy them.
+
+## Action eligibility
+
+`Eligibility.Condition(condition, state)` evaluates bounded AND/OR/NOT expressions
+with true/false/unknown semantics. False dominates AND; true dominates OR; NOT
+preserves unknown. Predicates include active, completed (turned-in only), class,
+race, faction, level bounds and explicit flags. Exclusions and breadcrumb choices
+are expressions supplied by evidence, never inferred from quest order. The
+schema normalizes distinct predicate values without collapsing class alternatives.
+
+`Eligibility.Evaluate(action, state, catalogue)` returns eligible, blocked or
+unknown and reason strings. Actions are pickup, objective and turnin. Pickups
+require known prerequisites, complete additional requirements, log capacity,
+known absence from the active log and explicit turn-in/repeat availability.
+Known repeatability alone cannot authorize an immediately repeatable pickup.
+
+An already accepted quest can progress or turn in using readable current
+activity, failure and objective-completion flags without inventing its pickup
+rules. Partial logs establish presence but not absence. Stale/imported state and
+catalogue identity mismatches never produce eligible actions. The snapshot
+adapter copies current activity and separately supplied historical flags; it
+never interprets a vanished quest as a turn-in. All actions remain advisory.
+
+The logic is tested on original synthetic rules, including changed/skipped chains,
+class constraints, full logs and conflicts. Validation against real newly added
+and changed Forever chains remains in the corpus acceptance requirements.

@@ -103,7 +103,17 @@ end
 
 local function condition(value)
     if not schema.PlainTable(value) then return false end
-    if value.op == "always" then return only(value, { op = true }) end
+    if value.op == "always" or value.op == "never" then return only(value, { op = true }) end
+    if value.op == "not" then return only(value, { op = true, arg = true }) and condition(value.arg) end
+    if value.op == "class" or value.op == "race" then
+        return only(value, { op = true, value = true }) and schema.ID(value.value)
+    end
+    if value.op == "levelAtLeast" or value.op == "levelAtMost" then
+        return only(value, { op = true, value = true }) and schema.Integer(value.value, 0, 1000)
+    end
+    if value.op == "flag" or value.op == "faction" then
+        return only(value, { op = true, value = true }) and token(value.value)
+    end
     if value.op == "completed" or value.op == "active" then
         return schema.ID(value.questID) and only(value, { op = true, questID = true })
     end
@@ -111,6 +121,12 @@ local function condition(value)
     if not only(value, { op = true, args = true }) or not schema.List(value.args, MAX_LIST) or #value.args == 0 then return false end
     for _, child in ipairs(value.args) do if not condition(child) then return false end end
     return true
+end
+
+function schema.Condition(value)
+    local copy, reason = schema.Copy(value)
+    if not copy or not condition(copy) then return nil, reason or "invalid condition" end
+    return copy
 end
 
 local function locations(value)
@@ -131,7 +147,7 @@ local fields = {
     minLevel = function(value) return schema.Integer(value, 0, 1000) end,
     baseXP = function(value) return schema.Integer(value, 0, MAX_ID) end,
     repeatable = function(value) return type(value) == "boolean" end,
-    startNPCs = idList, endNPCs = idList, prerequisites = condition, locations = locations,
+    startNPCs = idList, endNPCs = idList, prerequisites = condition, requirements = condition, locations = locations,
 }
 
 function schema.Fields()
@@ -152,7 +168,8 @@ local function uniqueSorted(values)
 end
 
 local function normalizeCondition(value)
-    if not value.args then return value.op .. ":" .. tostring(value.questID or "") end
+    if value.arg then return value.op .. "(" .. normalizeCondition(value.arg) .. ")" end
+    if not value.args then return value.op .. ":" .. tostring(value.questID or value.value or "") end
     local keyed, keys = {}, {}
     for _, child in ipairs(value.args) do
         local key = normalizeCondition(child)
@@ -171,6 +188,6 @@ function schema.Field(name, value)
     if copy == nil then return nil, reason end
     if not validate(copy) then return nil, "invalid " .. name end
     if name == "startNPCs" or name == "endNPCs" then copy = uniqueSorted(copy) end
-    if name == "prerequisites" then normalizeCondition(copy) end
+    if name == "prerequisites" or name == "requirements" then normalizeCondition(copy) end
     return copy
 end
