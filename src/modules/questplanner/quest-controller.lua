@@ -153,8 +153,8 @@ function controller.Update(snapshot,status,reason)
     if signature==nextSignature then return end
     if planner.Terrain then planner.Terrain.Invalidate() end
     cancel(); revision=revision+1; signature=nextSignature
-    if policy.paused then publish({status="paused",detail="Quest guidance paused",quests={}}); return end
     local observed=planner.Guidance.Observed(snapshot,ctx,policy,view.selected and view.selected.questID)
+    if policy.paused then publish({status="paused",detail="Quest guidance paused",quests=observed}); return end
     begin(snapshot,status,ctx,dialog,observed,reason or "quest state changed")
 end
 function controller.Start()

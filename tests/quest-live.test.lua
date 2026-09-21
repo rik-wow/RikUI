@@ -214,6 +214,11 @@ return function(check)
         check("map command delegates explicit quest opening",opened==10)
         p.Command("pause"); env.flushTimers()
         check("pause clears actionable guidance",p.Controller.Get().status=="paused" and p.Controller.Get().selected==nil)
+        check("pause keeps quest browsing available",#p.Controller.Get().quests==2
+            and p.View.Window.rows[1]:IsShown())
+        local pausedQuest=p.View.Window.rows[1].questID
+        env.click(p.View.Window.rows[1])
+        check("paused quest row still opens manual quest log",opened==pausedQuest)
         p.Command("resume"); env.flushTimers()
         env.fire("QUEST_COMPLETE"); env.flushTimers()
         for _=1,100 do p.Controller.Step() end
