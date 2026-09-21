@@ -28,6 +28,8 @@ function planner.Command(arguments)
             end
         end
         core:Print("Quest progress: "..done.."/"..total.." objectives finished; "..ready.." quests ready to turn in.")
+        local journal=planner.Journal.Status()
+        core:Print("Quest journal: "..journal.entries.." session events; latest log change: "..(journal.lastChange or "none")..".")
         local context=controller.Context()
         if context then
             local locations,rewards=0,0

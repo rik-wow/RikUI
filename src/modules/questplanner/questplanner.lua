@@ -3,7 +3,7 @@ local core, planner = RikUI, RikUI.QuestPlanner
 local schema = planner.Schema
 local REFRESH_DELAY = 0.1
 local EVENTS = { "PLAYER_ENTERING_WORLD", "QUEST_LOG_UPDATE", "QUEST_ACCEPTED", "QUEST_REMOVED", "QUEST_TURNED_IN",
-    "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED", "GOSSIP_CLOSED",
+    "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED", "GOSSIP_SHOW", "GOSSIP_CLOSED",
     "QUEST_POI_UPDATE", "WAYPOINT_UPDATE", "PLAYER_LEVEL_UP", "PLAYER_XP_UPDATE", "ZONE_CHANGED_NEW_AREA" }
 local lastReason = "current quests"
 local snapshot, pending, started = nil, false, false
@@ -25,6 +25,7 @@ function planner.Refresh()
     end
     generation = generation + 1
     nextSnapshot.generation = generation
+    if planner.Journal then planner.Journal.SnapshotChanged(nextSnapshot,snapshot) end
     snapshot = nextSnapshot
     local partial = snapshot.coverage ~= "log-complete" or snapshot.hasUnknown
     status = { state = partial and "partial" or "current" }

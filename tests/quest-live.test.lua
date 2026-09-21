@@ -3,12 +3,12 @@ return function(check)
     local env=require("wow_stub")
     local restore=require("widget_stub").install()
     local names={"RikUI","RikUIDB","RikUICharDB","C_QuestLog","C_Map","C_Item","GetBuildInfo","GetLocale",
-        "UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax","GetQuestID","GetTitleText","GetRewardXP",
+        "C_GossipInfo","UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax","GetQuestID","GetTitleText","GetRewardXP",
         "GetQuestLogRewardXP","UnitGUID","debugprofilestop","QuestMapFrame_OpenToQuestDetails","WorldMapFrame","GetPlayerFacing","UnitPosition"}
     local saved={}
     for _,name in ipairs(names) do saved[name]=_G[name] end
     local added={}
-    for _,name in ipairs({"QUEST_ACCEPTED","QUEST_REMOVED","QUEST_TURNED_IN","QUEST_DETAIL","QUEST_PROGRESS","QUEST_COMPLETE","QUEST_FINISHED","GOSSIP_CLOSED","WAYPOINT_UPDATE"}) do
+    for _,name in ipairs({"QUEST_ACCEPTED","QUEST_REMOVED","QUEST_TURNED_IN","QUEST_DETAIL","QUEST_PROGRESS","QUEST_COMPLETE","QUEST_FINISHED","GOSSIP_SHOW","GOSSIP_CLOSED","WAYPOINT_UPDATE"}) do
         added[name]=env.KNOWN_EVENTS[name] or false; env.KNOWN_EVENTS[name]=true
     end
     local selected,complete,dialogID,opened=10,true,10,nil
@@ -38,14 +38,15 @@ return function(check)
         QuestMapFrame_OpenToQuestDetails=function(id) opened=id end
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
-        for _,name in ipairs({"schema","evidence","corpus","reader","transfer","eligibility","elevators","travel","actions","simulation","optimizer",
-            "context","journal","dataset","guidance","controller","view","navigation","transfer-view","commands"}) do
+        for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","actions","simulation","optimizer",
+            "context","gossip","journal","dataset","guidance","controller","view","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         dofile("src/modules/questplanner/questplanner.lua")
         env.fire("ADDON_LOADED","RikUI"); env.fire("PLAYER_LOGIN"); env.flushTimers()
         local p=RikUI.QuestPlanner
         local model=p.Controller.Get()
+        check("reader records initial snapshot independently",p.Journal.Export().entries[1].event=="initial-observation")
         check("live unknown geometry presents observations without ETA",model.status=="observed" and not model.calculated and model.seconds==nil)
         check("ready turn-in is the useful observed choice",model.selected.questID==10 and model.selected.destination.mapID==1426)
         check("context reads real capacity and selected contextual reward",p.Controller.Context().attributes.logCapacity==40
@@ -75,6 +76,33 @@ return function(check)
         local changed=p.GetSnapshot(); changed.quests[11].objectives[1].text="Bears: 1/2"
         local changedInput=assert(region:Prepare(changed,(select(2,p.GetSnapshot())),ctx,{npcID=123}))
         check("changed Forever objective text cannot inherit old mapping",changedInput.state.objectives[11]==nil)
+        local numbered=p.Schema.Clone(raw)
+        numbered.bindings[1].objectives[1].text="Section 2: #/#"
+        local numberedRegion=assert(p.Dataset.New(numbered))
+        local numericSnapshot=p.GetSnapshot();numericSnapshot.quests[11].objectives[1].text="Section 2: 1/2"
+        local numberedInput=assert(numberedRegion:Prepare(numericSnapshot,(select(2,p.GetSnapshot())),ctx,{npcID=123}))
+        check("objective binding retains authored numbers",numberedInput.state.objectives[11].wolves==1)
+        numericSnapshot.quests[11].objectives[1].text="Section 3: 1/2"
+        local otherNumber=assert(numberedRegion:Prepare(numericSnapshot,(select(2,p.GetSnapshot())),ctx,{npcID=123}))
+        check("changed numbered goal cannot inherit binding",otherNumber.state.objectives[11]==nil)
+        local longGoal=p.GetSnapshot()
+        longGoal.quests[11].objectives[1].text=string.rep("x",250).."Section 2"
+        local firstSignature=p.Guidance.Signature(longGoal,{state="current"},ctx)
+        longGoal.quests[11].objectives[1].text=string.rep("x",250).."Section 3"
+        check("material changes beyond display truncation invalidate planning",
+            firstSignature~=p.Guidance.Signature(longGoal,{state="current"},ctx))
+        local typeSignature=p.Guidance.Signature(longGoal,{state="current"},ctx)
+        longGoal.quests[11].objectives[1].type="event"
+        check("objective type is material",typeSignature~=p.Guidance.Signature(longGoal,{state="current"},ctx))
+        local oversized=p.GetSnapshot();oversized.quests[11].objectives={}
+        for index=1,32 do oversized.quests[11].objectives[index]={text=string.rep("z",2048),
+            type="item",numFulfilled=0,numRequired=1,finished=false} end
+        oversized.quests[10].objectives=p.Schema.Clone(oversized.quests[11].objectives)
+        check("oversized signature refuses calculation explicitly",not p.Guidance.Signature(oversized,{state="current"},ctx))
+        p.Controller.Update(oversized,{state="current"},"size fixture")
+        check("signature size limit clears actionable state",p.Controller.Get().status=="unavailable"
+            and p.Controller.Get().selected==nil and p.Controller.Get().detail:find("size limit",1,true))
+        p.Controller.Update(p.GetSnapshot(),(select(2,p.GetSnapshot())),"fixture restored")
         raw.anchors[1].npcID=999
         check("compiled region detached from caller mutations",region:Prepare(p.GetSnapshot(),(select(2,p.GetSnapshot())),ctx,{npcID=123})~=nil)
         local wrong=p.Schema.Clone(raw); wrong.actions[1].source.id="missing"
@@ -177,6 +205,28 @@ return function(check)
         check("dialog close cancels before queued refresh and publication",p.Controller.Get().status=="updating")
         env.flushTimers()
         check("closed dialog loses zero-travel interaction feasibility",not p.Controller.Get().calculated)
+        C_GossipInfo={GetAvailableQuests=function() return {{questID=98319,title="Offered fixture",questLevel=8}} end,
+            GetActiveQuests=function() return {{questID=10,title="Active fixture",questLevel=7,isComplete=true}} end}
+        p.Journal.Record("QUEST_COMPLETE",p.GetSnapshot())
+        env.fire("GOSSIP_SHOW");env.flushTimers()
+        local events=p.Journal.Export().entries
+        local offered=events[#events]
+        check("registered gossip event captures offers with snapshot identity",offered.event=="GOSSIP_SHOW"
+            and offered.identity.build=="1.60.1.69913" and offered.offered[1].questID==98319)
+        check("new gossip dialog clears previous quest interaction",p.Journal.Dialog()==nil)
+        p.Journal.Record("QUEST_TURNED_IN",p.GetSnapshot(),10,0,5)
+        events=p.Journal.Export().entries
+        local turnin=events[#events]
+        check("turnin keeps zero XP and event context without base XP",turnin.receivedXP==0 and turnin.receivedMoney==5
+            and turnin.identity.build=="1.60.1.69913" and turnin.levelAtEvent==7
+            and turnin.contextStatus.time.state=="observed" and turnin.baseXP==nil)
+        local originalContext,originalInfo=p.Context.Read,C_QuestLog.GetInfo
+        p.Context.Read=function() return nil end
+        C_QuestLog.GetInfo=function(index) local row=originalInfo(index);row.level=8;return row end
+        p.Refresh()
+        check("log journal survives unavailable planning context",p.Journal.Status().lastChange=="quest details changed"
+            and p.Journal.Status().changedQuests==2)
+        p.Context.Read,C_QuestLog.GetInfo=originalContext,originalInfo;p.Refresh()
         p.Command("export")
         local wire=p.TransferView.Window.edit:GetText()
         local imported=assert(p.Transfer.Decode(wire))

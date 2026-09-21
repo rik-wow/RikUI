@@ -5,7 +5,7 @@ planner.Controller=controller
 local MAX_FLAGS,FRAME_CALLS,FRAME_MS=32,64,1
 local policy={pins={},avoids={},skips={},paused=false,arrow=false,dungeons=false}
 local view={status="unavailable",detail="Reading the quest log",quests={}}
-local revision,signature,data,job,context,lastSnapshot=0,nil,nil,nil,nil,nil
+local revision,signature,data,job,context=0,nil,nil,nil,nil
 local stats={replans=0,published=0,cancelled=0,maxSliceMS=0,timingSamples=0,frameCalls=0}
 local worker
 local function notify()
@@ -141,11 +141,13 @@ function controller.Update(snapshot,status,reason)
     local ctx=planner.Context.Read(snapshot,policy.pins)
     if not ctx then controller.Invalidate(); return end
     local dialog=planner.Journal.Dialog()
-    local nextSignature=planner.Guidance.Signature(snapshot,status,ctx,dialog)
+    local nextSignature,signatureProblem=planner.Guidance.Signature(snapshot,status,ctx,dialog)
     context=ctx
+    if not nextSignature then
+        controller.Invalidate();publish({status="unavailable",detail=signatureProblem,quests={}});return
+    end
     if signature==nextSignature then return end
     cancel(); revision=revision+1; signature=nextSignature
-    planner.Journal.SnapshotChanged(snapshot,lastSnapshot); lastSnapshot=schema.Clone(snapshot)
     if policy.paused then publish({status="paused",detail="Quest guidance paused",quests={}}); return end
     local observed=planner.Guidance.Observed(snapshot,ctx,policy,view.selected and view.selected.questID)
     begin(snapshot,status,ctx,dialog,observed,reason or "quest state changed")

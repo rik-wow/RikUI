@@ -49,6 +49,10 @@ The [Forever quest planner](questplanner.md) separates exact-build evidence,
 live character observations, eligibility, directed travel and action optimization.
 A revision-safe controller supplies detached outputs to tracker/map guidance.
 World facts and observation history never enter the settings transport.
+Objective identity is separate from display formatting. Read-only gossip offers
+and event-time context remain character observations; the bounded session journal
+records changes independently of replanning. Manual export preserves the current
+snapshot and discloses any older journal entries omitted to fit the wire limit.
 Missing corpus and native validation coverage remain explicit. Offline terrain tools
 produce a separate local companion addon; incremental mesh validation and A* own
 modeled corridor guidance. Acquisition authenticity never certifies traversability,

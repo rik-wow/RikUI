@@ -70,6 +70,21 @@ depth 16, 2,048 bytes per string/numeric scalar, 256 ordered quests, bounded
 integer IDs, and exact canonical lengths/numbers. Archive output is capped at
 2 MiB. No Lua code or other packet content is executed by the importer.
 
+## Session journal selection
+
+Current addon exports preserve the complete current snapshot and context, then
+include the largest fitting newest contiguous suffix of the 48-entry session
+journal. `journal.export` records available, exported and omitted entry counts;
+`journal.dropped` independently counts entries already lost from the ring. The
+copy window discloses export omissions. A packet is not a complete session history
+when either count is nonzero. Export never trims the current snapshot to make it
+fit, mutates live observations, or hides invalid older records through selection.
+
+Initial observations are not progress. Contextual gossip offers do not establish
+universal quest requirements, player interaction positions are not NPC positions,
+and received turn-in XP is not base XP. Historical packets retain their original
+labels and fields; this importer does not rewrite them using newer interpretations.
+
 ## Validation
 
 ```text

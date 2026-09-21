@@ -7,24 +7,46 @@ local function plain(value)
     return value:gsub("|",""):gsub("[%z\1-\31]"," "):sub(1,240)
 end
 guidance.Text=plain
+local function signatureField(parts,value)
+    if parts.limited then return end
+    local text=type(value)..":"..tostring(value)
+    text=#text..":"..text
+    if parts.bytes+#text>131072 then parts.limited=true;return end
+    parts.bytes=parts.bytes+#text;parts[#parts+1]=text
+end
+local function questSignature(parts,id,row,ctx)
+    for _,value in ipairs({"quest",id}) do signatureField(parts,value) end
+    signatureField(parts,row.objectivesComplete);signatureField(parts,row.failed)
+    signatureField(parts,row.level);signatureField(parts,row.title)
+    signatureField(parts,row.objectives~=nil)
+    for _,objective in ipairs(row.objectives or {}) do
+        signatureField(parts,"objective");signatureField(parts,objective.text)
+        signatureField(parts,objective.type);signatureField(parts,objective.numFulfilled)
+        signatureField(parts,objective.numRequired);signatureField(parts,objective.finished)
+    end
+    local point,reward=ctx.destinations[id],ctx.rewards[id]
+    if point then signatureField(parts,string.format("point:%d:%.5f:%.5f",point.mapID,point.x,point.y)) end
+    if reward then
+        signatureField(parts,"reward");signatureField(parts,reward.xp);signatureField(parts,reward.level)
+    end
+    signatureField(parts,ctx.history[id])
+end
 function guidance.Signature(snapshot,status,ctx,dialog)
     if not snapshot or not ctx then return status.state end
-    local parts={status.state,snapshot.identity.build,snapshot.identity.locale,snapshot.coverage,
-        tostring(snapshot.reportedCount),tostring(ctx.position and ctx.position.mapID)}
-    for _,key in ipairs({"class","race","faction","level","xp","xpMax","logCapacity"}) do parts[#parts+1]=tostring(ctx.attributes[key]) end
+    local parts={bytes=0}
+    for _,value in ipairs({status.state,snapshot.identity.product,snapshot.identity.build,snapshot.identity.locale,
+        snapshot.coverage,snapshot.reportedCount}) do signatureField(parts,value) end
+    signatureField(parts,ctx.position and ctx.position.mapID)
+    for _,key in ipairs({"class","race","faction","level","xp","xpMax","logCapacity"}) do signatureField(parts,ctx.attributes[key]) end
     for _,id in ipairs(snapshot.order) do
-        local row=snapshot.quests[id]
-        parts[#parts+1]=id..":"..tostring(row.objectivesComplete)..":"..tostring(row.failed)..":"..plain(row.title)
-        for _,objective in ipairs(row.objectives or {}) do
-            parts[#parts+1]=plain(objective.text)..":"..objective.numFulfilled.."/"..objective.numRequired..":"..tostring(objective.finished)
-        end
-        local point,reward=ctx.destinations[id],ctx.rewards[id]
-        if point then parts[#parts+1]=string.format("%d:%.5f:%.5f",point.mapID,point.x,point.y) end
-        if reward then parts[#parts+1]="xp:"..reward.xp..":"..tostring(reward.level) end
-        parts[#parts+1]=tostring(ctx.history[id])
+        questSignature(parts,id,snapshot.quests[id],ctx)
+        if parts.limited then return nil,"Quest observations exceed the planning size limit" end
     end
-    if dialog then parts[#parts+1]=dialog.event..":"..dialog.questID..":"..tostring(dialog.xp)..":"..tostring(dialog.npcID) end
-    return table.concat(parts,";")
+    if dialog then
+        for _,key in ipairs({"event","questID","xp","npcID"}) do signatureField(parts,dialog[key]) end
+    end
+    if parts.limited then return nil,"Quest observations exceed the planning size limit" end
+    return table.concat(parts)
 end
 function guidance.Observed(snapshot,ctx,policy,previous)
     local rows={}

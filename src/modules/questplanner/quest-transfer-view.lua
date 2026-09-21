@@ -36,20 +36,23 @@ local function build()
     transferView.Window=window
 end
 function transferView.Open(inspect)
-    local wire
+    local wire,exported
     if not inspect then
         local snapshot,status=planner.GetSnapshot()
         if not snapshot then core:Print("No quest observations are available."); return end
-        snapshot.context=planner.Controller.Context(); snapshot.journal=planner.Journal.Export()
+        snapshot.context=planner.Controller.Context()
         snapshot.observationStatus=status
         local reason
-        wire,reason=planner.Transfer.Encode(snapshot)
+        wire,reason,exported=planner.Transfer.EncodeSession(snapshot,planner.Journal.Export())
         if not wire then core:Print(reason); return end
     end
     core.Combat.Queue(function()
         if not window then build() end
         window.inspect=inspect==true
         window.title:SetText(inspect and "Paste observations to inspect (never used as live state)" or "Copy quest observations from this session")
+        window.hint:SetText(exported and exported.omittedEntries>0
+            and ("Newest "..exported.exportedEntries.." of "..exported.availableEntries.." journal entries; current log included.")
+            or "Ctrl+A, Ctrl+C to copy. No automatic disk or settings storage.")
         window.edit:SetText(wire or ""); window:Show(); window.edit:SetFocus(); window.edit:HighlightText()
     end,"questplanner:transfer")
 end

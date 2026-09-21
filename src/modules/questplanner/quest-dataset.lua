@@ -76,7 +76,7 @@ local function counters(snapshot, bindings)
             for index,expected in ipairs(binding.objectives) do
                 local observed=values[index]
                 if observed.type~=expected.type or observed.numRequired~=expected.required
-                    or observed.text:gsub("%d+","#")~=expected.text then valid=false; break end
+                    or planner.Objectives.Text(observed)~=expected.text then valid=false; break end
                 mapped[expected.key]=math.max(0,observed.numRequired-observed.numFulfilled)
             end
             if valid then result[id]=mapped end

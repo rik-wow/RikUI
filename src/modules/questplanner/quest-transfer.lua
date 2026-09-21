@@ -123,6 +123,39 @@ function transfer.Encode(snapshot)
     return nil, "invalid or oversized observation export"
 end
 
+local function exportSelection(journal,entries,count)
+    local total=#entries
+    journal.entries={}
+    for index=total-count+1,total do journal.entries[#journal.entries+1]=entries[index] end
+    journal.export={selection="newest-contiguous",availableEntries=total,
+        exportedEntries=count,omittedEntries=total-count}
+end
+
+-- Preserve the current log/context and fit the newest contiguous journal suffix.
+-- At most seven bounded encoding attempts are needed for the 48-entry journal.
+function transfer.EncodeSession(snapshot,journal)
+    local value=schema.CopyLimited(snapshot,MAX_NODES,MAX_PAYLOAD,MAX_DEPTH)
+    local history=schema.CopyLimited(journal,32768,1048576,MAX_DEPTH)
+    if not value or value.journal~=nil or not history or not schema.List(history.entries,48)
+        or not schema.Integer(history.dropped,0,2147483647) or history.scope~="session-only" then
+        return nil,"invalid session observation export"
+    end
+    local entries=history.entries
+    value.journal=history
+    exportSelection(history,entries,0)
+    local best,reason=transfer.Encode(value)
+    if not best then return nil,reason end
+    local low,high,count=1,#entries,0
+    while low<=high do
+        local middle=math.floor((low+high)/2)
+        exportSelection(history,entries,middle)
+        local wire=transfer.Encode(value)
+        if wire then best,count,low=wire,middle,middle+1 else high=middle-1 end
+    end
+    exportSelection(history,entries,count)
+    return best,nil,schema.Clone(history.export)
+end
+
 function transfer.Decode(wire)
     if guard.IsSecret(wire) or type(wire) ~= "string" or #wire > MAX_WIRE then return nil, "invalid observation packet" end
     local hash, hex = wire:match("^RIKQ1:([a-f0-9]+):([a-f0-9]+)$")

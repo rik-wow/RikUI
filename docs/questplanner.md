@@ -40,9 +40,10 @@ No Zygor implementation, guide text or data is copied into this feature.
 Files load in this order, with core services already available:
 
 - quest-schema.lua creates RikUI.QuestPlanner and owns bounded input contracts.
+- quest-objectives.lua compares complete objective definitions and edge counters.
 - quest-evidence.lua owns exact-identity world evidence catalogues.
 - quest-corpus.lua owns source revisions, retirement and coverage.
-- quest-reader/context/journal.lua capture session character state and events.
+- quest-reader/context/gossip/journal.lua capture session character state and events.
 - quest-transfer.lua owns a separate bounded observation wire format.
 - quest-eligibility.lua evaluates three-valued conditions.
 - quest-travel.lua searches explicitly declared directed connections.
@@ -191,10 +192,11 @@ normalization, limits, full/partial/failed observations, secrecy guards,
 copy isolation, event coalescing and disabled callbacks. Stub success is not
 proof that these APIs return ordinary values on the live beta.
 
-Native acceptance still needs a client restart, /rik quests with watched and
-unwatched quests, collapsed/expanded headers, quest acceptance/progress/turn-in,
-combat reads, and a reload with questplanner disabled. Capture build, counts,
-status and any Lua errors. No native capture or route benchmark has been claimed.
+Native captures establish repeated complete log reads and manual export, as
+recorded below. Watched/header variants were not individually labelled. Actual
+acceptance/progress/turn-in transitions, guidance interactions and native frame
+cost remain unverified. Combat and disable/reload checks were not run; the user
+has deferred them. No native route benchmark has been claimed.
 
 ## Corpus ingestion and local acquisition
 
@@ -292,7 +294,8 @@ It records nine current quests, including the new IDs 96608, 98319 and 99158.
 Quest 99158 has objectives complete, with historical turn-in false. Quest
 96608's second objective has 1/1 count but a false finished flag; that distinction
 is preserved. No locations or reward XP were returned by the earlier adapter.
-An initial observed-progress journal entry is not evidence of a later transition.
+The older initial observed-progress label is not evidence of a later transition;
+the current journal explicitly labels the first snapshot initial-observation.
 This is field-level character evidence, not verified world prerequisite data.
 
 Protocol validation includes 39 adversarial Python tests, 460 acceptance
@@ -435,6 +438,28 @@ turn-in events are stored in a 48-entry session journal with a dropped count.
 Objectives-complete, historical completion and actual turn-in event XP remain
 different observations.
 
+On GOSSIP_SHOW, the reader observes available/active quest lists from the already
+open NPC dialog. It verifies exact identity and an unchanged NPC GUID across the
+reads. Lists are capped at 32 rows each, titles at 256 bytes, and the combined
+journal entry at 512 nodes/8,192 string bytes/depth eight. Missing, duplicate,
+secret, oversized or changing-NPC results are explicit; optional unknown flags
+are never changed to false. A contextual offer is not a universal availability
+rule. Player interaction coordinates are not NPC coordinates. No selection,
+acceptance or turn-in is performed. The adapter follows the
+[pinned gossip API contract](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/GossipInfoDocumentation.lua);
+actual Forever offer rows remain a native acceptance item.
+
+Journal snapshots are recorded before planning, even if context acquisition or
+replanning fails. Initial observations, newly seen quests, directional progress,
+objective reductions, other changes and complete-log removals have separate
+labels. A partial log cannot establish removal. Directional progress requires
+matching complete objective definitions first; mixed movement or changed goals
+remain generic changes. Only an edge current/required counter matching the
+structured numeric fields is normalized. Other digits and goal text are retained.
+Turn-in events retain received XP (including zero), exact snapshot identity and
+readable event-time level; this does not establish base XP or reward-scaling level.
+The status command reports the latest log-change label independently of log count.
+
 Compiled regional packs require active source manifests for action, travel,
 binding and interaction-anchor records. Objective binding requires the complete
 matching objective list, type, total and normalized localized text. Changed
@@ -450,7 +475,10 @@ job revision, module state and pause state. Live search uses depth six, width
 to 64 smallest search steps, stopping after a one-millisecond timer threshold
 between steps when the API is readable. An indivisible step can exceed that
 threshold; actual maximum slice duration is diagnostic, not a proven native
-latency bound. Repeated identical snapshots do not restart work.
+latency bound. Repeated identical snapshots do not restart work. Change signatures
+retain full objective text/type and quest level, separately from shortened UI
+labels. Their 131,072-byte bound produces an explicit unavailable result and
+clears actionable guidance rather than accepting a truncated signature.
 
 The compact tracker row keeps the existing watched list and respects collapse
 and available height. `/rik quests show` opens details, with eight rows per page.
@@ -467,7 +495,12 @@ The planner never automatically accepts, abandons, watches or turns in quests.
 Pin conflicts suppress actionable guidance and deferred pins remain visible.
 
 Export opens a separate printable copy window, bounded to 131,072 wire bytes.
-It includes session observations/context/journal; oversized exports fail visibly.
+`Transfer.EncodeSession` preserves the current snapshot/context and selects the
+largest fitting newest contiguous journal suffix, using at most seven encodes.
+It reports available/exported/omitted entries separately from ring-buffer drops;
+the copy window discloses omissions. The entire journal is validated before
+selection, and live inputs are never changed. If the current snapshot/context
+alone exceeds the protocol limit, export fails visibly without trimming it.
 Inspection labels pasted observations untrusted and cannot install them into
 live planning. Copying data to a durable external file is an explicit user
 operation; no observation history is stored in RikUI macros.
