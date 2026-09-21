@@ -1,7 +1,41 @@
 import copy,json,os,pathlib,tempfile,unittest
 import acquire as a
+import acquire_map as full_map
+import acquire_west as west
+from unittest.mock import patch
+from types import SimpleNamespace
 
 class AcquisitionChecks(unittest.TestCase):
+    def test_full_map_tiles_cover_projection_with_bounded_acquisition(self):
+        self.assertEqual(len(full_map.TILES),70)
+        source=full_map.compiler.PROJECTION_SOURCE['region']
+        self.assertEqual(full_map.BOUNDS,[source[1],source[0],source[4],source[3]])
+        self.assertEqual(west.Acquisition.max_files,2048)
+        self.assertEqual(full_map.MapAcquisition.max_files,8192)
+        for axis,indices in ((0,[x for x,y in full_map.TILES]),(1,[y for x,y in full_map.TILES])):
+            high=(32-min(indices))*full_map.terrain.TILE
+            low=(31-max(indices))*full_map.terrain.TILE
+            self.assertLessEqual(low,full_map.BOUNDS[axis])
+            self.assertGreaterEqual(high,full_map.BOUNDS[axis+2])
+
+    def test_missing_parallel_output_is_retried_once_and_keeps_original_layer(self):
+        with tempfile.TemporaryDirectory() as folder:
+            job=west.Acquisition.__new__(west.Acquisition)
+            job.output=pathlib.Path(folder);job.arguments=[];job.files={}
+            calls=[]
+            def execute(args,**kwargs):
+                calls.append(args)
+                kwargs['stdout'].write(('Extracting '+'a'*32+' to 1.bin\n').encode())
+                if len(calls)==2:(job.output/'1.bin').write_bytes(b'collision')
+                return SimpleNamespace(returncode=0)
+            with patch.object(west.subprocess,'run',side_effect=execute):
+                job.extract('root',job.output,[(1,'1.bin')])
+            self.assertEqual(len(calls),2)
+            self.assertEqual(job.files[1]['layer'],'root')
+            self.assertEqual(job.files[1]['sha256'],a.digest(b'collision'))
+            self.assertTrue((job.output/'root-extract.log').is_file())
+            self.assertTrue((job.output/'root-retry-1-extract.log').is_file())
+
     def test_pinned_profile_and_full_asset_inventory(self):
         profile=a.load_profile();self.assertEqual(len(profile['files']),391)
         self.assertEqual(sum(r['bytes'] for r in profile['files']),8785514)

@@ -22,6 +22,8 @@ def relevant(placement):
 
 
 class Acquisition:
+    max_files, max_bytes = MAX_FILES, MAX_BYTES
+
     def __init__(self, args):
         self.profile = a.load_profile()
         self.source = a.checked_path(args.existing)
@@ -56,7 +58,7 @@ class Acquisition:
             return
         self.extract(layer, output, missing)
 
-    def extract(self, layer, output, missing):
+    def extract(self, layer, output, missing, retry=True):
         listing = self.output/(layer+"-dependencies.list")
         listing.write_text("".join(f"{ident};{name}\n" for ident, name in missing), encoding="utf-8")
         logpath = self.output/(layer+"-extract.log")
@@ -70,6 +72,15 @@ class Acquisition:
             keys = re.findall(r"Extracting ([a-f0-9]{32}) to "+re.escape(name)+r"(?:\r?\n|$)", logs)
             if len(keys) != 1:
                 a.fail("missing-exact-encoding-key:"+name)
+            if not (output/name).is_file():
+                # Shared encoding keys can race in TACTTool's parallel download cache.
+                # Retry missing outputs individually; keep the original extraction log.
+                if not retry:
+                    a.fail("missing-extracted-asset:"+name)
+                retry_layer = layer+"-retry-"+str(ident)
+                self.extract(retry_layer, output, [(ident, name)], retry=False)
+                self.files[ident]["layer"] = layer
+                continue
             self.register(ident, output/name, layer, keys[0])
         print(f"Acquired {layer}: {len(missing)} new assets", flush=True)
 
@@ -81,7 +92,7 @@ class Acquisition:
             a.fail("asset-size")
         self.files[ident] = dict(fileDataID=ident, path=path.relative_to(self.output).as_posix(),
                                 layer=layer, bytes=len(data), sha256=a.digest(data), encodingKey=key)
-        if len(self.files) > MAX_FILES or sum(row["bytes"] for row in self.files.values()) > MAX_BYTES:
+        if len(self.files) > self.max_files or sum(row["bytes"] for row in self.files.values()) > self.max_bytes:
             a.fail("acquisition-budget")
 
     def asset(self, ident):
@@ -89,14 +100,14 @@ class Acquisition:
         return (self.output/row["path"]).read_bytes()
 
 
-def terrain_sources(job):
+def terrain_sources(job, tiles=TILES):
     job.batch("root", [(775971, "Azeroth.69913.wdt")])
     raw = job.asset(775971)
     chunks = {tag: raw[start:end] for tag, start, end in t.chunks(raw)}
     if len(chunks["MAID"]) != 4096*32 or len(chunks["MAIN"]) != 4096*8:
         a.fail("WDT-layout")
     mapping, entries = [], []
-    for x, y in TILES:
+    for x, y in tiles:
         refs = struct.unpack_from("<8I", chunks["MAID"], (y*64+x)*32)
         flags = struct.unpack_from("<II", chunks["MAIN"], (y*64+x)*8)
         if not flags[0] & 1 or not all(refs[:2]):
@@ -107,7 +118,7 @@ def terrain_sources(job):
     return mapping
 
 
-def collision_sources(job, mapping):
+def collision_sources(job, mapping, predicate=relevant):
     placements = {}
     for row in mapping:
         rows, _, names = t.objects(job.asset(row["obj0FileDataID"]))
@@ -118,7 +129,7 @@ def collision_sources(job, mapping):
             if key in placements and placements[key] != p:
                 a.fail("conflicting-placement")
             placements[key] = p
-    selected = [p for p in placements.values() if relevant(p)]
+    selected = [p for p in placements.values() if predicate(p)]
     job.batch("collision", [(p["reference"], f'{p["reference"]}.bin') for p in selected])
     groups, doodads = set(), set()
     for p in selected:
@@ -126,13 +137,13 @@ def collision_sources(job, mapping):
             continue
         try:
             root = w.root(job.asset(p["reference"]))
+            _, indices = w.selected_doodads(root, p["doodadSet"])
         except ValueError as error:
-            if str(error) != "WMO-LOD-or-group-count":
+            if str(error) not in ("WMO-LOD-or-group-count", "WMO-selected-set-range"):
                 raise
             print(f"Retained unsupported root {p['reference']}: {error}; footprint must be excluded", flush=True)
             continue
         groups.update(root["groups"])
-        _, indices = w.selected_doodads(root, p["doodadSet"])
         doodads.update(root["doodads"][i]["reference"] for i in indices)
     job.batch("wmo-groups", [(ident, f"{ident}.bin") for ident in groups])
     job.batch("wmo-doodads", [(ident, f"{ident}.bin") for ident in doodads if ident])

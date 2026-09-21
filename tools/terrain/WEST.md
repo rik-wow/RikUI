@@ -96,6 +96,27 @@ steps with zero reversals and 312 distinct instructions.
 The replay HTML/JSON and static PNG remain outside Git. This demonstrates
 production Lua against real geometry, not actual native walking.
 
+## Full-map acquisition (not yet installed)
+
+`acquire_map.py` acquires the 70 WDT-mapped tiles 28–37 /39–45 covering the
+exact-build Dun Morogh projection rectangle. It uses the same pinned TACTTool,
+source identity and per-file hashes, with explicit 8,192-file /256 MiB ceilings.
+The retained acquisition contains 1,590 files, 77,298,678 bytes; canonical profile
+SHA256 is fc51a45b8de42ca240b59a8fc3faadc5329e881ec4bc93e15e83f3d514a84958.
+The complete profile and client assets remain outside Git.
+
+```text
+python -B tools/terrain/acquire_map.py --existing "<verified old acquisition>" --game-root "<WoW root containing Data>" --tact-tool "<pinned TACTTool.exe>" --output "<new full-map acquisition>"
+```
+
+Missing parallel extraction outputs receive one serial retry, preserving both
+logs and their actual encoding keys. No existing output is overwritten. WMO
+7801267 and 7952336 have unsupported LOD layouts; 113881 has an unsupported
+selected doodad-set index. Their roots remain acquired and must retain collision
+exclusions until decoded. This acquisition is not a navigation-pack installation:
+the full-map compiler, bounded runtime loading and cross-region routing remain
+unfinished. The installed pack is still the western/central delivery above.
+
 ## Earlier western results and limits
 
 The old installed region did not cover either current screenshot position or
