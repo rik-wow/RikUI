@@ -79,6 +79,22 @@ end
 function geometry.OnBoundary(points,point,tolerance)
     return geometry.BoundaryHeight(points,point,tolerance)~=nil
 end
+-- Closest horizontal boundary point; this is geometry, never a traversable link.
+function geometry.ClosestBoundary(points,x,z)
+    local closest,distance
+    for index,a in ipairs(points) do
+        local b=points[index%#points+1]
+        local dx,dz=b[1]-a[1],b[3]-a[3]
+        local length=dx*dx+dz*dz
+        if length>EPSILON then
+            local t=math.max(0,math.min(1,((x-a[1])*dx+(z-a[3])*dz)/length))
+            local point={a[1]+t*dx,a[2]+t*(b[2]-a[2]),a[3]+t*dz}
+            local squared=(x-point[1])^2+(z-point[3])^2
+            if not distance or squared<distance then closest,distance=point,squared end
+        end
+    end
+    return closest,distance and math.sqrt(distance)
+end
 function geometry.Bounds(points)
     local bounds={points[1][1],points[1][3],points[1][1],points[1][3]}
     for _,point in ipairs(points) do

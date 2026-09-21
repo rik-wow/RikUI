@@ -162,6 +162,17 @@ return function(check)
         p.Navigation.Refresh()
         check("map draws supplied corridor segments without destination shortcut",#recordedLines==2 and recordedLines[1].first[3]==450
             and recordedLines[1].last[3]==450 and recordedLines[2].last[3]==500)
+        local longRoute={points={}}
+        for index=1,267 do longRoute.points[index]={mapID=1426,x=.2+index/1000,y=.4} end
+        p.Terrain={Guidance=function() return longRoute end}
+        p.Navigation.Refresh()
+        check("long corridor allocates at most thirty-two lines per refresh",#recordedLines==34)
+        for _=1,8 do p.Navigation.Refresh() end
+        check("map includes full long corridor beyond old cap",#recordedLines==266
+            and recordedLines[266].shown and math.abs(recordedLines[266].last[3]-467)<.00001)
+        p.Terrain={Guidance=function() return {points={longRoute.points[1],longRoute.points[2]}} end}
+        p.Navigation.Refresh()
+        check("shorter route hides stale tail",recordedLines[1].shown and not recordedLines[266].shown)
         p.Terrain=nil; CreateFrame=originalFrame
         WorldMapFrame.GetMapID=function() return 999 end; p.Navigation.Refresh()
         check("map switch hides old terrain corridor",not recordedLines[1].shown and not recordedLines[2].shown)
@@ -240,7 +251,7 @@ return function(check)
         local holder=CreateFrame("Frame",nil,UIParent)
         check("inline respects collapsed tracker",p.View.RenderInline(holder,22,200,true)==0)
         check("inline respects available room",p.View.RenderInline(holder,22,60,false)==0)
-        check("inline reserves bounded tracker height",p.View.RenderInline(holder,22,200,false)==78)
+        check("inline reserves bounded tracker height",p.View.RenderInline(holder,22,200,false)==94)
         env.inCombat=true
         check("existing inline refresh avoids combat reparenting",pcall(p.View.RenderInline,holder,22,200,false))
         env.inCombat=false

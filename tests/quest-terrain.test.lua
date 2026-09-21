@@ -26,7 +26,7 @@ return function(check)
         local refreshes,staleDuringRefresh=0,false
         p.View={Refresh=function()
             refreshes=refreshes+1
-            if p.Terrain.Status().status~="modeled" and p.Terrain.Guidance() then staleDuringRefresh=true end
+            if p.Terrain.Status().status~="modeled" and p.Terrain.Status().status~="modeled-approach" and p.Terrain.Guidance() then staleDuringRefresh=true end
         end}
         assert(p.Terrain.Install(meta,shards))
         check("terrain installation immediately publishes loading",p.Terrain.Status().status=="loading" and refreshes==1)
@@ -79,6 +79,19 @@ return function(check)
         model={status="observed",selected={questID=11,destination={mapID=1426,x=.99,y=.81}}}
         tick()
         check("unknown target cannot create direct route",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="unknown-target")
+        model.selected.destination={mapID=1426,x=.904,y=.85,scope="current-map-quest-poi",api="C_QuestLog.GetQuestsOnMap"}
+        tick()
+        local approach=assert(p.Terrain.Guidance())
+        check("observed POI uses bounded approach",p.Terrain.Status().status=="modeled-approach"
+            and approach.approach.gap<=1 and approach.approach.provenance.api=="C_QuestLog.GetQuestsOnMap")
+        check("display stops before observed marker",approach.points[#approach.points].x<.9
+            and approach.approach.marker.x==.904 and approach.approach.finalLegVerified==false)
+        position=approach.points[#approach.points];tick()
+        check("approach arrival keeps quest selected and gap unresolved",model.selected.questID==11
+            and p.Terrain.Guidance().approach.interactionVerified==false and p.Terrain.Guidance().meters<.0001)
+        model.selected.destination.scope=nil;tick()
+        check("scope change clears approach even at same coordinates",not p.Terrain.Guidance()
+            and p.Terrain.Status().status=="unknown-target")
         p.Terrain.Invalidate()
         check("material invalidation immediately clears corridor and status",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="updating")
         local invalidatedRefreshes=refreshes;p.Terrain.Invalidate()

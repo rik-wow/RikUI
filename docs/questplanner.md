@@ -570,7 +570,9 @@ user's indoor export reported zero while modeled surfaces are near 400 yards.
 Without established altitude, exactly one containing polygon is required;
 stacked surfaces and shared polygon boundaries remain ambiguous. Missing height
 does not permit nearest-floor snapping. Map/world disagreement,
-cross-build data and ambiguous or uncovered points suppress terrain guidance.
+cross-build data and ambiguous or uncovered player positions suppress terrain guidance.
+Exact destinations retain the same containment requirement; observed map markers
+can use the explicitly bounded approach contract below.
 
 The deterministic A* job yields between queue and edge operations, with 64
 operations per frame, 32,768 work operations per request and at most 1,024
@@ -581,7 +583,10 @@ Remaining guidance follows corridor order as the player moves; it does not
 cut across nearby walls by selecting the closest later waypoint. Time uses
 readable run speed or an explicitly modeled seven-yard/second default.
 
-Map guidance draws at most 128 actual corridor segments. The optional arrow
+Map guidance draws the complete bounded corridor (at most 2,048 segments),
+allocating at most 32 new lines per refresh until the full path is shown.
+It never skips intermediate segments to connect a truncated path to the marker.
+The optional arrow
 points to the next corridor portal when terrain guidance exists and otherwise
 labels its destination bearing. Pausing, stale plans and unavailable location
 hide actionable terrain guidance. Native map projection, floors, movement,
@@ -593,6 +598,54 @@ adversarial tests. Production Lua validates the real graph and checks its probe
 routes against an independent Dijkstra calculation. All measurements are
 headless model checks; native floor selection, traversal and frame time remain
 unverified.
+
+### Observed-marker approach endpoints
+
+An observed current-map quest POI may identify an object or NPC rather than a
+player standing point. `NavMesh:BeginMarkerApproach` preserves exact start
+admission and first tries exact target containment. An ambiguous exact target
+is rejected. Only an uncovered target can request a nearby modeled endpoint;
+ordinary dataset destinations and current waypoints retain exact semantics.
+
+The fixed one-yard horizontal displacement limit is an engineering bound for
+marker approximation, not a measured interaction range or permission to walk
+through a gap. Candidate polygon boundaries come from at most four existing
+spatial cells (512 entries each), visited incrementally. Candidate boundary
+heights differing by more than the mesh's modeled step are ambiguous. The
+chosen nearest endpoint is inset 0.005 yards toward its polygon center, remains
+within the one-yard bound, and must have unique horizontal containment without
+using an invented altitude. A marker outside source bounds or within one yard
+of an excluded footprint is rejected. This conservative procedure can reject
+a valid route; it does not search farther until something becomes reachable.
+
+The normal directed portal search must connect the admitted start to that
+endpoint. It never connects disconnected components or adds a segment from the
+endpoint to the marker. Results retain the original marker, API/scope provenance,
+mesh revision, horizontal gap, and false final-leg/interaction verification.
+The tracker says “Approach estimate; final gap unverified.” The arrow follows
+the corridor and the original quest marker stays on the map. Arrival does not
+complete an objective, turn in a quest, release a pin, or advance the selection.
+No action, XP or quest-work duration is created. The physical bake profile is
+unchanged, and a route near a marker is not a calculated leveling plan.
+
+`tests/quest-marker-replay.lua <terrain-addon> <packet> [mapX mapY]` decodes an
+external packet with the production Lua decoder, loads the actual companion,
+and exercises both the mesh and production terrain coordinator. The optional
+coordinate pair samples the center and eight corners/edge points inside the
+rounding interval of a one-decimal-percent screenshot. Those are hypothetical
+positions compatible with the display, not a recovered exact native position.
+
+For the supplied Dun Morogh screenshot and latest archived quest markers, all
+nine samples produced a 133-polygon modeled approach to Dawn in the Mountains.
+The endpoint is 0.3773 yards from the marker; coarse center-graph paths are about
+1,059–1,063 yards. Every corridor transition uses an exported portal. The
+coordinator publishes the same endpoint and retains provenance. The earlier
+indoor packet remains disconnected; the latest packet's older player start
+remains uncovered; the first packet contains no observed destinations.
+Thus this implements a route supported by the screenshot-area model without
+claiming the archived starts have been repaired or that anyone walked it.
+Headless timings and widget tests do not establish native performance, visuals,
+floor selection, dynamic collision, or interaction reachability.
 
 ## Elevator travel
 
@@ -636,7 +689,9 @@ game data. Native boarding/traversal remains unverified.
 ## Current terrain status in guidance
 
 The tracker, details window and `/rik quests` use the same current route status.
-Observed markers distinguish missing terrain, loading, missing player position,
+The status wraps across two reserved lines so the failure explanation fits the
+compact tracker. Observed markers distinguish missing terrain, loading, missing
+player position,
 uncovered or ambiguous player/target locations, disconnected paths, search
 limits and a modeled route estimate. Hovering retains the exact terrain failure
 or estimated distance/time with traversal uncertainty. Calculated quest plans,

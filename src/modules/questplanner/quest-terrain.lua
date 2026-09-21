@@ -49,7 +49,13 @@ local function trim(location)
     if index<#route.corridor then
         for at=index*2+1,#route.points do points[#points+1]=route.points[at] end
     else points[#points+1]=route.points[#route.points] end
-    local result={points={},meters=0,status="modeled",nativeVerified=false,detail="Terrain estimate; traversal unverified"}
+    local result={points={},meters=0,status="modeled",nativeVerified=false,revision=route.revision,detail="Terrain estimate; traversal unverified"}
+    if route.approach then
+        result.approach=schema.Clone(route.approach)
+        result.approach.marker=mesh:Unproject({route.approach.marker.x,0,route.approach.marker.z})
+        result.approach.provenance=schema.Clone(route.markerProvenance)
+        result.detail=string.format("Modeled approach; %.2f yd gap and interaction unverified",route.approach.gap)
+    end
     for at,point in ipairs(points) do
         result.points[#result.points+1]=mesh:Unproject(point)
         if at>1 then result.meters=result.meters+planner.NavGeometry.Distance(points[at-1],point) end
@@ -74,7 +80,7 @@ local function update()
     local row,position,issue=selected()
     if not row then clear(); setState(issue and "unavailable-position" or "ready",issue or "No active terrain destination"); return end
     local target=row.destination
-    local signature=string.format("%d:%d:%.6f:%.6f",row.questID,target.mapID,target.x,target.y)
+    local signature=string.format("%d:%d:%.17g:%.17g:%s:%s",row.questID,target.mapID,target.x,target.y,target.scope or "",target.api or "")
     if selectedKey~=signature then clear(); selectedKey=signature end
     local start,goal=mesh:Project(position.mapID,position.x,position.y),mesh:Project(target.mapID,target.x,target.y)
     if not start or not goal then clear(); setState("outside-coverage","Location or destination is outside this terrain map"); return end
@@ -89,13 +95,14 @@ local function update()
     local location,problem=mesh:Locate(start)
     if not location then clear(); setState("unknown-location",problem); return end
     display=trim(location)
-    if display then setState("modeled",display.detail); return end
+    if display then setState(display.approach and "modeled-approach" or "modeled",display.detail); return end
     if request then return end
     local attempt=signature..":"..location.id
     if lastAttempt==attempt then return end
     lastAttempt=attempt
     local speed=planner.Context.RunSpeed and planner.Context.RunSpeed()
-    request,problem=mesh:Begin(start,goal,{maxWork=32768,speed=speed or 7})
+    local begin=target.scope=="current-map-quest-poi" and mesh.BeginMarkerApproach or mesh.Begin
+    request,problem=begin(mesh,start,goal,{maxWork=32768,speed=speed or 7})
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
 function terrain.Step()
@@ -111,7 +118,11 @@ function terrain.Step()
         local result=request:Step(64)
         if result then
             request=nil
-            if result.status=="modeled" then route=result; update()
+            if result.status=="modeled" then
+                route=result
+                local row=selected()
+                route.markerProvenance=row and schema.Clone(row.destination)
+                update()
             else display=nil; setState(result.status,result.detail) end
         end
     end

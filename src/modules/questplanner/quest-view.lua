@@ -2,7 +2,7 @@
 local core,planner,media=RikUI,RikUI.QuestPlanner,RikUI.Media
 local view={}
 planner.View=view
-local HEIGHT,WIDTH=72,240
+local HEIGHT,WIDTH=88,240
 local inline,window
 local page=1
 local function text(parent,role)
@@ -45,6 +45,7 @@ local function tooltip(frame)
         local route,state=planner.Terrain.Guidance(),planner.Terrain.Status()
         if route then GameTooltip:AddLine(string.format("Terrain estimate: %.0f yd, %.0fs running; traversal unverified",route.meters,route.seconds),1,.7,.2,true)
         elseif state and state.detail then GameTooltip:AddLine(state.detail,1,.7,.2,true) end
+        if route and route.approach then GameTooltip:AddLine(route.detail,1,.7,.2,true) end
     end
     if model.reason then GameTooltip:AddLine(model.reason,.7,.8,.9,true) end
     if model.change then GameTooltip:AddLine(model.change,1,.8,.3,true) end
@@ -61,7 +62,7 @@ local function create(parent)
     local fill=frame:CreateTexture(nil,"BACKGROUND"); fill:SetAllPoints(); fill:SetColorTexture(.035,.07,.1,.94)
     frame.title=text(frame,"label"); frame.title:SetPoint("TOPLEFT",6,-3); frame.title:SetPoint("TOPRIGHT",-6,-3); frame.title:SetHeight(15)
     frame.detail=text(frame); frame.detail:SetPoint("TOPLEFT",6,-20); frame.detail:SetPoint("TOPRIGHT",-6,-20); frame.detail:SetHeight(13)
-    frame.status=text(frame); frame.status:SetPoint("TOPLEFT",6,-34); frame.status:SetPoint("TOPRIGHT",-6,-34); frame.status:SetHeight(13)
+    frame.status=text(frame); frame.status:SetPoint("TOPLEFT",6,-34); frame.status:SetPoint("TOPRIGHT",-6,-34); frame.status:SetHeight(29); frame.status:SetWordWrap(true)
     frame.status:SetTextColor(.55,.75,.9)
     frame.pause=button(frame,"Pause",48,function()
         command(planner.Controller.Policy().paused and "resume" or "pause")
@@ -98,7 +99,7 @@ local function createWindow()
         local row=button(window,"",370,function(self)
             if self.questID then planner.OpenQuest(self.questID) end
         end)
-        row:SetPoint("TOPLEFT",12,-116-(index-1)*23)
+        row:SetPoint("TOPLEFT",12,-132-(index-1)*23)
         row.label:ClearAllPoints(); row.label:SetPoint("LEFT",3,0); row.label:SetPoint("RIGHT",-3,0)
         local pin=button(window,"Pin",52,function()
             if row.questID then command("pin "..row.questID) end

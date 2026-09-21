@@ -55,7 +55,10 @@ records changes independently of replanning. Manual export preserves the current
 snapshot and discloses any older journal entries omitted to fit the wire limit.
 Missing corpus and native validation coverage remain explicit. Offline terrain tools
 produce a separate local companion addon; incremental mesh validation and A* own
-modeled corridor guidance. Acquisition authenticity never certifies traversability,
+modeled corridor guidance. Observed map markers can request a bounded approach
+endpoint; routes stop on modeled ground and leave the final gap and interaction
+unverified. Player admission and explicit portal connectivity remain strict.
+Acquisition authenticity never certifies traversability,
 and extracted assets/geometry are excluded from the repository and settings store.
 The terrain compiler separates geographic source profiles, collision coverage
 contracts and geometry validation. UnitPosition's raw vertical value is not an

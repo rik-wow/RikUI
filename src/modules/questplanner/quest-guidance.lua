@@ -8,7 +8,7 @@ local function plain(value)
 end
 guidance.Text=plain
 local TERRAIN_STATUS={loading="Preparing terrain guidance",ready="No walking route selected",["unavailable-position"]="Your position is unavailable",updating="Updating walking route",
-    calculating="Calculating walking route",modeled="Terrain route estimate",
+    calculating="Calculating walking route",modeled="Terrain route estimate",["modeled-approach"]="Approach estimate; final gap unverified",
     ["outside-coverage"]="Outside terrain map coverage",["no-known-path"]="No connected route in terrain model",
     ["budget-exhausted"]="Walking route search reached its limit",invalid="Terrain guidance is unavailable",
     unavailable="Terrain data is unavailable",disabled="Quest planner is disabled",cancelled="Updating walking route"}

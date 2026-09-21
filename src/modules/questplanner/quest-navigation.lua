@@ -4,6 +4,7 @@ local navigation={}
 planner.Navigation=navigation
 local pins,frame,arrow,elapsed={},nil,nil,0
 local lines,lineHolder={},nil
+local MAX_ROUTE_LINES,NEW_LINES_PER_REFRESH=2048,32
 local function hideLines() for _,line in ipairs(lines) do line:Hide() end end
 local function drawTerrain(canvas,width,height,mapID)
     if not planner.Terrain then return end
@@ -16,7 +17,7 @@ local function drawTerrain(canvas,width,height,mapID)
         lineHolder:SetParent(canvas); lineHolder:SetAllPoints(canvas)
     end
     if type(lineHolder.CreateLine)~="function" then return end
-    for index=1,math.min(#route.points-1,128) do
+    for index=1,math.min(#route.points-1,MAX_ROUTE_LINES,#lines+NEW_LINES_PER_REFRESH) do
         local a,b=route.points[index],route.points[index+1]
         local line=lines[index]
         if not line then
@@ -81,7 +82,7 @@ local function bearing()
     if model.status=="paused" or not model.selected or not model.selected.destination then return end
     local terrain=planner.Terrain and planner.Terrain.Guidance()
     local point,position=terrain and terrain.next or model.selected.destination,planner.Context.Position()
-    arrow.label:SetText(terrain and "Terrain estimate" or "Destination bearing")
+    arrow.label:SetText(terrain and (terrain.approach and "Approach estimate" or "Terrain estimate") or "Destination bearing")
     if not position or position.mapID~=point.mapID then return end
     local ok,facing=planner.Context.Call(GetPlayerFacing)
     local sized,width,height=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,point.mapID)

@@ -29,6 +29,9 @@ return function(check,p,env)
         Invalidate=function() invalidations=invalidations+1;route=nil;terrainState={status="updating",detail="Updating walking route"} end}
     p.View.Refresh()
     local summary=p.View.Window.summary
+    check("status reserves wrapped two-line height",summary.status.wordWrap==true and summary.status:GetHeight()==29
+        and summary:GetHeight()==88)
+    check("approach status discloses final gap",status("modeled-approach")=="Approach estimate; final gap unverified")
     check("details show the actual uncovered position",summary.status:GetText()=="Your position is outside the walking model")
     local oldLine,lines=GameTooltip.AddLine,{}
     GameTooltip.AddLine=function(_,line) lines[#lines+1]=line end

@@ -35,6 +35,25 @@ return function(check)
             if not job then return nil,issue end
             while true do local result=job:Step(budget or 1); if result then return result end end
         end
+        local function approach(graph,from,to,budget)
+            local job,issue=graph:BeginMarkerApproach(from,to)
+            if not job then return nil,issue end
+            for _=1,10000 do local result=job:Step(budget or 1); if result then return result end end
+            error("approach exceeded bounded fixture work")
+        end
+        local near={x=9.6,z=15}
+        check("exact search still rejects uncovered marker",not mesh:Begin(start,near))
+        local approached=assert(approach(mesh,start,near))
+        check("marker approach stops on modeled ground",approached.status=="modeled"
+            and approached.approach.gap<=1 and approached.points[#approached.points][1]>10
+            and approached.approach.marker.x==near.x and approached.approach.finalLegVerified==false)
+        check("approach slicing preserves endpoint and cost",approach(mesh,start,near,128).meters==approached.meters)
+        check("marker outside bounded radius stays unknown",approach(mesh,start,{x=8,z=15}).status=="unknown-target")
+        check("marker outside source bounds cannot pull a route outward",not mesh:BeginMarkerApproach(start,{x=20.1,z=15}))
+        check("ambiguous exact marker cannot use nearby floor",not mesh:BeginMarkerApproach(start,{x=10,z=5}))
+        check("missing start is never snapped",not mesh:BeginMarkerApproach({x=9.6,z=15},goal))
+        local cancelled=assert(mesh:BeginMarkerApproach(start,near)); cancelled:Cancel()
+        check("endpoint resolver cancellation publishes no route",cancelled:Step().status=="cancelled")
         local route=assert(path(mesh,start,goal))
         check("portal path follows L corridor around missing quadrant",route.status=="modeled" and #route.points==7)
         local exact=2*math.sqrt(32)+20
@@ -62,6 +81,25 @@ return function(check)
         local taller=p.Schema.Clone(meta); taller.counts.polygons=4
         local layered=assert(load(taller,layers))
         check("2D location cannot choose overlapping floors",not layered:Locate(start))
+        check("approach cannot resolve a competing player floor",not layered:BeginMarkerApproach(start,near))
+        local targetLayers=p.Schema.Clone(shards)
+        targetLayers[1].polygons[4]=square(4,10,10,10)
+        local targetMesh=assert(load(taller,targetLayers))
+        local ambiguous=approach(targetMesh,start,near)
+        check("competing approach floors remain ambiguous",ambiguous.status=="unknown-target"
+            and ambiguous.detail:find("ambiguous",1,true)~=nil)
+        check("exact stacked target never falls back",not targetMesh:BeginMarkerApproach(start,goal))
+        check("disconnected nearest approach cannot invent a portal",
+            approach(assert(load(less,disconnected)),start,near).status=="no-known-path")
+        local excluded=p.Schema.Clone(meta); excluded.exclusions={{8.8,14,9,16}}
+        check("excluded marker neighborhood cannot be bridged",
+            not assert(load(excluded)):BeginMarkerApproach(start,near))
+        check("invalid approach policy rejected",not mesh:BeginMarkerApproach(start,near,{maxWork=0}))
+        local changed={x=near.x,z=near.z}
+        local detached=assert(mesh:BeginMarkerApproach(start,changed));changed.x=1
+        local detachedResult
+        repeat detachedResult=detached:Step(64) until detachedResult
+        check("pending marker coordinates are detached",detachedResult.approach.marker.x==near.x)
         check("readable height resolves matching floor",layered:Locate({x=1,z=1,height=10}).id==4)
         check("unmatched height remains unknown",not layered:Locate({x=1,z=1,height=5}))
         local bad=p.Schema.Clone(shards); bad[1].polygons[1].portals[1].to=999
