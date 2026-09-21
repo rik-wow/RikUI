@@ -286,3 +286,39 @@ never interprets a vanished quest as a turn-in. All actions remain advisory.
 The logic is tested on original synthetic rules, including changed/skipped chains,
 class constraints, full logs and conflicts. Validation against real newly added
 and changed Forever chains remains in the corpus acceptance requirements.
+
+## Directed travel
+
+`Travel.New(identity, revision, nodes, edges)` validates an immutable directed
+graph of at most 512 nodes and 2,048 connections. Each edge declares verified
+or reference provenance, traversed zones, mode, finite nonnegative time, risk
+and uncertainty. Coordinates never add connections. Reference-only traversability
+is excluded even when a policy accepts uncertain cost estimates.
+
+`graph:Begin(from, to, state, policy)` creates a private incremental search.
+`job:Step(work)` advances at most 128 queue/edge operations; default 64.
+`Estimate` is the synchronous convenience for offline/tests. Runtime callers
+must budget travel work within the enclosing replan. Defaults cap each leg at
+1,800 seconds, cumulative risk/uncertainty at 0.5, 2,048 allocated labels and
+8,192 work operations. Results include actual work/label counts.
+
+A min-time heap retains nondominated time/risk/uncertainty labels separately for
+used/unused hearth state. Nonnegative increments and FIFO waiting permit this
+pruning. Periodic transport waits for the next departure; flights require known
+unlocks at both ends. Hearth needs the actual bind and readable readyAt time.
+All times share the supplied clock origin. There is no per-edge waiting cutoff:
+waiting counts toward the total leg limit, avoiding unsound early-label pruning.
+At most one hearth is admitted per leg. Its consumption time is returned; a
+simulator must disable further hearth use unless it knows the new cooldown.
+
+Results distinguish known, no-known-route, unknown input and budget-exhausted.
+A limited result can carry a feasible incumbent, never a shortest-path claim.
+A popped terminal is fastest only within the admitted graph/model and constraints,
+not the real world or missing graph. Avoids apply to explicit intermediate zones;
+starting inside an avoided corridor can leave no admitted escape. There is no
+mutable-state cache: each request snapshots unlocks, cooldown and policy.
+
+Fixtures verify directional gaps, locked flights, changed cooldowns, periodic
+waiting, risk tradeoffs, intermediate avoids, zero-cost cycles, deterministic
+slices and exhaustion. They do not establish a traversable Dun Morogh graph or
+native frame cost.

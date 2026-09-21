@@ -30,6 +30,7 @@ return function(check)
         { "src/modules/questplanner/quest-evidence.lua", "src/modules/questplanner/quest-corpus.lua" },
         { "src/modules/questplanner/quest-schema.lua", "src/modules/questplanner/quest-transfer.lua" },
         { "src/modules/questplanner/quest-schema.lua", "src/modules/questplanner/quest-eligibility.lua" },
+        { "src/modules/questplanner/quest-schema.lua", "src/modules/questplanner/quest-travel.lua" },
         { "src/ui/media.lua", "src/ui/primitives.lua" },
         { "src/ui/primitives.lua", "src/modules/unitframes/unitframes.lua" },
         { "src/ui/unit-colors.lua", "src/modules/unitframes/unitframes-status.lua" },
