@@ -19,14 +19,19 @@ if arg[6]=="legacy" then
     end
 end
 local start=assert(mesh:Project(h.meta.uiMapID,assert(tonumber(arg[3])),assert(tonumber(arg[4]))))
+if arg[12]=="archived" then
+    local world=assert(h.snapshot.context.worldPosition,"archived world position missing")
+    start={x=world.x,z=world.z}
+    if world.verticalStatus=="observed-altitude" then start.height=world.height end
+end
 local questID=tonumber(arg[8]) or 99158
 local destination=assert(h.snapshot.context.destinations[questID],"scenario marker missing")
 local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
-local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8,reachableApproach=true}))
+local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true}))
 local route
 repeat route=job:Step(64) until route
 assert(route.status=="modeled",route.detail)
-local status,guidance=h.replay(start,questID,destination,false)
+local status,guidance=h.replay(start,questID,destination,arg[12]=="archived")
 assert(guidance,status)
 local samples,reversals,hidden,closeAims={},0,0,0
 local corridorIndex={}
@@ -40,7 +45,11 @@ for tick=1,6000 do
     local before=os.clock()
     local g,state=h.move(pos,delta)
     peak=math.max(peak,(os.clock()-before)*1000)
-    if not g then error("movement lost guidance: "..state.status.." at "..tick) end
+    if not g then
+        local old=samples[#samples] or {}
+        error(string.format("movement lost guidance: %s / %s at %d pos %.9f,%.9f,%.9f prior %.9f,%.9f",
+            state.status,state.detail or "",tick,pos[1],pos[2],pos[3],old[1] or 0,old[2] or 0))
+    end
     local displayStart=os.clock()
     local position=assert(mesh:Unproject(pos))
     local hint=assert(p.Guidance.Instruction(g,position,0,h.meta.projection.width,h.meta.projection.height))
@@ -101,6 +110,7 @@ for _,id in ipairs(ids) do
 end
 assert(h.meta.source.sha256:match("^[a-fA-F0-9]+$"),"invalid source hash")
 local data="{\"meshSourceSha256\":\""..h.meta.source.sha256.."\",\"startMap\":"..encode({tonumber(arg[3]),tonumber(arg[4])})
+    ..",\"startSource\":\""..(arg[12]=="archived" and "archived world position" or "supplied map position").."\""
     ..",\"stride\":"..stride..",\"polygons\":"..encode(polygons)..",\"corridor\":"..encode(route.corridor)
     ..",\"coarse\":"..encode(route.points)..",\"samples\":"..encode(samples)
     ..",\"marker\":"..encode({goal.x,goal.z})..",\"complete\":"..tostring(done)
@@ -113,13 +123,14 @@ end
 write(".json",data)
 local html=[=[<!doctype html><meta charset="utf-8"><title>RikUI deployed navmesh replay</title>
 <style>body{margin:0;background:#111925;color:#edf3fc;font:16px system-ui}header{padding:16px 24px}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0;color:#c3cddd}button,input{vertical-align:middle}svg{width:100%;height:75vh;background:#172332}label{margin-right:20px}#info{color:#70dfcd}.mesh{fill:#284957;stroke:#54717d;stroke-width:.12}.corridor{fill:#356a6b}.coarse{stroke:#ffb35c;stroke-width:.65;fill:none}.motion{stroke:#63ffba;stroke-width:.7;fill:none}</style>
-<header><h1>Actual navmesh · archived quest marker</h1><p>Actual companion polygons and production Lua steering. Start: rounded screenshot <span id="startMap"></span>. Marker: archived build 69913 observation.</p>
+<header><h1>Actual navmesh · archived quest marker</h1><p>Actual companion polygons and production Lua steering. Start: <span id="startSource"></span> <span id="startMap"></span>. Marker: archived build 69913 observation.</p>
 <p>Model simulation only: collision, native movement and interaction are unverified. Reaching the modeled endpoint does not establish native arrival or quest completion.</p>
 <label><input id="coarse" type="checkbox" checked>Orange: center graph</label><label><input id="motion" type="checkbox" checked>Green: simulated movement</label>
 <button id="play">Play</button> <input id="step" type="range" min="0" value="0" style="width:32%"> <button id="fit">Fit route</button><p id="info"></p></header>
 <svg id="view" xmlns="http://www.w3.org/2000/svg"><g id="mesh"></g><polyline id="route" class="coarse"/><polyline id="trace" class="motion"/><circle id="marker" fill="#ff78cb" r="1.4"/><line id="arrow" stroke="#fff" stroke-width="1.2"/><circle id="player" fill="#fff" r="1"/></svg>
 <script>
 const d=DATA,ns="http://www.w3.org/2000/svg",el=id=>document.getElementById(id),xy=p=>[-p[0],-p[p.length===3?2:1]],pair=p=>xy(p).join(",");
+el("startSource").textContent=d.startSource;
 el("startMap").textContent=d.startMap.map(v=>(v*100).toFixed(1)).join(", ");
 const corridor=new Set(d.corridor);for(const [id,points] of d.polygons){const n=document.createElementNS(ns,"polygon");n.setAttribute("points",points.map(pair).join(" "));n.setAttribute("class","mesh"+(corridor.has(id)?" corridor":""));const title=document.createElementNS(ns,"title");title.textContent="Polygon "+id+" · height "+points[0][1].toFixed(2);n.appendChild(title);el("mesh").appendChild(n)}
 el("route").setAttribute("points",d.coarse.map(pair).join(" "));el("trace").setAttribute("points",d.samples.map(p=>pair(p.slice(0,2))).join(" "));

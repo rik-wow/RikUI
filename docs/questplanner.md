@@ -22,6 +22,21 @@ RikUI's profile/CVar/macro transport, whose codec is bounded to 21,600 bytes.
 Explicit RIKQ1 exports can be archived and verified with the separate offline
 importer; this does not provide automatic persistence on this beta.
 
+### Current building-navigation repair
+
+The Bitter Rivals export reproduced a disconnected stair approach under the
+uncalibrated 0.3-yard step profile. The installed companion now uses an explicit,
+independently sourced Classic reference step profile; it remains unverified for
+Forever physics. Overlapping quest-marker floors can share a connected approach
+without selecting the quest floor. Arrow steering anticipates exits and retains
+valid forward aims through tiny portal fragments. Recent floor tracking survives
+quest refreshes and selection changes; stair edge crossing preserves connected
+floors without switching to disconnected surfaces below. Exact installed-data movement
+replay reaches the approach without backward flips. See
+[profile, endpoint contracts and retained evidence](../tools/terrain/MOVEMENT.md).
+This repairs modeled routing in this slice; it does not establish full world
+coverage, native traversal or a verified quest-action corpus.
+
 ## Product decisions
 
 The default objective is fast leveling with sensible risk and travel limits.

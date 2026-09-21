@@ -46,6 +46,23 @@ class CompilerTests(unittest.TestCase):
         receipt=json.loads((self.out/'compile-receipt.json').read_text());self.assertEqual(receipt['inputManifest']['sha256'],h);self.assertEqual(len(receipt['coverageGates']),1)
         self.assertEqual(set(e['filename'] for e in receipt['outputs']),{x.name for x in self.out.iterdir()}-{'compile-receipt.json'})
         for e in receipt['outputs']:self.assertEqual(c.sha((self.out/e['filename']).read_bytes()),e['sha256'])
+    def test_reference_step_is_explicit_and_preserves_uncertainty(self):
+        self.m['generator']['agentProfile']='classic-reference-step-v1'
+        self.m['generator']['config'].update(cs=.25,walkableRadius=2,walkableClimb=10)
+        p,h=self.write();meta,_,receipt=c.validate(p,h)
+        self.assertEqual(meta['modeledMaxStep'],1)
+        self.assertEqual(meta['agentProfile'],receipt['agentProfile'])
+        self.assertFalse(meta['nativeVerified']);self.assertFalse(meta['agentProfileCalibrated'])
+        self.assertTrue(any('Classic server reference' in v for v in meta['limitations']))
+        del self.m['generator']['agentProfile']
+        self.reject('unsupported-agent-profile')
+    def test_reference_step_does_not_relax_other_physical_limits(self):
+        self.m['generator']['agentProfile']='classic-reference-step-v1'
+        self.m['generator']['config'].update(cs=.25,walkableRadius=2,walkableClimb=10)
+        base=copy.deepcopy(self.m)
+        for key,value in [('walkableClimb',11),('walkableHeight',17),('walkableRadius',1),('walkableSlopeAngle',45)]:
+            self.m=copy.deepcopy(base);self.m['generator']['config'][key]=value
+            with self.subTest(key=key):self.reject('unsupported-agent-profile')
     def test_complete_static_model_without_exclusions(self):
         self.m['coverageScope']='whole-source-region'
         self.m['coverage']['staticWMO']=True

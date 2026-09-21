@@ -109,7 +109,9 @@ local function motionCrossing(origin,target,gate,after)
     if math.abs(denominator)<EPSILON then return end
     local qx,qz=a[1]-origin[1],a[3]-origin[3]
     local t,u=(qx*sz-qz*sx)/denominator,(qx*rz-qz*rx)/denominator
-    if t<after-EPSILON or t<0 or t>1 or u<0 or u>1 then return end
+    -- A stored portal midpoint can round a few ulps to either side of its edge.
+    if t<after-EPSILON or t < -EPSILON or t>1+EPSILON or u < -EPSILON or u>1+EPSILON then return end
+    t=math.max(0,math.min(1,t))
     return t,origin[1]+t*rx,origin[3]+t*rz
 end
 local function motionNeighbors(data,origin,target,node,queue,seen)
@@ -142,6 +144,44 @@ function geometry.FollowSurface(data,previous,target,limit)
         else motionNeighbors(data,origin,target,node,queue,seen) end
     end
     -- Too many crossed surfaces is a new location problem, not permission to snap.
+end
+-- Observed motion can bend between samples. Each local segment stays inside
+-- a convex polygon and crosses an existing portal; no proximity link is added.
+local function localNeighbors(data,node,queue,best,limit)
+    for _,gate in ipairs(data.polygons[node.id].portals) do
+        local edge=geometry.ClosestBoundary({gate.left,gate.right},node.point[1],node.point[3])
+        local entry=edge and geometry.Height(data.polygons[gate.to].points,edge[1],edge[3])
+        if entry then
+            local cost=node.cost+geometry.Distance(node.point,edge)+math.abs(entry-edge[2])
+            if cost<=limit and (not best[gate.to] or cost<best[gate.to]) then
+                if #queue>=MAX_CONTINUITY_POLYGONS then return false end
+                best[gate.to]=cost
+                queue[#queue+1]={id=gate.to,point={edge[1],entry,edge[3]},cost=cost}
+            end
+        end
+    end
+    return true
+end
+-- Called only for an independently unique horizontal endpoint.
+function geometry.FollowLocalSurface(data,previous,target,limit)
+    local queue={{id=previous.id,point=previous.point,cost=0}}
+    local best,matches,found={[previous.id]=0},{},{}
+    for _=1,MAX_CONTINUITY_POLYGONS do
+        if #queue==0 then return matches end
+        local index=1
+        for at=2,#queue do if queue[at].cost<queue[index].cost then index=at end end
+        local node=table.remove(queue,index)
+        if node.cost==best[node.id] then
+            local surface=data.polygons[node.id].points
+            local height=geometry.Contains(surface,target.x,target.z) and geometry.Height(surface,target.x,target.z)
+            local point=height and {target.x,height,target.z}
+            if point and not found[node.id] and node.cost+geometry.Distance(node.point,point)<=limit then
+                matches[#matches+1]={id=node.id,point=point,floorSource="modeled-continuity"};found[node.id]=true
+            end
+            if not localNeighbors(data,node,queue,best,limit) then return end
+        end
+    end
+    -- Exhaustion cannot publish a partial floor-candidate set.
 end
 -- A shortcut must cross every directed corridor portal, in order, on both modeled
 -- surfaces. Convexity then keeps each intervening segment inside its polygon.
@@ -229,10 +269,19 @@ local function rayContinuation(route,origin,gate,first,last)
     local proof=crossings(route,origin,target,first,last)
     if proof then return target,proof,last end
 end
-local function finalPortalAim(route,origin,gate,first,last)
-    if last~=#route.corridor then return end
-    local endpoint=route.points[#route.points]
-    local ratio=1
+local function exitAim(route,gate,last)
+    local edge=route.portals[last]
+    local t=rayPortalFraction(gate,route.points[#route.points],edge.left,edge.right)
+    if not t then return edge.midpoint end
+    t=math.max(.02,math.min(.98,t))
+    return {edge.left[1]+t*(edge.right[1]-edge.left[1]),
+        edge.left[2]+t*(edge.right[2]-edge.left[2]),edge.left[3]+t*(edge.right[3]-edge.left[3])}
+end
+local function turningPortalAim(route,origin,gate,first,last)
+    local final=last==#route.corridor
+    local endpoint=final and route.points[#route.points] or exitAim(route,gate,last)
+    local distance=geometry.Distance(gate,endpoint)
+    local ratio=final and 1 or math.min(.98,ANTICIPATION/math.max(distance,.01))
     for _=1,CONTINUATION_TRIES do
         local target={}
         for at=1,3 do target[at]=gate[at]+ratio*(endpoint[at]-gate[at]) end
@@ -244,8 +293,8 @@ end
 local function portalAim(route,origin,first,last,preferred)
     local gate=visiblePortal(route,origin,first,last,preferred)
     if not gate then return end
-    -- Turn into the final approach instead of overshooting its entrance ray.
-    local final,finalProof=finalPortalAim(route,origin,gate,first,last)
+    -- Anticipate the entered polygon's exit, including turns inside buildings.
+    local final,finalProof=turningPortalAim(route,origin,gate,first,last)
     if final then return final,finalProof,last end
     local ray,proof=rayContinuation(route,origin,gate,first,last)
     if ray then return ray,proof,last end
@@ -305,13 +354,15 @@ function geometry.CorridorAim(route,origin,index,previous)
         or not route.surfaces or not route.portals then return target,proof,last end
     local old=previous.point
     local dx,dz=old[1]-origin[1],old[3]-origin[3]
-    if dx*(target[1]-origin[1])+dz*(target[3]-origin[3])>=0
-        or dx*dx+dz*dz<=1 then return target,proof,last end
+    local tx,tz=target[1]-origin[1],target[3]-origin[3]
+    local short=tx*tx+tz*tz<1 and dx*dx+dz*dz>tx*tx+tz*tz
+    local passed=previous.origin and (old[1]-previous.origin[1])*dx+(old[3]-previous.origin[3])*dz<=0
+    if passed or (dx*tx+dz*tz>=0 and not short) or dx*dx+dz*dz<=EPSILON*EPSILON then return target,proof,last end
     local surface=route.surfaces[previous.index]
     if not surface or not geometry.Contains(surface,old[1],old[3]) then return target,proof,last end
     local retained=crossings(route,origin,old,index,previous.index)
-    -- Retain a still-visible aim only to suppress opposite-direction oscillation.
-    -- Crossing a wall, a passed polygon or a necessary corner invalidates it.
+    -- Keep a still-visible forward aim through tiny boundary fragments.
+    -- A passed aim/polygon, wall or necessary corner invalidates it.
     if retained then return old,retained,previous.index end
     for at=lookaheadEnd(route,origin,index),index+1,-1 do
         local adjusted,crossed=portalAim(route,origin,index,at,old)

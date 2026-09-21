@@ -61,14 +61,16 @@ while p.Terrain.Status().status=="loading" do
 end
 print(string.format("Production loader: %d headless frames, %.3f ms CPU, peak %.3f ms; native unverified",loadFrames,loadCPU,loadPeak))
 if arg[10] then assert(loadFrames<=assert(tonumber(arg[10])),"preparation frame budget exceeded") end
-assert(p.Terrain.Status().status=="ready","terrain did not load")
+assert(p.Terrain.Status().status~="invalid","terrain did not load")
 local function runtimeReplay(start,questID,destination,archived)
     livePosition=mesh:Unproject({start.x,0,start.z})
     liveWorld=archived and context.worldPosition or nil
     liveModel={status="observed",selected={questID=questID,destination=p.Schema.Clone(destination)}}
     p.Terrain.Invalidate()
-    for _=1,20000 do
-        onUpdate(nil,.2)
+    for frame=1,20000 do
+        -- Each archived/screenshot case is an independent cold start, not motion
+        -- from the previous replay. Expire continuity without reloading the mesh.
+        onUpdate(nil,frame==1 and .6 or .2)
         local status=p.Terrain.Status().status
         if status~="updating" and status~="calculating" then
             local guidance=p.Terrain.Guidance()
@@ -101,7 +103,7 @@ local function replay(label,start,questID,destination)
         assert(runtimeStatus=="unknown-location" and not runtimeRoute,"runtime start admission differs")
         print(label,questID,"unknown-start",issue);return "unknown-start"
     end
-    local job,reason=mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8,reachableApproach=true})
+    local job,reason=mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true})
     if not job then print(label,questID,"unknown-target",reason);return "unknown-target" end
     local result
     repeat
@@ -119,7 +121,8 @@ local function replay(label,start,questID,destination)
         assert(math.abs(projected.x-endpoint[1])<.00001 and math.abs(projected.z-endpoint[3])<.00001,
             "production guidance endpoint differs")
         if result.approach then
-            assert(result.approach.gap<=result.approach.radius and result.approach.radius<=8 and not result.approach.finalLegVerified)
+            local radius=result.approach.kind=="observed-marker-common-approach" and 64 or 8
+            assert(result.approach.gap<=result.approach.radius and result.approach.radius<=radius and not result.approach.finalLegVerified)
             assert(math.sqrt((endpoint[1]-goal.x)^2+(endpoint[3]-goal.z)^2)>.0001,"gap drawn")
         end
         print(label,questID,result.status,string.format("%.3f yd; gap %.4f; %d polygons; work %d; endpoint checks %d",

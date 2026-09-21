@@ -14,6 +14,11 @@ def profile(manifest):
     generator=obj(manifest.get('generator'),'generator');config=obj(generator.get('config'),'agent-config')
     expected_profile={'cs':.5,'ch':.1,'walkableRadius':1,'walkableHeight':18,'walkableClimb':3,'walkableSlopeAngle':40,'maxVertsPerPoly':6}
     if config.get('cs')==.25:expected_profile.update(cs=.25,walkableRadius=2)
+    reference=generator.get('agentProfile')
+    need(reference in (None,'classic-reference-step-v1'),'unsupported-agent-profile')
+    if reference:
+        need(config.get('cs')==.25,'unsupported-agent-profile')
+        expected_profile['walkableClimb']=10
     need(generator.get('agentProfileNativeVerified') is False and all(type(config.get(k)) in (int,float) and config[k]==v for k,v in expected_profile.items()),'unsupported-agent-profile')
     expected={'terrain':True,'holes':True,'staticM2':True,'dynamicDoors':False,'agentProfileCalibrated':False,'placementReferencesAreNames':False,'modelExcludesUnresolvedStaticFootprints':True,'nativeTraversalVerified':False}
     need(all(cov.get(k) is v for k,v in expected.items()),'unsupported-coverage-state')

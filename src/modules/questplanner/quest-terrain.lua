@@ -17,10 +17,10 @@ local function setState(status,detail)
     if planner.View and planner.View.Refresh then planner.View.Refresh() end
 end
 local function same(a,b) return a.product==b.product and a.build==b.build and a.locale==b.locale end
-local function clear()
+local function clear(forgetLocation)
     if request then request:Cancel(); request=nil end
-    route,display,selectedKey,lastAttempt=nil,nil,nil,nil
-    lastLocation,locationAge,lastAim=nil,0,nil
+    route,display,selectedKey,lastAttempt,lastAim=nil,nil,nil,nil,nil
+    if forgetLocation then lastLocation,locationAge=nil,0 end
 end
 function terrain.Invalidate()
     clear()
@@ -31,7 +31,7 @@ function terrain.Install(meta,shards)
     local value,reason=planner.NavMesh.Begin(meta,shards)
     if not value then return nil,reason end
     if loader then loader:Cancel() end
-    clear(); mesh=nil; loader=value
+    clear(true); mesh=nil; loader=value
     setState("loading","Preparing terrain guidance")
     return true
 end
@@ -40,15 +40,14 @@ function terrain.Guidance() return schema.Clone(display) end
 local function selected()
     local model=planner.Controller.Get()
     local row=model.selected
-    if not row or model.status=="paused" or model.status=="updating" then return nil end
     local position=planner.Context.Position()
-    if not row.destination then return nil end
     if not position then return nil,nil,"Player position is unavailable" end
+    if not row or not row.destination or model.status=="paused" or model.status=="updating" then return nil,position end
     return row,position
 end
 local function remainingPoints(location,index)
     local aim,crossed,last=planner.NavGeometry.CorridorAim(route,location.point,index,lastAim)
-    lastAim={point=aim,index=last}
+    lastAim={point=aim,index=last,origin=schema.Clone(location.point)}
     local points={location.point}
     for _,point in ipairs(crossed) do points[#points+1]=point end
     points[#points+1]=aim
@@ -68,7 +67,10 @@ local function trim(location)
         result.approach=schema.Clone(route.approach)
         result.approach.marker=mesh:Unproject({route.approach.marker.x,0,route.approach.marker.z})
         result.approach.provenance=schema.Clone(route.markerProvenance)
-        result.detail=string.format("Modeled approach; %.2f yd gap and interaction unverified",route.approach.gap)
+        local uncertain=route.approach.kind=="observed-marker-common-approach"
+            or route.approach.kind=="observed-marker-uncertain-vicinity"
+        result.detail=uncertain and "Approach; quest floor is uncertain"
+            or string.format("Modeled approach; %.2f yd gap and interaction unverified",route.approach.gap)
     end
     for at,point in ipairs(points) do
         result.points[#result.points+1]=mesh:Unproject(point)
@@ -87,32 +89,32 @@ local function admissible()
     if #(meta.blockers or {})>0 then return nil,"Terrain coverage is incomplete" end
     return true
 end
-local function update()
-    if not mesh then return end
-    local ok,reason=admissible()
-    if not ok then clear(); setState("unavailable",reason); return end
-    local row,position,issue=selected()
-    if not row then clear(); setState(issue and "unavailable-position" or "ready",issue or "No active terrain destination"); return end
-    local target=row.destination
-    local signature=string.format("%d:%d:%.17g:%.17g:%s:%s",row.questID,target.mapID,target.x,target.y,target.scope or "",target.api or "")
-    if selectedKey~=signature then clear(); selectedKey=signature end
-    local start,goal=mesh:Project(position.mapID,position.x,position.y),mesh:Project(target.mapID,target.x,target.y)
-    if not start or not goal then clear(); setState("outside-coverage","Location or destination is outside this terrain map"); return end
+local function observeLocation(position)
+    local start=mesh:Project(position.mapID,position.x,position.y)
+    if not start then clear(true);setState("outside-coverage","Location is outside this terrain map");return end
     local world=planner.Context.WorldPosition and planner.Context.WorldPosition()
     if world then
         if world.mapID~=mesh:Metadata().worldMapID or math.abs(world.x-start.x)>5 or math.abs(world.z-start.z)>5 then
-            clear(); setState("unknown-location","Map and world positions disagree"); return
+            clear(true);setState("unknown-location","Map and world positions disagree");return
         end
         start={x=world.x,z=world.z}
         if world.verticalStatus=="observed-altitude" then start.height=world.height end
     end
     local location,problem=mesh:LocateContinued(start,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
-    if not location then clear(); setState("unknown-location",problem); return end
+    if not location then clear(true);setState("unknown-location",problem);return end
     lastLocation,locationAge=location,0
     -- Search starts on this modeled surface; this does not establish native altitude.
     start.height=start.height or location.point[2]
+    return location,start
+end
+local function requestRoute(row,location,start)
+    local target=row.destination
+    local signature=string.format("%d:%d:%.17g:%.17g:%s:%s",row.questID,target.mapID,target.x,target.y,target.scope or "",target.api or "")
+    if selectedKey~=signature then clear();selectedKey=signature end
+    local goal=mesh:Project(target.mapID,target.x,target.y)
+    if not goal then clear();setState("outside-coverage","Destination is outside this terrain map");return end
     display=trim(location)
-    if display then setState(display.approach and "modeled-approach" or "modeled",display.detail); return end
+    if display then setState(display.approach and "modeled-approach" or "modeled",display.detail);return end
     if request then return end
     local attempt=signature..":"..location.id
     if lastAttempt==attempt then return end
@@ -121,8 +123,21 @@ local function update()
     local begin=target.scope=="current-map-quest-poi" and mesh.BeginMarkerApproach or mesh.Begin
     -- Quest-map POIs represent a vicinity, not an exact standing/interaction position.
     local maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1)
-    request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true})
+    local problem
+    request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true})
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
+end
+local function update()
+    if not mesh then return end
+    local ok,reason=admissible()
+    if not ok then clear(true);setState("unavailable",reason);return end
+    local row,position,issue=selected()
+    if not position then clear(true);setState("unavailable-position",issue);return end
+    local location,start=observeLocation(position)
+    if not location then return end
+    -- Quest selection and journal updates do not invalidate recent floor observations.
+    if not row then clear();setState("ready","No active terrain destination");return end
+    requestRoute(row,location,start)
 end
 local function loadSlice()
     local clock=type(debugprofilestop)=="function" and debugprofilestop
@@ -143,7 +158,7 @@ local function searchSlice()
     end
 end
 function terrain.Step()
-    if not planner.enabled then clear(); setState("disabled","Quest planner is disabled"); return end
+    if not planner.enabled then clear(true); setState("disabled","Quest planner is disabled"); return end
     if loader then
         local value,reason,done=loadSlice()
         if done then

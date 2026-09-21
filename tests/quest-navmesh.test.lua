@@ -209,6 +209,65 @@ return function(check)
             repeat result=pending:Step(1) until result
             return result
         end
+        -- Two real ramp-connected floors share the foyer, but the marker gives no floor.
+        local floorPolys={square(1,0,0),square(2,10,0),square(3,20,0),
+            square(4,10,10),square(5,10,20,10),square(6,20,20,10),
+            square(7,20,10,10),square(8,20,0,10)}
+        floorPolys[4].points[3][2]=10;floorPolys[4].points[4][2]=10
+        local function link(from,to,left,right)
+            table.insert(floorPolys[from].portals,{to=to,left=left,right=right})
+            table.insert(floorPolys[to].portals,{to=from,left=right,right=left})
+        end
+        link(1,2,{10,0,0},{10,0,10});link(2,3,{20,0,0},{20,0,10})
+        link(2,4,{10,0,10},{20,0,10});link(4,5,{10,10,20},{20,10,20})
+        link(5,6,{20,10,20},{20,10,30});link(6,7,{20,10,20},{30,10,20})
+        link(7,8,{20,10,10},{30,10,10})
+        local floorMeta=p.Schema.Clone(meta)
+        floorMeta.bounds={0,0,30,30};floorMeta.counts={polygons=8,portals=14}
+        local floorMesh=assert(load(floorMeta,{{identity=identity,polygons=floorPolys}}))
+        local marker={x=25,z=5}
+        local function walkFloors(points)
+            local prior=assert(floorMesh:Locate({x=15,z=5}))
+            for _,target in ipairs(points) do
+                local origin=prior.point
+                local steps=math.ceil(math.sqrt((target[1]-origin[1])^2+(target[2]-origin[3])^2))
+                for step=1,steps do
+                    local nextPoint={x=origin[1]+(target[1]-origin[1])*step/steps,
+                        z=origin[3]+(target[2]-origin[3])*step/steps}
+                    prior=assert(floorMesh:LocateContinued(nextPoint,prior))
+                end
+            end
+            return prior
+        end
+        local upstairs=walkFloors({{15,25},{25,25},{25,5}})
+        check("connected ascent retains the upper floor over the lower room",
+            upstairs.id==8 and upstairs.point[2]==10)
+        local downstairs=walkFloors({{15,25},{25,25},{25,5},{25,25},{15,25},{15,5},{25,5}})
+        check("descending the same staircase returns to the lower floor",
+            downstairs.id==3 and downstairs.point[2]==0)
+        check("strict destination never chooses a marker floor",not floorMesh:Begin(start,marker))
+        check("common floor approach requires explicit marker policy",not floorMesh:BeginMarkerApproach(start,marker))
+        local shared=reachable(floorMesh,start,marker,{commonApproach=true,markerRadius=8})
+        check("floor ambiguity retains only the common connected foyer approach",
+            shared.status=="modeled" and #shared.corridor==2 and shared.corridor[2]==2
+            and shared.approach.kind=="observed-marker-common-approach" and shared.approach.floorCount==2)
+        check("common approach keeps marker floor and interaction unresolved",
+            shared.approach.marker.x==25 and not shared.approach.finalLegVerified
+            and not shared.approach.interactionVerified and shared.points[#shared.points][1]==15)
+        check("shared route never guesses player altitude",
+            not floorMesh:BeginMarkerApproach(marker,start,{commonApproach=true}))
+        local sharedPending=assert(floorMesh:BeginMarkerApproach(start,marker,{commonApproach=true}))
+        check("common approach search yields before completion",sharedPending:Step(1)==nil)
+        sharedPending:Cancel()
+        check("common approach cancellation publishes no corridor",sharedPending:Step().status=="cancelled")
+        check("common approach does not publish a partially searched floor set",
+            reachable(floorMesh,start,marker,{commonApproach=true,maxWork=1}).status=="budget-exhausted")
+        local missingFloor=p.Schema.Clone(floorPolys)
+        missingFloor[7].portals={missingFloor[7].portals[1]};missingFloor[8].portals={}
+        local missingMeta=p.Schema.Clone(floorMeta);missingMeta.counts.portals=12
+        check("unreachable competing floor cannot be discarded to select the other",
+            reachable(assert(load(missingMeta,{{identity=identity,polygons=missingFloor}})),
+                start,marker,{commonApproach=true}).status=="unknown-target")
         local broken=assert(load(less,disconnected))
         local vicinityGoal={x=15,z=15}
         local partial=reachable(broken,start,vicinityGoal)
@@ -261,6 +320,29 @@ return function(check)
         disconnectedLayers[1].polygons[1].portals={}
         disconnectedLayers[1].polygons[2].portals={disconnectedLayers[1].polygons[2].portals[2]}
         local disconnectedMeta=p.Schema.Clone(taller);disconnectedMeta.counts.portals=2
+        local ledgePolys={square(1,0,0,10),square(2,10,0,0)}
+        local ledgeMeta=p.Schema.Clone(meta);ledgeMeta.counts={polygons=2,portals=0}
+        local ledgeMesh=assert(load(ledgeMeta,{{identity=identity,polygons=ledgePolys}}))
+        check("short motion cannot jump off the tracked floor to uniquely visible lower ground",
+            not ledgeMesh:LocateContinued({x=10.1,z=5},{id=1,point={9.9,10,5}}))
+        check("unique cold start still resolves without a previous floor",ledgeMesh:LocateContinued({x=10.1,z=5}).id==2)
+        local cornerPolys={
+            {id=1,points={{.75,0,.25},{0,0,0},{-1.25,0,.5}},
+                portals={{to=2,left={0,0,0},right={-1.25,0,.5}}}},
+            {id=2,points={{-1.5,0,-.5},{-1.25,0,.5},{0,0,0},{0,0,-1.25}},
+                portals={{to=1,left={-1.25,0,.5},right={0,0,0}}}},
+        }
+        local cornerMeta=p.Schema.Clone(meta);cornerMeta.bounds={-2,-2,2,2};cornerMeta.counts={polygons=2,portals=2}
+        local cornerMesh=assert(load(cornerMeta,{{identity=identity,polygons=cornerPolys}}))
+        local beforeCorner={id=1,point={.00277,0,.00119}}
+        local afterCorner={x=-.0922,z=-.08766}
+        check("corner fixture has no straight portal crossing",
+            #p.NavGeometry.FollowSurface({polygons=cornerPolys},beforeCorner,afterCorner,3)==0)
+        check("short sampled turn follows a real neighboring portal",
+            cornerMesh:LocateContinued(afterCorner,beforeCorner).id==2)
+        cornerPolys[1].portals={};cornerPolys[2].portals={};cornerMeta.counts.portals=0
+        check("the same short turn cannot cross an unlinked corner",
+            not assert(load(cornerMeta,{{identity=identity,polygons=cornerPolys}})):LocateContinued(afterCorner,beforeCorner))
         check("continuity cannot cross an unlinked wall",
             not assert(load(disconnectedMeta,disconnectedLayers)):LocateContinued({x=9,z=5},previousFloor))
         check("approach cannot resolve a competing player floor",not layered:BeginMarkerApproach(start,near))
@@ -270,6 +352,23 @@ return function(check)
         local ambiguous=approach(targetMesh,start,near)
         check("competing approach floors remain ambiguous",ambiguous.status=="unknown-target"
             and ambiguous.detail:find("ambiguous",1,true)~=nil)
+        check("uncertain vicinity never chooses an overlapping endpoint",
+            reachable(targetMesh,start,near,{uncertainVicinity=true}).status=="unknown-target")
+        local nearbyLayers=p.Schema.Clone(targetLayers)
+        nearbyLayers[1].polygons[4].points[1][1]=10.2
+        nearbyLayers[1].polygons[4].points[4][1]=10.2
+        local nearbyFloors=assert(load(taller,nearbyLayers))
+        check("nearby competing floor retains strict default",approach(nearbyFloors,start,near).status=="unknown-target")
+        local possible=reachable(nearbyFloors,start,near,{uncertainVicinity=true})
+        check("explicit vicinity policy can guide to uniquely located nearby ground",
+            possible.status=="modeled" and possible.approach.kind=="observed-marker-uncertain-vicinity"
+            and possible.approach.gap<=1 and nearbyFloors:Locate({x=possible.points[#possible.points][1],
+                z=possible.points[#possible.points][3]}).id==3)
+        check("possible vicinity does not resolve quest floor or interaction",
+            possible.approach.reason=="nearby-marker-floors-ambiguous"
+            and not possible.approach.finalLegVerified and not possible.approach.interactionVerified)
+        check("invalid shared-approach destination fails without throwing",
+            not nearbyFloors:BeginMarkerApproach(start,42,{commonApproach=true}))
         check("exact stacked target never falls back",not targetMesh:BeginMarkerApproach(start,goal))
         check("reachable policy cannot resolve an ambiguous target floor",
             not targetMesh:BeginMarkerApproach(start,goal,{markerRadius=8,reachableApproach=true}))

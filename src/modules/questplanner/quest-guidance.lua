@@ -29,6 +29,9 @@ function guidance.RouteStatus(model,terrain)
         if (terrain.detail or ""):find("ambiguous",1,true) then return "Quest marker floor is uncertain" end
         return "Quest marker is outside the walking model"
     end
+    if terrain.status=="modeled-approach" and terrain.detail=="Approach; quest floor is uncertain" then
+        return "Follow approach; check quest floor"
+    end
     return TERRAIN_STATUS[terrain.status] or "Walking route is unavailable"
 end
 local COMPASS={"N","NE","E","SE","S","SW","W","NW"}
@@ -55,7 +58,10 @@ function guidance.Instruction(route,position,facing,width,height)
     local distance=math.sqrt(dx*dx+dy*dy)
     local remaining=route.meters
     if schema.Number(remaining,0,1000000) and remaining<=2 and distance<=2 then
-        return {text="Route ends nearby",subtext="Check the quest target",distance=distance,ending=true}
+        local floors=route.approach and (route.approach.kind=="observed-marker-common-approach"
+            or route.approach.kind=="observed-marker-uncertain-vicinity")
+        return {text=floors and "Check the quest floor" or "Route ends nearby",
+            subtext=floors and "Marker covers multiple floors" or "Check the quest target",distance=distance,ending=true}
     end
     local bearing=math.atan2(-dx,-dy)
     local text=facingText(bearing,facing).." · "..distanceText(distance)

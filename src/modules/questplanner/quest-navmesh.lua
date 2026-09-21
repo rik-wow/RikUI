@@ -196,7 +196,27 @@ local function locate(data,point)
     end
     if #matches==0 then return nil,"outside known navigation polygons" end
     local match=boundaryMatches(data,matches)
-    return match,match and nil or "Floor or polygon boundary is ambiguous"
+    return match,match and nil or "Floor or polygon boundary is ambiguous",matches
+end
+local function distinctFloors(data,matches)
+    local groups={}
+    for _,value in ipairs(matches or {}) do
+        local group
+        for _,existing in ipairs(groups) do
+            if math.abs(existing[1].point[2]-value.point[2])<=.002 then group=existing;break end
+        end
+        if not group then group={};groups[#groups+1]=group end
+        group[#group+1]=value
+    end
+    if #groups<2 or #groups>4 then return nil end
+    local result={}
+    for _,group in ipairs(groups) do
+        local value=boundaryMatches(data,group)
+        if not value then return nil end
+        result[#result+1]=value
+    end
+    table.sort(result,function(a,b) return a.id<b.id end)
+    return result
 end
 -- One yard is a marker-displacement bound, not an interaction or movement radius.
 local APPROACH_RADIUS,APPROACH_INSET=1,.005
@@ -222,14 +242,17 @@ local function candidate(data,id,goal,radius)
     if not height then return nil end
     return {id=id,point={x,height,z},gap=math.sqrt((x-goal.x)^2+(z-goal.z)^2),height=point[2]}
 end
-local function approachFloor(data,best,candidates)
+local function approachFloor(data,best,candidates,uncertainVicinity)
     if not best then return nil,"No modeled approach within marker vicinity" end
     -- Nearby equally plausible floors remain ambiguous; distant hills do not compete.
     local low,high=best.height,best.height
     for _,value in ipairs(candidates) do
         if value.gap<=best.gap+NEAREST_SURFACE_BAND then
             low=math.min(low,value.height);high=math.max(high,value.height)
-            if high-low>data.meta.modeledMaxStep then return nil,"Marker approach floor is ambiguous" end
+            if high-low>data.meta.modeledMaxStep then
+                if not uncertainVicinity then return nil,"Marker approach floor is ambiguous" end
+                best.floorUncertain=true
+            end
         end
         coroutine.yield()
     end
@@ -237,7 +260,7 @@ local function approachFloor(data,best,candidates)
     if not resolved or resolved.id~=best.id then return nil,reason or "Marker approach floor is ambiguous" end
     return best
 end
-local function approachEndpoint(data,goal,metrics,radius)
+local function approachEndpoint(data,goal,metrics,radius,uncertainVicinity)
     local best,seen,candidates=nil,{},{}
     for x=math.floor((goal.x-radius)/CELL),math.floor((goal.x+radius)/CELL) do
         for z=math.floor((goal.z-radius)/CELL),math.floor((goal.z+radius)/CELL) do
@@ -255,7 +278,7 @@ local function approachEndpoint(data,goal,metrics,radius)
             end
         end
     end
-    return approachFloor(data,best,candidates)
+    return approachFloor(data,best,candidates,uncertainVicinity)
 end
 local function approachResult(data,status,detail,metrics)
     return {status=status,detail=detail,metrics=metrics,nativeVerified=false,revision=data.meta.revision}
@@ -293,7 +316,7 @@ local function exactApproachWorker(data,start,goal,last,options,metrics)
     end
 end
 local function approachWorker(data,start,goal,options,metrics)
-    local endpoint,reason=approachEndpoint(data,goal,metrics,options.markerRadius or APPROACH_RADIUS)
+    local endpoint,reason=approachEndpoint(data,goal,metrics,options.markerRadius or APPROACH_RADIUS,options.uncertainVicinity)
     if not endpoint then return approachResult(data,"unknown-target",reason,metrics) end
     local job,issue=planner.NavSearch.Begin(data,start,{x=endpoint.point[1],z=endpoint.point[3]},options,locate)
     if not job then return approachResult(data,"unknown-target",issue,metrics) end
@@ -304,6 +327,10 @@ local function approachWorker(data,start,goal,options,metrics)
             if result.status=="modeled" then
                 result.approach={kind="observed-marker-vicinity",marker=schema.Clone(goal),gap=endpoint.gap,
                     radius=options.markerRadius or APPROACH_RADIUS,finalLegVerified=false,interactionVerified=false}
+                if endpoint.floorUncertain then
+                    result.approach.kind="observed-marker-uncertain-vicinity"
+                    result.approach.reason="nearby-marker-floors-ambiguous"
+                end
                 result.detail="Modeled approach; final gap and interaction unverified"
             end
             return result
@@ -314,14 +341,23 @@ end
 local function beginApproach(data,start,goal,options)
     local first,issue=locate(data,start)
     if not first then return nil,issue end
-    local last,reason=locate(data,goal)
-    if not last and reason~="outside known navigation polygons" then return nil,reason end
+    local last,reason,matches=locate(data,goal)
     local settings=schema.Copy(options or {})
     if not schema.PlainTable(settings) or not schema.Integer(settings.maxWork or 16384,1,262145)
         or not schema.Number(settings.speed or 7,.1,100)
         or not schema.Number(settings.markerRadius or APPROACH_RADIUS,1,MAX_MARKER_RADIUS) then return nil,"invalid navigation limits" end
+    for _,name in ipairs({"commonApproach","uncertainVicinity","reachableApproach"}) do
+        if settings[name]~=nil and type(settings[name])~="boolean" then return nil,"invalid navigation limits" end
+    end
+    if not last and reason~="outside known navigation polygons" then
+        local floors=reason=="Floor or polygon boundary is ambiguous" and settings.commonApproach
+            and goal.height==nil and distinctFloors(data,matches)
+        if floors and approachCovered(data,goal,settings.markerRadius or APPROACH_RADIUS) then
+            return planner.NavSearch.Begin(data,start,goal,settings,locate,nil,floors)
+        end
+        return nil,reason
+    end
     if last and not settings.reachableApproach then return planner.NavSearch.Begin(data,start,goal,settings,locate) end
-    if settings.reachableApproach~=nil and type(settings.reachableApproach)~="boolean" then return nil,"invalid navigation limits" end
     if not last and (goal.height~=nil or not approachCovered(data,goal,settings.markerRadius or APPROACH_RADIUS)) then
         return nil,"Marker approach outside sourced coverage"
     end
@@ -354,9 +390,12 @@ local function publish(data)
         Locate=function(_,point) return locate(data,point) end,
         LocateContinued=function(_,point,previous)
             local result,reason=locate(data,point)
-            if result or not schema.PlainTable(point) or point.height~=nil or not previous
-                or reason~="Floor or polygon boundary is ambiguous" then return result,reason end
+            if not schema.PlainTable(point) or point.height~=nil or not schema.PlainTable(previous)
+                or not geometry.Point(previous.point) or not schema.Number(point.x,-100000,100000)
+                or not schema.Number(point.z,-100000,100000) then return result,reason end
+            if (point.x-previous.point[1])^2+(point.z-previous.point[3])^2>CONTINUITY_DISTANCE^2 then return result,reason end
             local matches=geometry.FollowSurface(data,previous,point,CONTINUITY_DISTANCE)
+            if result and matches and #matches==0 then matches=geometry.FollowLocalSurface(data,previous,point,CONTINUITY_DISTANCE) end
             if matches and #matches>0 then
                 local continued=boundaryMatches(data,matches)
                 if continued then return continued end

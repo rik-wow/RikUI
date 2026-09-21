@@ -121,6 +121,8 @@ def validate(manifest_path,expected_sha):
     region=obj(m.get('bounds'),'source-bounds');box=bounds([region.get('min'),region.get('max')]);region_bounds=[box[0][0],box[0][2],box[1][0],box[1][2]]
     source_region=region_contract.validate(m,source,region_bounds,need)
     rectangles,gates,modeled_max_step=coverage(m,region_bounds);limitations=[text(v,'limitation') for v in array(m.get('limitations'),24,'limitations')];need(limitations,'missing-model-limitations')
+    if m['generator'].get('agentProfile')=='classic-reference-step-v1':
+        limitations.append('One-yard step uses a Classic server reference rounded down; Forever player physics are unverified.')
     for gate in gates:
         limitations.append('Excluded placement %d: %s (source file %d).'%(gate['placementID'],gate['reason'],gate['fileDataID']))
     stats=obj(m.get('statistics'),'statistics');pc=integer(stats.get('polygons'),1,MAX_POLYGONS,'polygon-count');ec=integer(stats.get('directedEdges'),0,MAX_PORTALS,'portal-count');rc=integer(stats.get('regions'),1,MAX_SHARDS,'region-count')
@@ -160,6 +162,8 @@ def validate(manifest_path,expected_sha):
     meta={'format':'rikui-navmesh-v1','identity':dict(RUNTIME_IDENTITY),'revision':expected_sha,'uiMapID':1426,'worldMapID':0,'source':{'sha256':expected_sha,'parser':PARSER},'projection':dict(PROJECTION),'counts':{'polygons':pc,'portals':ec},'exclusions':rectangles,'bounds':region_bounds,'blockers':[],'coverageScope':m['coverageScope'],'modeledMaxStep':modeled_max_step,'nativeVerified':False,'agentProfileCalibrated':False,'limitations':limitations}
     receipt={'format':'rikui-terrain-compile-receipt-v1','compiler':PARSER,'compilerSha256':sha(pathlib.Path(__file__).read_bytes()),'inputManifest':{'path':str(manifest_path.resolve()),'bytes':len(data),'sha256':expected_sha},'inputRegions':inputs,'sourceAudit':source,'inputCoverage':m['coverage'],'coverageGates':gates,'excludedFootprints':m['exclusions'],'projection':PROJECTION,'projectionSource':PROJECTION_SOURCE,'counts':{'shards':rc,'polygons':pc,'directedPortals':ec},'runtimeIdentity':RUNTIME_IDENTITY,'sourceAuthenticity':'Caller supplied expected hash; integrity does not independently authenticate acquisition claims.','modeledTraversal':'Only carved JSON graph compiled; raw Detour binary and game assets are not copied.','nativeVerified':False,'agentProfileCalibrated':False,'limitations':limitations,'geometryTolerance':{'polygonContainment':0.002,'portalBoundary':0.01},'validationProbes':array(m.get('probes',[]),8,'validation-probes')}
     meta['sourceRegion']=source_region
+    meta['agentProfile']=m['generator'].get('agentProfile','uncalibrated-conservative-v1')
+    receipt['agentProfile']=meta['agentProfile']
     runtime_metadata(meta)
     receipt['sourceRegion']=source_region
     receipt['regionContractSha256']=sha(pathlib.Path(region_contract.__file__).read_bytes())
