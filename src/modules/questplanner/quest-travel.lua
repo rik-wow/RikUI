@@ -18,7 +18,8 @@ local function source(value, identity)
 end
 
 local EDGE_FIELDS = { id=true, from=true, to=true, seconds=true, mode=true, risk=true, uncertainty=true,
-    zones=true, source=true, flightFrom=true, flightTo=true, transport=true, period=true, offset=true }
+    zones=true, source=true, flightFrom=true, flightTo=true, transport=true, period=true, offset=true,
+    schedule=true, boardingWindow=true, boardSeconds=true, rideSeconds=true, exitSeconds=true }
 
 local function edgeValid(edge, graph)
     for key in pairs(edge) do if not EDGE_FIELDS[key] then return false end end
@@ -30,6 +31,7 @@ local function edgeValid(edge, graph)
     if edge.mode == "hearth" then return edge.from == "*" end
     if not graph.nodes[edge.from] then return false end
     if edge.mode == "walk" then return true end
+    if edge.mode == "elevator" then return planner.Elevators.Valid(edge) end
     if edge.mode == "flight" then return token(edge.flightFrom) and token(edge.flightTo) end
     return edge.mode == "transport" and token(edge.transport) and schema.Number(edge.period, 1, MAX_SECONDS)
         and schema.Number(edge.offset, 0, edge.period)
@@ -81,9 +83,10 @@ local function context(graph, raw, input)
     local policy = schema.Copy(input or {})
     if not policy then return nil end
     local state = { departure = raw.departure, flights = flags(raw.flights, MAX_NODES),
-        transport = flags(raw.transport, MAX_NODES), hearthBind = raw.hearthBind,
+        transport = flags(raw.transport, MAX_NODES), elevators = planner.Elevators.Context(raw.elevators, raw.departure),
+        hearthBind = raw.hearthBind,
         hearthReadyAt = raw.hearthReadyAt, hearthDisabled = raw.hearthDisabled }
-    if not state.flights or not state.transport then return nil end
+    if not state.flights or not state.transport or not state.elevators then return nil end
     policy.maxSeconds, policy.maxRisk, policy.maxUncertainty = policy.maxSeconds or 1800, policy.maxRisk or .5, policy.maxUncertainty or .5
     policy.maxLabels, policy.maxWork = policy.maxLabels or MAX_LABELS, policy.maxWork or MAX_WORK
     if not schema.Number(policy.maxSeconds, 0, MAX_SECONDS) or not schema.Number(policy.maxRisk, 0, 100)
@@ -134,7 +137,11 @@ local function edgeCost(job, label, edge)
     if job.policy.avoids[job.graph.nodes[edge.to].zoneID] then return omission(job, "avoided-area") end
     local state, wait = job.state, 0
     local now = state.departure + label.time
-    if edge.mode == "flight" then
+    if edge.mode == "elevator" then
+        local cost, reason, parts = planner.Elevators.Cost(edge, state.elevators, now)
+        if not cost then return omission(job, reason) end
+        return cost, parts.beforeBoard + parts.onboardWait, parts
+    elseif edge.mode == "flight" then
         if state.flights[edge.flightFrom] ~= true or state.flights[edge.flightTo] ~= true then return omission(job, "flight-locked-or-unknown") end
     elseif edge.mode == "transport" then
         if state.transport[edge.transport] ~= true then return omission(job, "transport-unavailable-or-unknown") end
@@ -165,11 +172,11 @@ local function admit(job, label)
 end
 
 local function relax(job, label, edge)
-    local cost, wait = edgeCost(job, label, edge)
+    local cost, wait, elevator = edgeCost(job, label, edge)
     if not cost then return end
     local nextLabel = { node = edge.to, time = label.time + cost, risk = label.risk + edge.risk,
         uncertainty = label.uncertainty + edge.uncertainty, hearth = label.hearth or edge.mode == "hearth",
-        hearthAt = label.hearthAt, previous = label, edge = edge, wait = wait, alive = true }
+        hearthAt = label.hearthAt, previous = label, edge = edge, wait = wait, elevator = elevator, alive = true }
     if edge.mode == "hearth" then nextLabel.hearthAt = job.state.departure + label.time + wait end
     if nextLabel.time > job.policy.maxSeconds or nextLabel.risk > job.policy.maxRisk
         or nextLabel.uncertainty > job.policy.maxUncertainty then omission(job, "cost-or-risk-limit"); return end
@@ -185,7 +192,8 @@ local function finish(job, status, label)
         while label.edge do
             local edge = label.edge
             result.path[#result.path + 1] = { id = edge.id, from = label.previous.node, to = label.node,
-                mode = edge.mode, seconds = label.time - label.previous.time, wait = label.wait, source = schema.Clone(edge.source) }
+                mode = edge.mode, seconds = label.time - label.previous.time, wait = label.wait,
+                elevator = schema.Clone(label.elevator), source = schema.Clone(edge.source) }
             label = label.previous
         end
     end

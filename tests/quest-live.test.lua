@@ -38,7 +38,7 @@ return function(check)
         QuestMapFrame_OpenToQuestDetails=function(id) opened=id end
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
-        for _,name in ipairs({"schema","evidence","corpus","reader","transfer","eligibility","travel","actions","simulation","optimizer",
+        for _,name in ipairs({"schema","evidence","corpus","reader","transfer","eligibility","elevators","travel","actions","simulation","optimizer",
             "context","journal","dataset","guidance","controller","view","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
@@ -155,6 +155,22 @@ return function(check)
         model=p.Controller.Get()
         check("current turn-in dialog feeds real optimizer at interaction node",model.calculated and model.selected.questID==10 and model.xp==120)
         check("bounded controller exposes actual slice counters",p.Controller.Stats().frameCalls<=64)
+        local originalResult,originalTime=p.Guidance.Result,GetTime
+        local observedNow=GetTime()
+        p.Guidance.Result=function(route,...)
+            if route.actions[1] then route.actions[1].travel.path={{elevator={
+                expiresAt=observedNow+20,departAt=observedNow+7,board=2}}} end
+            return originalResult(route,...)
+        end
+        env.fire("QUEST_COMPLETE"); env.flushTimers()
+        for _=1,100 do p.Controller.Step() end
+        check("guidance retains earliest lift boarding deadline",p.Controller.Get().validUntil==observedNow+5)
+        GetTime=function() return observedNow+6 end
+        p.Controller.Step()
+        check("missed lift boarding deadline cancels published plan",p.Controller.Get().status=="updating"
+            and p.Controller.Get().selected==nil)
+        p.Guidance.Result,GetTime=originalResult,originalTime
+        env.flushTimers()
         env.fire("QUEST_COMPLETE"); env.flushTimers()
         env.fire("QUEST_FINISHED")
         p.Controller.Step()

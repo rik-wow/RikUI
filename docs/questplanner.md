@@ -493,3 +493,42 @@ coarse timer reported maximum load and search slices of 1 ms. These are local
 test measurements, not native frame-time guarantees. After adding vertical portal
 checks, a later run loaded in 42 ms with a maximum 2 ms load slice; the search
 maximum remained 1 ms on that run.
+
+## Elevator travel
+
+Elevators use explicit directed graph edges between distinct boarding and exit
+stops. A lift record declares its transport and schedule revision, cycle period,
+stop offset, boarding window, boarding duration, ride duration and exit duration.
+The base duration must equal boarding plus riding plus exiting. Reverse travel
+and connections to nearby floors are never inferred. Static terrain geometry
+does not create moving-platform edges.
+
+The character travel context must contain known lift availability and a matching
+schedule phase with observation and expiry times in the same clock domain as
+route departure. Missing phase is unavailable for this exact timing mode; zero
+is never substituted. The phase must remain valid through predicted arrival.
+If boarding cannot finish within the current window, the cost includes the next
+cycle. The result retains ground wait, boarding, onboard wait, ride, exit,
+absolute boarding/departure/arrival times, phase validity and an explicit lift
+instruction. Published plans invalidate when their earliest boarding deadline
+or phase validity expires; stale calculations cannot publish.
+These are model outputs, not automated boarding or movement.
+
+Synthetic checks cover missed/exact boarding deadlines, directedness, stale or
+changed phase, expiry during travel, unavailable lifts, avoidance, and a safe
+walking alternative. A sampled arrival-time sweep checks the FIFO property
+required by earlier-label dominance in the travel search.
+
+Target-build-query research found 1,016 TransportAnimation rows across 49 IDs,
+but none joined the 1,514 GameObjects rows. Named lift markers are not evidence
+of boardable instances. Rotation and physics exports were unavailable (HTTP 404),
+not verified empty. No actual Forever lift edge is admitted. World placement,
+rotation, reachable landings, direction, character availability, period and live
+phase remain field-level acquisition obligations. Animation time range alone
+does not establish a live repeating schedule.
+
+Sources: [exact-build animation export](https://wago.tools/db2/TransportAnimation/csv?build=1.60.1.69913),
+[object export](https://wago.tools/db2/GameObjects/csv?build=1.60.1.69913),
+[pinned definitions](https://github.com/wowdev/WoWDBDefs/tree/83057bdc0cbe13062850ebf8ad530031e128a1cd/definitions).
+The definitions' CC BY-SA 4.0 terms do not establish redistribution rights for
+game data. Native boarding/traversal remains unverified.

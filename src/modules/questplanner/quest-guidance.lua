@@ -89,7 +89,16 @@ function guidance.Result(route,observed,ctx,data,reason,policy)
         table.sort(deferred)
     end
     if route.status=="constraint-conflict" then detail="A pinned quest conflicts with a skip or avoided area"; selected=nil end
-    local stops={}
+    local stops,validUntil={},nil
+    for _,action in ipairs(route.actions or {}) do
+        for _,leg in ipairs(action.travel and action.travel.path or {}) do
+            local lift=leg.elevator
+            if lift then
+                local deadline=math.min(lift.expiresAt,lift.departAt-lift.board)
+                validUntil=validUntil and math.min(validUntil,deadline) or deadline
+            end
+        end
+    end
     if calculated and data then
         for _,action in ipairs(route.actions) do
             local node=data:Node(action.node)
@@ -102,5 +111,5 @@ function guidance.Result(route,observed,ctx,data,reason,policy)
     return {status=route.status=="constraint-conflict" and route.status or calculated and route.status or "observed",selected=selected,quests=observed,stops=stops,calculated=calculated,
         detail=detail,reason=reason,limited=route.limited,seconds=calculated and route.seconds or nil,
         xp=calculated and route.gainedXP or nil,unknownXP=route.unknownXP,metrics=route.metrics,
-        deferredPins=deferred,position=ctx.position}
+        deferredPins=deferred,position=ctx.position,validUntil=validUntil}
 end

@@ -4,6 +4,7 @@ return function(check)
     RikUI = { Secret = { IsSecret = function(v) return v == "SECRET" end } }
     local ok, reason = pcall(function()
         dofile("src/modules/questplanner/quest-schema.lua")
+        dofile("src/modules/questplanner/quest-elevators.lua")
         dofile("src/modules/questplanner/quest-travel.lua")
         local p = RikUI.QuestPlanner
         local identity = { product = "forever", build = "1.60.1.69913", locale = "enUS" }
@@ -81,6 +82,59 @@ return function(check)
         local incumbent = graph:Estimate("a", "c", state, {maxWork = 2})
         check("discovered terminal stays limited without popped proof", incumbent.status == "budget-exhausted"
             and incumbent.seconds == 50 and not incumbent.optimalInGraph)
+
+        local lift=edge("lift-up","a","c",14,"elevator")
+        lift.transport,lift.schedule="lift-1","schedule-1"
+        lift.period,lift.offset,lift.boardingWindow=60,0,10
+        lift.boardSeconds,lift.rideSeconds,lift.exitSeconds=2,10,2
+        local alternative=edge("stairs","a","c",45)
+        graph=assert(p.Travel.New(identity,"elevators",nodes,{lift,alternative}))
+        state.departure=1; state.elevators=nil
+        check("unknown lift phase chooses evidenced alternative",graph:Estimate("a","c",state).seconds==45)
+        state.elevators={["lift-1"]={available=true,schedule="schedule-1",epoch=0,observedAt=0,expiresAt=300}}
+        result=graph:Estimate("a","c",state)
+        check("lift includes remaining boarding window and ride",result.seconds==21 and result.path[1].mode=="elevator")
+        local parts=result.path[1].elevator
+        check("lift parts and instruction survive path result",parts.beforeBoard==0 and parts.board==2
+            and parts.onboardWait==7 and parts.ride==10 and parts.exit==2 and parts.departAt==10 and parts.arriveAt==22
+            and parts.observedAt==0 and parts.expiresAt==300)
+        state.departure=8
+        check("boarding exactly meets explicit clearance duration",graph:Estimate("a","c",state).seconds==14)
+        state.departure=8.001
+        check("missed lift window takes safe alternative",graph:Estimate("a","c",state).seconds==45)
+        local liftOnly=assert(p.Travel.New(identity,"lift-only",nodes,{lift}))
+        result=liftOnly:Estimate("a","c",state)
+        check("missed departure waits next cycle",math.abs(result.seconds-73.999)<.00001
+            and result.path[1].elevator.boardAt==60 and result.path[1].elevator.departAt==70)
+        check("lift reverse never inferred",liftOnly:Estimate("c","a",state).status=="no-known-route")
+        state.elevators["lift-1"].available=false
+        check("unavailable lift leaves no known route",liftOnly:Estimate("a","c",state).omitted["elevator-unavailable-or-unknown"]==1)
+        state.elevators["lift-1"].available=true; state.elevators["lift-1"].schedule="changed"
+        check("changed schedule invalidates phase",liftOnly:Estimate("a","c",state).omitted["elevator-schedule-changed"]==1)
+        state.elevators["lift-1"].schedule="schedule-1"; state.elevators["lift-1"].expiresAt=5
+        check("expired phase cannot be reused",liftOnly:Estimate("a","c",state).omitted["elevator-phase-stale"]==1)
+        state.elevators["lift-1"].expiresAt=70
+        check("phase must cover modeled arrival",liftOnly:Estimate("a","c",state).omitted["elevator-phase-expires-before-arrival"]==1)
+        state.elevators["lift-1"].expiresAt=300; state.elevators["lift-1"].observedAt=100
+        check("future observations reject travel context",liftOnly:Estimate("a","c",state).status=="unknown")
+        state.elevators["lift-1"].observedAt=0
+        check("avoided lift corridor stays forbidden",liftOnly:Estimate("a","c",state,{avoids={[2]=true}}).status=="no-known-route")
+        local badLift=p.Schema.Clone(lift); badLift.boardSeconds=11
+        check("impossible boarding duration rejected",not p.Travel.New(identity,"bad-lift",nodes,{badLift}))
+        badLift=p.Schema.Clone(lift); badLift.seconds=1
+        check("lift nominal cost cannot omit ride components",not p.Travel.New(identity,"bad-lift",nodes,{badLift}))
+        badLift=p.Schema.Clone(lift); badLift.period=15
+        check("single lift cannot repeat before arriving",not p.Travel.New(identity,"bad-lift",nodes,{badLift}))
+        badLift=p.Schema.Clone(lift); badLift.from=badLift.to
+        check("a lift cannot board and exit at one logical stop",not p.Travel.New(identity,"bad-lift",nodes,{badLift}))
+        -- Arrival functions must be nondecreasing for the graph's earlier-label dominance.
+        local previousArrival=-1
+        for n=0,600 do
+            state.departure=n/10
+            local estimate=liftOnly:Estimate("a","c",state)
+            check("lift schedule FIFO "..n,estimate.status=="known" and state.departure+estimate.seconds>=previousArrival-.00001)
+            previousArrival=state.departure+estimate.seconds
+        end
         local bad = edge("bad", "a", "b", -1)
         check("negative travel costs rejected", not p.Travel.New(identity, "bad", nodes, {bad}))
     end)

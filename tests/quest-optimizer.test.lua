@@ -3,7 +3,7 @@ return function(check)
     local previous = RikUI
     RikUI = { Secret = { IsSecret = function() return false end } }
     local ok, reason = pcall(function()
-        for _, name in ipairs({"quest-schema","quest-evidence","quest-eligibility","quest-travel","quest-actions","quest-simulation","quest-optimizer"}) do
+        for _, name in ipairs({"quest-schema","quest-evidence","quest-eligibility","quest-elevators","quest-travel","quest-actions","quest-simulation","quest-optimizer"}) do
             dofile("src/modules/questplanner/" .. name .. ".lua")
         end
         local p = RikUI.QuestPlanner

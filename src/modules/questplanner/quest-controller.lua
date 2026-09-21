@@ -83,17 +83,24 @@ local function clock()
     local ok,value=planner.Context.Call(debugprofilestop)
     if ok and schema.Number(value,0,2147483647) then return value end
 end
+local function expired(value)
+    if not value.validUntil then return false end
+    local ok,now=planner.Context.Call(GetTime)
+    return not ok or not schema.Number(now,0,2147483647) or now>value.validUntil
+end
 local function finish(current,result)
     if job~=current or current.revision~=revision or not planner.enabled or policy.paused then return end
     local prior=view.selected and view.selected.questID
     local value=planner.Guidance.Result(result,current.observed,context,data,current.reason,policy)
+    if expired(value) then controller.Invalidate(); planner.Request(); return end
     value.actionID=result.actions and result.actions[1] and result.actions[1].id
     if prior and value.selected and prior~=value.selected.questID then value.change="Next action changed: "..current.reason end
     job=nil; publish(value)
 end
 function controller.Step()
-    if not job then return end
     if not planner.enabled or policy.paused then cancel(); return end
+    if expired(view) then controller.Invalidate(); planner.Request(); return end
+    if not job then return end
     local current,start,count=job,clock(),0
     repeat
         local result= current.search:Step(1)
