@@ -35,7 +35,8 @@ local function paintAnts(pool,parent,points,width,height,limit,round)
 end
 local function routePoints(route,mapID,project)
     local points={}
-    for at=1,math.min(#route.points,2049) do
+    if #route.points>MAX_ROUTE_LINES+1 then return nil end
+    for at=1,#route.points do
         local point=route.points[at]
         if point.mapID~=mapID or not planner.Schema.Number(point.x,0,1)
             or not planner.Schema.Number(point.y,0,1) then return nil end
@@ -101,7 +102,9 @@ local function hideLines() for _,line in ipairs(lines) do line:Hide() end end
 local function drawTerrain(canvas,width,height,mapID)
     if not planner.Terrain then return end
     local route=planner.Terrain.Guidance()
-    if not route or not route.points or #route.points<2 or route.points[1].mapID~=mapID then return end
+    if not route or not route.points or #route.points<2 then return end
+    local points=routePoints(route,mapID,function(point) return {point.x*width,-point.y*height} end)
+    if not points then return end
     if not lineHolder then
         lineHolder=CreateFrame("Frame",nil,canvas); lineHolder:SetAllPoints(canvas)
     elseif lineHolder:GetParent()~=canvas then
@@ -110,15 +113,15 @@ local function drawTerrain(canvas,width,height,mapID)
     end
     if type(lineHolder.CreateLine)~="function" then return end
     for index=1,math.min(#route.points-1,MAX_ROUTE_LINES,#lines+NEW_LINES_PER_REFRESH) do
-        local a,b=route.points[index],route.points[index+1]
+        local a,b=points[index],points[index+1]
         local line=lines[index]
         if not line then
             line=lineHolder:CreateLine(nil,"OVERLAY")
             if not line then return end
             line:SetThickness(2); line:SetColorTexture(1,.7,.2,.8); lines[index]=line
         end
-        line:SetStartPoint("TOPLEFT",canvas,a.x*width,-a.y*height)
-        line:SetEndPoint("TOPLEFT",canvas,b.x*width,-b.y*height); line:Show()
+        line:SetStartPoint("TOPLEFT",canvas,a[1],a[2])
+        line:SetEndPoint("TOPLEFT",canvas,b[1],b[2]); line:Show()
     end
 end
 local function hidePins() hideLines(); for _,pin in ipairs(pins) do pin:Hide() end end

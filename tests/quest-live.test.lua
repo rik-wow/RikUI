@@ -187,6 +187,14 @@ return function(check)
         p.Navigation.Refresh()
         check("map draws supplied corridor segments without destination shortcut",#recordedLines==2 and recordedLines[1].first[3]==450
             and recordedLines[1].last[3]==450 and recordedLines[2].last[3]==500)
+        local badRoute={points={{mapID=1426,x=.45,y=.5},{mapID=999,x=.5,y=.4}}}
+        p.Terrain={Guidance=function() return badRoute end}
+        p.Navigation.Refresh()
+        check("mixed-map route hides every segment",not recordedLines[1].shown and not recordedLines[2].shown)
+        badRoute.points[2]={mapID=1426,x=0/0,y=.4};p.Navigation.Refresh()
+        check("nonfinite route hides every segment",not recordedLines[1].shown and not recordedLines[2].shown)
+        badRoute.points[2]={mapID=1426,x=1.01,y=.4};p.Navigation.Refresh()
+        check("outside normalized route hides every segment",not recordedLines[1].shown)
         local longRoute={points={}}
         for index=1,267 do longRoute.points[index]={mapID=1426,x=.2+index/1000,y=.4} end
         p.Terrain={Guidance=function() return longRoute end}
