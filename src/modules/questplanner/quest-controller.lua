@@ -25,6 +25,11 @@ function controller.Invalidate()
     view={status="updating",detail="Updating quest guidance",quests={}}
     notify()
 end
+-- Borrowed views are private read-only values for presentation/frame consumers.
+function controller.Peek() return view end
+function controller.Refresh()
+    revision=revision+1;signature=nil;cancel()
+end
 function controller.Get() return schema.Clone(view) end
 function controller.Quests()
     local snapshot,status=planner.GetSnapshot()
@@ -168,8 +173,10 @@ local function begin(snapshot,status,ctx,dialog,observed,reason)
     end
     job={search=search,revision=revision,observed=observed,reason=reason}
     stats.replans=stats.replans+1
-    view.status,view.detail="calculating","Calculating quest sequence"
-    notify()
+    local pending={}
+    for key,value in pairs(view) do pending[key]=value end
+    pending.status,pending.detail="calculating","Calculating quest sequence"
+    view=pending;notify()
 end
 function controller.Update(snapshot,status,reason)
     if not planner.enabled then cancel(); return end
@@ -185,7 +192,6 @@ function controller.Update(snapshot,status,reason)
         controller.Invalidate();publish({status="unavailable",detail=signatureProblem,quests={}});return
     end
     if signature==nextSignature then return end
-    if planner.Terrain then planner.Terrain.Invalidate() end
     cancel(); revision=revision+1; signature=nextSignature
     local observed=planner.Guidance.Observed(snapshot,ctx,policy,view.selected and view.selected.questID)
     if policy.paused then publish({status="paused",detail="Quest guidance paused",quests=observed}); return end

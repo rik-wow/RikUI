@@ -72,9 +72,9 @@ end
 local function drawAnts()
     hideAnts(antPools.world);hideAnts(antPools.mini)
     if not planner.enabled then return end
-    local model=planner.Controller.Get()
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or model.status=="updating" or not model.selected then return end
-    local route=planner.Terrain and planner.Terrain.Guidance()
+    local route=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     if not route or not route.points or #route.points<2 then return end
     if frame and frame:IsShown() then
         local canvas,mapID=frame:GetCanvas(),frame:GetMapID()
@@ -88,9 +88,9 @@ local function drawAnts()
 end
 function navigation.Instruction()
     if not planner.enabled then return nil end
-    local model=planner.Controller.Get()
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or model.status=="updating" or not model.selected then return nil end
-    local route=planner.Terrain and planner.Terrain.Guidance()
+    local route=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     local position=planner.Context.Position()
     if not route or not position then return nil end
     local sized,w,h=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,position.mapID)
@@ -101,7 +101,7 @@ end
 local function hideLines() for _,line in ipairs(lines) do line:Hide() end end
 local function drawTerrain(canvas,width,height,mapID)
     if not planner.Terrain then return end
-    local route=planner.Terrain.Guidance()
+    local route=(planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     if not route or not route.points or #route.points<2 then return end
     local points=routePoints(route,mapID,function(point) return {point.x*width,-point.y*height} end)
     if not points then return end
@@ -142,7 +142,7 @@ end
 local function draw()
     hidePins()
     if not frame or not frame:IsShown() or not planner.enabled then return end
-    local model=planner.Controller.Get()
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or not model.selected then return end
     local canvas=frame:GetCanvas()
     local mapID,width,height=frame:GetMapID(),canvas:GetWidth(),canvas:GetHeight()
@@ -174,9 +174,9 @@ local function bearing()
     if not arrow then return end
     arrow:Hide()
     if not planner.enabled or not planner.Controller.Policy().arrow then return end
-    local model=planner.Controller.Get()
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or not model.selected or not model.selected.destination then return end
-    local terrain=planner.Terrain and planner.Terrain.Guidance()
+    local terrain=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     local point,position=terrain and terrain.next or model.selected.destination,planner.Context.Position()
     local hint=navigation.Instruction()
     if not position or position.mapID~=point.mapID then return end
@@ -231,6 +231,6 @@ function navigation.Start()
     end,"questplanner:navigation")
 end
 function navigation.Open()
-    local model=planner.Controller.Get()
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.selected then planner.OpenQuest(model.selected.questID) end
 end

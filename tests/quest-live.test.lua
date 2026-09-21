@@ -64,7 +64,14 @@ return function(check)
         assert(p.Controller.Set("arrow",true))
         assert(p.Controller.Set("paused",false))
         check("unchanged preferences do no work",requested==0 and invalidations==0)
-        p.Request=savedRequest;p.Terrain=nil
+        p.Request=savedRequest
+        local beforeRefresh=p.Controller.Get().selected.questID
+        env.fire("PLAYER_XP_UPDATE");env.flushTimers()
+        env.fire("GOSSIP_SHOW");env.flushTimers()
+        env.fire("GOSSIP_CLOSED");env.flushTimers()
+        check("XP and unrelated dialogs retain an unchanged navigation goal",
+            invalidations==0 and p.Controller.Get().selected.questID==beforeRefresh)
+        p.Terrain=nil
         p.Controller.Set("arrow",false);env.flushTimers()
         local replans=p.Controller.Stats().replans
         env.fire("QUEST_LOG_UPDATE"); env.flushTimers()

@@ -10,6 +10,8 @@ local snapshot, pending, started = nil, false, false
 local status = { state = "unavailable", reason = "not observed" }
 local generation = 0
 
+function planner.PeekSnapshot() return snapshot,status end
+
 function planner.GetSnapshot()
     return schema.Clone(snapshot), schema.Clone(status)
 end
@@ -59,8 +61,11 @@ end
 
 local function onEvent(event,...)
     if planner.Journal then planner.Journal.Record(event,snapshot,...) end
-    if planner.Controller and event~="QUEST_LOG_UPDATE" and event~="QUEST_POI_UPDATE" and event~="WAYPOINT_UPDATE" then
-        planner.Controller.Invalidate()
+    if planner.Controller then
+        if event=="PLAYER_ENTERING_WORLD" or event=="ZONE_CHANGED_NEW_AREA"
+            or event=="QUEST_REMOVED" or event=="QUEST_TURNED_IN" or event=="QUEST_FINISHED" then
+            planner.Controller.Invalidate()
+        elseif planner.Controller.Refresh then planner.Controller.Refresh() end
     end
     lastReason=event=="PLAYER_LEVEL_UP" and "your level changed" or event=="QUEST_TURNED_IN" and "quest turned in"
         or event=="QUEST_ACCEPTED" and "quest accepted" or event=="ZONE_CHANGED_NEW_AREA" and "zone changed" or "quest state changed"

@@ -49,9 +49,9 @@ return function(check,p,env)
     local oldInfo=C_QuestLog.GetInfo
     C_QuestLog.GetInfo=function(index) local row=oldInfo(index);row.title=row.title.." changed";return row end
     p.Refresh()
-    check("material log update clears terrain before next frame",invalidations==1 and route==nil
+    check("title-only update retains terrain and refreshes quest text",invalidations==0 and route~=nil
         and p.Controller.Get().selected.title:find("changed",1,true)~=nil)
-    check("new selection cannot show old terrain status",summary.status:GetText()=="Updating walking route")
+    check("same destination retains modeled terrain status",summary.status:GetText()~="Updating walking route")
     local full=p.Schema.Clone(observed)
     full.selected.targetHint={instructions="Give the ale only if the guard is present.",instructionsSource="user-reported-sequence"}
     local snapshot=p.GetSnapshot()

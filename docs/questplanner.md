@@ -809,6 +809,21 @@ claiming the archived starts have been repaired or that anyone walked it.
 Headless timings and widget tests do not establish native performance, visuals,
 floor selection, dynamic collision, or interaction reachability.
 
+## Route revisions and refreshes
+
+Quest/XP/dialog refreshes cancel obsolete planner jobs without clearing an unchanged
+walking destination. Terrain owns its navigation key; quest text and objective
+counters do not change that key. Explicit stage, target annotation, destination,
+mesh and selected floor changes still replace the route. Manual floor preferences
+remain bound to the full quest signature. World transitions, unavailable data,
+pause, turn-in and explicit retry retain immediate invalidation.
+
+Internal presentation readers borrow read-only snapshots; public GetSnapshot,
+Controller.Get and Terrain.Guidance still return detached copies. This removes
+whole-log/controller/route copies from those internal reads, without claiming a
+native performance improvement. Regression checks include XP and unrelated gossip,
+title-only changes, stale jobs, stage-bound floor choice and copy boundaries.
+
 ## Elevator travel
 
 Elevators use explicit directed graph edges between distinct boarding and exit

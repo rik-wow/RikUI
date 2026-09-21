@@ -32,7 +32,7 @@ end
 function terrain.Retry()
     if not planner.enabled then return nil,"Quest planner is disabled" end
     if not mesh and not loader then return nil,state.detail end
-    local model=planner.Controller.Get()
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" then return nil,"Resume quest guidance before retrying" end
     if not model.selected or not model.selected.destination then return nil,"Choose a quest with a map location" end
     terrain.Invalidate()
@@ -49,8 +49,9 @@ function terrain.Install(meta,shards)
 end
 function terrain.Status() return schema.Clone(state) end
 function terrain.Guidance() return schema.Clone(display) end
+function terrain.PeekGuidance() return display end
 local function selected()
-    local model=planner.Controller.Get()
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
     local row=model.selected
     local position=planner.Context.Position()
     if not position then return nil,nil,"Player position is unavailable" end
@@ -60,10 +61,10 @@ end
 local function destinationKey(row)
     local target=row.destination
     return string.format("%d:%d:%.17g:%.17g:%s:%s:%s:%s",row.questID,target.mapID,target.x,target.y,
-        target.scope or "",target.api or "",row.kind or "",(row.destinationSignature or row.detail or "")..":"..(row.targetHint and row.targetHint.id or ""))
+        target.scope or "",target.api or "",row.kind or "",(row.stepID or "")..":"..(row.targetHint and row.targetHint.id or ""))
 end
 local function refreshFloors(row,goal)
-    local key=mesh:Revision()..":"..destinationKey(row)
+    local key=mesh:Revision()..":"..destinationKey(row)..":"..(row.destinationSignature or "")
     if floorKey~=key then
         floorKey,floorIndex=key,0
         floorChoices=row.destination.scope=="current-map-quest-poi" and mesh:MarkerFloors(goal) or {}
@@ -74,7 +75,7 @@ function terrain.Floors()
     if not mesh or not planner.enabled then return {choices={},selected=0} end
     local row=selected()
     if not row then return {choices={},selected=0} end
-    local snapshot=planner.GetSnapshot()
+    local snapshot=(planner.PeekSnapshot or planner.GetSnapshot)()
     if not snapshot or not same(mesh:Metadata().identity,snapshot.identity) then return {choices={},selected=0} end
     local goal=mesh:Project(row.destination.mapID,row.destination.x,row.destination.y)
     if not goal then return {choices={},selected=0} end
@@ -136,7 +137,7 @@ local function trim(location)
     return result
 end
 local function admissible()
-    local snapshot=planner.GetSnapshot()
+    local snapshot=(planner.PeekSnapshot or planner.GetSnapshot)()
     local meta=mesh:Metadata()
     if not snapshot or not same(meta.identity,snapshot.identity) then return nil,"Terrain build or locale does not match" end
     if #(meta.blockers or {})>0 then return nil,"Terrain coverage is incomplete" end
@@ -165,7 +166,7 @@ local function requestRoute(row,location,start)
     local goal=mesh:Project(target.mapID,target.x,target.y)
     if not goal then clear();setState("outside-coverage","Destination is outside this terrain map");return end
     refreshFloors(row,goal)
-    local signature=floorKey..":"..floorIndex
+    local signature=mesh:Revision()..":"..destinationKey(row)..":"..floorIndex
     if selectedKey~=signature then clear();selectedKey=signature end
     local floor=destinationFloor()
     if floor then goal.height=floor.height end
