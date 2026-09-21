@@ -35,6 +35,18 @@ function context.Position()
     if read and schema.Number(x, 0, 1) and schema.Number(y, 0, 1) then return {mapID=mapID,x=x,y=y} end
 end
 
+function context.WorldPosition()
+    local ok,x,y,z,mapID=call(UnitPosition,"player")
+    if not ok or not schema.Number(x,-100000,100000) or not schema.Number(y,-100000,100000)
+        or not schema.Number(z,-100000,100000) or not schema.Integer(mapID,0,100000) then return nil end
+    return {x=y,z=x,height=z,mapID=mapID,api="UnitPosition(player)"}
+end
+
+function context.RunSpeed()
+    local ok,_,value=call(GetUnitSpeed,"player")
+    if ok and schema.Number(value,.1,100) then return value end
+end
+
 local function attributes()
     return {class=tupleID(UnitClass),race=tupleID(UnitRace),
         faction=scalar(UnitFactionGroup,schema.Text,"player"),

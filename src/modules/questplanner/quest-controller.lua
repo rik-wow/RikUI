@@ -20,6 +20,7 @@ local function cancel()
     if job then job.search:Cancel(); job=nil; stats.cancelled=stats.cancelled+1 end
 end
 function controller.Invalidate()
+    if planner.Terrain then planner.Terrain.Invalidate() end
     revision=revision+1; signature=nil; cancel()
     view={status="updating",detail="Updating quest guidance",quests={}}
     notify()

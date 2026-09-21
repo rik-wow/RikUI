@@ -4,7 +4,7 @@ return function(check)
     local restore=require("widget_stub").install()
     local names={"RikUI","RikUIDB","RikUICharDB","C_QuestLog","C_Map","C_Item","GetBuildInfo","GetLocale",
         "UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax","GetQuestID","GetTitleText","GetRewardXP",
-        "GetQuestLogRewardXP","UnitGUID","debugprofilestop","QuestMapFrame_OpenToQuestDetails","WorldMapFrame","GetPlayerFacing"}
+        "GetQuestLogRewardXP","UnitGUID","debugprofilestop","QuestMapFrame_OpenToQuestDetails","WorldMapFrame","GetPlayerFacing","UnitPosition"}
     local saved={}
     for _,name in ipairs(names) do saved[name]=_G[name] end
     local added={}
@@ -113,7 +113,30 @@ return function(check)
         check("east target while facing east points forward",math.abs(math.sin(angle))<.000001 and math.cos(angle)>.9999)
         GetPlayerFacing=function() return nil end; p.Navigation.Refresh()
         check("unavailable orientation hides arrow",not arrow:IsShown())
+        local originalFrame,recordedLines=CreateFrame,{}
+        CreateFrame=function(...)
+            local frame=originalFrame(...)
+            frame.CreateLine=function()
+                local line={}
+                function line:Hide() self.shown=false end
+                function line:Show() self.shown=true end
+                function line:SetThickness(value) self.thickness=value end
+                function line:SetColorTexture(...) self.color={...} end
+                function line:SetStartPoint(...) self.first={...} end
+                function line:SetEndPoint(...) self.last={...} end
+                recordedLines[#recordedLines+1]=line
+                return line
+            end
+            return frame
+        end
+        p.Terrain={Guidance=function() return {points={
+            {mapID=1426,x=.45,y=.5},{mapID=1426,x=.45,y=.4},{mapID=1426,x=.5,y=.4}}} end}
+        p.Navigation.Refresh()
+        check("map draws supplied corridor segments without destination shortcut",#recordedLines==2 and recordedLines[1].first[3]==450
+            and recordedLines[1].last[3]==450 and recordedLines[2].last[3]==500)
+        p.Terrain=nil; CreateFrame=originalFrame
         WorldMapFrame.GetMapID=function() return 999 end; p.Navigation.Refresh()
+        check("map switch hides old terrain corridor",not recordedLines[1].shown and not recordedLines[2].shown)
         check("other map hides stale marker",not pin:IsShown())
         p.Command("arrow off"); env.flushTimers()
         p.Command("show")
@@ -154,6 +177,12 @@ return function(check)
         env.inCombat=true
         check("existing inline refresh avoids combat reparenting",pcall(p.View.RenderInline,holder,22,200,false))
         env.inCombat=false
+        UnitPosition=function() return -5500,-700,400,0 end
+        local world=p.Context.WorldPosition()
+        check("readable player world position preserves height and continent",world.x==-700 and world.z==-5500 and world.height==400 and world.mapID==0)
+        UnitPosition=function() return -5500,env.SECRET,400,0 end
+        check("secret world coordinate remains unavailable",p.Context.WorldPosition()==nil)
+        UnitPosition=nil
         local captured=p.Controller.Context()
         C_QuestLog.GetNextWaypoint=function() return 1426,env.SECRET,.5 end
         local unknown=p.Context.Read(p.GetSnapshot())

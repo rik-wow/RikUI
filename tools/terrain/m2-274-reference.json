@@ -1,0 +1,25 @@
+{
+  "sourceSha256": "4e3be9da12879a6de2e441391b4deba8c5fa45ee721051cb3279d2168ca7cae8",
+  "sourceBytes": 2042,
+  "referenceCommit": "c2fd7bde36a712be78a5da896c995b84fbfa2545",
+  "version": 274,
+  "name": "Gilrose01",
+  "parsedRemainingBytes": 0,
+  "collisionBox": {
+    "min": [
+      10000000,
+      10000000,
+      10000000
+    ],
+    "max": [
+      -10000000,
+      -10000000,
+      -10000000
+    ]
+  },
+  "collisionSphereRadius": 0,
+  "collisionIndices": [],
+  "collisionPositions": [],
+  "collisionNormals": [],
+  "sourceFileDataID": 314951
+}

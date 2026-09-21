@@ -3,7 +3,32 @@ local core,planner,media=RikUI,RikUI.QuestPlanner,RikUI.Media
 local navigation={}
 planner.Navigation=navigation
 local pins,frame,arrow,elapsed={},nil,nil,0
-local function hidePins() for _,pin in ipairs(pins) do pin:Hide() end end
+local lines,lineHolder={},nil
+local function hideLines() for _,line in ipairs(lines) do line:Hide() end end
+local function drawTerrain(canvas,width,height,mapID)
+    if not planner.Terrain then return end
+    local route=planner.Terrain.Guidance()
+    if not route or not route.points or #route.points<2 or route.points[1].mapID~=mapID then return end
+    if not lineHolder then
+        lineHolder=CreateFrame("Frame",nil,canvas); lineHolder:SetAllPoints(canvas)
+    elseif lineHolder:GetParent()~=canvas then
+        if InCombatLockdown() then return end
+        lineHolder:SetParent(canvas); lineHolder:SetAllPoints(canvas)
+    end
+    if type(lineHolder.CreateLine)~="function" then return end
+    for index=1,math.min(#route.points-1,128) do
+        local a,b=route.points[index],route.points[index+1]
+        local line=lines[index]
+        if not line then
+            line=lineHolder:CreateLine(nil,"OVERLAY")
+            if not line then return end
+            line:SetThickness(2); line:SetColorTexture(1,.7,.2,.8); lines[index]=line
+        end
+        line:SetStartPoint("TOPLEFT",canvas,a.x*width,-a.y*height)
+        line:SetEndPoint("TOPLEFT",canvas,b.x*width,-b.y*height); line:Show()
+    end
+end
+local function hidePins() hideLines(); for _,pin in ipairs(pins) do pin:Hide() end end
 local function marker(canvas,index)
     local pin=CreateFrame("Button",nil,canvas)
     pin:SetSize(20,20)
@@ -26,6 +51,7 @@ local function draw()
     local canvas=frame:GetCanvas()
     local mapID,width,height=frame:GetMapID(),canvas:GetWidth(),canvas:GetHeight()
     if not planner.Schema.ID(mapID) or not planner.Schema.Number(width,1,20000) or not planner.Schema.Number(height,1,20000) then return end
+    drawTerrain(canvas,width,height,mapID)
     local count=0
     for _,row in ipairs(model.stops or {model.selected}) do
         local point=row.destination
@@ -53,7 +79,9 @@ local function bearing()
     if not planner.enabled or not planner.Controller.Policy().arrow then return end
     local model=planner.Controller.Get()
     if model.status=="paused" or not model.selected or not model.selected.destination then return end
-    local point,position=model.selected.destination,planner.Context.Position()
+    local terrain=planner.Terrain and planner.Terrain.Guidance()
+    local point,position=terrain and terrain.next or model.selected.destination,planner.Context.Position()
+    arrow.label:SetText(terrain and "Terrain estimate" or "Destination bearing")
     if not position or position.mapID~=point.mapID then return end
     local ok,facing=planner.Context.Call(GetPlayerFacing)
     local sized,width,height=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,point.mapID)

@@ -1,0 +1,187 @@
+-- Incrementally validates a bounded derived polygon/portal dataset before publication.
+local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
+local geometry,mesh=planner.NavGeometry,{}
+planner.NavMesh=mesh
+local CELL,MAX_POLYGONS,MAX_PORTALS,MAX_CELL_POLYGONS,MAX_CELLS=64,8192,32768,512,4096
+local function same(a,b) return a.product==b.product and a.build==b.build and a.locale==b.locale end
+local function key(x,z) return math.floor(x/CELL)..":"..math.floor(z/CELL) end
+local function metadata(raw)
+    local value=schema.CopyLimited(raw,2048,16384,12)
+    if not schema.PlainTable(value) or value.format~="rikui-navmesh-v1" or not schema.Identity(value.identity)
+        or not schema.Text(value.revision) or not schema.ID(value.uiMapID)
+        or not schema.Integer(value.worldMapID,0,100000) then return nil,"invalid navigation manifest" end
+    if not schema.PlainTable(value.source) or not schema.Text(value.source.sha256)
+        or not value.source.sha256:match("^[a-f0-9]+$") or #value.source.sha256~=64
+        or not schema.Text(value.source.parser) then return nil,"navigation provenance missing" end
+    local projection=value.projection
+    if not schema.PlainTable(projection) or not schema.Number(projection.originX,-100000,100000)
+        or not schema.Number(projection.originY,-100000,100000) or not schema.Number(projection.width,1,100000)
+        or not schema.Number(projection.height,1,100000) then return nil,"invalid map projection" end
+    if not schema.Number(value.modeledMaxStep,0,2) then return nil,"navigation step model missing" end
+    local count=value.counts
+    if not schema.PlainTable(count) or not schema.Integer(count.polygons,1,MAX_POLYGONS)
+        or not schema.Integer(count.portals,0,MAX_PORTALS) then return nil,"navigation size limit" end
+    if not schema.List(value.bounds,4) or #value.bounds~=4 then return nil,"navigation bounds missing" end
+    for _,number in ipairs(value.bounds) do if not schema.Number(number,-100000,100000) then return nil,"invalid navigation bounds" end end
+    if value.bounds[1]>=value.bounds[3] or value.bounds[2]>=value.bounds[4] then return nil,"inverted navigation bounds" end
+    if not schema.List(value.exclusions or {},64) or not schema.List(value.blockers or {},64) then return nil,"navigation coverage limit" end
+    for _,bounds in ipairs(value.exclusions or {}) do
+        if not schema.List(bounds,4) or #bounds~=4 then return nil,"invalid exclusion" end
+        for _,number in ipairs(bounds) do if not schema.Number(number,-100000,100000) then return nil,"invalid exclusion bounds" end end
+        if bounds[1]>bounds[3] or bounds[2]>bounds[4] then return nil,"inverted exclusion" end
+    end
+    return value
+end
+local function polygon(raw)
+    local value=schema.CopyLimited(raw,1024,4096,8)
+    if not schema.PlainTable(value) or not schema.Integer(value.id,1,4294967295) or not geometry.Convex(value.points)
+        or not schema.List(value.portals,32) then return nil,"invalid polygon" end
+    value.center={0,0,0}
+    for _,point in ipairs(value.points) do for axis=1,3 do value.center[axis]=value.center[axis]+point[axis]/#value.points end end
+    value.bounds=geometry.Bounds(value.points)
+    if value.bounds[3]-value.bounds[1]>128 or value.bounds[4]-value.bounds[2]>128 then return nil,"polygon spatial limit" end
+    for _,portal in ipairs(value.portals) do
+        if not schema.Integer(portal.to,1,4294967295) or portal.to==value.id
+            or not geometry.Point(portal.left) or not geometry.Point(portal.right)
+            or geometry.Distance(portal.left,portal.right)<.0001
+            or not geometry.OnBoundary(value.points,portal.left) or not geometry.OnBoundary(value.points,portal.right) then
+            return nil,"invalid portal boundary"
+        end
+        portal.midpoint=geometry.Midpoint(portal.left,portal.right)
+    end
+    table.sort(value.portals,function(a,b)
+        if a.to~=b.to then return a.to<b.to end
+        if a.left[1]~=b.left[1] then return a.left[1]<b.left[1] end
+        return a.left[3]<b.left[3]
+    end)
+    return value
+end
+local function add(data,value)
+    if data.polygons[value.id] then return nil,"duplicate polygon" end
+    local b=value.bounds
+    local known=data.meta.bounds
+    if b[1]<known[1]-.002 or b[2]<known[2]-.002 or b[3]>known[3]+.002 or b[4]>known[4]+.002 then
+        return nil,"polygon leaves sourced terrain bounds"
+    end
+    for _,box in ipairs(data.meta.exclusions or {}) do
+        if b[1]<=box[3] and b[3]>=box[1] and b[2]<=box[4] and b[4]>=box[2] then return nil,"polygon enters excluded geometry" end
+    end
+    for x=math.floor(b[1]/CELL),math.floor(b[3]/CELL) do
+        for z=math.floor(b[2]/CELL),math.floor(b[4]/CELL) do
+            local id=x..":"..z
+            local cell=data.cells[id]
+            if not cell then
+                if data.cellCount>=MAX_CELLS then return nil,"navigation spatial index limit" end
+                cell={}; data.cells[id]=cell; data.cellCount=data.cellCount+1
+            end
+            if #cell>=MAX_CELL_POLYGONS then return nil,"navigation cell limit" end
+            cell[#cell+1]=value.id
+        end
+    end
+    data.polygons[value.id]=value; data.order[#data.order+1]=value.id
+    data.edges=data.edges+#value.portals
+    if #data.order>MAX_POLYGONS or data.edges>MAX_PORTALS then return nil,"navigation capacity" end
+    return true
+end
+local function ingest(data,shards)
+    for _,shard in ipairs(shards) do
+        if not schema.PlainTable(shard) or not schema.Identity(shard.identity) or not same(shard.identity,data.meta.identity)
+            or not schema.List(shard.polygons,512) then return nil,"invalid navigation shard" end
+        local edges=0
+        for _,raw in ipairs(shard.polygons) do
+            local value,reason=polygon(raw)
+            if not value then return nil,reason end
+            edges=edges+#value.portals
+            if edges>2048 then return nil,"shard portal limit" end
+            local ok,problem=add(data,value)
+            if not ok then return nil,problem end
+            coroutine.yield()
+        end
+    end
+    if #data.order~=data.meta.counts.polygons or data.edges~=data.meta.counts.portals then return nil,"partial navigation dataset" end
+    table.sort(data.order)
+    for _,id in ipairs(data.order) do
+        local value=data.polygons[id]
+        for _,portal in ipairs(value.portals) do
+            local target=data.polygons[portal.to]
+            -- Detour clips external links to 8-bit fractions; target endpoints may differ by <.01 yard.
+            if not target or not geometry.OnBoundary(target.points,portal.left,.01)
+                or not geometry.OnBoundary(target.points,portal.right,.01)
+                or not geometry.Contains(value.points,portal.midpoint[1],portal.midpoint[3])
+                or not geometry.Contains(target.points,portal.midpoint[1],portal.midpoint[3]) then return nil,"unmatched navigation portal" end
+            for _,point in ipairs({portal.left,portal.right,portal.midpoint}) do
+                local sourceHeight=geometry.BoundaryHeight(value.points,point)
+                local targetHeight=geometry.BoundaryHeight(target.points,point,.01)
+                if not sourceHeight or not targetHeight or math.abs(point[2]-sourceHeight)>.002
+                    or math.abs(sourceHeight-targetHeight)>data.meta.modeledMaxStep+.002 then
+                    return nil,"portal exceeds modeled vertical step"
+                end
+            end
+            portal.meters=geometry.Distance(value.center,portal.midpoint)+geometry.Distance(portal.midpoint,target.center)
+        end
+        coroutine.yield()
+    end
+    return true
+end
+local function locate(data,point)
+    if not schema.PlainTable(point) or not schema.Number(point.x,-100000,100000)
+        or not schema.Number(point.z,-100000,100000)
+        or (point.height~=nil and not schema.Number(point.height,-100000,100000)) then return nil,"invalid point" end
+    local match
+    for _,id in ipairs(data.cells[key(point.x,point.z)] or {}) do
+        local value=data.polygons[id]
+        if geometry.Contains(value.points,point.x,point.z) then
+            local height=geometry.Height(value.points,point.x,point.z)
+            if height and (point.height==nil or math.abs(height-point.height)<=1) then
+                if match then return nil,"ambiguous navigation layer or boundary" end
+                match={id=id,point={point.x,height,point.z}}
+            end
+        end
+    end
+    return match,match and nil or "outside known navigation polygons"
+end
+local function publish(data)
+    return {
+        Revision=function() return data.meta.revision end,
+        Metadata=function() return schema.Clone(data.meta) end,
+        Locate=function(_,point) return locate(data,point) end,
+        Project=function(_,mapID,x,y)
+            if mapID~=data.meta.uiMapID or not schema.Number(x,0,1) or not schema.Number(y,0,1) then return nil end
+            local p=data.meta.projection
+            return {x=p.originY-x*p.width,z=p.originX-y*p.height}
+        end,
+        Unproject=function(_,point)
+            if not geometry.Point(point) then return nil end
+            local p=data.meta.projection
+            return {mapID=data.meta.uiMapID,x=(p.originY-point[1])/p.width,y=(p.originX-point[3])/p.height}
+        end,
+        Begin=function(_,start,goal,options)
+            return planner.NavSearch.Begin(data,start,goal,options,locate)
+        end,
+    }
+end
+function mesh.Begin(rawMeta,shards)
+    local meta,reason=metadata(rawMeta)
+    if not meta then return nil,reason end
+    if not schema.List(shards,128) then return nil,"navigation shard limit" end
+    local data={meta=meta,polygons={},order={},cells={},cellCount=0,edges=0}
+    local worker=coroutine.create(function() return ingest(data,shards) end)
+    local cancelled,done=false,false
+    return {
+        Cancel=function() cancelled=true end,
+        Step=function(_,budget)
+            if cancelled then return nil,"cancelled",true end
+            if done then return nil,"loader already finished",true end
+            if not schema.Integer(budget or 8,1,64) then return nil,"invalid load budget",true end
+            for _=1,budget or 8 do
+                local ok,value,problem=coroutine.resume(worker)
+                if not ok then done=true; return nil,"invalid navigation input",true end
+                if coroutine.status(worker)=="dead" then
+                    done=true
+                    if not value then return nil,problem,true end
+                    return publish(data),nil,true
+                end
+            end
+        end,
+    }
+end

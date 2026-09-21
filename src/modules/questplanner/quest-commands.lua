@@ -30,6 +30,7 @@ function planner.Command(arguments)
         core:Print("Quest progress: "..done.."/"..total.." objectives finished; "..ready.." quests ready to turn in.")
         local timing=stats.timingSamples>0 and string.format("%.2fms (observed this session)",stats.maxSliceMS) or "not measured"
         core:Print("Planner replans="..stats.replans.." max-slice="..timing)
+        if planner.Terrain then local terrain=planner.Terrain.Status(); core:Print("Terrain guidance: "..terrain.status..". "..terrain.detail) end
         if planner.Navigation.lastError then core:Print("Quest map guidance: "..planner.Navigation.lastError) end
         return
     elseif verb=="show" then planner.View.Open(); return

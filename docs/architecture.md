@@ -49,7 +49,10 @@ The [Forever quest planner](questplanner.md) separates exact-build evidence,
 live character observations, eligibility, directed travel and action optimization.
 A revision-safe controller supplies detached outputs to tracker/map guidance.
 World facts and observation history never enter the settings transport.
-Missing corpus and native validation coverage remain explicit.
+Missing corpus and native validation coverage remain explicit. Offline terrain tools
+produce a separate local companion addon; incremental mesh validation and A* own
+modeled corridor guidance. Acquisition authenticity never certifies traversability,
+and extracted assets/geometry are excluded from the repository and settings store.
 
 ## Loading and activation are separate
 

@@ -1,0 +1,97 @@
+-- Independent graph/geometry fixtures; actual extracted-data checks run through the offline gate.
+return function(check)
+    local previous=RikUI
+    RikUI={Secret={IsSecret=function() return false end}}
+    local ok,reason=pcall(function()
+        for _,name in ipairs({"schema","nav-geometry","nav-search","navmesh"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
+        local p=RikUI.QuestPlanner
+        local identity={product="forever",build="1.60.1.69913",locale="enUS"}
+        local meta={format="rikui-navmesh-v1",identity=identity,revision="fixture-v1",modeledMaxStep=.3,uiMapID=1426,worldMapID=0,bounds={0,0,20,20},
+            source={sha256=string.rep("a",64),parser="original-fixture"},
+            projection={originX=100,originY=100,width=100,height=100},counts={polygons=3,portals=4},exclusions={}}
+        local function square(id,x,z,height)
+            height=height or 0
+            return {id=id,points={{x,height,z},{x+10,height,z},{x+10,height,z+10},{x,height,z+10}},portals={}}
+        end
+        local a,b,c=square(1,0,0),square(2,10,0),square(3,10,10)
+        a.portals={{to=2,left={10,0,0},right={10,0,10}}}
+        b.portals={{to=1,left={10,0,10},right={10,0,0}},{to=3,left={10,0,10},right={20,0,10}}}
+        c.portals={{to=2,left={20,0,10},right={10,0,10}}}
+        local shards={{identity=identity,polygons={a,b,c}}}
+        local function load(m,s,budget)
+            local job,issue=p.NavMesh.Begin(m or meta,s or shards)
+            if not job then return nil,issue end
+            while true do
+                local data,problem,done=job:Step(budget or 1)
+                if done then return data,problem end
+            end
+        end
+        check("scalar manifest fails without throwing",not p.NavMesh.Begin(42,{}))
+        local mesh=assert(load())
+        check("scalar navigation policy rejected",not mesh:Begin({x=1,z=1},{x=2,z=2},true))
+        local start,goal={x=1,z=1},{x=19,z=19}
+        local function path(graph,from,to,options,budget)
+            local job,issue=graph:Begin(from,to,options)
+            if not job then return nil,issue end
+            while true do local result=job:Step(budget or 1); if result then return result end end
+        end
+        local route=assert(path(mesh,start,goal))
+        check("portal path follows L corridor around missing quadrant",route.status=="modeled" and #route.points==7)
+        local exact=2*math.sqrt(32)+20
+        check("center-graph distance matches independent geometry",math.abs(route.meters-exact)<.000001)
+        check("derived path never claims native or continuous global optimality",route.nativeVerified==false and not route.globalOptimal)
+        check("path slice sizes preserve deterministic cost",path(mesh,start,goal,nil,128).meters==route.meters)
+        check("location outside polygons never snaps to nearest",not mesh:Locate({x=1,z=19}))
+        check("shared polygon boundary is conservatively ambiguous",not mesh:Locate({x=10,z=5}))
+        local projected=mesh:Project(1426,.8,.9)
+        check("map projection respects world axis swap",projected.x==20 and math.abs(projected.z-10)<.000001)
+        local unprojected=mesh:Unproject({20,0,10})
+        check("map projection roundtrip",unprojected.x==.8 and unprojected.y==.9)
+        check("different map has no projection",mesh:Project(999,.8,.9)==nil)
+        local same=path(mesh,{x=1,z=1},{x=9,z=9})
+        check("same convex polygon uses direct contained segment",#same.points==2 and math.abs(same.meters-math.sqrt(128))<.000001)
+        local limited=path(mesh,start,goal,{maxWork=1})
+        check("bounded search does not return partial path as complete",limited.status=="budget-exhausted" and limited.points==nil and limited.metrics.work==1)
+        local job=assert(mesh:Begin(start,goal)); job:Cancel()
+        check("cancelled path cannot publish",job:Step().status=="cancelled")
+        local disconnected=p.Schema.Clone(shards); disconnected[1].polygons[2].portals={disconnected[1].polygons[2].portals[1]}
+        disconnected[1].polygons[3].portals={}
+        local less=p.Schema.Clone(meta); less.counts.portals=2
+        check("nearby polygons without portals stay disconnected",path(assert(load(less,disconnected)),start,goal).status=="no-known-path")
+        local layers=p.Schema.Clone(shards); layers[1].polygons[#layers[1].polygons+1]=square(4,0,0,10)
+        local taller=p.Schema.Clone(meta); taller.counts.polygons=4
+        local layered=assert(load(taller,layers))
+        check("2D location cannot choose overlapping floors",not layered:Locate(start))
+        check("readable height resolves matching floor",layered:Locate({x=1,z=1,height=10}).id==4)
+        check("unmatched height remains unknown",not layered:Locate({x=1,z=1,height=5}))
+        local bad=p.Schema.Clone(shards); bad[1].polygons[1].portals[1].to=999
+        check("dangling portals prevent publication",not load(meta,bad))
+        bad=p.Schema.Clone(shards); bad[1].polygons[1].portals[1].left={5,0,5}
+        check("interior pseudo-portal is rejected",not load(meta,bad))
+        bad=p.Schema.Clone(shards); bad[1].identity.build="other"
+        check("cross-build shards rejected",not load(meta,bad))
+        bad=p.Schema.Clone(meta); bad.counts.polygons=4
+        check("partial datasets cannot publish",not load(bad))
+        bad=p.Schema.Clone(meta); bad.exclusions={{1,1,2,2}}
+        check("uncertain geometry exclusion cannot be entered",not load(bad))
+        bad=p.Schema.Clone(meta); bad.bounds={0,0,19,20}
+        check("collision polygons cannot expand acquired terrain coverage",not load(bad))
+        local star={{0,0,3},{2,0,-3},{-3,0,1},{3,0,1},{-2,0,-3}}
+        check("self intersecting star is not accepted as convex",not p.NavGeometry.Convex(star))
+        bad=p.Schema.Clone(meta); bad.modeledMaxStep=nil
+        check("undeclared step model rejected",not load(bad))
+        bad=p.Schema.Clone(shards)
+        for _,point in ipairs(bad[1].polygons[2].points) do point[2]=100 end
+        check("horizontal adjacency cannot connect different floors",not load(meta,bad))
+        bad=p.Schema.Clone(shards); bad[1].polygons[1].portals[1].left[2]=100
+        check("portal height must match source edge",not load(meta,bad))
+        check("boundary tolerance includes quantized endpoint extension",
+            p.NavGeometry.OnBoundary({{0,0,0},{1,0,0},{1,0,1}}, {1.005,0,0}, .01))
+        a.points[1][1]=-500
+        check("published geometry detached from source",mesh:Locate(start).id==1)
+        local details=mesh:Metadata(); details.identity.build="mutated"
+        check("published metadata detached",mesh:Metadata().identity.build==identity.build)
+    end)
+    RikUI=previous
+    check("navigation fixture completes",ok,reason)
+end

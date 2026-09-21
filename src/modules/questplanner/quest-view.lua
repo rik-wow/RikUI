@@ -41,6 +41,10 @@ local function tooltip(frame)
     GameTooltip:SetOwner(frame,"ANCHOR_LEFT")
     GameTooltip:SetText(model.selected and model.selected.title or "Quest planner")
     GameTooltip:AddLine(model.detail or "",1,1,1,true)
+    if planner.Terrain then
+        local route=planner.Terrain.Guidance()
+        if route then GameTooltip:AddLine(string.format("Terrain estimate: %.0f yd, %.0fs running; traversal unverified",route.meters,route.seconds),1,.7,.2,true) end
+    end
     if model.reason then GameTooltip:AddLine(model.reason,.7,.8,.9,true) end
     if model.change then GameTooltip:AddLine(model.change,1,.8,.3,true) end
     if model.seconds then

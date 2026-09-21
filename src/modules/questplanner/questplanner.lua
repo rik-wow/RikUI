@@ -72,6 +72,7 @@ function planner:OnEnable()
     core:RegisterCommand("quests", function(args)
         if planner.Command then planner.Command(args) else planner:Debug() end
     end, "Quest planner: show, pin, skip, avoid, pause, map, export")
+    if planner.Terrain then planner.Terrain.Start() end
     if planner.Navigation then planner.Navigation.Start() end
     for _, event in ipairs(EVENTS) do core:RegisterEvent(event, onEvent) end
     planner.Request()

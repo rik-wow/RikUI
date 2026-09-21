@@ -94,11 +94,15 @@ src/modules/questplanner/quest-actions.lua
 src/modules/questplanner/quest-simulation.lua
 src/modules/questplanner/quest-optimizer.lua
 src/modules/questplanner/quest-reader.lua
+src/modules/questplanner/quest-nav-geometry.lua
+src/modules/questplanner/quest-nav-search.lua
+src/modules/questplanner/quest-navmesh.lua
 src/modules/questplanner/quest-context.lua
 src/modules/questplanner/quest-journal.lua
 src/modules/questplanner/quest-dataset.lua
 src/modules/questplanner/quest-guidance.lua
 src/modules/questplanner/quest-controller.lua
+src/modules/questplanner/quest-terrain.lua
 src/modules/questplanner/quest-view.lua
 src/modules/questplanner/quest-navigation.lua
 src/modules/questplanner/quest-transfer-view.lua

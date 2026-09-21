@@ -431,3 +431,65 @@ traversability. The user supplied three current 9/9 log snapshots; these do not
 establish a progress/turn-in transition. Combat and disable/reload checks were
 explicitly not run. The user requested no computer use, so native automation
 is excluded and the roadmap retains real-client acceptance as unverified.
+## Locally acquired terrain guidance
+
+The offline pipeline in [tools/terrain](../tools/terrain/README.md) now extracts
+and verifies a small exact-build Dun Morogh region from the installed client,
+decodes terrain holes and static M2/WMO collision, and bakes a filtered polygon
+graph. It uses pinned tools, source hashes and parser hashes. Raw assets and
+generated geometry remain outside this repository and the settings transport.
+The companion addon requires RikUI and contains only the local compiled mesh.
+
+The initial region is one ADT tile, approximately map 1426 coordinates
+47.42–58.25% X and 44.35–60.60% Y. Its 81 shards contain 4,322 convex polygons
+and 8,484 directed portals. Three WMO header/count inconsistencies remain
+unresolved: all polygons intersecting their full placement footprints, expanded
+by the modeled radius, are excluded. Polygons outside the acquired tile are
+also excluded. This is partial coverage, not a complete Dun Morogh graph.
+
+Source authenticity, static decoding, modeled traversal and native verification
+remain separate. Dynamic doors, phasing, spawned objects, enemies, swimming and
+transports are not modeled. The sample radius/height/climb/slope parameters are
+not calibrated Forever physics. Runtime status says terrain estimate and
+traversal unverified. Terrain does not establish quest requirements, locations,
+XP or availability, and never promotes observations into world evidence.
+
+The compiler validates the exact supported profile, hashes, coverage gates,
+bounds, exclusions, convex topology and cross-shard portals before writing an
+exclusive new output directory. The raw Detour diagnostic binary is never
+loaded by Lua: it includes geometry excluded from the runtime JSON graph.
+
+At runtime, one regional mesh is validated incrementally, 32 polygons per
+frame, with a second pass checking portal targets. Limits are 8,192 polygons,
+32,768 portals, 128 shards, 512 polygons per shard and 4,096 spatial grid cells.
+Each point-location cell has at most 512 candidates. Portal heights must agree
+with their source edge and cross to the target within the declared 0.3-yard
+modeled step plus quantization tolerance; horizontal adjacency cannot join floors. Location requires unique
+containment; readable player world height selects a floor within one yard.
+Missing height does not permit nearest-floor snapping. Map/world disagreement,
+cross-build data and ambiguous or uncovered points suppress terrain guidance.
+
+The deterministic A* job yields between queue and edge operations, with 64
+operations per frame, 32,768 work operations per request and at most 1,024
+corridor polygons. Costs use polygon centers and declared portal midpoints.
+The Euclidean heuristic is admissible for this graph, but the result is neither
+a continuous geometric optimum nor a claim of real-world walkability.
+Remaining guidance follows corridor order as the player moves; it does not
+cut across nearby walls by selecting the closest later waypoint. Time uses
+readable run speed or an explicitly modeled seven-yard/second default.
+
+Map guidance draws at most 128 actual corridor segments. The optional arrow
+points to the next corridor portal when terrain guidance exists and otherwise
+labels its destination bearing. Pausing, stale plans and unavailable location
+hide actionable terrain guidance. Native map projection, floors, movement,
+visuals and performance remain unverified; no computer use was performed.
+
+Reproduction from committed tools passed 38 parser/acquisition/geometry tests
+and matched all 83 rebaked files. The compiler passed 37 adversarial tests.
+The real compiled dataset loaded through the production Lua pathfinder, and
+three routes matched an independent Dijkstra calculation (maximum 8,100 search
+operations). One headless LuaJIT run loaded it in 32 ms over 271 slices; the
+coarse timer reported maximum load and search slices of 1 ms. These are local
+test measurements, not native frame-time guarantees. After adding vertical portal
+checks, a later run loaded in 42 ms with a maximum 2 ms load slice; the search
+maximum remained 1 ms on that run.
