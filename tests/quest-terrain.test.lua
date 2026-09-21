@@ -140,6 +140,11 @@ return function(check)
         assert(p.Terrain.SelectFloor(2,choices.key));tick()
         check("unreachable selected floor cannot silently switch floors",not p.Terrain.Guidance()
             and p.Terrain.Status().status=="no-known-path" and p.Terrain.Floors().selected==2)
+        check("retry resets failed search while retaining floor",p.Terrain.Retry and p.Terrain.Retry()
+            and p.Terrain.Status().status=="updating" and p.Terrain.Floors().selected==2)
+        tick()
+        check("retry cannot invent path to disconnected floor",not p.Terrain.Guidance()
+            and p.Terrain.Status().status=="no-known-path")
         p.Targets={Floor=function() return {height=10,index=2,label="Fixture floor",
             source="quest-text-model-inference",questTargetVerified=false} end}
         model.selected.targetHint={id="fixture"}

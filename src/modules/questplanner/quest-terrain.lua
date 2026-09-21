@@ -29,6 +29,15 @@ function terrain.Invalidate()
     if loader then setState("loading","Preparing terrain guidance")
     elseif mesh then setState("updating","Updating walking route") end
 end
+function terrain.Retry()
+    if not planner.enabled then return nil,"Quest planner is disabled" end
+    if not mesh and not loader then return nil,state.detail end
+    local model=planner.Controller.Get()
+    if model.status=="paused" then return nil,"Resume quest guidance before retrying" end
+    if not model.selected or not model.selected.destination then return nil,"Choose a quest with a map location" end
+    terrain.Invalidate()
+    return true
+end
 function terrain.Install(meta,shards)
     local value,reason=planner.NavMesh.Begin(meta,shards)
     if not value then return nil,reason end

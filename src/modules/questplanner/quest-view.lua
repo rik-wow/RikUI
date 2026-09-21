@@ -154,6 +154,8 @@ local function createWindow()
     window.heading=text(window,"heading"); window.heading:SetPoint("TOPLEFT",12,-10); window.heading:SetText("Quest planner")
     local exit=button(window,"Close",52,close); exit:SetPoint("TOPRIGHT",-8,-8)
     window.summary=create(window); window.summary:SetPoint("TOPLEFT",12,-38); window.summary:SetWidth(426)
+    window.retry=button(window.summary,"Retry route",88,function() command("retry") end)
+    window.retry:SetPoint("BOTTOMRIGHT",-4,0)
     window.rows={}
     for index=1,8 do
         local row=button(window,"",370,function(self)

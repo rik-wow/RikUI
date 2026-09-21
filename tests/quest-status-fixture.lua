@@ -52,5 +52,12 @@ return function(check,p,env)
     check("material log update clears terrain before next frame",invalidations==1 and route==nil
         and p.Controller.Get().selected.title:find("changed",1,true)~=nil)
     check("new selection cannot show old terrain status",summary.status:GetText()=="Updating walking route")
+    local retries=0
+    p.Terrain.Retry=function() retries=retries+1;return true end
+    p.Command("retry")
+    check("retry command reaches terrain service",retries==1)
+    check("details offers explicit retry control",p.View.Window.retry~=nil)
+    if p.View.Window.retry then env.click(p.View.Window.retry) end
+    check("retry button reaches terrain service",retries==2)
     C_QuestLog.GetInfo=oldInfo;p.Terrain=nil;p.Refresh()
 end
