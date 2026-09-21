@@ -7,7 +7,7 @@ local policy={pins={},avoids={},skips={},paused=false,arrow=false,dungeons=false
 local view={status="unavailable",detail="Reading the quest log",quests={}}
 local revision,signature,data,job,context=0,nil,nil,nil,nil
 local stats={replans=0,published=0,cancelled=0,maxSliceMS=0,timingSamples=0,frameCalls=0}
-local worker
+local worker,manualQuest
 local function notify()
     if core.QuestTracker and core.QuestTracker.Request then core.QuestTracker.Request() end
     if planner.View and planner.View.Refresh then planner.View.Refresh() end
@@ -73,6 +73,19 @@ function controller.Toggle(name,id)
     controller.Invalidate(); planner.Request()
     return true
 end
+function controller.Select(id)
+    if id~=nil then
+        local eligible=false
+        for _,row in ipairs(controller.Quests()) do
+            if row.questID==id and row.destination and not row.skipped and not row.avoided and not row.failed then eligible=true;break end
+        end
+        if not eligible then return nil,"Choose an available quest with a map location; restore any skip or avoided area first" end
+    end
+    if manualQuest==id then return true end
+    manualQuest=id
+    controller.Invalidate();planner.Request()
+    return true
+end
 function controller.Clear()
     policy.pins,policy.avoids,policy.skips={},{},{}
     if core.CharDB then core.CharDB.questPolicy=schema.Clone(policy); core:Changed() end
@@ -122,7 +135,23 @@ function controller.Step()
     if start and ended then stats.maxSliceMS=math.max(stats.maxSliceMS,ended-start); stats.timingSamples=stats.timingSamples+1 end
     stats.frameCalls=math.max(stats.frameCalls,count)
 end
+local function manualView(observed,ctx)
+    if not manualQuest then return end
+    for _,row in ipairs(observed) do
+        if row.questID==manualQuest and row.destination then
+            local value=planner.Guidance.Result({actions={},status="insufficient-data"},observed,ctx,nil,"Selected by you",policy)
+            if value.status~="constraint-conflict" then
+                value.selected=schema.Clone(row);value.stops={schema.Clone(row)}
+                value.manual=true;value.detail="Selected by you; walking route unverified"
+            end
+            return value
+        end
+    end
+    manualQuest=nil
+end
 local function begin(snapshot,status,ctx,dialog,observed,reason)
+    local chosen=manualView(observed,ctx)
+    if chosen then publish(chosen);return end
     local input,problem
     if data then input,problem=data:Prepare(snapshot,status,ctx,dialog) end
     if not input then input=planner.Guidance.DialogInput(snapshot,status,ctx,dialog) end

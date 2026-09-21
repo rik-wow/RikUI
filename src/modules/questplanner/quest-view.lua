@@ -156,6 +156,8 @@ local function createWindow()
     window.summary=create(window); window.summary:SetPoint("TOPLEFT",12,-38); window.summary:SetWidth(676)
     window.retry=button(window.summary,"Retry route",88,function() command("retry") end)
     window.retry:SetPoint("BOTTOMRIGHT",-4,0)
+    window.automatic=button(window.summary,"Automatic choice",124,function() command("route auto") end)
+    window.automatic:SetPoint("BOTTOMRIGHT",-96,0)
     window.rows={}
     for index=1,8 do
         local row=button(window,"",416,function(self)
@@ -175,6 +177,10 @@ local function createWindow()
             if row.mapID then command("avoid "..row.mapID) end
         end)
         row.area:SetPoint("LEFT",row.skip,"RIGHT",0,0)
+        row.route=button(window,"Route",64,function()
+            if row.questID then command("route "..row.questID) end
+        end)
+        row.route:SetPoint("LEFT",row.area,"RIGHT",0,0)
         window.rows[index]=row
     end
     local previous=button(window,"Previous",80,function() page=math.max(1,page-1); view.Refresh() end)
@@ -219,6 +225,7 @@ function view.Refresh()
     local policy=planner.Controller.Policy()
     window.arrow.label:SetText(policy.arrow and "Arrow: on" or "Arrow: off")
     window.dungeons.label:SetText(policy.dungeons and "Dungeons: on" or "Dungeons: off")
+    window.automatic:SetShown(model.manual==true)
     avoidedArea(policy)
     local quests=planner.Controller.Quests()
     local pages=math.max(1,math.ceil(#quests/8))
@@ -228,8 +235,11 @@ function view.Refresh()
         row:SetShown(quest~=nil); row.pin:SetShown(quest~=nil); row.skip:SetShown(quest~=nil)
         row.mapID=quest and quest.destination and quest.destination.mapID
         row.area:SetShown(row.mapID~=nil)
+        row.route:SetShown(quest~=nil)
+        row.route:SetEnabled(quest~=nil and row.mapID~=nil and not quest.skipped and not quest.avoided and not quest.failed)
         if quest then
             row.area.label:SetText(quest.avoided and "Allow area" or "Avoid area")
+            row.route.label:SetText(model.selected and model.selected.questID==quest.questID and "Selected" or "Route")
             row.questID=quest.questID; row.label:SetText((quest.skipped and "Skipped: " or quest.avoided and "Area avoided: " or quest.failed and "Failed: "
                 or quest.kind=="turnin" and "Turn in: " or "")..quest.title)
             row.skip.label:SetText(quest.skipped and "Include" or "Skip")

@@ -241,6 +241,31 @@ return function(check)
             if restoreArea then env.click(restoreArea);env.flushTimers() end
             check("orphan area recovery clears only selected map",not p.Controller.Policy().avoids[999])
             p.Controller.Clear();env.flushTimers()
+            p.Command("route 11");env.flushTimers()
+            check("explicit route selects an eligible observed quest",p.Controller.Get().selected
+                and p.Controller.Get().selected.questID==11 and p.Controller.Get().manual==true)
+            check("explicit route does not persist selection as constraints",not next(p.Controller.Policy().pins)
+                and not next(p.Controller.Policy().skips))
+            p.Command("skip 11");env.flushTimers()
+            check("skipping selected route returns to eligible guidance",p.Controller.Get().selected.questID==10
+                and not p.Controller.Get().manual)
+            p.Command("route 11");env.flushTimers()
+            check("route command cannot bypass a skip",p.Controller.Get().selected.questID==10)
+            p.Command("skip 11");env.flushTimers()
+            local target=rowFor(11)
+            check("quest row provides route action",target and target.route~=nil)
+            if target and target.route then env.click(target.route);env.flushTimers() end
+            check("route button selects without opening or accepting quest",p.Controller.Get().selected.questID==11)
+            local without=p.GetSnapshot();without.quests[11]=nil;without.order={10};without.reportedCount=1
+            p.Controller.Update(without,{state="current"},"selected quest removed")
+            check("removed quest clears manual route",not p.Controller.Get().manual and p.Controller.Get().selected.questID==10)
+            p.Controller.Update(p.GetSnapshot(),(select(2,p.GetSnapshot())),"restore fixture")
+            p.Command("route 11");env.flushTimers()
+            p.Command("route invalid");env.flushTimers()
+            check("malformed route command cannot clear selection",p.Controller.Get().manual and p.Controller.Get().selected.questID==11)
+            p.Command("route auto");env.flushTimers()
+            check("automatic route control clears manual selection",not p.Controller.Get().manual
+                and p.Controller.Get().selected.questID==10)
         end
         env.click(p.View.Window.summary.pin)
         env.flushTimers()

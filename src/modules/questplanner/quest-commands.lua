@@ -49,6 +49,10 @@ function planner.Command(arguments)
     elseif verb=="map" then planner.Navigation.Open(); return
     elseif verb=="export" then planner.TransferView.Open(false); return
     elseif verb=="inspect" then planner.TransferView.Open(true); return
+    elseif verb=="route" then
+        if value=="auto" then ok,reason=controller.Select(nil)
+        elseif planner.Schema.ID(tonumber(value)) then ok,reason=controller.Select(tonumber(value))
+        else reason="Use route <questID> or route auto." end
     elseif verb=="retry" then
         if planner.Terrain then ok,reason=planner.Terrain.Retry()
         else reason="Terrain datasource is unavailable" end
@@ -64,7 +68,7 @@ function planner.Command(arguments)
         else ok,reason=controller.Set(verb,value=="on") end
     else
         core:Print("/rik quests show | map | pause | resume | pin <questID> | skip <questID> | avoid <mapID>")
-        core:Print("/rik quests arrow on|off | floor auto|<number> | dungeons on|off | export | inspect | retry | reset | status")
+        core:Print("/rik quests arrow on|off | floor auto|<number> | dungeons on|off | export | inspect | retry | route <questID>|auto | reset | status")
         return
     end
     if not ok then core:Print("Quest planner: "..(reason or "command unavailable")) end
