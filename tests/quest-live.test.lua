@@ -129,7 +129,7 @@ return function(check)
         local pin,arrow
         for _,frame in ipairs(env.frames) do
             if frame.parent==canvas and frame.questID==10 then pin=frame end
-            if frame.label and frame.label:GetText()=="Destination bearing" then arrow=frame end
+            if frame.label and frame.icon and frame:GetParent()==UIParent and frame:GetWidth()==240 then arrow=frame end
         end
         check("map marker projects observed destination on current canvas",pin and pin.point[4]==500 and pin.point[5]==-300)
         check("optional bearing is visible for readable same-map location",arrow and arrow:IsShown())
@@ -141,9 +141,9 @@ return function(check)
         local oldPointCalls,pointCalls=canvas.GetWidth,0
         canvas.GetWidth=function(...) pointCalls=pointCalls+1;return oldPointCalls(...) end
         for _,driver in ipairs(env.frames) do
-            if driver.scripts.OnUpdate then env.runScript(driver,"OnUpdate",.05) end
+            if driver.scripts.OnUpdate then env.runScript(driver,"OnUpdate",.016) end
         end
-        check("arrow observes facing within fifty milliseconds",math.abs(math.sin(angle))<.000001 and math.cos(angle)>.9999)
+        check("arrow observes facing on the next frame",math.abs(math.sin(angle))<.000001 and math.cos(angle)>.9999)
         check("fast arrow refresh does not redraw map geometry",pointCalls==0)
         canvas.GetWidth=oldPointCalls
         p.Navigation.Refresh()

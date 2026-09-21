@@ -127,6 +127,8 @@ return function(check)
         local passed,passedProof,passedIndex=p.NavGeometry.CorridorAim(dense,{1.47,0,8},15)
         check("off-center progress advances from current polygon without reaching old aim",
             passed[1]>1.47+6 and passedIndex>reached and #passedProof==passedIndex-15)
+        check("open corridor preserves goal-aligned lateral position instead of seeking center",math.abs(far[3]-2)<.00001)
+        check("off-center corridor aims toward goal instead of center node",passed[3]<8 and math.abs(passed[3]-5)>.1)
         check("dense lookahead remains bounded",reached<=65 and passedIndex<=79)
         local broad=p.Schema.Clone(dense)
         for _,surface in ipairs(broad.surfaces) do for _,point in ipairs(surface) do point[1]=point[1]*100 end end

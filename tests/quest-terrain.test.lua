@@ -40,8 +40,8 @@ return function(check)
             and guidance.points[2].y>.9 and guidance.points[3].x<.9)
         local oldStart=guidance.points[1].x
         position.x=.98
-        env.runScript(driver,"OnUpdate",.05)
-        check("steering observes motion within fifty milliseconds",p.Terrain.Guidance().points[1].x~=oldStart)
+        env.runScript(driver,"OnUpdate",.016)
+        check("steering observes lateral motion on the next frame",p.Terrain.Guidance().points[1].x~=oldStart)
         position.x=.99;tick()
         local initial=guidance.meters
         local unchangedRefreshes=refreshes; tick()

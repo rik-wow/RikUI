@@ -62,6 +62,17 @@ function guidance.Instruction(route,position,facing,width,height)
     local subtext=schema.Number(remaining,0,1000000) and ("~"..distanceText(remaining).." remaining") or "Follow the route"
     return {text=text,subtext=subtext,distance=distance,bearing=bearing}
 end
+function guidance.MarkerInstruction(point,position,width,height,state)
+    local hint=guidance.Instruction({next=point},position,nil,width,height)
+    if not hint then return nil end
+    local compass=COMPASS[math.floor((-hint.bearing%(2*math.pi))/(math.pi/4)+.5)%8+1]
+    local status=state and state.status
+    local detail=status=="loading" and "Route loading"
+        or ((status=="calculating" or status=="updating") and "Finding walking route")
+        or "No walking route"
+    return {text="Marker "..compass.." · "..distanceText(hint.distance),
+        subtext=detail,distance=hint.distance,markerOnly=true}
+end
 local function signatureField(parts,value)
     if parts.limited then return end
     local text=type(value)..":"..tostring(value)

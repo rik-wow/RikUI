@@ -63,6 +63,12 @@ return function(check,p,env,canvas,arrow)
     check("route end requests checking quest, never claims completion",summary.status:GetText()=="Route ends nearby\nCheck the quest target")
     route=nil;p.Navigation.Refresh()
     check("invalidated path clears both ant pools",#visible(canvas)==0 and #visible(Minimap)==0)
+    check("missing walking route identifies marker and live distance",arrow.label:GetText()=="Marker E · 20 yd\nNo walking route")
+    p.Terrain.Status=function() return {status="loading"} end
+    p.Navigation.Refresh()
+    check("loading fallback gives marker direction without pretending to walk",arrow.label:GetText()=="Marker E · 20 yd\nRoute loading")
+    position={mapID=1426,x=.48,y=.5};p.Navigation.Refresh()
+    check("marker-only distance updates with movement",arrow.label:GetText():find("40 yd",1,true))
     CreateFrame,Minimap,C_Minimap,GetCVarBool,GetPlayerFacing,p.Terrain,p.Context.Position=unpack(old,1,7)
     p.View.Window:Hide()
 end

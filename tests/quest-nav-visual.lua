@@ -3,6 +3,8 @@
 local output=assert(arg[5],"external output prefix required")
 local stride=tonumber(arg[7]) or .35
 local delta=tonumber(arg[9]) or .2
+local deviation=tonumber(arg[11]) or 0
+assert(deviation>=0 and deviation<=1,"deviation outside replay bounds")
 assert(delta>=.01 and delta<=.25,"frame delta outside replay bounds")
 assert(stride>=.05 and stride<=1.4,"stride outside modeled replay bounds")
 local h=dofile("tests/quest-marker-replay.lua")
@@ -71,6 +73,13 @@ for tick=1,6000 do
     local index=assert(corridorIndex[located.id],"movement left the selected corridor")
     assert(index>=progress,"movement reversed polygon progress")
     progress=index;pos=located.point
+    -- Model a small voluntary sideways move inside the same convex floor polygon.
+    -- Reject the perturbation at walls, floor ambiguity and polygon boundaries.
+    if deviation>0 then
+        local offset=deviation*math.sin(tick*.37)
+        local sideways=mesh:Locate({x=pos[1]-dz*offset,z=pos[3]+dx*offset})
+        if sideways and sideways.id==located.id then pos=sideways.point end
+    end
 end
 local uniqueHints=0
 for _ in pairs(hints) do uniqueHints=uniqueHints+1 end

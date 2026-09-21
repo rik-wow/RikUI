@@ -434,13 +434,20 @@ subdivision from shortening the aim to a nearby breadcrumb. Progress follows
 the currently occupied corridor polygon, including off-center movement; touching
 a center or previous aim is unnecessary. Every forward shortcut still proves
 ordered crossings through the actual portals and modeled surfaces.
+Within that horizon, the preferred aim follows the destination direction clipped
+to the visible portal interval, then continues along that ray inside the entered
+polygon. Polygon centers are fallback candidates, not mandatory steering targets.
+A bounded ten-step containment search and ordered crossing proof constrain the
+ray. The active corridor and arrow refresh every frame to avoid stale aims after
+lateral movement; loading and search budgets are unchanged.
 
-Tracker and arrow instructions now refresh from live position and facing every
-50 ms: turn/bear/continue plus yards to the current steering aim, with estimated
+Tracker instructions refresh every 50 ms and the arrow every frame: turn/bear/continue plus yards to the current steering aim, with estimated
 remaining route length underneath. At the modeled endpoint they ask the player
 to check the quest target; proximity never completes a quest. Missing facing
 uses a compass direction in the tracker. Unavailable routes retain the diagnostic
-status and explicit destination-bearing fallback.
+status. The marker-only arrow shows compass direction and straight-line distance
+(e.g. "Marker E · 120 yd") with "No walking route", "Route loading", or
+"Finding walking route". It gives no walking instruction across an unknown gap.
 
 Animated yellow dots follow the terrain route on both world map and minimap,
 independently of the optional arrow. They never extend across an unverified

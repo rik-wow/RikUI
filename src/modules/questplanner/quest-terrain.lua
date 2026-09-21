@@ -151,6 +151,10 @@ function terrain.Start()
     driver:SetScript("OnUpdate",function(_,delta)
         terrain.Step()
         elapsed=elapsed+delta
-        if elapsed>=STEERING_INTERVAL then elapsed=elapsed%STEERING_INTERVAL; if planner.enabled then update() end end
+        if route and planner.enabled then
+            -- An active corridor must follow lateral movement without retaining an old ray.
+            update()
+        elseif elapsed>=STEERING_INTERVAL and planner.enabled then update() end
+        if elapsed>=STEERING_INTERVAL then elapsed=elapsed%STEERING_INTERVAL end
     end)
 end

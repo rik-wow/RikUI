@@ -164,7 +164,7 @@ local function arrowBuild()
     arrow.icon=media.Icon(arrow,"chevron-up",26); arrow.icon:SetPoint("TOP",0,0)
     arrow.label=arrow:CreateFontString(nil,"OVERLAY"); media.Font(arrow.label,"small"); arrow.label:SetPoint("BOTTOM")
     arrow.label:SetWidth(240);arrow.label:SetHeight(32);arrow.label:SetWordWrap(true)
-    arrow.label:SetText("Destination bearing")
+    arrow.label:SetText("")
     arrow:Hide()
 end
 local function bearing()
@@ -176,12 +176,15 @@ local function bearing()
     local terrain=planner.Terrain and planner.Terrain.Guidance()
     local point,position=terrain and terrain.next or model.selected.destination,planner.Context.Position()
     local hint=navigation.Instruction()
-    arrow.label:SetText(hint and (hint.text.."\n"..hint.subtext) or "Destination bearing")
     if not position or position.mapID~=point.mapID then return end
     local ok,facing=planner.Context.Call(GetPlayerFacing)
     local sized,width,height=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,point.mapID)
     if not ok or not sized or not planner.Schema.Number(facing,0,math.pi*2)
         or not planner.Schema.Number(width,1,100000) or not planner.Schema.Number(height,1,100000) or not math.atan2 then return end
+    hint=hint or planner.Guidance.MarkerInstruction(point,position,width,height,
+        planner.Terrain and planner.Terrain.Status())
+    if not hint then return end
+    arrow.label:SetText(hint.text.."\n"..hint.subtext)
     local dx,dy=(point.x-position.x)*width,(point.y-position.y)*height
     if hint and hint.ending then arrow.icon:Hide();arrow:Show();return end
     arrow.icon:Show()
@@ -214,9 +217,12 @@ function navigation.Start()
                 elapsed=elapsed%MAP_INTERVAL; bearingElapsed=0
                 frame=WorldMapFrame
                 navigation.Refresh()
-            elseif bearingElapsed>=BEARING_INTERVAL then
-                bearingElapsed=bearingElapsed%BEARING_INTERVAL
-                refreshBearing();refreshRouteDisplay()
+            else
+                refreshBearing()
+                if bearingElapsed>=BEARING_INTERVAL then
+                    bearingElapsed=bearingElapsed%BEARING_INTERVAL
+                    refreshRouteDisplay()
+                end
             end
         end)
     end,"questplanner:navigation")

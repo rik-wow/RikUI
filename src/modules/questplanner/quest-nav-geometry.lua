@@ -145,12 +145,46 @@ local function visiblePortal(route,origin,first,last)
             if not lo then return end
         end
     end
+    local goal=route.points[#route.points]
+    local rx,rz=goal[1]-origin[1],goal[3]-origin[3]
+    local sx,sz=b[1]-a[1],b[3]-a[3]
+    local denominator=rx*sz-rz*sx
     local t=(lo+hi)/2
+    if math.abs(denominator)>EPSILON then
+        local qx,qz=a[1]-origin[1],a[3]-origin[3]
+        local forward=(qx*sz-qz*sx)/denominator
+        if forward>0 then t=(qx*rz-qz*rx)/denominator end
+    end
+    -- Keep an interior angular margin without pulling every aim to a polygon center.
+    local inset=(hi-lo)*.02
+    t=math.max(lo+inset,math.min(hi-inset,t))
     return {a[1]+t*(b[1]-a[1]),a[2]+t*(b[2]-a[2]),a[3]+t*(b[3]-a[3])}
+end
+local function rayContinuation(route,origin,gate,first,last)
+    local dx,dz=gate[1]-origin[1],gate[3]-origin[3]
+    local length=math.sqrt(dx*dx+dz*dz)
+    if length<EPSILON then return end
+    dx,dz=dx/length,dz/length
+    local surface=route.surfaces[last]
+    local low,high=0,ANTICIPATION
+    -- Convex containment bounds a forward ray inside the entered polygon.
+    for _=1,10 do
+        local distance=(low+high)/2
+        if geometry.Contains(surface,gate[1]+dx*distance,gate[3]+dz*distance) then low=distance else high=distance end
+    end
+    if low<.01 then return end
+    local x,z=gate[1]+dx*low*.8,gate[3]+dz*low*.8
+    local height=geometry.Height(surface,x,z)
+    if not height then return end
+    local target={x,height,z}
+    local proof=crossings(route,origin,target,first,last)
+    if proof then return target,proof,last end
 end
 local function portalAim(route,origin,first,last)
     local gate=visiblePortal(route,origin,first,last)
     if not gate then return end
+    local ray,proof=rayContinuation(route,origin,gate,first,last)
+    if ray then return ray,proof,last end
     local center=route.points[last*2]
     local distance=geometry.Distance(gate,center)
     local ratio=distance>0 and math.min(1,ANTICIPATION/distance) or 1
@@ -183,10 +217,12 @@ function geometry.CorridorAim(route,origin,index)
     -- Aim through the visible corridor, not at the next breadcrumb to be collected.
     for last=lookaheadEnd(route,origin,index),index+1,-1 do
         local target=last==#route.corridor and route.points[#route.points] or route.points[last*2]
-        local crossed=crossings(route,origin,target,index,last)
+        local crossed=last==#route.corridor and crossings(route,origin,target,index,last)
         if crossed then return target,crossed,last end
         local visible,proof=portalAim(route,origin,index,last)
         if visible then return visible,proof,last end
+        crossed=crossings(route,origin,target,index,last)
+        if crossed then return target,crossed,last end
     end
     -- A short continuation beyond the first portal avoids stopping on its boundary.
     local gate=route.portals[index].midpoint
