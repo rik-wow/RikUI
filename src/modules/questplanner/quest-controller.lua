@@ -46,9 +46,13 @@ end
 function controller.Set(name,value)
     if name~="paused" and name~="arrow" and name~="dungeons" then return nil,"unknown setting" end
     if type(value)~="boolean" then return nil,"invalid setting" end
+    if policy[name]==value then return true end
     policy[name]=value
     if core.CharDB then core.CharDB.questPolicy=schema.Clone(policy); core:Changed() end
-    controller.Invalidate(); planner.Request()
+    if name=="arrow" then
+        notify()
+        if planner.Navigation then planner.Navigation.Refresh() end
+    else controller.Invalidate(); planner.Request() end
     return true
 end
 function controller.Toggle(name,id)

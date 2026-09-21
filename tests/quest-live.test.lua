@@ -51,6 +51,21 @@ return function(check)
         check("ready turn-in is the useful observed choice",model.selected.questID==10 and model.selected.destination.mapID==1426)
         check("context reads real capacity and selected contextual reward",p.Controller.Context().attributes.logCapacity==40
             and p.Controller.Context().rewards[10].xp==120 and p.Controller.Context().rewards[11]==nil)
+        local savedModel=p.Controller.Get()
+        local requested,invalidations=0,0
+        local savedRequest=p.Request
+        p.Request=function() requested=requested+1 end
+        p.Terrain={Invalidate=function() invalidations=invalidations+1 end,
+            Guidance=function() end,Status=function() return {status="unavailable"} end}
+        assert(p.Controller.Set("arrow",true))
+        check("arrow preference preserves selected guidance",p.Controller.Get().selected
+            and p.Controller.Get().selected.questID==savedModel.selected.questID)
+        check("arrow preference avoids terrain invalidation and replan",requested==0 and invalidations==0)
+        assert(p.Controller.Set("arrow",true))
+        assert(p.Controller.Set("paused",false))
+        check("unchanged preferences do no work",requested==0 and invalidations==0)
+        p.Request=savedRequest;p.Terrain=nil
+        p.Controller.Set("arrow",false);env.flushTimers()
         local replans=p.Controller.Stats().replans
         env.fire("QUEST_LOG_UPDATE"); env.flushTimers()
         check("identical event does not replan",p.Controller.Stats().replans==replans)
