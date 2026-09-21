@@ -4,7 +4,17 @@ local view={}
 planner.View=view
 local HEIGHT,WIDTH=110,240
 local inline,window
-local page=1
+local page,filterIndex=1,1
+local FILTERS={"All","Available","Excluded"}
+local PAGE_SIZE=8
+local function filteredQuests()
+    local result={}
+    for _,quest in ipairs(planner.Controller.Quests()) do
+        local excluded=quest.skipped or quest.avoided or quest.failed
+        if filterIndex==1 or (filterIndex==2 and not excluded) or (filterIndex==3 and excluded) then result[#result+1]=quest end
+    end
+    return result
+end
 local function text(parent,role)
     local label=parent:CreateFontString(nil,"OVERLAY")
     media.Font(label,role or "small")
@@ -17,6 +27,10 @@ local function button(parent,label,width,action)
     control.label=text(control); control.label:SetPoint("CENTER"); control.label:SetText(label)
     control:SetScript("OnClick",action)
     return control
+end
+local function enabled(control,value)
+    control:SetEnabled(value)
+    control.label:SetAlpha(value and 1 or .4)
 end
 local function command(value) if planner.Command then planner.Command(value) end end
 local function selectedID()
@@ -159,7 +173,7 @@ local function createWindow()
     window.automatic=button(window.summary,"Automatic choice",124,function() command("route auto") end)
     window.automatic:SetPoint("BOTTOMRIGHT",-96,0)
     window.rows={}
-    for index=1,8 do
+    for index=1,PAGE_SIZE do
         local row=button(window,"",416,function(self)
             if self.questID then planner.OpenQuest(self.questID) end
         end)
@@ -184,12 +198,18 @@ local function createWindow()
         window.rows[index]=row
     end
     local previous=button(window,"Previous",80,function() page=math.max(1,page-1); view.Refresh() end)
-    previous:SetPoint("BOTTOMLEFT",12,46)
+    previous:SetPoint("BOTTOMLEFT",12,46);window.previous=previous
     local following=button(window,"Next",64,function() page=page+1; view.Refresh() end)
-    following:SetPoint("LEFT",previous,"RIGHT",6,0)
+    following:SetPoint("LEFT",previous,"RIGHT",6,0);window.following=following
+    window.filter=button(window,"Show: All",152,function()
+        filterIndex=filterIndex%#FILTERS+1;page=1;view.Refresh()
+    end)
+    window.filter:SetPoint("BOTTOMLEFT",174,46)
+    window.empty=text(window);window.empty:SetPoint("TOPLEFT",12,-164)
+    window.empty:SetSize(676,58);window.empty:SetWordWrap(true)
     local reset=button(window,"Reset constraints",130,function() command("reset") end)
     reset:SetPoint("BOTTOMRIGHT",-12,46)
-    window.page=text(window); window.page:SetPoint("BOTTOM",0,52)
+    window.page=text(window); window.page:SetPoint("BOTTOM",60,52)
     window.arrow=button(window,"Arrow: off",92,function() command("arrow "..(planner.Controller.Policy().arrow and "off" or "on")) end)
     window.dungeons=button(window,"Dungeons: off",110,function() command("dungeons "..(planner.Controller.Policy().dungeons and "off" or "on")) end)
     local avoid=button(window,"Avoid area",92,function()
@@ -227,16 +247,22 @@ function view.Refresh()
     window.dungeons.label:SetText(policy.dungeons and "Dungeons: on" or "Dungeons: off")
     window.automatic:SetShown(model.manual==true)
     avoidedArea(policy)
-    local quests=planner.Controller.Quests()
-    local pages=math.max(1,math.ceil(#quests/8))
+    local quests=filteredQuests()
+    local pages=math.max(1,math.ceil(#quests/PAGE_SIZE))
     page=math.min(page,pages); window.page:SetText(page.."/"..pages)
+    enabled(window.previous,page>1);enabled(window.following,page<pages)
+    window.filter.label:SetText("Show: "..FILTERS[filterIndex])
+    window.empty:SetShown(#quests==0)
+    window.empty:SetText(filterIndex==2 and "No available quests. Show All to restore skipped quests or avoided areas."
+        or filterIndex==3 and "No excluded quests." or "No current quest observations. Open your quest log or wait for it to update.")
     for index,row in ipairs(window.rows) do
-        local quest=quests[(page-1)*8+index]
+        local quest=quests[(page-1)*PAGE_SIZE+index]
+        row.questID=quest and quest.questID
         row:SetShown(quest~=nil); row.pin:SetShown(quest~=nil); row.skip:SetShown(quest~=nil)
         row.mapID=quest and quest.destination and quest.destination.mapID
         row.area:SetShown(row.mapID~=nil)
         row.route:SetShown(quest~=nil)
-        row.route:SetEnabled(quest~=nil and row.mapID~=nil and not quest.skipped and not quest.avoided and not quest.failed)
+        enabled(row.route,quest~=nil and row.mapID~=nil and not quest.skipped and not quest.avoided and not quest.failed)
         if quest then
             row.area.label:SetText(quest.avoided and "Allow area" or "Avoid area")
             row.route.label:SetText(model.selected and model.selected.questID==quest.questID and "Selected" or "Route")

@@ -267,6 +267,36 @@ return function(check)
             check("automatic route control clears manual selection",not p.Controller.Get().manual
                 and p.Controller.Get().selected.questID==10)
         end
+        do
+            local list=p.Controller.Quests
+            local rows={}
+            for index=1,9 do rows[index]={questID=100+index,title="Page quest "..index,kind="objective"} end
+            p.Controller.Quests=function() return rows end
+            p.View.Refresh()
+            local win=p.View.Window
+            check("paging exposes boundary controls",win.previous~=nil and win.following~=nil)
+            if win.previous and win.following then
+                check("first page disables previous",not win.previous:IsEnabled() and win.following:IsEnabled())
+                env.click(win.following)
+                check("last page shows ninth quest",win.rows[1].questID==109 and not win.following:IsEnabled())
+                rows={};p.View.Refresh()
+                check("empty list clamps page and clears stale row ids",win.page:GetText()=="1/1"
+                    and win.rows[1].questID==nil and not win.previous:IsEnabled() and not win.following:IsEnabled())
+            end
+            check("empty quest list explains its state",win.empty and win.empty:IsShown() and win.empty:GetText()~="")
+            rows={{questID=10,title="Skipped fixture",kind="objective",skipped=true}}
+            p.View.Refresh()
+            check("list has eligibility filter",win.filter~=nil)
+            if win.filter then
+                env.click(win.filter)
+                check("available filter excludes skipped quests with explanation",not win.rows[1]:IsShown()
+                    and win.empty:IsShown() and win.empty:GetText():find("available",1,true))
+                env.click(win.filter)
+                check("excluded filter exposes recovery row",win.rows[1].questID==10 and win.rows[1].skip:IsShown())
+                env.click(win.filter)
+            end
+            p.Controller.Quests=list;p.View.Refresh()
+        end
         env.click(p.View.Window.summary.pin)
         env.flushTimers()
         check("pin control persists bounded preference only",p.Controller.Policy().pins[10] and RikUI.CharDB.questPolicy.pins[10]

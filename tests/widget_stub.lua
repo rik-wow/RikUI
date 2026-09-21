@@ -79,6 +79,8 @@ local function wrapFrame(frame)
         self.parent = value
     end
     function frame:GetParent() return self.parent end
+    function frame:SetEnabled(value) self.enabled=value end
+    function frame:IsEnabled() return self.enabled~=false end
     function frame:SetFrameLevel(level) self.level = level end
     function frame:SetFrameStrata(strata) self.strata = strata end
     function frame:SetAttribute(key, value)
