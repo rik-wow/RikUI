@@ -322,3 +322,45 @@ Fixtures verify directional gaps, locked flights, changed cooldowns, periodic
 waiting, risk tradeoffs, intermediate avoids, zero-cost cycles, deterministic
 slices and exhaustion. They do not establish a traversable Dun Morogh graph or
 native frame cost.
+
+## Calculated action search
+
+`Actions.New` accepts at most 40 sourced, exact-build action bundles. Pickup
+declarations can describe complete objective counters; shared progress requires
+an explicit common key. A bundle executes once per hypothetical route, so its
+progress and combat/looting/interaction/downtime estimates must cover that bundle.
+The simulator carries log slots, historical turn-ins, consumable items, flight
+unlocks, hearth consumption and known level thresholds. Effects never mutate
+observations or evidence. Missing XP or thresholds cannot unlock a level rule.
+
+`Optimizer.Begin` creates a cancellable coroutine job. `Step` consumes a work
+budget; the synchronous `Plan` wrapper is for tests/offline use. Defaults are
+six actions of lookahead, beam width 24, 5,000 transitions and 50,000 aggregate
+travel operations. Depth is capped at eight. Candidate state copies are bounded
+to 4,096 nodes/64 KiB of strings; the beam retains at most 24 states per layer.
+These are operation/allocation limits, not a measured millisecond guarantee.
+
+Pins prioritize completion then progress within the horizon; infeasible pins
+remain explicitly deferred. Avoids apply to actions and all declared traversed
+zones. Skip is a session planning exclusion, never a quest abandonment.
+Dungeons are excluded unless requested. Known reward plus configurable class
+and travel-unlock value is divided by modeled elapsed time, with risk/uncertainty
+penalties. These weights are policy, not XP facts. When no reward is known,
+feasible completed work ranks ahead of a stranded partial sequence; the result
+still reports unknown XP. Deterministic ties and a 15% material improvement
+threshold retain a still-feasible current action.
+
+Results expose bounded-search exhaustion, omitted eligibility/travel reasons,
+unknown rewards, deferred pins, input generation and graph revision. They
+describe calculated feasible sequences in the admitted model, with no global
+optimality claim. Missing walk connections are never replaced by coordinate
+distance.
+
+An original three-turn-in fixture matches exhaustive enumeration of 15 feasible
+states: 18.182 XP/second versus 15.000 for nearest-next and 14.000 for a fixed
+original order (each baseline gets its best prefix). The graph search can use
+indirect connections, so baseline time is shortest admitted travel, not the
+direct edge. Additional replays cover skipped prerequisites, full logs, shared
+objectives, consumables, level changes, optional dungeons, downstream flight
+unlocks, cancellation and missing data. This is algorithm evidence, not a
+Dun Morogh speed or native performance claim.

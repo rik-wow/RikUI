@@ -30,7 +30,7 @@ local function atom(rule, state)
         if schema.ID(value) then return value == rule.value end
     elseif rule.op == "faction" then
         if schema.Text(value) then return value == rule.value end
-    elseif schema.Integer(state.level, 0, 1000) then
+    elseif not state.levelProgressUnknown and schema.Integer(state.level, 0, 1000) then
         if rule.op == "levelAtLeast" then return state.level >= rule.value end
         if rule.op == "levelAtMost" then return state.level <= rule.value end
     end

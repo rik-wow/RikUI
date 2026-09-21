@@ -43,11 +43,11 @@ end
 
 local function copyValue(value, state, depth)
     state.nodes = state.nodes + 1
-    if state.nodes > MAX_NODES or depth > MAX_DEPTH or secret.IsSecret(value) then error("data limit or secret value") end
+    if state.nodes > (state.maxNodes or MAX_NODES) or depth > (state.maxDepth or MAX_DEPTH) or secret.IsSecret(value) then error("data limit or secret value") end
     local kind = type(value)
     if kind == "string" then
         state.bytes = state.bytes + #value
-        if #value > MAX_TEXT or state.bytes > MAX_BYTES then error("text limit") end
+        if #value > MAX_TEXT or state.bytes > (state.maxBytes or MAX_BYTES) then error("text limit") end
         return value
     end
     if kind == "boolean" or (kind == "number" and schema.Number(value, -MAX_ID, MAX_ID)) then return value end
@@ -64,6 +64,15 @@ end
 
 function schema.Copy(value)
     local ok, result = pcall(copyValue, value, { nodes = 0, bytes = 0, seen = {} }, 0)
+    if ok then return result end
+    return nil, "invalid or oversized plain data"
+end
+
+function schema.CopyLimited(value, nodes, bytes, depth)
+    if not schema.Integer(nodes, 1, 32768) or not schema.Integer(bytes, 1, 1048576)
+        or not schema.Integer(depth, 1, 16) then return nil, "invalid copy budget" end
+    local ok, result = pcall(copyValue, value, { nodes = 0, bytes = 0, seen = {},
+        maxNodes = nodes, maxBytes = bytes, maxDepth = depth }, 0)
     if ok then return result end
     return nil, "invalid or oversized plain data"
 end

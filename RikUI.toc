@@ -90,6 +90,9 @@ src/modules/questplanner/quest-corpus.lua
 src/modules/questplanner/quest-transfer.lua
 src/modules/questplanner/quest-eligibility.lua
 src/modules/questplanner/quest-travel.lua
+src/modules/questplanner/quest-actions.lua
+src/modules/questplanner/quest-simulation.lua
+src/modules/questplanner/quest-optimizer.lua
 src/modules/questplanner/quest-reader.lua
 src/modules/questplanner/questplanner.lua
 src/modules/questtracker/questtracker.lua
