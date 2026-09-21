@@ -169,6 +169,7 @@ return function(check)
         p.Command("arrow off"); env.flushTimers()
         p.Command("show")
         check("explicit window has quest rows and actual summary",p.View.Window:IsShown() and p.View.Window.rows[1].questID==10)
+        dofile("tests/quest-status-fixture.lua")(check,p,env)
         env.click(p.View.Window.summary.pin)
         env.flushTimers()
         check("pin control persists bounded preference only",p.Controller.Policy().pins[10] and RikUI.CharDB.questPolicy.pins[10]

@@ -23,7 +23,13 @@ return function(check)
         p.Controller={Get=function() return p.Schema.Clone(model) end}
         p.GetSnapshot=function() return {identity=identity} end
         p.enabled=true
+        local refreshes,staleDuringRefresh=0,false
+        p.View={Refresh=function()
+            refreshes=refreshes+1
+            if p.Terrain.Status().status~="modeled" and p.Terrain.Guidance() then staleDuringRefresh=true end
+        end}
         assert(p.Terrain.Install(meta,shards))
+        check("terrain installation immediately publishes loading",p.Terrain.Status().status=="loading" and refreshes==1)
         p.Terrain.Start()
         local driver=env.frames[1]
         local function tick(count) for _=1,count or 10 do env.runScript(driver,"OnUpdate",.2) end end
@@ -32,6 +38,11 @@ return function(check)
         check("installed region produces live modeled corridor",guidance.status=="modeled" and not guidance.nativeVerified)
         check("bearing target is next portal instead of destination through wall",guidance.next.x==.9 and guidance.next.y==.95)
         local initial=guidance.meters
+        local unchangedRefreshes=refreshes; tick()
+        check("unchanged modeled state does not refresh widgets",refreshes==unchangedRefreshes)
+        local savedPosition=position; position=nil; tick()
+        check("missing position is distinct from absent destination",p.Terrain.Status().status=="unavailable-position" and not p.Terrain.Guidance())
+        position=savedPosition; tick()
         position.mapID=999; tick()
         check("leaving terrain map clears corridor and modeled status",
             not p.Terrain.Guidance() and p.Terrain.Status().status=="outside-coverage")
@@ -69,11 +80,14 @@ return function(check)
         tick()
         check("unknown target cannot create direct route",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="unknown-target")
         p.Terrain.Invalidate()
-        check("material invalidation immediately clears corridor",p.Terrain.Guidance()==nil)
+        check("material invalidation immediately clears corridor and status",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="updating")
+        local invalidatedRefreshes=refreshes;p.Terrain.Invalidate()
+        check("repeated invalidation has no duplicate notification",refreshes==invalidatedRefreshes)
         identity.build="changed"; tick()
         check("build changes reject installed terrain",p.Terrain.Status().status=="unavailable")
         p.enabled=false; tick()
-        check("disabled module publishes no path",p.Terrain.Guidance()==nil)
+        check("disabled module publishes no path",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="disabled")
+        check("notifications never expose stale corridor",not staleDuringRefresh)
     end)
     RikUI,env.frames=previous,frames
     check("terrain guidance fixture completes",ok,reason)

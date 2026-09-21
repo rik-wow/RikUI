@@ -230,6 +230,7 @@ return function(check)
             Get=function() return {status="observed",detail="Walking route is not verified",quests={}} end,
             Policy=function() return {pins={},paused=false} end,
         }
+        assert(loadfile("src/modules/questplanner/quest-guidance.lua"))("RikUI", {})
         assert(loadfile("src/modules/questplanner/quest-view.lua"))("RikUI", {})
         stub.watches={}
         update()

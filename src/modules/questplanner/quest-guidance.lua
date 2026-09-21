@@ -7,6 +7,30 @@ local function plain(value)
     return value:gsub("|",""):gsub("[%z\1-\31]"," "):sub(1,240)
 end
 guidance.Text=plain
+local TERRAIN_STATUS={loading="Preparing terrain guidance",ready="No walking route selected",["unavailable-position"]="Your position is unavailable",updating="Updating walking route",
+    calculating="Calculating walking route",modeled="Terrain route estimate",
+    ["outside-coverage"]="Outside terrain map coverage",["no-known-path"]="No connected route in terrain model",
+    ["budget-exhausted"]="Walking route search reached its limit",invalid="Terrain guidance is unavailable",
+    unavailable="Terrain data is unavailable",disabled="Quest planner is disabled",cancelled="Updating walking route"}
+function guidance.RouteStatus(model,terrain)
+    if model.status=="paused" then return "Paused" end
+    if model.calculated or model.status~="observed" or not model.selected or not model.selected.destination then
+        return model.detail or "Quest guidance is unavailable"
+    end
+    if not terrain or (terrain.status=="unavailable" and terrain.detail=="Terrain datasource is not installed") then
+        return "Terrain datasource is not installed"
+    end
+    if terrain.status=="unknown-location" then
+        if (terrain.detail or ""):find("ambiguous",1,true) then return "Your floor is uncertain" end
+        if (terrain.detail or ""):find("disagree",1,true) then return "Player location is inconsistent" end
+        return "Your position is outside the walking model"
+    end
+    if terrain.status=="unknown-target" then
+        if (terrain.detail or ""):find("ambiguous",1,true) then return "Quest marker floor is uncertain" end
+        return "Quest marker is outside the walking model"
+    end
+    return TERRAIN_STATUS[terrain.status] or "Walking route is unavailable"
+end
 local function signatureField(parts,value)
     if parts.limited then return end
     local text=type(value)..":"..tostring(value)

@@ -6,18 +6,27 @@ local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local state={status="unavailable",detail="Terrain datasource is not installed"}
 local display
+local function setState(status,detail)
+    if state.status==status and state.detail==detail then return end
+    state={status=status,detail=detail}
+    if planner.View and planner.View.Refresh then planner.View.Refresh() end
+end
 local function same(a,b) return a.product==b.product and a.build==b.build and a.locale==b.locale end
 local function clear()
     if request then request:Cancel(); request=nil end
     route,display,selectedKey,lastAttempt=nil,nil,nil,nil
 end
-function terrain.Invalidate() clear() end
+function terrain.Invalidate()
+    clear()
+    if loader then setState("loading","Preparing terrain guidance")
+    elseif mesh then setState("updating","Updating walking route") end
+end
 function terrain.Install(meta,shards)
     local value,reason=planner.NavMesh.Begin(meta,shards)
     if not value then return nil,reason end
     if loader then loader:Cancel() end
     clear(); mesh=nil; loader=value
-    state={status="loading",detail="Preparing terrain guidance"}
+    setState("loading","Preparing terrain guidance")
     return true
 end
 function terrain.Status() return schema.Clone(state) end
@@ -27,7 +36,8 @@ local function selected()
     local row=model.selected
     if not row or model.status=="paused" or model.status=="updating" then return nil end
     local position=planner.Context.Position()
-    if not position or not row.destination then return nil end
+    if not row.destination then return nil end
+    if not position then return nil,nil,"Player position is unavailable" end
     return row,position
 end
 local function trim(location)
@@ -60,41 +70,41 @@ end
 local function update()
     if not mesh then return end
     local ok,reason=admissible()
-    if not ok then clear(); state={status="unavailable",detail=reason}; return end
-    local row,position=selected()
-    if not row then clear(); state={status="ready",detail="No active terrain destination"}; return end
+    if not ok then clear(); setState("unavailable",reason); return end
+    local row,position,issue=selected()
+    if not row then clear(); setState(issue and "unavailable-position" or "ready",issue or "No active terrain destination"); return end
     local target=row.destination
     local signature=string.format("%d:%d:%.6f:%.6f",row.questID,target.mapID,target.x,target.y)
     if selectedKey~=signature then clear(); selectedKey=signature end
     local start,goal=mesh:Project(position.mapID,position.x,position.y),mesh:Project(target.mapID,target.x,target.y)
-    if not start or not goal then clear(); state={status="outside-coverage",detail="Location or destination is outside this terrain map"}; return end
+    if not start or not goal then clear(); setState("outside-coverage","Location or destination is outside this terrain map"); return end
     local world=planner.Context.WorldPosition and planner.Context.WorldPosition()
     if world then
         if world.mapID~=mesh:Metadata().worldMapID or math.abs(world.x-start.x)>5 or math.abs(world.z-start.z)>5 then
-            clear(); state={status="unknown-location",detail="Map and world positions disagree"}; return
+            clear(); setState("unknown-location","Map and world positions disagree"); return
         end
         start={x=world.x,z=world.z}
         if world.verticalStatus=="observed-altitude" then start.height=world.height end
     end
     local location,problem=mesh:Locate(start)
-    if not location then clear(); state={status="unknown-location",detail=problem}; return end
+    if not location then clear(); setState("unknown-location",problem); return end
     display=trim(location)
-    if display then state={status="modeled",detail=display.detail}; return end
+    if display then setState("modeled",display.detail); return end
     if request then return end
     local attempt=signature..":"..location.id
     if lastAttempt==attempt then return end
     lastAttempt=attempt
     local speed=planner.Context.RunSpeed and planner.Context.RunSpeed()
     request,problem=mesh:Begin(start,goal,{maxWork=32768,speed=speed or 7})
-    state={status=request and "calculating" or "unknown-target",detail=problem or "Calculating terrain corridor"}
+    setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
 function terrain.Step()
-    if not planner.enabled then clear(); state={status="disabled",detail="Quest planner is disabled"}; return end
+    if not planner.enabled then clear(); setState("disabled","Quest planner is disabled"); return end
     if loader then
         local value,reason,done=loader:Step(32)
         if done then
             loader=nil; mesh=value
-            state={status=value and "ready" or "invalid",detail=reason or "Terrain model ready"}
+            setState(value and "ready" or "invalid",reason or "Terrain model ready")
             if value then update() end
         end
     elseif request then
@@ -102,7 +112,7 @@ function terrain.Step()
         if result then
             request=nil
             if result.status=="modeled" then route=result; update()
-            else state={status=result.status,detail=result.detail}; display=nil end
+            else display=nil; setState(result.status,result.detail) end
         end
     end
 end

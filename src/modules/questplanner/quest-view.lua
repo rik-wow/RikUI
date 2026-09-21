@@ -31,7 +31,7 @@ local function details(frame,model)
     local title=model.selected and ((model.calculated and "Next: " or "Quest: ")..model.selected.title) or "Quest planner"
     frame.title:SetText(title)
     frame.detail:SetText(model.selected and model.selected.detail or model.detail)
-    frame.status:SetText(model.calculated and model.detail or model.status=="paused" and "Paused" or "Route not verified")
+    frame.status:SetText(planner.Guidance.RouteStatus(model,planner.Terrain and planner.Terrain.Status()))
     frame.pause.label:SetText(planner.Controller.Policy().paused and "Resume" or "Pause")
     frame.pin.label:SetText(model.selected and planner.Controller.Policy().pins[model.selected.questID] and "Unpin" or "Pin")
     frame.model=model
@@ -42,8 +42,9 @@ local function tooltip(frame)
     GameTooltip:SetText(model.selected and model.selected.title or "Quest planner")
     GameTooltip:AddLine(model.detail or "",1,1,1,true)
     if planner.Terrain then
-        local route=planner.Terrain.Guidance()
-        if route then GameTooltip:AddLine(string.format("Terrain estimate: %.0f yd, %.0fs running; traversal unverified",route.meters,route.seconds),1,.7,.2,true) end
+        local route,state=planner.Terrain.Guidance(),planner.Terrain.Status()
+        if route then GameTooltip:AddLine(string.format("Terrain estimate: %.0f yd, %.0fs running; traversal unverified",route.meters,route.seconds),1,.7,.2,true)
+        elseif state and state.detail then GameTooltip:AddLine(state.detail,1,.7,.2,true) end
     end
     if model.reason then GameTooltip:AddLine(model.reason,.7,.8,.9,true) end
     if model.change then GameTooltip:AddLine(model.change,1,.8,.3,true) end

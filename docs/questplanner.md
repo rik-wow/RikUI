@@ -632,3 +632,20 @@ Sources: [exact-build animation export](https://wago.tools/db2/TransportAnimatio
 [pinned definitions](https://github.com/wowdev/WoWDBDefs/tree/83057bdc0cbe13062850ebf8ad530031e128a1cd/definitions).
 The definitions' CC BY-SA 4.0 terms do not establish redistribution rights for
 game data. Native boarding/traversal remains unverified.
+
+## Current terrain status in guidance
+
+The tracker, details window and `/rik quests` use the same current route status.
+Observed markers distinguish missing terrain, loading, missing player position,
+uncovered or ambiguous player/target locations, disconnected paths, search
+limits and a modeled route estimate. Hovering retains the exact terrain failure
+or estimated distance/time with traversal uncertainty. Calculated quest plans,
+pause, unavailable observations and constraint conflicts keep their own status.
+
+Terrain status changes refresh the view only when status or detail changes.
+Material quest changes clear the previous corridor before publishing new
+selection; unchanged signatures preserve the active request. Movement continues
+to update map/arrow geometry through the existing navigation refresh. This
+changes presentation and stale-state handling, not terrain physics or quest
+facts. Widget and controller replays cover these states; native visual review
+and an actual usable route from the supplied indoor points remain unverified.

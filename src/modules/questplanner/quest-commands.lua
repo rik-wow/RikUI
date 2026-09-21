@@ -17,7 +17,7 @@ function planner.Command(arguments)
     if verb=="" or verb=="status" then
         planner:Debug()
         local model,stats=controller.Get(),controller.Stats()
-        core:Print("Quest guidance: "..model.status..". "..(model.detail or ""))
+        core:Print("Quest guidance: "..model.status..". "..planner.Guidance.RouteStatus(model,planner.Terrain and planner.Terrain.Status()))
         local snapshot=planner.GetSnapshot()
         local done,total,ready=0,0,0
         for _,id in ipairs(snapshot and snapshot.order or {}) do
