@@ -226,6 +226,9 @@ end
 
 function view.Render(holder, quests, collapsed, expanding)
     local offset, current, hidden = HEADER_HEIGHT + GAP, {}, 0
+    local guidance = core.QuestPlanner and core.QuestPlanner.View
+    local plannerHeight = guidance and guidance.RenderInline(holder, offset, view.Limit, collapsed) or 0
+    offset = offset + plannerHeight
     for index, quest in ipairs(quests) do
         local frame = view.Blocks[index] or createBlock(holder)
         view.Blocks[index] = frame
@@ -244,7 +247,7 @@ function view.Render(holder, quests, collapsed, expanding)
     seen = current
     updateHeader(#quests, collapsed)
     offset = showMore(holder, hidden, offset)
-    local open = not collapsed and #quests > 0
+    local open = not collapsed and (#quests > 0 or plannerHeight > 0)
     holder:SetSize(WIDTH, open and offset - BLOCK_GAP or HEADER_HEIGHT)
-    holder:SetShown(#quests > 0)
+    holder:SetShown(#quests > 0 or (guidance ~= nil and core.QuestPlanner.enabled == true))
 end

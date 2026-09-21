@@ -223,6 +223,22 @@ return function(check)
         check("a client without the quest log API keeps the stock tracker", module.Holder == nil
             and ObjectiveTrackerFrame.parent == UIParent and printedContains("Quest tracker unavailable"))
 
+        module = load()
+        assert(loadfile("src/modules/questplanner/quest-schema.lua"))("RikUI", {})
+        RikUI.QuestPlanner.enabled=true
+        RikUI.QuestPlanner.Controller={
+            Get=function() return {status="observed",detail="Walking route is not verified",quests={}} end,
+            Policy=function() return {pins={},paused=false} end,
+        }
+        assert(loadfile("src/modules/questplanner/quest-view.lua"))("RikUI", {})
+        stub.watches={}
+        update()
+        check("planner guidance remains available with no watched quests",module.Holder:IsShown() and module.Holder.height>18)
+        env.click(module.View.Header)
+        check("collapsed planner keeps a clickable header with no watches",module.Holder:IsShown() and module.Holder.height==18)
+        env.click(module.View.Header)
+        check("unwatched planner can expand again",module.Holder:IsShown() and module.Holder.height>18)
+
         module = load({ modules = { questtracker = false } })
         check("a disabled module leaves the stock tracker untouched", module.Holder == nil
             and ObjectiveTrackerFrame.parent == UIParent and RikUI.Layout.Groups.questtracker == nil)

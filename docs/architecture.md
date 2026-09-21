@@ -45,9 +45,11 @@ appearance callbacks retain feature ownership across coalescing and combat
 deferral. See [the layout contract](layout.md#module-contract) for callback ordering,
 floating frames, reentry and completion behavior.
 
-The [Forever quest planning foundation](questplanner.md) keeps exact-build world
-facts separate from session-only character observations. Its feature-owned services
-are independent of tracker and map rendering; later planning consumes their data.
+The [Forever quest planner](questplanner.md) separates exact-build evidence,
+live character observations, eligibility, directed travel and action optimization.
+A revision-safe controller supplies detached outputs to tracker/map guidance.
+World facts and observation history never enter the settings transport.
+Missing corpus and native validation coverage remain explicit.
 
 ## Loading and activation are separate
 

@@ -69,6 +69,13 @@ return function(check)
         sharedState.objectives={[11]={wolf=2},[12]={wolf=1}}
         local progressed=assert(p.Actions.Apply(sharedActions:Get("wolves"),sharedState,{status="known",seconds=0,risk=0,uncertainty=0},book,{maxSeconds=100,maxRisk=1,maxUncertainty=1}))
         check("shared objective advances only matching active requirements",progressed.objectivesComplete[11] and progressed.objectivesComplete[12])
+        local sharedPin=p.Optimizer.Plan(sharedActions,sharedState,book,nil,{depth=1,pins={[12]=true}})
+        check("shared bundle advances indirectly pinned quest",sharedPin.state.objectivesComplete[12]==true)
+        local trivial=action("trivial",12,"objective","start"); trivial.sharedKey,trivial.progress="other",1
+        local choices=assert(p.Actions.New(identity,{shared,trivial}))
+        sharedState.objectives[12]={wolf=2,other=1}
+        local logicalPin=p.Optimizer.Plan(choices,sharedState,book,nil,{depth=1,pins={[12]=true}})
+        check("pin progress counts work on quest instead of action ownership",logicalPin.actions[1].id=="wolves")
         initial=state(); initial.xp=950
         local leveled=assert(p.Actions.Apply(actions:Get("hub"),initial,leg,book,{maxSeconds=100,maxRisk=1,maxUncertainty=1}))
         check("known XP advances modeled level",leveled.level==8 and leveled.xp==40)

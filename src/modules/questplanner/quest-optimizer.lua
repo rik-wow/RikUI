@@ -52,7 +52,23 @@ end
 
 local function rank(node, p)
     node.pins, node.pinProgress = pinCount(node.state,p), 0
-    for _, action in ipairs(node.sequence) do if p.pins[action.questID] then node.pinProgress=node.pinProgress+1 end end
+    for id,pinned in pairs(p.pins) do
+        if pinned and node.state.active[id] then
+            local progress=1
+            if node.state.objectivesComplete[id] then progress=2
+            else
+                local total,remaining=0,0
+                for key,value in pairs((p.pinCounters or {})[id] or {}) do
+                    if schema.Number(value,0,2147483647) then
+                        total=total+value
+                        remaining=remaining+math.min(value,((node.state.objectives or {})[id] or {})[key] or value)
+                    end
+                end
+                if total>0 then progress=1+(total-remaining)/total end
+            end
+            node.pinProgress=node.pinProgress+progress
+        end
+    end
     node.score = optimizer.Score(node.state)
     node.rewardTier = node.state.gainedXP+node.state.bonus>0 and 1 or 0
     node.finished = 0
@@ -205,6 +221,7 @@ function optimizer.Begin(actions,rawState,book,graph,rawPolicy)
     if not p then return nil,reason end
     local initial,problem=initialState(rawState)
     if not initial then return nil,problem end
+    p.pinCounters=initial.objectives
     local rows=actions:List()
     if not schema.List(rows,40) then return nil,"candidate limit" end
     table.sort(rows,function(a,b) return a.id<b.id end)

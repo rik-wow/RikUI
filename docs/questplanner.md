@@ -2,8 +2,11 @@
 
 ## Current implementation
 
-RikUI now has a quest evidence catalogue and a separate live-log observer.
-This foundation does not yet calculate routes or ship a quest database.
+RikUI has separate evidence ingestion, live observations, tri-state eligibility,
+directed travel search, bounded action optimization and tracker/map guidance.
+It calculates sequences when sufficient inputs exist. It does not yet ship a
+verified world quest corpus or claim complete Dun Morogh coverage. With missing
+travel/action evidence, guidance shows current quest observations without an ETA.
 The native Magistr roadmap tracks the remaining implementation; this document
 defines the architecture and implemented contracts, not roadmap status.
 
@@ -11,7 +14,8 @@ The observer is the questplanner module, enabled through the ordinary module
 lifecycle. After installing the new TOC entries and restarting the client,
 `/rik quests` reports the detected build/locale, observation state, and observed
 versus reported log counts. Disable questplanner in module settings and reload
-to stop collection. The existing tracker and map continue their current behavior.
+to stop collection. The tracker gains a compact guidance row; map markers and an
+optional arrow identify destinations without inventing traversable paths.
 
 Observations are session-local. No quest corpus, history or snapshot enters
 RikUI's profile/CVar/macro transport, whose codec is bounded to 21,600 bytes.
@@ -36,12 +40,19 @@ Files load in this order, with core services already available:
 
 - quest-schema.lua creates RikUI.QuestPlanner and owns bounded input contracts.
 - quest-evidence.lua owns exact-identity world evidence catalogues.
-- quest-reader.lua adapts client APIs into detached character observations.
-- questplanner.lua owns events, publication, session state and diagnostics.
+- quest-corpus.lua owns source revisions, retirement and coverage.
+- quest-reader/context/journal.lua capture session character state and events.
+- quest-transfer.lua owns a separate bounded observation wire format.
+- quest-eligibility.lua evaluates three-valued conditions.
+- quest-travel.lua searches explicitly declared directed connections.
+- quest-actions/simulation/optimizer.lua calculate bounded hypothetical sequences.
+- quest-dataset.lua validates compiled region packs and live objective bindings.
+- quest-controller.lua schedules, cancels and publishes revision-matched jobs.
+- quest-guidance/view/navigation/transfer-view/commands.lua present outputs.
+- questplanner.lua owns module activation and coalesced event refreshes.
 
-The future eligibility engine and planner consume explicit world facts plus
-character snapshots. They must not depend on tracker frames or map widgets.
-Rendering must consume plan outputs rather than implement planning policy.
+Eligibility, travel and action search consume explicit inputs and never depend
+on tracker frames or map widgets. Rendering does not implement planning policy.
 
 ### World evidence
 
@@ -55,14 +66,15 @@ verified or reference. Authority is a declaration by the ingestion adapter;
 it is not independently certified by the catalogue. Adapters must justify
 verified with recorded evidence. Cross-identity assertions are rejected.
 
-Supported fields are title, level, minLevel, baseXP, repeatable, startNPCs,
-endNPCs, locations and prerequisites. Locations are mapID plus normalized x/y;
+Supported fields include title, level, minLevel, baseXP, repeatable, startNPCs,
+endNPCs, locations, prerequisites, requirements, zoneID and clientRecord.
+Locations are mapID plus normalized x/y;
 they do not establish traversability. Prerequisites use always, active,
 completed, all and any expressions. Completed means a turned-in predecessor;
 it is distinct from the reader's objectivesComplete flag. Always asserts no
 prerequisite in this expression, not general quest availability. Race, faction,
-class, reputation, exclusions and other eligibility rules still need their
-own contracts before a route planner can infer availability.
+class, reputation and exclusion conditions are evaluated by the eligibility
+contract below; missing rules remain unknown.
 
 `catalogue:Resolve(questID, field)` returns a detached result:
 
@@ -76,12 +88,12 @@ verified facts. NPC sets and operands within each all/any expression are sorted
 and deduplicated. This is structural normalization, not logical equivalence
 proving. Location list order is retained.
 
-The catalogue is append-only in this foundation. Repeating the same source and
+An individual catalogue is append-only. Repeating the same source and
 value is idempotent; silently changing that source's value or authority is
 rejected. A new source revision preserves both assertions and may expose a
 conflict. Corrected corpus releases must currently build a new catalogue from
 their declared active sources, retaining the prior manifest for audit. Explicit
-supersession/retraction and manifest validation belong in corpus ingestion.
+supersession/retraction and manifest validation are implemented in corpus ingestion.
 
 Bounds: 4,096 assertions per catalogue, eight sources per field, 64 list items,
 256 nodes and 8,192 string bytes per assertion value, depth ten, and 2,048 bytes
@@ -337,12 +349,13 @@ observations or evidence. Missing XP or thresholds cannot unlock a level rule.
 budget; the synchronous `Plan` wrapper is for tests/offline use. Defaults are
 six actions of lookahead, beam width 24, 5,000 transitions and 50,000 aggregate
 travel operations. Depth is capped at eight. Candidate state copies are bounded
-to 4,096 nodes/64 KiB of strings; the beam retains at most 24 states per layer.
+to 4,096 nodes/64 KiB of strings. Each beam has at most 24 states; old and new
+layers plus the best/current-action candidates can coexist during expansion.
 These are operation/allocation limits, not a measured millisecond guarantee.
 
 Pins prioritize completion then progress within the horizon; infeasible pins
 remain explicitly deferred. Avoids apply to actions and all declared traversed
-zones. Skip is a session planning exclusion, never a quest abandonment.
+zones. Skip is a persisted planning preference, never a quest abandonment.
 Dungeons are excluded unless requested. Known reward plus configurable class
 and travel-unlock value is divided by modeled elapsed time, with risk/uncertainty
 penalties. These weights are policy, not XP facts. When no reward is known,
@@ -364,3 +377,57 @@ direct edge. Additional replays cover skipped prerequisites, full logs, shared
 objectives, consumables, level changes, optional dungeons, downstream flight
 unlocks, cancellation and missing data. This is algorithm evidence, not a
 Dun Morogh speed or native performance claim.
+
+## Live controller and guidance
+
+The controller reads bounded current attributes, up to 40 active quest waypoints
+and completion flags, and the selected quest's contextual reward XP. It does
+not change quest selection or assume an arbitrary-ID XP API. Quest dialog and
+turn-in events are stored in a 48-entry session journal with a dropped count.
+Objectives-complete, historical completion and actual turn-in event XP remain
+different observations.
+
+Compiled regional packs require active source manifests for action, travel,
+binding and interaction-anchor records. Objective binding requires the complete
+matching objective list, type, total and normalized localized text. Changed
+Forever objectives cannot inherit a Classic mapping. A current NPC interaction
+can locate the character only at an explicitly sourced, unambiguous graph anchor.
+Coordinate proximity alone is not a location-on-graph test. A currently open
+turn-in dialog can also supply a session-only interaction action without world
+data; its three-second interaction cost is a model, not an observed duration.
+
+Material quest/context changes cancel prior searches. Publication checks the
+job revision, module state and pause state. Live search uses depth six, width
+16, at most 1,200 transitions and 12,000 travel operations. A frame requests up
+to 64 smallest search steps, stopping after a one-millisecond timer threshold
+between steps when the API is readable. An indivisible step can exceed that
+threshold; actual maximum slice duration is diagnostic, not a proven native
+latency bound. Repeated identical snapshots do not restart work.
+
+The compact tracker row keeps the existing watched list and respects collapse
+and available height. `/rik quests show` opens details, with eight rows per page.
+Map markers show up to eight destinations; they do not connect points with
+invented walking lines. The optional arrow is explicitly a destination bearing
+and hides when orientation or same-map location is unavailable.
+
+Commands: `/rik quests` (status), `show`, `map`, `pin QUEST_ID`,
+`skip QUEST_ID`, `avoid MAP_ID`, `pause`, `resume`, `arrow on|off`,
+`dungeons on|off`, `reset`, `export` and `inspect`. Pins/skips/avoids
+toggle; reset clears those constraints. Only preferences (at most 32 entries
+per constraint map plus three booleans) use ordinary settings persistence.
+The planner never automatically accepts, abandons, watches or turns in quests.
+Pin conflicts suppress actionable guidance and deferred pins remain visible.
+
+Export opens a separate printable copy window, bounded to 131,072 wire bytes.
+It includes session observations/context/journal; oversized exports fail visibly.
+Inspection labels pasted observations untrusted and cannot install them into
+live planning. Copying data to a durable external file is an explicit user
+operation; no observation history is stored in RikUI macros.
+
+Automated API/widget replays exercise actual controller, optimizer, controls,
+projection, cardinal arrow math, cancellation, changed objective bindings and
+transfer quarantine. They do not establish native visuals, performance or
+traversability. The user supplied three current 9/9 log snapshots; these do not
+establish a progress/turn-in transition. Combat and disable/reload checks were
+explicitly not run. The user requested no computer use, so native automation
+is excluded and the roadmap retains real-client acceptance as unverified.
