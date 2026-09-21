@@ -72,6 +72,9 @@ end
 
 -- Blizzard re-shows the chevron art when a breadcrumb changes state, so it is faded every time.
 local function skinCrumb(button)
+    -- The home template has an anonymous ShadowOverlay-Left texture too.
+    -- Snapshot native regions before creating our own highlight and separator.
+    fadeStock(button)
     skin.Strip(button, CRUMB_ART)
     for _, getter in ipairs(CRUMB_TEXTURES) do
         local texture = type(button[getter]) == "function" and button[getter](button) or nil

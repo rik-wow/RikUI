@@ -20,6 +20,7 @@ return function(check)
     end
     local function crumb(bar, name)
         local button = CreateFrame("Button", nil, bar)
+        regions(button, 1) -- anonymous native shadow end-cap
         button.textures = {}
         for _, getter in ipairs(GETTERS) do
             local texture = button:CreateTexture()
@@ -132,6 +133,7 @@ return function(check)
         check("navigation shares the header surface with one subtle divider",
             bar.art[1].alpha == 0 and bar.art[3].alpha == 0 and bar.overlay.art[2].alpha == 0
             and bar.rikFill.texture == RikUI.Skin.FLAT and #bar.rikBorder == 1)
+        check("anonymous breadcrumb shadow is removed", bar.home.art[1].alpha == 0)
         check("the home breadcrumb goes flat with the typeface, a highlight and a separator on its right edge",
             flatCrumb(bar.home) and bar.home.text.fontSize == 12 and bar.home.rikSeparator.points[1][1] == "TOPRIGHT")
         check("the canvas is not written and the map is not moved", frame.ScrollContainer.rikFill == nil
