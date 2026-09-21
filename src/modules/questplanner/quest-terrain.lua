@@ -223,6 +223,11 @@ function terrain.Step()
             if value then update() end
         end
     elseif request then
+        -- Validate live destination, identity and player admission before spending a slice
+        -- or publishing a result from a request started on an earlier frame.
+        local pending=request
+        update()
+        if request~=pending then return end
         local result=searchSlice()
         if result then
             request=nil

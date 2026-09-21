@@ -184,6 +184,45 @@ return function(check)
         p.enabled=false; tick()
         check("disabled module publishes no path",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="disabled")
         check("notifications never expose stale corridor",not staleDuringRefresh)
+        do
+            local jobs={}
+            local fake,installedMeta={},p.Schema.Clone(meta)
+            function fake:Revision() return "freshness-fixture" end
+            function fake:Metadata() return installedMeta end
+            function fake:Project(_,x,y) return {x=x,z=y} end
+            function fake:LocateContinued(point) return {id=1,point={point.x,0,point.z}} end
+            function fake:MarkerFloors() return {} end
+            function fake:Begin()
+                local job={calls=0,cancelled=false}
+                function job:Cancel() self.cancelled=true end
+                function job:Step() self.calls=self.calls+1;return {status="no-known-path",detail="Obsolete result"} end
+                jobs[#jobs+1]=job;return job
+            end
+            p.NavMesh.Begin=function() return {Step=function() return fake,nil,true end,Cancel=function() end} end
+            p.enabled=true;p.Context.WorldPosition=nil;identity.build="1.60.1.69913"
+            installedMeta.identity.build=identity.build
+            position={mapID=1426,x=.99,y=.99}
+            model={status="observed",selected={questID=40,destination={mapID=1426,x=.85,y=.85}}}
+            assert(p.Terrain.Install(meta,shards));p.Terrain.Step()
+            local pending=jobs[#jobs]
+            model.selected.questID=41;p.Terrain.Step()
+            check("changed quest cancels obsolete search before work",pending.cancelled and pending.calls==0)
+            check("changed quest never publishes obsolete failure",p.Terrain.Status().detail~="Obsolete result")
+            local function startPending()
+                model.status="observed";position={mapID=1426,x=.99,y=.99}
+                p.Terrain.Invalidate();env.runScript(driver,"OnUpdate",.05)
+                return jobs[#jobs]
+            end
+            pending=startPending();model.status="paused";p.Terrain.Step()
+            check("paused search is cancelled before stepping",pending.cancelled and pending.calls==0)
+            pending=startPending();position=nil;p.Terrain.Step()
+            check("missing player position cancels in-flight work",pending.cancelled and pending.calls==0
+                and p.Terrain.Status().status=="unavailable-position")
+            pending=startPending();identity.build="different";p.Terrain.Step()
+            check("identity mismatch cancels before search publication",pending.cancelled and pending.calls==0
+                and p.Terrain.Status().status=="unavailable")
+            identity.build="1.60.1.69913"
+        end
         local calls,time=0,0
         p.NavMesh.Begin=function() return {
             Step=function(_,budget) calls=calls+1;assert(budget==64) end,

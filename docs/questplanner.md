@@ -74,6 +74,36 @@ The new target module adds a TOC entry, so this delivery requires one full clien
 restart. [Automatic and explicit replay evidence](../tools/terrain/MOVEMENT.md#automatic-basement-annotation)
 establishes modeled routes only; native walking and interactions remain unverified.
 
+## Choosing and recovering guidance
+
+Open `/rik quests show` for the detailed quest list and full scrollable objectives.
+Click a quest title to open its ordinary quest log entry. **Route** chooses its
+observed destination for this session; **Automatic choice** or
+`/rik quests route auto` returns to planner selection. The equivalent command
+is `/rik quests route <questID>`. This choice does not change pins or imply an
+optimized sequence. Removed, skipped, failed or avoided quests cannot retain a
+manual route.
+
+**Skip / Include** and **Avoid area / Allow area** are reversible per-row controls.
+The separate **Allow <area>** control recovers an avoided area even if it has no
+current quest; it offers the remaining avoided areas one at a time. **Show: All /
+Available / Excluded** filters the list without changing route policy. Excluded
+quests remain available for ordinary quest-log inspection. Pausing guidance keeps
+the quest list accessible while removing actionable route output.
+
+**Retry route** or `/rik quests retry` retries walking guidance without clearing
+floor choices, pins, skips or avoided areas. It cannot create missing terrain
+coverage or a connection to an unreachable floor. Changing arrow visibility does
+not cancel a route. In-flight terrain jobs recheck selection, player admission
+and build/locale before stepping or publishing.
+
+The details pane retains full observed objective text, explicitly labels reported
+interaction steps and exposes the basis of selected or inferred floors. Mouse
+wheel and Up/Down controls scroll longer text. World-map and minimap paths reject
+invalid or mixed-map coordinates before drawing. Native visual, traversal and
+performance acceptance remains outstanding; automated widget and routing
+regressions are not a substitute for the Forever client.
+
 ## Product decisions
 
 The default objective is fast leveling with sensible risk and travel limits.
