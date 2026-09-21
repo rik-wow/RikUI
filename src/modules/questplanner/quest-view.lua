@@ -25,6 +25,7 @@ local function button(parent,label,width,action)
     local control=CreateFrame("Button",nil,parent)
     control:SetSize(width,20); control:SetHighlightTexture(media.highlight)
     control.label=text(control); control.label:SetPoint("CENTER"); control.label:SetText(label)
+    control.label:SetSize(width-8,18)
     control:SetScript("OnClick",action)
     return control
 end
@@ -245,7 +246,10 @@ local function createWindow()
         if point then command("avoid "..point.mapID) else core:Print("This quest has no observed map location.") end
     end)
     local export=button(window,"Copy data",92,function() command("export") end)
-    for index,control in ipairs({window.arrow,window.dungeons,avoid,export}) do control:SetPoint("BOTTOMLEFT",12+(index-1)*106,12) end
+    local offset=12
+    for _,control in ipairs({window.arrow,window.dungeons,avoid,export}) do
+        control:SetPoint("BOTTOMLEFT",offset,12);offset=offset+control:GetWidth()+12
+    end
     if type(UISpecialFrames)=="table" then table.insert(UISpecialFrames,"RikUIQuestPlannerWindow") end
     window.restoreArea=button(window,"",246,function(control)
         if control.mapID and planner.Controller.Policy().avoids[control.mapID] then command("avoid "..control.mapID) end
