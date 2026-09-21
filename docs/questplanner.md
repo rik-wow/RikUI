@@ -17,9 +17,10 @@ versus reported log counts. Disable questplanner in module settings and reload
 to stop collection. The tracker gains a compact guidance row; map markers and an
 optional arrow identify destinations without inventing traversable paths.
 
-Observations are session-local. No quest corpus, history or snapshot enters
+Live observations are session-local. No quest corpus, history or snapshot enters
 RikUI's profile/CVar/macro transport, whose codec is bounded to 21,600 bytes.
-Durable acquisition needs a separately validated transport on this beta.
+Explicit RIKQ1 exports can be archived and verified with the separate offline
+importer; this does not provide automatic persistence on this beta.
 
 ## Product decisions
 
@@ -269,9 +270,37 @@ persistence. No data enters profiles, CVars, macros or SavedVariables.
 
 Three additional user-supplied current 9/9 observations corroborate repeated
 reads. Their counts do not verify objective transitions. Combat and disabled
-module checks were explicitly not run. Copy-window/clipboard/restart behavior
-and live performance remain acceptance obligations of the content/interface
-workstream; synthetic tests do not satisfy them.
+module checks were explicitly not run. A later actual RIKQ1 packet establishes
+one successful export/copy flow and durable offline round trip. Native guidance,
+transitions and live performance remain acceptance obligations; synthetic tests
+do not satisfy them.
+
+## Durable observation acquisition
+
+[tools/observations](../tools/observations/README.md) provides bounded offline
+inspection, exclusive archive creation and read-only archive verification. It
+retains exact RIKQ1 bytes, parser revision/hash, checksum, declared identity and
+a lossless Lua-table representation, including numeric/string keys and arbitrary
+bytes. Archives are capped at 2 MiB and live outside Git, the addon and settings.
+Verification rereads the saved packet and compares derived content and hashes;
+neither those hashes nor a declared build authenticate world facts.
+
+The first user-supplied 69913/enUS packet passed the actual Lua/Python protocol
+and durable reread checks: 7,699 wire bytes, checksum `06701554`, SHA256
+`17db56a78cbefea8ce14acf351a807ff0c62d736d31f518b002e534877634acd`.
+It records nine current quests, including the new IDs 96608, 98319 and 99158.
+Quest 99158 has objectives complete, with historical turn-in false. Quest
+96608's second objective has 1/1 count but a false finished flag; that distinction
+is preserved. No locations or reward XP were returned by the earlier adapter.
+An initial observed-progress journal entry is not evidence of a later transition.
+This is field-level character evidence, not verified world prerequisite data.
+
+Protocol validation includes 39 adversarial Python tests, 460 acceptance
+comparisons against the actual Lua codec, and 1,028 generated numeric cases.
+The raw character packet is intentionally not a repository fixture. Future
+exports retain explicit API statuses to diagnose absent target/reward data.
+Native fallback POIs, repeated durable exports and real quest transitions remain
+unverified.
 
 ## Action eligibility
 
@@ -382,7 +411,18 @@ Dun Morogh speed or native performance claim.
 
 The controller reads bounded current attributes, up to 40 active quest waypoints
 and completion flags, and the selected quest's contextual reward XP. It does
-not change quest selection or assume an arbitrary-ID XP API. Quest dialog and
+not change quest selection or assume an arbitrary-ID XP API. A read-only fallback
+uses at most 256 POI rows from the character's current map. It requires a unique
+active-quest row, matching map ID, no child depth, and explicit non-start and
+non-map-indicator flags. A valid waypoint takes precedence. Duplicate POIs stay
+ambiguous; a point never implies a particular objective, NPC or walkable route.
+
+Target, map-POI and reward statuses separately report observed, no-result,
+unavailable, rejected, ambiguous or query-limited results, with API/reason
+provenance. Unknown reward stays absent; observed zero remains zero. The status
+command reports location/reward counts and map-POI state. The fallback follows
+[pinned Blizzard map-provider usage](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_SharedMapDataProviders/QuestDataProvider.lua#L129),
+but its native availability on Forever remains unverified. Quest dialog and
 turn-in events are stored in a 48-entry session journal with a dropped count.
 Objectives-complete, historical completion and actual turn-in event XP remain
 different observations.

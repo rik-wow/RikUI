@@ -55,11 +55,33 @@ local function attributes()
         logCapacity=scalar(api(C_QuestLog,"GetMaxNumQuestsCanAccept"),function(v) return schema.Integer(v,1,256) end)}
 end
 
+local function status(state, apiName, reason)
+    return {state=state,api=apiName,reason=reason}
+end
+
+local function read(apiName, fn, ...)
+    if guard.IsSecret(fn) then return status("rejected",apiName,"secret-function") end
+    if type(fn) ~= "function" then return status("unavailable",apiName,"api-missing") end
+    local ok, a, b, c = call(fn, ...)
+    if not ok then return status("unavailable",apiName,"read-failed") end
+    if guard.IsSecret(a) or guard.IsSecret(b) or guard.IsSecret(c) then
+        return status("rejected",apiName,"secret-result")
+    end
+    return status("observed",apiName),a,b,c
+end
+
 local function destination(id)
-    local ok, mapID, x, y = call(api(C_QuestLog,"GetNextWaypoint"),id)
-    if not ok or not schema.ID(mapID) or not schema.Number(x,0,1) or not schema.Number(y,0,1) then return nil end
-    return {mapID=mapID,x=x,y=y,api="C_QuestLog.GetNextWaypoint",scope="current-waypoint",
-        text=scalar(api(C_QuestLog,"GetNextWaypointText"),schema.Text,id)}
+    local apiName="C_QuestLog.GetNextWaypoint"
+    local observed,mapID,x,y=read(apiName,api(C_QuestLog,"GetNextWaypoint"),id)
+    if observed.state~="observed" then return nil,observed end
+    if mapID==nil and x==nil and y==nil then
+        return nil,status("no-result",apiName,"no-waypoint-returned")
+    end
+    if not schema.ID(mapID) or not schema.Number(x,0,1) or not schema.Number(y,0,1) then
+        return nil,status("rejected",apiName,"invalid-waypoint")
+    end
+    return {mapID=mapID,x=x,y=y,api=apiName,scope="current-waypoint",
+        text=scalar(api(C_QuestLog,"GetNextWaypointText"),schema.Text,id)},observed
 end
 
 local function queryIDs(snapshot, pins)
@@ -70,28 +92,130 @@ local function queryIDs(snapshot, pins)
     return ids
 end
 
-function context.Read(snapshot, pins)
-    if not snapshot or not schema.Identity(snapshot.identity) then return nil end
-    local result = {identity=schema.Clone(snapshot.identity),attributes=attributes(),position=context.Position(),
-        destinations={},history={},rewards={},source="client-api-session-v1",origin="live",
-        observedAt=scalar(GetTime,number),queries=0}
-    local ids = queryIDs(snapshot,pins)
-    for index=1,math.min(#ids,MAX_QUERIES) do
-        local id=ids[index]
-        result.destinations[id]=destination(id)
-        result.history[id]=scalar(api(C_QuestLog,"IsQuestFlaggedCompleted"),boolean,id)
-        result.queries=result.queries+1
+-- GetQuestsOnMap coordinates are placed on the queried map by Blizzard's
+-- QuestDataProvider. We additionally require an exact row map match and no child
+-- depth, start flag or map-indicator flag before exposing a navigation target.
+local function mapPOIs(snapshot, mapID)
+    local apiName="C_QuestLog.GetQuestsOnMap"
+    if not schema.ID(mapID) then return {},status("unavailable",apiName,"current-map-unavailable") end
+    local observed,rows=read(apiName,api(C_QuestLog,"GetQuestsOnMap"),mapID)
+    observed.mapID=mapID
+    if observed.state~="observed" then return {},observed end
+    if rows==nil then
+        observed.state,observed.reason="no-result","no-map-result"
+        return {},observed
     end
-    result.queryLimited=#ids>MAX_QUERIES
-    -- No selection mutation and no assumption that an explicit-ID XP overload works.
-    local selected=scalar(api(C_QuestLog,"GetSelectedQuest"),schema.ID)
-    if selected and snapshot.quests[selected] then
-        local xp=scalar(GetQuestLogRewardXP,number)
-        local after=scalar(api(C_QuestLog,"GetSelectedQuest"),schema.ID)
-        if after==selected and xp~=nil then
-            result.rewards[selected]={xp=xp,level=result.attributes.level,api="GetQuestLogRewardXP(selected)",scope="character-level"}
+    local valid,count=schema.List(rows,256)
+    if not valid then return {},status("rejected",apiName,"invalid-or-oversized-map-list") end
+    observed.rows=count
+    if count==0 then
+        observed.state,observed.reason="no-result","empty-map-list"
+        return {},observed
+    end
+    local matches={}
+    for index=1,count do
+        local row=rows[index]
+        if not schema.PlainTable(row) or not schema.ID(row.questID) then
+            return {},status("rejected",apiName,"invalid-map-row")
+        end
+        if snapshot.quests[row.questID] then
+            local match=matches[row.questID]
+            if match then
+                match.count=match.count+1
+                match.point=nil
+                match.status=status("ambiguous",apiName,"multiple-active-quest-pois")
+            else
+                match={count=1}
+                matches[row.questID]=match
+                local depthKnown=not guard.IsSecret(row.childDepth)
+                    and (row.childDepth==nil or schema.Integer(row.childDepth,0,256))
+                if not schema.ID(row.mapID) or not schema.Number(row.x,0,1) or not schema.Number(row.y,0,1)
+                    or not boolean(row.isQuestStart) or not boolean(row.isMapIndicatorQuest)
+                    or not boolean(row.inProgress) or not depthKnown then
+                    match.status=status("rejected",apiName,"invalid-active-quest-poi")
+                elseif row.mapID~=mapID or (row.childDepth~=nil and row.childDepth~=0)
+                    or row.isQuestStart or row.isMapIndicatorQuest then
+                    match.status=status("rejected",apiName,"unsupported-poi-scope")
+                else
+                    match.point={mapID=mapID,x=row.x,y=row.y,sourceMapID=row.mapID,
+                        api=apiName,scope="current-map-quest-poi",isQuestStart=false,
+                        isMapIndicatorQuest=false,inProgress=row.inProgress,childDepth=row.childDepth}
+                    match.status=status("observed",apiName)
+                end
+            end
         end
     end
+    return matches,observed
+end
+
+local function rewards(result,snapshot,ids)
+    local selectionAPI="C_QuestLog.GetSelectedQuest"
+    local selectedStatus,selected=read(selectionAPI,api(C_QuestLog,"GetSelectedQuest"))
+    local default=status("no-result","GetQuestLogRewardXP(selected)","quest-not-selected")
+    if selectedStatus.state~="observed" then
+        default=selectedStatus
+    elseif selected==nil or selected==0 then
+        default=status("no-result",selectionAPI,"no-selected-active-quest")
+    elseif not schema.ID(selected) then
+        default=status("rejected",selectionAPI,"invalid-selected-quest")
+    elseif not snapshot.quests[selected] then
+        default=status("no-result",selectionAPI,"selected-quest-not-in-observed-log")
+    end
+    for _,id in ipairs(ids) do result.rewardStatus[id]=schema.Clone(default) end
+    if selectedStatus.state~="observed" or not schema.ID(selected) or not snapshot.quests[selected] then return end
+    local xpStatus,xp=read("GetQuestLogRewardXP(selected)",GetQuestLogRewardXP)
+    if xpStatus.state=="observed" then
+        if xp==nil then
+            xpStatus.state,xpStatus.reason="no-result","no-xp-returned"
+        elseif not number(xp) then
+            xpStatus.state,xpStatus.reason="rejected","invalid-xp"
+        end
+    end
+    local afterStatus,after=read(selectionAPI,api(C_QuestLog,"GetSelectedQuest"))
+    if afterStatus.state~="observed" or not schema.ID(after) or after~=selected then
+        xpStatus=status("rejected","GetQuestLogRewardXP(selected)","selection-changed-or-unavailable")
+    end
+    result.rewardStatus[selected]=xpStatus
+    if xpStatus.state=="observed" then
+        result.rewards[selected]={xp=xp,level=result.attributes.level,api="GetQuestLogRewardXP(selected)",scope="character-level"}
+    end
+end
+
+function context.Read(snapshot, pins)
+    if not snapshot or not schema.Identity(snapshot.identity) then return nil end
+    local position=context.Position()
+    local result={identity=schema.Clone(snapshot.identity),attributes=attributes(),position=position,
+        worldPosition=context.WorldPosition(),runSpeed=context.RunSpeed(),destinations={},history={},rewards={},
+        targetStatus={},rewardStatus={},source="client-api-session-v1",origin="live",
+        observedAt=scalar(GetTime,number),queries=0}
+    local ids=queryIDs(snapshot,pins)
+    local pois,mapStatus=mapPOIs(snapshot,position and position.mapID)
+    result.mapPOIStatus=mapStatus
+    for index,id in ipairs(ids) do
+        if index>MAX_QUERIES then
+            result.targetStatus[id]=status("query-limited","quest-context","quest-query-budget")
+        else
+            local point,waypointStatus=destination(id)
+            local targetStatus=waypointStatus
+            if not point then
+                local match=pois[id]
+                if match then
+                    point,targetStatus=match.point,schema.Clone(match.status)
+                elseif mapStatus.state=="observed" then
+                    targetStatus=status("no-result","C_QuestLog.GetQuestsOnMap","quest-not-in-map-result")
+                else
+                    targetStatus=schema.Clone(mapStatus)
+                end
+                targetStatus.waypointState,targetStatus.waypointReason=waypointStatus.state,waypointStatus.reason
+            end
+            result.destinations[id],result.targetStatus[id]=point,targetStatus
+            result.history[id]=scalar(api(C_QuestLog,"IsQuestFlaggedCompleted"),boolean,id)
+            result.queries=result.queries+1
+        end
+    end
+    result.queryLimited=#ids>MAX_QUERIES
+    -- Read selected XP only; never change selection or assume an explicit-ID overload.
+    rewards(result,snapshot,ids)
     return result
 end
 

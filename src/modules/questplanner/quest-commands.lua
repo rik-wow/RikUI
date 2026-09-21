@@ -28,6 +28,15 @@ function planner.Command(arguments)
             end
         end
         core:Print("Quest progress: "..done.."/"..total.." objectives finished; "..ready.." quests ready to turn in.")
+        local context=controller.Context()
+        if context then
+            local locations,rewards=0,0
+            for _ in pairs(context.destinations or {}) do locations=locations+1 end
+            for _ in pairs(context.rewards or {}) do rewards=rewards+1 end
+            local map=context.mapPOIStatus
+            core:Print("Quest locations="..locations.." reward-XP reads="..rewards
+                .." map-POIs="..(map and map.state or "not checked"))
+        end
         local timing=stats.timingSamples>0 and string.format("%.2fms (observed this session)",stats.maxSliceMS) or "not measured"
         core:Print("Planner replans="..stats.replans.." max-slice="..timing)
         if planner.Terrain then local terrain=planner.Terrain.Status(); core:Print("Terrain guidance: "..terrain.status..". "..terrain.detail) end

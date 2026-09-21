@@ -75,6 +75,7 @@ function guidance.Result(route,observed,ctx,data,reason,policy)
     local calculated=first~=nil
     local detail=calculated and (route.unknownXP>0 and "XP estimate incomplete" or "Calculated from available evidence")
         or "Walking route is not verified"
+    if not calculated and selected and not selected.destination then detail="Quest location is unavailable" end
     if route.limited then detail=detail.."; search limit reached" end
     local deferred,seen={},{}
     for _,id in ipairs(route.deferredPins or {}) do if not seen[id] then deferred[#deferred+1]=id; seen[id]=true end end
