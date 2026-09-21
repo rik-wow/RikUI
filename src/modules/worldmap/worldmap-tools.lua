@@ -36,8 +36,52 @@ function map.SetOption(key, value)
     map.RefreshTools()
 end
 local function toggle(key) map.SetOption(key, not settings()[key]) end
+-- Native icon buttons use several templates that the generic control walker cannot identify.
+local iconButtons = setmetatable({}, { __mode = "k" })
+local function iconButton(control, glyph)
+    if not skin.IsRegion(control) or type(control.HookScript) ~= "function" then return end
+    if iconButtons[control] then return end
+    local native = {}
+    if type(control.GetRegions) == "function" then
+        for _, region in ipairs({ control:GetRegions() }) do
+            if skin.IsRegion(region) and region:GetObjectType() == "Texture" then native[#native + 1] = region end
+        end
+    end
+    local icon = media.Icon(control, glyph, 12, "OVERLAY")
+    icon:SetPoint("CENTER")
+    local hover = control:CreateTexture(nil, "HIGHLIGHT")
+    hover:SetAllPoints()
+    hover:SetTexture(media.highlight)
+    local function paint()
+        for _, region in ipairs(native) do region:SetAlpha(0) end
+        local enabled = type(control.IsEnabled) ~= "function" or control:IsEnabled() ~= false
+        icon:SetVertexColor(0.8, 0.85, 0.92, enabled and 1 or 0.3)
+    end
+    iconButtons[control] = icon
+    for _, event in ipairs({ "OnShow", "OnEnter", "OnLeave", "OnMouseDown", "OnMouseUp", "OnEnable", "OnDisable" }) do
+        control:HookScript(event, paint)
+    end
+    paint()
+end
+local function child(owner, key)
+    return skin.IsRegion(owner) and owner[key] or nil
+end
+local function skinIconButtons()
+    local chrome = frame.BorderFrame
+    local sizing = child(chrome, "MaximizeMinimizeFrame")
+    iconButton(child(sizing, "MaximizeButton"), "plus")
+    iconButton(child(sizing, "MinimizeButton"), "minus")
+    iconButton(frame.WorldMapTrackingOptionsButton, "chevron-down")
+    local quests = child(frame.QuestLog, "QuestsFrame")
+    local scroll = child(quests, "ScrollFrame")
+    iconButton(child(scroll, "SettingsDropdown"), "settings")
+    local bar = child(scroll, "ScrollBar")
+    iconButton(child(bar, "Back"), "chevron-up")
+    iconButton(child(bar, "Forward"), "chevron-down")
+end
 function map.RefreshTools()
     if not toolbar then return end
+    skinIconButtons()
     toolbar.fog.label:SetText(settings().fog and "Fog: on" or "Fog: off")
     local supported = map.Terrain.Available(frame)
     toolbar.fog:SetEnabled(supported or not settings().fog)

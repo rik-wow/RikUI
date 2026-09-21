@@ -20,6 +20,34 @@ return function(check)
             GetPlayerMapPosition = function() return { GetXY = function() return 0.3, 0.4 end } end }
         C_MapExplorationInfo = { GetExploredMapTextures = function() return explored end }
         WorldMapFrame = CreateFrame("Frame", nil, UIParent)
+        local function nativeButton(parent)
+            local control = CreateFrame("Button", nil, parent)
+            control.stockArt = control:CreateTexture()
+            control.drawn = {}
+            function control:GetRegions() return self.stockArt end
+            local create = control.CreateTexture
+            function control:CreateTexture(...)
+                local texture = create(self, ...)
+                self.drawn[#self.drawn + 1] = texture
+                return texture
+            end
+            function control:IsEnabled() return self.enabled ~= false end
+            control:SetScript("OnClick", function(self) self.clicked = true end)
+            return control
+        end
+        WorldMapFrame.BorderFrame = CreateFrame("Frame", nil, WorldMapFrame)
+        local sizing = CreateFrame("Frame", nil, WorldMapFrame.BorderFrame)
+        WorldMapFrame.BorderFrame.MaximizeMinimizeFrame = sizing
+        sizing.MaximizeButton, sizing.MinimizeButton = nativeButton(sizing), nativeButton(sizing)
+        WorldMapFrame.WorldMapTrackingOptionsButton = nativeButton(WorldMapFrame)
+        WorldMapFrame.QuestLog = CreateFrame("Frame", nil, WorldMapFrame)
+        WorldMapFrame.QuestLog.QuestsFrame = CreateFrame("Frame", nil, WorldMapFrame.QuestLog)
+        local questScroll = CreateFrame("Frame", nil, WorldMapFrame.QuestLog.QuestsFrame)
+        WorldMapFrame.QuestLog.QuestsFrame.ScrollFrame = questScroll
+        questScroll.SettingsDropdown = nativeButton(questScroll)
+        questScroll.ScrollBar = CreateFrame("Frame", nil, questScroll)
+        questScroll.ScrollBar.Back = nativeButton(questScroll.ScrollBar)
+        questScroll.ScrollBar.Forward = nativeButton(questScroll.ScrollBar)
         canvas = CreateFrame("Frame", nil, WorldMapFrame)
         function canvas:GetCurrentLayerIndex() return 1 end
         function canvas:GetFrameLevel() return 10 end
@@ -82,6 +110,21 @@ return function(check)
     local ok, reason = pcall(function()
         local module = load()
         check("map toolbar builds without native navigation bar", module.Toolbar ~= nil and #env.printed == 0, table.concat(env.printed, " | "))
+        local sizing = WorldMapFrame.BorderFrame.MaximizeMinimizeFrame
+        local questScroll = WorldMapFrame.QuestLog.QuestsFrame.ScrollFrame
+        for _, control in ipairs({ sizing.MaximizeButton, sizing.MinimizeButton,
+            WorldMapFrame.WorldMapTrackingOptionsButton, questScroll.SettingsDropdown,
+            questScroll.ScrollBar.Back, questScroll.ScrollBar.Forward }) do
+            check("native button artwork replaced by RikUI glyph", control.stockArt.alpha == 0
+                and control.drawn[#control.drawn - 1].rikIcon ~= nil)
+            env.click(control)
+            check("native icon button click preserved", control.clicked == true)
+            control.enabled = false
+            control.stockArt:SetAlpha(1)
+            env.runScript(control, "OnDisable")
+            check("native repaint stays hidden and disabled glyph dims", control.stockArt.alpha == 0
+                and control.drawn[#control.drawn - 1].alpha == 0.3)
+        end
         check("first open refreshes native canvas after layout", refreshes == 1)
         check("normal fog allocates no reveal artwork", #pin.created == 0 and RikUI.Profile.worldmap.fog)
         module.SetOption("fog", false)
