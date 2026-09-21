@@ -310,6 +310,17 @@ result; reward XP is absent because no active quest was selected. The native
 terrain addon reports an unknown location, which confirms loading but not a
 successful route. Actual quest transitions remain unverified.
 
+A third packet (17,371 wire bytes, checksum `8dbb9a00`, SHA256
+`6ca7154c5b40a8a98a2713a647cda86e790f1223337a66a86cdaf7efa3634a97`)
+passed the actual Lua decoder, Python import and durable reread. It includes two
+journal entries (initial-observation and observed-change for quest 384), both
+exported, with zero dropped or omitted entries. The unchanged current log and XP
+do not establish progress or turn-in. The user confirms only export was run, so
+no NPC dialog event was expected. Native dialog/transition checks remain pending;
+the user has declined travel to a quest completion for testing. The newer player
+point is outside generated walkable polygons, and raw vertical zero remains
+explicitly unestablished.
+
 ## Action eligibility
 
 `Eligibility.Condition(condition, state)` evaluates bounded AND/OR/NOT expressions

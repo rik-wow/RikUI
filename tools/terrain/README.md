@@ -64,6 +64,11 @@ disconnected component. Some observed quest POIs are outside polygons or in othe
 components. An observed marker is not proof of a safe standing point, interaction range,
 or a feasible route. These gaps are retained rather than repaired by proximity links.
 
+[STAGES.md](STAGES.md) describes bounded offline capture of raster/filter/erosion
+states at supplied points while preserving the original source geometry and grid.
+This diagnostic identifies model rejection stages; it does not alter traversal
+limits or certify a native route.
+
 ## Geography
 
 Map0 (Eastern Kingdoms), raw MAID slot42*64+33, locally named Azeroth_33_42. Direct terrain positions establish worldX approximately[-5866.667,-5333.334],worldY[-1066.667,-533.334]. Target-build AreaTable identifies Dun Morogh, Kharanos, Misty Pine Refuge, Steelgrill's Depot and The Tundrid Hills in the tile.
