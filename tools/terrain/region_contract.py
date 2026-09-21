@@ -1,4 +1,6 @@
 """Pinned geographic profiles for local derived meshes; never native traversal proof."""
+import west_profile as west
+
 REGION_ID = 'dun-morogh-kharanos-seam-69913'
 REGION_FORMAT = 'rikui-nav-region-proof-v1'
 OLD_BOUNDS = [-1066.6673177083333, -5866.667317708333, -533.333984375, -5333.333984375]
@@ -22,7 +24,10 @@ def validate(manifest, source, region_bounds, need):
         region = {'kind': 'single-tile', 'tiles': [[33, 42]]}
     else:
         need(manifest.get('format') == REGION_FORMAT, 'unsupported-manifest-format')
-        need(manifest.get('regionID') == REGION_ID and manifest.get('tiles') == [r[0] for r in TILES]
+        expanded=manifest.get('regionID')==west.REGION_ID
+        selected=west.TILES if expanded else TILES
+        pins=west.FILES if expanded else FILES
+        need(manifest.get('regionID') in (REGION_ID,west.REGION_ID) and manifest.get('tiles') == [r[0] for r in selected]
              and 'tile' not in manifest, 'unsupported-source-region')
         inputs = source.get('inputs')
         need(type(inputs) is dict and set(inputs) == {'wdt', 'tiles'}, 'invalid-region-source-inputs')
@@ -30,7 +35,7 @@ def validate(manifest, source, region_bounds, need):
         def file_record(record, ident):
             need(type(record) is dict and set(record) == {'path', 'fileDataID', 'bytes', 'sha256'},
                  'invalid-region-source-file')
-            size, digest = FILES[ident]
+            size, digest = pins[ident]
             need(type(record['fileDataID']) is int and record['fileDataID'] == ident
                  and type(record['bytes']) is int and record['bytes'] == size
                  and record['sha256'] == digest, 'unrecognized-region-source-file')
@@ -41,14 +46,14 @@ def validate(manifest, source, region_bounds, need):
 
         file_record(inputs['wdt'], 775971)
         tiles = inputs['tiles']
-        need(type(tiles) is list and len(tiles) == 2, 'invalid-region-source-tiles')
-        for row, (tile, root, obj) in zip(tiles, TILES):
+        need(type(tiles) is list and len(tiles) == len(selected), 'invalid-region-source-tiles')
+        for row, (tile, root, obj) in zip(tiles, selected):
             need(type(row) is dict and set(row) == {'tile', 'root', 'obj'}
                  and row['tile'] == tile, 'invalid-region-source-tile')
             file_record(row['root'], root)
             file_record(row['obj'], obj)
-        expected = REGION_BOUNDS
-        region = {'kind': 'sourced-region', 'regionID': REGION_ID, 'tiles': [r[0] for r in TILES]}
+        expected = west.BOUNDS if expanded else REGION_BOUNDS
+        region = {'kind': 'sourced-region', 'regionID': manifest['regionID'], 'tiles': [r[0] for r in selected]}
     need(all(abs(a - b) < .002 for a, b in zip(region_bounds, expected)),
          'unsupported-source-region-bounds')
     return region

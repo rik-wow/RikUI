@@ -112,10 +112,19 @@ local function update()
     request,problem=begin(mesh,start,goal,{maxWork=32768,speed=speed or 7})
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
+local function loadSlice()
+    local clock=type(debugprofilestop)=="function" and debugprofilestop
+    local started=clock and clock()
+    for _=1,4 do
+        local value,reason,done=loader:Step(64)
+        if done then return value,reason,true end
+        if clock and clock()-started>=2 then return end
+    end
+end
 function terrain.Step()
     if not planner.enabled then clear(); setState("disabled","Quest planner is disabled"); return end
     if loader then
-        local value,reason,done=loader:Step(32)
+        local value,reason,done=loadSlice()
         if done then
             loader=nil; mesh=value
             setState(value and "ready" or "invalid",reason or "Terrain model ready")

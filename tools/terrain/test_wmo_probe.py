@@ -132,8 +132,8 @@ class CountSemanticsTests(unittest.TestCase):
     def test_cross_root_group_oob_rejected(self):
         # Exercise the build's root/group association with an adversarial decoded group.
         parser=w.group
-        def bad(data):
-            result=parser(data);result['doodadReferences'].append(65535);return result
+        def bad(data,root_flags=None):
+            result=parser(data,root_flags);result['doodadReferences'].append(65535);return result
         with mock.patch.object(w,'group',side_effect=bad):
             with self.assertRaisesRegex(ValueError,'WMO-group-doodad-reference-range'):
                 w.build(HERE/'geometry-full.json',ROOT,ROOT/'recursive-dependencies-manifest.json')

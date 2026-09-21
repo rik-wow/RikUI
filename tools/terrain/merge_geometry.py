@@ -6,7 +6,7 @@ import terrain_probe as t
 
 def validate_mesh(value):
     p=value['positions'];i=value['indices']
-    if len(p)%3 or len(i)%3 or len(p)>600000 or len(i)>2000000:t.fail('mesh-budget')
+    if len(p)%3 or len(i)%3 or len(p)>1500000 or len(i)>2000000:t.fail('mesh-budget')
     if not all(type(v) in (int,float) and math.isfinite(v) and abs(v)<100000 for v in p):t.fail('mesh-position')
     if not all(type(v) is int and 0<=v<len(p)//3 for v in i):t.fail('mesh-index')
 
@@ -44,7 +44,7 @@ def merge(geometry,wmo):
     g['coverage'].update(staticWMO=wmo['coverage']['staticWMO'],
         framedSelectedStaticDecoded=wmo['coverage']['framedSelectedStaticDecoded'],
         modelExcludesUnresolvedStaticFootprints=True,
-        liquids=('excluded-unmodeled-WMO-liquids' if any(v['reason']=='WMO-liquid-not-modeled' for v in gates) else 'no-MH2O-or-MCLQ-in-root-and-no-MLIQ-or-liquid-type-in-selected-WMO-groups'),
+        liquids=('excluded-unmodeled-terrain-liquids' if g.get('terrainExclusions') else 'excluded-unmodeled-WMO-liquids' if any(v['reason']=='WMO-liquid-not-modeled' for v in gates) else 'no-MH2O-or-MCLQ-in-root-and-no-MLIQ-or-liquid-type-in-selected-WMO-groups'),
         nativeTraversalVerified=False)
     g['status']='derived-static-model-with-excluded-uncertain-footprints'
     g['publishable']=False

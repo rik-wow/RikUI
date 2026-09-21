@@ -130,12 +130,14 @@ class CompilerTests(unittest.TestCase):
         self.m['coverageGates']=[dict(gate,modelMitigation=c.MITIGATION)]
         self.m['coverage']['framedSelectedStaticDecoded']=False
 
-    def test_unsupported_flags_may_only_be_excluded_outside_sourced_region(self):
+    def test_unsupported_flags_require_complete_exclusion_inside_or_outside_region(self):
         self.flag_fixture();p,h=self.write();meta,_,receipt=c.validate(p,h)
         self.assertEqual(receipt['coverageGates'][0]['flags'],[2])
         self.assertFalse(meta['nativeVerified'])
         self.flag_fixture(outside=False)
-        self.reject('unsupported-doodad-flags-inside-region')
+        p,h=self.write();meta,_,_=c.validate(p,h)
+        self.assertEqual(len(meta['exclusions']),1)
+        self.m['exclusions']=[];self.reject('gate-missing-exclusion')
 
     def test_flag_gate_requires_root_identity_and_unknown_nonzero_flags(self):
         self.flag_fixture();original=copy.deepcopy(self.m)
@@ -212,7 +214,7 @@ class CompilerTests(unittest.TestCase):
         pair=self.write()
         with mock.patch.object(c,'MAX_SHARD_POLYGONS',1):self.reject('invalid-shard-polygons',pair)
         with mock.patch.object(c,'MAX_SHARD_PORTALS',1):self.reject('shard-portal-resource-bound',pair)
-        self.m['statistics']['directedEdges']=32769
+        self.m['statistics']['directedEdges']=c.MAX_PORTALS+1
         self.reject('invalid-portal-count',self.write_manifest())
     def test_polygon_beyond_source_bounds(self):
         self.shard['polygons'][0]['points'][1][2]=-5319;self.reject('polygon-outside-supported-tile')
@@ -306,11 +308,11 @@ class CompilerTests(unittest.TestCase):
         return self.write_manifest()
 
     def test_runtime_cell_occupancy_includes_all_shards(self):
-        self.reject('runtime-navigation-cell-limit',self.overlapping_fixture(513))
+        self.reject('runtime-navigation-cell-limit',self.overlapping_fixture(1025))
 
     def test_runtime_cell_occupancy_accepts_full_cell(self):
-        p,h=self.overlapping_fixture(512);meta,shards,_=c.validate(p,h)
-        self.assertEqual(meta['counts']['polygons'],512)
+        p,h=self.overlapping_fixture(1024);meta,shards,_=c.validate(p,h)
+        self.assertEqual(meta['counts']['polygons'],1024)
 
     def test_runtime_cell_occupancy_includes_aabb_boundary(self):
         # Polygon 513 touches the 512-polygon cell only at x=-896.
@@ -326,7 +328,9 @@ class CompilerTests(unittest.TestCase):
             record=next(r for r in self.m['regions'] if r['filename']==file.name)
             record.update(bytes=len(raw),sha256=c.sha(raw))
         self.m['statistics']['jsonShardBytes']=sum(r['bytes'] for r in self.m['regions'])
-        self.reject('runtime-navigation-cell-limit',self.write_manifest())
+        import terrain_contract
+        with mock.patch.object(terrain_contract,'RUNTIME_MAX_CELL_POLYGONS',512):
+            self.reject('runtime-navigation-cell-limit',self.write_manifest())
 
     def test_runtime_metadata_resource_contract_counts_array_keys_and_utf8(self):
         from terrain_contract import runtime_metadata

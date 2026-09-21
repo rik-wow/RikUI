@@ -25,7 +25,7 @@ def exclusion_rect(entry):
 RUNTIME_CELL = 64
 RUNTIME_MAX_POLYGON_SPAN = 128
 RUNTIME_MAX_CELLS = 4096
-RUNTIME_MAX_CELL_POLYGONS = 512
+RUNTIME_MAX_CELL_POLYGONS = 1024
 
 def runtime_convex(points):
     # Mirror the Lua turn/area tolerance, including its final half-plane check.

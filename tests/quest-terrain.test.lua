@@ -1,7 +1,7 @@
 -- End-to-end sliced terrain controller replay, including motion through a calculated corridor.
 return function(check)
     local env=require("wow_stub")
-    local previous,frames=RikUI,env.frames
+    local previous,frames,previousClock=RikUI,env.frames,debugprofilestop
     RikUI={Secret={IsSecret=function() return false end}}
     env.frames={}
     local ok,reason=pcall(function()
@@ -101,7 +101,17 @@ return function(check)
         p.enabled=false; tick()
         check("disabled module publishes no path",p.Terrain.Guidance()==nil and p.Terrain.Status().status=="disabled")
         check("notifications never expose stale corridor",not staleDuringRefresh)
+        local calls,time=0,0
+        p.NavMesh.Begin=function() return {
+            Step=function(_,budget) calls=calls+1;assert(budget==64) end,
+            Cancel=function() end,
+        } end
+        debugprofilestop=function() time=time+3;return time end
+        p.enabled=true;assert(p.Terrain.Install(meta,shards));p.Terrain.Step()
+        check("loader yields once measured frame budget is spent",calls==1)
+        debugprofilestop=nil;p.Terrain.Step()
+        check("loader has a hard work bound without a native clock",calls==5)
     end)
-    RikUI,env.frames=previous,frames
+    RikUI,env.frames,debugprofilestop=previous,frames,previousClock
     check("terrain guidance fixture completes",ok,reason)
 end

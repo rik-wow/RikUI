@@ -62,9 +62,9 @@ def root(data):
         start,count,pad=unpack('<3I',sets_data,at+20)
         if pad:t.fail('WMO-set-padding')
         sets.append(dict(name=sets_data[at:at+20].split(b'\0')[0].decode('ascii'),first=start,count=count))
-    ref_data=require(parts,'MODI',4)
-    references=list(unpack('<'+'I'*(len(ref_data)//4),ref_data))
     defs=require(parts,'MODD',40)
+    ref_data=require(parts,'MODI',4) if defs or 'MODI' in parts else b''
+    references=list(unpack('<'+'I'*(len(ref_data)//4),ref_data))
     actual_doodad_count=len(defs)//40
     # MODD framing, not MOHD's advisory count, controls actual allocation/ranges.
     # Independently corroborated by pinned wow.export and WoWFormatLib parsers.
@@ -91,7 +91,7 @@ def collision_face(flags):
     return bool(flags&8 or (flags&32 and not flags&4))
 
 
-def group(data):
+def group(data,root_flags=None):
     parts,inventory=table(data);version(parts)
     raw=require(parts,'MOGP')
     if len(raw)<68:t.fail('WMO-MOGP-header')
@@ -111,12 +111,15 @@ def group(data):
     if flags&0x80:unsupported.append('unreachable-group-flag')
     if flags&0x4000000:unsupported.append('antiportal-group-flag')
     if flags2:unsupported.append('secondary-group-flags-or-split-group')
-    if 'MLIQ' in sub or liquid or flags&0x1000:unsupported.append('WMO-liquid-not-modeled')
+    # Root bit 4 selects modern type IDs; legacy 15 means no liquid.
+    # Unknown root semantics never establish absence. MLIQ/has-liquid still wins.
+    absent=root_flags is not None and liquid==(0 if root_flags&4 else 15)
+    if 'MLIQ' in sub or flags&0x1000 or not absent:unsupported.append('WMO-liquid-not-modeled')
     known={'MOPY','MOVI','MOVT','MONR','MOTV','MOBA','MOBS','MOLR','MODR','MOBN','MOBR','MOCV'}
     unsupported.extend('unknown-group-chunk:'+tag for tag in sorted(set(sub)-known))
     if set(parts)!={'MVER','MOGP'}:unsupported.append('unknown-group-top-level-chunk')
     doodad_refs=require(sub,'MODR',2) if 'MODR' in sub else b''
-    return dict(positions=positions,indices=indices,flags=flags,flags2=flags2,liquidType=liquid,
+    return dict(positions=positions,indices=indices,flags=flags,flags2=flags2,liquidType=liquid,liquidRootFlags=root_flags,
         inventory=inventory,subchunks=subs,faceFlags=dict(faceflags),sourceTriangles=nt,
         collisionTriangles=len(indices)//3,collisionOnlyMaterialTriangles=material255,
         unsupported=unsupported,doodadReferences=list(unpack('<'+'H'*(len(doodad_refs)//2),doodad_refs)))
@@ -170,6 +173,11 @@ def receipt_identity(receipt,recursive=False):
     if not recursive and receipt.get('schema')!='rikui-local-terrain-extraction-evidence-v1':t.fail('WMO-receipt-schema')
 
 
+def placement_bounds(placement):
+    lo=placement['bounds'][:3];hi=placement['bounds'][3:]
+    return [[t.TILE*32-hi[0],lo[1],t.TILE*32-hi[2]],
+            [t.TILE*32-lo[0],hi[1],t.TILE*32-lo[2]]]
+
 def build(geometry_path,directory,recursive_path):
     directory=pathlib.Path(directory);geometry_path=pathlib.Path(geometry_path)
     geometry_bytes=t.load(geometry_path);geometry=json.loads(geometry_bytes)
@@ -211,7 +219,16 @@ def build(geometry_path,directory,recursive_path):
         ident=placement['reference'];uid=placement['uniqueID']
         if placement['flags']!=12:t.fail('WMO-unsupported-MODF-flags')
         if not 0<placement['scale']<=10240:t.fail('WMO-placement-scale')
-        if ident not in roots:roots[ident]=root(asset(ident))
+        if ident not in roots:
+            try:roots[ident]=root(asset(ident))
+            except ValueError as error:
+                if str(error)!='WMO-LOD-or-group-count':raise
+                unsupported.append(dict(placementID=uid,fileDataID=ident,
+                    reason='WMO-unsupported-root-layout',layout=str(error)))
+                audit.append(dict(placementID=uid,fileDataID=ident,groupIDs=[],
+                    unsupportedRootLayout=str(error),MODFworldBounds=placement_bounds(placement),
+                    transformNativeVerified=False))
+                continue
         wmo=roots[ident]
         unsupported.extend(dict(placementID=uid,reason='root-chunk:'+x) for x in wmo['unknownChunks'])
         if wmo['advertisedDoodadCount']!=wmo['framedDoodadCount']:
@@ -223,8 +240,9 @@ def build(geometry_path,directory,recursive_path):
         percounts=collections.Counter()
         wmo_vertices=[]
         for gid in wmo['groups']:
-            if gid not in groups:groups[gid]=group(asset(gid))
+            if gid not in groups:groups[gid]=group(asset(gid),wmo['flags'])
             gr=groups[gid]
+            if gr['liquidRootFlags']!=wmo['flags']:t.fail('WMO-conflicting-group-liquid-semantics')
             if any(i>=len(wmo['doodads']) for i in gr['doodadReferences']):t.fail('WMO-group-doodad-reference-range')
             unsupported.extend(dict(placementID=uid,fileDataID=gid,reason=r) for r in gr['unsupported'])
             world=c.transformed(gr,placement);add(world,gr['indices']);wmo_vertices.extend(world)
@@ -279,10 +297,10 @@ def build(geometry_path,directory,recursive_path):
             acquisitionReceipt=dict(path=receipt_info['path'],sha256=t.digest(receipt_bytes)),
             recursiveReceipt=dict(path=str(pathlib.Path(recursive_path).resolve()),sha256=t.digest(recursive_bytes)),
             buildConfig=BUILD_CONFIG,cdnConfig=CDN_CONFIG,assets=list(assets.values()),
-            parser='rikui-wmo-probe-v1',parserSha256=t.digest(pathlib.Path(__file__).read_bytes()),dependencyScriptSha256={name:t.digest((pathlib.Path(__file__).parent/name).read_bytes()) for name in (('terrain_probe.py','collision_probe.py')+(('terrain_region.py',) if 'tiles' in geometry['source']['inputs'] else ()))},formatReference=dict(repo='Kruithne/wow.export',commit=t.PIN,license='MIT'),
+            parser='rikui-wmo-probe-v1',parserSha256=t.digest(pathlib.Path(__file__).read_bytes()),dependencyScriptSha256={name:t.digest((pathlib.Path(__file__).parent/name).read_bytes()) for name in (('terrain_probe.py','collision_probe.py')+(('terrain_region.py','west_profile.py') if 'tiles' in geometry['source']['inputs'] else ()))},formatReference=dict(repo='Kruithne/wow.export',commit=t.PIN,license='MIT'),
             empty274Reference=dict(path=str(pathlib.Path(__file__).parent/'m2-274-reference.json'),sha256=t.digest(t.load(pathlib.Path(__file__).parent/'m2-274-reference.json')),sourceSha256='4e3be9da12879a6de2e441391b4deba8c5fa45ee721051cb3279d2168ca7cae8'),
             collisionFlagReference=dict(repo='TrinityCore/TrinityCore',commit=TC_PIN,files=['src/tools/vmap4_extractor/wmo.h','src/tools/vmap4_extractor/wmo.cpp'],license='GPL-2.0-or-later; semantics reference only; no implementation copied')),
-        coverage=dict(staticWMO=not unsupported,selectedDoodads=not unsupported,framedSelectedStaticDecoded=not unsupported,allGroupDoodadRefsInRange=True,liquids=('present-and-unmodeled-in-selected-WMO-groups' if any(v['reason']=='WMO-liquid-not-modeled' for v in unsupported) else 'no-MLIQ-and-zero-liquid-types-in-all-selected-groups'),
+        coverage=dict(staticWMO=not unsupported,selectedDoodads=not unsupported,framedSelectedStaticDecoded=not unsupported,allGroupDoodadRefsInRange=True,liquids=('present-and-unmodeled-in-selected-WMO-groups' if any(v['reason']=='WMO-liquid-not-modeled' for v in unsupported) else 'no-encoded-liquids-and-no-effective-WMO-liquid-types'),
             transformsNativeVerified=False,dynamicObjects=False,phaseState=False),
         audit=dict(placements=audit,counts=dict(counts),unsupported=unsupported,headerCountNotes=countNotes,
             roots=[dict(fileDataID=i,groups=r['groups'],sets=r['sets'],flags=r['flags'],chunks=r['inventory'],advertisedDoodadCount=r['advertisedDoodadCount'],framedDoodadCount=r['framedDoodadCount']) for i,r in roots.items()],

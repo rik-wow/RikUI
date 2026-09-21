@@ -21,7 +21,8 @@ def m2(data):
     version,=struct.unpack_from('<I',payload,4)
     # Exact v274 assets independently consumed by the unmodified pinned M2Loader.
     demonstrated274={'0e0f350af340436194c1013d037f81e681876c227dafda816a3c5e3a0c98dfb6',
-        '8a2118873adccadd97330ee4326f2e2420e6711cfe8fd3d3a7c83f36e7005116'}
+        '8a2118873adccadd97330ee4326f2e2420e6711cfe8fd3d3a7c83f36e7005116',
+        'a67e4ef05abeae92860a77d8d269a65de0b289bcf3a0a57d795e9db339c7f2ff'}
     if version!=272 and not(version==274 and t.digest(data) in demonstrated274):t.fail('unsupported-M2-version')
     count,offset=struct.unpack_from('<II',payload,216)
     nverts,vertOffset=struct.unpack_from('<II',payload,224)
@@ -89,7 +90,7 @@ def main():
         counts['includedM2Placements']+=1
         counts['addedCollisionTriangles']+=len(model['indices'])//3
         selected.append(dict(fileDataID=row['reference'],uniqueID=row['uniqueID'],triangles=len(model['indices'])//3))
-    if len(g['positions'])>(600000 if a.allow_full_tile else 30000) or len(g['indices'])>(2000000 if a.allow_full_tile else 100000):t.fail('bounded-region-geometry-cap')
+    if len(g['positions'])>(1500000 if a.allow_full_tile else 30000) or len(g['indices'])>(2000000 if a.allow_full_tile else 100000):t.fail('bounded-region-geometry-cap')
     g['regionBounds']=region
     g['source']['collisionAssets']=assets
     g['source']['collisionParserSHA256']=t.digest(pathlib.Path(__file__).read_bytes())

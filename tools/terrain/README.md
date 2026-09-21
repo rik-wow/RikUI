@@ -1,5 +1,9 @@
 # Local Forever terrain datasource tools
 
+[Western Dun Morogh delivery](WEST.md) is the current local companion, including
+its exact-source acquisition, finer raster, actual Frostmane replay and remaining
+gaps. The older single/two-tile procedures below remain regression profiles.
+
 These independently authored wrappers prepare a local exact-build terrain and collision datasource. They do not control the game, inspect process memory, modify the client, or assert that computed paths were walked. Generated assets and npm dependencies are written only to an explicit empty external directory, never beside the committed tool sources.
 
 ## Reproduce on another machine

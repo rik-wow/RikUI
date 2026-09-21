@@ -2,7 +2,7 @@
 import argparse,json,os,pathlib,shutil,subprocess,sys
 import acquire,portable_bake
 HERE=pathlib.Path(__file__).resolve().parent
-FILES=tuple(dict.fromkeys(portable_bake.FILES+('terrain_region.py','portable_region.py','verify_region.py','test_region.py','reproduce-region.ps1','REGION.md','m2-274-collision-profiles.json')))
+FILES=tuple(dict.fromkeys(portable_bake.FILES+('terrain_region.py','west_profile.py','portable_region.py','verify_region.py','test_region.py','reproduce-region.ps1','REGION.md','m2-274-collision-profiles.json')))
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--acquisition-directory',required=True);p.add_argument('--output-directory',required=True);a=p.parse_args()

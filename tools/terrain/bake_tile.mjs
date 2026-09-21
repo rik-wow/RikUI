@@ -5,11 +5,12 @@ import crypto from 'node:crypto';
 import {init,NavMeshQuery,exportNavMesh} from 'recast-navigation';
 import {generateTiledNavMesh} from 'recast-navigation/generators';
 import {hasHorizontalArea,removeBlockedPortals} from './mesh_filter.mjs';
-const [input='geometry-full-m2.json',outdir='full-tile'] = process.argv.slice(2);
+const [input='geometry-full-m2.json',outdir='full-tile',resolution] = process.argv.slice(2);
+if(resolution!==undefined&&resolution!=='--half-cell')throw Error('unsupported-resolution');
 const bytes=fs.readFileSync(input);
-if(bytes.length>32*1024*1024) throw Error('input-byte-budget');
+if(bytes.length>64*1024*1024) throw Error('input-byte-budget');
 const g=JSON.parse(bytes);
-if(g.format!=='rikui-navigation-geometry-probe-v1'||g.positions.length>600000||g.indices.length>2000000) throw Error('geometry-budget');
+if(g.format!=='rikui-navigation-geometry-probe-v1'||g.positions.length>1500000||g.indices.length>2000000) throw Error('geometry-budget');
 if(g.positions.length%3||g.indices.length%3||!g.positions.every(Number.isFinite)||!g.indices.every(v=>Number.isInteger(v)&&v>=0&&v<g.positions.length/3))throw Error('geometry-shape');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const round=v=>Math.round(v*10000)/10000;
@@ -20,11 +21,13 @@ const origin=min.map((v,i)=>(v+max[i])/2);
 const config={cs:0.5,ch:0.1,tileSize:128,walkableHeight:18,walkableClimb:3,walkableRadius:1,
  walkableSlopeAngle:40,minRegionArea:0,mergeRegionArea:0,maxSimplificationError:1.3,maxVertsPerPoly:6,
  bounds:[region[0].map((v,i)=>(i===1?min[i]:v)-origin[i]),region[1].map((v,i)=>(i===1?max[i]:v)-origin[i])]};
+// Half-cell keeps the 64-yard tile and physical radius/height/climb/slope unchanged.
+if(resolution==='--half-cell')Object.assign(config,{cs:.25,tileSize:256,walkableRadius:2});
 await init();const started=performance.now();
 const result=generateTiledNavMesh(g.positions.map((v,i)=>v-origin[i%3]),g.indices,config);
 if(!result.success)throw Error('bake-failed');
 const nav=result.navMesh,byRef=new Map(),shards=[];
-const exclusions=g.exclusions??[];
+const exclusions=[...(g.exclusions??[]),...(g.terrainExclusions??[])];
 if(exclusions.length>64)throw Error('exclusion-budget');
 for(const box of exclusions)if(box.bounds?.length!==2||!box.bounds.every(p=>p.length===3&&p.every(Number.isFinite))||!Number.isFinite(box.padding)||box.padding<0||box.padding>10)throw Error('exclusion-shape');
 const excludedIDs=[],degeneratePolygons=[];
@@ -32,7 +35,7 @@ let outsideSourceRegionPolygons=0;
 let edges=0;
 for(let ti=0;ti<nav.getMaxTiles();ti++){
  const tile=nav.getTile(ti),header=tile.header();if(!header)continue;
- if(header.polyCount()>512)throw Error('shard-polygon-budget');
+ if(header.polyCount()>1024)throw Error('shard-polygon-budget');
  const base=nav.getPolyRefBase(tile)>>>0,polygons=[];
  const vertex=i=>[0,1,2].map(a=>tile.verts(i*3+a)+origin[a]);
  for(let pi=0;pi<header.polyCount();pi++){
@@ -61,13 +64,13 @@ for(let ti=0;ti<nav.getMaxTiles();ti++){
   if(denied||outside||degenerate){excludedIDs.push(row.id);if(outside)outsideSourceRegionPolygons++;continue;}
   byRef.set(row.id,row);polygons.push(row);
  }
- const count=polygons.reduce((s,p)=>s+p.portals.length,0);if(count>2048)throw Error('shard-edge-budget');
+ const count=polygons.reduce((s,p)=>s+p.portals.length,0);if(count>4096)throw Error('shard-edge-budget');
  edges+=count;shards.push({id:ti,grid:[header.x(),header.y(),header.layer()],polygons});
 }
 const blocked=new Set(excludedIDs);
 edges=0;
 for(const shard of shards)for(const poly of shard.polygons){poly.portals=removeBlockedPortals(poly.portals,blocked);edges+=poly.portals.length;}
-if(shards.length>128||byRef.size>8192||edges>32768)throw Error('whole-tile-budget');
+if(shards.length>512||byRef.size>65536||edges>262144)throw Error('whole-tile-budget');
 for(const poly of byRef.values())for(const portal of poly.portals){
  const target=byRef.get(portal.to);if(!target)throw Error('dangling-portal');
  if(!target.portals.some(p=>p.to===poly.id))throw Error('one-way-walk-portal');
@@ -111,7 +114,8 @@ for(const component of components.slice(0,3)){
 }
 // This region has real source on both sides of the ADT seam; demonstrate a path using only baked portals.
 if(g.tiles){
- const audit=g.source.tileAudit,seam=(audit[0].bounds[0][0]+audit[1].bounds[1][0])/2;
+ const audit=g.source.tileAudit,west=audit.find(r=>r.tile[0]===32&&r.tile[1]===42),east=audit.find(r=>r.tile[0]===33&&r.tile[1]===42);
+ const seam=(west.bounds[0][0]+east.bounds[1][0])/2;
  const centerZ=(region[0][2]+region[1][2])/2,component=components[0];
  const nearest=side=>component.filter(id=>side*(byRef.get(id).center[0]-seam)>8).reduce((best,id)=>{
   const p=byRef.get(id).center,cost=Math.hypot(p[0]-seam,p[2]-centerZ);
@@ -131,7 +135,7 @@ for(const shard of shards){
  const filename=`region-${shard.grid.join('-')}.json`;
  const artifact={format:'rikui-nav-shard-v1',identity:g.identity,mapID:g.mapID,
   status:'derived-pending-validation',publishable:false,id:shard.id,grid:shard.grid,polygons:shard.polygons};
- const data=Buffer.from(JSON.stringify(artifact));if(data.length>262144)throw Error('shard-byte-budget');
+ const data=Buffer.from(JSON.stringify(artifact));if(data.length>524288)throw Error('shard-byte-budget');
  fs.writeFileSync(path.join(outdir,filename),data);
  entries.push({filename,sha256:sha(data),bytes:data.length,id:shard.id,grid:shard.grid,
   polygons:shard.polygons.length,directedEdges:shard.polygons.reduce((s,p)=>s+p.portals.length,0)});
@@ -139,7 +143,7 @@ for(const shard of shards){
 const manifest={format:g.tiles?'rikui-nav-region-proof-v1':'rikui-nav-tile-proof-v1',identity:g.identity,mapID:g.mapID,
  ...(g.tiles?{regionID:g.regionID,tiles:g.tiles}:{tile:g.tile}),
  status:'derived-pending-validation',publishable:false,geometryStatus:g.status,coverage:g.coverage,
- collisionAudit:g.collisionAudit,wmoAudit:g.wmoAudit,exclusions,coverageGates:g.coverageGates,degeneratePolygons,
+ collisionAudit:g.collisionAudit,wmoAudit:g.wmoAudit,exclusions:g.exclusions??[],terrainExclusions:g.terrainExclusions??[],coverageGates:g.coverageGates,degeneratePolygons,
  coverageScope:exclusions.length?'outside-exclusions':'whole-source-region',
  limitations:g.limitations,source:g.source,
  geometrySha256:sha(bytes),navmeshSha256:sha(binary),coordinateSystem:g.coordinateSystem,

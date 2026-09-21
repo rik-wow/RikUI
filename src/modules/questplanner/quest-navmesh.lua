@@ -2,7 +2,7 @@
 local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
 local geometry,mesh=planner.NavGeometry,{}
 planner.NavMesh=mesh
-local CELL,MAX_POLYGONS,MAX_PORTALS,MAX_CELL_POLYGONS,MAX_CELLS=64,8192,32768,512,4096
+local CELL,MAX_POLYGONS,MAX_PORTALS,MAX_CELL_POLYGONS,MAX_CELLS=64,65536,131072,1024,4096
 local function same(a,b) return a.product==b.product and a.build==b.build and a.locale==b.locale end
 local function key(x,z) return math.floor(x/CELL)..":"..math.floor(z/CELL) end
 local function metadata(raw)
@@ -86,13 +86,13 @@ end
 local function ingest(data,shards)
     for _,shard in ipairs(shards) do
         if not schema.PlainTable(shard) or not schema.Identity(shard.identity) or not same(shard.identity,data.meta.identity)
-            or not schema.List(shard.polygons,512) then return nil,"invalid navigation shard" end
+            or not schema.List(shard.polygons,1024) then return nil,"invalid navigation shard" end
         local edges=0
         for _,raw in ipairs(shard.polygons) do
             local value,reason=polygon(raw)
             if not value then return nil,reason end
             edges=edges+#value.portals
-            if edges>2048 then return nil,"shard portal limit" end
+            if edges>4096 then return nil,"shard portal limit" end
             local ok,problem=add(data,value)
             if not ok then return nil,problem end
             coroutine.yield()
@@ -123,22 +123,49 @@ local function ingest(data,shards)
     end
     return true
 end
+local function boundaryMatches(data,matches)
+    if #matches==1 then return matches[1] end
+    if #matches>8 then return nil end
+    local seen={[matches[1].id]=true}
+    for _=1,#matches do
+        for _,a in ipairs(matches) do
+            if seen[a.id] then
+                for _,b in ipairs(matches) do
+                    if not seen[b.id] and math.abs(a.point[2]-b.point[2])<=.002 then
+                        for _,edge in ipairs(data.polygons[a.id].portals) do
+                            if edge.to==b.id and geometry.OnBoundary({edge.left,edge.right},a.point,.002) then
+                                seen[b.id]=true
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    local best=matches[1]
+    for _,match in ipairs(matches) do
+        if not seen[match.id] then return nil end
+        if match.id<best.id then best=match end
+    end
+    return best
+end
 local function locate(data,point)
     if not schema.PlainTable(point) or not schema.Number(point.x,-100000,100000)
         or not schema.Number(point.z,-100000,100000)
         or (point.height~=nil and not schema.Number(point.height,-100000,100000)) then return nil,"invalid point" end
-    local match
+    local matches={}
     for _,id in ipairs(data.cells[key(point.x,point.z)] or {}) do
         local value=data.polygons[id]
         if geometry.Contains(value.points,point.x,point.z) then
             local height=geometry.Height(value.points,point.x,point.z)
             if height and (point.height==nil or math.abs(height-point.height)<=1) then
-                if match then return nil,"Floor or polygon boundary is ambiguous" end
-                match={id=id,point={point.x,height,point.z}}
+                matches[#matches+1]={id=id,point={point.x,height,point.z}}
             end
         end
     end
-    return match,match and nil or "outside known navigation polygons"
+    if #matches==0 then return nil,"outside known navigation polygons" end
+    local match=boundaryMatches(data,matches)
+    return match,match and nil or "Floor or polygon boundary is ambiguous"
 end
 -- One yard is a marker-displacement bound, not an interaction or movement radius.
 local APPROACH_RADIUS,APPROACH_INSET=1,.005
@@ -263,7 +290,7 @@ end
 function mesh.Begin(rawMeta,shards)
     local meta,reason=metadata(rawMeta)
     if not meta then return nil,reason end
-    if not schema.List(shards,128) then return nil,"navigation shard limit" end
+    if not schema.List(shards,512) then return nil,"navigation shard limit" end
     local data={meta=meta,polygons={},order={},cells={},cellCount=0,edges=0}
     local worker=coroutine.create(function() return ingest(data,shards) end)
     local cancelled,done=false,false

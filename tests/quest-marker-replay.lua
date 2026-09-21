@@ -52,7 +52,13 @@ p.Context={Position=function() return p.Schema.Clone(livePosition) end,
     WorldPosition=function() return p.Schema.Clone(liveWorld) end,RunSpeed=function() return context.runSpeed end}
 liveModel={status="observed"}
 assert(p.Terrain.Install(meta,shards));p.Terrain.Start()
-for _=1,1000 do onUpdate(nil,.2) end
+local loadFrames,loadPeak=0,0
+while p.Terrain.Status().status=="loading" do
+    local before=os.clock();onUpdate(nil,.2)
+    loadPeak=math.max(loadPeak,(os.clock()-before)*1000);loadFrames=loadFrames+1
+    assert(loadFrames<=math.ceil(meta.counts.polygons*2/32)+2,"loader exceeded work bound")
+end
+print(string.format("Production loader: %d headless frames, peak %.3f ms; native unverified",loadFrames,loadPeak))
 assert(p.Terrain.Status().status=="ready","terrain did not load")
 local function runtimeReplay(start,questID,destination,archived)
     livePosition=mesh:Unproject({start.x,0,start.z})
@@ -137,7 +143,7 @@ if arg[3] then
     for dx=-1,1 do for dy=-1,1 do
         local point=assert(mesh:Project(meta.uiMapID,x+dx*.000499,y+dy*.000499))
         for _,id in ipairs(snapshot.order) do
-            if snapshot.quests[id].objectivesComplete and context.destinations[id] then
+            if (arg[8] and id==tonumber(arg[8]) or not arg[8] and snapshot.quests[id].objectivesComplete) and context.destinations[id] then
                 local status=replay("rounded-screenshot-sample-"..dx.."-"..dy,point,id,context.destinations[id])
                 counts[status]=(counts[status] or 0)+1
             end

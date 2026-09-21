@@ -763,3 +763,49 @@ The two extreme screenshot-rounding samples also completed at a 1.4-yard stride
 without reversals. Desktop refresh timing was at most 1 ms at coarse clock
 resolution; native performance is not established. Earlier archived indoor
 starts still fail for their previously recorded coverage/connectivity reasons.
+
+## Western Dun Morogh delivery (69913)
+
+The user's 35.5,46.6 screenshot was outside the old Kharanos region (roughly
+44.8–58.2% map X). The local companion now derives a west/central rectangle
+from eight exact-build ADTs: X30–33, Y41–42. It includes the screenshot area
+and archived Frostmane Hold marker, but is not complete Dun Morogh coverage.
+See [terrain reproduction](../tools/terrain/WEST.md).
+
+The shipping raster is .25 yard horizontally, .1 vertically; radius remains
+.5 yard, height 1.8, climb .3 and slope 40°. Tiles remain 64 yards. Recast's generated
+padding changes from 2 to 1.25 yards. This is a resolution change, not a calibration
+of Forever player physics. The resulting local dataset has 37,644 polygons,
+73,648 directed portals and 408 shards. Unknown structures and six encoded-liquid
+cells retain full footprint exclusions, including agent radius.
+
+Production Lua now admits a shared polygon edge only when matching modeled
+heights are joined by actual incident portals. Disconnected coincident edges,
+overlapping interiors and competing floors remain ambiguous. There is no player
+position snap. Legacy WMO liquid type 15 with root flag 4 clear is correctly treated
+as no liquid; an actual liquid chunk/flag still excludes the footprint.
+Empty MODD may omit MODI; nonempty doodads still require valid reference tables.
+
+The larger loader remains incremental: at most four 64-work batches per frame,
+stopping after a batch when the available profiler reports 2 ms elapsed.
+This is a target checked between batches, not a hard wall-clock guarantee.
+Caps are 65,536 total polygons, 131,072 portals, 512 shards, 1,024 polygons per shard
+or spatial cell, and 4,096 portals per shard. Search remains sliced and bounded.
+
+Actual source replay at the rounded screenshot center 35.5,46.6 reaches the
+archived 412 marker through 85 polygons. Simulated .35- and 1.4-yard movement
+completes with zero reversals and zero near-waypoint arrow hides. Eight of nine
+rounding samples can route; the southeastern corner remains uncovered. Prior
+archived indoor starts still do not resolve. These are modeled results, not a
+claim that the exact current native position, route or interaction is verified.
+
+An optional eighth argument to both replay scripts selects an archived quest ID:
+```text
+luajit tests/quest-nav-visual.lua "<terrain addon>" "<packet>" .355 .466 "<new external prefix>" require-complete 1.4 412
+```
+The generated HTML visual uses actual polygons and production Lua movement.
+`tests/plot_quest_coverage.py` renders the two resolutions and the simulated route.
+The new companion TOC includes 408 shard files and therefore requires a full
+client restart. No quest actions, eligibility, XP or interaction facts were added;
+the Forever corpus, actual lift instances and native interface acceptance remain
+separate outstanding work.

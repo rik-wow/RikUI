@@ -3,6 +3,18 @@
   "referenceCommit": "c2fd7bde36a712be78a5da896c995b84fbfa2545",
   "records": [
     {
+      "fileDataID": 203171,
+      "sha256": "a67e4ef05abeae92860a77d8d269a65de0b289bcf3a0a57d795e9db339c7f2ff",
+      "bytes": 14328,
+      "version": 274,
+      "name": "GnomereganVent",
+      "remainingBytes": 0,
+      "vertices": 8,
+      "triangles": 12,
+      "allCollisionCoordinatesAndIndicesMatch": true,
+      "axisMapping": "Pinned loader converts raw (x,y,z) to (x,z,-y); our parser retains raw axes until placement transform."
+    },
+    {
       "fileDataID": 197388,
       "sha256": "0e0f350af340436194c1013d037f81e681876c227dafda816a3c5e3a0c98dfb6",
       "bytes": 20276,

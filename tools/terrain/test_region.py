@@ -57,10 +57,11 @@ class RegionChecks(unittest.TestCase):
             self.assertGreater(abs(area(p['points'])),.00001)
             self.assertFalse(removed&{e['to'] for e in p['portals']})
     def test_known_unsupported_footprints_remain_excluded(self):
-        m=self.manifest;self.assertEqual(m['coverage']['liquids'],'excluded-unmodeled-WMO-liquids')
+        m=self.manifest;self.assertEqual(m['coverage']['liquids'],'no-MH2O-or-MCLQ-in-root-and-no-MLIQ-or-liquid-type-in-selected-WMO-groups')
         self.assertFalse(m['coverage']['staticWMO']);self.assertFalse(m['coverage']['framedSelectedStaticDecoded'])
-        self.assertEqual({g['reason'] for g in m['coverageGates']},{'WMO-liquid-not-modeled','WMO-doodad-flags'})
-        self.assertEqual(len(m['coverageGates']),3);self.assertEqual(len(m['exclusions']),2)
+        self.assertEqual({g['reason'] for g in m['coverageGates']},{'WMO-doodad-flags'})
+        self.assertEqual(len(m['coverageGates']),1);self.assertEqual(len(m['exclusions']),1)
+        self.assertNotIn(230090,{g['placementID'] for g in m['coverageGates']})
         for p in self.polys.values():
             for box in m['exclusions']:
                 intersects=all(max(v[a] for v in p['points'])>=box['bounds'][0][a]-box['padding'] and min(v[a] for v in p['points'])<=box['bounds'][1][a]+box['padding'] for a in [0,2])

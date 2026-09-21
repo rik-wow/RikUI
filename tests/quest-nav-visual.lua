@@ -12,13 +12,14 @@ if arg[6]=="legacy" then
     end
 end
 local start=assert(mesh:Project(h.meta.uiMapID,assert(tonumber(arg[3])),assert(tonumber(arg[4]))))
-local destination=assert(h.snapshot.context.destinations[99158],"scenario marker missing")
+local questID=tonumber(arg[8]) or 99158
+local destination=assert(h.snapshot.context.destinations[questID],"scenario marker missing")
 local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
 local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=32768}))
 local route
 repeat route=job:Step(64) until route
 assert(route.status=="modeled",route.detail)
-local status,guidance=h.replay(start,99158,destination,false)
+local status,guidance=h.replay(start,questID,destination,false)
 assert(guidance,status)
 local samples,reversals,hidden={},0,0
 local corridorIndex={}
@@ -80,8 +81,8 @@ end
 write(".json",data)
 local html=[=[<!doctype html><meta charset="utf-8"><title>RikUI deployed navmesh replay</title>
 <style>body{margin:0;background:#111925;color:#edf3fc;font:16px system-ui}header{padding:16px 24px}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0;color:#c3cddd}button,input{vertical-align:middle}svg{width:100%;height:75vh;background:#172332}label{margin-right:20px}#info{color:#70dfcd}.mesh{fill:#284957;stroke:#54717d;stroke-width:.12}.corridor{fill:#356a6b}.coarse{stroke:#ffb35c;stroke-width:.65;fill:none}.motion{stroke:#63ffba;stroke-width:.7;fill:none}</style>
-<header><h1>Deployed navmesh · Dawn in the Mountains</h1><p>Actual companion polygons and production Lua steering. Start: rounded screenshot <span id="startMap"></span>. Marker: archived build 69913 observation.</p>
-<p>Model simulation only: collision, native movement and interaction are unverified. The endpoint stops before the marker.</p>
+<header><h1>Actual navmesh · archived quest marker</h1><p>Actual companion polygons and production Lua steering. Start: rounded screenshot <span id="startMap"></span>. Marker: archived build 69913 observation.</p>
+<p>Model simulation only: collision, native movement and interaction are unverified. Reaching the modeled endpoint does not establish native arrival or quest completion.</p>
 <label><input id="coarse" type="checkbox" checked>Orange: center graph</label><label><input id="motion" type="checkbox" checked>Green: simulated movement</label>
 <button id="play">Play</button> <input id="step" type="range" min="0" value="0" style="width:32%"> <button id="fit">Fit route</button><p id="info"></p></header>
 <svg id="view" xmlns="http://www.w3.org/2000/svg"><g id="mesh"></g><polyline id="route" class="coarse"/><polyline id="trace" class="motion"/><circle id="marker" fill="#ff78cb" r="1.4"/><line id="arrow" stroke="#fff" stroke-width="1.2"/><circle id="player" fill="#fff" r="1"/></svg>
