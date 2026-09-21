@@ -4,6 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {init,NavMeshQuery,exportNavMesh} from 'recast-navigation';
 import {generateTiledNavMesh} from 'recast-navigation/generators';
+import {hasHorizontalArea,removeBlockedPortals} from './mesh_filter.mjs';
 const [input='geometry-full-m2.json',outdir='full-tile'] = process.argv.slice(2);
 const bytes=fs.readFileSync(input);
 if(bytes.length>32*1024*1024) throw Error('input-byte-budget');
@@ -26,7 +27,7 @@ const nav=result.navMesh,byRef=new Map(),shards=[];
 const exclusions=g.exclusions??[];
 if(exclusions.length>64)throw Error('exclusion-budget');
 for(const box of exclusions)if(box.bounds?.length!==2||!box.bounds.every(p=>p.length===3&&p.every(Number.isFinite))||!Number.isFinite(box.padding)||box.padding<0||box.padding>10)throw Error('exclusion-shape');
-const excludedIDs=[];
+const excludedIDs=[],degeneratePolygons=[];
 let outsideSourceRegionPolygons=0;
 let edges=0;
 for(let ti=0;ti<nav.getMaxTiles();ti++){
@@ -55,7 +56,9 @@ for(let ti=0;ti<nav.getMaxTiles();ti++){
   // Recast rounds the last shard to tileSize cells; source collision models can
   // protrude beyond the source ADT. Never admit that unsourced outer strip.
   const outside=points.some(p=>[0,2].some(a=>p[a]<region[0][a]-0.0001||p[a]>region[1][a]+0.0001));
-  if(denied||outside){excludedIDs.push(row.id);if(outside)outsideSourceRegionPolygons++;continue;}
+  const degenerate=!hasHorizontalArea(row.points);
+  if(degenerate)degeneratePolygons.push({id:row.id,reason:'degenerate-horizontal-projection',points:row.points});
+  if(denied||outside||degenerate){excludedIDs.push(row.id);if(outside)outsideSourceRegionPolygons++;continue;}
   byRef.set(row.id,row);polygons.push(row);
  }
  const count=polygons.reduce((s,p)=>s+p.portals.length,0);if(count>2048)throw Error('shard-edge-budget');
@@ -63,8 +66,8 @@ for(let ti=0;ti<nav.getMaxTiles();ti++){
 }
 const blocked=new Set(excludedIDs);
 edges=0;
-for(const shard of shards)for(const poly of shard.polygons){poly.portals=poly.portals.filter(p=>!blocked.has(p.to));edges+=poly.portals.length;}
-if(shards.length>128||byRef.size>32768||edges>131072)throw Error('whole-tile-budget');
+for(const shard of shards)for(const poly of shard.polygons){poly.portals=removeBlockedPortals(poly.portals,blocked);edges+=poly.portals.length;}
+if(shards.length>128||byRef.size>8192||edges>32768)throw Error('whole-tile-budget');
 for(const poly of byRef.values())for(const portal of poly.portals){
  const target=byRef.get(portal.to);if(!target)throw Error('dangling-portal');
  if(!target.portals.some(p=>p.to===poly.id))throw Error('one-way-walk-portal');
@@ -106,6 +109,21 @@ for(const component of components.slice(0,3)){
  probes.push({success:found.success,from:component[0],to:far.id,componentPolygons:component.length,
   endpointError,path:points,meters:found.meters,polygonPath:found.polygonPath,error:found.error??null});
 }
+// This region has real source on both sides of the ADT seam; demonstrate a path using only baked portals.
+if(g.tiles){
+ const audit=g.source.tileAudit,seam=(audit[0].bounds[0][0]+audit[1].bounds[1][0])/2;
+ const centerZ=(region[0][2]+region[1][2])/2,component=components[0];
+ const nearest=side=>component.filter(id=>side*(byRef.get(id).center[0]-seam)>8).reduce((best,id)=>{
+  const p=byRef.get(id).center,cost=Math.hypot(p[0]-seam,p[2]-centerZ);
+  return !best||cost<best.cost?{id,cost}:best;
+ },null);
+ const from=nearest(-1),to=nearest(1);if(!from||!to)throw Error('missing-cross-source-seam-endpoints');
+ const found=modelPath(from.id,to.id);if(!found.success)throw Error('no-cross-source-seam-model-path');
+ const goal=byRef.get(to.id).center,last=found.path.at(-1);
+ probes.push({kind:'cross-source-tile-seam',sourceTiles:[[33,42],[32,42]],success:true,from:from.id,to:to.id,
+  componentPolygons:component.length,endpointError:Math.hypot(...last.map((v,i)=>v-goal[i])),path:found.path,
+  meters:found.meters,polygonPath:found.polygonPath,error:null});
+}
 fs.mkdirSync(outdir,{recursive:true});
 const binary=exportNavMesh(nav);fs.writeFileSync(path.join(outdir,'navmesh.bin'),binary);
 const entries=[];
@@ -118,17 +136,18 @@ for(const shard of shards){
  entries.push({filename,sha256:sha(data),bytes:data.length,id:shard.id,grid:shard.grid,
   polygons:shard.polygons.length,directedEdges:shard.polygons.reduce((s,p)=>s+p.portals.length,0)});
 }
-const manifest={format:'rikui-nav-tile-proof-v1',identity:g.identity,mapID:g.mapID,tile:g.tile,
+const manifest={format:g.tiles?'rikui-nav-region-proof-v1':'rikui-nav-tile-proof-v1',identity:g.identity,mapID:g.mapID,
+ ...(g.tiles?{regionID:g.regionID,tiles:g.tiles}:{tile:g.tile}),
  status:'derived-pending-validation',publishable:false,geometryStatus:g.status,coverage:g.coverage,
- collisionAudit:g.collisionAudit,wmoAudit:g.wmoAudit,exclusions,coverageGates:g.coverageGates,
+ collisionAudit:g.collisionAudit,wmoAudit:g.wmoAudit,exclusions,coverageGates:g.coverageGates,degeneratePolygons,
  coverageScope:exclusions.length?'outside-exclusions':'whole-source-region',
  limitations:g.limitations,source:g.source,
  geometrySha256:sha(bytes),navmeshSha256:sha(binary),coordinateSystem:g.coordinateSystem,
  bounds:{min:region[0],max:region[1]},origin,
- generator:{wrapperSHA256:sha(fs.readFileSync(new URL(import.meta.url))),package:'recast-navigation',version:'0.43.1',repositoryCommit:'8769e8b9995f127033af9f6e6eeac3fad7d66201',
+ generator:{wrapperSHA256:sha(fs.readFileSync(new URL(import.meta.url))),filterSHA256:sha(fs.readFileSync(new URL('./mesh_filter.mjs',import.meta.url))),package:'recast-navigation',version:'0.43.1',repositoryCommit:'8769e8b9995f127033af9f6e6eeac3fad7d66201',
  recastForkCommit:'599fd0f023181c0a484df2a18cf1d75a3553852e',config,agentProfileNativeVerified:false},
  statistics:{inputVertices:g.positions.length/3,inputTriangles:g.indices.length/3,
- regions:shards.length,polygons:byRef.size,directedEdges:edges,excludedPolygons:excludedIDs.length,outsideSourceRegionPolygons,components:components.map(c=>c.length),
+ regions:shards.length,polygons:byRef.size,directedEdges:edges,excludedPolygons:excludedIDs.length,outsideSourceRegionPolygons,degeneratePolygonsRemoved:degeneratePolygons.length,components:components.map(c=>c.length),
  binaryBytes:binary.length,jsonShardBytes:entries.reduce((s,e)=>s+e.bytes,0)},regions:entries,probes};
 const data=Buffer.from(JSON.stringify(manifest));fs.writeFileSync(path.join(outdir,'manifest.json'),data);
 console.log(JSON.stringify({outdir,sha256:sha(data),statistics:manifest.statistics,

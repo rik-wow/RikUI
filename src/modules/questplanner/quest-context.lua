@@ -38,8 +38,12 @@ end
 function context.WorldPosition()
     local ok,x,y,z,mapID=call(UnitPosition,"player")
     if not ok or not schema.Number(x,-100000,100000) or not schema.Number(y,-100000,100000)
-        or not schema.Number(z,-100000,100000) or not schema.Integer(mapID,0,100000) then return nil end
-    return {x=y,z=x,height=z,mapID=mapID,api="UnitPosition(player)"}
+        or not schema.Integer(mapID,0,100000) then return nil end
+    -- The third return is not established as usable Forever altitude. Keep the
+    -- raw field for acquisition; horizontal-only grounding must remain unique.
+    local result={x=y,z=x,mapID=mapID,api="UnitPosition(player)",verticalStatus="unestablished"}
+    if schema.Number(z,-100000,100000) then result.rawReportedZ=z end
+    return result
 end
 
 function context.RunSpeed()

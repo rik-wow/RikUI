@@ -49,7 +49,7 @@ def root(data):
     h=require(parts,'MOHD')
     if len(h)!=64:t.fail('WMO-MOHD-size')
     group_count=unpack('<I',h,4)[0];doodad_count=unpack('<I',h,20)[0];set_count=unpack('<I',h,24)[0]
-    if not 0<group_count<=512 or doodad_count>20000 or set_count>256:t.fail('WMO-root-cap')
+    if not 0<group_count<=512 or set_count>256:t.fail('WMO-root-cap')
     groups=require(parts,'GFID',4)
     if len(groups)!=group_count*4:t.fail('WMO-LOD-or-group-count')
     groups=list(unpack('<'+'I'*group_count,groups))
@@ -60,12 +60,15 @@ def root(data):
     sets=[]
     for at in range(0,len(sets_data),32):
         start,count,pad=unpack('<3I',sets_data,at+20)
-        if pad or start+count>doodad_count:t.fail('WMO-set-range')
+        if pad:t.fail('WMO-set-padding')
         sets.append(dict(name=sets_data[at:at+20].split(b'\0')[0].decode('ascii'),first=start,count=count))
     ref_data=require(parts,'MODI',4)
     references=list(unpack('<'+'I'*(len(ref_data)//4),ref_data))
     defs=require(parts,'MODD',40)
     actual_doodad_count=len(defs)//40
+    # MODD framing, not MOHD's advisory count, controls actual allocation/ranges.
+    # Independently corroborated by pinned wow.export and WoWFormatLib parsers.
+    if actual_doodad_count>20000:t.fail('WMO-framed-doodad-cap')
     if any(v['first']+v['count']>actual_doodad_count for v in sets):t.fail('WMO-selected-range-exceeds-framed-doodads')
     doodads=[]
     for at in range(0,len(defs),40):
@@ -112,10 +115,11 @@ def group(data):
     known={'MOPY','MOVI','MOVT','MONR','MOTV','MOBA','MOBS','MOLR','MODR','MOBN','MOBR','MOCV'}
     unsupported.extend('unknown-group-chunk:'+tag for tag in sorted(set(sub)-known))
     if set(parts)!={'MVER','MOGP'}:unsupported.append('unknown-group-top-level-chunk')
+    doodad_refs=require(sub,'MODR',2) if 'MODR' in sub else b''
     return dict(positions=positions,indices=indices,flags=flags,flags2=flags2,liquidType=liquid,
         inventory=inventory,subchunks=subs,faceFlags=dict(faceflags),sourceTriangles=nt,
         collisionTriangles=len(indices)//3,collisionOnlyMaterialTriangles=material255,
-        unsupported=unsupported,doodadReferences=list(unpack('<'+'H'*(len(sub.get('MODR',b''))//2),sub.get('MODR',b''))))
+        unsupported=unsupported,doodadReferences=list(unpack('<'+'H'*(len(doodad_refs)//2),doodad_refs)))
 
 
 def selected_doodads(wmo,index):
@@ -178,14 +182,18 @@ def build(geometry_path,directory,recursive_path):
         for e in layer['files']:
             if e['fileDataID'] in registered:t.fail('WMO-duplicate-source-ID')
             registered[e['fileDataID']]=e
-    obj_info=geometry['source']['inputs']['obj'];obj_bytes=t.load(obj_info['path'])
-    expected=next(e for e in receipt['files'] if e['fileDataID']==778198)
-    if t.digest(obj_bytes)!=expected['sha256'] or obj_info['sha256']!=expected['sha256']:t.fail('WMO-object-source-hash')
-    decoded,_,names=t.objects(obj_bytes)
+    if 'tiles' in geometry['source']['inputs']:
+        import terrain_region
+        decoded,names=terrain_region.validated_placements(geometry,receipt)
+    else:
+        obj_info=geometry['source']['inputs']['obj'];obj_bytes=t.load(obj_info['path'])
+        expected=next(e for e in receipt['files'] if e['fileDataID']==778198)
+        if t.digest(obj_bytes)!=expected['sha256'] or obj_info['sha256']!=expected['sha256']:t.fail('WMO-object-source-hash')
+        decoded,_,names=t.objects(obj_bytes)
     if names or decoded!=geometry['placements']:t.fail('WMO-placement-provenance')
     placements=[p for p in decoded if p['kind']=='wmo']
     if len(placements)>64:t.fail('WMO-placement-cap')
-    assets={};models={};roots={};groups={};unsupported=[];audit=[];positions=[];indices=[];counts=collections.Counter()
+    assets={};models={};roots={};groups={};unsupported=[];countNotes=[];audit=[];positions=[];indices=[];counts=collections.Counter()
     def asset(ident):
         entry=registered.get(ident)
         if entry is None:t.fail('WMO-unregistered-file:'+str(ident))
@@ -207,7 +215,7 @@ def build(geometry_path,directory,recursive_path):
         wmo=roots[ident]
         unsupported.extend(dict(placementID=uid,reason='root-chunk:'+x) for x in wmo['unknownChunks'])
         if wmo['advertisedDoodadCount']!=wmo['framedDoodadCount']:
-            unsupported.append(dict(placementID=uid,fileDataID=ident,reason='MOHD-doodad-count-disagrees-with-framed-MODD',advertised=wmo['advertisedDoodadCount'],framed=wmo['framedDoodadCount']))
+            countNotes.append(dict(placementID=uid,fileDataID=ident,reason='MOHD-count-advisory-MODD-framing-authoritative',advertised=wmo['advertisedDoodadCount'],framed=wmo['framedDoodadCount']))
         active,selected=selected_doodads(wmo,placement['doodadSet'])
         rowaudit=dict(placementID=uid,fileDataID=ident,selectedSetIndices=active,
             selectedSets=[wmo['sets'][i] for i in active],selectedDoodads=len(selected),groupIDs=wmo['groups'],
@@ -222,10 +230,17 @@ def build(geometry_path,directory,recursive_path):
             world=c.transformed(gr,placement);add(world,gr['indices']);wmo_vertices.extend(world)
             counts['WMOGroupInstances']+=1;counts['WMOGroupTriangles']+=len(gr['indices'])//3
             percounts['groupTriangles']+=len(gr['indices'])//3
+        flagged=[i for i in selected if wmo['doodads'][i]['flags']!=0]
+        rowaudit['unsupportedDoodadFlagIndices']=flagged
+        if flagged:
+            unsupported.append(dict(placementID=uid,fileDataID=ident,reason='WMO-doodad-flags',
+                flags=sorted({wmo['doodads'][i]['flags'] for i in flagged})))
         for idx in selected:
             dd=wmo['doodads'][idx];did=dd['reference']
             if not did:t.fail('WMO-selected-null-doodad')
-            if dd['flags']!=0:t.fail('WMO-unsupported-doodad-flags')
+            if dd['flags']!=0:
+                counts['selectedDoodadInstances']+=1;counts['unsupportedDoodadFlagInstances']+=1
+                continue
             if did not in models:
                 data=asset(did)
                 try:models[did]=c.m2(data)
@@ -264,12 +279,12 @@ def build(geometry_path,directory,recursive_path):
             acquisitionReceipt=dict(path=receipt_info['path'],sha256=t.digest(receipt_bytes)),
             recursiveReceipt=dict(path=str(pathlib.Path(recursive_path).resolve()),sha256=t.digest(recursive_bytes)),
             buildConfig=BUILD_CONFIG,cdnConfig=CDN_CONFIG,assets=list(assets.values()),
-            parser='rikui-wmo-probe-v1',parserSha256=t.digest(pathlib.Path(__file__).read_bytes()),dependencyScriptSha256={name:t.digest((pathlib.Path(__file__).parent/name).read_bytes()) for name in ('terrain_probe.py','collision_probe.py')},formatReference=dict(repo='Kruithne/wow.export',commit=t.PIN,license='MIT'),
+            parser='rikui-wmo-probe-v1',parserSha256=t.digest(pathlib.Path(__file__).read_bytes()),dependencyScriptSha256={name:t.digest((pathlib.Path(__file__).parent/name).read_bytes()) for name in (('terrain_probe.py','collision_probe.py')+(('terrain_region.py',) if 'tiles' in geometry['source']['inputs'] else ()))},formatReference=dict(repo='Kruithne/wow.export',commit=t.PIN,license='MIT'),
             empty274Reference=dict(path=str(pathlib.Path(__file__).parent/'m2-274-reference.json'),sha256=t.digest(t.load(pathlib.Path(__file__).parent/'m2-274-reference.json')),sourceSha256='4e3be9da12879a6de2e441391b4deba8c5fa45ee721051cb3279d2168ca7cae8'),
             collisionFlagReference=dict(repo='TrinityCore/TrinityCore',commit=TC_PIN,files=['src/tools/vmap4_extractor/wmo.h','src/tools/vmap4_extractor/wmo.cpp'],license='GPL-2.0-or-later; semantics reference only; no implementation copied')),
-        coverage=dict(staticWMO=not unsupported,selectedDoodads=not unsupported,framedSelectedStaticDecoded=not any(v['reason']!='MOHD-doodad-count-disagrees-with-framed-MODD' for v in unsupported),allGroupDoodadRefsInRange=True,liquids='no-MLIQ-and-zero-liquid-types-in-all-selected-groups',
+        coverage=dict(staticWMO=not unsupported,selectedDoodads=not unsupported,framedSelectedStaticDecoded=not unsupported,allGroupDoodadRefsInRange=True,liquids=('present-and-unmodeled-in-selected-WMO-groups' if any(v['reason']=='WMO-liquid-not-modeled' for v in unsupported) else 'no-MLIQ-and-zero-liquid-types-in-all-selected-groups'),
             transformsNativeVerified=False,dynamicObjects=False,phaseState=False),
-        audit=dict(placements=audit,counts=dict(counts),unsupported=unsupported,
+        audit=dict(placements=audit,counts=dict(counts),unsupported=unsupported,headerCountNotes=countNotes,
             roots=[dict(fileDataID=i,groups=r['groups'],sets=r['sets'],flags=r['flags'],chunks=r['inventory'],advertisedDoodadCount=r['advertisedDoodadCount'],framedDoodadCount=r['framedDoodadCount']) for i,r in roots.items()],
             groups=[dict(fileDataID=i,**{k:v for k,v in g.items() if k not in ('positions','indices')}) for i,g in groups.items()]),
         limitations=['Static collision interpretation is an offline derived candidate, not verified Forever client traversal.',

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {hasHorizontalArea,removeBlockedPortals} from './mesh_filter.mjs';
+assert.equal(hasHorizontalArea([[0,0,0],[1,0,0],[0,0,1]]),true);
+assert.equal(hasHorizontalArea([[0,9,0],[0,3,1],[1,4,0]]),true);
+assert.equal(hasHorizontalArea([[-959.1673,403.5862,-5501.6673],[-959.1673,403.1862,-5499.6673],[-959.1673,403.6862,-5502.6673]]),false);
+assert.equal(hasHorizontalArea([[0,0,0],[1,1,1],[2,2,2]]),false);
+assert.equal(hasHorizontalArea([[0,0,0],[0,8,0],[0,12,0]]),false);
+assert.equal(hasHorizontalArea([[0,0,0],[Infinity,0,0],[0,0,1]]),false);
+const edges=[{to:3},{to:4},{to:5}],blocked=new Set([4]);
+assert.deepEqual(removeBlockedPortals(edges,blocked),[{to:3},{to:5}]);
+assert.deepEqual(edges,[{to:3},{to:4},{to:5}]);
+console.log('8 mesh-filter regression checks passed');

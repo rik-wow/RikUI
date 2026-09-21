@@ -133,7 +133,7 @@ local function locate(data,point)
         if geometry.Contains(value.points,point.x,point.z) then
             local height=geometry.Height(value.points,point.x,point.z)
             if height and (point.height==nil or math.abs(height-point.height)<=1) then
-                if match then return nil,"ambiguous navigation layer or boundary" end
+                if match then return nil,"Floor or polygon boundary is ambiguous" end
                 match={id=id,point={point.x,height,point.z}}
             end
         end

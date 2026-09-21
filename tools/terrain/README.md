@@ -13,7 +13,7 @@ python acquire.py --game-root 'C:\Program Files (x86)\World of Warcraft' --tact-
 .\reproduce.ps1 -AcquisitionDirectory 'D:\RikUI-local\acquisition-69913' -OutputDirectory 'D:\RikUI-local\bake-69913'
 ```
 
-The acquisition profile contains only factual IDs, byte counts, hashes, build/source revisions and minimal mapping evidence for 232 assets: three WDT/ADT files, 84 direct collision dependencies, 11 WMO groups and 134 additional doodad models. The profile is pinned by a canonical JSON SHA256, so formatting changes are harmless while changing any factual entry requires explicit parser/profile review. The extractor uses the supplied game root read-only, runs all four extraction batches in the external output directory, then checks every asset hash before writing compatible receipts. Missing data or an updated client fails verification instead of silently changing builds. Client processes are never closed or controlled.
+The acquisition profile contains only factual IDs, byte counts, hashes, build/source revisions and minimal mapping evidence for 391 assets (8,785,514 bytes): five WDT/ADT files, 158 direct collision dependencies, 26 WMO groups and 202 additional doodad models. The bound is 512 files and 16 MiB overall, with at most 4 MiB per asset. The original single-tile reproduction remains available; [REGION.md](REGION.md) describes the two-source region and its separate reproduction command. The profile is pinned by a canonical JSON SHA256, so formatting changes are harmless while changing any factual entry requires explicit parser/profile review. The extractor uses the supplied game root read-only, runs all four extraction batches in the external output directory, then checks every asset hash before writing compatible receipts. Missing data or an updated client fails verification instead of silently changing builds. Client processes are never closed or controlled.
 
 Existing exact acquisitions can be checked without writes or copied with regenerated receipts:
 
@@ -28,19 +28,19 @@ Client identity: wow_classic_beta / Forever 1.60.1.69913 / enUS. Extraction rece
 
 - `terrain_probe.py`: bounded MVER18 root/obj ADT reader, full framing checks, all256 unique MCNK chunks, staggered heights, low/high resolution holes, placement dependency inventory. Default2x2 chunk region; explicit --allow-full-tile permits all256 chunks.
 - `collision_probe.py`: bounded M2 MD21/MD20 version272 collision arrays, placement transforms, explicit footprint inclusion/exclusion. No rendered-model triangles substituted for collision arrays.
-- `wmo_probe.py`: framed MVER17 roots/groups, declared collision face flags, selected/default doodad sets, quaternion transforms and source hashes. A narrow hash-bound version274 asset profile recognizes its demonstrated empty collision arrays; other version274 assets remain unsupported.
+- `wmo_probe.py`: framed MVER17 roots/groups, declared collision face flags, selected/default doodad sets, quaternion transforms and source hashes. Hash-bound version 274 profiles admit only independently demonstrated collision arrays; other version 274 assets remain unsupported. MOHD counts remain audit metadata; framed MODD records and strict MODS/MODR bounds govern decoding.
 - `merge_geometry.py`: joins matching acquisition/terrain receipts and exact placement coverage, preserves source inconsistencies, and identifies entire affected MODF footprints for conservative exclusion.
 - `bake.mjs`: small single-region Recast proof and exported polygon portals.
 - `bake_tile.mjs`: fulltile Recast tiling with bounded JSONshards. Handles Detour signed JS sentinel conversions, clipped intertile portals, reciprocal references, component discovery and actual path queries.
 - `plot_proof.py`: offline scientific figure using target-build UiMapAssignment. Does not automate UI.
 - `test_probe.py`: parser boundaries, hole topology, winding, model coordinate transform, real-data resource/coverage checks.
-- `test_wmo_probe.py`, `test_nav_artifact.py` and `test_acquire.py`: 38 tests altogether, including malformed inputs, build isolation, declared set bounds, model transform reference cases, real convex polygon/portal topology, source bounds, excluded footprints and acquisition path/hash boundaries. The transform proof JSON preserves a previously executed 384-case comparison with the pinned reference; consuming its receipt is not a new native verification.
+- `test_wmo_probe.py`, `test_nav_artifact.py` and `test_acquire.py`: 46 tests in the original-tile reproduction, including malformed inputs, build isolation, declared set bounds, model transform reference cases, real convex polygon/portal topology, source bounds, excluded footprints and acquisition path/hash boundaries. The transform proof JSON preserves a previously executed 384-case comparison with the pinned reference; consuming its receipt is not a new native verification.
 
-Current full tile proof: 79,580 vertices / 100,528 source triangles; 81 shards; 4,322 retained polygons and 8,484 directed portals. Three actual WMO root header versus framed doodad count inconsistencies remain in the audit. The exporter excludes polygons whose horizontal AABBs touch those complete MODF footprints expanded by the modeled 0.5-yard agent radius. It also excludes every polygon extending beyond the source ADT bounds, including geometry in Recast's padded outer shards. The union removes 247 polygons. The remaining graph has coverage scope `outside-exclusions`; this is not a claim that missing metadata was repaired. Three Dijkstra probes on the filtered exported graph reach their endpoints. The largest component has 3,386 polygons. Separate small-region proof remains available.
+The corrected original-tile model has 4,489 polygons and 8,772 directed portals in 81 shards. Three header-count discrepancies are preserved as audit notes after comparison with unmodified pinned readers; they no longer incorrectly exclude complete building footprints. The two-source region includes an additional 128-yard strip, with 6,213 polygons, 12,112 portals and 99 shards. Its whole-placement exclusions cover unmodeled WMO liquid indications and unsupported doodad flags; it does not infer liquid geometry from a header alone. Both models exclude polygons outside their explicit source rectangle. Degenerate horizontal faces and incident links are removed with an audit record, while the compiler independently retains its strict convexity checks.
 
 The bake rebuilds both proofs, tests them, rebakes the complete tile twice, and checks all 83 full tile files byte-for-byte. `verification-receipt.json` records actual script/package/artifact hashes. Paths and parser revisions in manifests are local provenance; a different directory produces different manifest hashes while polygon shard geometry remains identical. From the external bake directory, the optional figure is generated with `python plot_proof.py --geometry geometry-full.json --nav full-tile --out full-tile-proof.png`.
 
-The small and full proofs remain `publishable=false`. Exact source bytes, completed static decoding, model assumptions and native verification are separate statuses. Player height/radius/climb/slope are explicit engineering sample parameters, not confirmed Forever physics. Dynamic doors, phasing, spawned gameobjects, enemies, swimming and transports require separate information. No connection beyond the extracted tile is invented.
+The small and full proofs remain `publishable=false`. Exact source bytes, completed static decoding, model assumptions and native verification are separate statuses. Player height/radius/climb/slope are explicit engineering sample parameters, not confirmed Forever physics. Dynamic doors, phasing, spawned gameobjects, enemies, swimming and transports require separate information. No connection beyond the explicit sourced region is invented. Regional seam links come from the combined geometry bake and actual Detour portals.
 
 The JSON shards support an addon-side graph/polygon pathfinder. The Detour binary retains diagnostic geometry inside excluded footprints and must not be used as the filtered graph. WoW Lua cannot load this WASM/C++ binary. Keep these datasets outside RikUI settings/profile transport. Fulltile output is tiled so runtime can load/process bounded regions and retain portal connectivity. Runtime adjacency is declared portals only; coarse polygon center/portal-midpoint segments stay within the convex projected corridor. Coarse heights omit Detour detail triangles and are modeled estimates; overlapping floor selection requires height or an unknown result.
 
@@ -55,6 +55,14 @@ Install offline bake dependency with `npm ci --ignore-scripts` beside the suppli
 - Exact extraction: TACTSharp0.2.0-alpha1, source c12f9fa3c4ceeb619b0453947cee86fccad6774a, tool binary/archive hashes and commands in the separate acquisition folder/manifest.
 
 Software licenses cover their respective software; redistribution terms for extracted Blizzard game assets have not been established here. Geometry artifacts are local user-owned-client derivatives and are not designated as redistributable addon content.
+
+The region reproduction passes 52 Python source/topology tests and eight mesh-filter checks,
+compares 101 files byte-for-byte, and includes an explicit path crossing the ADT boundary.
+This establishes reproducibility and graph connectivity within the model. At the user's
+reported indoor position, the current model has a unique containing polygon in a small
+disconnected component. Some observed quest POIs are outside polygons or in other
+components. An observed marker is not proof of a safe standing point, interaction range,
+or a feasible route. These gaps are retained rather than repaired by proximity links.
 
 ## Geography
 
@@ -75,14 +83,15 @@ python compile_quest_terrain.py --manifest 'D:\RikUI-local\bake-69913\full-tile\
 The output parent must exist and the addon directory must not exist. Copy that
 directory to the target client's Interface\AddOns, then fully restart WoW so
 the new TOCs are discovered. No generated mesh is committed or transported via
-RikUI macros. The compiler writes 81 bounded shards, a manifest and registration
-file plus offline audit/probe files. Only the 84 runtime files appear in the TOC.
+RikUI macros. The compiler writes bounded shards, a manifest and registration file plus offline
+audit/probe files. The single-tile model has 81 shards; the expanded region has
+99. Only runtime Lua files appear in the TOC.
 
 `python -m unittest discover -s tools/terrain -p test_compile_quest_terrain.py`
-runs 37 compiler boundary tests from the repository root. For the actual local
+runs 57 compiler boundary tests from the repository root. For the actual local
 compiled addon, run
 `luajit tests/quest-terrain-data.lua "D:/RikUI-local/RikUIQuestTerrain"`.
-That checks production Lua validation and three actual paths against an
+That checks production Lua validation and actual probe paths against an
 independent shortest-path calculation. It does not establish native traversal.
 
 The proof's `publishable=false` marker means it is not certified for redistribution

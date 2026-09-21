@@ -26,7 +26,7 @@ class ArtifactChecks(unittest.TestCase):
     def test_exact_identity_resource_caps_and_source_hashes(self):
         m=self.manifest
         self.assertEqual(m['identity']['build'],'1.60.1.69913');self.assertFalse(m['publishable'])
-        self.assertFalse(m['generator']['agentProfileNativeVerified']);self.assertEqual(m['coverageScope'],'outside-exclusions')
+        self.assertFalse(m['generator']['agentProfileNativeVerified']);self.assertEqual(m['coverageScope'],'whole-source-region')
         self.assertLessEqual(len(self.rows),8192)
         self.assertEqual(sum(len(p['portals']) for p in self.rows.values()),m['statistics']['directedEdges'])
         for shard in self.shards:
@@ -48,7 +48,8 @@ class ArtifactChecks(unittest.TestCase):
                 expected=distance(poly['center'],mid)+distance(mid,target['center'])
                 self.assertAlmostEqual(expected,portal['meters'],delta=.00006)
     def test_uncertain_footprints_cannot_receive_graph_nodes(self):
-        m=self.manifest;self.assertEqual(len(m['coverageGates']),3);self.assertEqual(len(m['exclusions']),3)
+        m=self.manifest;self.assertEqual(m['coverageGates'],[]);self.assertEqual(m['exclusions'],[])
+        self.assertEqual(len(m['wmoAudit']['headerCountNotes']),3)
         self.assertGreater(m['statistics']['excludedPolygons'],0)
         for poly in self.rows.values():
             for box in m['exclusions']:
@@ -77,7 +78,7 @@ class ArtifactChecks(unittest.TestCase):
             if kind=='receipt':bad['source']['acquisitionReceipt']['sha256']='0'*64
             if kind=='base':bad['source']['geometry']['sha256']='0'*64
             if kind=='placement':bad['audit']['placements'].pop()
-            if kind=='gate':bad['audit']['unsupported'][0]['placementID']=999
+            if kind=='gate':bad['audit']['unsupported'].append({'placementID':999,'reason':'unresolved-fixture'})
             if kind=='nan':bad['positions'][0]=math.nan
             if kind=='index':bad['indices'][0]=99999999
             with self.assertRaises(ValueError,msg=kind):merge.merge(g,bad)

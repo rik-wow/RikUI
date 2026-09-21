@@ -43,6 +43,21 @@ return function(check)
             and p.Terrain.Status().status=="unknown-location")
         p.Context.WorldPosition=nil; tick()
         check("recovered world location rebuilds guidance",p.Terrain.Guidance()~=nil)
+        p.Context.WorldPosition=function() return {mapID=0,x=1,z=1,height=-100,rawReportedZ=0,verticalStatus="unestablished"} end
+        p.Terrain.Invalidate(); tick()
+        check("unestablished altitude cannot override unique horizontal grounding",p.Terrain.Guidance()~=nil)
+        local stacked=p.Schema.Clone(shards)
+        stacked[1].polygons[4]={id=4,points={{0,10,0},{10,10,0},{10,10,10},{0,10,10}},portals={}}
+        local stackMeta=p.Schema.Clone(meta); stackMeta.counts.polygons=4
+        assert(p.Terrain.Install(stackMeta,stacked)); tick()
+        check("indoor raw zero cannot choose between stacked floors",not p.Terrain.Guidance()
+            and p.Terrain.Status().status=="unknown-location"
+            and p.Terrain.Status().detail:find("ambiguous",1,true)~=nil)
+        p.Context.WorldPosition=function() return {mapID=0,x=1,z=1,height=0,verticalStatus="observed-altitude"} end
+        tick()
+        check("explicit established height can disambiguate modeled floor",p.Terrain.Guidance()~=nil)
+        p.Context.WorldPosition=nil
+        assert(p.Terrain.Install(meta,shards)); tick()
         position.x,position.y=.85,.95; tick()
         guidance=assert(p.Terrain.Guidance())
         check("motion trims corridor by polygon membership",guidance.meters<initial and guidance.next.x==.85 and guidance.next.y==.9)

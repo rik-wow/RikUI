@@ -73,7 +73,8 @@ local function update()
         if world.mapID~=mesh:Metadata().worldMapID or math.abs(world.x-start.x)>5 or math.abs(world.z-start.z)>5 then
             clear(); state={status="unknown-location",detail="Map and world positions disagree"}; return
         end
-        start={x=world.x,z=world.z,height=world.height}
+        start={x=world.x,z=world.z}
+        if world.verticalStatus=="observed-altitude" then start.height=world.height end
     end
     local location,problem=mesh:Locate(start)
     if not location then clear(); state={status="unknown-location",detail=problem}; return end

@@ -1,0 +1,32 @@
+{
+  "schema": "rikui-exact-m2-274-collision-profiles-v1",
+  "referenceCommit": "c2fd7bde36a712be78a5da896c995b84fbfa2545",
+  "records": [
+    {
+      "fileDataID": 197388,
+      "sha256": "0e0f350af340436194c1013d037f81e681876c227dafda816a3c5e3a0c98dfb6",
+      "bytes": 20276,
+      "version": 274,
+      "name": "ExcavationTent01",
+      "remainingBytes": 0,
+      "vertices": 72,
+      "triangles": 136,
+      "allCollisionCoordinatesAndIndicesMatch": true,
+      "axisMapping": "Pinned loader converts raw (x,y,z) to (x,z,-y); our parser retains raw axes until placement transform."
+    },
+    {
+      "fileDataID": 197389,
+      "sha256": "8a2118873adccadd97330ee4326f2e2420e6711cfe8fd3d3a7c83f36e7005116",
+      "bytes": 15380,
+      "version": 274,
+      "name": "ExcavationTent02",
+      "remainingBytes": 0,
+      "vertices": 48,
+      "triangles": 93,
+      "allCollisionCoordinatesAndIndicesMatch": true,
+      "axisMapping": "Pinned loader converts raw (x,y,z) to (x,z,-y); our parser retains raw axes until placement transform."
+    }
+  ],
+  "nativeVerified": false,
+  "other274Assets": "unsupported unless separately demonstrated"
+}

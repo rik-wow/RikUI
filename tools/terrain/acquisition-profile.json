@@ -21,28 +21,36 @@
   },
   "files": [
     {
-      "path": "Azeroth.69913.wdt",
-      "layer": "root",
-      "fileDataID": 775971,
-      "bytes": 294988,
-      "sha256": "160452dec4c2b0ae4cbe7468ce52fee91ac7ec521d2cb0f28e955def0d087137",
-      "encodingKey": "537875ec818381d63a06980d0682b72b"
+      "path": "collision/110491.bin",
+      "layer": "collision",
+      "fileDataID": 110491,
+      "bytes": 1576,
+      "sha256": "47cf30a5a5ac0f1cd970f6ec465ab3f950c0c3f2495f4cc0d42b08ee2714939a",
+      "encodingKey": "9f8b4b6e7163a44dc37762c97f998e0e"
     },
     {
-      "path": "Azeroth_33_42.69913.adt",
-      "layer": "root",
-      "fileDataID": 778197,
-      "bytes": 454740,
-      "sha256": "3cf93beb9f349f5928c8621eb8e03fba26e619c86560127ecff1d35bdbd02409",
-      "encodingKey": "cdba109f95b88d997b3c7102e23deaf8"
+      "path": "collision/111052.bin",
+      "layer": "collision",
+      "fileDataID": 111052,
+      "bytes": 15760,
+      "sha256": "2b006747370121b7a32106dcb27ee4a024f8e84eca37bca741a7654c9df9eaa1",
+      "encodingKey": "e9eed7c624039e08df799ae034dfd422"
     },
     {
-      "path": "Azeroth_33_42_obj0.69913.adt",
-      "layer": "root",
-      "fileDataID": 778198,
-      "bytes": 40000,
-      "sha256": "18a62d51a583c0e263579b95bcf16e87a16918d843c927a69f98aeca54ed6152",
-      "encodingKey": "f52e8caf1ab7ecf16a86bb92e9627be6"
+      "path": "collision/113204.bin",
+      "layer": "collision",
+      "fileDataID": 113204,
+      "bytes": 880,
+      "sha256": "e87ac0e062a9de1ee54bfd424d5a5bf656c36e54d5022dae7b673f475ca6b447",
+      "encodingKey": "a9562be331f8dc2b13908466bb502c70"
+    },
+    {
+      "path": "collision/113872.bin",
+      "layer": "collision",
+      "fileDataID": 113872,
+      "bytes": 4128,
+      "sha256": "7c4a4186a7988de9a5fd758f7c4a9beab971efc5118b1e42b15338b2169ae2d8",
+      "encodingKey": "592937624034946f100623b6f72ca6ab"
     },
     {
       "path": "collision/113875.bin",
@@ -61,12 +69,44 @@
       "encodingKey": "64b0fd427ba7adf887e4c020c209e7ac"
     },
     {
+      "path": "collision/113910.bin",
+      "layer": "collision",
+      "fileDataID": 113910,
+      "bytes": 12928,
+      "sha256": "ad8a4a9743edd41c173c4b3fc37d177288d25a6c131489e96358fa0a38dbb521",
+      "encodingKey": "3a321945a0fe6c0b354b751a2ccf86b6"
+    },
+    {
       "path": "collision/113925.bin",
       "layer": "collision",
       "fileDataID": 113925,
       "bytes": 34612,
       "sha256": "4c487b31e7d8730974483bca46e60d544f4452e8f2d60064276fe67bf921050a",
       "encodingKey": "3001a79f3bbd84d496aa742f3a8ea62e"
+    },
+    {
+      "path": "collision/189204.bin",
+      "layer": "collision",
+      "fileDataID": 189204,
+      "bytes": 19284,
+      "sha256": "ad22bc6b68db22fa4fe286bdb6203481ee95bd542bc927729467d12512a039cf",
+      "encodingKey": "8903b72cdbe0c1bdcece284308cc9a61"
+    },
+    {
+      "path": "collision/189264.bin",
+      "layer": "collision",
+      "fileDataID": 189264,
+      "bytes": 6176,
+      "sha256": "88be570070a4691006ec7b576109a32679050f66fa50e0fc8ff19d56bb1830b8",
+      "encodingKey": "7c30f04dee59758fcdc6df9ae8ef68dd"
+    },
+    {
+      "path": "collision/189528.bin",
+      "layer": "collision",
+      "fileDataID": 189528,
+      "bytes": 3104,
+      "sha256": "f18fa2cee08508c3054c1b3e3741ce68aff18940365fe1ed74ba89e3e431b2a5",
+      "encodingKey": "5d1235dbc2b2980ae70f8e2918f285c0"
     },
     {
       "path": "collision/189530.bin",
@@ -101,6 +141,22 @@
       "encodingKey": "2fe9bd3a18d882e296714f7bd1103c14"
     },
     {
+      "path": "collision/189538.bin",
+      "layer": "collision",
+      "fileDataID": 189538,
+      "bytes": 4620,
+      "sha256": "f26910f24b42a69b2048f44ce602b1b9ef1f1a7ae87f773142c4940cdeb78a48",
+      "encodingKey": "bbc7b3571df5413343edff3f7bed1738"
+    },
+    {
+      "path": "collision/189687.bin",
+      "layer": "collision",
+      "fileDataID": 189687,
+      "bytes": 2784,
+      "sha256": "559d3b0656f9aaceb2062361f1361a45a07b078e5e0450be4211c7cb891f497b",
+      "encodingKey": "32bf44eac070eb7c93efccc6078ad68c"
+    },
+    {
       "path": "collision/189768.bin",
       "layer": "collision",
       "fileDataID": 189768,
@@ -117,12 +173,28 @@
       "encodingKey": "fda442a9b498dfe44a50a0449320a72e"
     },
     {
+      "path": "collision/189810.bin",
+      "layer": "collision",
+      "fileDataID": 189810,
+      "bytes": 3892,
+      "sha256": "821e7989b57a56f96fbefe645564728982d9e6a86572a0d378fb36a5706d1ac3",
+      "encodingKey": "863e3e55c8a94c3c0cc6f6f12cf218fc"
+    },
+    {
       "path": "collision/189815.bin",
       "layer": "collision",
       "fileDataID": 189815,
       "bytes": 3184,
       "sha256": "b76557a30b6874c615e41d98191bd23fa1690a109ec2662d62b5cd42095b5d1d",
       "encodingKey": "fdcc176d65839d165337c95428a380e5"
+    },
+    {
+      "path": "collision/189816.bin",
+      "layer": "collision",
+      "fileDataID": 189816,
+      "bytes": 4240,
+      "sha256": "aa9d0f68efc6d30acc424f846f43aa5067ffc93e33cb35ee15f3caf809a3a00b",
+      "encodingKey": "2f39874048c13ea1a67fb7275da943e9"
     },
     {
       "path": "collision/189817.bin",
@@ -133,12 +205,60 @@
       "encodingKey": "a7c0bf1310b26337cc7f664bd3d7658d"
     },
     {
+      "path": "collision/189821.bin",
+      "layer": "collision",
+      "fileDataID": 189821,
+      "bytes": 4308,
+      "sha256": "567900b0907c6f2812bc4e28116ab992949a86e1d3c751994cac387be0ce9250",
+      "encodingKey": "5be361529171013a607f28fd19131c9e"
+    },
+    {
+      "path": "collision/189834.bin",
+      "layer": "collision",
+      "fileDataID": 189834,
+      "bytes": 5144,
+      "sha256": "1b0995690b6a1bae8f4434138e5a1f39d41f91ce3922d784000e8a492dfb0eb4",
+      "encodingKey": "417fdc34f111ade0146806dd5cba19fc"
+    },
+    {
+      "path": "collision/189854.bin",
+      "layer": "collision",
+      "fileDataID": 189854,
+      "bytes": 2528,
+      "sha256": "d9e0c60e4f92b55ca293122594841bf3fa087fbe5a369613d23681cde5b6ca73",
+      "encodingKey": "bfc4b2725b10b234c496fc9875e1bbea"
+    },
+    {
       "path": "collision/190104.bin",
       "layer": "collision",
       "fileDataID": 190104,
       "bytes": 11076,
       "sha256": "228bac0d58ea5aa69a97a51d1392cdd03812088dda103bdaae605bf2708088bb",
       "encodingKey": "f7da9d6cc7a40587a36514f3d965a83a"
+    },
+    {
+      "path": "collision/190116.bin",
+      "layer": "collision",
+      "fileDataID": 190116,
+      "bytes": 8036,
+      "sha256": "3f902a332039e4743a65ea2c7361ff95b7a37bef332d6af483643c54363c1f7f",
+      "encodingKey": "60a5b3970c16e24f3ea3ca922b453aeb"
+    },
+    {
+      "path": "collision/190332.bin",
+      "layer": "collision",
+      "fileDataID": 190332,
+      "bytes": 6648,
+      "sha256": "f4ccbb304dbf4e5f585c6d16500f6e04f1c2fbbbd417b08fd60cabc912b0f8b4",
+      "encodingKey": "1d6f838db2537725bcb9ed44c967c749"
+    },
+    {
+      "path": "collision/190333.bin",
+      "layer": "collision",
+      "fileDataID": 190333,
+      "bytes": 22348,
+      "sha256": "7591e756baf27f2df0611521802cce8ecad1c28819c0e490a95398d5dccc863f",
+      "encodingKey": "deae8f35af94166d732917c0dfbbfee4"
     },
     {
       "path": "collision/190435.bin",
@@ -155,6 +275,22 @@
       "bytes": 6112,
       "sha256": "2bea79aa06e023a25f6da353dddec40e185bebfe72e918097d392a56c349a640",
       "encodingKey": "e4608bd5fc1bc712206bb74c58c41053"
+    },
+    {
+      "path": "collision/190440.bin",
+      "layer": "collision",
+      "fileDataID": 190440,
+      "bytes": 1776,
+      "sha256": "c81a9c9ce9a3f622b61ab96a469c22e260c0f5073d9925d761db3636daee1d1f",
+      "encodingKey": "301aa2bdb399f117c4bcc36902173888"
+    },
+    {
+      "path": "collision/190441.bin",
+      "layer": "collision",
+      "fileDataID": 190441,
+      "bytes": 7120,
+      "sha256": "f987ede2df77789280079f0999faf8c1a26e85f197acabd419d10658f21c3bb0",
+      "encodingKey": "926488cbcae55592ed83603b94005520"
     },
     {
       "path": "collision/190535.bin",
@@ -179,6 +315,22 @@
       "bytes": 6000,
       "sha256": "f9568743cbdfc8dd231663222c51417a4fa01c19788b4936c7b853a00acfcb05",
       "encodingKey": "ec51068938198ae5341b776fd585bb97"
+    },
+    {
+      "path": "collision/190592.bin",
+      "layer": "collision",
+      "fileDataID": 190592,
+      "bytes": 2544,
+      "sha256": "7605605c2f23ac16aacb12b08fd458fb117605f39b0f80dfa3256fa1929b5992",
+      "encodingKey": "13f98422e3beb2781548e4eb4fc1783c"
+    },
+    {
+      "path": "collision/190595.bin",
+      "layer": "collision",
+      "fileDataID": 190595,
+      "bytes": 4372,
+      "sha256": "a62ba8ccde13bc19b8afddaec2336955e449d9d9d406db7decfaa9d54b313739",
+      "encodingKey": "3038c150f5bbaebc26fb2015e77ac72d"
     },
     {
       "path": "collision/190657.bin",
@@ -253,12 +405,52 @@
       "encodingKey": "9eab02f11d9ea4c48f02b957e0139b8c"
     },
     {
+      "path": "collision/197388.bin",
+      "layer": "collision",
+      "fileDataID": 197388,
+      "bytes": 20276,
+      "sha256": "0e0f350af340436194c1013d037f81e681876c227dafda816a3c5e3a0c98dfb6",
+      "encodingKey": "b6a961ed2132ca6b683b17e738937d4a"
+    },
+    {
+      "path": "collision/197389.bin",
+      "layer": "collision",
+      "fileDataID": 197389,
+      "bytes": 15380,
+      "sha256": "8a2118873adccadd97330ee4326f2e2420e6711cfe8fd3d3a7c83f36e7005116",
+      "encodingKey": "d76d3d2b57980dbc1a88aee41ca76984"
+    },
+    {
       "path": "collision/197391.bin",
       "layer": "collision",
       "fileDataID": 197391,
       "bytes": 12612,
       "sha256": "1b1dadc49e1d38ab63ea959bde71761887f4597c09a49a697c97bc38419e30e3",
       "encodingKey": "f492e1cbb35aaeac7b57a0e675cdbf86"
+    },
+    {
+      "path": "collision/197402.bin",
+      "layer": "collision",
+      "fileDataID": 197402,
+      "bytes": 6896,
+      "sha256": "0fd7a326c0b6da29622ab4500e827f8b22bd40d56b6bd8c7a62e3f1e3bbc61c3",
+      "encodingKey": "24acaaa58c73592308510133bf57d1bb"
+    },
+    {
+      "path": "collision/197404.bin",
+      "layer": "collision",
+      "fileDataID": 197404,
+      "bytes": 18212,
+      "sha256": "3bfe6f88878d8416580dae667114c7ab078a6b1237562bb178c95e2c3573bacc",
+      "encodingKey": "b1ab79647b4376fcf87d6ae99aa3950a"
+    },
+    {
+      "path": "collision/197405.bin",
+      "layer": "collision",
+      "fileDataID": 197405,
+      "bytes": 24532,
+      "sha256": "8ee38f291a344528c05608c5031a73a1eef51c59160ebde1c920420ae37673db",
+      "encodingKey": "b3d27c9572cbe206b4b182be9b8bc7ad"
     },
     {
       "path": "collision/197409.bin",
@@ -333,6 +525,14 @@
       "encodingKey": "b2e0e32972c8ea89fb9c502a0053d981"
     },
     {
+      "path": "collision/197608.bin",
+      "layer": "collision",
+      "fileDataID": 197608,
+      "bytes": 3488,
+      "sha256": "101d47774a2e3770f8abf67c341c67217d29f862936606b51fa8bb556014d9e3",
+      "encodingKey": "86ef88dd5b51f95bb76ae646882ca24d"
+    },
+    {
       "path": "collision/197617.bin",
       "layer": "collision",
       "fileDataID": 197617,
@@ -373,6 +573,190 @@
       "encodingKey": "9bc23a869e87e46b968193576e23a114"
     },
     {
+      "path": "collision/197640.bin",
+      "layer": "collision",
+      "fileDataID": 197640,
+      "bytes": 13584,
+      "sha256": "05d64c802e6106810af9d15795925a9a73508d2a23a093d94f2725fa4bb5b859",
+      "encodingKey": "b0c9653dff2f14fcc7a57cdc53120762"
+    },
+    {
+      "path": "collision/197641.bin",
+      "layer": "collision",
+      "fileDataID": 197641,
+      "bytes": 30708,
+      "sha256": "5e117d6a796c2c69fde723bc485665bf58a64e8a6af4f2e564319745f5922ddc",
+      "encodingKey": "f4f479f377b9cf2ae4d8f649543ae3b1"
+    },
+    {
+      "path": "collision/197643.bin",
+      "layer": "collision",
+      "fileDataID": 197643,
+      "bytes": 26160,
+      "sha256": "f113316007c355a87c7075d405ab77649c9273ed7e3168b62c1ae43d4f2da247",
+      "encodingKey": "eec074a2eb4adb42b58e209828b4ffd9"
+    },
+    {
+      "path": "collision/197644.bin",
+      "layer": "collision",
+      "fileDataID": 197644,
+      "bytes": 9024,
+      "sha256": "6377b11c45776702fa74f7e33d02c35b831f1a9a3856042a52ec9313e0761d1e",
+      "encodingKey": "0826a793253a972e75487e78df1cafcc"
+    },
+    {
+      "path": "collision/197659.bin",
+      "layer": "collision",
+      "fileDataID": 197659,
+      "bytes": 6704,
+      "sha256": "f09b28a4b0efedce785366ceaa0004bb21e8a9d66581901592d0a90b7a613d78",
+      "encodingKey": "31a97d4f4f6bb35db443b24fd2d5987c"
+    },
+    {
+      "path": "collision/197664.bin",
+      "layer": "collision",
+      "fileDataID": 197664,
+      "bytes": 12880,
+      "sha256": "6b51148f7df782f05c4fa7da2d84e6edfb3a71de2839a33804c25ab452c54325",
+      "encodingKey": "a90f336d0e5a11eb4e40dc8909924503"
+    },
+    {
+      "path": "collision/197681.bin",
+      "layer": "collision",
+      "fileDataID": 197681,
+      "bytes": 37888,
+      "sha256": "c27f3016ab1ddb946524bb62f7e961757e54b1b108e82ae4f3deb6483905cb77",
+      "encodingKey": "b92d59beb96a5a0d38d782e1721e7792"
+    },
+    {
+      "path": "collision/197716.bin",
+      "layer": "collision",
+      "fileDataID": 197716,
+      "bytes": 26758,
+      "sha256": "352d7efa5323c8471216ded0ffb403a5be896322f49ff6f858aba6a1378e01d2",
+      "encodingKey": "2c9c9068b698fd9f1b525888685372ba"
+    },
+    {
+      "path": "collision/197719.bin",
+      "layer": "collision",
+      "fileDataID": 197719,
+      "bytes": 39934,
+      "sha256": "47f988f1cb11d35fc2768f9132188b64219a0bacbd7bac53200ae2fe05936253",
+      "encodingKey": "d31cc6439796c41b5ddb698a15042597"
+    },
+    {
+      "path": "collision/197722.bin",
+      "layer": "collision",
+      "fileDataID": 197722,
+      "bytes": 4128,
+      "sha256": "1f30ee04a4ef7ff7d463649c702e5be455254f2c34f3b3398fd8731986c96f12",
+      "encodingKey": "37c94e679556749cbac3c2134140ddb6"
+    },
+    {
+      "path": "collision/197724.bin",
+      "layer": "collision",
+      "fileDataID": 197724,
+      "bytes": 4784,
+      "sha256": "f528ddcb7c813755339e285de6edfeb9183a9928233b1bf61afaba57b1bf4bba",
+      "encodingKey": "d6e317b3817984093beeab25b1f63677"
+    },
+    {
+      "path": "collision/197725.bin",
+      "layer": "collision",
+      "fileDataID": 197725,
+      "bytes": 3824,
+      "sha256": "20f27d05ac3340f11f6755411569238d055984a4d1d8fcdc6357c6c8920dd5fe",
+      "encodingKey": "97d535b90c2567ded30a034d2f775ce8"
+    },
+    {
+      "path": "collision/197730.bin",
+      "layer": "collision",
+      "fileDataID": 197730,
+      "bytes": 9552,
+      "sha256": "524f2348f19388f550d5279e63e041b1eb58cef74a4efd60f5af722315fa153c",
+      "encodingKey": "bd6b1b71f7b6ce947e9acfaebd0c895d"
+    },
+    {
+      "path": "collision/197731.bin",
+      "layer": "collision",
+      "fileDataID": 197731,
+      "bytes": 3696,
+      "sha256": "4d4af47375121444c51264bb0f85b48d3e1ab7cf8b5678520b578980df80a87a",
+      "encodingKey": "5d9309c6d2a04410a76a713d49f12e2f"
+    },
+    {
+      "path": "collision/197732.bin",
+      "layer": "collision",
+      "fileDataID": 197732,
+      "bytes": 3504,
+      "sha256": "287bd7648b86be9023debe12a907e1f8f2e56c346209cbf4baa7285e4fed4aec",
+      "encodingKey": "b5fefb1c702c796c28108fa64a9154cd"
+    },
+    {
+      "path": "collision/197733.bin",
+      "layer": "collision",
+      "fileDataID": 197733,
+      "bytes": 5680,
+      "sha256": "90b62836417c51d29cae1b38e8c99fe1ac3a9d528192fde4c974189677f077aa",
+      "encodingKey": "e0632ba0bb685ffeb0fb11cd11a9d891"
+    },
+    {
+      "path": "collision/197734.bin",
+      "layer": "collision",
+      "fileDataID": 197734,
+      "bytes": 4032,
+      "sha256": "5a70ff979feb6fb99bc11be1244e25ccec7195cec67a94b19cd651ac4152cb15",
+      "encodingKey": "229927c2c437b3c5eb215c5f85805481"
+    },
+    {
+      "path": "collision/197745.bin",
+      "layer": "collision",
+      "fileDataID": 197745,
+      "bytes": 251200,
+      "sha256": "6084bcaf3e6acf1784085f09bd20df67bb3c82620f97a66c6c52ce57ed20bf00",
+      "encodingKey": "371d9b6421e55b175afa4a2d0455c5e2"
+    },
+    {
+      "path": "collision/197747.bin",
+      "layer": "collision",
+      "fileDataID": 197747,
+      "bytes": 14416,
+      "sha256": "14f9a1febef524314eaf1e4158f0e3d1026a337c01bcb347623bb6d41dc1ae0a",
+      "encodingKey": "6d878454d9731300f3b87f8781b802fb"
+    },
+    {
+      "path": "collision/197748.bin",
+      "layer": "collision",
+      "fileDataID": 197748,
+      "bytes": 10320,
+      "sha256": "0923fb25e77ab364e2b4d0dd6283b092df24057ee3034397ab62b003ea6e6475",
+      "encodingKey": "d2b63c2335c5e8a48aaf032c030deda1"
+    },
+    {
+      "path": "collision/197755.bin",
+      "layer": "collision",
+      "fileDataID": 197755,
+      "bytes": 12368,
+      "sha256": "b8e81f0d3805c1435b5124dcb7edd8c7329f488eaa468f748ce3b02d9fd2fa40",
+      "encodingKey": "e01484e33ca032826095a6980dced974"
+    },
+    {
+      "path": "collision/197756.bin",
+      "layer": "collision",
+      "fileDataID": 197756,
+      "bytes": 7888,
+      "sha256": "5b2b83d64262752c11076defaea3521f68ce278b49c8a34adf5759af6aac4db0",
+      "encodingKey": "1a8a6b1e578aa81890e8424626381cf0"
+    },
+    {
+      "path": "collision/197759.bin",
+      "layer": "collision",
+      "fileDataID": 197759,
+      "bytes": 11600,
+      "sha256": "f40c5a91d5cf1edc06f2d7416fbd005374cd0c9aed8e1ef3d4b2c14690477a0b",
+      "encodingKey": "f9629a5365236c2333e826797416421c"
+    },
+    {
       "path": "collision/198016.bin",
       "layer": "collision",
       "fileDataID": 198016,
@@ -405,12 +789,44 @@
       "encodingKey": "e4350564eeed705765384d605c6541dc"
     },
     {
+      "path": "collision/198061.bin",
+      "layer": "collision",
+      "fileDataID": 198061,
+      "bytes": 3812,
+      "sha256": "33e3c01d2f6e10ad289be4f66aa8b0f3b48b02446acd2adee6b3aa8830f85ed9",
+      "encodingKey": "5a8b998bfc69cf11048d062b0b8a40de"
+    },
+    {
       "path": "collision/198069.bin",
       "layer": "collision",
       "fileDataID": 198069,
       "bytes": 7908,
       "sha256": "128d3bc034aeed99510cb825038c6f4b749939aba962a29fac762d9b516b6c21",
       "encodingKey": "acf78e54c97752b47d219b7560c31a25"
+    },
+    {
+      "path": "collision/198085.bin",
+      "layer": "collision",
+      "fileDataID": 198085,
+      "bytes": 13078,
+      "sha256": "ddb45a915a7130d7373b7315d1e09cfbc3c05a69e2a7e39e4647274d9e0f4506",
+      "encodingKey": "a1c5688298e28467a8b2b15216fb2aac"
+    },
+    {
+      "path": "collision/198101.bin",
+      "layer": "collision",
+      "fileDataID": 198101,
+      "bytes": 10128,
+      "sha256": "6d3553866dc3ab0680b93596d3d905eb2da8fc6f3cbedd1b2128fa98cc511fd2",
+      "encodingKey": "7df753e9cb600b5fd2396850b86bd883"
+    },
+    {
+      "path": "collision/198167.bin",
+      "layer": "collision",
+      "fileDataID": 198167,
+      "bytes": 2288,
+      "sha256": "02c57df09d6346586492de115c16d422a1b9968293dbcbf3b3460e7c293ee426",
+      "encodingKey": "b1a3a18cf39a813939c5f9a8ac78d9d8"
     },
     {
       "path": "collision/198168.bin",
@@ -421,12 +837,60 @@
       "encodingKey": "8b728406721d495c47977c157fc3fbe9"
     },
     {
+      "path": "collision/198198.bin",
+      "layer": "collision",
+      "fileDataID": 198198,
+      "bytes": 5216,
+      "sha256": "eb6a33b3d17965a554288631cc0a71500de7021ae89181809a8579e2e05ee509",
+      "encodingKey": "404e5f7f5efcd4da7f365a0dccfb7bcd"
+    },
+    {
+      "path": "collision/198288.bin",
+      "layer": "collision",
+      "fileDataID": 198288,
+      "bytes": 152262,
+      "sha256": "bf9e5ef265fbcbde5102baa1268fffee7c519e0dbedf8a473ab78e9e751242f4",
+      "encodingKey": "e6192f842bf30f2b16c924e92e029542"
+    },
+    {
+      "path": "collision/198327.bin",
+      "layer": "collision",
+      "fileDataID": 198327,
+      "bytes": 7396,
+      "sha256": "cb496b7a7e1a8d7d6edaae021b510c86ef744c39a9b7461aad3af24c4161b60b",
+      "encodingKey": "1718c5c74d7ca2b53a52190aff0dfeeb"
+    },
+    {
+      "path": "collision/198328.bin",
+      "layer": "collision",
+      "fileDataID": 198328,
+      "bytes": 7396,
+      "sha256": "8e0e31018a6e94571b1a05932aacaa46549f0c029807db32725863a8dabbc701",
+      "encodingKey": "4e52a5c2dbefa32c58a5ab8398dd0f09"
+    },
+    {
       "path": "collision/198337.bin",
       "layer": "collision",
       "fileDataID": 198337,
       "bytes": 13984,
       "sha256": "c0dc44fbbe39cc6d75c50b538b2c26b09b7263066e6f36e883e00bcb29a67ead",
       "encodingKey": "b367efb2c306ef391e5bc69bc3bc6ced"
+    },
+    {
+      "path": "collision/198343.bin",
+      "layer": "collision",
+      "fileDataID": 198343,
+      "bytes": 10536,
+      "sha256": "8ba09e6ace5ab7925fb841cee2b7568a90e92de76ca47c6e50f258c658c2699b",
+      "encodingKey": "c034c41dbaed2f8a61f328d77c0d6d02"
+    },
+    {
+      "path": "collision/198344.bin",
+      "layer": "collision",
+      "fileDataID": 198344,
+      "bytes": 9460,
+      "sha256": "8b4de9cf58c781987ae689389cf01e2fe44626cb95abe17ae7db2fca5c8deb49",
+      "encodingKey": "72b74492d45c5a5686c5410dff23b56d"
     },
     {
       "path": "collision/198422.bin",
@@ -445,12 +909,44 @@
       "encodingKey": "57941597e6faca58b5d38d12a3e3694c"
     },
     {
+      "path": "collision/198480.bin",
+      "layer": "collision",
+      "fileDataID": 198480,
+      "bytes": 3936,
+      "sha256": "f48e767e11620119dadb2f2a725bfc37532b7d2239c2b0ec50398a0ce1c1dcc4",
+      "encodingKey": "bcb5a46e4199aabea4bde91cb60a1cd5"
+    },
+    {
+      "path": "collision/198605.bin",
+      "layer": "collision",
+      "fileDataID": 198605,
+      "bytes": 6768,
+      "sha256": "861a4357f929398c2a27d08a71dd0a82a65d31ee1e9177ffc844760868d18c1f",
+      "encodingKey": "ee73a87deb3727a60400c9b18a2ccaaf"
+    },
+    {
+      "path": "collision/199566.bin",
+      "layer": "collision",
+      "fileDataID": 199566,
+      "bytes": 9056,
+      "sha256": "a1959a24a704b1aa703f5c93d0fe645736740fe48224f0e0f657c1d66fb20903",
+      "encodingKey": "020dd56292fe9095af1b9f84bf3dc1a1"
+    },
+    {
       "path": "collision/199567.bin",
       "layer": "collision",
       "fileDataID": 199567,
       "bytes": 7296,
       "sha256": "714db581120d325ed7fe4ffbf4f0d2f301e64fca64b25c99653262f5c4d95147",
       "encodingKey": "18090e7a364e59b769ebe4632eab7ac0"
+    },
+    {
+      "path": "collision/199632.bin",
+      "layer": "collision",
+      "fileDataID": 199632,
+      "bytes": 10016,
+      "sha256": "7913619b5c180265d4cc67a05d2a4a78d19a867e8dbf68cf66714439f372c4a5",
+      "encodingKey": "0567e9383282a372f01b21fee37d44cd"
     },
     {
       "path": "collision/199745.bin",
@@ -461,6 +957,14 @@
       "encodingKey": "734ca2f63a0e25107ac5c7efee26bd35"
     },
     {
+      "path": "collision/199746.bin",
+      "layer": "collision",
+      "fileDataID": 199746,
+      "bytes": 2384,
+      "sha256": "a588a058a9a11c3fd75146c5710ab76ef5b815cb83e2b00687dc706d1d9a35ff",
+      "encodingKey": "119660471b53f073d4cbc9364027b22a"
+    },
+    {
       "path": "collision/199806.bin",
       "layer": "collision",
       "fileDataID": 199806,
@@ -469,12 +973,52 @@
       "encodingKey": "de30bf60a0e0c5370386bd3b374e3b11"
     },
     {
+      "path": "collision/199807.bin",
+      "layer": "collision",
+      "fileDataID": 199807,
+      "bytes": 5978,
+      "sha256": "4ee3a3f7c442482b72a466765d0adc8044e177d072260ac5c51f561da85f7683",
+      "encodingKey": "395b2985f3d0acadead7b89413fe47a5"
+    },
+    {
       "path": "collision/199808.bin",
       "layer": "collision",
       "fileDataID": 199808,
       "bytes": 6218,
       "sha256": "9eccf9b3eb9f1567840de3719979b5e9412355b4364e64435094641df412bd04",
       "encodingKey": "86ae4b8d88c79f65afa9ab0da53d41d0"
+    },
+    {
+      "path": "collision/199820.bin",
+      "layer": "collision",
+      "fileDataID": 199820,
+      "bytes": 7312,
+      "sha256": "4529d1ed625863153a6e80f931fd577220c84d9a72de22acbc140597a6fe4589",
+      "encodingKey": "fac8b01ef90bbabab6f236b4227f183a"
+    },
+    {
+      "path": "collision/199886.bin",
+      "layer": "collision",
+      "fileDataID": 199886,
+      "bytes": 39470,
+      "sha256": "6e97a47b090fc4b2e65f08dd1f93c4c82cb4ff99c33ae6b0d4491936d12b8551",
+      "encodingKey": "cd8a30f85b1f9766a53d9ea7b76a30ee"
+    },
+    {
+      "path": "collision/199929.bin",
+      "layer": "collision",
+      "fileDataID": 199929,
+      "bytes": 3328,
+      "sha256": "cd712e72cfd05e613f35b32f693cbe8143dd5bcf46dad66197e3c50a2c8601e0",
+      "encodingKey": "3b19ba0305ef5182809513583f0fe260"
+    },
+    {
+      "path": "collision/200638.bin",
+      "layer": "collision",
+      "fileDataID": 200638,
+      "bytes": 27400,
+      "sha256": "1b05e1fdf10363d076c3b9b1e2db5ae90c6c7be494f70d581a11bfd15e513ae5",
+      "encodingKey": "40308f6931513d498c26ca1f1894b692"
     },
     {
       "path": "collision/202872.bin",
@@ -499,6 +1043,14 @@
       "bytes": 5492,
       "sha256": "cb0a1b8597f06e8cbed4c9081fe9193be1de976dbc620853c946fc308cc0beb5",
       "encodingKey": "e9303893535a3a31894209f275006993"
+    },
+    {
+      "path": "collision/203004.bin",
+      "layer": "collision",
+      "fileDataID": 203004,
+      "bytes": 9412,
+      "sha256": "eb6a30392a5c202e7477dbbf273a243916e27887c47541f4afd5ae148c176702",
+      "encodingKey": "097bd28db5a09e6c771c90c45adba18d"
     },
     {
       "path": "collision/203148.bin",
@@ -531,6 +1083,22 @@
       "bytes": 2304,
       "sha256": "d79ff84c6d0fbb3538e3b85f40952ffd8888f2d97458cb957bb3583ee6bdcdbd",
       "encodingKey": "51499dda37d24efff4222cff1321f937"
+    },
+    {
+      "path": "collision/203164.bin",
+      "layer": "collision",
+      "fileDataID": 203164,
+      "bytes": 21888,
+      "sha256": "1246807bdf41b4b7805ffe3c2f2459588668821e60ff5195271c5966b2f97dbc",
+      "encodingKey": "93c832df80f90fab133c0dc1dc8603dd"
+    },
+    {
+      "path": "collision/203169.bin",
+      "layer": "collision",
+      "fileDataID": 203169,
+      "bytes": 12820,
+      "sha256": "019685ae3e2935e978ec516d90d73125866255111c5c6c03b748c900f25031c8",
+      "encodingKey": "c308ae430becb87dadde4a90d15fc5e7"
     },
     {
       "path": "collision/203229.bin",
@@ -717,92 +1285,44 @@
       "encodingKey": "294e064123b7e293a26c5419f42915ff"
     },
     {
-      "path": "wmo-groups/113876.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113876,
-      "bytes": 92524,
-      "sha256": "ca4017d6ada0c113131165660aa9dde7a3e60a1539697a165475edc687c46f81",
-      "encodingKey": "77bae555dedd01a4a74d7457ecaff340"
+      "path": "Azeroth.69913.wdt",
+      "layer": "root",
+      "fileDataID": 775971,
+      "bytes": 294988,
+      "sha256": "160452dec4c2b0ae4cbe7468ce52fee91ac7ec521d2cb0f28e955def0d087137",
+      "encodingKey": "537875ec818381d63a06980d0682b72b"
     },
     {
-      "path": "wmo-groups/113877.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113877,
-      "bytes": 51788,
-      "sha256": "32dea51bab180343c17686a7dfc17ce3d51a4008bc21e3cc2346cd8c34d20142",
-      "encodingKey": "b08e0719812829c3716295b9dc94d565"
+      "path": "Azeroth_32_42.69913.adt",
+      "layer": "root",
+      "fileDataID": 777997,
+      "bytes": 454740,
+      "sha256": "dddd2c48191b3cc4db68647063c9e484640651a2facb74910c581d300ed8b1d9",
+      "encodingKey": "6797f5c65a8b927546528e3b4e5bd552"
     },
     {
-      "path": "wmo-groups/113882.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113882,
-      "bytes": 131086,
-      "sha256": "be8123ae3c1be4ef30c83affba76167dbf1b67ccdb8d85a736c393fab071d9d5",
-      "encodingKey": "03de070143f4f135a2960663a3e011d7"
+      "path": "Azeroth_32_42_obj0.69913.adt",
+      "layer": "root",
+      "fileDataID": 777998,
+      "bytes": 36984,
+      "sha256": "77449ed5a2e4c7f748c43b3e42d7172c24dece2a4c4547402eae1d4ce67c3fde",
+      "encodingKey": "771823004108201e287d47047752b050"
     },
     {
-      "path": "wmo-groups/113883.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113883,
-      "bytes": 56342,
-      "sha256": "ec40fe0768b10bbe80b6514abcaba989b00250b35fcee94779fffd1b55436938",
-      "encodingKey": "3b82c923e72d19e8b656b11936620e3e"
+      "path": "Azeroth_33_42.69913.adt",
+      "layer": "root",
+      "fileDataID": 778197,
+      "bytes": 454740,
+      "sha256": "3cf93beb9f349f5928c8621eb8e03fba26e619c86560127ecff1d35bdbd02409",
+      "encodingKey": "cdba109f95b88d997b3c7102e23deaf8"
     },
     {
-      "path": "wmo-groups/113926.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113926,
-      "bytes": 167466,
-      "sha256": "3948356cf3a643043a92f3e3d75ad7bcdc51a8ddabd3ae2ef90352b344928456",
-      "encodingKey": "5623205779dab4fc56bcc04a97577a66"
-    },
-    {
-      "path": "wmo-groups/113927.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113927,
-      "bytes": 285762,
-      "sha256": "db7e165e64866510e697339cb3a986e98537ee13edbfb1a809f882e16965fedd",
-      "encodingKey": "b7f2bfb3f61b5adc3c0166840ae1b246"
-    },
-    {
-      "path": "wmo-groups/113928.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113928,
-      "bytes": 170888,
-      "sha256": "0e0f2a1610ad76d9a1715a30825499ae10172cf08616e954b666bb984235ae84",
-      "encodingKey": "e2fffe4e0b6933731be0b9bd4ffae173"
-    },
-    {
-      "path": "wmo-groups/113929.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113929,
-      "bytes": 106102,
-      "sha256": "577b034900dde9f93274043d215cca0c06a6ec568ae9da385320a8a799faa622",
-      "encodingKey": "0701aaf9ba9b1551be43d3ae03fa2202"
-    },
-    {
-      "path": "wmo-groups/113930.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113930,
-      "bytes": 26664,
-      "sha256": "db1281eadaff57a5733d5ab19d5859e53b27e0ef277f742ef7d97c87bab4a414",
-      "encodingKey": "6e894b3aac651a98e0d1ae22ba5f733c"
-    },
-    {
-      "path": "wmo-groups/113931.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113931,
-      "bytes": 91594,
-      "sha256": "d580352bfb164303c45d52e31a3f3160a0557208b16fbc4e345fd7667c9e1440",
-      "encodingKey": "8cc9cc2728263fc1f73231936add4b77"
-    },
-    {
-      "path": "wmo-groups/113932.bin",
-      "layer": "wmo-groups",
-      "fileDataID": 113932,
-      "bytes": 73234,
-      "sha256": "c8b109ce69fb56ec0e7a37d71dd8510f67ed2aaaa7b1978a77212400fa1fe48c",
-      "encodingKey": "deaed5b26abfe4ffdf11593475762fbd"
+      "path": "Azeroth_33_42_obj0.69913.adt",
+      "layer": "root",
+      "fileDataID": 778198,
+      "bytes": 40000,
+      "sha256": "18a62d51a583c0e263579b95bcf16e87a16918d843c927a69f98aeca54ed6152",
+      "encodingKey": "f52e8caf1ab7ecf16a86bb92e9627be6"
     },
     {
       "path": "wmo-doodads/189106.bin",
@@ -821,14 +1341,6 @@
       "encodingKey": "eaf7dd97d54112f0727b8cef2a9817c2"
     },
     {
-      "path": "wmo-doodads/189816.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 189816,
-      "bytes": 4240,
-      "sha256": "aa9d0f68efc6d30acc424f846f43aa5067ffc93e33cb35ee15f3caf809a3a00b",
-      "encodingKey": "2f39874048c13ea1a67fb7275da943e9"
-    },
-    {
       "path": "wmo-doodads/189820.bin",
       "layer": "wmo-doodads",
       "fileDataID": 189820,
@@ -837,20 +1349,28 @@
       "encodingKey": "2bc440564aead00481dd923a61beb471"
     },
     {
-      "path": "wmo-doodads/189821.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 189821,
-      "bytes": 4308,
-      "sha256": "567900b0907c6f2812bc4e28116ab992949a86e1d3c751994cac387be0ce9250",
-      "encodingKey": "5be361529171013a607f28fd19131c9e"
-    },
-    {
       "path": "wmo-doodads/190650.bin",
       "layer": "wmo-doodads",
       "fileDataID": 190650,
       "bytes": 2784,
       "sha256": "1553e241d3a4a8fc4bb01389ea7bba13f89a3d462df28ff53c3d47f375ab34dd",
       "encodingKey": "1edd41d5e8f6b5d976226f44a436dbb3"
+    },
+    {
+      "path": "wmo-doodads/190813.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 190813,
+      "bytes": 5616,
+      "sha256": "9ebff0c362d856ab21e7d8c9cbf12633d6ab040e63342f98c6db7b8b232581d8",
+      "encodingKey": "9258c46056b2b5faed670e54538d65cc"
+    },
+    {
+      "path": "wmo-doodads/190814.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 190814,
+      "bytes": 7248,
+      "sha256": "9d10239f6d61cf023c539f4ee90181d68d17d1fc2583b398df64957662dbf5d3",
+      "encodingKey": "3c80f66cf26ba1272f184ca6d516530c"
     },
     {
       "path": "wmo-doodads/190886.bin",
@@ -989,30 +1509,6 @@
       "encodingKey": "32fa9138c1b361eb1a1c6998663d2cf1"
     },
     {
-      "path": "wmo-doodads/197402.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 197402,
-      "bytes": 6896,
-      "sha256": "0fd7a326c0b6da29622ab4500e827f8b22bd40d56b6bd8c7a62e3f1e3bbc61c3",
-      "encodingKey": "24acaaa58c73592308510133bf57d1bb"
-    },
-    {
-      "path": "wmo-doodads/197404.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 197404,
-      "bytes": 18212,
-      "sha256": "3bfe6f88878d8416580dae667114c7ab078a6b1237562bb178c95e2c3573bacc",
-      "encodingKey": "b1ab79647b4376fcf87d6ae99aa3950a"
-    },
-    {
-      "path": "wmo-doodads/197405.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 197405,
-      "bytes": 24532,
-      "sha256": "8ee38f291a344528c05608c5031a73a1eef51c59160ebde1c920420ae37673db",
-      "encodingKey": "b3d27c9572cbe206b4b182be9b8bc7ad"
-    },
-    {
       "path": "wmo-doodads/197406.bin",
       "layer": "wmo-doodads",
       "fileDataID": 197406,
@@ -1085,14 +1581,6 @@
       "encodingKey": "4c4751a4ecdb3de1a1e79e8daa62d0de"
     },
     {
-      "path": "wmo-doodads/197608.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 197608,
-      "bytes": 3488,
-      "sha256": "101d47774a2e3770f8abf67c341c67217d29f862936606b51fa8bb556014d9e3",
-      "encodingKey": "86ef88dd5b51f95bb76ae646882ca24d"
-    },
-    {
       "path": "wmo-doodads/197610.bin",
       "layer": "wmo-doodads",
       "fileDataID": 197610,
@@ -1149,6 +1637,54 @@
       "encodingKey": "1c366397aaede83ab9617b8230ba8248"
     },
     {
+      "path": "wmo-doodads/198023.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198023,
+      "bytes": 3200,
+      "sha256": "58dbfbc00e8de191a2349dfb6daf8694159a0fb769a5dd2ce2cd7108f8eddff9",
+      "encodingKey": "d686b623d550fdb2f3a37881d47e1d52"
+    },
+    {
+      "path": "wmo-doodads/198024.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198024,
+      "bytes": 3200,
+      "sha256": "9fc9904ceab40cfa591bd587786d3ddacd908de81a8a85bc6078767af6e1dce2",
+      "encodingKey": "0f1f7328067f39755c138b0456849c14"
+    },
+    {
+      "path": "wmo-doodads/198026.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198026,
+      "bytes": 3200,
+      "sha256": "4a193d43031f7de048143ed99113e8edbbf0b928a410cfcab8cc0e9eccf23c9b",
+      "encodingKey": "f9cbc60d59b2bd651d2bea915aec1533"
+    },
+    {
+      "path": "wmo-doodads/198035.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198035,
+      "bytes": 3200,
+      "sha256": "8b7b9d88010456f09e8305972fa3d399a2e5f671b9a483aa0a078d133c56dc13",
+      "encodingKey": "596bbaf69dcf690a89a3a8aa9eef2b59"
+    },
+    {
+      "path": "wmo-doodads/198038.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198038,
+      "bytes": 3200,
+      "sha256": "9290067d45f2ee1c9a0b501bab04a45917546e6a257223f174267e91c9259ffb",
+      "encodingKey": "eebfdc5628926dbb26bc18e1775858ae"
+    },
+    {
+      "path": "wmo-doodads/198040.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198040,
+      "bytes": 3872,
+      "sha256": "001d1cb080f667e1fbb9cda0fe851098f73c9bbaacd7fb91b467dc11fef2dfa6",
+      "encodingKey": "d0c52b83d4ad0bf72f1c40709406d750"
+    },
+    {
       "path": "wmo-doodads/198055.bin",
       "layer": "wmo-doodads",
       "fileDataID": 198055,
@@ -1165,14 +1701,6 @@
       "encodingKey": "31d1f7916ed48c28eb33b28637c34ea3"
     },
     {
-      "path": "wmo-doodads/198061.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 198061,
-      "bytes": 3812,
-      "sha256": "33e3c01d2f6e10ad289be4f66aa8b0f3b48b02446acd2adee6b3aa8830f85ed9",
-      "encodingKey": "5a8b998bfc69cf11048d062b0b8a40de"
-    },
-    {
       "path": "wmo-doodads/198068.bin",
       "layer": "wmo-doodads",
       "fileDataID": 198068,
@@ -1187,14 +1715,6 @@
       "bytes": 62954,
       "sha256": "04234a8aa2ce245f74670e480f661a708a8b3feb286754c7765a64e7b49822fc",
       "encodingKey": "aeba26ecc1c6c128e41a83f15374d7ad"
-    },
-    {
-      "path": "wmo-doodads/198085.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 198085,
-      "bytes": 13078,
-      "sha256": "ddb45a915a7130d7373b7315d1e09cfbc3c05a69e2a7e39e4647274d9e0f4506",
-      "encodingKey": "a1c5688298e28467a8b2b15216fb2aac"
     },
     {
       "path": "wmo-doodads/198115.bin",
@@ -1237,28 +1757,12 @@
       "encodingKey": "1d1e9cfd3824776fd643a2f4d8ff6673"
     },
     {
-      "path": "wmo-doodads/198167.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 198167,
-      "bytes": 2288,
-      "sha256": "02c57df09d6346586492de115c16d422a1b9968293dbcbf3b3460e7c293ee426",
-      "encodingKey": "b1a3a18cf39a813939c5f9a8ac78d9d8"
-    },
-    {
       "path": "wmo-doodads/198197.bin",
       "layer": "wmo-doodads",
       "fileDataID": 198197,
       "bytes": 11536,
       "sha256": "ac506da7170ac6b6f62683bd17730cedfdc1371a3246eb11bfb3515ef082b79b",
       "encodingKey": "ed255f8b1e2bd86697575d92dd57bb9b"
-    },
-    {
-      "path": "wmo-doodads/198198.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 198198,
-      "bytes": 5216,
-      "sha256": "eb6a33b3d17965a554288631cc0a71500de7021ae89181809a8579e2e05ee509",
-      "encodingKey": "404e5f7f5efcd4da7f365a0dccfb7bcd"
     },
     {
       "path": "wmo-doodads/198212.bin",
@@ -1437,22 +1941,6 @@
       "encodingKey": "fd17b7d97cdf34a655a3f7ce5f7b0f00"
     },
     {
-      "path": "wmo-doodads/198343.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 198343,
-      "bytes": 10536,
-      "sha256": "8ba09e6ace5ab7925fb841cee2b7568a90e92de76ca47c6e50f258c658c2699b",
-      "encodingKey": "c034c41dbaed2f8a61f328d77c0d6d02"
-    },
-    {
-      "path": "wmo-doodads/198344.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 198344,
-      "bytes": 9460,
-      "sha256": "8b4de9cf58c781987ae689389cf01e2fe44626cb95abe17ae7db2fca5c8deb49",
-      "encodingKey": "72b74492d45c5a5686c5410dff23b56d"
-    },
-    {
       "path": "wmo-doodads/198360.bin",
       "layer": "wmo-doodads",
       "fileDataID": 198360,
@@ -1509,12 +1997,12 @@
       "encodingKey": "7fa1710e66b7f94ca45e526dae91d12b"
     },
     {
-      "path": "wmo-doodads/198605.bin",
+      "path": "wmo-doodads/198636.bin",
       "layer": "wmo-doodads",
-      "fileDataID": 198605,
-      "bytes": 6768,
-      "sha256": "861a4357f929398c2a27d08a71dd0a82a65d31ee1e9177ffc844760868d18c1f",
-      "encodingKey": "ee73a87deb3727a60400c9b18a2ccaaf"
+      "fileDataID": 198636,
+      "bytes": 12952,
+      "sha256": "5ef652ea4a8b718b761cfcbe36a4cae1bd2f90af79ca2c68f2e186d3b013f684",
+      "encodingKey": "7f6cffb44f537f77741b39be5d268827"
     },
     {
       "path": "wmo-doodads/198637.bin",
@@ -1523,6 +2011,14 @@
       "bytes": 6420,
       "sha256": "d57c1801f051321b2df1311442fc05ddc4bdfb85041a402adbe930513ed14d7f",
       "encodingKey": "4e40dd772504efb69170939e30dae5d2"
+    },
+    {
+      "path": "wmo-doodads/198643.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198643,
+      "bytes": 13184,
+      "sha256": "565ea5ffcf0e21b18adaf3172ed60782acd3cd09d36ac92ad67a6f4c7a2cc99a",
+      "encodingKey": "9ffe170e04b4ae054448d13ea544cb91"
     },
     {
       "path": "wmo-doodads/198644.bin",
@@ -1547,6 +2043,14 @@
       "bytes": 10608,
       "sha256": "948c35a9c17392e290832bd39387302907cc6d94b39dd254c33a1eb4f3661b5a",
       "encodingKey": "ae21b1891c675805cd2bab4b92ab3846"
+    },
+    {
+      "path": "wmo-doodads/198651.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 198651,
+      "bytes": 8016,
+      "sha256": "06f24e0e77620b5f909365d60333b2e68e52e95a70d94d40034a61ff82a71b77",
+      "encodingKey": "aba92ce2e2c547c344c76db214abcba0"
     },
     {
       "path": "wmo-doodads/198652.bin",
@@ -1581,6 +2085,14 @@
       "encodingKey": "f7bf28f93e22399f3f5b8e1cd64364e2"
     },
     {
+      "path": "wmo-doodads/199049.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 199049,
+      "bytes": 3796,
+      "sha256": "9ff4a3af3f3cff3e99c75b2665a70b10b578e1ed456f8335af4c401b7597921d",
+      "encodingKey": "e65500e1308a6b6cbc2e2fa868f290ce"
+    },
+    {
       "path": "wmo-doodads/199241.bin",
       "layer": "wmo-doodads",
       "fileDataID": 199241,
@@ -1603,14 +2115,6 @@
       "bytes": 36614,
       "sha256": "13a1cb2f98cdbee84b6d0a9a53f3256101ac032879fb34f64e5ddd4cc781104e",
       "encodingKey": "0a53f33ea0d21214190e791b43c57661"
-    },
-    {
-      "path": "wmo-doodads/199807.bin",
-      "layer": "wmo-doodads",
-      "fileDataID": 199807,
-      "bytes": 5978,
-      "sha256": "4ee3a3f7c442482b72a466765d0adc8044e177d072260ac5c51f561da85f7683",
-      "encodingKey": "395b2985f3d0acadead7b89413fe47a5"
     },
     {
       "path": "wmo-doodads/199823.bin",
@@ -1875,6 +2379,774 @@
       "bytes": 7304,
       "sha256": "6d5119ca0428d4ceb0a039e953604c8871e54e1705ea1a71296c9e71ec4b2990",
       "encodingKey": "b9e3ef95d2f4169f429799ed987e33ba"
+    },
+    {
+      "path": "wmo-doodads/520092.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 520092,
+      "bytes": 20132,
+      "sha256": "7c19eb97a427b046903691c39f8fde47637b8d1e3ded326539391df39963897c",
+      "encodingKey": "502ab65c33b5bdc85696c78f763bf2f6"
+    },
+    {
+      "path": "wmo-doodads/522294.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 522294,
+      "bytes": 16800,
+      "sha256": "7f1922096c1d228a1ce04d8440fc2a8dd0d8028782232e0ed77c409c63670169",
+      "encodingKey": "9b3a67a1682d2e7e6b6c3579d1c4deda"
+    },
+    {
+      "path": "wmo-doodads/522970.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 522970,
+      "bytes": 4192,
+      "sha256": "1e477e6f71679b37f120a4bf28fb0c2864a13e48c569df82697b73d16b2d00a4",
+      "encodingKey": "a80a776d43085efd2f10ffa1be01c3fe"
+    },
+    {
+      "path": "wmo-doodads/523160.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 523160,
+      "bytes": 7744,
+      "sha256": "f08fc181385d6f8c5d423fd6c92798422e8cd9c48685f7e29fdc1923d45b7f91",
+      "encodingKey": "2bd4899a6c7150592eeb70cdbb8f2e4a"
+    },
+    {
+      "path": "wmo-doodads/523162.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 523162,
+      "bytes": 6640,
+      "sha256": "61fdbe873865e2f4d77cbc470a5ad988725bf77c1ef60c94369ec042bd768e1c",
+      "encodingKey": "f052daab2670ef6e7b9cd19572097152"
+    },
+    {
+      "path": "wmo-doodads/523211.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 523211,
+      "bytes": 8080,
+      "sha256": "207c62d2cad05b43276796eec65dd3c1d9ae11e15e6b2ae6f92dd9748523ebc7",
+      "encodingKey": "411b9041e3c7e5e07a514997a6aadbfc"
+    },
+    {
+      "path": "wmo-doodads/523213.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 523213,
+      "bytes": 6640,
+      "sha256": "8966647b8e7ea6abf7d73640e012505c2a599d3e6053c712b166468a9b810680",
+      "encodingKey": "121f9e986c93c43cc76ef36119ba892b"
+    },
+    {
+      "path": "wmo-doodads/526022.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 526022,
+      "bytes": 46400,
+      "sha256": "be4fd1bd7aa6a66db117412068347b2f3c8ffbca857613a810ab743b622356a6",
+      "encodingKey": "564f33899bc23be7459d15db2debedac"
+    },
+    {
+      "path": "wmo-doodads/527313.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 527313,
+      "bytes": 8944,
+      "sha256": "5f1e9fa0d8bef3bc57ab249a45e302a41ce3bf5da645fa1640b611267cc629ac",
+      "encodingKey": "1b4c851f5b9deeeb461f48f345ea4fc1"
+    },
+    {
+      "path": "wmo-doodads/528619.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 528619,
+      "bytes": 6888,
+      "sha256": "03751117a5ae7c8be10a964e51626a789d1ec9bc08bc048b8577cadababfd2b1",
+      "encodingKey": "dcad2e4c885aa87ba75058494de4ed25"
+    },
+    {
+      "path": "wmo-doodads/528629.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 528629,
+      "bytes": 11436,
+      "sha256": "e4359f09f4406f84c6d8eca8ce90032ff32564b7f837b7b9292c2bb623a4bd13",
+      "encodingKey": "fee2f65de54225f79f8d5cf410a3091a"
+    },
+    {
+      "path": "wmo-doodads/528631.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 528631,
+      "bytes": 23208,
+      "sha256": "30c931051ea342a569c802442ecc22f42ed43506badf8f21f543878f7c0d848d",
+      "encodingKey": "8c6a19b5ee3f3329c2e42e89438442e2"
+    },
+    {
+      "path": "wmo-doodads/528633.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 528633,
+      "bytes": 7868,
+      "sha256": "9b90d30ee16697470b1e50242f93abd19d1562d5340597064df8f5d524cc661c",
+      "encodingKey": "6c044d4ac95beb8a76c23d8d02f2af46"
+    },
+    {
+      "path": "wmo-doodads/528635.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 528635,
+      "bytes": 6668,
+      "sha256": "2c3bad430c73f4194fdae0ba199321b51ca418050223fdd8d165423640daf7ff",
+      "encodingKey": "4fdcc94088e565c9fe25116982dc2d77"
+    },
+    {
+      "path": "wmo-doodads/528748.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 528748,
+      "bytes": 3920,
+      "sha256": "1c90d77f4f169ad20fd5ea6837f10add82c057e0aad820c0782a7eab8014db00",
+      "encodingKey": "24c47e6de9b17fa5c11984deee6b72c6"
+    },
+    {
+      "path": "wmo-doodads/529309.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 529309,
+      "bytes": 19904,
+      "sha256": "4e92f63a03497a1836a590168312a6faa853b3c9346ea748a15ee60ddf7eba3d",
+      "encodingKey": "10b17823eeda3944fbbd5bc3745310d0"
+    },
+    {
+      "path": "wmo-doodads/529408.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 529408,
+      "bytes": 10644,
+      "sha256": "495704fdc5adea5593a7ba04084510cf8f46983aa094388227d97a856ca4ef5f",
+      "encodingKey": "663d26cb826cca717de090127a70f0a7"
+    },
+    {
+      "path": "wmo-doodads/530126.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 530126,
+      "bytes": 25300,
+      "sha256": "31ba382d381bb6c62d7809ad11aecfe3468253098cb126458a80f1a8576fff92",
+      "encodingKey": "fcb15339d16619659c389a66c24df12f"
+    },
+    {
+      "path": "wmo-doodads/530883.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 530883,
+      "bytes": 30688,
+      "sha256": "999e27170fbb6802f44778f0782ce67e5b7add63e99238ad506172d881237f24",
+      "encodingKey": "69352aba223afc33ac5293df74343dcf"
+    },
+    {
+      "path": "wmo-doodads/531027.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531027,
+      "bytes": 14772,
+      "sha256": "074a672a55e239909279555d728da8b482131b474894f8e89aafec3d1e1f06e8",
+      "encodingKey": "66d6b532736c1240458942d8751d633f"
+    },
+    {
+      "path": "wmo-doodads/531036.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531036,
+      "bytes": 17460,
+      "sha256": "b8972051c69096ea4d7f1f93f360af3320a10a17bdbadf8a5ed990e3f544c52d",
+      "encodingKey": "76b31d5f02c7e4cd9091822f9e98f519"
+    },
+    {
+      "path": "wmo-doodads/531052.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531052,
+      "bytes": 18084,
+      "sha256": "73cd4d15580a2acde09d023187d2ddb80453b292b85479c210eaec8ca4415fdb",
+      "encodingKey": "2ed592accdaf61cd06670d6fee217e1a"
+    },
+    {
+      "path": "wmo-doodads/531055.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531055,
+      "bytes": 18084,
+      "sha256": "3cddf6faef17bbdf36068d25c5f9998d25d3b97455ec15e68aacce2d5640c2e6",
+      "encodingKey": "29377d3a2cb1c8eb4bae921643151072"
+    },
+    {
+      "path": "wmo-doodads/531058.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531058,
+      "bytes": 18084,
+      "sha256": "3fd71cf13fd9c03613268fd5b81fc747871889ef96ec45924101e5d02bcc5bee",
+      "encodingKey": "2b5cbd5dae5fcc4ae2160b96562881bd"
+    },
+    {
+      "path": "wmo-doodads/531076.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531076,
+      "bytes": 17844,
+      "sha256": "bd730025592ef31a73adeef5752e7fa62fed13cccfcaafa35c18464b918499d8",
+      "encodingKey": "e90ae59684422b1fb5a3575a65f5feae"
+    },
+    {
+      "path": "wmo-doodads/531097.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531097,
+      "bytes": 17844,
+      "sha256": "ac2ec83a144e31989cba0142a18c57cdc247726782e7c680eef77f5e414c3e2f",
+      "encodingKey": "8c933744a1f81b6293ac0bc044979f1f"
+    },
+    {
+      "path": "wmo-doodads/531103.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531103,
+      "bytes": 21640,
+      "sha256": "36c5741ccc23c7dd55c641f9acfb1a149f77790a818301201f0b7e9b1b773a79",
+      "encodingKey": "8407a15dc5244b54e8f08556b8f78c8b"
+    },
+    {
+      "path": "wmo-doodads/531106.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531106,
+      "bytes": 19864,
+      "sha256": "8e9a202b5dd425a2731381bee1784bd7814edeaf1fb3a0bc57ea096c2890efa8",
+      "encodingKey": "6cc9bae70f1335a5878f20f56ae2bca6"
+    },
+    {
+      "path": "wmo-doodads/531167.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 531167,
+      "bytes": 19864,
+      "sha256": "07f4e058b58d9dc33a3c95343d86f698002c6ac314dcb0152fba790abb9027ab",
+      "encodingKey": "1ccdae88ad30acbc7838b4d8e2ffbbc1"
+    },
+    {
+      "path": "wmo-doodads/532099.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 532099,
+      "bytes": 4228,
+      "sha256": "314bf61ead6bcb42ab8df067fc88f56bbad1a3d727b8a692604583b728032f28",
+      "encodingKey": "016797b00e5a977c2a36c3e559856dcc"
+    },
+    {
+      "path": "wmo-doodads/532323.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 532323,
+      "bytes": 20132,
+      "sha256": "1f2bfc75bf6b998fa0c7c4166ad6180a192027bd72521f86680d3979fb0c02db",
+      "encodingKey": "98773022e8e251abd1f2e9cfc04f2d57"
+    },
+    {
+      "path": "wmo-doodads/533016.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533016,
+      "bytes": 9912,
+      "sha256": "e89218142206fd81c4c9aa16402e6837b5ac2753513e741f3a0853f49197357f",
+      "encodingKey": "1e326777125d2eeff591578fb624894b"
+    },
+    {
+      "path": "wmo-doodads/533018.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533018,
+      "bytes": 9912,
+      "sha256": "76709e69845fd670bbf5750af848487f890b9335121ba42a317883ee30dd8aa5",
+      "encodingKey": "4f450f2f11ee57dea60f695eb4c063f1"
+    },
+    {
+      "path": "wmo-doodads/533024.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533024,
+      "bytes": 7460,
+      "sha256": "026f7abe66c9a2171178c19d0cb5a2721e35a72ccdb131cc5e4fd279014910a2",
+      "encodingKey": "57f3f046924e42afd589256033a8e3bf"
+    },
+    {
+      "path": "wmo-doodads/533038.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533038,
+      "bytes": 27192,
+      "sha256": "2675a184bbfd975ee58d53bd0a05bd116cb12e440a8feabfb6e13d3124c0456e",
+      "encodingKey": "c357c1c1ec7a543a39d5c3e08d7e7ec4"
+    },
+    {
+      "path": "wmo-doodads/533040.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533040,
+      "bytes": 27192,
+      "sha256": "7a5a08cae648937f998758a5c28f685d9a7205f19ff698027af35fa92f529a2d",
+      "encodingKey": "689226c439dbf74007cc3642fb47ccd0"
+    },
+    {
+      "path": "wmo-doodads/533044.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533044,
+      "bytes": 27192,
+      "sha256": "b2289c3894881547de65cb4a528a9ea3e62e6aad9a4f67868b736f011deda887",
+      "encodingKey": "2672383fa5f5800e715ade31fca707c4"
+    },
+    {
+      "path": "wmo-doodads/533048.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533048,
+      "bytes": 9448,
+      "sha256": "e98e99d4214bccf489882ea083623fa0ba2508a0d9afd1e83906677bfb06ad84",
+      "encodingKey": "fb3e710cbf02dce0bdd42bb95e2a048b"
+    },
+    {
+      "path": "wmo-doodads/533064.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533064,
+      "bytes": 24120,
+      "sha256": "59aa6016dd635a51b5b384b42b1c25cf175ea1b8b692a62936ffe78749957807",
+      "encodingKey": "a426165877c1bc8cd39a151108d92de3"
+    },
+    {
+      "path": "wmo-doodads/533069.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533069,
+      "bytes": 8048,
+      "sha256": "80c4e436a3044d07cc7561ad45281a390f1ab12ce511a9ffd9896871611c6c72",
+      "encodingKey": "7b4c5f6704998deda81a66f1a3b4ac30"
+    },
+    {
+      "path": "wmo-doodads/533071.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533071,
+      "bytes": 8048,
+      "sha256": "e8861084521ca551d6ec7771bd28e374d548ed4498b7040398f22ec48b393b42",
+      "encodingKey": "ab1b70a2bc228a327b17db4159fed84c"
+    },
+    {
+      "path": "wmo-doodads/533073.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533073,
+      "bytes": 8048,
+      "sha256": "d05935070ea4ee2b3614a07965b4d15b114418124ee3dc0968e26f41e5d3a360",
+      "encodingKey": "4e4344975ba9864366bdc9f152036527"
+    },
+    {
+      "path": "wmo-doodads/533075.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533075,
+      "bytes": 6992,
+      "sha256": "d86a3dc67b5c6fcd4729144574900efd479ffdc2b84da626dca9713a75dc9189",
+      "encodingKey": "537ae67f024c3114b38d1f30cb96a4fa"
+    },
+    {
+      "path": "wmo-doodads/533081.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533081,
+      "bytes": 12980,
+      "sha256": "abb60e930c78109bab3c31975642f74812bbb71f8c89690530d471e79b754e37",
+      "encodingKey": "aa050d2b514a885818672481085c4bbe"
+    },
+    {
+      "path": "wmo-doodads/533085.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533085,
+      "bytes": 2032,
+      "sha256": "717fcdefc054b0ccd838952e350089977d9ff92b3b87d540fd95ef060946bdfb",
+      "encodingKey": "87eddaa2cabb64344021e7750d959a34"
+    },
+    {
+      "path": "wmo-doodads/533087.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533087,
+      "bytes": 2032,
+      "sha256": "fe60c75277fc38534326633c595081c66411b2f03888008ac1e5f1f5069eb42c",
+      "encodingKey": "92125faf3016fb5feac289f2e9c7139a"
+    },
+    {
+      "path": "wmo-doodads/533091.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 533091,
+      "bytes": 2032,
+      "sha256": "621ff17c345bd79e71726335d22705a3225057b9342cde658bfe2c51712b60eb",
+      "encodingKey": "b04fb5019fc7b9f5c36b78f2a1b569f5"
+    },
+    {
+      "path": "wmo-doodads/536638.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 536638,
+      "bytes": 25220,
+      "sha256": "9f6acb1179e0cf0ea08c68d5fdb61f5c5b435c5f0afd441cc54c3407656db1b3",
+      "encodingKey": "d6fc4380b4679034df5a59438404159d"
+    },
+    {
+      "path": "wmo-doodads/537034.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 537034,
+      "bytes": 16948,
+      "sha256": "b36a597ecedc6a628d915933e16493b653cc3f945526b32a64e8ba8050f475a1",
+      "encodingKey": "2ba0e9509326d6e9ac09dd50ae3e3d19"
+    },
+    {
+      "path": "wmo-doodads/537038.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 537038,
+      "bytes": 16196,
+      "sha256": "519981d8863143eaab235c94182d4111293e0e8cc0611f2e43833adcaa5fb28a",
+      "encodingKey": "c5dd2dfc009251960e65032a27b3f7bd"
+    },
+    {
+      "path": "wmo-doodads/537040.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 537040,
+      "bytes": 25556,
+      "sha256": "ae78e5c84c5c88d95ace309120df4809452457a1868ff34cbff99e32420b8217",
+      "encodingKey": "9813132dbef247fd2c64bcdc7b4dc78e"
+    },
+    {
+      "path": "wmo-doodads/537743.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 537743,
+      "bytes": 5156,
+      "sha256": "aa93e653435b7246eaac81fd4ccd3134347779bbefb6444382531ea7035e07ca",
+      "encodingKey": "5a4939ed0c417ade0ee6262135368169"
+    },
+    {
+      "path": "wmo-doodads/538547.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 538547,
+      "bytes": 9184,
+      "sha256": "841e10656735ab3313b365f4def6342f285937d907797c5b2298b36c8f6ea47a",
+      "encodingKey": "01f74fbc097e0c9ecd7711f3d307a823"
+    },
+    {
+      "path": "wmo-doodads/538759.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 538759,
+      "bytes": 48440,
+      "sha256": "72077e5c803eea7009d1ecd095180880b101ec4953a460db2349d33e5f905e57",
+      "encodingKey": "8b8ee96288c747e4664713e98f09675a"
+    },
+    {
+      "path": "wmo-doodads/555960.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 555960,
+      "bytes": 10192,
+      "sha256": "8e0a0ea2d7f89b794e5e525a3cbeacfed5948bb243351d1757039c6639020e74",
+      "encodingKey": "455b6173b4683ce3bdfe28e751e52566"
+    },
+    {
+      "path": "wmo-doodads/574922.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 574922,
+      "bytes": 9364,
+      "sha256": "213daad3b4de1baa97c8692b1fc6d3fdb8c38d9a8ac591384bf40f0648dc55a2",
+      "encodingKey": "38cbca4acb6360a30dd5af32ee312335"
+    },
+    {
+      "path": "wmo-doodads/575033.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 575033,
+      "bytes": 3568,
+      "sha256": "c1bac874c3add9418f169ad61a3f387a74c85e5cdddeb7df994d808918fdb12d",
+      "encodingKey": "1118e073f46e1d532a4269fa51a61df0"
+    },
+    {
+      "path": "wmo-doodads/575035.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 575035,
+      "bytes": 3488,
+      "sha256": "6c8d38cc45d0d96135eccf4bdc88020733cc06ab14352ce93b676c7293a5ce0e",
+      "encodingKey": "ec8ac130b5ec0ddc3315dd45085ef210"
+    },
+    {
+      "path": "wmo-doodads/575061.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 575061,
+      "bytes": 13332,
+      "sha256": "d9fa3ab6ab7752194a58d143b07f48e67350b0eacc5f2bc04dbc27aad2a9c944",
+      "encodingKey": "b7bd46c3cb8fd33a05e283872d68844e"
+    },
+    {
+      "path": "wmo-doodads/575069.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 575069,
+      "bytes": 37396,
+      "sha256": "6cbf094fea4ffadac61b34df3501b69c65b10a3d2cd7f1a3cbb538491d1d6e4b",
+      "encodingKey": "c626ab7cf5ef1dab6382b2b8bafea224"
+    },
+    {
+      "path": "wmo-doodads/575425.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 575425,
+      "bytes": 28136,
+      "sha256": "deb3e1d54e71c49e859e577fb3c096aee9e8019f4de8c85a17ba5e9b87e3ef55",
+      "encodingKey": "892d32329c8d7e145de4aafa27ccce9e"
+    },
+    {
+      "path": "wmo-doodads/576563.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 576563,
+      "bytes": 25616,
+      "sha256": "65f9976f1708e2cf64812654b612d2784d8ee0b0f8c0f1b643bd9cb5a2e5c7e1",
+      "encodingKey": "650dfc782c04d0818dc0c638f7c141fc"
+    },
+    {
+      "path": "wmo-doodads/576565.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 576565,
+      "bytes": 8400,
+      "sha256": "c8df02ca851c328d5f3ff339fcd75da9b89a01ac1b6161fd9e59c0bb11dd3532",
+      "encodingKey": "10995f6a2ade4d3c94659030aad0137a"
+    },
+    {
+      "path": "wmo-doodads/577391.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 577391,
+      "bytes": 21508,
+      "sha256": "7d4c8dff843225f2c04f82fca1040a1716c6e84c19f5a8dc38d226bb9ff88ea8",
+      "encodingKey": "5ad0ca3abd65cf4d6e0c1e272e1a8562"
+    },
+    {
+      "path": "wmo-doodads/586212.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 586212,
+      "bytes": 246464,
+      "sha256": "b8bcaf69b08fe7fedcdd3d3ff59df6b5467abb16aab71972bf8ba16e45db0cf8",
+      "encodingKey": "e61b309d99546e53e1180b6a568d261d"
+    },
+    {
+      "path": "wmo-doodads/586215.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 586215,
+      "bytes": 205728,
+      "sha256": "f3018b9afaf13589742245f768f685a0d2e7d1fd6eafb24fec3c8097787fd644",
+      "encodingKey": "a58ebba2f76a81659e47baa86f5b1379"
+    },
+    {
+      "path": "wmo-doodads/587663.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 587663,
+      "bytes": 25008,
+      "sha256": "8872aefd95f810fe78ea62a1c4b45d7ccb7fd00e3c1cffd7023457d5f35451e7",
+      "encodingKey": "4d266cb19177d2659ca5dc9c08ecc9ae"
+    },
+    {
+      "path": "wmo-doodads/594223.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 594223,
+      "bytes": 17784,
+      "sha256": "d1dc091dd6b811fde522075680d15d75beaae7b6f1800676fa056af298e76069",
+      "encodingKey": "43b5ab0b44f382c114732fd365d4a3fa"
+    },
+    {
+      "path": "wmo-doodads/603505.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 603505,
+      "bytes": 8992,
+      "sha256": "a24e090fff52e42047b0ed03a0b253ba503a26c483ff665299b935cc3122f0b0",
+      "encodingKey": "8d071456c7f9ed6ce2073d8e01fc1186"
+    },
+    {
+      "path": "wmo-doodads/603632.bin",
+      "layer": "wmo-doodads",
+      "fileDataID": 603632,
+      "bytes": 4656,
+      "sha256": "e0345b18c5c44cb4eb1e758d20a9f4faee7ee127407bf0e4af222e5edb1d0e5a",
+      "encodingKey": "99a7a00d61a185199af0724469899383"
+    },
+    {
+      "path": "wmo-groups/110492.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 110492,
+      "bytes": 56366,
+      "sha256": "a3ccdea2b88a4fe4618e051b04815ee05f3bf9999da541801c475168fccda0ae",
+      "encodingKey": "c1bc1f071a9d1f1c14a64d8f78e0519e"
+    },
+    {
+      "path": "wmo-groups/110493.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 110493,
+      "bytes": 25492,
+      "sha256": "dd4d494c9c605b7d778afb64f13eb77205ef1e93adae2265814acf34f872002f",
+      "encodingKey": "05664285aa36c26bc67f052eaa040e55"
+    },
+    {
+      "path": "wmo-groups/111053.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111053,
+      "bytes": 79326,
+      "sha256": "89241a50e4daa787f21179763c38b21700c2db8bbdf32ea5ab5c21e6da5eac43",
+      "encodingKey": "49c8f1b1e078e9cfeeeedbf4d840bfb4"
+    },
+    {
+      "path": "wmo-groups/111054.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111054,
+      "bytes": 40384,
+      "sha256": "7738f062cd42c2b7d5baf928c7c2509889410a2fc0e4c02b427771511cfdbee3",
+      "encodingKey": "aa43a1a01bd8ad6b5005cd425cd6eb8e"
+    },
+    {
+      "path": "wmo-groups/111055.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111055,
+      "bytes": 135558,
+      "sha256": "b79c2a8a025ab3ec2f4d18d2d2ada1e0f1fe154da95cc7148dbaa63b3d70adb9",
+      "encodingKey": "ccd0e920b135794bae5b26011e543e7d"
+    },
+    {
+      "path": "wmo-groups/111056.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111056,
+      "bytes": 68532,
+      "sha256": "ed90bcab7bac6b64b691a4c52fcc66fade74e572ac0a4a022d0cbd3d0c15ed34",
+      "encodingKey": "655a89dd6cd1d322167a3a8f7bcb4712"
+    },
+    {
+      "path": "wmo-groups/111057.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111057,
+      "bytes": 197582,
+      "sha256": "5f51c957977b041166712804083a73aaea5573f16fae2d154fdc09fc7e862e2d",
+      "encodingKey": "08a3091c4d377737cab441e63c7c790a"
+    },
+    {
+      "path": "wmo-groups/111058.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111058,
+      "bytes": 183894,
+      "sha256": "1322aabff19d55445dec18d007d28e3355d51cba7c77a95723c02a621d77eb01",
+      "encodingKey": "f402c80b60927ff986c7d69ed710751d"
+    },
+    {
+      "path": "wmo-groups/111059.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111059,
+      "bytes": 186986,
+      "sha256": "1473276a455d2ce13fbe918485b90607fb1b12907fc33bcd4f2c7d65f5a0f76c",
+      "encodingKey": "4591552fa07d4f96398a002a20dbf067"
+    },
+    {
+      "path": "wmo-groups/111060.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 111060,
+      "bytes": 228970,
+      "sha256": "8b6528d88d402810cd09289a4e106074daa039fdd96e0c74cead6a178af5002c",
+      "encodingKey": "6aa48b9db17a3ad0a6f7edcedae4e8c3"
+    },
+    {
+      "path": "wmo-groups/113205.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113205,
+      "bytes": 62736,
+      "sha256": "2b603033b652be01c18af6228ad8095eceef54cee31f528dbc23a19283462b51",
+      "encodingKey": "111322575dee2820becff3db78777a61"
+    },
+    {
+      "path": "wmo-groups/113873.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113873,
+      "bytes": 108840,
+      "sha256": "252bdb84dd29e03cc0c07a9157bbd22e6106f36726616c4b0fc15ba41f6ad32c",
+      "encodingKey": "2d5e15a597669e43fe1c7a91ce9d6277"
+    },
+    {
+      "path": "wmo-groups/113874.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113874,
+      "bytes": 51540,
+      "sha256": "0580c948a700d4dbad9d8397e75fef9d9059e0555692e832ba4e9885c2b04e72",
+      "encodingKey": "3dd2d615d794d2764a0eb65fbd929f8f"
+    },
+    {
+      "path": "wmo-groups/113876.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113876,
+      "bytes": 92524,
+      "sha256": "ca4017d6ada0c113131165660aa9dde7a3e60a1539697a165475edc687c46f81",
+      "encodingKey": "77bae555dedd01a4a74d7457ecaff340"
+    },
+    {
+      "path": "wmo-groups/113877.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113877,
+      "bytes": 51788,
+      "sha256": "32dea51bab180343c17686a7dfc17ce3d51a4008bc21e3cc2346cd8c34d20142",
+      "encodingKey": "b08e0719812829c3716295b9dc94d565"
+    },
+    {
+      "path": "wmo-groups/113882.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113882,
+      "bytes": 131086,
+      "sha256": "be8123ae3c1be4ef30c83affba76167dbf1b67ccdb8d85a736c393fab071d9d5",
+      "encodingKey": "03de070143f4f135a2960663a3e011d7"
+    },
+    {
+      "path": "wmo-groups/113883.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113883,
+      "bytes": 56342,
+      "sha256": "ec40fe0768b10bbe80b6514abcaba989b00250b35fcee94779fffd1b55436938",
+      "encodingKey": "3b82c923e72d19e8b656b11936620e3e"
+    },
+    {
+      "path": "wmo-groups/113911.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113911,
+      "bytes": 54886,
+      "sha256": "83e136d18c4f64a1c63c383830e8dae953cacc76592f657f7cfa23c8a1bbe674",
+      "encodingKey": "cdbffe30e9bf56a6261b287758b0a4ac"
+    },
+    {
+      "path": "wmo-groups/113912.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113912,
+      "bytes": 117482,
+      "sha256": "430483c782e5c0e87bb9beaac6b3157f3cbdca0ab4aa4cbeec18b8d938250a8f",
+      "encodingKey": "295dbb80be72b8ba0655a2a3b7a54d8f"
+    },
+    {
+      "path": "wmo-groups/113926.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113926,
+      "bytes": 167466,
+      "sha256": "3948356cf3a643043a92f3e3d75ad7bcdc51a8ddabd3ae2ef90352b344928456",
+      "encodingKey": "5623205779dab4fc56bcc04a97577a66"
+    },
+    {
+      "path": "wmo-groups/113927.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113927,
+      "bytes": 285762,
+      "sha256": "db7e165e64866510e697339cb3a986e98537ee13edbfb1a809f882e16965fedd",
+      "encodingKey": "b7f2bfb3f61b5adc3c0166840ae1b246"
+    },
+    {
+      "path": "wmo-groups/113928.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113928,
+      "bytes": 170888,
+      "sha256": "0e0f2a1610ad76d9a1715a30825499ae10172cf08616e954b666bb984235ae84",
+      "encodingKey": "e2fffe4e0b6933731be0b9bd4ffae173"
+    },
+    {
+      "path": "wmo-groups/113929.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113929,
+      "bytes": 106102,
+      "sha256": "577b034900dde9f93274043d215cca0c06a6ec568ae9da385320a8a799faa622",
+      "encodingKey": "0701aaf9ba9b1551be43d3ae03fa2202"
+    },
+    {
+      "path": "wmo-groups/113930.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113930,
+      "bytes": 26664,
+      "sha256": "db1281eadaff57a5733d5ab19d5859e53b27e0ef277f742ef7d97c87bab4a414",
+      "encodingKey": "6e894b3aac651a98e0d1ae22ba5f733c"
+    },
+    {
+      "path": "wmo-groups/113931.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113931,
+      "bytes": 91594,
+      "sha256": "d580352bfb164303c45d52e31a3f3160a0557208b16fbc4e345fd7667c9e1440",
+      "encodingKey": "8cc9cc2728263fc1f73231936add4b77"
+    },
+    {
+      "path": "wmo-groups/113932.bin",
+      "layer": "wmo-groups",
+      "fileDataID": 113932,
+      "bytes": 73234,
+      "sha256": "c8b109ce69fb56ec0e7a37d71dd8510f67ed2aaaa7b1978a77212400fa1fe48c",
+      "encodingKey": "deaed5b26abfe4ffdf11593475762fbd"
     }
   ],
   "tables": [
@@ -1959,22 +3231,33 @@
         "ContinentID": "0",
         "ParentAreaID": "1"
       }
+    ],
+    "WDTTiles": [
+      {
+        "tile": [
+          32,
+          42
+        ],
+        "MAIDIndex": 2720,
+        "rootFileDataID": 777997,
+        "obj0FileDataID": 777998
+      },
+      {
+        "tile": [
+          33,
+          42
+        ],
+        "MAIDIndex": 2721,
+        "rootFileDataID": 778197,
+        "obj0FileDataID": 778198
+      }
     ]
   },
-  "observedTile": {
-    "mapID": 0,
-    "rawMAIDSlot": 2721,
-    "rootFileDataID": 778197,
-    "objFileDataID": 778198,
-    "navigationCoordinateSystem": "Y-up; X=game world Y; Z=game world X"
-  },
   "limitations": [
-    "Tool MIT license does not license Blizzard assets or source site data. Local analysis only; extracted assets not added to repository.",
-    "Wago target-build table exports are external source assertions, retained with URL and content hash; selected mapping independently agrees with extracted terrain area IDs and positions.",
-    "File names assigned locally; physical tile is established by MCNK world positions and target AreaTable rather than inferring undocumented MAID orientation.",
-    "Chunk framing and file hashes do not prove collision completeness or traversability.",
-    "WDT MAI2 chunk semantics not implemented by pinned wow.export parser.",
-    "Placement dependencies need M2 collision arrays, WMO groups/doodad sets and transforms, liquids/holes, boundary stitching, dynamic exclusions, and native walkability checks before route publication."
+    "Game content and geometry remain external. Tool/software licenses do not grant asset redistribution rights.",
+    "Exact source bytes and generated geometry are not native verified walkability.",
+    "Two source ADTs do not imply availability of all world terrain, dynamic objects, doors, lifts or phase state.",
+    "Unmodeled WMO liquid footprints are excluded; no swimming capability inferred."
   ],
   "sourceReceipts": [
     {
@@ -1984,6 +3267,55 @@
     {
       "name": "recursive-dependencies-manifest.json",
       "sha256": "6ed835b2ce310e879dfa4d4c4e4af10b5b8bd59c03e999a66a884ad86c1faeac"
+    },
+    {
+      "role": "neighbor-WMO-extraction",
+      "sha256": "adc46339d03fb1b117f28c788f7ac916225f4a7c5fe56c93973f87dd97d32398",
+      "sourceAccess": "read-only pinned local CASC with exact-config CDN fallback on locked files; game files/processes unchanged"
     }
-  ]
+  ],
+  "observedTiles": [
+    {
+      "tile": [
+        32,
+        42
+      ],
+      "MAIDIndex": 2720,
+      "rootFileDataID": 777997,
+      "obj0FileDataID": 777998
+    },
+    {
+      "tile": [
+        33,
+        42
+      ],
+      "MAIDIndex": 2721,
+      "rootFileDataID": 778197,
+      "obj0FileDataID": 778198
+    }
+  ],
+  "navigationRegion": {
+    "regionID": "dun-morogh-kharanos-seam-69913",
+    "tiles": [
+      [
+        32,
+        42
+      ],
+      [
+        33,
+        42
+      ]
+    ],
+    "navXZBounds": [
+      [
+        -1066.6673177083333,
+        -5866.667317708333
+      ],
+      [
+        -405.333984375,
+        -5333.333984375
+      ]
+    ],
+    "sourceCoverage": "Full exact ADT bytes retained; runtime model cropped to original tile plus128-yard neighbor strip."
+  }
 }

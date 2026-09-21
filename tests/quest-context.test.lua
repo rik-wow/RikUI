@@ -61,10 +61,21 @@ check("waypoint absence preserved",value.targetStatus[98319].state=="observed"
     and value.targetStatus[98319].waypointState=="no-result")
 check("zero historical completion stays false",value.history[99158]==false)
 check("world and run diagnostics read only",value.worldPosition.x==-800 and value.worldPosition.z==-5500
-    and value.worldPosition.height==392 and value.worldPosition.mapID==0 and value.runSpeed==7)
+    and value.worldPosition.rawReportedZ==392 and value.worldPosition.height==nil
+    and value.worldPosition.verticalStatus=="unestablished" and value.worldPosition.mapID==0 and value.runSpeed==7)
 check("no selected reward is explicit",value.rewardStatus[98319].state=="no-result"
     and value.rewardStatus[98319].reason=="no-selected-active-quest")
 check("no state mutation",mutations()==0)
+local originalUnitPosition=UnitPosition
+UnitPosition=function() return -5587.2,-526.5,0,0 end
+local indoor=context.WorldPosition()
+check("zero third return is raw acquisition instead of floor",indoor.rawReportedZ==0
+    and indoor.height==nil and indoor.verticalStatus=="unestablished")
+UnitPosition=function() return -5587.2,-526.5,nil,0 end
+local horizontal=context.WorldPosition()
+check("unavailable vertical result preserves readable horizontal position",
+    horizontal and horizontal.x==-526.5 and horizontal.rawReportedZ==nil and horizontal.height==nil)
+UnitPosition=originalUnitPosition
 rows[1].x=.9
 check("detached POI copy",value.destinations[98319].x==.4)
 

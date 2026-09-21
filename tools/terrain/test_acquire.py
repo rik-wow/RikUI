@@ -3,9 +3,9 @@ import acquire as a
 
 class AcquisitionChecks(unittest.TestCase):
     def test_pinned_profile_and_full_asset_inventory(self):
-        profile=a.load_profile();self.assertEqual(len(profile['files']),232)
-        self.assertEqual(sum(r['bytes'] for r in profile['files']),4089424)
-        self.assertEqual({layer:sum(r['layer']==layer for r in profile['files']) for layer in a.LAYERS},dict(root=3,collision=84,**{'wmo-groups':11,'wmo-doodads':134}))
+        profile=a.load_profile();self.assertEqual(len(profile['files']),391)
+        self.assertEqual(sum(r['bytes'] for r in profile['files']),8785514)
+        self.assertEqual({layer:sum(r['layer']==layer for r in profile['files']) for layer in a.LAYERS},dict(root=5,collision=158,**{'wmo-groups':26,'wmo-doodads':202}))
     def test_profile_modification_is_not_accepted(self):
         value=a.load_profile();value['files'][0]['sha256']='0'*64
         with tempfile.TemporaryDirectory() as folder:
@@ -42,5 +42,5 @@ class AcquisitionChecks(unittest.TestCase):
     def test_existing_exact_assets_match_profile(self):
         root=os.environ.get('RIKUI_TERRAIN_ACQUISITION')
         if not root:self.skipTest('External exact-build assets not configured')
-        self.assertEqual(a.verify(a.load_profile(),root)['files'],232)
+        self.assertEqual(a.verify(a.load_profile(),root)['files'],391)
 if __name__=='__main__':unittest.main()

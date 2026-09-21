@@ -195,7 +195,8 @@ return function(check)
         env.inCombat=false
         UnitPosition=function() return -5500,-700,400,0 end
         local world=p.Context.WorldPosition()
-        check("readable player world position preserves height and continent",world.x==-700 and world.z==-5500 and world.height==400 and world.mapID==0)
+        check("readable position keeps unestablished vertical datum separate",world.x==-700 and world.z==-5500
+            and world.rawReportedZ==400 and world.height==nil and world.verticalStatus=="unestablished" and world.mapID==0)
         UnitPosition=function() return -5500,env.SECRET,400,0 end
         check("secret world coordinate remains unavailable",p.Context.WorldPosition()==nil)
         UnitPosition=nil

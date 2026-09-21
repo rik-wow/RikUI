@@ -299,8 +299,13 @@ Protocol validation includes 39 adversarial Python tests, 460 acceptance
 comparisons against the actual Lua codec, and 1,028 generated numeric cases.
 The raw character packet is intentionally not a repository fixture. Future
 exports retain explicit API statuses to diagnose absent target/reward data.
-Native fallback POIs, repeated durable exports and real quest transitions remain
-unverified.
+A second native packet (16,263 wire bytes, checksum `fcd0d8e1`, SHA256
+`0df983793cab32e243a7cde4592c7c4546d8c69b6697c1ba893b12fb1ac029e5`)
+confirms the POI fallback and passed both decoders plus durable reread. Its eight
+map locations remain current-character observations. Quest 96608 has no map
+result; reward XP is absent because no active quest was selected. The native
+terrain addon reports an unknown location, which confirms loading but not a
+successful route. Actual quest transitions remain unverified.
 
 ## Action eligibility
 
@@ -422,7 +427,10 @@ unavailable, rejected, ambiguous or query-limited results, with API/reason
 provenance. Unknown reward stays absent; observed zero remains zero. The status
 command reports location/reward counts and map-POI state. The fallback follows
 [pinned Blizzard map-provider usage](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_SharedMapDataProviders/QuestDataProvider.lua#L129),
-but its native availability on Forever remains unverified. Quest dialog and
+and a second user-supplied 69913/enUS export confirms eight current-map POI
+locations from this fallback. GetNextWaypoint returned no result for all nine
+quests; reward status reported no selected active quest. Other map/quest contexts
+remain unverified. Quest dialog and
 turn-in events are stored in a 48-entry session journal with a dropped count.
 Objectives-complete, historical completion and actual turn-in event XP remain
 different observations.
@@ -480,12 +488,18 @@ graph. It uses pinned tools, source hashes and parser hashes. Raw assets and
 generated geometry remain outside this repository and the settings transport.
 The companion addon requires RikUI and contains only the local compiled mesh.
 
-The initial region is one ADT tile, approximately map 1426 coordinates
-47.42–58.25% X and 44.35–60.60% Y. Its 81 shards contain 4,322 convex polygons
-and 8,484 directed portals. Three WMO header/count inconsistencies remain
-unresolved: all polygons intersecting their full placement footprints, expanded
-by the modeled radius, are excluded. Polygons outside the acquired tile are
-also excluded. This is partial coverage, not a complete Dun Morogh graph.
+The current region combines exact source ADTs 32_42 and 33_42, cropped to the
+original tile plus a 128-yard neighboring strip. Its 99 shards contain 6,213
+convex polygons and 12,112 directed portals. An actual graph probe crosses the
+source-tile boundary through baked portals. Framed WMO doodad records and
+references have been independently checked; header-count differences remain
+audit notes. Whole placement footprints with unmodeled liquid indications or
+unsupported doodad flags remain excluded. This is partial Dun Morogh coverage.
+
+The user's reported indoor point is now inside one modeled polygon, but its
+14-polygon component has no connected exit in this model. Other observed POIs
+are uncovered or disconnected. Expanding the source rectangle does not itself
+establish a feasible quest leg or correct floor; missing paths remain missing.
 
 Source authenticity, static decoding, modeled traversal and native verification
 remain separate. Dynamic doors, phasing, spawned objects, enemies, swimming and
@@ -505,8 +519,13 @@ frame, with a second pass checking portal targets. Limits are 8,192 polygons,
 Each point-location cell has at most 512 candidates. Portal heights must agree
 with their source edge and cross to the target within the declared 0.3-yard
 modeled step plus quantization tolerance; horizontal adjacency cannot join floors. Location requires unique
-containment; readable player world height selects a floor within one yard.
-Missing height does not permit nearest-floor snapping. Map/world disagreement,
+containment. An explicitly established altitude could select a floor within
+one yard. The observed UnitPosition third return is retained as `rawReportedZ`
+with unestablished vertical status, never treated as a reliable altitude. The
+user's indoor export reported zero while modeled surfaces are near 400 yards.
+Without established altitude, exactly one containing polygon is required;
+stacked surfaces and shared polygon boundaries remain ambiguous. Missing height
+does not permit nearest-floor snapping. Map/world disagreement,
 cross-build data and ambiguous or uncovered points suppress terrain guidance.
 
 The deterministic A* job yields between queue and edge operations, with 64
@@ -524,15 +543,12 @@ labels its destination bearing. Pausing, stale plans and unavailable location
 hide actionable terrain guidance. Native map projection, floors, movement,
 visuals and performance remain unverified; no computer use was performed.
 
-Reproduction from committed tools passed 38 parser/acquisition/geometry tests
-and matched all 83 rebaked files. The compiler passed 37 adversarial tests.
-The real compiled dataset loaded through the production Lua pathfinder, and
-three routes matched an independent Dijkstra calculation (maximum 8,100 search
-operations). One headless LuaJIT run loaded it in 32 ms over 271 slices; the
-coarse timer reported maximum load and search slices of 1 ms. These are local
-test measurements, not native frame-time guarantees. After adding vertical portal
-checks, a later run loaded in 42 ms with a maximum 2 ms load slice; the search
-maximum remained 1 ms on that run.
+Region reproduction passes 52 parser/acquisition/geometry tests and eight
+mesh-filter checks, with 101 identical rebaked files. The compiler passes 57
+adversarial tests. Production Lua validates the real graph and checks its probe
+routes against an independent Dijkstra calculation. All measurements are
+headless model checks; native floor selection, traversal and frame time remain
+unverified.
 
 ## Elevator travel
 

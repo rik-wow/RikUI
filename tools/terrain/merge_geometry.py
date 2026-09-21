@@ -34,7 +34,8 @@ def merge(geometry,wmo):
         if len(bounds)!=2 or any(len(p)!=3 for p in bounds):t.fail('exclusion-bounds')
         if not all(math.isfinite(v) for row in bounds for v in row):t.fail('exclusion-finite')
         if any(bounds[0][a]>bounds[1][a] for a in range(3)):t.fail('exclusion-order')
-        excluded.setdefault(ident,dict(placementID=ident,bounds=bounds,padding=0.5,reasons=[]))['reasons'].append(gate['reason'])
+        reasons=excluded.setdefault(ident,dict(placementID=ident,bounds=bounds,padding=0.5,reasons=[]))['reasons']
+        if gate['reason'] not in reasons:reasons.append(gate['reason'])
         gate['modelMitigation']='exclude-entire-MODF-horizontal-footprint-with-agent-radius'
     if unresolved:t.fail('unlocated-M2-coverage-gate')
     g['collisionAudit']['unresolved']=unresolved
@@ -43,7 +44,7 @@ def merge(geometry,wmo):
     g['coverage'].update(staticWMO=wmo['coverage']['staticWMO'],
         framedSelectedStaticDecoded=wmo['coverage']['framedSelectedStaticDecoded'],
         modelExcludesUnresolvedStaticFootprints=True,
-        liquids='no-MH2O-or-MCLQ-in-root-and-no-MLIQ-or-liquid-type-in-selected-WMO-groups',
+        liquids=('excluded-unmodeled-WMO-liquids' if any(v['reason']=='WMO-liquid-not-modeled' for v in gates) else 'no-MH2O-or-MCLQ-in-root-and-no-MLIQ-or-liquid-type-in-selected-WMO-groups'),
         nativeTraversalVerified=False)
     g['status']='derived-static-model-with-excluded-uncertain-footprints'
     g['publishable']=False
@@ -53,11 +54,11 @@ def merge(geometry,wmo):
     g['source']['mergeParserSHA256']=t.digest(pathlib.Path(__file__).read_bytes())
     g['limitations']=[
         'Exact local source bytes; independently decoded and generated static model, never verified native walkability.',
-        'Count inconsistencies remain explicit. Exported graph removes whole affected MODF XZ footprints plus agent radius.',
+        'MOHD count differences remain audit notes. Unsupported liquid/group features remove entire affected MODF footprints plus agent radius.',
         'Player collision dimensions, movement physics, transforms and path following need native validation.',
         'Dynamic doors, gameobjects, phasing, enemies and temporary obstacles are not established by static geometry.',
-        'Encoded root/group liquid chunks absent in this tile; no swim links or water capabilities inferred.',
-        'No outgoing links beyond this one tile; no transport or flight connections inferred.',
+        'Encoded WMO liquids, where present, remain unmodeled and their footprints are excluded; no swim capability is inferred.',
+        'No outgoing links beyond the explicit sourced region; no transport or flight connections inferred.',
         'Coarse convex polygon heights approximate Detour detail mesh; center/portal route distances are model estimates.',
         'Raw Detour binary retains excluded diagnostic geometry; only filtered exported shards are candidate runtime data.'
     ]

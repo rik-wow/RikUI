@@ -3,6 +3,10 @@ Stdlib only; output must be nonexistent or empty. No raw assets are copied.
 Hash integrity does not independently authenticate source or native traversal.
 """
 import argparse, hashlib, json, math, pathlib, re, stat, tempfile
+import region_contract, coverage_contract
+from terrain_contract import CompileError, need, integer, number, text, hash_string, array, obj, point, bounds, exclusion_rect, runtime_geometry, runtime_metadata
+from coverage_contract import GATE, LIQUID_GATE, FLAG_GATE, MITIGATION
+coverage=coverage_contract.validate
 PARSER='rikui-terrain-compiler-v1'
 IDENTITY={'product':'wow_classic_beta','edition':'Forever','build':'1.60.1.69913','locale':'enUS'}
 RUNTIME_IDENTITY={'product':'forever','build':'1.60.1.69913','locale':'enUS'}
@@ -19,24 +23,8 @@ MAX_PORTALS=32768
 MAX_SHARD_POLYGONS=512
 MAX_SHARD_PORTALS=2048
 MAX_NODES=1000000
-GATE='MOHD-doodad-count-disagrees-with-framed-MODD'
-MITIGATION='exclude-entire-MODF-horizontal-footprint-with-agent-radius'
-SHA=re.compile(r'[a-f0-9]{64}\Z')
 REGION=re.compile(r'region-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}\.json\Z')
-class CompileError(ValueError):pass
-def need(ok,message):
-    if not ok:raise CompileError(message)
 def sha(data):return hashlib.sha256(data).hexdigest()
-def integer(v,lo,hi,label):need(type(v) is int and lo<=v<=hi,'invalid-'+label);return v
-def number(v,label):need(type(v) in (int,float) and math.isfinite(v) and abs(v)<=100000,'invalid-'+label);return v
-def text(v,label,limit=512):need(type(v) is str and 0<len(v)<=limit and '\0' not in v,'invalid-'+label);return v
-def hash_string(v,label):need(type(v) is str and SHA.fullmatch(v),'invalid-'+label);return v
-def array(v,cap,label):need(type(v) is list and len(v)<=cap,'invalid-'+label);return v
-def obj(v,label):need(type(v) is dict,'invalid-'+label);return v
-def point(v,label):
-    need(type(v) is list and len(v)==3,'invalid-'+label)
-    for x in v:number(x,label)
-    return list(v)
 def reparse(path):
     info=path.lstat()
     return path.is_symlink() or bool(getattr(info,'st_file_attributes',0)&getattr(stat,'FILE_ATTRIBUTE_REPARSE_POINT',0x400))
@@ -64,55 +52,12 @@ def parse_json(data):
         elif type(value) is str:need(len(value)<=8192 and '\0' not in value,'json-string-bound')
     return result
 def identity(value):need(value==IDENTITY,'unsupported-product-build-locale')
-def bounds(value):
-    need(type(value) is list and len(value)==2,'invalid-bounds');lo,hi=point(value[0],'bounds'),point(value[1],'bounds')
-    need(all(lo[i]<=hi[i] for i in range(3)),'reversed-bounds');return [lo,hi]
-def exclusion_rect(entry):
-    box=bounds(entry.get('bounds'));pad=number(entry.get('padding'),'exclusion-padding');need(0.5<=pad<=10,'unsafe-exclusion-padding')
-    return [box[0][0]-pad,box[0][2]-pad,box[1][0]+pad,box[1][2]+pad]
 def carve_aabb(points,rect):
     xs=[p[0] for p in points];zs=[p[2] for p in points]
     return max(xs)>=rect[0] and min(xs)<=rect[2] and max(zs)>=rect[1] and min(zs)<=rect[3]
-def coverage(m):
-    cov=obj(m.get('coverage'),'coverage')
-    generator=obj(m.get('generator'),'generator');config=obj(generator.get('config'),'agent-config')
-    expected_profile={'cs':.5,'ch':.1,'walkableRadius':1,'walkableHeight':18,'walkableClimb':3,'walkableSlopeAngle':40,'maxVertsPerPoly':6}
-    need(generator.get('agentProfileNativeVerified') is False and all(type(config.get(k)) in (int,float) and config[k]==v for k,v in expected_profile.items()),'unsupported-agent-profile')
-    expected={'terrain':True,'holes':True,'staticM2':True,'dynamicDoors':False,'agentProfileCalibrated':False,'placementReferencesAreNames':False,'framedSelectedStaticDecoded':True,'modelExcludesUnresolvedStaticFootprints':True,'nativeTraversalVerified':False}
-    need(all(cov.get(k) is v for k,v in expected.items()),'unsupported-coverage-state')
-    need(set(cov)==set(expected)|{'staticWMO','liquids'},'unknown-coverage-field')
-    need(type(cov.get('staticWMO')) is bool,'invalid-static-WMO-coverage')
-    need(cov.get('liquids')=='no-MH2O-or-MCLQ-in-root-and-no-MLIQ-or-liquid-type-in-selected-WMO-groups','unsupported-liquid-coverage')
-    need(m.get('coverageScope')=='outside-exclusions','unsupported-coverage-scope')
-    need(obj(m.get('collisionAudit'),'collision-audit').get('unresolved')==[],'unmitigated-M2-collision')
-    audit=obj(m.get('wmoAudit'),'WMO-audit');gates=array(m.get('coverageGates'),64,'coverage-gates')
-    unresolved=array(audit.get('unsupported'),64,'WMO-unsupported');entries=array(m.get('exclusions'),64,'exclusions');placements={}
-    for row in array(audit.get('placements'),64,'WMO-placements'):
-        row=obj(row,'WMO-placement');uid=integer(row.get('placementID'),1,2**32-1,'placement-ID')
-        need(uid not in placements,'duplicate-WMO-placement');placements[uid]=row
-    exclusions={};rectangles=[]
-    for row in entries:
-        row=obj(row,'exclusion');uid=integer(row.get('placementID'),1,2**32-1,'exclusion-ID')
-        need(uid not in exclusions,'duplicate-exclusion');need(row.get('reasons')==[GATE],'unknown-exclusion-reason')
-        need(uid in placements and row.get('bounds')==placements[uid].get('MODFworldBounds'),'exclusion-does-not-cover-audited-footprint')
-        exclusions[uid]=row;rectangles.append(exclusion_rect(row))
-    checked=[];uids=set()
-    for gate in gates:
-        gate=obj(gate,'gate');uid=integer(gate.get('placementID'),1,2**32-1,'gate-ID')
-        need(uid not in uids,'duplicate-coverage-gate');uids.add(uid)
-        need(gate.get('reason')==GATE and gate.get('modelMitigation')==MITIGATION,'unknown-or-unmitigated-gate')
-        need(uid in exclusions and gate.get('fileDataID')==placements[uid].get('fileDataID'),'gate-missing-exclusion')
-        a=integer(gate.get('advertised'),0,20000,'advertised-count');f=integer(gate.get('framed'),0,20000,'framed-count');need(a!=f,'invalid-count-mismatch-gate')
-        checked.append({k:v for k,v in gate.items() if k!='modelMitigation'})
-    canonical=lambda items:sorted(json.dumps(x,sort_keys=True) for x in items)
-    need(canonical(checked)==canonical(unresolved),'unrecorded-WMO-coverage-gate');need(uids==set(exclusions),'unmapped-exclusion')
-    need(cov['staticWMO'] is (not gates),'inconsistent-WMO-coverage')
-    # Voxel profile parameter, not an observed player capability.
-    modeled_max_step=round(config['walkableClimb']*config['ch'],10)
-    return rectangles,gates,modeled_max_step
 def polygon(row,exclusions,region_bounds):
     row=obj(row,'polygon');need(set(row)=={'id','points','portals','center'},'unsupported-polygon-fields')
-    ident=integer(row.get('id'),1,2**32-1,'polygon-ID');pts=array(row.get('points'),6,'polygon-points');need(len(pts)>=3,'polygon-too-small')
+    ident=integer(row.get('id'),1,2147483647,'polygon-ID');pts=array(row.get('points'),6,'polygon-points');need(len(pts)>=3,'polygon-too-small')
     pts=[point(p,'polygon-point') for p in pts];point(row.get('center'),'polygon-center')
     need(len({(p[0],p[2]) for p in pts})==len(pts),'duplicate-horizontal-vertex')
     need(all(region_bounds[0]-.002<=p[0]<=region_bounds[2]+.002 and region_bounds[1]-.002<=p[2]<=region_bounds[3]+.002 for p in pts),'polygon-outside-supported-tile')
@@ -128,9 +73,9 @@ def polygon(row,exclusions,region_bounds):
     need(not any(carve_aabb(pts,r) for r in exclusions),'polygon-touches-exclusion');portals=[];targets=set()
     for portal in array(row.get('portals'),32,'polygon-portals'):
         portal=obj(portal,'portal');need(set(portal)=={'to','left','right','meters'},'unsupported-portal-fields')
-        target=integer(portal.get('to'),1,2**32-1,'portal-target');need(target!=ident and target not in targets,'self-or-duplicate-portal');targets.add(target)
+        target=integer(portal.get('to'),1,2147483647,'portal-target');need(target!=ident and target not in targets,'self-or-duplicate-portal');targets.add(target)
         left,right=point(portal.get('left'),'portal-left'),point(portal.get('right'),'portal-right')
-        need(math.hypot(left[0]-right[0],left[2]-right[2])>1e-6,'degenerate-portal');need(number(portal.get('meters'),'portal-distance')>0,'invalid-portal-distance')
+        need(math.hypot(left[0]-right[0],left[2]-right[2])>1e-6 and math.dist(left,right)>=.0001,'degenerate-portal');need(number(portal.get('meters'),'portal-distance')>0,'invalid-portal-distance')
         portals.append({'to':target,'left':left,'right':right})
     return {'id':ident,'points':pts,'portals':portals}
 def boundary_sample(p,points):
@@ -138,7 +83,7 @@ def boundary_sample(p,points):
     best=(math.inf,None)
     for i,a in enumerate(points):
         b=points[(i+1)%len(points)];dx,dz=b[0]-a[0],b[2]-a[2];norm=dx*dx+dz*dz
-        if norm==0:continue
+        if norm<=.00001:continue
         q=max(0,min(1,((x-a[0])*dx+(z-a[2])*dz)/norm))
         distance=math.hypot(x-a[0]-q*dx,z-a[2]-q*dz)
         if distance<best[0]:best=(distance,a[1]+q*(b[1]-a[1]))
@@ -166,17 +111,16 @@ def portal_heights(portal,source,target,modeled_max_step):
 def validate(manifest_path,expected_sha):
     hash_string(expected_sha,'expected-manifest-SHA256');manifest_path=pathlib.Path(manifest_path).absolute();data=read_bounded(manifest_path,MAX_MANIFEST)
     need(sha(data)==expected_sha,'manifest-hash-mismatch');m=obj(parse_json(data),'manifest');identity(m.get('identity'))
-    need(m.get('format')=='rikui-nav-tile-proof-v1','unsupported-manifest-format')
-    need(type(m.get('mapID')) is int and m['mapID']==0 and m.get('tile')==[33,42],'unsupported-map-tile')
+    need(m.get('format') in ('rikui-nav-tile-proof-v1',region_contract.REGION_FORMAT),'unsupported-manifest-format')
     need(m.get('status')=='derived-pending-validation' and m.get('publishable') is False,'unsupported-publication-state')
     need(m.get('coordinateSystem')=='Y-up; X=game world Y; Z=game world X','unsupported-coordinate-system')
     source=obj(m.get('source'),'source');need(source.get('buildConfig')==BUILD_CONFIG and source.get('cdnConfig')==CDN_CONFIG,'unsupported-source-build')
     acq=obj(source.get('acquisitionReceipt'),'acquisition-receipt');hash_string(acq.get('sha256'),'acquisition-receipt-hash');text(acq.get('path'),'acquisition-receipt-path',4096)
     region=obj(m.get('bounds'),'source-bounds');box=bounds([region.get('min'),region.get('max')]);region_bounds=[box[0][0],box[0][2],box[1][0],box[1][2]]
-    expected_bounds=[-1066.6673177083333,-5866.667317708333,-533.333984375,-5333.333984375]
-    need(all(abs(a-b)<.002 for a,b in zip(region_bounds,expected_bounds)),'unsupported-source-region-bounds')
-    rectangles,gates,modeled_max_step=coverage(m);limitations=[text(v,'limitation') for v in array(m.get('limitations'),24,'limitations')];need(limitations,'missing-model-limitations')
-    for gate in gates:limitations.append('Excluded placement %d: %s (%d advertised; %d framed).'%(gate['placementID'],GATE,gate['advertised'],gate['framed']))
+    source_region=region_contract.validate(m,source,region_bounds,need)
+    rectangles,gates,modeled_max_step=coverage(m,region_bounds);limitations=[text(v,'limitation') for v in array(m.get('limitations'),24,'limitations')];need(limitations,'missing-model-limitations')
+    for gate in gates:
+        limitations.append('Excluded placement %d: %s (source file %d).'%(gate['placementID'],gate['reason'],gate['fileDataID']))
     stats=obj(m.get('statistics'),'statistics');pc=integer(stats.get('polygons'),1,MAX_POLYGONS,'polygon-count');ec=integer(stats.get('directedEdges'),0,MAX_PORTALS,'portal-count');rc=integer(stats.get('regions'),1,MAX_SHARDS,'region-count')
     regions=array(m.get('regions'),MAX_SHARDS,'regions');need(len(regions)==rc,'region-count-mismatch')
     parent=manifest_path.parent.resolve();names=set();ids=set();grids=set();polys={};shards=[];total=0;edges=0;inputs=[]
@@ -199,6 +143,7 @@ def validate(manifest_path,expected_sha):
         need(region_edges==integer(record.get('directedEdges'),0,MAX_SHARD_PORTALS,'region-edge-count'),'region-edge-count-mismatch');edges+=region_edges;need(edges<=MAX_PORTALS,'portal-resource-bound')
         shards.append({'identity':dict(RUNTIME_IDENTITY),'polygons':runtime});inputs.append(dict(filename=name,sha256=sha(raw),bytes=len(raw),polygons=len(rows),directedEdges=region_edges))
     need(len(polys)==pc and edges==ec,'manifest-count-mismatch');need(total==integer(stats.get('jsonShardBytes'),1,MAX_TOTAL,'json-shard-byte-count'),'total-shard-byte-count-mismatch')
+    runtime_geometry(polys.values())
     for p in polys.values():
         for portal in p['portals']:
             need(portal['to'] in polys,'dangling-portal');target=polys[portal['to']]
@@ -210,8 +155,14 @@ def validate(manifest_path,expected_sha):
         need(number(probe.get('meters'),'probe-distance')>=0,'invalid-probe-distance')
         for pos in array(probe.get('path'),4096,'probe-path'):point(pos,'probe-position')
         for ident in array(probe.get('polygonPath'),MAX_POLYGONS,'probe-polygon-path'):need(integer(ident,1,2**32-1,'probe-path-ID') in polys,'probe-path-polygon-missing')
-    meta={'format':'rikui-navmesh-v1','identity':dict(RUNTIME_IDENTITY),'revision':expected_sha,'uiMapID':1426,'worldMapID':0,'source':{'sha256':expected_sha,'parser':PARSER},'projection':dict(PROJECTION),'counts':{'polygons':pc,'portals':ec},'exclusions':rectangles,'bounds':region_bounds,'blockers':[],'coverageScope':'outside-exclusions','modeledMaxStep':modeled_max_step,'nativeVerified':False,'agentProfileCalibrated':False,'limitations':limitations}
+    meta={'format':'rikui-navmesh-v1','identity':dict(RUNTIME_IDENTITY),'revision':expected_sha,'uiMapID':1426,'worldMapID':0,'source':{'sha256':expected_sha,'parser':PARSER},'projection':dict(PROJECTION),'counts':{'polygons':pc,'portals':ec},'exclusions':rectangles,'bounds':region_bounds,'blockers':[],'coverageScope':m['coverageScope'],'modeledMaxStep':modeled_max_step,'nativeVerified':False,'agentProfileCalibrated':False,'limitations':limitations}
     receipt={'format':'rikui-terrain-compile-receipt-v1','compiler':PARSER,'compilerSha256':sha(pathlib.Path(__file__).read_bytes()),'inputManifest':{'path':str(manifest_path.resolve()),'bytes':len(data),'sha256':expected_sha},'inputRegions':inputs,'sourceAudit':source,'inputCoverage':m['coverage'],'coverageGates':gates,'excludedFootprints':m['exclusions'],'projection':PROJECTION,'projectionSource':PROJECTION_SOURCE,'counts':{'shards':rc,'polygons':pc,'directedPortals':ec},'runtimeIdentity':RUNTIME_IDENTITY,'sourceAuthenticity':'Caller supplied expected hash; integrity does not independently authenticate acquisition claims.','modeledTraversal':'Only carved JSON graph compiled; raw Detour binary and game assets are not copied.','nativeVerified':False,'agentProfileCalibrated':False,'limitations':limitations,'geometryTolerance':{'polygonContainment':0.002,'portalBoundary':0.01},'validationProbes':array(m.get('probes',[]),8,'validation-probes')}
+    meta['sourceRegion']=source_region
+    runtime_metadata(meta)
+    receipt['sourceRegion']=source_region
+    receipt['regionContractSha256']=sha(pathlib.Path(region_contract.__file__).read_bytes())
+    receipt['coverageContractSha256']=sha(pathlib.Path(coverage_contract.__file__).read_bytes())
+    receipt['primitiveContractSha256']=sha(pathlib.Path(__file__).with_name('terrain_contract.py').read_bytes())
     receipt['modeledMaxStep']=modeled_max_step
     receipt['modeledMaxStepSource']='Pinned Recast config walkableClimb * ch; not verified player physics.'
     receipt['geometryTolerance'].update(sourcePortalHeight=.002,targetPortalStepSlack=.002,sourcePortalBoundary=.002)

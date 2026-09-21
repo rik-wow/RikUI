@@ -19,7 +19,10 @@ def m2(data):
         at=end
     if payload is None or len(payload)<240 or payload[:4]!=b'MD20':t.fail('M2-format')
     version,=struct.unpack_from('<I',payload,4)
-    if version!=272:t.fail('unsupported-M2-version')
+    # Exact v274 assets independently consumed by the unmodified pinned M2Loader.
+    demonstrated274={'0e0f350af340436194c1013d037f81e681876c227dafda816a3c5e3a0c98dfb6',
+        '8a2118873adccadd97330ee4326f2e2420e6711cfe8fd3d3a7c83f36e7005116'}
+    if version!=272 and not(version==274 and t.digest(data) in demonstrated274):t.fail('unsupported-M2-version')
     count,offset=struct.unpack_from('<II',payload,216)
     nverts,vertOffset=struct.unpack_from('<II',payload,224)
     if count%3 or count>300000 or nverts>65536:t.fail('M2-collision-count')
@@ -53,7 +56,7 @@ def intersects(a,b,padding=1.0):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--input',default='geometry.json')
     p.add_argument('--directory',required=True);p.add_argument('--output',default='geometry-collision.json');p.add_argument('--allow-full-tile',action='store_true')
-    a=p.parse_args();g=json.loads(pathlib.Path(a.input).read_text());region=bounds(g['positions'])
+    a=p.parse_args();g=json.loads(pathlib.Path(a.input).read_text());region=g.get('regionBounds',bounds(g['positions']))
     evidence=g['source']['acquisitionReceipt'];receiptBytes=t.load(evidence['path'])
     if t.digest(receiptBytes)!=evidence['sha256']:t.fail('changed-extraction-receipt')
     receipt=json.loads(receiptBytes);registered={x['fileDataID']:x for x in receipt['collisionDependencies']}

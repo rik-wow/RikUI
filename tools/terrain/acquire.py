@@ -4,7 +4,7 @@ Verified-copy mode reproduces receipts using already acquired bytes.
 """
 import argparse, hashlib, json, os, pathlib, re, shutil, stat, subprocess
 
-PROFILE_HASH='5b239b3a7fe84a3dec183e589326dbfeed5ec28897bb9666dc3985386d00bdd4'
+PROFILE_HASH='8577e6eaf7d20c2a04eb8aba0d2e3a9578618c08c094f8105d9efed702a61307'
 PROFILE=pathlib.Path(__file__).with_name('acquisition-profile.json')
 LAYERS=('root','collision','wmo-groups','wmo-doodads')
 
@@ -23,7 +23,7 @@ def validate_profile(value):
     if value.get('schema')!='rikui-terrain-acquisition-profile-v1':fail('profile-schema')
     if (value.get('product'),value.get('version'),value.get('locale'))!=('wow_classic_beta','1.60.1.69913','enUS'):fail('profile-identity')
     files=value['files']
-    if not 1<=len(files)<=256:fail('asset-count')
+    if not 1<=len(files)<=512:fail('asset-count')
     identifiers=set();paths=set();total=0
     for row in files:
         path=row['path'];parts=path.split('/')

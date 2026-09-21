@@ -53,6 +53,10 @@ Missing corpus and native validation coverage remain explicit. Offline terrain t
 produce a separate local companion addon; incremental mesh validation and A* own
 modeled corridor guidance. Acquisition authenticity never certifies traversability,
 and extracted assets/geometry are excluded from the repository and settings store.
+The terrain compiler separates geographic source profiles, collision coverage
+contracts and geometry validation. UnitPosition's raw vertical value is not an
+established floor measurement; horizontal grounding remains ambiguous when
+multiple modeled surfaces overlap.
 
 ## Loading and activation are separate
 

@@ -46,6 +46,107 @@ class CompilerTests(unittest.TestCase):
         receipt=json.loads((self.out/'compile-receipt.json').read_text());self.assertEqual(receipt['inputManifest']['sha256'],h);self.assertEqual(len(receipt['coverageGates']),1)
         self.assertEqual(set(e['filename'] for e in receipt['outputs']),{x.name for x in self.out.iterdir()}-{'compile-receipt.json'})
         for e in receipt['outputs']:self.assertEqual(c.sha((self.out/e['filename']).read_bytes()),e['sha256'])
+    def test_complete_static_model_without_exclusions(self):
+        self.m['coverageScope']='whole-source-region'
+        self.m['coverage']['staticWMO']=True
+        self.m['coverageGates']=[];self.m['exclusions']=[];self.m['wmoAudit']['unsupported']=[]
+        self.m['wmoAudit']['headerCountNotes']=[{'placementID':10,'advertised':2,'framed':1}]
+        p,h=self.write();meta,_,receipt=c.validate(p,h)
+        self.assertEqual(meta['coverageScope'],'whole-source-region')
+        self.assertEqual(meta['exclusions'],[]);self.assertFalse(meta['nativeVerified'])
+        self.m['coverageScope']='outside-exclusions'
+        self.reject('inconsistent-coverage-scope')
+
+    def test_whole_source_label_does_not_hide_exclusions(self):
+        self.m['coverageScope']='whole-source-region'
+        self.reject('inconsistent-coverage-scope')
+
+    def region_fixture(self):
+        r=c.region_contract
+        self.m['format']=r.REGION_FORMAT;self.m['regionID']=r.REGION_ID
+        del self.m['tile'];self.m['tiles']=[row[0] for row in r.TILES]
+        self.m['bounds']['max'][0]=r.REGION_BOUNDS[2]
+        def source(ident):
+            size,digest=r.FILES[ident]
+            return {'path':'audit-only/'+str(ident),'fileDataID':ident,'bytes':size,'sha256':digest}
+        self.m['source']['inputs']={'wdt':source(775971),'tiles':[
+            {'tile':tile,'root':source(root),'obj':source(obj)} for tile,root,obj in r.TILES]}
+
+    def liquid_fixture(self):
+        self.m['coverage']['framedSelectedStaticDecoded']=False
+        self.m['coverage']['liquids']='excluded-unmodeled-WMO-liquids'
+        self.m['wmoAudit']['placements'][0]['groupIDs']=[21,22]
+        gates=[{'placementID':10,'fileDataID':ident,'reason':c.LIQUID_GATE} for ident in (21,22)]
+        self.m['wmoAudit']['unsupported']=gates
+        self.m['coverageGates']=[dict(g,modelMitigation=c.MITIGATION) for g in gates]
+        self.m['exclusions'][0]['reasons']=[c.LIQUID_GATE]
+
+    def test_explicit_region_preserves_both_original_source_tiles(self):
+        self.region_fixture();p,h=self.write();meta,_,receipt=c.validate(p,h)
+        self.assertEqual(meta['sourceRegion']['tiles'],[[32,42],[33,42]])
+        self.assertEqual(meta['sourceRegion']['regionID'],c.region_contract.REGION_ID)
+        self.assertEqual(meta['bounds'][2],c.region_contract.REGION_BOUNDS[2])
+        self.assertEqual(receipt['sourceAudit']['inputs'],self.m['source']['inputs'])
+        self.assertFalse(meta['nativeVerified'])
+
+    def test_region_rejects_wrong_source_ids_hashes_and_order(self):
+        self.region_fixture();original=copy.deepcopy(self.m)
+        for mutation in ('hash','ID','order','mixed','missing','bounds'):
+            with self.subTest(mutation=mutation):
+                self.m=copy.deepcopy(original)
+                if mutation=='hash':self.m['source']['inputs']['tiles'][0]['obj']['sha256']='0'*64
+                if mutation=='ID':self.m['source']['inputs']['tiles'][0]['obj']['fileDataID']=778198
+                if mutation=='order':self.m['source']['inputs']['tiles'].reverse()
+                if mutation=='mixed':self.m['tile']=[33,42]
+                if mutation=='missing':del self.m['source']['inputs']['wdt']
+                if mutation=='bounds':self.m['bounds']['max'][0]+=1
+                self.reject('region|source')
+
+    def test_distinct_liquid_group_gates_share_full_footprint(self):
+        self.liquid_fixture();p,h=self.write();meta,_,receipt=c.validate(p,h)
+        self.assertEqual(len(meta['exclusions']),1)
+        self.assertEqual(len(receipt['coverageGates']),2)
+        self.assertFalse(receipt['inputCoverage']['framedSelectedStaticDecoded'])
+        self.assertFalse(meta['nativeVerified'])
+
+    def test_liquid_gate_requires_each_group_membership_and_audit(self):
+        self.liquid_fixture();original=copy.deepcopy(self.m)
+        for mutation in ('membership','duplicate','audit','reason','claim'):
+            with self.subTest(mutation=mutation):
+                self.m=copy.deepcopy(original)
+                if mutation=='membership':self.m['wmoAudit']['placements'][0]['groupIDs']=[21]
+                if mutation=='duplicate':self.m['coverageGates'][1]=copy.deepcopy(self.m['coverageGates'][0])
+                if mutation=='audit':self.m['wmoAudit']['unsupported'].pop()
+                if mutation=='reason':self.m['exclusions'][0]['reasons']=[c.GATE]
+                if mutation=='claim':self.m['coverage']['framedSelectedStaticDecoded']=True
+                self.reject('group|gate|reason|coverage')
+
+    def flag_fixture(self, outside=True):
+        bounds=[[-390,390,-5700],[-385,410,-5695]] if outside else [[-950,390,-5700],[-945,410,-5695]]
+        self.m['wmoAudit']['placements'][0]['MODFworldBounds']=bounds
+        self.m['exclusions'][0].update(bounds=bounds,reasons=[c.FLAG_GATE])
+        gate={'placementID':10,'fileDataID':20,'reason':c.FLAG_GATE,'flags':[2]}
+        self.m['wmoAudit']['unsupported']=[gate]
+        self.m['coverageGates']=[dict(gate,modelMitigation=c.MITIGATION)]
+        self.m['coverage']['framedSelectedStaticDecoded']=False
+
+    def test_unsupported_flags_may_only_be_excluded_outside_sourced_region(self):
+        self.flag_fixture();p,h=self.write();meta,_,receipt=c.validate(p,h)
+        self.assertEqual(receipt['coverageGates'][0]['flags'],[2])
+        self.assertFalse(meta['nativeVerified'])
+        self.flag_fixture(outside=False)
+        self.reject('unsupported-doodad-flags-inside-region')
+
+    def test_flag_gate_requires_root_identity_and_unknown_nonzero_flags(self):
+        self.flag_fixture();original=copy.deepcopy(self.m)
+        for mutation in ('root','zero','duplicate'):
+            with self.subTest(mutation=mutation):
+                self.m=copy.deepcopy(original)
+                if mutation=='root':self.m['coverageGates'][0]['fileDataID']=21
+                if mutation=='zero':self.m['coverageGates'][0]['flags']=[0]
+                if mutation=='duplicate':self.m['coverageGates'][0]['flags']=[2,2]
+                self.reject('flag')
+
     def test_wrong_expected_hash(self):
         p,_=self.write();self.reject('manifest-hash-mismatch',(p,'0'*64))
     def test_tampered_shard_hash(self):
@@ -153,5 +254,104 @@ class CompilerTests(unittest.TestCase):
         try:shard.symlink_to(target)
         except OSError:self.skipTest('symlink permission unavailable')
         self.reject('escaped-region-path|input-not-regular-file',(p,h))
+
+
+    def span_fixture(self, span, axis):
+        points=[[-900,400,-5500],[-899,400,-5500],[-900,400,-5499]]
+        points[1 if axis==0 else 2][axis]=points[0][axis]+span
+        self.shard['polygons']=[{'id':1,'points':points,'center':[-899,400,-5499],'portals':[]}]
+        self.m['probes']=[]
+
+    def test_runtime_polygon_span_rejects_each_horizontal_axis(self):
+        for axis in (0,2):
+            with self.subTest(axis=axis):
+                self.span_fixture(129,axis)
+                self.reject('runtime-polygon-spatial-limit')
+
+    def test_runtime_polygon_span_accepts_inclusive_boundary(self):
+        for axis in (0,2):
+            with self.subTest(axis=axis):
+                self.span_fixture(128,axis)
+                p,h=self.write();meta,shards,_=c.validate(p,h)
+                self.assertEqual(len(shards[0]['polygons']),1)
+
+    def test_runtime_metadata_utf8_bytes_reject_oversized_generated_meta(self):
+        # Every source string is within the compiler's 512-character limit;
+        # combined UTF-8 bytes exceed Schema.CopyLimited's runtime budget.
+        self.m['limitations']=['\U0001f600'*512]*24
+        self.reject('runtime-metadata-text-limit')
+
+    def test_runtime_metadata_allows_bounded_unicode_and_ascii(self):
+        for limitations in (['\U0001f600'*512]*6,['a'*512]*24):
+            with self.subTest(strings=len(limitations)):
+                self.m['limitations']=limitations
+                p,h=self.write();meta,_,_=c.validate(p,h)
+                self.assertEqual(meta['limitations'][:len(limitations)],limitations)
+
+    def overlapping_fixture(self,count):
+        self.write()
+        template=copy.deepcopy(self.shard)
+        self.m['regions']=[]
+        for index,offset in enumerate(range(0,count,512)):
+            shard=copy.deepcopy(template);shard['id']=index;shard['grid']=[index,0,0]
+            shard['polygons']=[dict(copy.deepcopy(template['polygons'][0]),id=ident+1,portals=[])
+                               for ident in range(offset,min(offset+512,count))]
+            raw=json.dumps(shard,separators=(',',':')).encode()
+            name='region-%d-0-0.json'%index;(self.input/name).write_bytes(raw)
+            self.m['regions'].append({'filename':name,'sha256':c.sha(raw),'bytes':len(raw),'id':index,
+                                      'grid':shard['grid'],'polygons':len(shard['polygons']),'directedEdges':0})
+        self.m['statistics']={'regions':len(self.m['regions']),'polygons':count,'directedEdges':0,
+                              'jsonShardBytes':sum(row['bytes'] for row in self.m['regions'])}
+        self.m['probes']=[]
+        return self.write_manifest()
+
+    def test_runtime_cell_occupancy_includes_all_shards(self):
+        self.reject('runtime-navigation-cell-limit',self.overlapping_fixture(513))
+
+    def test_runtime_cell_occupancy_accepts_full_cell(self):
+        p,h=self.overlapping_fixture(512);meta,shards,_=c.validate(p,h)
+        self.assertEqual(meta['counts']['polygons'],512)
+
+    def test_runtime_cell_occupancy_includes_aabb_boundary(self):
+        # Polygon 513 touches the 512-polygon cell only at x=-896.
+        # Runtime indexes both sides of this exact 64-yard boundary.
+        pair=self.overlapping_fixture(513)
+        name='region-1-0-0.json';path=self.input/name;shard=json.loads(path.read_bytes())
+        shard['polygons'][0]['points']=[[-896,400,-5500],[-895,400,-5500],[-896,400,-5499]]
+        first=self.input/'region-0-0-0.json';rows=json.loads(first.read_bytes())
+        for row in rows['polygons']:
+            row['points']=[[-897,400,-5500],[-896,400,-5500],[-897,400,-5499]]
+        for value,file in ((shard,path),(rows,first)):
+            raw=json.dumps(value,separators=(',',':')).encode();file.write_bytes(raw)
+            record=next(r for r in self.m['regions'] if r['filename']==file.name)
+            record.update(bytes=len(raw),sha256=c.sha(raw))
+        self.m['statistics']['jsonShardBytes']=sum(r['bytes'] for r in self.m['regions'])
+        self.reject('runtime-navigation-cell-limit',self.write_manifest())
+
+    def test_runtime_metadata_resource_contract_counts_array_keys_and_utf8(self):
+        from terrain_contract import runtime_metadata
+        # 1 table node + 2 nodes for every numeric key/value pair.
+        runtime_metadata([False]*1023)
+        with self.assertRaisesRegex(c.CompileError,'runtime-metadata-node-or-depth-limit'):
+            runtime_metadata([False]*1024)
+        runtime_metadata(['\U0001f600'*512]*8)
+        with self.assertRaisesRegex(c.CompileError,'runtime-metadata-text-limit'):
+            runtime_metadata(['\U0001f600'*512]*8+['x'])
+
+    def test_polygon_ids_fit_runtime_plain_data_copy(self):
+        self.shard['polygons'][0]['id']=2147483648
+        self.reject('polygon-ID')
+    def test_portal_ids_fit_runtime_plain_data_copy(self):
+        self.shard['polygons'][0]['portals'][0]['to']=2147483648
+        self.reject('portal-target')
+    def test_tiny_portal_rejected_before_runtime(self):
+        portal=self.shard['polygons'][0]['portals'][0]
+        portal['right']=[portal['left'][0]+.00002,400,portal['left'][2]+.00002]
+        self.reject('degenerate-portal')
+    def test_nearly_degenerate_polygon_rejected_before_runtime(self):
+        self.shard['polygons']=[{'id':1,'center':[-900,400,-5500],
+            'points':[[-900,400,-5500],[-899.999,400,-5500],[-900,400,-5499.999]],'portals':[]}]
+        self.m['probes']=[]
+        self.reject('runtime-polygon-convexity-limit')
 
 if __name__=='__main__':unittest.main()
