@@ -182,3 +182,81 @@ Native acceptance still needs a client restart, /rik quests with watched and
 unwatched quests, collapsed/expanded headers, quest acceptance/progress/turn-in,
 combat reads, and a reload with questplanner disabled. Capture build, counts,
 status and any Lua errors. No native capture or route benchmark has been claimed.
+
+## Corpus ingestion and local acquisition
+
+The ingestion pipeline is implemented independently of content acceptance.
+`Corpus.New(identity, sources, revision)` validates a maximum of 64 source
+manifests. Each source pins raw bytes with SHA256, a parser revision, a source
+revision, URI, terms/uncertainty and exact product/build/locale. The acquisition
+tool also emits its actual parser SHA256. Checksums establish byte identity,
+not source authority or redistribution rights.
+
+A builder accepts detached batches of at most 64 assertions. Any failed batch
+permanently invalidates the candidate; nothing is published until Finish.
+The release has at most 32,768 assertions, 8,192 quests, 262,144 counted data
+nodes and 4 MiB of string content including provenance. Each quest has its own
+small evidence catalogue, avoiding a world-wide 4,096-assertion ceiling while
+preserving the per-field eight-source bound. Batches bound validation/copy
+work; the caller schedules batches. Finish sorts at most 8,192 IDs. Coverage
+and full ID/source reports are explicit diagnostic/offline queries, not frame
+update operations; native timing remains unmeasured.
+
+Sources use complete-snapshot semantics with an exact declared assertion count.
+A successor may explicitly supersede one revision of the same dataset; old
+revisions must be marked superseded. Retraction requires a reason. Cycles,
+missing predecessors, cross-dataset replacements and competing successors are
+rejected. Delta releases are unsupported: unchanged assertions must be repeated
+in a replacement snapshot. Published releases are immutable, so rebuilding
+after correction never mutates a planner's existing release. Retired source
+descriptors remain auditable; archive complete release manifests outside the
+bounded runtime list instead of accumulating unlimited history in the addon.
+
+Coverage reports known, conflicting, unknown and the reference-only subset for
+each field among catalogued quests, plus records with unknown zone attribution.
+The world denominator is always explicitly unknown. Known-empty values remain
+known. `clientRecord=true` means membership in the exact client table, never
+quest availability; `zoneID` also requires its own evidence.
+
+`tools/quest_acquire.py` reads a local source or HTTPS response, checks raw-byte
+SHA256 before parsing, and prints deterministic JSON. QuestV2 ingestion accepts
+only the demonstrated ID/UniqueBitFlag/UiQuestDetailsThemeID schema; only
+clientRecord assertions are emitted. Cache inventory validates the 69913 enUS
+WQST record-version-12 framing and hashes opaque payloads; it deliberately
+does not decode quest semantics. Both tools reject oversized, malformed or
+unexpected input. No tool modifies the game cache.
+
+Reproduced on 2026-09-20:
+
+- Wago QuestV2 1.60.1.69913: 6,600 rows; raw SHA256
+  `07353cb935ef0907a71c2e51f2aeed4d6460712d4011cb3873f759af5536df4a`.
+  [Exact export](https://wago.tools/db2/QuestV2/csv?build=1.60.1.69913).
+  This is a client-index count, not a world quest denominator.
+- Local questcache.wdb now contains 14 records, including 98326; SHA256
+  `be325f2f3aec16c33f277fd720b5787ca856768d263345bbdf6087a922d5cb4e`.
+  The earlier 13-record file is a different observation.
+- [Pinned framing reference](https://github.com/Marlamin/WoWFormatLib/blob/be7ee3015733628ee6cba163a2a9c20d086a8325/WoWFormatLib/FileReaders/WDBReader.cs)
+  reverses the four-byte signature and locale. Its semantic reader skips this
+  expansion family and has not been used to decode Forever quest fields.
+- Wago POI data examined in source research contains no Dun Morogh map 1426.
+  The three new local quest IDs have no demonstrated prerequisite/XP semantics.
+  Public site values without individual build provenance remain references.
+
+Direct Python HTTPS acquisition returned HTTP 403 in this environment.
+PowerShell Invoke-WebRequest obtained the public CSV with the pinned raw hash;
+the same parser successfully ingested that local file. Acquisition failure
+never authorizes substituting another build or fallback dataset.
+
+`Transfer.Encode(snapshot)` / `Decode(packet)` use a separate RIKQ1 printable
+hex packet with an Adler32 corruption check. Bounds: 128 KiB wire, 16,384 nodes,
+depth 16 and 2,048 bytes per string. Unsupported data, duplicate keys, malformed
+lengths, nonfinite numbers, inconsistent log indices/counts and trailing bytes
+are rejected. Decode labels packets imported-untrusted; imports cannot become
+live observations or world evidence. This is manual export, not automatic durable
+persistence. No data enters profiles, CVars, macros or SavedVariables.
+
+Three additional user-supplied current 9/9 observations corroborate repeated
+reads. Their counts do not verify objective transitions. Combat and disabled
+module checks were explicitly not run. Copy-window/clipboard/restart behavior
+and live performance remain acceptance obligations of the content/interface
+workstream; synthetic tests do not satisfy them.

@@ -86,6 +86,8 @@ src/modules/swingtimer/swingtimer.lua
 src/modules/durability/durability.lua
 src/modules/questplanner/quest-schema.lua
 src/modules/questplanner/quest-evidence.lua
+src/modules/questplanner/quest-corpus.lua
+src/modules/questplanner/quest-transfer.lua
 src/modules/questplanner/quest-reader.lua
 src/modules/questplanner/questplanner.lua
 src/modules/questtracker/questtracker.lua

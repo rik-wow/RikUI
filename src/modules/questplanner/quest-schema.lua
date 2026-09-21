@@ -124,6 +124,8 @@ local function locations(value)
 end
 
 local fields = {
+    zoneID = schema.ID,
+    clientRecord = function(value) return type(value) == "boolean" end,
     title = function(value) return schema.Text(value) and #value > 0 end,
     level = function(value) return schema.Integer(value, -1, 1000) end,
     minLevel = function(value) return schema.Integer(value, 0, 1000) end,
@@ -131,6 +133,13 @@ local fields = {
     repeatable = function(value) return type(value) == "boolean" end,
     startNPCs = idList, endNPCs = idList, prerequisites = condition, locations = locations,
 }
+
+function schema.Fields()
+    local names = {}
+    for name in pairs(fields) do names[#names + 1] = name end
+    table.sort(names)
+    return names
+end
 
 local function uniqueSorted(values)
     table.sort(values)
