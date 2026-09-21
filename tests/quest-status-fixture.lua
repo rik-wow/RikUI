@@ -52,6 +52,31 @@ return function(check,p,env)
     check("material log update clears terrain before next frame",invalidations==1 and route==nil
         and p.Controller.Get().selected.title:find("changed",1,true)~=nil)
     check("new selection cannot show old terrain status",summary.status:GetText()=="Updating walking route")
+    local full=p.Schema.Clone(observed)
+    full.selected.targetHint={instructions="Give the ale only if the guard is present.",instructionsSource="user-reported-sequence"}
+    local snapshot=p.GetSnapshot()
+    snapshot.quests[full.selected.questID].objectives={{text=string.rep("Long objective ",30).."END",finished=false}}
+    local content=p.Guidance.Details and p.Guidance.Details(full,snapshot,{destinationFloor={basis="Lower surface is inferred."}})
+    check("details retain full objective beyond compact text",content and content:find("END",1,true))
+    check("details use actual line breaks",content and content:find("\n",1,true) and not content:find("\\n",1,true))
+    check("details label reported sequence and unknown access",content and content:find("Reported interaction",1,true)
+        and content:find("unverified",1,true) and content:find("Lower surface is inferred.",1,true))
+    local originalModel,originalSnapshot=p.Controller.Get,p.GetSnapshot
+    p.Controller.Get=function() return full end
+    p.GetSnapshot=function() return snapshot,{state="current"} end
+    p.View.Refresh()
+    local win=p.View.Window
+    check("native details pane presents full interaction text",win.instructions and win.instructions:GetText():find("guard is present",1,true)
+        and win.instructions.wordWrap==true)
+    if win.instructionScroll then
+        win.instructionScroll.GetVerticalScrollRange=function() return 200 end
+        win.instructionScroll.GetVerticalScroll=function() return 0 end
+        local scrollValue
+        win.instructionScroll.SetVerticalScroll=function(_,value) scrollValue=value end
+        env.runScript(win.instructionScroll,"OnMouseWheel",-1)
+        check("details scroll remains bounded",scrollValue and scrollValue>0 and scrollValue<=200)
+    else check("details can scroll long instructions",false) end
+    p.Controller.Get,p.GetSnapshot=originalModel,originalSnapshot;p.View.Refresh()
     local retries=0
     p.Terrain.Retry=function() retries=retries+1;return true end
     p.Command("retry")

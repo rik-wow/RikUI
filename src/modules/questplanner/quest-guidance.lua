@@ -2,11 +2,29 @@
 local planner, schema = RikUI.QuestPlanner, RikUI.QuestPlanner.Schema
 local guidance={}
 planner.Guidance=guidance
-local function plain(value)
+local function plain(value,limit)
     if not schema.Text(value) then return "?" end
-    return value:gsub("|",""):gsub("[%z\1-\31]"," "):sub(1,240)
+    return value:gsub("|",""):gsub("[%z\1-\31]"," "):sub(1,limit or 240)
 end
 guidance.Text=plain
+function guidance.Details(model,snapshot,route)
+    local selected=model.selected
+    if not selected then return model.detail or "Choose a quest to see its instructions." end
+    local quest=snapshot and snapshot.quests and snapshot.quests[selected.questID]
+    local lines={plain(quest and quest.title or selected.title,2048),plain(selected.detail,2048)}
+    for _,objective in ipairs(quest and quest.objectives or {}) do
+        lines[#lines+1]=(objective.finished and "Done: " or "Objective: ")..plain(objective.text,2048)
+    end
+    local hint=selected.targetHint
+    if hint and hint.instructions then
+        lines[#lines+1]="Reported interaction: "..plain(hint.instructions,2048)
+        lines[#lines+1]="Current access, inventory and timing are unverified."
+    end
+    local floor=route and route.destinationFloor
+    if floor then lines[#lines+1]=floor.basis or (floor.label.." chosen by you; target floor is unverified.") end
+    if route and route.detail then lines[#lines+1]=route.detail end
+    return table.concat(lines,"\n")
+end
 local TERRAIN_STATUS={loading="Preparing terrain guidance",ready="No walking route selected",["unavailable-position"]="Your position is unavailable",updating="Updating walking route",
     calculating="Calculating walking route",modeled="Terrain route estimate",["modeled-approach"]="Approach estimate; final gap unverified",
     ["outside-coverage"]="Outside terrain map coverage",["no-known-path"]="No connected route in terrain model",

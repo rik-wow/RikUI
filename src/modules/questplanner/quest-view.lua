@@ -161,9 +161,36 @@ end
 local function close()
     if window then window:Hide() end
 end
+local function scrollInstructions(delta)
+    local scroll=window.instructionScroll
+    local range=scroll:GetVerticalScrollRange() or 0
+    scroll:SetVerticalScroll(math.max(0,math.min(range,(scroll:GetVerticalScroll() or 0)-delta*30)))
+end
+local function readingPane()
+    local scroll=CreateFrame("ScrollFrame",nil,window)
+    scroll:SetPoint("TOPLEFT",12,-154);scroll:SetSize(632,132);scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel",function(_,delta) scrollInstructions(delta) end)
+    local child=CreateFrame("Frame",nil,scroll);child:SetSize(632,132)
+    local label=text(child);label:SetPoint("TOPLEFT");label:SetWidth(628);label:SetWordWrap(true)
+    label:SetJustifyV("TOP");scroll:SetScrollChild(child)
+    window.instructionScroll,window.instructionBody,window.instructions=scroll,child,label
+    local up=button(window,"Up",28,function() scrollInstructions(3) end)
+    local down=button(window,"Down",38,function() scrollInstructions(-3) end)
+    up:SetPoint("TOPRIGHT",-12,-154);down:SetPoint("TOPRIGHT",-12,-178)
+    local heading=text(window,"label");heading:SetPoint("TOPLEFT",12,-294)
+    heading:SetText("Quest log — click a title to open it")
+end
+local function refreshDetails(model)
+    local route=planner.Terrain and planner.Terrain.Guidance()
+    local value=planner.Guidance.Details(model,planner.GetSnapshot(),route)
+    if value==window.instructions:GetText() then return end
+    window.instructions:SetText(value)
+    window.instructionBody:SetHeight(math.max(132,(window.instructions:GetStringHeight() or 0)+8))
+    window.instructionScroll:SetVerticalScroll(0)
+end
 local function createWindow()
     window=CreateFrame("Frame","RikUIQuestPlannerWindow",UIParent)
-    window:SetSize(700,422); window:SetPoint("CENTER"); window:SetFrameStrata("DIALOG"); window:EnableMouse(true)
+    window:SetSize(700,584); window:SetClampedToScreen(true); window:SetPoint("CENTER"); window:SetFrameStrata("DIALOG"); window:EnableMouse(true)
     local fill=window:CreateTexture(nil,"BACKGROUND"); fill:SetAllPoints(); fill:SetColorTexture(.04,.05,.07,.98)
     window.heading=text(window,"heading"); window.heading:SetPoint("TOPLEFT",12,-10); window.heading:SetText("Quest planner")
     local exit=button(window,"Close",52,close); exit:SetPoint("TOPRIGHT",-8,-8)
@@ -172,12 +199,13 @@ local function createWindow()
     window.retry:SetPoint("BOTTOMRIGHT",-4,0)
     window.automatic=button(window.summary,"Automatic choice",124,function() command("route auto") end)
     window.automatic:SetPoint("BOTTOMRIGHT",-96,0)
+    readingPane()
     window.rows={}
     for index=1,PAGE_SIZE do
         local row=button(window,"",416,function(self)
             if self.questID then planner.OpenQuest(self.questID) end
         end)
-        row:SetPoint("TOPLEFT",12,-154-(index-1)*23)
+        row:SetPoint("TOPLEFT",12,-316-(index-1)*23)
         row.label:ClearAllPoints(); row.label:SetPoint("LEFT",3,0); row.label:SetPoint("RIGHT",-3,0)
         local pin=button(window,"Pin",52,function()
             if row.questID then command("pin "..row.questID) end
@@ -205,7 +233,7 @@ local function createWindow()
         filterIndex=filterIndex%#FILTERS+1;page=1;view.Refresh()
     end)
     window.filter:SetPoint("BOTTOMLEFT",174,46)
-    window.empty=text(window);window.empty:SetPoint("TOPLEFT",12,-164)
+    window.empty=text(window);window.empty:SetPoint("TOPLEFT",12,-326)
     window.empty:SetSize(676,58);window.empty:SetWordWrap(true)
     local reset=button(window,"Reset constraints",130,function() command("reset") end)
     reset:SetPoint("BOTTOMRIGHT",-12,46)
@@ -242,6 +270,7 @@ function view.Refresh()
     if inline then details(inline,model) end
     if not window or not window:IsShown() then return end
     details(window.summary,model)
+    refreshDetails(model)
     local policy=planner.Controller.Policy()
     window.arrow.label:SetText(policy.arrow and "Arrow: on" or "Arrow: off")
     window.dungeons.label:SetText(policy.dungeons and "Dungeons: on" or "Dungeons: off")
