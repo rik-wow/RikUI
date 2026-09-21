@@ -228,6 +228,19 @@ return function(check)
             if skipped and skipped.skip then env.click(skipped.skip);env.flushTimers() end
             check("include restores only the skipped quest",not p.Controller.Policy().skips[10])
             if p.Controller.Policy().skips[10] then p.Command("skip 10");env.flushTimers() end
+            p.Command("pin 11");p.Command("avoid 1426");p.Command("avoid 999");env.flushTimers()
+            local avoided=rowFor(10)
+            check("avoided quests remain visible with area recovery",avoided and avoided.area
+                and avoided.area.label:GetText()=="Allow area")
+            if avoided and avoided.area then env.click(avoided.area);env.flushTimers() end
+            check("allow area preserves unrelated preferences",not p.Controller.Policy().avoids[1426]
+                and p.Controller.Policy().avoids[999] and p.Controller.Policy().pins[11])
+            local restoreArea=p.View.Window.restoreArea
+            check("orphaned avoided maps are recoverable",restoreArea and restoreArea:IsShown()
+                and restoreArea.mapID==999)
+            if restoreArea then env.click(restoreArea);env.flushTimers() end
+            check("orphan area recovery clears only selected map",not p.Controller.Policy().avoids[999])
+            p.Controller.Clear();env.flushTimers()
         end
         env.click(p.View.Window.summary.pin)
         env.flushTimers()

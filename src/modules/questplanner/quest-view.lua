@@ -171,6 +171,10 @@ local function createWindow()
             if row.questID then command("skip "..row.questID) end
         end)
         row.skip:SetPoint("LEFT",pin,"RIGHT",0,0)
+        row.area=button(window,"Avoid area",84,function()
+            if row.mapID then command("avoid "..row.mapID) end
+        end)
+        row.area:SetPoint("LEFT",row.skip,"RIGHT",0,0)
         window.rows[index]=row
     end
     local previous=button(window,"Previous",80,function() page=math.max(1,page-1); view.Refresh() end)
@@ -189,7 +193,23 @@ local function createWindow()
     local export=button(window,"Copy data",92,function() command("export") end)
     for index,control in ipairs({window.arrow,window.dungeons,avoid,export}) do control:SetPoint("BOTTOMLEFT",12+(index-1)*106,12) end
     if type(UISpecialFrames)=="table" then table.insert(UISpecialFrames,"RikUIQuestPlannerWindow") end
+    window.restoreArea=button(window,"",246,function(control)
+        if control.mapID and planner.Controller.Policy().avoids[control.mapID] then command("avoid "..control.mapID) end
+    end)
+    window.restoreArea:SetPoint("BOTTOMRIGHT",-12,12)
     view.Window=window
+end
+local function avoidedArea(policy)
+    local ids={}
+    for id in pairs(policy.avoids) do ids[#ids+1]=id end
+    table.sort(ids)
+    local id=ids[1]
+    window.restoreArea.mapID=id
+    window.restoreArea:SetShown(id~=nil)
+    if not id then return end
+    local ok,info=planner.Context.Call(C_Map and C_Map.GetMapInfo,id)
+    local name=ok and planner.Schema.PlainTable(info) and planner.Schema.Text(info.name) and planner.Guidance.Text(info.name)
+    window.restoreArea.label:SetText("Allow "..(name or ("map "..id)))
 end
 function view.Refresh()
     local model=planner.Controller.Get()
@@ -199,14 +219,18 @@ function view.Refresh()
     local policy=planner.Controller.Policy()
     window.arrow.label:SetText(policy.arrow and "Arrow: on" or "Arrow: off")
     window.dungeons.label:SetText(policy.dungeons and "Dungeons: on" or "Dungeons: off")
+    avoidedArea(policy)
     local quests=planner.Controller.Quests()
     local pages=math.max(1,math.ceil(#quests/8))
     page=math.min(page,pages); window.page:SetText(page.."/"..pages)
     for index,row in ipairs(window.rows) do
         local quest=quests[(page-1)*8+index]
         row:SetShown(quest~=nil); row.pin:SetShown(quest~=nil); row.skip:SetShown(quest~=nil)
+        row.mapID=quest and quest.destination and quest.destination.mapID
+        row.area:SetShown(row.mapID~=nil)
         if quest then
-            row.questID=quest.questID; row.label:SetText((quest.skipped and "Skipped: " or quest.failed and "Failed: "
+            row.area.label:SetText(quest.avoided and "Allow area" or "Avoid area")
+            row.questID=quest.questID; row.label:SetText((quest.skipped and "Skipped: " or quest.avoided and "Area avoided: " or quest.failed and "Failed: "
                 or quest.kind=="turnin" and "Turn in: " or "")..quest.title)
             row.skip.label:SetText(quest.skipped and "Include" or "Skip")
             row.pin.label:SetText(policy.pins[quest.questID] and "Unpin" or "Pin")
