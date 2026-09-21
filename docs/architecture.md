@@ -45,6 +45,10 @@ appearance callbacks retain feature ownership across coalescing and combat
 deferral. See [the layout contract](layout.md#module-contract) for callback ordering,
 floating frames, reentry and completion behavior.
 
+The [Forever quest planning foundation](questplanner.md) keeps exact-build world
+facts separate from session-only character observations. Its feature-owned services
+are independent of tracker and map rendering; later planning consumes their data.
+
 ## Loading and activation are separate
 
 Files define local functions and publish APIs under `RikUI`. The bootstrap also
