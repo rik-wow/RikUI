@@ -101,7 +101,7 @@ local function replay(label,start,questID,destination)
         assert(runtimeStatus=="unknown-location" and not runtimeRoute,"runtime start admission differs")
         print(label,questID,"unknown-start",issue);return "unknown-start"
     end
-    local job,reason=mesh:BeginMarkerApproach(start,goal,{maxWork=32768,markerRadius=8})
+    local job,reason=mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8})
     if not job then print(label,questID,"unknown-target",reason);return "unknown-target" end
     local result
     repeat

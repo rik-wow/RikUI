@@ -22,7 +22,7 @@ local start=assert(mesh:Project(h.meta.uiMapID,assert(tonumber(arg[3])),assert(t
 local questID=tonumber(arg[8]) or 99158
 local destination=assert(h.snapshot.context.destinations[questID],"scenario marker missing")
 local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
-local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=32768,markerRadius=8}))
+local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8}))
 local route
 repeat route=job:Step(64) until route
 assert(route.status=="modeled",route.detail)

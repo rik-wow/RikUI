@@ -881,6 +881,17 @@ These are headless interpreter measurements, not native WoW load-time guarantees
 Reload still reconstructs the mesh; no unverified persistent cache was introduced.
 Caps are 65,536 total polygons, 131,072 portals, 512 shards, 1,024 polygons per shard
 or spatial cell, and 4,096 portals per shard. Search remains sliced and bounded.
+Live searches budget at least twice the validated directed portal count plus one:
+each edge is expanded once and can enqueue at most one heap entry. The old fixed
+32,768-work cap could reject reachable destinations within installed coverage.
+This changes total work allowance, not the per-frame slice or physical profile.
+
+The 46.5,52.6 Kharanos screenshot toward archived Frostmane Hold marker 412
+reproduces that failure: all nine rounding samples require 36,788 work and now
+reach the target through 191 polygons. Production Lua movement replay completes
+3,425 off-center steps with zero reversals; one near-waypoint arrow hide remains.
+Headless peak search/display slices were 2 ms; native frame timing and traversal
+remain unverified. These existing Lua changes load on reload.
 
 Actual source replay at the rounded screenshot center 35.5,46.6 reaches the
 archived 412 marker through 85 polygons. Simulated .35- and 1.4-yard movement

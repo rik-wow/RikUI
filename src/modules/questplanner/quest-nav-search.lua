@@ -2,8 +2,9 @@
 local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
 local geometry,search=planner.NavGeometry,{}
 planner.NavSearch=search
--- Offline whole-region probes may use a larger budget; live callers still request 32768.
-local MAX_WORK,MAX_PATH=131072,1024
+-- Each directed edge can insert at most one heap entry and is expanded once.
+-- Two operations per edge plus the initial pop bound complete finite-graph work.
+local MAX_WORK,MAX_PATH=262145,1024
 local function less(a,b) return a.priority<b.priority or (a.priority==b.priority and a.id<b.id) end
 local function push(heap,value)
     local index=#heap+1

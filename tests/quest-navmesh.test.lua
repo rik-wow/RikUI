@@ -168,6 +168,33 @@ return function(check)
         check("different map has no projection",mesh:Project(999,.8,.9)==nil)
         local same=path(mesh,{x=1,z=1},{x=9,z=9})
         check("same convex polygon uses direct contained segment",#same.points==2 and math.abs(same.meters-math.sqrt(128))<.000001)
+        -- A wide finite graph needs more total work, not more work in one frame.
+        local broadSearch={meta={revision="wide-search"},polygons={}}
+        local edgeCount=18000
+        for id=1,edgeCount+1 do
+            broadSearch.polygons[id]={center={0,0,0},points={},portals={}}
+            if id>1 then
+                broadSearch.polygons[1].portals[id-1]={to=id,meters=1,midpoint={0,0,0}}
+            end
+        end
+        local function locateSearch(_,point) return {id=point.id,point={0,0,0}} end
+        local function wideJob(limit)
+            return assert(p.NavSearch.Begin(broadSearch,{id=1},{id=edgeCount+1},
+                {maxWork=limit},locateSearch))
+        end
+        local truncated=wideJob(32768)
+        local limitedWide
+        repeat limitedWide=truncated:Step(128) until limitedWide
+        check("old live budget reproduces premature failure",limitedWide.status=="budget-exhausted")
+        local completeWide=wideJob(2*edgeCount+1)
+        check("larger total budget still yields on the first small slice",completeWide:Step(1)==nil)
+        local wideResult
+        repeat wideResult=completeWide:Step(128) until wideResult
+        check("graph-derived work bound finishes a route beyond the old cap",
+            wideResult.status=="modeled" and wideResult.metrics.work==2*edgeCount+1)
+        local cancelWide=wideJob(2*edgeCount+1)
+        cancelWide:Step(128);cancelWide:Cancel()
+        check("large in-progress searches remain cancellable",cancelWide:Step(128).status=="cancelled")
         local limited=path(mesh,start,goal,{maxWork=1})
         check("bounded search does not return partial path as complete",limited.status=="budget-exhausted" and limited.points==nil and limited.metrics.work==1)
         local job=assert(mesh:Begin(start,goal)); job:Cancel()

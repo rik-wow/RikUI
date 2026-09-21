@@ -286,7 +286,7 @@ local function beginApproach(data,start,goal,options)
     if last then return planner.NavSearch.Begin(data,start,goal,options,locate) end
     if reason~="outside known navigation polygons" then return nil,reason end
     local settings=schema.Copy(options or {})
-    if not schema.PlainTable(settings) or not schema.Integer(settings.maxWork or 16384,1,65536)
+    if not schema.PlainTable(settings) or not schema.Integer(settings.maxWork or 16384,1,262145)
         or not schema.Number(settings.speed or 7,.1,100)
         or not schema.Number(settings.markerRadius or APPROACH_RADIUS,1,MAX_MARKER_RADIUS) then return nil,"invalid navigation limits" end
     if goal.height~=nil or not approachCovered(data,goal,settings.markerRadius or APPROACH_RADIUS) then
