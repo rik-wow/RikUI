@@ -251,7 +251,20 @@ return function(check)
         local holder=CreateFrame("Frame",nil,UIParent)
         check("inline respects collapsed tracker",p.View.RenderInline(holder,22,200,true)==0)
         check("inline respects available room",p.View.RenderInline(holder,22,60,false)==0)
-        check("inline reserves bounded tracker height",p.View.RenderInline(holder,22,200,false)==94)
+        check("inline reserves bounded tracker height",p.View.RenderInline(holder,22,200,false)==116)
+        local inline
+        for _,candidate in ipairs(env.frames) do
+            if candidate.parent==holder and candidate.arrowToggle then inline=candidate end
+        end
+        check("tracker exposes arrow state directly",inline and inline.arrowToggle.label:GetText()=="Arrow: off")
+        assert(inline,"tracker arrow control missing")
+        env.click(inline.arrowToggle);env.flushTimers()
+        check("tracker arrow toggle persists on and refreshes both views",p.Controller.Policy().arrow
+            and RikUI.CharDB.questPolicy.arrow and inline.arrowToggle.label:GetText()=="Arrow: on"
+            and p.View.Window.arrow.label:GetText()=="Arrow: on")
+        env.click(inline.arrowToggle);env.flushTimers()
+        check("tracker arrow toggle can turn guidance off",not p.Controller.Policy().arrow
+            and inline.arrowToggle.label:GetText()=="Arrow: off")
         env.inCombat=true
         check("existing inline refresh avoids combat reparenting",pcall(p.View.RenderInline,holder,22,200,false))
         env.inCombat=false

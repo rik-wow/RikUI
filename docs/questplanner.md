@@ -492,7 +492,11 @@ labels. Their 131,072-byte bound produces an explicit unavailable result and
 clears actionable guidance rather than accepting a truncated signature.
 
 The compact tracker row keeps the existing watched list and respects collapse
-and available height. `/rik quests show` opens details, with eight rows per page.
+and available height. An explicit Arrow: on/off control in the tracker enables
+or hides the optional direction guide; it is off by default and independent of
+pinning a quest or calculating terrain. `/rik quests arrow on` enables it directly.
+The guide appears near the top center of the screen when position and facing
+are readable. `/rik quests show` opens details, with eight rows per page.
 Map markers show up to eight destinations; they do not connect points with
 invented walking lines. The optional arrow is explicitly a destination bearing
 and hides when orientation or same-map location is unavailable.

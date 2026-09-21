@@ -2,7 +2,7 @@
 local core,planner,media=RikUI,RikUI.QuestPlanner,RikUI.Media
 local view={}
 planner.View=view
-local HEIGHT,WIDTH=88,240
+local HEIGHT,WIDTH=110,240
 local inline,window
 local page=1
 local function text(parent,role)
@@ -34,6 +34,7 @@ local function details(frame,model)
     frame.status:SetText(planner.Guidance.RouteStatus(model,planner.Terrain and planner.Terrain.Status()))
     frame.pause.label:SetText(planner.Controller.Policy().paused and "Resume" or "Pause")
     frame.pin.label:SetText(model.selected and planner.Controller.Policy().pins[model.selected.questID] and "Unpin" or "Pin")
+    frame.arrowToggle.label:SetText(planner.Controller.Policy().arrow and "Arrow: on" or "Arrow: off")
     frame.model=model
 end
 local function tooltip(frame)
@@ -64,6 +65,12 @@ local function create(parent)
     frame.detail=text(frame); frame.detail:SetPoint("TOPLEFT",6,-20); frame.detail:SetPoint("TOPRIGHT",-6,-20); frame.detail:SetHeight(13)
     frame.status=text(frame); frame.status:SetPoint("TOPLEFT",6,-34); frame.status:SetPoint("TOPRIGHT",-6,-34); frame.status:SetHeight(29); frame.status:SetWordWrap(true)
     frame.status:SetTextColor(.55,.75,.9)
+    frame.arrowToggle=button(frame,"Arrow: off",92,function()
+        command("arrow "..(planner.Controller.Policy().arrow and "off" or "on"))
+    end)
+    frame.arrowToggle:SetPoint("BOTTOMLEFT",4,22)
+    frame.arrowHint=text(frame);frame.arrowHint:SetPoint("LEFT",frame.arrowToggle,"RIGHT",4,0)
+    frame.arrowHint:SetText("Direction guide")
     frame.pause=button(frame,"Pause",48,function()
         command(planner.Controller.Policy().paused and "resume" or "pause")
     end)
@@ -89,7 +96,7 @@ local function close()
 end
 local function createWindow()
     window=CreateFrame("Frame","RikUIQuestPlannerWindow",UIParent)
-    window:SetSize(450,400); window:SetPoint("CENTER"); window:SetFrameStrata("DIALOG"); window:EnableMouse(true)
+    window:SetSize(450,422); window:SetPoint("CENTER"); window:SetFrameStrata("DIALOG"); window:EnableMouse(true)
     local fill=window:CreateTexture(nil,"BACKGROUND"); fill:SetAllPoints(); fill:SetColorTexture(.04,.05,.07,.98)
     window.heading=text(window,"heading"); window.heading:SetPoint("TOPLEFT",12,-10); window.heading:SetText("Quest planner")
     local exit=button(window,"Close",52,close); exit:SetPoint("TOPRIGHT",-8,-8)
@@ -99,7 +106,7 @@ local function createWindow()
         local row=button(window,"",370,function(self)
             if self.questID then planner.OpenQuest(self.questID) end
         end)
-        row:SetPoint("TOPLEFT",12,-132-(index-1)*23)
+        row:SetPoint("TOPLEFT",12,-154-(index-1)*23)
         row.label:ClearAllPoints(); row.label:SetPoint("LEFT",3,0); row.label:SetPoint("RIGHT",-3,0)
         local pin=button(window,"Pin",52,function()
             if row.questID then command("pin "..row.questID) end

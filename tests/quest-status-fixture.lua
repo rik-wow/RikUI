@@ -30,7 +30,7 @@ return function(check,p,env)
     p.View.Refresh()
     local summary=p.View.Window.summary
     check("status reserves wrapped two-line height",summary.status.wordWrap==true and summary.status:GetHeight()==29
-        and summary:GetHeight()==88)
+        and summary:GetHeight()==110)
     check("approach status discloses final gap",status("modeled-approach")=="Approach estimate; final gap unverified")
     check("details show the actual uncovered position",summary.status:GetText()=="Your position is outside the walking model")
     local oldLine,lines=GameTooltip.AddLine,{}
