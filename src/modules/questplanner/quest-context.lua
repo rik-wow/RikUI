@@ -23,6 +23,12 @@ local function tupleID(fn)
     if ok and schema.ID(value) then return value end
 end
 
+-- Only the explicitly requested, currently relevant item IDs; no bag scan or bank assumptions.
+function context.ItemCount(id)
+    if not schema.ID(id) then return nil end
+    return scalar(api(C_Item,"GetItemCount"),function(value) return schema.Integer(value,0,MAX_NUMBER) end,id,false,false,false,false)
+end
+
 function context.Position()
     local mapID = scalar(api(C_Map, "GetBestMapForUnit"), schema.ID, "player")
     if not mapID then return nil end

@@ -1,6 +1,6 @@
 -- Guarded read-only quest waypoint/POI acquisition and explicit missing-field statuses.
 return function(check)
-    local names={"RikUI","C_Map","C_QuestLog","SelectQuestLogEntry","QuestPOIUpdateIcons","GetQuestLogRewardXP","GetTime","UnitClass","UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax","UnitPosition","GetUnitSpeed"}
+    local names={"RikUI","C_Map","C_QuestLog","SelectQuestLogEntry","QuestPOIUpdateIcons","GetQuestLogRewardXP","GetTime","UnitClass","UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax","UnitPosition","GetUnitSpeed","C_Item"}
     local saved={}
     for _,name in ipairs(names) do saved[name]=_G[name] end
     local schemaPath="src/modules/questplanner/quest-schema.lua"
@@ -47,6 +47,16 @@ local function row(id)
 end
 
 local context,snapshot,rows,mutations=setup()
+local itemQueries=0
+C_Item={GetItemCount=function(id,bank,uses,reagent,account)
+    itemQueries=itemQueries+1
+    check("inventory excludes bank uses and account holdings",bank==false and uses==false and reagent==false and account==false)
+    if id==8 then return {secret=true} end
+    return 3
+end}
+check("guarded inventory reads explicit item count",context.ItemCount(7)==3)
+check("secret inventory result stays unknown",context.ItemCount(8)==nil)
+check("invalid item ID cannot reach native API",context.ItemCount(-1)==nil and itemQueries==2)
 rows[1]=row(98319)
 rows[2]=row(99158)
 rows[2].inProgress=false

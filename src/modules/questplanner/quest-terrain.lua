@@ -83,7 +83,7 @@ local function refreshFloors(row,goal)
     local key=mesh:Revision()..":"..destinationKey(row)..":"..(row.destinationSignature or "")
     if floorKey~=key then
         floorKey,floorIndex=key,0
-        floorChoices=row.destination.scope=="current-map-quest-poi" and mesh:MarkerFloors(goal) or {}
+        floorChoices=(row.destination.scope=="current-map-quest-poi" or row.destination.scope=="semantic-objective-area") and mesh:MarkerFloors(goal) or {}
         floorSuggestion=planner.Targets and planner.Targets.Floor(row.targetHint,meta.corpusRevision or mesh:Revision(),floorChoices,row.destination)
     end
 end
@@ -162,7 +162,7 @@ local function requestRoute(row,location,start)
     if lastAttempt==attempt then return end
     lastAttempt=attempt
     local speed=live and live.speed
-    local begin=target.scope=="current-map-quest-poi" and mesh.BeginMarkerApproach or mesh.Begin
+    local begin=(target.scope=="current-map-quest-poi" or target.scope=="semantic-objective-area") and mesh.BeginMarkerApproach or mesh.Begin
     -- Quest-map POIs represent a vicinity, not an exact standing/interaction position.
     local maxWork=math.max(32768,meta.counts.portals*2+1)
     local problem
@@ -253,7 +253,10 @@ function terrain.Step()
             end
             if value then mesh=value;meta=value:Metadata() end
             setState(value and "ready" or "invalid",reason or "Terrain model ready")
-            if value then update() end
+            if value then
+                update()
+                if planner.SemanticData and planner.Request then planner.Request() end
+            end
         end
     elseif request then
         -- Validate live destination, identity and player admission before spending a slice
@@ -327,6 +330,30 @@ function terrain.PlanningOrigin(identity,position)
         end}
     end
     return origin,bridge
+end
+-- Area probes are isolated and cannot publish routes or infer quest floors.
+function terrain.AreaRevision() return mesh and mesh:Revision() end
+function terrain.BeginAreaEstimate(identity,position,area,budget)
+    if not mesh or loader or not position or not same(meta.identity,identity) then return end
+    local point=mesh:Project(position.mapID,position.x,position.y)
+    local goal=mesh:Project(area.mapID,area.x,area.y)
+    if not point or not goal then return end
+    local located=mesh:LocateContinued(point,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
+    if not located then return end
+    local currentMesh=mesh
+    local start={x=located.point[1],height=located.point[2],z=located.point[3]}
+    local query=mesh:BeginMarkerApproach(start,goal,{maxWork=budget,speed=7,markerRadius=8,
+        reachableApproach=true,commonApproach=true,uncertainVicinity=true})
+    if not query then return end
+    return {Step=function(_,work)
+        local frame=planner.Context.Frame()
+        if mesh~=currentMesh or not frame or not frame.position or frame.position.mapID~=position.mapID then
+            query:Cancel();return {status="cancelled"}
+        end
+        local now=mesh:Project(frame.position.mapID,frame.position.x,frame.position.y)
+        if not now or (now.x-point.x)^2+(now.z-point.z)^2>3^2 then query:Cancel();return {status="cancelled"} end
+        return query:Step(work,true)
+    end}
 end
 function terrain.ProgressConnected(a,b)
     if not mesh or not a or not b or a.corpusRevision~=b.corpusRevision

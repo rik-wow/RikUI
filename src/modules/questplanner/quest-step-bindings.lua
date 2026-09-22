@@ -65,5 +65,5 @@ function bindings.Match(snapshot,id)
             end
         end
     end
-    return result
+    return result or (planner.SemanticGuidance and planner.SemanticGuidance.Binding(snapshot,id))
 end

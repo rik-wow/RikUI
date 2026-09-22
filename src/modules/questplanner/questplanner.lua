@@ -4,7 +4,7 @@ local schema = planner.Schema
 local REFRESH_DELAY = 0.1
 local EVENTS = { "PLAYER_ENTERING_WORLD", "QUEST_LOG_UPDATE", "QUEST_ACCEPTED", "QUEST_REMOVED", "QUEST_TURNED_IN",
     "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED", "GOSSIP_SHOW", "GOSSIP_CLOSED",
-    "QUEST_POI_UPDATE", "WAYPOINT_UPDATE", "PLAYER_LEVEL_UP", "PLAYER_XP_UPDATE", "ZONE_CHANGED_NEW_AREA" }
+    "QUEST_POI_UPDATE", "QUEST_DATA_LOAD_RESULT", "BAG_UPDATE_DELAYED", "WAYPOINT_UPDATE", "PLAYER_LEVEL_UP", "PLAYER_XP_UPDATE", "ZONE_CHANGED_NEW_AREA" }
 local lastReason = "current quests"
 local snapshot, pending, started = nil, false, false
 local status = { state = "unavailable", reason = "not observed" }
@@ -25,6 +25,7 @@ function planner.Refresh()
         if planner.Controller then planner.Controller.Update(snapshot,status,lastReason) end
         return
     end
+    if planner.Enrichment then planner.Enrichment.Ensure(nextSnapshot) end
     generation = generation + 1
     nextSnapshot.generation = generation
     if planner.Journal then planner.Journal.SnapshotChanged(nextSnapshot,snapshot) end
@@ -60,6 +61,7 @@ function planner:Debug()
 end
 
 local function onEvent(event,...)
+    if event=="QUEST_DATA_LOAD_RESULT" and planner.Enrichment then planner.Enrichment.OnResult(...);return end
     local priorDialog=event=="QUEST_FINISHED" and planner.Journal and planner.Journal.Dialog()
     if planner.Journal then planner.Journal.Record(event,snapshot,...) end
     if planner.Controller then

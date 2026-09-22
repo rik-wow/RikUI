@@ -98,6 +98,7 @@ src/modules/questplanner/quest-journey-live.lua
 src/modules/questplanner/quest-actions.lua
 src/modules/questplanner/quest-simulation.lua
 src/modules/questplanner/quest-optimizer.lua
+src/modules/questplanner/quest-area-optimizer.lua
 src/modules/questplanner/quest-reader.lua
 src/modules/questplanner/quest-nav-geometry.lua
 src/modules/questplanner/quest-nav-funnel.lua
@@ -107,11 +108,14 @@ src/modules/questplanner/quest-region-codec.lua
 src/modules/questplanner/quest-regions.lua
 src/modules/questplanner/quest-navmesh.lua
 src/modules/questplanner/quest-context.lua
+src/modules/questplanner/quest-enrichment.lua
 src/modules/questplanner/quest-gossip.lua
 src/modules/questplanner/quest-journal.lua
 src/modules/questplanner/quest-dataset.lua
 src/modules/questplanner/quest-steps.lua
 src/modules/questplanner/quest-step-bindings.lua
+src/modules/questplanner/quest-semantic-data.lua
+src/modules/questplanner/quest-semantic-guidance.lua
 src/modules/questplanner/quest-guide-data.lua
 src/modules/questplanner/quest-observed-steps.lua
 src/modules/questplanner/quest-hunts.lua

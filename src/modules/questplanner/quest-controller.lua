@@ -135,6 +135,9 @@ local function finish(current,result)
     job=nil; publish(value)
 end
 function controller.Step()
+    if planner.enabled and planner.Enrichment then planner.Enrichment.Tick() end
+    if planner.enabled and planner.SemanticData then planner.SemanticData.Step() end
+    if planner.enabled and planner.SemanticGuidance then planner.SemanticGuidance.Step() end
     if planner.enabled and journeyState and planner.JourneyLive.Tick(journeyState,view,policy.paused) then notify() end
     if not planner.enabled or policy.paused then cancel(); return end
     if expired(view) then controller.Invalidate(); planner.Request(); return end
@@ -197,6 +200,8 @@ function controller.Update(snapshot,status,reason)
     end
     local ctx=planner.Context.Read(snapshot,policy.pins)
     if not ctx then controller.Invalidate(true); return end
+    if planner.SemanticData then planner.SemanticData.Ensure(snapshot,ctx) end
+    if planner.SemanticGuidance then planner.SemanticGuidance.Observe(snapshot,ctx,policy,view.selected and view.selected.questID) end
     if planner.Hunts then planner.Hunts.Observe(snapshot,ctx) end
     local dialog=planner.Journal.Dialog()
     local nextSignature,signatureProblem=planner.Guidance.Signature(snapshot,status,ctx,dialog)

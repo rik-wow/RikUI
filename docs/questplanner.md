@@ -2,6 +2,12 @@
 
 ## Current implementation
 
+The [local Forever corpus](forever-corpus.md) now supplies generic semantic
+reference guidance for all 4,257 corrected provider quests, with 7,311 IDs in
+the provider/client membership union. Live progress remains authoritative;
+unknown client-only targets and unverified travel/floors remain explicit.
+The linked document describes source coverage, installation and reproduction.
+
 The latest delivered runtime and installed Dun Morogh regional corpus are summarized
 in [regional journey delivery](#regional-journey-delivery-and-current-evidence) and
 [MAP.md](../tools/terrain/MAP.md). Earlier western-only measurements below are
@@ -47,7 +53,7 @@ instructions. A connected-surface check and entry/exit margins allow nearby
 hunting movement without repeatedly pointing back to the stopping point.
 Uncertain-floor/partial approaches retain their limitations.
 
-A recent live increase in a reviewed hunt objective can retain a productive
+A recent live increase in a bound hunt objective can retain a productive
 collection area at the player's modeled position. Receipt admission requires
 a count baseline within eight seconds, movement within 35 yards, the same
 instance, no taxi ride and a proven connected surface. Within 25 connected

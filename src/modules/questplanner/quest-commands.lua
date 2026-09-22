@@ -39,6 +39,12 @@ function planner.Command(arguments)
             core:Print("Quest locations="..locations.." reward-XP reads="..rewards
                 .." map-POIs="..(map and map.state or "not checked"))
         end
+        if planner.SemanticData then
+            local corpus=planner.SemanticData.Status()
+            local semantic=planner.SemanticGuidance.Status()
+            core:Print("Quest corpus: "..corpus.state.."; "..corpus.loadedPartitions.." partitions loaded; "
+                ..semantic.matched.." objectives matched; "..semantic.unknown.." unmatched.")
+        end
         local timing=stats.timingSamples>0 and string.format("%.2fms (observed this session)",stats.maxSliceMS) or "not measured"
         core:Print("Planner replans="..stats.replans.." max-slice="..timing)
         if planner.Terrain then local terrain=planner.Terrain.Status(); core:Print("Terrain guidance: "..terrain.status..". "..terrain.detail) end

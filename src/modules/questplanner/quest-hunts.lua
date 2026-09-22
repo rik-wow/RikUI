@@ -62,7 +62,7 @@ function hunts.Revision() return revision end
 function hunts.Destination(snapshot,id,step,point)
     local policy=step and step.state=="active" and step.navigation
     -- A client waypoint can name a required entrance; only relax quest-level POIs.
-    if not policy or not point or point.scope~="current-map-quest-poi" then return point end
+    if not policy or not point or (point.scope~="current-map-quest-poi" and point.scope~="semantic-objective-area") then return point end
     local value=schema.Clone(policy);value.objectiveID=step.active.objectiveID
     local area=identity(snapshot.identity)==identityKey and areas[id..":"..value.objectiveID]
     if area and area.point.mapID==point.mapID then

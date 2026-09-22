@@ -26,6 +26,13 @@ function guidance.Details(model,snapshot,route)
         lines[#lines+1]=plain(selected.hunt.instructions or selected.hunt.text,2048)
         lines[#lines+1]=plain(selected.hunt.basis,2048)
     end
+    if selected.semantic then
+        lines[#lines+1]=plain(selected.semantic.instructions,2048)
+        lines[#lines+1]=plain(selected.semantic.basis,2048)
+    end
+    for _,note in ipairs(selected.referenceAdvice and selected.referenceAdvice.lines or {}) do
+        lines[#lines+1]="Source note: "..plain(note,240)
+    end
     local hint=selected.targetHint
     if hint and hint.instructions then
         lines[#lines+1]="Reported interaction: "..plain(hint.instructions,2048)
@@ -151,9 +158,15 @@ function guidance.Signature(snapshot,status,ctx,dialog)
     if not snapshot or not ctx then return status.state end
     local parts={bytes=0}
     signatureField(parts,planner.Hunts and planner.Hunts.Revision())
+    signatureField(parts,planner.SemanticData and planner.SemanticData.Revision())
+    signatureField(parts,planner.SemanticGuidance and planner.SemanticGuidance.Revision())
     for _,value in ipairs({status.state,snapshot.identity.product,snapshot.identity.build,snapshot.identity.locale,
         snapshot.coverage,snapshot.reportedCount}) do signatureField(parts,value) end
     signatureField(parts,ctx.position and ctx.position.mapID)
+    local items={}
+    for id in pairs(ctx.inventory or {}) do items[#items+1]=id end
+    table.sort(items)
+    for _,id in ipairs(items) do signatureField(parts,"item:"..id);signatureField(parts,ctx.inventory[id]) end
     for _,key in ipairs({"class","race","faction","level","xp","xpMax","logCapacity"}) do signatureField(parts,ctx.attributes[key]) end
     for _,id in ipairs(snapshot.order) do
         questSignature(parts,id,snapshot.quests[id],ctx)
@@ -175,14 +188,24 @@ function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded)
             local hint=planner.Targets and planner.Targets.Match(snapshot,id,point)
             local step=planner.Steps and planner.Steps.ObservedQuest(snapshot,id,ctx)
             local hunt
-            if planner.Hunts then point,hunt=planner.Hunts.Destination(snapshot,id,step,point) end
+            local semantic
+            if planner.SemanticGuidance and not hint then
+                local target,area,claim=planner.SemanticGuidance.Apply(snapshot,id,point,step)
+                if claim then point,hunt,semantic=target,area,claim end
+            end
+            if semantic and step then step.navigation=hunt or step.navigation end
+            if planner.Hunts then
+                local target,area=planner.Hunts.Destination(snapshot,id,step,point)
+                point=target;hunt=area or hunt
+            end
             local stage={bytes=0}
             questSignature(stage,id,quest,ctx)
             rows[#rows+1]={questID=id,title=plain(quest.title),kind=quest.objectivesComplete and "turnin" or "objective",
                 destinationSignature=not stage.limited and table.concat(stage) or nil,
                 detail=plain(hint and hint.detail or detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
                 step=step,stepID=step and step.stepID,stepIdentity="quest-marker",
-                targetHint=hint,hunt=hunt,destination=schema.Clone(point),pinned=policy.pins[id]==true,
+                targetHint=hint,hunt=hunt,semantic=semantic,
+                referenceAdvice=planner.SemanticGuidance and schema.Clone(planner.SemanticGuidance.Advice(snapshot,id)),destination=schema.Clone(point),pinned=policy.pins[id]==true,
                 skipped=policy.skips[id]==true,avoided=point and policy.avoids[point.mapID]==true or false,failed=quest.failed==true}
         end
     end
