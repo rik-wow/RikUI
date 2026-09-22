@@ -34,8 +34,11 @@ class Tests(unittest.TestCase):
    real=geometry.collision.bounds
    def captured(points):calls.append(points);return real(points)
    with patch.object(geometry.collision,'bounds',side_effect=captured):
-    with self.assertRaisesRegex(ValueError,'empty world geometry'):geometry.geometry(Source(),job,Index())
+    result=geometry.geometry(Source(),job,Index())
    self.assertTrue(any(points==model['positions'] for points in calls))
+   self.assertEqual(result['positions'],[]);self.assertEqual(result['indices'],[])
+   self.assertEqual(result['coverageGates'][0]['bounds'],[[1,0,1],[21,1,21]])
+   self.assertIn('WMO-transform-outside-MODF-bounds',result['coverageGates'][0]['reasons'])
  def test_tile_axes(self):self.assertEqual(s.tile_rect(32,32),[-s.terrain.TILE,-s.terrain.TILE,0,0])
  def test_world_namespace(self):self.assertNotEqual(s.polygon_key(0,1,2,0,0),s.polygon_key(1,1,2,0,0))
  def test_fixed_batch_bounds(self):self.assertEqual(s.batch_rect(-1,0),[-512,0,0,512]);self.assertEqual(s.BORDER,1.25)

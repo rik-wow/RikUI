@@ -1,5 +1,15 @@
 # Local Forever terrain datasource tools
 
+## World pack pipeline
+
+`world_bake.py` builds a source-hashed placement index and independently bounded physical-world batches. `world_export.py --capture-runs ... --output input.json` captures immutable run receipts; export then requires that input hash and the exact source directory. The exporter validates current decoder hashes, owned/halo seams, directed connectivity, source exclusions and projection assignments before writing lazy addon packs. `--verify-output` rederives and compares existing output. Source acquisition, static modeling and native traversal are separate evidence levels.
+
+`install_world.py install` and `verify` require the exported receipt SHA256 and an explicit addon directory. The separate `.rikui-world-navigation.json` ownership receipt protects unowned or edited addons and preserves existing Dun Morogh data. Staged upgrades verify hashes before switching; failures roll back without deleting the previous installation. Generated assets and audit files remain external to the repository.
+
+The runtime loads exact UI projection bindings, physical catalogs, compact network parts and only the detailed endpoint regions it needs. Cross-pack routes require exported directed seam witnesses; matching world coordinates alone never create an edge. Source pages remain accounted for after map changes. Cancellation, bounded working sets and explicit coverage frontiers remain active throughout loading and composition.
+
+WMO appearance flags are grounded in [WebWowViewerCpp 1a8cccbe](https://github.com/Deamon87/WebWowViewerCpp/blob/1a8cccbeffc46231c6497e6b3f5bfbf3507d8071/wowViewerLib/src/engine/objects/wmo/wmoObject.cpp#L98) and [wowlib f58bdbf5](https://github.com/SkarnDev/wowlib/blob/f58bdbf56aa8895aa8fbc883027953988f62e691/src/wowlib/formats/wmo/root/chunks/doodad.hpp). Mask 0xDF covers documented texture/lighting controls; bit 0x20 remains unsupported. Invalid selected doodad sets can contribute only a proven all-child exclusion extent. Known extra-physics bounds enlarge that exclusion even when static triangles are empty; unknown physics cannot inherit a finite static bound. `test_modd_lighting_flags.py` audits pinned primary sources and all 866 roots, while `test_world_wmo_bounds.py` retains the failing-before extent regressions.
+
 [Dun Morogh regional delivery](MAP.md) describes the full-map compiler, bounded
 regional loading, actual route replays and remaining gaps. [Western delivery](WEST.md)
 and the older single/two-tile procedures below remain historical regression profiles.

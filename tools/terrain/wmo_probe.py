@@ -172,10 +172,12 @@ def group(data,root_flags=None):
 
 
 def unsupported_doodad_flags(flags):
-    # MODD high-byte bit 2 is InteriorLighting, not collision/placement behavior.
-    # wowlib's SMODoodadDef enum and TrinityCore's collision extractor agree.
-    # Other bits remain unsupported until their collision implications are checked.
-    return flags & ~2
+    # MODD high-byte controls grounded from WebWowViewerCpp 1a8cccbeffc46231:
+    # wmoObject.cpp98-109,168-297 uses 0x02/04/08/10/40/80 for lighting;
+    # m2Object.cpp592-612 derives placement only from position/quaternion/scale.
+    # wowlib f58bdbf56aa8895a SMODoodadDef defines 0x01 projected textures.
+    # Bit 0x20 remains unknown and cannot gain a bounded geometry waiver.
+    return flags & ~0xDF
 
 def selected_doodads(wmo,index):
     if not isinstance(index,int) or not 0<=index<len(wmo['sets']):t.fail('WMO-selected-set-range')

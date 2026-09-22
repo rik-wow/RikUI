@@ -5,7 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {init} from 'recast-navigation';
 import {generateBoundedTiled} from './world_tiled.mjs';
-import {hasHorizontalArea,exclusionLookup,voxelVertex,clipPortalToTarget,pruneStepPortals} from './mesh_filter.mjs';
+import {hasHorizontalArea,exclusionLookup,voxelVertex,clipPortalToTarget,pruneStepPortals,pruneFullHeightExcludedTriangles} from './mesh_filter.mjs';
 const [input,outdir]=process.argv.slice(2);
 if(!input||!outdir||fs.existsSync(outdir))throw Error('new output and input required');
 const raw=fs.readFileSync(input);if(raw.length>256*1024*1024)throw Error('geometry-byte-bound');
@@ -25,7 +25,8 @@ const origin=[0,0,0],positions=g.positions.map((v,i)=>Math.fround(v)-origin[i%3]
 // recentering changes float32 precision and can change shared tessellation.
 const config={cs:.25,ch:.1,tileSize:256,walkableHeight:18,walkableClimb:10,walkableRadius:2,walkableSlopeAngle:40,
  minRegionArea:0,mergeRegionArea:0,maxSimplificationError:1.3,maxVertsPerPoly:6,bounds:[[b[0],0,b[1]],[b[2],1,b[3]]]};
-await init();const started=performance.now(),result=generateBoundedTiled(positions,g.indices,config);
+const preRaster=pruneFullHeightExcludedTriangles(positions,g.indices,g.exclusions);
+await init();const started=performance.now(),result=generateBoundedTiled(positions,preRaster.indices,config);
 if(!result.success)throw Error('world bake failed:'+result.error);
 const nav=result.navMesh,byRef=new Map(),owned=[],witnesses=[],all=[],blocked=new Set(),touches=exclusionLookup(g.exclusions);
 let removed=0,degenerate=0;
@@ -81,7 +82,7 @@ try{
  write('boundary-witnesses.json',{format:'rikui-world-boundary-witnesses-v1',worldMapID:j.worldMapID,jobID:j.id,polygons:neededWitnesses});
  write('manifest.json',{format:'rikui-world-nav-batch-v1',identity:g.identity,worldMapID:j.worldMapID,job:j,
   geometrySHA256:sha(raw),source:g.source,coverageGates:g.coverageGates,exclusions:g.exclusions,
-  generator:{package:'recast-navigation',version:'0.43.1',config,origin,wrapperSHA256:sha(fs.readFileSync(new URL(import.meta.url))),boundedWrapperSHA256:sha(fs.readFileSync(new URL('./world_tiled.mjs',import.meta.url))),filterSHA256:sha(fs.readFileSync(new URL('./mesh_filter.mjs',import.meta.url))),heightAudit:result.heightAudit},
+  generator:{package:'recast-navigation',version:'0.43.1',config,origin,wrapperSHA256:sha(fs.readFileSync(new URL(import.meta.url))),boundedWrapperSHA256:sha(fs.readFileSync(new URL('./world_tiled.mjs',import.meta.url))),filterSHA256:sha(fs.readFileSync(new URL('./mesh_filter.mjs',import.meta.url))),heightAudit:result.heightAudit,preRasterExclusionAudit:preRaster.audit},
   statistics:{ownedPolygons:owned.length,boundaryWitnesses:neededWitnesses.length,directedEdges:owned.reduce((n,p)=>n+p.portals.length,0),removedPolygons:removed,degeneratePolygons:degenerate,stepLinksRemoved:stepAudit.removedDirectedLinks},
   files:[...files],seamAdmission:'pending-neighbor-owned-geometry-and-reciprocal-portal-validation',nativeVerified:false,agentProfileCalibrated:false,
   limitations:g.limitations});

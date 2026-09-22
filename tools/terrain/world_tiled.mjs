@@ -24,7 +24,7 @@ export function generateBoundedTiled(positions,indices,config={}){
  const audit={method:'canonical-tile-local-Y-common-ch-lattice',maxSpanVoxels:0,maxGeometrySpan:0,maxOverlappingChunks:0,builtTiles:0,emptyGeometryTiles:0,emptyWalkableTiles:0,tiles:[]};
  let nav,params,rc,gridSize,context,retained=false;
  try{
-  if(!Raw.Module||positions.length%3||indices.length%3||!positions.length)throw Error('world geometry initialization');
+  if(!Raw.Module||positions.length%3||indices.length%3)throw Error('world geometry initialization');
   const points=Array.from(Float32Array.from(positions));
   if(!points.every(Number.isFinite)||!indices.every(i=>Number.isInteger(i)&&i>=0&&i<points.length/3))throw Error('world geometry shape');
   const cfg={...tiledNavMeshGeneratorConfigDefaults,...config};

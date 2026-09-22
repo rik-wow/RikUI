@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {canonicalTriangles} from './world_tiled.mjs';
+import {init} from 'recast-navigation';
+import {canonicalTriangles,generateBoundedTiled} from './world_tiled.mjs';
 // Independent triangle encounter order/cyclic starts must not affect raster input.
 const points=[0,0,0,64,0,0,64,0,64,0,0,64];
 const a=canonicalTriangles(points,[0,1,2,0,2,3],[0,3]);
@@ -10,4 +11,13 @@ assert.notDeepEqual(a,reverse,'orientation is collision input and must survive')
 const translated=canonicalTriangles(points.map((v,i)=>v+(i%3===0?512:0)),[0,1,2,0,2,3],[3,0]);
 assert.deepEqual(translated.indices,a.indices);
 assert.deepEqual(translated.positions.map((v,i)=>v-(i%3===0?512:0)),a.positions);
-console.log('world triangle ordering: 4 assertions passed');
+await init();
+const empty=generateBoundedTiled([],[],{cs:.25,ch:.1,tileSize:256,bounds:[[0,0,0],[64,1,64]]});
+assert.equal(empty.success,true,empty.error);
+assert.equal(empty.heightAudit.builtTiles,0);
+assert.equal(empty.heightAudit.emptyGeometryTiles,1);
+for(let i=0;i<empty.navMesh.getMaxTiles();i++)assert.equal(empty.navMesh.getTile(i).header(),null);
+empty.navMesh.destroy();
+const bad=generateBoundedTiled([],[0,1,2],{cs:.25,ch:.1,tileSize:256,bounds:[[0,0,0],[64,1,64]]});
+assert.equal(bad.success,false);assert.match(bad.error,/world geometry shape/);
+console.log('world canonical ordering and empty-surface raster checks passed');

@@ -96,9 +96,11 @@ class WMOTests(unittest.TestCase):
         self.assertGreater(lit['audit']['counts']['collisionDoodadInstances'],0)
 
     def test_unknown_doodad_flag_bits_remain_unsupported(self):
-        self.assertFalse(w.unsupported_doodad_flags(0))
-        self.assertFalse(w.unsupported_doodad_flags(2))
-        for bit in (1,4,8,16,32,64,128):
+        # Appearance bits 0x01/02/04/08/10/40/80 are sourced (see wmo_probe);
+        # 0x20 and every higher bit stay unsupported.
+        for bit in (0,1,2,4,8,16,64,128):
+            self.assertFalse(w.unsupported_doodad_flags(bit))
+        for bit in (32,256):
             self.assertTrue(w.unsupported_doodad_flags(bit))
             self.assertTrue(w.unsupported_doodad_flags(bit|2))
 

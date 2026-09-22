@@ -12,6 +12,24 @@ from world_source import canonical, sha, need
 def corners(bounds):return [v for p in itertools.product(*zip(*bounds)) for v in p]
 def bounds_of(model):return c.bounds(model['positions']) if model['positions'] else None
 
+def model_extent_positions(model,ident):
+ # Unknown physics cannot inherit a static mesh's finite footprint, including
+ # when that mesh is empty. A known PCOL proof contributes exclusion bounds.
+ extra=[tag for tag in model['chunks'] if tag in ('PFID','PFDC','PCOL','PHY2')]
+ if extra:
+  need(extra==['PCOL'] and model.get('physicsExtent') is not None,'unbounded-model-physics:'+str(ident))
+  return model['positions']+model['physicsExtent']['positions']
+ return model['positions']
+
+def doodad_extent_scope(root,selected_set):
+ try:
+  _,selected=w.selected_doodads(root,selected_set);return selected,None
+ except ValueError as error:
+  if str(error)!='WMO-selected-set-range':raise
+  # This is an extent-only union, not a replacement selected set. Geometry must
+  # retain the reason and exclude the whole placement instead of adding it.
+  return list(range(len(root['doodads']))),str(error)
+
 def decoder_hashes():
  return {name:sha(pathlib.Path(module.__file__).read_bytes()) for name,module in [('terrain',t),('collision',c),('wmo',w),('emptyPlacements',empty)]}
 
@@ -27,11 +45,7 @@ def build(source,path):
     except ValueError as error:
      if str(error)!='unsupported-M2-version':raise
      m=w.demonstrated_empty_274(data)
-    extra=[tag for tag in m['chunks'] if tag in ('PFID','PFDC','PCOL','PHY2')]
-    pts=m['positions']
-    if extra:
-     need(extra==['PCOL'] and m.get('physicsExtent') is not None,'unbounded-model-physics:'+str(ident))
-     pts=pts+m['physicsExtent']['positions']
+    pts=model_extent_positions(m,ident)
     models[ident]=c.bounds(pts) if pts else None
    return models[ident]
   def wmo_points(ident,selected_set):
@@ -43,7 +57,8 @@ def build(source,path):
      if gid not in group_bounds:
       parsed=w.group(source.asset(gid,'WMOGroup'),root['flags']);group_bounds[gid]=bounds_of(parsed)
      if group_bounds[gid]:pts.extend(corners(group_bounds[gid]))
-    _,selected=w.selected_doodads(root,selected_set)
+    selected,selection_gap=doodad_extent_scope(root,selected_set)
+    if selection_gap:counts['boundedUnknownDoodadScopes']+=1
     for at in selected:
      dd=root['doodads'][at]
      need(not w.unsupported_doodad_flags(dd['flags']),'unbounded-WMO-doodad-flags:'+str(ident))

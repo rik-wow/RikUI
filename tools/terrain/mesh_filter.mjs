@@ -102,3 +102,38 @@ export function clipPortalToTarget(portal,points) {
   const at=t=>a.map((v,i)=>Math.round((v+(b[i]-v)*t)*10000)/10000);
   return {...portal,left:at(best[0]),right:at(best[1])};
 }
+
+// Remove only complete triangle projections inside full-height source omissions.
+// Finite-height roofs/colliders and partially intersecting triangles stay in raster input.
+// The existing post-bake exclusion filter remains mandatory, with its original padding.
+export function pruneFullHeightExcludedTriangles(positions,indices,exclusions,cell=64) {
+  const buckets=new Map();let entries=0,eligible=0;
+  const reasons=new Set(['unsupported-ADT-geometry','unsourced-physical-tile']);
+  for(const box of exclusions) {
+    if(!reasons.has(box.reason))continue;
+    if(box.bounds?.length!==2||!box.bounds.every(p=>p.length===3&&p.every(Number.isFinite))
+      ||box.bounds[0].some((v,i)=>v>box.bounds[1][i]))throw Error('exclusion-shape');
+    if(box.bounds[0][1]>-100000||box.bounds[1][1]<100000)continue;
+    eligible++;
+    const a=box.bounds[0],b=box.bounds[1],rect=[a[0],a[2],b[0],b[2],box.reason];
+    for(let x=Math.floor(a[0]/cell);x<=Math.floor(b[0]/cell);x++)
+      for(let z=Math.floor(a[2]/cell);z<=Math.floor(b[2]/cell);z++) {
+        if(++entries>262144)throw Error('exclusion-index-budget');
+        const key=x+':'+z;let list=buckets.get(key);if(!list)buckets.set(key,list=[]);list.push(rect);
+      }
+  }
+  const kept=[],removedByReason={};
+  for(let at=0;at<indices.length;at+=3) {
+    const offsets=[indices[at]*3,indices[at+1]*3,indices[at+2]*3];
+    const first=offsets[0],list=buckets.get(Math.floor(positions[first]/cell)+':'+Math.floor(positions[first+2]/cell))??[];
+    let contained;
+    for(const r of list) {
+      if(offsets.every(i=>positions[i]>=r[0]&&positions[i]<=r[2]&&positions[i+2]>=r[1]&&positions[i+2]<=r[3]
+        &&positions[i+1]>=-100000&&positions[i+1]<=100000)){contained=r;break;}
+    }
+    if(contained)removedByReason[contained[4]]=(removedByReason[contained[4]]??0)+1;
+    else kept.push(indices[at],indices[at+1],indices[at+2]);
+  }
+  return {indices:kept,audit:{method:'whole-triangle-in-unpadded-full-height-source-exclusion',eligibleBoxes:eligible,
+    inputTriangles:indices.length/3,retainedTriangles:kept.length/3,removedTriangles:(indices.length-kept.length)/3,removedByReason}};
+}

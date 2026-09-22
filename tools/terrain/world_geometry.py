@@ -7,6 +7,7 @@ import terrain_probe as t
 import collision_probe as collision
 import wmo_probe as wmo
 import world_empty_placements as empty
+import world_placements as placement_extents
 import west_profile as west
 from world_source import need, canonical, rect_intersects, tile_rect, expand, sha
 MAX_POSITIONS=4_500_000
@@ -89,8 +90,8 @@ def geometry(source,job,placement_index):
   if placement['flags']!=12:reasons.append('unsupported-world-MODF-flags:%d'%placement['flags'])
   if ident not in roots:roots[ident]=wmo.root(source.asset(ident,'WMO'))
   root=roots[ident];reasons.extend('root-chunk:'+tag for tag in root['unknownChunks'])
-  try:active,selected=wmo.selected_doodads(root,placement['doodadSet'])
-  except ValueError as error:reasons.append(str(error));selected=[]
+  selected,selection_gap=placement_extents.doodad_extent_scope(root,placement['doodadSet'])
+  if selection_gap:reasons.append(selection_gap)
   for gid in root['groups']:
    gkey=(gid,root['flags'])
    if gkey not in groups:groups[gkey]=wmo.group(source.asset(gid,'WMOGroup'),root['flags'])
@@ -98,12 +99,13 @@ def geometry(source,job,placement_index):
    reasons.extend(group['unsupported']);wadd(collision.transformed(group,placement),group['indices'])
   for index in selected:
    dd=root['doodads'][index]
-   if wmo.unsupported_doodad_flags(dd['flags']):reasons.append('unsupported-WMO-doodad-flags');continue
-   try:m=model(dd['reference'])
-   except ValueError as error:
-    if str(error)!='unsupported-M2-version':raise
-    reasons.append('unsupported-WMO-doodad-M2-version');continue
+   need(not wmo.unsupported_doodad_flags(dd['flags']),'unbounded-WMO-doodad-flags:'+str(ident))
+   m=model(dd['reference']);extent_positions=placement_extents.model_extent_positions(m,dd['reference'])
    reasons.extend('extra-doodad-physics:'+tag for tag in m['chunks'] if tag in ('PFID','PFDC','PHY2','PCOL'))
+   # wadd retains static vertices. Include every additional proven physics point
+   # even when the static collision has no triangles; these only bound exclusions.
+   bounds_only=extent_positions[len(m['positions']):] if m['indices'] else extent_positions
+   if bounds_only:all_world.extend(collision.transformed(dict(positions=wmo.doodad_positions(dict(positions=bounds_only),dd)),placement))
    if m['indices']:wadd(collision.transformed(dict(positions=wmo.doodad_positions(m,dd)),placement),m['indices'])
   if all_world:
    actual=collision.bounds(all_world)
@@ -113,8 +115,10 @@ def geometry(source,job,placement_index):
    reasons=sorted(set(reasons));exclude(box,'unsupported-WMO-footprint',fileDataID=ident,placementID=uid,reasons=reasons)
    gates.append(dict(worldMapID=world,placementID=uid,fileDataID=ident,reasons=reasons,bounds=box));stats['excludedWMOInstances']+=1
   else:add(local_vertices,local_indices);stats['wmoInstances']+=1
- need(positions and indices,'empty world geometry')
- minimum=min(positions[1::3]);maximum=max(positions[1::3]);owned=job['ownedXZ']
+ # Fully holed or fully excluded source can correctly yield no surfaces. Keep
+ # source/exclusion evidence and emit zero polygons rather than inventing a floor.
+ need(bool(positions)==bool(indices),'inconsistent empty world geometry')
+ minimum=min(positions[1::3],default=0);maximum=max(positions[1::3],default=0);owned=job['ownedXZ']
  return dict(format='rikui-world-geometry-v1',identity={k:v for k,v in source_identity().items() if k not in ('buildConfig','cdnConfig')},
   worldMapID=world,job=job,coordinateSystem='Y-up; X=game world Y; Z=game world X',
   regionBounds=[[owned[0],minimum,owned[1]],[owned[2],maximum,owned[3]]],positions=positions,indices=indices,exclusions=excluded,
