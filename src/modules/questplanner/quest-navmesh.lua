@@ -32,6 +32,7 @@ local function metadata(raw)
     end
     return value
 end
+function mesh.ValidateMetadata(raw) return metadata(raw) end
 local MAX_WIRE_ID=2147483647 -- Preserve the previous generic-copy numeric ceiling.
 local POLYGON_FIELDS={id=true,points=true,portals=true}
 local PORTAL_FIELDS={to=true,left=true,right=true}
@@ -115,9 +116,17 @@ local function add(data,value)
     return true
 end
 local function ingest(data,shards)
-    for _,shard in ipairs(shards) do
+    local index=0
+    local nextShard=type(shards)=="function" and shards or function() index=index+1;return shards[index] end
+    local batches=0
+    while true do
+        local shard=nextShard()
+        if not shard then break end
+        batches=batches+1
+        if batches>MAX_POLYGONS then return nil,"navigation stream limit" end
         if not schema.PlainTable(shard) or not schema.Identity(shard.identity) or not same(shard.identity,data.meta.identity)
             or not schema.List(shard.polygons,1024) then return nil,"invalid navigation shard" end
+        if type(shards)=="function" and #shard.polygons~=1 then return nil,"invalid navigation stream batch" end
         local edges=0
         for _,raw in ipairs(shard.polygons) do
             local value,reason=polygon(raw)
@@ -444,7 +453,7 @@ end
 function mesh.Begin(rawMeta,shards)
     local meta,reason=metadata(rawMeta)
     if not meta then return nil,reason end
-    if not schema.List(shards,512) then return nil,"navigation shard limit" end
+    if type(shards)~="function" and not schema.List(shards,512) then return nil,"navigation shard limit" end
     local data={meta=meta,polygons={},order={},cells={},cellCount=0,edges=0}
     local worker=coroutine.create(function() return ingest(data,shards) end)
     local cancelled,done=false,false

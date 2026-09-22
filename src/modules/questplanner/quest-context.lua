@@ -65,7 +65,7 @@ function context.Frame(force)
     end
     frameSnapshot={time=now,position=position,world=context.WorldPosition(),speed=context.RunSpeed(),
         facing=scalar(GetPlayerFacing,function(v) return schema.Number(v,0,math.pi*2) end),
-        width=mapSizes.width,height=mapSizes.height}
+        width=mapSizes.width,height=mapSizes.height,taxi=scalar(UnitOnTaxi,boolean,"player")}
     return frameSnapshot
 end
 

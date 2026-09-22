@@ -60,11 +60,16 @@ function planner:Debug()
 end
 
 local function onEvent(event,...)
+    local priorDialog=event=="QUEST_FINISHED" and planner.Journal and planner.Journal.Dialog()
     if planner.Journal then planner.Journal.Record(event,snapshot,...) end
     if planner.Controller then
-        if event=="PLAYER_ENTERING_WORLD" or event=="ZONE_CHANGED_NEW_AREA"
-            or event=="QUEST_REMOVED" or event=="QUEST_TURNED_IN" or event=="QUEST_FINISHED" then
-            planner.Controller.Invalidate()
+        local model=planner.Controller.Peek and planner.Controller.Peek()
+        local selected=model and model.selected
+        local questChanged=(event=="QUEST_REMOVED" or event=="QUEST_TURNED_IN")
+            and selected and selected.questID==select(1,...)
+        local interactionClosed=priorDialog and model and (model.calculated or model.status=="calculating")
+        if event=="PLAYER_ENTERING_WORLD" or event=="ZONE_CHANGED_NEW_AREA" or questChanged or interactionClosed then
+            planner.Controller.Invalidate(not questChanged and not interactionClosed)
         elseif planner.Controller.Refresh then planner.Controller.Refresh() end
     end
     lastReason=event=="PLAYER_LEVEL_UP" and "your level changed" or event=="QUEST_TURNED_IN" and "quest turned in"

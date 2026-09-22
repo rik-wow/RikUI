@@ -57,7 +57,8 @@ local function metadata(raw, corpus, nodes)
     for _,rawAnchor in ipairs(raw.anchors or {}) do
         local anchor=schema.Copy(rawAnchor)
         if not anchor then return nil,"invalid anchor data" end
-        if not nodes[anchor.node] or not schema.ID(anchor.npcID) or not schema.ID(anchor.mapID)
+        local access={entrance=true,zone=true,stairs=true,flight=true,dock=true,exit=true}
+        if not nodes[anchor.node] or (not schema.ID(anchor.npcID) and not access[anchor.kind]) or not schema.ID(anchor.mapID)
             or not sourced(anchor.source,raw.identity,manifests) then return nil,"invalid interaction anchor" end
         if anchor.terrain and (nodes[anchor.node].mapID~=anchor.mapID
             or not schema.Number(nodes[anchor.node].x,0,1) or not schema.Number(nodes[anchor.node].y,0,1)
@@ -145,7 +146,8 @@ local function prepare(data,snapshot,status,ctx,dialog)
             end
         end
     end
-    return {state=state,actions=planner.Actions.New(state.identity,rows),book=data.book,graph=graph}
+    return {state=state,actions=planner.Actions.New(state.identity,rows),book=data.book,graph=graph,
+        originNode=ctx.position and {id=state.node,mapID=ctx.position.mapID,x=ctx.position.x,y=ctx.position.y}}
 end
 local function construct(raw)
     if not schema.PlainTable(raw) or not schema.Identity(raw.identity) then return nil,"invalid dataset" end
@@ -163,6 +165,20 @@ local function construct(raw)
     return {Identity=function() return corpus:Identity() end,Revision=function() return corpus:Revision() end,
         Coverage=function(_,zone) return corpus:Coverage(zone) end,
         Node=function(_,id) return schema.Clone(nodes[id]) end,
+        NavigationNode=function(_,id)
+            local node=schema.Clone(nodes[id])
+            if not node then return end
+            for _,anchor in ipairs(meta.anchors) do
+                if anchor.node==id and anchor.terrain and anchor.source.authority=="verified" then
+                    node.terrain=schema.Clone(anchor.terrain)
+                    node.anchorRevision=anchor.terrain.revision
+                    node.floor=anchor.terrain.floor or anchor.terrain.polygon
+                    node.instanceID=anchor.terrain.instanceID
+                    return node
+                end
+            end
+            return node
+        end,
         Prepare=function(_,...) return prepare(data,...) end}
 end
 function dataset.New(raw)

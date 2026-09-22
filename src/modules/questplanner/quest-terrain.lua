@@ -3,7 +3,7 @@ local core,planner=RikUI,RikUI.QuestPlanner
 local schema,terrain=planner.Schema,{}
 planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
-local meta,live
+local meta,live,regionalToken
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local lastLocation,locationAge=nil,0
 local floorKey,floorChoices,floorIndex=nil,{},0
@@ -34,10 +34,12 @@ function terrain.Invalidate()
 end
 function terrain.Retry()
     if not planner.enabled then return nil,"Quest planner is disabled" end
-    if not mesh and not loader then return nil,state.detail end
+    local regional=planner.Regions and planner.Regions.Enabled()
+    if not mesh and not loader and not regional then return nil,state.detail end
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" then return nil,"Resume quest guidance before retrying" end
     if not model.selected or not model.selected.destination then return nil,"Choose a quest with a map location" end
+    if regional then planner.Regions.Retry() end
     terrain.Invalidate()
     return true
 end
@@ -45,7 +47,9 @@ function terrain.Install(meta,shards)
     local value,reason=planner.NavMesh.Begin(meta,shards)
     if not value then return nil,reason end
     if loader then loader:Cancel() end
-    clear(true); mesh=nil; loader=value
+    clear(true)
+    if not meta.regionalCandidate then mesh=nil end
+    loader=value
     floorKey,floorChoices,floorIndex,floorSuggestion=nil,{},0,nil
     setState("loading","Preparing terrain guidance")
     return true
@@ -67,7 +71,7 @@ local function selected()
     local position
     if live then position=live.position else position=planner.Context.Position() end
     if not position then return nil,nil,"Player position is unavailable" end
-    if not row or not row.destination or model.status=="paused" or model.status=="updating" then return nil,position end
+    if not row or not row.destination or row.suppressSteering or model.status=="paused" or model.status=="updating" then return nil,position end
     return row,position
 end
 local function destinationKey(row)
@@ -80,7 +84,7 @@ local function refreshFloors(row,goal)
     if floorKey~=key then
         floorKey,floorIndex=key,0
         floorChoices=row.destination.scope=="current-map-quest-poi" and mesh:MarkerFloors(goal) or {}
-        floorSuggestion=planner.Targets and planner.Targets.Floor(row.targetHint,mesh:Revision(),floorChoices,row.destination)
+        floorSuggestion=planner.Targets and planner.Targets.Floor(row.targetHint,meta.corpusRevision or mesh:Revision(),floorChoices,row.destination)
     end
 end
 function terrain.Floors()
@@ -127,7 +131,12 @@ local function observeLocation(position)
         if world.verticalStatus=="observed-altitude" then start.height=world.height end
     end
     local location,problem=mesh:LocateContinued(start,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
-    if not location then clear(true);setState("unknown-location",problem);return end
+    if not location then
+        clear(true)
+        if meta.regionalCandidate and planner.Regions.Expand() then setState("loading","Expanding terrain coverage")
+        else setState("unknown-location",problem) end
+        return
+    end
     lastLocation,locationAge=location,0
     -- Search starts on this modeled surface; this does not establish native altitude.
     start.height=start.height or location.point[2]
@@ -141,7 +150,8 @@ local function requestRoute(row,location,start)
     local signature=mesh:Revision()..":"..destinationKey(row)..":"..floorIndex
     if selectedKey~=signature then clear();selectedKey=signature end
     local floor=destinationFloor()
-    if floor then goal.height=floor.height end
+    if floor then goal.height=floor.height
+    elseif target.corpusRevision==(meta.corpusRevision or mesh:Revision()) and schema.Number(target.terrainHeight,-100000,100000) then goal.height=target.terrainHeight end
     display=route and route.follow(location,live)
     if display then setState(display.approach and "modeled-approach" or "modeled",display.detail);return end
     if request then return end
@@ -158,7 +168,7 @@ local function requestRoute(row,location,start)
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
 local function update()
-    if not mesh then return end
+    if not mesh or loader then return end
     live=planner.Context.Frame and planner.Context.Frame() or {position=planner.Context.Position(),
         world=planner.Context.WorldPosition and planner.Context.WorldPosition(),speed=planner.Context.RunSpeed and planner.Context.RunSpeed()}
     local ok,reason=admissible()
@@ -189,12 +199,56 @@ local function searchSlice()
         if clock and clock()-started>=SEARCH_MS then return end
     end
 end
+local function prepareRegions()
+    local manager=planner.Regions
+    if not manager or not manager.Enabled() then return true end
+    live=planner.Context.Frame and planner.Context.Frame() or {position=planner.Context.Position()}
+    local model=(planner.Controller.Peek or planner.Controller.Get)()
+    local snapshot=(planner.PeekSnapshot or planner.GetSnapshot)()
+    if not live.position or not snapshot or model.status=="paused" then
+        manager.Suspend()
+        if regionalToken and loader then loader:Cancel();loader=nil;regionalToken=nil end
+        clear(true)
+        setState(model.status=="paused" and "paused" or "unavailable-position","Waiting for an active position and destination")
+        return false
+    end
+    local row=model.selected
+    local destination=row and row.destination or live.position
+    local packet,reason=manager.Prepare(snapshot.identity,live.position,destination)
+    if regionalToken and not manager.Current(regionalToken) then
+        if loader then loader:Cancel();loader=nil end
+        regionalToken=nil;clear(true)
+    end
+    if packet then
+        local ok,problem=terrain.Install(packet.meta,packet.stream)
+        if not ok then manager.Accept(packet.token,problem);setState("invalid",problem);return false end
+        regionalToken=packet.token
+        return true
+    end
+    if reason=="ready" or reason=="validating" then return true end
+    clear()
+    setState(reason=="loading" and "loading" or "coverage-frontier",
+        reason=="loading" and "Loading nearby terrain regions" or reason)
+    return false
+end
 function terrain.Step()
-    if not planner.enabled then clear(true); setState("disabled","Quest planner is disabled"); return end
+    if not planner.enabled then
+        clear(true)
+        if planner.Regions then planner.Regions.Suspend() end
+        if regionalToken and loader then loader:Cancel();loader=nil;regionalToken=nil end
+        setState("disabled","Quest planner is disabled");return
+    end
+    if not prepareRegions() then return end
     if loader then
         local value,reason,done=loadSlice()
         if done then
-            loader=nil; mesh=value;meta=value and value:Metadata()
+            loader=nil
+            if regionalToken then
+                local accepted=planner.Regions.Accept(regionalToken,not value and reason or nil)
+                regionalToken=nil
+                if not accepted then return end
+            end
+            if value then mesh=value;meta=value:Metadata() end
             setState(value and "ready" or "invalid",reason or "Terrain model ready")
             if value then update() end
         end
@@ -217,7 +271,13 @@ function terrain.Step()
                 end
                 route=result;stats.published=stats.published+1;stats.generation=stats.generation+1
                 update()
-            else display=nil; setState(result.status,result.detail) end
+            else
+                display=nil
+                if meta.regionalCandidate then
+                    if planner.Regions.Expand() then setState("loading","Expanding terrain coverage")
+                    else setState("coverage-frontier","No complete route in the bounded terrain window; retry or choose a nearer waypoint") end
+                else setState(result.status,result.detail) end
+            end
         end
     end
 end
@@ -242,7 +302,7 @@ function terrain.PlanningOrigin(identity,position)
     end
     local start={x=located.point[1],height=located.point[2],z=located.point[3]}
     local function bridge(anchor,budget)
-        if not origin.valid() or budget<1 or not anchor.terrain or anchor.terrain.revision~=mesh:Revision() then return nil end
+        if not origin.valid() or budget<1 or not anchor.terrain or anchor.terrain.revision~=(meta.corpusRevision or mesh:Revision()) then return nil end
         local goal=mesh:Project(anchor.mapID,anchor.x,anchor.y)
         if not goal then return nil end
         goal.height=anchor.terrain.height
@@ -257,12 +317,34 @@ function terrain.PlanningOrigin(identity,position)
                 local last=result.walkPoints[#result.walkPoints]
                 if result.corridor[#result.corridor]~=endpoint.id or planner.NavGeometry.Distance(last,endpoint.point)>.002 then
                     return {status="invalid"} end
-                result.uncertainty=.25
+                result.uncertainty=.25;result.revision=meta.corpusRevision or result.revision
             end
             return result
         end}
     end
     return origin,bridge
+end
+-- Arrival receipts certify the selected connected modeled anchor, never a quest interaction.
+function terrain.Arrival(node,frame,sequence)
+    local anchor=node and node.terrain
+    if not mesh or loader or not anchor or anchor.revision~=(meta.corpusRevision or mesh:Revision())
+        or not frame or not frame.position or frame.position.mapID~=node.mapID then return nil end
+    if node.instanceID~=nil and (not frame.world or frame.world.mapID~=node.instanceID) then return nil end
+    local point=mesh:Project(node.mapID,node.x,node.y)
+    if not point then return nil end
+    point.height=anchor.height
+    local endpoint=mesh:Locate(point)
+    if not endpoint or (anchor.polygon and endpoint.id~=anchor.polygon) then return nil end
+    local current=mesh:Project(frame.position.mapID,frame.position.x,frame.position.y)
+    local located=current and mesh:LocateContinued(current,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
+    if not located or math.abs(located.point[2]-endpoint.point[2])>1 then return nil end
+    local distance=planner.NavGeometry.Distance(located.point,endpoint.point)
+    if distance>4 then return nil end
+    local connected=located.id==endpoint.id or (route and display and not display.approach
+        and route.corridor[#route.corridor]==endpoint.id and display.meters<=4)
+    if not connected then return nil end
+    return {sequence=sequence,anchorVerified=true,connected=true,partial=false,distance=distance,
+        mapID=node.mapID,instanceID=node.instanceID,floor=node.floor,anchorRevision=anchor.revision}
 end
 function terrain.Start()
     if driver then return end

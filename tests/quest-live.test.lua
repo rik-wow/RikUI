@@ -69,6 +69,8 @@ return function(check)
         env.fire("PLAYER_XP_UPDATE");env.flushTimers()
         env.fire("GOSSIP_SHOW");env.flushTimers()
         env.fire("GOSSIP_CLOSED");env.flushTimers()
+        env.fire("QUEST_FINISHED");env.flushTimers()
+        env.fire("QUEST_REMOVED",999);env.flushTimers()
         check("XP and unrelated dialogs retain an unchanged navigation goal",
             invalidations==0 and p.Controller.Get().selected.questID==beforeRefresh)
         p.Terrain=nil

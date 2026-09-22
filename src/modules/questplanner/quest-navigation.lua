@@ -62,6 +62,34 @@ local function routePoints(route,mapID,project)
     end
     return points
 end
+local worldCaches={}
+-- Immutable route tails are projected only when their geometry or map viewport changes.
+local function worldPoints(route,mapID,width,height,inverted)
+    local path=route.path
+    if not path then return routePoints(route,mapID,function(p)return {p.x*width,p.y*height*(inverted and -1 or 1)}end) end
+    if routeCount(route)>MAX_ROUTE_LINES+1 then return nil end
+    local key=inverted and "lines" or "ants"
+    local cache=worldCaches[key]
+    if not cache or cache.tail~=path.tail or cache.mapID~=mapID or cache.width~=width or cache.height~=height then
+        cache={tail=path.tail,mapID=mapID,width=width,height=height,points={},projected={}}
+        for at,point in ipairs(path.tail) do
+            if point.mapID~=mapID then return nil end
+            cache.projected[at]={point.x*width,point.y*height*(inverted and -1 or 1)}
+        end
+        worldCaches[key]=cache
+    end
+    if cache.prefix==path.prefix and cache.first==path.first then return cache.points end
+    local at=0
+    for _,point in ipairs(path.prefix) do
+        if point.mapID~=mapID then return nil end
+        at=at+1
+        cache.points[at]={point.x*width,point.y*height*(inverted and -1 or 1)}
+    end
+    for index=path.first,#path.tail do at=at+1;cache.points[at]=cache.projected[index] end
+    for index=#cache.points,at+1,-1 do cache.points[index]=nil end
+    cache.prefix,cache.first=path.prefix,path.first
+    return cache.points
+end
 local function minimapAnts(route)
     if not Minimap or not Minimap:IsShown() then return end
     local live=playerFrame()
@@ -101,7 +129,7 @@ local function drawAnts()
         local canvas,mapID=frame:GetCanvas(),frame:GetMapID()
         local w,h=canvas:GetWidth(),canvas:GetHeight()
         if planner.Schema.Number(w,8,20000) and planner.Schema.Number(h,8,20000) then
-            local points=routePoints(route,mapID,function(point) return {point.x*w,point.y*h} end)
+            local points=worldPoints(route,mapID,w,h,false)
             if points then paintAnts(antPools.world,canvas,points,w,h,256,false) end
         end
     end
@@ -111,6 +139,9 @@ function navigation.Instruction(live)
     if not planner.enabled then return nil end
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or model.status=="updating" or not model.selected then return nil end
+    if model.selected.journey and planner.JourneyLive and model.selected.journey.mode~="walk" then
+        return planner.JourneyLive.Instruction(model.selected.journey)
+    end
     local route=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     live=live or playerFrame()
     if not route or not live.position or not live.width then return nil end
@@ -121,7 +152,7 @@ local function drawTerrain(canvas,width,height,mapID)
     if not planner.Terrain then return end
     local route=(planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     if routeCount(route)<2 then return end
-    local points=routePoints(route,mapID,function(point) return {point.x*width,-point.y*height} end)
+    local points=worldPoints(route,mapID,width,height,true)
     if not points then return end
     if not lineHolder then
         lineHolder=CreateFrame("Frame",nil,canvas); lineHolder:SetAllPoints(canvas)
@@ -198,7 +229,13 @@ local function bearing()
     if not planner.enabled or not (planner.Controller.ArrowEnabled and planner.Controller.ArrowEnabled()
         or not planner.Controller.ArrowEnabled and planner.Controller.Policy().arrow) then return end
     local model=(planner.Controller.Peek or planner.Controller.Get)()
-    if model.status=="paused" or not model.selected or not model.selected.destination then return end
+    if model.status=="paused" or not model.selected then return end
+    if model.selected.suppressSteering then
+        local instruction=navigation.Instruction()
+        if instruction then arrow.label:SetText(instruction.text.."\n"..instruction.subtext);arrow.icon:Hide();arrow:Show() end
+        return
+    end
+    if not model.selected.destination then return end
     local terrain=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     local live=playerFrame()
     local point,position=terrain and terrain.next or model.selected.destination,live.position

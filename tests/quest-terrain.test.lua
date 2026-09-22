@@ -38,6 +38,11 @@ return function(check)
         check("installed region produces live modeled corridor",guidance.status=="modeled" and not guidance.nativeVerified)
         check("bearing anticipates beyond bend while retaining portal crossings",guidance.next.x<.9 and guidance.next.y<.9
             and guidance.points[2].y>.9 and guidance.points[3].x<.9)
+        local anchorNode={id="arrival",mapID=1426,x=.99,y=.99,instanceID=0,floor="ground",
+            terrain={revision="fixture-v1",height=0}}
+        check("arrival does not invent an unobserved instance",not p.Terrain.Arrival(anchorNode,{position=position},1))
+        check("arrival rejects a different observed instance",not p.Terrain.Arrival(anchorNode,{position=position,world={mapID=1}},1))
+        check("arrival qualifies the connected observed instance",p.Terrain.Arrival(anchorNode,{position=position,world={mapID=0}},1)~=nil)
         local origin,bridge=p.Terrain.PlanningOrigin(identity,position)
         check("ordinary movement supplies a modeled planning origin",origin and origin.valid())
         local attachment=assert(bridge({mapID=1426,x=.81,y=.81,terrain={revision="fixture-v1",height=0}},4096))

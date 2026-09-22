@@ -8,7 +8,7 @@ local deviation=tonumber(arg[11]) or 0
 assert(deviation>=0 and deviation<=1,"deviation outside replay bounds")
 assert(delta>=.01 and delta<=.25,"frame delta outside replay bounds")
 assert(stride>=.05 and stride<=1.4,"stride outside modeled replay bounds")
-local h=dofile("tests/quest-marker-replay.lua")
+local h=dofile(arg[14]=="regional" and "tests/quest-region-replay.lua" or "tests/quest-marker-replay.lua")
 local p,mesh=RikUI.QuestPlanner,h.mesh
 dofile("src/modules/questplanner/quest-guidance.lua")
 local displayFrames,displayPeak=0,0
@@ -29,7 +29,7 @@ local questID=tonumber(arg[8]) or 99158
 local destination=assert(h.snapshot.context.destinations[questID],"scenario marker missing")
 local goal=assert(mesh:Project(destination.mapID,destination.x,destination.y))
 local selectedFloor=tonumber(arg[13])
-local automatic=p.Targets.Floor(p.Targets.Match(h.snapshot,questID,destination),h.meta.revision,mesh:MarkerFloors(goal),destination)
+local automatic=p.Targets.Floor(p.Targets.Match(h.snapshot,questID,destination),h.meta.corpusRevision or h.meta.revision,mesh:MarkerFloors(goal),destination)
 if selectedFloor then goal.height=assert(mesh:MarkerFloors(goal)[selectedFloor],"modeled floor missing").height
 elseif automatic then goal.height=automatic.height end
 local job=assert(mesh:BeginMarkerApproach(start,goal,{maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1),markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true}))

@@ -18,6 +18,9 @@ local entries={
         detail="Basement barrel; check Jarven",
         instructions="If Jarven is guarding the barrel, give him Thunder Ale. Use the barrel after he leaves.",
         instructionsSource="user-reported-sequence",
+        regionalFloor={revision="5fde96619a4db32fde75bc7ee395c94a3010a6e8a9b579c21c43ca0341c173e0",
+            heights={392.9300,399.3920},tolerance=.05,index=1,label="Basement",
+            basis="Quest text names the basement; the reviewed lower model surface is inferred, not a measured target position."},
         floor={revision="d1981b5ac045133c7f2db478e91774432a3eaa82c4e93295478a43bfea5e118e",
             heights={393.09662169989,399.3549},tolerance=.05,index=1,label="Basement",
             basis="Quest text names the basement; the reviewed lower model surface is inferred, not a measured target position."},
@@ -51,6 +54,7 @@ end
 function targets.Floor(hint,revision,choices,point)
     local entry=hint and entries[hint.id]
     local floor=entry and entry.floor
+    if entry and entry.regionalFloor and entry.regionalFloor.revision==revision then floor=entry.regionalFloor end
     if not floor or revision~=floor.revision or not sameMarker(point,entry.marker)
         or #choices~=#floor.heights then return nil end
     for index,height in ipairs(floor.heights) do

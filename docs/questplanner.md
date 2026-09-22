@@ -2,6 +2,12 @@
 
 ## Current implementation
 
+The latest delivered runtime and installed Dun Morogh regional corpus are summarized
+in [regional journey delivery](#regional-journey-delivery-and-current-evidence) and
+[MAP.md](../tools/terrain/MAP.md). Earlier western-only measurements below are
+historical comparisons. Native acceptance and the missing interaction/travel data
+are explicitly outstanding.
+
 RikUI has separate evidence ingestion, live observations, tri-state eligibility,
 directed travel search, bounded action optimization and tracker/map guidance.
 It calculates sequences when sufficient inputs exist. It does not yet ship a
@@ -1041,9 +1047,10 @@ algorithm follows the independently described
 [portal funnel](https://digestingduck.blogspot.com/2010/03/simple-stupid-funnel-algorithm.html);
 it improves the selected corridor, not global optimality.
 
-Center costs remain a bounded search seed. Two deterministic alternative searches
-penalize different interior edges, each capped at 8,192 operations and sharing the
-original total work limit. Only a complete alternative with a shorter pulled path
+Center costs remain a bounded search seed. A portal-entry candidate prices travel
+from the actual arrival point on each boundary. Two additional deterministic
+searches penalize different interior edges. Each candidate is capped at 8,192
+operations and shares the original total work limit. Only a complete alternative with a shorter pulled path
 (by at least .25 yard or .5%) replaces the baseline. Four installed probe paths
 shrank from center costs 3457.968/1200.859/449.265/52.865 yards to pulled lengths
 2270.197/626.560/223.189/26.560 yards; the last alternative improved further to
@@ -1069,7 +1076,9 @@ separately. The host clock has roughly millisecond resolution; zero means below
 its resolution. Loader peaks of 21–27 ms demonstrate that time checks between
 batches do not guarantee a hard latency bound.
 
-| Installed case | Replay movement | Walked / funnel yards | Endpoint error | >90° reversals | Replans |
+Earlier western-companion measurements (superseded by the regional results below):
+
+| Earlier installed case | Replay movement | Walked / funnel yards | Endpoint error | >90° reversals | Replans |
 | --- | --- | --- | --- | --- | --- |
 | Bitter Rivals basement | .15 yd per .02 s, no perturbation | 185.581 / 185.002 | .429 yd | 0 | 0 |
 | Bitter Rivals basement | .15 yd lateral perturbation | 210.094 / 185.002 | .386 yd | 0 | 0 |
@@ -1087,7 +1096,7 @@ native performance claim. The full client is not running in this session;
 visual rendering, physical walking, interaction completion, GC pauses and
 Forever-native movement calibration remain unverified.
 
-Current installed companion identity remains Forever 1.60.1.69913/enUS, 38,142
+The earlier western companion used Forever 1.60.1.69913/enUS, 38,142
 polygons, 74,568 directed portals and 408 shards, revision
 `d1981b5ac045133c7f2db478e91774432a3eaa82c4e93295478a43bfea5e118e`.
 Four of nine rounded Den starts remain floor-ambiguous; quest 319 is outside
@@ -1134,3 +1143,137 @@ objective progression/reordering, contradictory counters, copy boundaries,
 transport waiting/riding/exiting, partial bridges, bounded work and stale origins.
 All 413 generated companion outputs were also checked against their installed
 receipt's byte lengths and SHA-256 values. Native interactions remain outstanding.
+
+## Regional journey delivery and current evidence
+
+The detected installed executable remains Forever 1.60.1.69913/enUS,
+interface16001. The new catalog and 231 region addons are installed alongside the
+existing RikUI junction. All 2,551 addon files match their compile receipt.
+The old companion is backed up outside AddOns. A full client restart is required
+to discover the new TOCs; no running WoW client or native control surface was
+available during this implementation.
+
+The regional compiler, lossless directed partition, height/step safeguards,
+source pins and exclusions are described in [MAP.md](../tools/terrain/MAP.md).
+The full reproduction verifies 1,590 acquisition files and produces byte-identical
+mesh outputs across two bakes. Runtime source pages load incrementally into a
+bounded mesh window, with combat deferral, reentrancy protection, count checks,
+stale-token rejection, explicit retry and coverage-frontier results.
+
+### Route choice and following
+
+The portal-entry candidate reduced the actual Frostmane selected funnel from
+689.992 to 652.809 yards. Its polygon-center diagnostic cost is higher, illustrating
+why center-cost ranking alone misses the better usable route. Candidate selection
+compares complete funnel lengths. One entry label per polygon and a bounded
+candidate set do not establish global optimality. Reliable road/difficulty/hazard
+labels are absent in this corpus, so no blanket preference or invented cost was
+added. Collision exclusions and the movement profile continue to constrain access.
+
+An independent comparison imported the v6 diagnostic navmesh.bin through
+@recast-navigation/core 0.43.1 and ran Detour findPath followed by findStraightPath
+with all portal crossings. Narrow nearest-polygon extents reproduced the exact
+production endpoint polygons and floors. Every reference polygon and directed
+link was checked against the filtered exported graph. Same-corridor Lua and
+Detour lengths agreed within .00034 yard. Reference corridor lengths were
+177.903/521.071/651.477 yards for Bitter Rivals/Den/Frostmane; the new Frostmane
+candidate is .204% above that reference. These comparisons establish neither a
+global optimum nor native traversal. See the primary
+[Detour query API](https://recastnav.com/classdtNavMeshQuery.html).
+
+At tiny boundary fragments, a nearer sideways fallback now retains a still-valid
+forward aim. If that aim is nearly reached, a bounded ray extends it inside the
+same convex surface, then proves every ordered portal crossing again. A fixture
+extracted from actual Den geometry covers the former one-frame wrong-way aim.
+Den's maximum sampled turn falls from 80.94 to 43.78 degrees; the latter matches a
+required cave bend of about 42.45 degrees. Total sampled heading change falls
+from 817.46 to 628.50 degrees. Several smaller corrections remain.
+
+### Installed-data replay results
+
+Production catalog loading, page decoding, mesh validation, search and following
+were exercised from the actual Interface/AddOns files. Movement is simulated at
+.15 yard per .02 second; this does not calibrate Forever physics.
+
+| Case | Funnel yd | Walked yd | Excess over selected funnel | Endpoint error yd | Small aim oscillations | Short reversal pairs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Bitter Rivals basement | 174.190 | 174.669 | .275% | .420 | 5 | 1 |
+| Grizzled Den approach | 521.321 | 523.532 | .424% | .390 | 8 | 4 |
+| Frostmane | 652.809 | 653.085 | .042% | .415 | 3 | 1 |
+
+All three have zero successive steering turns over 90 degrees, zero route changes
+and zero plans during movement. Small oscillations count alternating 1–20 degree
+turns within .5 second. Short reversal pairs count opposite turns of at least
+5 degrees within 2 yards, without the old 90-degree blind spot; some pairs include
+necessary bends, so compare them with the selected funnel.
+
+Bitter Rivals with deliberate .15-yard lateral perturbation still reaches the
+basement, with zero replans or >90-degree steering reversals. Its 12.78% excess
+includes injected sideways motion and is not a natural route-quality score.
+A separate installed Frostmane recovery replay follows 18 yards backward, returns
+forward, handles a 45-yard displacement and a connected 6-yard lateral deviation
+without replanning. Remaining distance increases correctly when backtracking.
+Fixtures additionally cover subdivision-independent open ground, hairpins,
+doorways, tiny portals, stairs, overlapping floors, disconnected passages,
+partial routes, XP/dialog refreshes and stale asynchronous publication.
+
+The Grizzled Den endpoint remains 4.699 yards from the observed marker and is
+labeled an approach. Neither that arrival nor the basement model selection
+completes an interaction. Quest 319 is now covered. Quest 98326 has unresolved
+overlapping floors; 96608/384 still lack observed markers.
+
+### Runtime and transport
+
+Immutable normalized route tails and suffix lengths are shared internally;
+world-map projections cache the same tail by geometry and viewport. Changed
+prefixes and line endpoints update independently. Public APIs retain detached
+copy boundaries. Arrow rotation uses the shared player frame; text and animation
+run at lower rates.
+
+Installed replays measured following callback p99/max of 1 ms on the host's
+roughly millisecond clock. Initial regional preparation took 378–455 ms CPU
+spread over 95–135 callbacks, with 9 ms maxima in the three sequential baseline
+runs (11 ms in the recovery run). Synchronous addon loads cannot promise a hard
+1/4-ms frame budget. GC-paused estimates were about 1.65–2.19 KB per stationary
+callback and 5.28–5.37 KB for tiny local moves where measured. They include replay
+adapters; they do not establish native allocations, GC pauses or a native
+before/after speedup.
+
+The live journey adapter presents departure, boarding, riding, exit and final
+action phases. Qualified arrival binds map/instance/floor/anchor revision and a
+complete connected route. Taxi boarding requires a fresh false-to-true
+UnitOnTaxi transition correlated with the departure anchor; exit and destination
+arrival are separate conditions. A reload during a ride is explicitly unknown.
+Other transport modes require matching verified transition receipts, not elapsed
+time or proximity alone.
+
+A retained cursor cannot overwrite a new selection after invalidation. Pause and
+map transitions retain observations while detaching presentation; a fresh accepted
+plan can rebind immediately even inside the observation throttle. Changed policy,
+manual selection or dataset discards the old itinerary. Incomplete/discontinuous
+travel paths cannot masquerade as reaching an action.
+
+### Precise remaining acceptance requirements
+
+The general step model and three reviewed objective bindings are implemented.
+Completing an actual distillery interaction sequence still requires exact-build
+observations of the Thunder Ale item, Jarven dialog/outcome, guard departure,
+barrel identity/use and resulting quest events. The current archive contains
+quest text/counters and a user-reported explanation, not that sequence.
+Verified entrance/stair/cave access anchors and NPC/gameobject positions are also
+missing; no coordinates or identities were invented.
+
+The bounded optimizer can attach ordinary movement to qualified terrain anchors,
+but the installed corpus has no verified anchor bindings or character transport
+unlock observations. Its travel-state flight/transport facts remain unknown.
+Actual flights, boats, hearthstones, elevators and neighboring-zone journeys need
+Forever-specific anchors, access/unlock/cooldown and boarding/exit observations.
+Synthetic state-machine tests do not supply those world facts.
+
+Native acceptance needs the restarted client: inspect map/arrow/instruction
+agreement, physically walk the distillery stairs, Den and Frostmane, perform the
+interactions, and collect callback/allocation/GC measurements. Movement radius,
+slope, step and clearance are reference parameters pending Forever calibration.
+Excluded assets, dynamic doors, liquids and content outside the verified regional
+corpus remain coverage limits. These requirements stay open in native execution
+records; this delivery does not claim the entire requested scope is accepted.

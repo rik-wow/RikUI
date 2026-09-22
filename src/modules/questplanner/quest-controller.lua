@@ -7,19 +7,24 @@ local policy={pins={},avoids={},skips={},paused=false,arrow=false,dungeons=false
 local view={status="unavailable",detail="Reading the quest log",quests={}}
 local revision,signature,data,job,context=0,nil,nil,nil,nil
 local stats={replans=0,published=0,cancelled=0,maxSliceMS=0,timingSamples=0,frameCalls=0}
-local worker,manualQuest
+local worker,manualQuest,journeyState
 local function notify()
     if core.QuestTracker and core.QuestTracker.Request then core.QuestTracker.Request() end
     if planner.View and planner.View.Refresh then planner.View.Refresh() end
 end
 local function publish(value)
+    if journeyState and journeyState.boundModel~=value then planner.JourneyLive.Detach(journeyState) end
+    if journeyState and value.selected and journeyState.base.questID~=value.selected.questID then journeyState=nil end
     view=value; stats.published=stats.published+1
     notify()
 end
 local function cancel()
     if job then job.search:Cancel(); job=nil; stats.cancelled=stats.cancelled+1 end
 end
-function controller.Invalidate()
+function controller.Invalidate(retainJourney)
+    if journeyState then
+        if retainJourney then planner.JourneyLive.Detach(journeyState) else journeyState=nil end
+    end
     if planner.Terrain then planner.Terrain.Invalidate() end
     revision=revision+1; signature=nil; cancel()
     view={status="updating",detail="Updating quest guidance",quests={}}
@@ -63,7 +68,7 @@ function controller.Set(name,value)
     if name=="arrow" then
         notify()
         if planner.Navigation then planner.Navigation.Refresh() end
-    else controller.Invalidate(); planner.Request() end
+    else controller.Invalidate(name=="paused"); planner.Request() end
     return true
 end
 function controller.Toggle(name,id)
@@ -122,10 +127,15 @@ local function finish(current,result)
     local value=planner.Guidance.Result(result,current.observed,context,data,current.reason,policy)
     if expired(value) then controller.Invalidate(); planner.Request(); return end
     value.actionID=result.actions and result.actions[1] and result.actions[1].id
+    if planner.JourneyLive then
+        journeyState=planner.JourneyLive.Attach(value,result,data,context,current.originNode,journeyState)
+        if journeyState then planner.JourneyLive.Tick(journeyState,value,policy.paused) end
+    end
     if prior and value.selected and prior~=value.selected.questID then value.change="Next action changed: "..current.reason end
     job=nil; publish(value)
 end
 function controller.Step()
+    if planner.enabled and journeyState and planner.JourneyLive.Tick(journeyState,view,policy.paused) then notify() end
     if not planner.enabled or policy.paused then cancel(); return end
     if expired(view) then controller.Invalidate(); planner.Request(); return end
     if not job then return end
@@ -172,7 +182,7 @@ local function begin(snapshot,status,ctx,dialog,observed,reason)
     if not search then
         publish({status="unavailable",detail=issue,quests=observed}); return
     end
-    job={search=search,revision=revision,observed=observed,reason=reason}
+    job={search=search,revision=revision,observed=observed,reason=reason,originNode=input.originNode}
     stats.replans=stats.replans+1
     local pending={}
     for key,value in pairs(view) do pending[key]=value end
@@ -182,10 +192,10 @@ end
 function controller.Update(snapshot,status,reason)
     if not planner.enabled then cancel(); return end
     if not snapshot or status.state=="stale" or status.state=="unavailable" then
-        controller.Invalidate(); publish({status=status.state,detail="Current quest data is unavailable",quests={}}); return
+        controller.Invalidate(true); publish({status=status.state,detail="Current quest data is unavailable",quests={}}); return
     end
     local ctx=planner.Context.Read(snapshot,policy.pins)
-    if not ctx then controller.Invalidate(); return end
+    if not ctx then controller.Invalidate(true); return end
     local dialog=planner.Journal.Dialog()
     local nextSignature,signatureProblem=planner.Guidance.Signature(snapshot,status,ctx,dialog)
     context=ctx
