@@ -11,6 +11,14 @@ return function(check)
     end
     check("quality separates deliberate movement and small aim oscillations",
         jitter.aim.oscillations==2 and math.abs(jitter.aim.total-25)<1e-8 and jitter.movement.total==0)
+    local rapid=Q.New()
+    for at,angle in ipairs({0,70,-10}) do
+        local x,a=(at-1)*.15,angle*math.pi/180
+        rapid:Observe({x,0,0},{x=x+math.cos(a),z=math.sin(a)},at*.02)
+    end
+    check("quality catches rapid corrections missed by the ninety-degree gate",
+        rapid.aim.shortReversals==1 and math.abs(rapid.aim.maximumPairedTurn-80)<1e-8
+        and rapid.aim.maximum<90)
     local timing=Q.Timing({4,1,3,2})
     check("timing percentiles preserve worst callback",timing.p50==2 and timing.p95==4 and timing.maximum==4)
     local allocation=Q.Allocations(function() local value={1,2,3};assert(value[2]==2) end,10)

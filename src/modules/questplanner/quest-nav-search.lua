@@ -78,7 +78,8 @@ local function finish(job)
         end
         result.seconds=result.meters/job.speed
     end
-    result.shortestWithinCenterGraph=true
+    result.shortestWithinCenterGraph=not job.entryCosts
+    result.searchRepresentation=job.entryCosts and "portal-entry" or "polygon-center"
     result.globalOptimal=false
     return result
 end
@@ -155,6 +156,10 @@ local function reached(job,id)
     if job.remaining==0 then return commonApproach(job) end
 end
 local function heuristic(job,id)
+    if job.entryCosts then
+        if id==job.goal.id then return 0 end
+        return geometry.Distance(job.entries[id],job.goal.point)
+    end
     if job.goals then return 0 end -- One Dijkstra tree gives consistent shared prefixes.
     return geometry.Distance(job.data.polygons[id].center,job.data.polygons[job.goal.id].center)
 end
@@ -171,9 +176,17 @@ local function run(job)
                 if job.work>=job.maxWork then return response(job,"budget-exhausted","navigation work limit") end
                 job.work=job.work+1
                 local penalty=job.penaltyFrom==current.id and job.penaltyTo==portal.to and (portal.meters*3+8) or 0
-                local cost=current.cost+portal.meters+penalty
+                local edgeCost,entry=portal.meters,nil
+                if job.entryCosts then
+                    local height=geometry.BoundaryHeight(job.data.polygons[portal.to].points,portal.midpoint,.01)
+                    entry={portal.midpoint[1],height,portal.midpoint[3]}
+                    edgeCost=geometry.Distance(job.entries[current.id],portal.midpoint)+math.abs(height-portal.midpoint[2])
+                    if portal.to==job.goal.id then edgeCost=edgeCost+geometry.Distance(entry,job.goal.point) end
+                end
+                local cost=current.cost+edgeCost+penalty
                 if not job.closed[portal.to] and (job.distance[portal.to]==nil or cost<job.distance[portal.to]) then
                     job.distance[portal.to]=cost
+                    if entry then job.entries[portal.to]=entry end
                     job.previous[portal.to]={from=current.id,portal=portal}
                     push(job.heap,{id=portal.to,cost=cost,priority=cost+heuristic(job,portal.to)})
                 end
@@ -218,7 +231,8 @@ local function seed(job)
         for _,value in ipairs(job.goals) do job.pendingGoals[value.id]=true end
     end
     local first=job.start
-    job.distance[first.id]=geometry.Distance(first.point,job.data.polygons[first.id].center)
+    if job.entryCosts then job.entries={[first.id]=first.point} end
+    job.distance[first.id]=job.entryCosts and 0 or geometry.Distance(first.point,job.data.polygons[first.id].center)
     push(job.heap,{id=first.id,cost=job.distance[first.id],priority=job.distance[first.id]+heuristic(job,first.id)})
     return handle(job)
 end
@@ -226,13 +240,14 @@ choose=function(job,result)
     if job.candidate or job.goals or result.status~="modeled" or #result.corridor<4 then return result end
     local baseline,best,work=result,result,job.work
     local tried,completed=0,0
-    for choice=1,ALTERNATIVE_COUNT do
+    for choice=0,ALTERNATIVE_COUNT do
         local budget=math.min(ALTERNATIVE_WORK,job.maxWork-work)
         if budget<1 then break end
         local at=math.max(1,math.floor((#baseline.corridor-1)*choice/(ALTERNATIVE_COUNT+1)))
         local other={data=job.data,start=job.start,goal=job.goal,maxWork=budget,speed=job.speed,work=0,visited=0,
             heap={},distance={},previous={},closed={},locate=job.locate,candidate=true,
-            penaltyFrom=baseline.corridor[at],penaltyTo=baseline.corridor[at+1]}
+            entryCosts=choice==0,
+            penaltyFrom=choice>0 and baseline.corridor[at],penaltyTo=choice>0 and baseline.corridor[at+1]}
         local pending=seed(other)
         local candidate
         repeat candidate=pending:Step(1,true);coroutine.yield() until candidate

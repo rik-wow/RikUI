@@ -358,6 +358,24 @@ function geometry.CorridorAim(route,origin,index,previous)
     local tx,tz=target[1]-origin[1],target[3]-origin[3]
     local short=tx*tx+tz*tz<1 and dx*dx+dz*dz>tx*tx+tz*tz
     local passed=previous.origin and (old[1]-previous.origin[1])*dx+(old[3]-previous.origin[3])*dz<=0
+    -- A nearer fallback can briefly swing sideways at a tiny portal. Retain a
+    -- proven forward aim through that fragment; farther stair exits still advance.
+    local d2,t2,dot=dx*dx+dz*dz,tx*tx+tz*tz,dx*tx+dz*tz
+    local shorterJump=d2>1e-8 and t2>1e-8 and t2<d2*.90
+        and (dot<=0 or dot*dot<d2*t2*.98063084797) -- cos(8 degrees)^2
+    if not passed and shorterJump then
+        local surface=route.surfaces[previous.index]
+        if surface and geometry.Contains(surface,old[1],old[3]) then
+            local retained=crossings(route,origin,old,index,previous.index)
+            if retained then
+                if d2<=AIM_RELEASE_YARDS^2 then
+                    local extended,proof,at=rayContinuation(route,origin,old,index,previous.index)
+                    if extended then return extended,proof,at end
+                end
+                if d2>.25^2 then return old,retained,previous.index end
+            end
+        end
+    end
     if passed or (dx*tx+dz*tz>=0 and not short) or dx*dx+dz*dz<=AIM_RELEASE_YARDS^2 then return target,proof,last end
     local surface=route.surfaces[previous.index]
     if not surface or not geometry.Contains(surface,old[1],old[3]) then return target,proof,last end

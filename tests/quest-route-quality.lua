@@ -1,11 +1,19 @@
 -- Offline route quality and callback instrumentation; never included in the addon.
 local Q={}
 local function turn(a,b) return (a-b+180)%360-180 end
-local function heading(state,dx,dz,time)
+local function heading(state,dx,dz,time,distance)
     if dx*dx+dz*dz<1e-12 then return end
     local angle=math.atan2(dz,dx)*180/math.pi
     if not state.previous then state.previous=angle;state.anchor=angle;return end
-    local difference=math.abs(turn(angle,state.previous))
+    local signed=turn(angle,state.previous)
+    if math.abs(signed)>=5 then
+        if state.pairedTurn and signed*state.pairedTurn<0 and distance-state.pairedDistance<=2 then
+            state.shortReversals=(state.shortReversals or 0)+1
+            state.maximumPairedTurn=math.max(state.maximumPairedTurn or 0,math.abs(signed),math.abs(state.pairedTurn))
+        end
+        state.pairedTurn,state.pairedDistance=signed,distance
+    end
+    local difference=math.abs(signed)
     state.total=state.total+difference;state.maximum=math.max(state.maximum,difference);state.previous=angle
     local significant=turn(angle,state.anchor)
     if math.abs(significant)<1 then return end
@@ -22,9 +30,9 @@ function Q.New()
             local dx,dy,dz=point[1]-a[1],point[2]-a[2],point[3]-a[3]
             self.distance=self.distance+math.sqrt(dx*dx+dz*dz)
             self.spatial=self.spatial+math.sqrt(dx*dx+dy*dy+dz*dz)
-            heading(self.movement,dx,dz,time)
+            heading(self.movement,dx,dz,time,self.distance)
         end
-        if target then heading(self.aim,target.x-point[1],target.z-point[3],time) end
+        if target then heading(self.aim,target.x-point[1],target.z-point[3],time,self.distance) end
         self.previous=point
     end
     return value
