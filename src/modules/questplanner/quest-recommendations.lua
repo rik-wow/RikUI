@@ -4,7 +4,7 @@ local recommendations={}
 planner.Recommendations=recommendations
 local MOVEMENT_CELL,MOVEMENT_DISTANCE,SWITCH_DISTANCE,SWITCH_FRACTION=25,40,40,.2
 local TURNIN_BONUS,PROGRESS_BONUS,SHARED_BONUS=40,25,.15
-local function eligible(row) return not row.skipped and not row.avoided and not row.failed end
+local function eligible(row) return not row.skipped and not row.deferred and not row.groupBlocked and not row.avoided and not row.failed end
 local function positioned(point)
     return point and schema.ID(point.mapID) and schema.Number(point.x,0,1) and schema.Number(point.y,0,1)
 end

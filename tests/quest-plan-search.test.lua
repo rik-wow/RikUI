@@ -202,6 +202,29 @@ return function(check)
         after=assert(p.PlanTransitions.Apply({id="c",kind="complete",questID=1,gains={{itemID=7,count=99}}},s,policy,
             {seconds=0,upper=0,xp=999,xpAuthority="observed"}))
         check("completion milestone cannot award XP or items",after.xpGained==0 and after.inventory[7]==nil)
+        s=state();s.inventory[7]=1;s.stackSizes={[7]=20,[8]=20};s.stackRoom={[7]=19};s.genericStacks={[7]=1};s.bagFree=0
+        local sell={id="sell",questID=0,kind="service",supported=true,freesSlots=1,consumes={{itemID=7,count=1}},
+            discardStackRoom={{itemID=7}},saleSlots={"0:1"},saleInventory={[7]=1},conditionalService=true}
+        after=assert(p.PlanTransitions.Apply(sell,s,policy,{seconds=1,upper=1,xp=0}))
+        check("sale removes carried items and old headroom",after.inventory[7]==0 and after.stackRoom[7]==nil and after.bagFree==1 and after.conditional)
+        local alias=p.Schema.Clone(sell);alias.id="sale-alias"
+        check("same stack cannot be sold twice through aliases",p.PlanTransitions.Check(alias,after,policy)==false)
+        s.inventory[7]=2
+        check("changed inventory invalidates sale proof",p.PlanTransitions.Check(sell,s,policy)==nil)
+        after.active[1]=true;after.active[2]=true;after.progress={[1]={a=19},[2]={b=1}}
+        local gainA={id="a",questID=1,kind="objective",objectiveKey="a",itemID=7,gains={{itemID=7,count=19}}}
+        check("repeated capacity checks do not mutate",p.PlanTransitions.Check(gainA,after,policy)==true
+            and p.PlanTransitions.Check(gainA,after,policy)==true and after.bagFree==1 and after.stackRoom[7]==nil)
+        local gained=assert(p.PlanTransitions.Apply(gainA,after,policy,{seconds=1,upper=1,xp=0}))
+        check("new stack consumes freed generic slot",gained.bagFree==0 and gained.stackRoom[7]==1)
+        check("second item cannot reuse sold stack capacity",p.PlanTransitions.Check({id="b",questID=2,kind="objective",
+            objectiveKey="b",itemID=8,gains={{itemID=8,count=1}}},gained,policy)==false)
+        s=state();s.bagFree=0;s.inventory[7]=5;s.genericStacks={[7]=1};s.stackRoom={[7]=15}
+        s.active[1]=true;s.objectivesComplete[1]=true;s.logCount=1
+        after=assert(p.PlanTransitions.Apply({id="full-stack-turnin",questID=1,kind="turnin",consumes={{itemID=7,count=5}}},s,policy,{seconds=1,upper=1,xp=0}))
+        check("known whole-stack turnin releases actual slot",after.bagFree==1 and after.stackRoom[7]==nil)
+        s=state();s.live[1]={};s.active[1]=true;s.progress[1]={a=0};s.objectivesComplete[1]=false
+        check("zero counters cannot contradict live incomplete flag",p.PlanTransitions.Check({id="t",questID=1,kind="turnin"},s,policy)==false)
         print("Adaptive exact oracle: delayed "..oracle.." XP; branch110 XP; long18-quest continuation1000 XP")
     end)
     RikUI=saved

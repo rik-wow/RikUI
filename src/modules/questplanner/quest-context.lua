@@ -215,7 +215,7 @@ function context.Read(snapshot, pins)
     local result={identity=schema.Clone(snapshot.identity),attributes=attributes(),position=position,
         worldPosition=context.WorldPosition(),runSpeed=context.RunSpeed(),destinations={},history={},rewards={},
         targetStatus={},rewardStatus={},source="client-api-session-v1",origin="live",
-        observedAt=scalar(GetTime,number),queries=0}
+        observedAt=scalar(GetTime,number),characterKey=scalar(UnitGUID,schema.Text,"player"),queries=0}
     local ids=queryIDs(snapshot,pins)
     local pois,mapStatus=mapPOIs(snapshot,position and position.mapID)
     result.mapPOIStatus=mapStatus

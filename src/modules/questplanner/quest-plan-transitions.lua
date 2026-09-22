@@ -79,6 +79,7 @@ local function objectivesDone(state,id)
     if state.objectivesComplete[id] then return true end
     local progress=state.progress[id]
     if not progress then return nil end
+    if state.live and state.live[id] and not (state.simulatedWork or {})[id] then return nil end
     local conditional=state.conditionalObjectives and state.conditionalObjectives[id] or {}
     for key,count in pairs(progress) do
         if count~=0 and not (count==-1 and conditional[key]) then return false end
@@ -93,6 +94,36 @@ local function blocked(ids,state,activeOnly,completedOnly)
     end
     return false
 end
+-- Allocate observed partial-stack space by item, then generic slots. No shared capacity credit.
+local function capacity(action,state)
+    if action.bagSlots then return action.bagSlots,{} end
+    local incoming,unknown={},false
+    for _,gain in ipairs(action.gains or {}) do
+        local amount=gain.count
+        if action.kind=="objective" and action.itemID==gain.itemID then amount=remaining(action,state) end
+        if not schema.Integer(amount,0,2147483647) then unknown=true
+        else
+            if gain.source then amount=math.max(0,amount-(state.inventory[gain.itemID] or 0)) end
+            incoming[gain.itemID]=(incoming[gain.itemID] or 0)+amount
+        end
+    end
+    if action.itemID and not action.gains then unknown=true end
+    local slots,rooms=0,{}
+    for id,amount in pairs(incoming) do
+        if amount>0 then
+            local room=(state.stackRoom or {})[id] or 0
+            local size=(state.stackSizes or {})[id]
+            if amount<=room then rooms[id]=room-amount
+            elseif size and size>0 then
+                local needed=math.ceil((amount-room)/size)
+                slots=slots+needed;rooms[id]=needed*size-(amount-room)
+            else unknown=true end
+        end
+    end
+    if unknown then return nil,rooms end
+    return slots,rooms
+end
+transitions.Capacity=capacity
 function transitions.Check(action,state,policy)
     if not action or not state or not state.fresh then return false,"Stale planner state" end
     policy=policy or state.policy
@@ -122,14 +153,14 @@ function transitions.Check(action,state,policy)
             return false,"Target is friendly to this faction"
         end
     end
-    if (action.itemID or action.gains and #action.gains>0) and state.bagFree==0 then
-        local needsSpace=action.kind=="objective"
-        for _,gain in ipairs(action.gains or {}) do
-            if not gain.source or (state.inventory[gain.itemID] or 0)<gain.count then needsSpace=true end
-        end
-        if needsSpace and not action.fitsExistingStack then return false,"Bags full; collection needs observed stacking capacity or a service" end
-    end
+    local slots=capacity(action,state)
+    if slots and state.bagFree and slots>state.bagFree then return false,"Bags full; use observed stacking capacity or a service" end
+    if slots==nil and state.bagFree==0 and not action.fitsExistingStack then return false,"Bags full; stacking capacity unresolved" end
     if action.dungeon and not policy.dungeons then return false,"Dungeon content disabled" end
+    if action.groupRequiredUnknown then
+        if policy.group=="solo" then return false,"Group content disabled" end
+        return nil,"Required party size is not observed"
+    end
     if action.requiredParty and action.requiredParty>1 then
         if policy.group=="solo" then return false,"Group content disabled" end
         if state.partySize==nil then return nil,"Party availability unknown" end
@@ -169,6 +200,10 @@ function transitions.Check(action,state,policy)
         if objectivesDone(state,id)~=true then return false,"Objectives remain" end
     elseif action.kind=="service" then
         if not policy.services or not action.supported then return false,"Service not supported or disabled" end
+        for _,slot in ipairs(action.saleSlots or {}) do if (state.soldSlots or {})[slot] then return false,"Sale already planned" end end
+        for itemID,count in pairs(action.saleInventory or {}) do
+            if state.inventory[itemID]~=count then return nil,"Inventory changed; recheck the merchant offer" end
+        end
     elseif action.kind=="explore" then
         if policy.explorationMinutes<=0 then return false,"Exploration declined" end
     else return nil,"Unsupported action mechanic" end
@@ -191,7 +226,7 @@ function transitions.Check(action,state,policy)
 end
 -- Source graph/observed metadata are immutable and shared. Only rollout fields copy.
 local MAPS={"active","completed","failed","objectivesComplete","applied","branchLocks","inventory","skills",
-    "capabilities","cooldowns","visited","credited","conditionalCompleted","inventoryLower"}
+    "capabilities","cooldowns","visited","credited","conditionalCompleted","inventoryLower","simulatedWork","stackRoom","genericStacks","soldSlots"}
 local NESTED={"progress","conditionalObjectives"}
 function transitions.Fork(state)
     local result={}
@@ -244,6 +279,7 @@ function transitions.Apply(action,state,policy,cost)
         if action.availability=="source-suggestion" then assume(result,"Availability is a source suggestion; confirm at the giver") end
         for _,other in ipairs(action.excludes or {}) do result.branchLocks[other]=id end
     elseif action.kind=="objective" then
+        result.simulatedWork[id]=true
         local count=remaining(action,state)
         if count==-1 or action.countUnknown then
             result.conditionalObjectives[id]=result.conditionalObjectives[id] or {}
@@ -259,6 +295,7 @@ function transitions.Apply(action,state,policy,cost)
                     local values=result.progress[credit.questID]
                     if not seen[key] and result.active[credit.questID] and values and values[credit.key] and values[credit.key]>0 then
                         values[credit.key]=math.max(0,values[credit.key]-count)
+                        result.simulatedWork[credit.questID]=true
                         seen[key]=true
                     end
                 end
@@ -275,10 +312,22 @@ function transitions.Apply(action,state,policy,cost)
             result.inventory[itemID]=nil;result.inventoryLower[itemID]=nil;assume(result,"Turn-in consumes an unresolved item quantity")
         end
     elseif action.kind=="service" then
+        if action.conditionalService then assume(result,"Optional service benefits require your action and live confirmation") end
         if action.freesSlots then result.bagFree=result.bagFree and result.bagFree+action.freesSlots end
+        for _,sold in ipairs(action.discardStackRoom or {}) do result.stackRoom[sold.itemID]=nil;result.genericStacks[sold.itemID]=nil end
+        for _,slot in ipairs(action.saleSlots or {}) do result.soldSlots[slot]=true end
         for skill,value in pairs(action.skillGains or {}) do result.skills[skill]=value end
         for key,value in pairs(action.capabilityGains or {}) do result.capabilities[key]=value end
     elseif action.kind=="explore" then result.explorationSeconds=(state.explorationSeconds or 0)+(cost and cost.seconds or 0) end
+    local consumed={}
+    for _,row in ipairs(action.consumes or {}) do consumed[row.itemID]=(consumed[row.itemID] or 0)+row.count end
+    for itemID,count in pairs(consumed) do
+        if result.inventory[itemID]==count then
+            local freed=result.genericStacks[itemID]
+            if freed and not action.freesSlots then result.bagFree=result.bagFree and result.bagFree+freed end
+            result.genericStacks[itemID]=nil;result.stackRoom[itemID]=nil
+        end
+    end
     for _,row in ipairs(action.consumes or {}) do
         if result.inventory[row.itemID]~=nil then result.inventory[row.itemID]=result.inventory[row.itemID]-row.count end
         if result.inventoryLower[row.itemID]~=nil then result.inventoryLower[row.itemID]=math.max(0,result.inventoryLower[row.itemID]-row.count) end
@@ -295,7 +344,14 @@ function transitions.Apply(action,state,policy,cost)
         end
     end
     if action.moneyCost then result.money=result.money-action.moneyCost end
-    if action.bagSlots then result.bagFree=result.bagFree and result.bagFree-action.bagSlots end
+    local slots,rooms=capacity(action,state)
+    if slots then
+        result.bagFree=result.bagFree and result.bagFree-slots
+        for itemID,room in pairs(rooms) do result.stackRoom[itemID]=room end
+    else
+        result.bagFree=nil;result.stackRoom={}
+        assume(result,"Collection capacity is unresolved; check bags before proceeding")
+    end
     if cost and cost.xp~=nil then
         levelXP(result,cost.xp)
         if cost.xp>0 and cost.xpAuthority~="observed" then assume(result,"XP and level progression are estimates") end

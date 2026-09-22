@@ -22,7 +22,13 @@ local function build()
     window.edit:SetScript("OnEscapePressed",close); scroll:SetScrollChild(window.edit)
     window.edit:SetScript("OnTextChanged",function(self)
         if not window.inspect then return end
-        local value,reason=planner.Transfer.Decode(self:GetText() or "")
+        local raw=self:GetText() or ""
+        if raw:sub(1,6)=="RIKP1:" then
+            local trace,reason=planner.Transfer.DecodePlan(raw)
+            window.title:SetText(trace and ("Imported "..trace.flavor.." plan; inspection only") or reason)
+            return
+        end
+        local value,reason=planner.Transfer.Decode(raw)
         window.title:SetText(value and ("Imported "..value.identity.build..": "..value.observedCount.." log quests; inspection only")
             or reason or "Paste observations to inspect")
     end)
@@ -34,6 +40,18 @@ local function build()
     window.hint:SetText("Ctrl+A, Ctrl+C to copy. No automatic disk or settings storage.")
     if type(UISpecialFrames)=="table" then table.insert(UISpecialFrames,"RikUIQuestTransfer") end
     transferView.Window=window
+end
+function transferView.OpenPlan()
+    local trace=planner.PlanRuntime and planner.PlanRuntime.Replay()
+    local wire,reason=planner.Transfer.EncodePlan(trace)
+    if not wire then return core:Print(reason) end
+    core.Combat.Queue(function()
+        if not window then build() end
+        window.inspect=false;window.edit:SetMaxLetters(1048576)
+        window.title:SetText("Copy plan evidence for replay")
+        window.hint:SetText("State, source revision, candidates, costs and exclusions; inspection only.")
+        window.edit:SetText(wire);window:Show();window.edit:SetFocus();window.edit:HighlightText()
+    end,"questplanner:transfer")
 end
 function transferView.Open(inspect)
     local wire,exported
@@ -48,7 +66,7 @@ function transferView.Open(inspect)
     end
     core.Combat.Queue(function()
         if not window then build() end
-        window.inspect=inspect==true
+        window.inspect=inspect==true;window.edit:SetMaxLetters(inspect and 1048576 or 131072)
         window.title:SetText(inspect and "Paste observations to inspect (never used as live state)" or "Copy quest observations from this session")
         window.hint:SetText(exported and exported.omittedEntries>0
             and ("Newest "..exported.exportedEntries.." of "..exported.availableEntries.." journal entries; current log included.")

@@ -6,7 +6,7 @@ Baseline: commit 1169c27, clean checkout, 9,204 recorded Lua checks before this 
 
 ## Requirements
 
-| ID | Behavior | Existing foundation | Planned production ownership | Required automated evidence | Visible behavior | Acceptance |
+| ID | Behavior | Existing foundation | Production ownership | Required automated evidence | Visible behavior | Acceptance |
 | --- | --- | --- | --- | --- | --- | --- |
 | R01 | Goals and constraints | Controller policy/manual selection; eligibility | quest-preferences.lua; quest-plan-state.lua | Control conflicts, hard constraints | Flavor/session/constraints | Pending |
 | R02 | State and provenance | Reader/Context/Journal; exact identity | quest-plan-state.lua; Context | Live precedence, source retraction | Source/unknown explanation | Pending |
@@ -24,7 +24,7 @@ Baseline: commit 1169c27, clean checkout, 9,204 recorded Lua checks before this 
 | R14 | Hierarchical travel | Directed travel; terrain search/follower | graph travel adapter; controller | Cliff/floor/conditional access | Marker vs verified route | Pending |
 | R15 | Stable replanning | Controller/terrain revision guards | controller; search; memory | Progress/completion/teleport/resource changes | Stable current action and change reason | Pending |
 | R16 | Runtime/fallback | Sliced source/terrain/optimizer | graph/search shared scheduler | Caps, cancel, timeout, cold/warm timings | Immediate useful fallback | Pending |
-| R17 | Explanations/controls | Tracker/details/map controls | quest-plan-view.lua; view/commands/guidance | Real widget interactions and details | All six presets and reversible controls | Pending |
+| R17 | Explanations/controls | Tracker/details/map controls | quest-plan-controls.lua; view/commands/guidance | Real widget interactions and details | All six presets and reversible controls | Pending |
 | R18 | Learning/persistence | CharDB policy; session observations | quest-plan-learning.lua; persistence bridge | Migration, reload, bounded learning/reset | Learned sample counts and reset | Pending |
 | R19 | Compatibility/coverage | Identity/personas/partitioned corpus | compiler; data; state | Bad partition isolation, locale, unknown quest | Semantic/future/navigation coverage | Pending |
 | R20 | Evaluation/observability | 9204 baseline Lua checks; installed replays | tests/quest-plan*.lua; delivery receipt | Exact oracle, baselines, held-out/long-session | Replay diagnostics; native/playtest evidence | Pending |
@@ -46,25 +46,25 @@ Every flavor shares the same state, legal transitions, travel and hard constrain
 
 | ID | Scenario | Required result/check | Production path | Host evidence | Native evidence |
 | --- | --- | --- | --- | --- | --- |
-| S01 | Pickups unlock three upcoming objectives | Graph/search batching | Pending integration | Pending | Pending |
-| S02 | Turn-in unlocks valuable nearby follow-ups | Full continuation | Pending integration | Pending | Pending |
-| S03 | Missable optional breadcrumb | Story/completion preservation | Pending integration | Pending | Pending |
-| S04 | Mutually exclusive chains | Prefix feasibility | Pending integration | Pending | Pending |
-| S05 | Shared kill credit, different drops | Separate acquisition | Pending integration | Pending | Pending |
-| S06 | Two turn-ins consume same five items | Inventory reservation | Pending integration | Pending | Pending |
-| S07 | Full log or bags | Capacity/service plan | Pending integration | Pending | Pending |
-| S08 | Marker below cliff/on another floor | Verified access or explicit unknown | Pending integration | Pending | Pending |
-| S09 | Lift/giver/follow-up unavailable | Bounded retry and alternative | Pending integration | Pending | Pending |
-| S10 | Partial counts while walking | Remaining work without route reset | Pending integration | Pending | Pending |
-| S11 | Complete objective/source item lost | Immediate advance/recovery | Pending integration | Pending | Pending |
-| S12 | Teleport during path query | Stale rejection | Pending integration | Pending | Pending |
-| S13 | New quest without provider semantics | Live fallback and coverage gap | Pending integration | Pending | Pending |
-| S14 | Value beyond shallow horizon | Bounded deep continuation | Pending integration | Pending | Pending |
-| S15 | Balanced/Story/Efficient tradeoff | Distinct choices, identical feasibility | Pending integration | Pending | Pending |
-| S16 | Explorer detour declined | No repeated nag | Pending integration | Pending | Pending |
-| S17 | Short versus long session | Suitable stopping point | Pending integration | Pending | Pending |
-| S18 | Native Perfect Stout, cold corpus+terrain | Useful timely stable guidance | Pending integration | Pending | Pending |
-| S19 | Long session/reloads/map changes | Bounded memory and durable preferences | Pending integration | Pending | Pending |
+| S01 | Pickups unlock three upcoming objectives | Graph/search batching | Graph/search | Batching regression still required | Pending |
+| S02 | Turn-in unlocks valuable nearby follow-ups | Full continuation | PlanGraph → PlanSearch | Delayed 155 XP exact oracle; ordinary future graph/UI | Pending |
+| S03 | Missable optional breadcrumb | Story/completion preservation | Compiler breadcrumb rules → transitions/search | Availability enforced; Story opportunity regression still required | Pending |
+| S04 | Mutually exclusive chains | Prefix feasibility | PlanTransitions → PlanSearch | Exclusive-branch 110 XP exact oracle | Pending |
+| S05 | Shared kill credit, different drops | Separate acquisition | Graph shared credits → transitions | Deduplicated shared kill; drop credit isolated | Pending |
+| S06 | Two turn-ins consume same five items | Inventory reservation | BagScan → state → transitions | Summed consumption; bank/equipment cannot pay twice | Pending |
+| S07 | Full log or bags | Capacity/service plan | BagScan/services → transitions/search | Full log; full bags; observed services; whole-stack release | Pending |
+| S08 | Marker below cliff/on another floor | Verified access or explicit unknown | Graph/Transitions → Terrain | Unknown phase rejected; directed/floor existing terrain tests | Pending |
+| S09 | Lift/giver/follow-up unavailable | Bounded retry and alternative | PlanLearning feedback → transitions; Journey | Retry cap mechanisms; integrated unavailable test still required | Pending |
+| S10 | Partial counts while walking | Remaining work without route reset | Controller/Runtime → Terrain | Installed automatic315: zero walking replans/replacements | Pending |
+| S11 | Complete objective/source item lost | Immediate advance/recovery | Context/State → Controller/Runtime | Normal pipeline source loss and completion → turn-in | Pending |
+| S12 | Teleport during path query | Stale rejection | Controller revision → Terrain | Normal controller teleport invalidation and new-origin result | Pending |
+| S13 | New quest without provider semantics | Live fallback and coverage gap | Live observed fallback → controller | Unknown-record graph fallback; integrated case still required | Pending |
+| S14 | Value beyond shallow horizon | Bounded deep continuation | PlanSearch recursive continuations | 18 quests /72 actions /1000 XP | Pending |
+| S15 | Balanced/Story/Efficient tradeoff | Distinct choices, identical feasibility | Preferences → PlanSearch → controls | Six Score tradeoffs + six real widgets; full-search tradeoff still required | Pending |
+| S16 | Explorer detour declined | No repeated nag | Controls/Preference → persistence | Decline maintained through style/settings restore | Pending |
+| S17 | Short versus long session | Suitable stopping point | Preferences → PlanSearch | 6-second versus7-second milestone regression | Pending |
+| S18 | Native Perfect Stout, cold corpus+terrain | Useful timely stable guidance | Automatic corpus → controller → terrain | Installed archived315: first route176frames/3.52s simulated; actual native pending | Pending |
+| S19 | Long session/reloads/map changes | Bounded memory and durable preferences | Learning/Codec/Controller | Bounded 128models,256completionIDs,6000-byte durable memory; full long-run still required | Pending |
 
 ## Architecture and implementation contracts
 
@@ -96,7 +96,7 @@ The first source slice adds production `quest-preferences.lua`, `quest-plan-stat
 
 `tests/quest-plan-state.test.lua` covers six valid presets, invalid controls, live-state authority and isolation, unknown history/inventory, stale/untrusted rejection, separate future transitions, unknown quantities, live-only fallback, phase exclusion and cancellation. `tests/test_quest_corpus.py` covers prerequisite precedence/alternatives, distinct blocker scopes, unknown counts, reward provenance, drop correction precedence (including zero), all-persona indexes and existing ingestion guarantees. `tests/quest-corpus-installed.lua` now admits every record through the production graph and samples additional personas.
 
-R01/R02/R03/R04/R06/R07/R19 have implemented foundation code with host tests; their integrated UI/gameplay acceptance remains pending. No future source quantity or NPC placeholder health is treated as observed fact. These modules are loaded by the addon but normal Controller integration is the next dependent delivery, not claimed here.
+R01/R02/R03/R04/R06/R07/R19 have implemented foundation code with host tests; their integrated UI/gameplay acceptance remains pending. No future source quantity or NPC placeholder health is treated as observed fact. These modules are now connected to ordinary Controller.Update/Step; later sections record integration evidence.
 
 The source contracts were checked against the [pinned eligibility consumer](https://github.com/Questie/Questie/blob/454b9d072965ee8f1a881429260fcf1fac8d60f7/Database/QuestieDB.lua), [pinned drop resolver](https://github.com/Questie/Questie/blob/454b9d072965ee8f1a881429260fcf1fac8d60f7/Database/DropTables/dropDB.lua), and [owned Forever support inputs](https://github.com/Questie/QuestieDB/tree/baa0998d49695c70a1fb8fec559fa9169e9adf33/support/Forever). Host corpus rebuild passed for 7,311 IDs and 18 source personas. Recorded final-source receipts and exact measurements live on the state/graph verification task.
 
@@ -108,7 +108,24 @@ Search combines individual actions (for batching/resource alternatives) with rec
 
 `tests/quest-plan-search.test.lua` independently enumerates small finite quest jobs: delayed continuation reaches 155 XP, exclusive branches reach 110 XP, and an 18-quest/72-action continuation reaches 1,000 XP. All six flavors preserve legality and choose the delayed chain. A separate quantified preference comparison yields six distinct choices with fixed units. Tests cover duplicate spending/credit, unknown history/counts, stale conditional proofs, compiled skill/reputation/spell fields, source-item lower bounds, full log/bags, optional service capacity, resource-preserving acquisition, short/long stopping points, cycles, cancellation, bounded learning and identity-bound restore.
 
-R04–R16/R18 now have additional production mechanisms and host evidence. Normal controller/UI wiring, real-source search replays, complete scenario acceptance and native gameplay remain pending. The research supports explicit feasibility and measured bounded search; it does not certify this implementation. See the [MCTS evaluation](https://arxiv.org/html/2409.03170v1), [GNN distribution-shift evaluation](https://arxiv.org/html/2409.04653v2) and [D* Lite paper](https://www.cs.cmu.edu/afs/cs/Web/People/motionplanning/papers/sbp_papers/integrated3/koenig_dstarlite_aaai02b.pdf).
+R04–R16/R18 now have additional production mechanisms and host evidence. Normal controller/UI wiring and the first installed automatic replay are now implemented. The full scenario audit and native/gameplay acceptance remain pending. The research supports explicit feasibility and measured bounded search; it does not certify this implementation. See the [MCTS evaluation](https://arxiv.org/html/2409.03170v1), [GNN distribution-shift evaluation](https://arxiv.org/html/2409.04653v2) and [D* Lite paper](https://www.cs.cmu.edu/afs/cs/Web/People/motionplanning/papers/sbp_papers/integrated3/koenig_dstarlite_aaai02b.pdf).
+
+
+## Implementation evidence: ordinary controller and player controls
+
+The ordinary corpus path now runs State → Graph → Search through revision-bound controller jobs, with immediate live fallback. Six style buttons and session/difficulty/group/travel/grind/exploration controls, quest/zone goals, optional services, spoilers and strict-session settings are in `quest-plan-controls.lua`. Main details show current instructions, evidence/recovery, up next, alternatives and estimates. Defer/Resume is a real row control; pin/do-now/skip/avoid retain separate semantics. Commands include `/rik quests preferences`, `flavor <name>`, `plan` and `plan-export`.
+
+`quest-bag-scan.lua` reads bounded bag contents and equipped IDs separately. Partial scans yield lower bounds; generic free slots and observed stack headroom constrain collection. Aggregate item counts cannot pay consumable requirements. Optional merchant/trainer offers are observed only during interactions. Sales reserve exact counts/stack receipts, invalidate sold headroom and remain conditional until live state changes. Whole-item turn-ins can release known generic stacks.
+
+`tests/quest-plan-live.test.lua` drives ordinary source loading, Controller, real widget handlers, all six styles, future up-next, partial counts, source-item loss, completion, teleport, defer/restore, decline, capability guards, services and replay encoding. Real settings-codec tests bound durable learned memory to 6,000 characters while preserving full session models. Character/build/locale binding rejects unrelated memory; preferences and completed-event history restore without jobs.
+
+`tests/quest-adaptive-installed.lua` combines the installed 420-addon corpus with installed terrain and archived native observations. Automatic Balanced Perfect Stout reached its first route at176 frames (3.52 simulated seconds), used one terrain window, and retained the walking route with zero replans/replacements. Host callback maximum25ms includes source work; controller source-load maximum15ms; walking callback p99/max6/10ms. Process Lua heap varied126–189MiB before collection across diagnostic runs. These are host measurements with coarse clock resolution, not native latency claims. The existing manual315 replay also passes. Additional styles/310/313/287 and memory plateau checks remain required.
+
+Action IDs now use source area identities, and current-action retention compares fresh-state continuations. Feasible current instructions are not replaced by intermediate search previews. The installed replay exposed and now guards the partial-progress route replacement bug.
+
+Current full Lua suite:9,404 checks. Final committed-source gates are still required. Installation changed420 owned corpus addons; the RikUI source junction remains the delivery path. Full client restart is required for new TOC files.
+
+Native capability inspection was attempted through the documented computer-use runtime: its Windows pipe was unavailable after documented recovery, and read-only process inventory found Battle.net but no running WoW process. No native UI, gameplay, performance or engagement receipt has been earned. Independent implementation and host acceptance work continue.
 
 ## Current known evidence gaps
 

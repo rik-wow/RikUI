@@ -267,6 +267,12 @@ function search.Begin(graph,initial,policy,environment)
         local output={status=status,metrics=schema.Clone(metrics),limited=limited,revision=graph.revision,generation=initial.generation,
             alternatives=alternatives,excluded=schema.Clone(exclusions),coverage=graph.coverage,flavor=policy.flavor,
             reason=REASONS[policy.flavor],baselineEfficiency=baseline,detourAllowance=policy.detour}
+        local commitment=environment.previousID and bestByFirst[environment.previousID]
+        if commitment then
+            output.commitment={actions=commitment.actions,costs=commitment.costs,score=commitment.score,features=commitment.features,
+                seconds=commitment.state.elapsed,upperSeconds=commitment.state.upperElapsed,xp=commitment.state.xpGained,
+                unknownXP=commitment.state.unknownXP,conditional=commitment.state.conditional,assumptions=commitment.state.assumptions}
+        end
         if best then
             output.actions=best.actions;output.costs=best.costs;output.score=best.score;output.features=best.features
             output.seconds=best.state.elapsed;output.upperSeconds=best.state.upperElapsed

@@ -129,8 +129,13 @@ src/modules/questplanner/quest-plan-transitions.lua
 src/modules/questplanner/quest-plan-learning.lua
 src/modules/questplanner/quest-plan-costs.lua
 src/modules/questplanner/quest-plan-search.lua
+src/modules/questplanner/quest-bag-scan.lua
+src/modules/questplanner/quest-plan-services.lua
+src/modules/questplanner/quest-plan-context.lua
+src/modules/questplanner/quest-plan-runtime.lua
 src/modules/questplanner/quest-controller.lua
 src/modules/questplanner/quest-terrain.lua
+src/modules/questplanner/quest-plan-controls.lua
 src/modules/questplanner/quest-view.lua
 src/modules/questplanner/quest-navigation.lua
 src/modules/questplanner/quest-transfer-view.lua

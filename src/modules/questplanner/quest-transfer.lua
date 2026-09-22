@@ -8,7 +8,7 @@ local MAX_PAYLOAD = 65528
 
 local function scalar(text, state)
     state.bytes = state.bytes + #text
-    if state.bytes > MAX_PAYLOAD then error("observation byte limit") end
+    if state.bytes > (state.maxBytes or MAX_PAYLOAD) then error("observation byte limit") end
     return text
 end
 
@@ -20,7 +20,7 @@ end
 
 local function visit(state, depth)
     state.nodes = state.nodes + 1
-    if state.nodes > MAX_NODES or depth > MAX_DEPTH then error("observation limit") end
+    if state.nodes > (state.maxNodes or MAX_NODES) or depth > MAX_DEPTH then error("observation limit") end
 end
 
 local function encode(value, state, depth)
@@ -42,7 +42,7 @@ local function encode(value, state, depth)
     for key in pairs(value) do
         if guard.IsSecret(key) or (type(key) ~= "string" and not schema.ID(key)) then error("invalid observation key") end
         keys[#keys + 1] = key
-        if #keys > MAX_NODES then error("observation key limit") end
+        if #keys > (state.maxNodes or MAX_NODES) then error("observation key limit") end
     end
     table.sort(keys, function(a, b) if type(a) ~= type(b) then return type(a) < type(b) end; return a < b end)
     parts[1] = scalar("t" .. #keys .. ":", state)
@@ -51,7 +51,7 @@ local function encode(value, state, depth)
     end
     state.seen[value] = nil
     local result = table.concat(parts)
-    if #result > MAX_WIRE then error("observation byte limit") end
+    if #result > (state.maxBytes or MAX_WIRE) then error("observation byte limit") end
     return result
 end
 
@@ -83,7 +83,7 @@ local function decode(state, depth)
         if not schema.Number(number, -2147483647, 2147483647) or string.format("%.17g", number) ~= raw then error("invalid observation number") end
         return number
     end
-    if size > MAX_NODES then error("observation table limit") end
+    if size > (state.maxNodes or MAX_NODES) then error("observation table limit") end
     local result = {}
     for _ = 1, size do
         local key, value = decode(state, depth + 1), decode(state, depth + 1)
@@ -172,4 +172,41 @@ function transfer.Decode(wire)
     end)
     if ok then return result end
     return nil, "invalid observation payload"
+end
+
+-- Diagnostic packets never promote an imported rollout to live state.
+local PLAN_BYTES,PLAN_NODES=524280,65536
+local function validatePlan(value)
+    if not schema.PlainTable(value) or value.version~=1 or not schema.PlainTable(value.state)
+        or not schema.Identity(value.state.identity) or not schema.Text(value.stateKey)
+        or not schema.List(value.candidateIDs,768) or not schema.List(value.actions,128)
+        or not schema.PlainTable(value.constraints) then error("invalid plan trace") end
+    for _,ids in ipairs({value.candidateIDs,value.actions}) do
+        for _,id in ipairs(ids) do if not schema.Text(id) or #id>160 then error("invalid action identity") end end
+    end
+end
+function transfer.EncodePlan(trace)
+    local ok,wire=pcall(function()
+        validatePlan(trace)
+        local payload=encode(trace,{nodes=0,bytes=0,seen={},maxBytes=PLAN_BYTES,maxNodes=PLAN_NODES},0)
+        return "RIKP1:"..checksum(payload)..":"..payload:gsub(".",function(byte) return string.format("%02x",byte:byte()) end)
+    end)
+    if ok then return wire end
+    return nil,"Plan trace is unavailable or exceeds the bounded export size"
+end
+function transfer.DecodePlan(wire)
+    if guard.IsSecret(wire) or type(wire)~="string" or #wire>1048576 then return nil,"invalid plan packet" end
+    local hash,hex=wire:match("^RIKP1:([a-f0-9]+):([a-f0-9]+)$")
+    if not hash or #hash~=8 or #hex%2~=0 then return nil,"invalid plan packet" end
+    local payload=hex:gsub("..",function(byte) return string.char(tonumber(byte,16)) end)
+    if checksum(payload)~=hash then return nil,"plan checksum mismatch" end
+    local ok,result=pcall(function()
+        local state={text=payload,at=1,nodes=0,maxNodes=PLAN_NODES}
+        local value=decode(state,0)
+        if state.at~=#payload+1 then error("trailing plan bytes") end
+        validatePlan(value);value.origin="imported-untrusted";value.state.origin="imported-untrusted";value.state.fresh=false
+        return value
+    end)
+    if ok then return result end
+    return nil,"invalid plan payload"
 end

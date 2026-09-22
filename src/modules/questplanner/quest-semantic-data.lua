@@ -130,30 +130,97 @@ function data.Request(id)
     end
     return pages[bucket]~=nil
 end
-function data.Frontier(snapshot,ctx)
-    local ids,seen={},{}
-    local function add(id)
-        if schema.ID(id) and not seen[id] and #ids<MAX_FRONTIER then seen[id]=true;ids[#ids+1]=id end
+local frontierKey,history={},{}
+local historyQueue,historyPending,historyHead={}, {},1
+function data.ResetHistory()
+    history,historyQueue,historyPending,historyHead={},{},{},1
+end
+function data.StepHistory()
+    if historyHead>#historyQueue or not planner.Context or not planner.Context.History then return end
+    local ids={}
+    for _=1,16 do
+        local id=historyQueue[historyHead];if not id then break end
+        ids[#ids+1]=id;historyHead=historyHead+1
     end
-    for _,id in ipairs(snapshot.order or {}) do add(id) end
+    local values=planner.Context.History(ids) or {}
+    local changed=false
+    for _,id in ipairs(ids) do
+        if type(values[id])=="boolean" and not RikUI.Secret.IsSecret(values[id]) then
+            changed=changed or history[id]~=values[id];history[id]=values[id]
+        end
+    end
+    if changed then notify() end
+end
+function data.Frontier(snapshot,ctx,policy)
+    policy=policy or {}
+    local identity=snapshot.identity
+    local key=table.concat({identity.product,identity.build,identity.locale,ctx.characterKey or "session",catalogRevision or "?"},":")
+    if key~=frontierKey then frontierKey=key;data.ResetHistory() end
+    local ids,seen,seeds={}, {},{}
+    local function add(id,force)
+        if schema.ID(id) and not seen[id] and #ids<MAX_FRONTIER and (force or history[id]~=true) then
+            seen[id]=true;ids[#ids+1]=id;return true
+        end
+    end
+    local function keys(map)
+        local result={};for id,value in pairs(map or {}) do if value==true and schema.ID(id) then result[#result+1]=id end end
+        table.sort(result);return result
+    end
+    for _,id in ipairs(snapshot.order or {}) do add(id,true);seeds[#seeds+1]=id end
+    for _,map in ipairs({policy.pins or {},policy.questGoals or {}}) do
+        for _,id in ipairs(keys(map)) do add(id,true);seeds[#seeds+1]=id end
+    end
     local index=catalog and catalog.planning
     if not index or index.version~=1 or not same(wanted,snapshot.identity) then return ids end
+    local chain,chainSeen={},{}
+    for _,id in ipairs(seeds) do if not chainSeen[id] then chainSeen[id]=true;chain[#chain+1]=id end end
     local at=1
-    while at<=#ids and at<=MAX_FRONTIER do
-        for n,id in ipairs(index.links[ids[at]] or {}) do if n>MAX_LINKS then break end;add(id) end
+    while at<=#chain and #chain<192 do
+        for n,id in ipairs(index.links[chain[at]] or {}) do
+            if n>MAX_LINKS or #chain>=192 then break end
+            if schema.ID(id) and not chainSeen[id] then chainSeen[id]=true;chain[#chain+1]=id end
+        end
         at=at+1
     end
-    local mapID=ctx.position and ctx.position.mapID
     local level=ctx.attributes and ctx.attributes.level
-    for _,id in ipairs(index.maps[mapID] or {}) do
-        local metadata=index.quests[id]
-        if metadata and metadata.semantic and (not level or (metadata.minLevel or 0)<=level+3) then add(id) end
+    local maps=keys(policy.zoneGoals);local current=ctx.position and ctx.position.mapID
+    if current then table.insert(maps,1,current) end
+    local localIDs,localSeen={},{}
+    for mapIndex,mapID in ipairs(maps) do
+        if mapIndex>5 then break end
+        for n,id in ipairs(index.maps[mapID] or {}) do
+            if n>2048 then break end
+            local metadata=index.quests[id]
+            if metadata and metadata.semantic and not localSeen[id]
+                and (not level or (metadata.minLevel or 0)<=level+3) and history[id]~=true then
+                localSeen[id]=true
+                localIDs[#localIDs+1]={id=id,rank=level and metadata.minLevel and math.abs(level-metadata.minLevel) or 1000,
+                    tier=level and metadata.minLevel and (metadata.minLevel<=level and 0 or 2) or 1}
+            end
+        end
     end
+    table.sort(localIDs,function(a,b)
+        if a.tier~=b.tier then return a.tier<b.tier end
+        if a.rank~=b.rank then return a.rank<b.rank end
+        return a.id<b.id
+    end)
+    local function query(id)
+        if history[id]==nil and not historyPending[id] and #historyQueue<1024 then
+            historyPending[id]=true;historyQueue[#historyQueue+1]=id
+        end
+    end
+    for _,id in ipairs(chain) do query(id) end
+    for n,row in ipairs(localIDs) do if n>384 then break end;query(row.id) end
+    local limit=#ids+math.floor((MAX_FRONTIER-#ids)*.4)
+    for _,id in ipairs(chain) do if #ids>=limit then break end;add(id) end
+    for _,row in ipairs(localIDs) do if #ids>=MAX_FRONTIER then break end;add(row.id) end
+    for _,id in ipairs(chain) do if #ids>=MAX_FRONTIER then break end;add(id) end
+    ctx.frontierHistory=history
     for _,id in ipairs(ids) do data.Request(id) end
     return ids
 end
-function data.Records(snapshot,ctx)
-    local records,ids={},data.Frontier(snapshot,ctx)
+function data.Records(snapshot,ctx,policy)
+    local records,ids={},data.Frontier(snapshot,ctx,policy)
     for _,id in ipairs(ids) do
         local record=data.Quest(snapshot.identity,id)
         if record then records[id]=record end

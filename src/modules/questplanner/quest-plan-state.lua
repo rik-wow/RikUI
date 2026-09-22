@@ -40,6 +40,7 @@ local function completed(snapshot,ctx,records)
     local observed=planner.Context and planner.Context.History and planner.Context.History(ids) or {}
     for _,id in ipairs(ids) do
         local value=observed and observed[id]
+        if value==nil and (ctx.rememberedCompleted or {})[id]==true then result[id]=true end
         if type(value)=="boolean" then result[id]=value end
         if planner.Journal and planner.Journal.TurnedIn(id,snapshot.identity) then result[id]=true end
     end
@@ -52,8 +53,8 @@ local function inventory(ctx,records)
         if not schema.ID(id) or seen[id] or count>=MAX_ITEMS then return end
         seen[id],count=true,count+1
         if carried[id]~=nil then return end
-        local value=planner.Context and planner.Context.ItemCount and planner.Context.ItemCount(id)
-        if schema.Number(value,0,2147483647) then carried[id]=value end
+        if schema.Number((ctx.inventory or {})[id],0,2147483647) then carried[id]=ctx.inventory[id]
+        elseif ctx.inventoryExact==true then carried[id]=0 end
     end
     for _,record in pairs(records or {}) do
         add(record.providedItemID)
@@ -70,7 +71,9 @@ local function addLive(state,snapshot,ctx,id)
     local binding=planner.StepBindings and planner.StepBindings.Match(snapshot,id)
     state.active[id],state.failed[id]=true,quest.failed
     state.objectivesComplete[id]=quest.objectivesComplete
+    local tag=ctx.questTags and ctx.questTags[id]
     state.live[id]={title=quest.title,level=quest.level,objectivesComplete=quest.objectivesComplete,
+        requiredParty=tag and tag.requiredParty,groupRequiredUnknown=tag and tag.group and not tag.requiredParty,dungeon=tag and tag.dungeon,
         destination=schema.Clone(ctx.destinations and ctx.destinations[id]),reward=schema.Clone(ctx.rewards and ctx.rewards[id])}
     if not quest.objectives then return end
     state.progress[id],state.objectiveInfo[id]={},{}
@@ -92,6 +95,10 @@ local function attributes(state,ctx)
     state.spells=schema.Clone(ctx.spells or {});state.capabilities=schema.Clone(ctx.capabilities or {})
     state.bank=numberMap(ctx.bank,MAX_ITEMS);state.equipped=numberMap(ctx.equipped,MAX_ITEMS)
     state.xpThresholds=numberMap(ctx.xpThresholds,128)
+    state.inventoryLower=numberMap(ctx.inventoryLower,MAX_ITEMS)
+    state.stackSizes=numberMap(ctx.stackSizes,MAX_ITEMS)
+    state.stackRoom=numberMap(ctx.stackRoom,MAX_ITEMS)
+    state.genericStacks=numberMap(ctx.genericStacks,MAX_ITEMS)
 end
 function stateModel.Build(snapshot,status,ctx,records,policy)
     if not snapshot or not schema.Identity(snapshot.identity) or not ctx or ctx.origin~="live"
@@ -115,7 +122,7 @@ function stateModel.Build(snapshot,status,ctx,records,policy)
         state.evidence[key]={status=state[key]~=nil and "observed" or "unknown",source="live-client"}
     end
     state.evidence.completed={status="partial",source="live-client-and-turnin-events"}
-    state.evidence.inventory={status="partial",source="carried-item-query",count=state.inventoryQueries}
+    state.evidence.inventory={status=ctx.inventoryExact and "observed" or "partial",source="carried-bag-scan",count=state.inventoryQueries}
     return state
 end
 function stateModel.Key(state)

@@ -44,8 +44,11 @@ local function travel(action,state,environment)
         local sizes=environment and environment.mapSizes and environment.mapSizes[to.mapID]
         if sizes then distance=math.sqrt(((to.x-from.x)*sizes[1])^2+((to.y-from.y)*sizes[2])^2) end
     end
-    local seconds=distance and distance/7 or (from and from.mapID==to.mapID and 90 or 600)
-    return {seconds=seconds,lower=distance and seconds or 0,upper=math.max(120,seconds*3),status="unverified",
+    local key=state.identity.build..":"..to.mapID..":foot"
+    local learned=distance and planner.PlanLearning and planner.PlanLearning.Estimate("travel",key)
+    local seconds=distance and (learned and distance*learned.mean or distance/7) or (from and from.mapID==to.mapID and 90 or 600)
+    return {seconds=seconds,lower=learned and distance*learned.minimum or distance and seconds or 0,
+        upper=math.max(120,learned and distance*learned.maximum or seconds*3),samples=learned and learned.samples,status="unverified",
         reason="Travel time is an unverified estimate; connectivity is unknown"}
 end
 local function add(out,name,mean,low,high,authority,samples)

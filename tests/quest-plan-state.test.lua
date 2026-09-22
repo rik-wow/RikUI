@@ -40,14 +40,14 @@ return function(check)
         local graph
         for _=1,20 do graph=graphJob:Step(1);if graph then break end end
         check("normal corpus record constructs all future transitions",graph and #graph.byQuest[11]==4)
-        check("unsupported future counts remain unknown",graph.byID["11:objective:kill:99:1:1"].countUnknown)
-        check("pickup keeps typed prerequisite and exclusion",graph.byID["11:pickup:1:1"].prerequisite.questID==10
-            and graph.byID["11:pickup:1:1"].excludes[1]==12)
+        check("unsupported future counts remain unknown",graph.byID["11:objective:kill:99:1:field"].countUnknown)
+        check("pickup keeps typed prerequisite and exclusion",graph.byID["11:pickup:1:hub"].prerequisite.questID==10
+            and graph.byID["11:pickup:1:hub"].excludes[1]==12)
         check("unknown live quest retains useful instructions",graph.byID["10:live:objective"].instruction=="Collect Tokens")
         method.areas[1].phase=2
         graphJob=assert(p.PlanGraph.Begin(state,{[11]=record},{},preferences))
         for _=1,20 do graph=graphJob:Step(1);if graph then break end end
-        check("unknown phase never admitted as usable method",not graph.byID["11:objective:kill:99:1:1"])
+        check("unknown phase never admitted as usable method",not graph.byID["11:objective:kill:99:1:field"])
         graphJob=assert(p.PlanGraph.Begin(state,{[11]=record},{},preferences));graphJob:Cancel()
         check("graph construction is cancellable",graphJob:Step().status=="cancelled")
 

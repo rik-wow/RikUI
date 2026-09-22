@@ -130,6 +130,10 @@ local function beginInventory(ctx)
     return function(id)
         if not schema.ID(id) then return end
         if inventory[id]~=nil then return inventory[id] end
+        if planner.BagScan then
+            if ctx.inventoryExact then inventory[id]=0;return 0 end
+            return ctx.inventoryLower and ctx.inventoryLower[id]
+        end
         if readItems[id] or metrics.inventoryQueries>=80 then return end
         readItems[id]=true;metrics.inventoryQueries=metrics.inventoryQueries+1
         local value=planner.Context and planner.Context.ItemCount and planner.Context.ItemCount(id)
@@ -290,6 +294,7 @@ function guidance.Apply(snapshot,id,point,step)
     local action=(VERBS[method.kind] or "Check ")..(method.name or "quest target")
     if value.prerequisiteItemID then action=action.." for required item "..value.prerequisiteItemID end
     local semantic={authority="reference",source="QuestieDB",method=method.kind,targetKind=method.targetKind,targetID=method.targetID,
+        objectiveKey=bindings[id] and bindings[id].ids[value.index],
         areaID=area.id,sharedQuests=value.shared,prerequisiteItemID=value.prerequisiteItemID,costBasis=value.costBasis or "map-distance estimate",floorKnown=area.floorKnown==true,
         action=action,instructions=action..". "..(value.sourceHint and ("Source hint: "..value.sourceHint..". ") or "").."Confirm progress in the quest log.",basis=value.distance==math.huge and "Source location; travel between zones, access and floor are unverified."
             or "Forever provider reference; current spawn availability, access and floor are unverified."}

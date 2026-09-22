@@ -34,6 +34,31 @@ function guidance.Details(model,snapshot,route)
     for _,note in ipairs(selected.referenceAdvice and selected.referenceAdvice.lines or {}) do
         lines[#lines+1]="Source note: "..plain(note,240)
     end
+    if model.adaptive then
+        lines[#lines+1]=(model.flavor or "Balanced")..": "..plain(model.reason,240)
+        if selected.sourceSuggestion then lines[#lines+1]="Source suggestion; confirm availability and progress in game." end
+        if selected.completionEvidence then lines[#lines+1]="Done when: "..plain(selected.completionEvidence,240) end
+        if selected.recovery then lines[#lines+1]="If unavailable: "..plain(selected.recovery,240) end
+        for _,conflict in ipairs(model.conflicts or {}) do lines[#lines+1]=plain(conflict,240) end
+        local estimate=model.estimate
+        if estimate and estimate.seconds then
+            lines[#lines+1]=string.format("Plan estimate: %.0f–%.0f minutes%s.",estimate.seconds/60,(estimate.upper or estimate.seconds)/60,
+                estimate.conditional and "; future work is conditional" or "")
+            lines[#lines+1]=(estimate.unknownXP or 0)>0 and "Some XP rewards are unknown."
+                or "Projected XP: "..tostring(estimate.xp or "unknown").."."
+            if estimate.efficiencyCost and estimate.efficiencyCost>.01 then
+                lines[#lines+1]=string.format("Preference tradeoff: about %.0f%% less modeled XP efficiency.",estimate.efficiencyCost*100)
+            end
+            lines[#lines+1]="Stopping point: "..(estimate.stoppingPoint or "Finish this action")
+        end
+        for index,row in ipairs(model.upNext or {}) do
+            lines[#lines+1]="Up next "..index..": "..plain(row.detail,240)
+        end
+        for index,row in ipairs(model.alternatives or {}) do
+            lines[#lines+1]="Alternative "..index..": "..plain(row.detail,240)
+        end
+        if model.refining then lines[#lines+1]="Refining future options; current guidance remains available." end
+    end
     local hint=selected.targetHint
     if hint and hint.instructions then
         lines[#lines+1]="Reported interaction: "..plain(hint.instructions,2048)
@@ -164,7 +189,7 @@ function guidance.Signature(snapshot,status,ctx,dialog)
     for _,value in ipairs({status.state,snapshot.identity.product,snapshot.identity.build,snapshot.identity.locale,
         snapshot.coverage,snapshot.reportedCount}) do signatureField(parts,value) end
     signatureField(parts,ctx.position and ctx.position.mapID)
-    if planner.Recommendations then
+    if planner.Recommendations and not planner.PlanRuntime then
         signatureField(parts,planner.Recommendations.PositionKey(ctx.position,planner.Context.Frame()))
     end
     local items={}
@@ -211,13 +236,15 @@ function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded,prior)
                 step=step,stepID=step and step.stepID,stepIdentity="quest-marker",
                 targetHint=hint,hunt=hunt,semantic=semantic,
                 referenceAdvice=planner.SemanticGuidance and schema.Clone(planner.SemanticGuidance.Advice(snapshot,id)),destination=schema.Clone(point),pinned=policy.pins[id]==true,
+                deferred=policy.defers and policy.defers[id]==true,
+                groupBlocked=ctx.questTags and ctx.questTags[id] and (ctx.questTags[id].group and policy.group=="solo" or ctx.questTags[id].dungeon and not policy.dungeons),
                 skipped=policy.skips[id]==true,avoided=point and policy.avoids[point.mapID]==true or false,failed=quest.failed==true}
         end
     end
     if not includeExcluded then
         for index=#rows,1,-1 do
             local row=rows[index]
-            if row.skipped or row.avoided or row.failed then table.remove(rows,index) end
+            if row.skipped or row.deferred or row.groupBlocked or row.avoided or row.failed then table.remove(rows,index) end
         end
     end
     if planner.Recommendations then

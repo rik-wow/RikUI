@@ -10,7 +10,7 @@ local PAGE_SIZE=8
 local function filteredQuests()
     local result={}
     for _,quest in ipairs(planner.Controller.Quests()) do
-        local excluded=quest.skipped or quest.avoided or quest.failed
+        local excluded=quest.skipped or quest.deferred or quest.groupBlocked or quest.avoided or quest.failed
         if filterIndex==1 or (filterIndex==2 and not excluded) or (filterIndex==3 and excluded) then result[#result+1]=quest end
     end
     return result
@@ -201,9 +201,10 @@ local function createWindow()
     window.automatic=button(window.summary,"Automatic choice",124,function() command("route auto") end)
     window.automatic:SetPoint("BOTTOMRIGHT",-96,0)
     readingPane()
+    if planner.PlanControls then planner.PlanControls.Attach(window) end
     window.rows={}
     for index=1,PAGE_SIZE do
-        local row=button(window,"",416,function(self)
+        local row=button(window,"",356,function(self)
             if self.questID then planner.OpenQuest(self.questID) end
         end)
         row:SetPoint("TOPLEFT",12,-316-(index-1)*23)
@@ -224,6 +225,10 @@ local function createWindow()
             if row.questID then command("route "..row.questID) end
         end)
         row.route:SetPoint("LEFT",row.area,"RIGHT",0,0)
+        row.defer=button(window,"Defer",60,function()
+            if row.questID then command("defer "..row.questID) end
+        end)
+        row.defer:SetPoint("LEFT",row.route,"RIGHT",0,0)
         window.rows[index]=row
     end
     local previous=button(window,"Previous",80,function() page=math.max(1,page-1); view.Refresh() end)
@@ -270,6 +275,7 @@ local function avoidedArea(policy)
     window.restoreArea.label:SetText("Allow "..(name or ("map "..id)))
 end
 function view.Refresh()
+    if planner.PlanControls then planner.PlanControls.Refresh() end
     local model=planner.Controller.Get()
     if inline then details(inline,model) end
     if not window or not window:IsShown() then return end
@@ -295,13 +301,15 @@ function view.Refresh()
         row.mapID=quest and quest.destination and quest.destination.mapID
         row.area:SetShown(row.mapID~=nil)
         row.route:SetShown(quest~=nil)
-        enabled(row.route,quest~=nil and row.mapID~=nil and not quest.skipped and not quest.avoided and not quest.failed)
+        row.defer:SetShown(quest~=nil)
+        enabled(row.route,quest~=nil and row.mapID~=nil and not quest.skipped and not quest.deferred and not quest.groupBlocked and not quest.avoided and not quest.failed)
         if quest then
             row.area.label:SetText(quest.avoided and "Allow area" or "Avoid area")
-            row.route.label:SetText(model.selected and model.selected.questID==quest.questID and "Selected" or "Route")
-            row.questID=quest.questID; row.label:SetText((quest.skipped and "Skipped: " or quest.avoided and "Area avoided: " or quest.failed and "Failed: "
+            row.route.label:SetText(model.selected and model.selected.questID==quest.questID and "Selected" or "Do now")
+            row.questID=quest.questID; row.label:SetText((quest.skipped and "Skipped: " or quest.deferred and "Deferred: " or quest.groupBlocked and "Group: " or quest.avoided and "Area avoided: " or quest.failed and "Failed: "
                 or quest.kind=="turnin" and "Turn in: " or "")..quest.title)
             row.skip.label:SetText(quest.skipped and "Include" or "Skip")
+            row.defer.label:SetText(quest.deferred and "Resume" or "Defer")
             row.pin.label:SetText(policy.pins[quest.questID] and "Unpin" or "Pin")
         end
     end

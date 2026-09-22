@@ -4,7 +4,8 @@ local schema = planner.Schema
 local REFRESH_DELAY = 0.1
 local EVENTS = { "PLAYER_ENTERING_WORLD", "QUEST_LOG_UPDATE", "QUEST_ACCEPTED", "QUEST_REMOVED", "QUEST_TURNED_IN",
     "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED", "GOSSIP_SHOW", "GOSSIP_CLOSED",
-    "QUEST_POI_UPDATE", "QUEST_DATA_LOAD_RESULT", "BAG_UPDATE_DELAYED", "WAYPOINT_UPDATE", "PLAYER_LEVEL_UP", "PLAYER_XP_UPDATE", "ZONE_CHANGED_NEW_AREA" }
+    "QUEST_POI_UPDATE", "QUEST_DATA_LOAD_RESULT", "BAG_UPDATE_DELAYED", "WAYPOINT_UPDATE", "PLAYER_LEVEL_UP", "PLAYER_XP_UPDATE", "ZONE_CHANGED_NEW_AREA", "GROUP_ROSTER_UPDATE", "PLAYER_MONEY",
+    "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "SPELLS_CHANGED", "SKILL_LINES_CHANGED", "UPDATE_FACTION", "PLAYER_LOGOUT", "MERCHANT_SHOW", "MERCHANT_CLOSED", "MERCHANT_UPDATE", "TRAINER_SHOW", "TRAINER_CLOSED", "TRAINER_UPDATE", "PLAYER_LEAVING_WORLD", "BAG_UPDATE", "PLAYER_EQUIPMENT_CHANGED", "UNIT_INVENTORY_CHANGED", "GET_ITEM_INFO_RECEIVED" }
 local lastReason = "current quests"
 local snapshot, pending, started = nil, false, false
 local status = { state = "unavailable", reason = "not observed" }
@@ -61,6 +62,10 @@ function planner:Debug()
 end
 
 local function onEvent(event,...)
+    if planner.SemanticData and planner.SemanticData.ResetHistory and (event=="QUEST_TURNED_IN" or event=="QUEST_ACCEPTED" or event=="PLAYER_ENTERING_WORLD") then planner.SemanticData.ResetHistory() end
+    if planner.BagScan then planner.BagScan.OnEvent(event,...) end
+    if planner.PlanServices then planner.PlanServices.OnEvent(event) end
+    if planner.PlanRuntime then planner.PlanRuntime.OnEvent(event,...) end
     if event=="QUEST_DATA_LOAD_RESULT" and planner.Enrichment then planner.Enrichment.OnResult(...);return end
     local priorDialog=event=="QUEST_FINISHED" and planner.Journal and planner.Journal.Dialog()
     if planner.Journal then planner.Journal.Record(event,snapshot,...) end
@@ -70,7 +75,7 @@ local function onEvent(event,...)
         local questChanged=(event=="QUEST_REMOVED" or event=="QUEST_TURNED_IN")
             and selected and selected.questID==select(1,...)
         local interactionClosed=priorDialog and model and (model.calculated or model.status=="calculating")
-        if event=="PLAYER_ENTERING_WORLD" or event=="ZONE_CHANGED_NEW_AREA" or questChanged or interactionClosed then
+        if event=="PLAYER_ENTERING_WORLD" or event=="ZONE_CHANGED_NEW_AREA" or event=="PLAYER_DEAD" or event=="PLAYER_UNGHOST" or questChanged or interactionClosed then
             planner.Controller.Invalidate(not questChanged and not interactionClosed)
         elseif planner.Controller.Refresh then planner.Controller.Refresh() end
     end

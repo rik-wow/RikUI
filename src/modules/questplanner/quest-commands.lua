@@ -52,6 +52,16 @@ function planner.Command(arguments)
             if row.recommendation then core:Print("Next-step advice: "..(model.manual and "Selected by you" or row.recommendation.text)) end
         end
         core:Print("Quest sequence searches="..stats.replans.." max-slice="..timing)
+        if model.adaptive then
+            core:Print("Style="..(model.flavor or "?").." plan="..(model.planStatus or "?")
+                .." total callback max="..string.format("%.2f",stats.maxCallbackMS or 0).."ms; source load max="..string.format("%.2f",stats.maxLoadMS or 0).."ms")
+            local estimate=model.estimate
+            if estimate and estimate.seconds then
+                core:Print(string.format("Estimated sequence %.0f–%.0fs; %s XP; %s",
+                    estimate.seconds,estimate.upper or estimate.seconds,estimate.unknownXP and estimate.unknownXP>0 and "incomplete" or tostring(estimate.xp or "?"),
+                    estimate.conditional and "conditional projection" or "supported estimate"))
+            end
+        end
         if planner.Terrain and planner.Terrain.Stats then
             local walking=planner.Terrain.Stats()
             local regions=planner.Regions and planner.Regions.Stats()
@@ -62,9 +72,39 @@ function planner.Command(arguments)
         if planner.Terrain then local terrain=planner.Terrain.Status(); core:Print("Terrain guidance: "..terrain.status..". "..terrain.detail) end
         if planner.Navigation.lastError then core:Print("Quest map guidance: "..planner.Navigation.lastError) end
         return
+    elseif verb=="preferences" or verb=="styles" then
+        if planner.PlanControls then planner.PlanControls.Open() end
+        return
+    elseif verb=="flavor" then
+        local chosen
+        for _,name in ipairs(planner.Preferences and planner.Preferences.Flavors() or {}) do if name:lower()==value:lower() then chosen=name end end
+        ok,reason=controller.Preference("flavor",chosen or value)
+    elseif verb=="session" or verb=="exploration" or verb=="reading" then
+        local names={session="sessionMinutes",exploration="explorationMinutes",reading="readingSeconds"}
+        ok,reason=controller.Preference(names[verb],tonumber(value))
+    elseif verb=="difficulty" or verb=="group" or verb=="travel" or verb=="grind" then
+        ok,reason=controller.Preference(verb,value=="local" and "localOnly" or value)
+    elseif verb=="services" or verb=="spoilers" or verb=="strict-session" then
+        if value~="on" and value~="off" then reason="Use on or off."
+        else ok,reason=controller.Preference(verb=="strict-session" and "strictSession" or verb,value=="on") end
+    elseif verb=="defer" or verb=="quest-goal" or verb=="zone-goal" then
+        local names={defer="defers",["quest-goal"]="questGoals",["zone-goal"]="zoneGoals"}
+        ok,reason=controller.Toggle(names[verb],tonumber(value))
+    elseif verb=="unavailable" or verb=="reset-learning" or verb=="reset-history" then
+        ok,reason=controller.Feedback(verb)
+    elseif verb=="decline-exploration" then ok,reason=controller.Preference("explorationMinutes",0)
+    elseif verb=="new-session" then
+        ok,reason=controller.Preference("defers",{})
+    elseif verb=="plan" then
+        local model=controller.Get()
+        core:Print((model.flavor or "Balanced")..": "..(model.reason or model.detail or "Reading quest state"))
+        for index,row in ipairs(model.upNext or {}) do core:Print("Up next "..index..": "..(row.detail or row.title)) end
+        for index,row in ipairs(model.alternatives or {}) do core:Print("Alternative "..index..": "..(row.detail or row.title)) end
+        return
     elseif verb=="show" then planner.View.Open(); return
     elseif verb=="reset" then controller.Clear(); return
     elseif verb=="map" then planner.Navigation.Open(); return
+    elseif verb=="plan-export" then planner.TransferView.OpenPlan(); return
     elseif verb=="export" then planner.TransferView.Open(false); return
     elseif verb=="inspect" then planner.TransferView.Open(true); return
     elseif verb=="route" then
@@ -85,6 +125,7 @@ function planner.Command(arguments)
         if value~="on" and value~="off" then reason="Use on or off."
         else ok,reason=controller.Set(verb,value=="on") end
     else
+        core:Print("/rik quests preferences | flavor <name> | session <minutes> | plan | defer <questID> | unavailable")
         core:Print("/rik quests show | map | pause | resume | pin <questID> | skip <questID> | avoid <mapID>")
         core:Print("/rik quests arrow on|off | floor auto|<number> | dungeons on|off | export | inspect | retry | route <questID>|auto | reset | status")
         return

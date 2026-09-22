@@ -3,13 +3,14 @@ local planner=RikUI.QuestPlanner
 local schema,learning=planner.Schema,{}
 planner.PlanLearning=learning
 local models,order,recent,visits,failures={}, {}, {}, {}, {}
+local completed,completionOrder={},{}
 local identityKey
 local function key(identity,character)
     return identity and table.concat({identity.product,identity.build,identity.locale,character or "session"},":")
 end
 function learning.Bind(identity,character)
     local value=key(identity,character)
-    if value~=identityKey then models,order,recent,visits,failures={},{},{},{},{};identityKey=value end
+    if value~=identityKey then models,order,recent,visits,failures={},{},{},{},{};completed,completionOrder={},{};identityKey=value end
 end
 function learning.Observe(kind,context,seconds,units,options)
     options=options or {}
@@ -57,16 +58,57 @@ function learning.Failure(actionID,unavailable)
         failures[actionID]=math.min(2,(failures[actionID] or 0)+1)
     else failures[actionID]=nil end
 end
-function learning.State() return {recent=schema.Clone(recent),visited=schema.Clone(visits),failures=schema.Clone(failures)} end
+function learning.Completion(id,done)
+    if not schema.ID(id) then return end
+    if done==true then
+        if not completed[id] then
+            if #completionOrder>=256 then completed[table.remove(completionOrder,1)]=nil end
+            completionOrder[#completionOrder+1]=id
+        end
+        completed[id]=true
+    elseif done==false then
+        completed[id]=nil
+        for index=#completionOrder,1,-1 do if completionOrder[index]==id then table.remove(completionOrder,index) end end
+    end
+end
+function learning.State() return {recent=schema.Clone(recent),visited=schema.Clone(visits),failures=schema.Clone(failures),
+    completed=schema.Clone(completed)} end
 function learning.Reset(kind)
     if kind=="estimates" then models,order={},{}
-    elseif kind=="history" then recent,visits={},{}
+    elseif kind=="history" then recent,visits,completed,completionOrder={},{},{},{}
     elseif kind=="retries" then failures={}
-    elseif kind==nil then models,order,recent,visits,failures={},{},{},{},{} end
+    elseif kind==nil then models,order,recent,visits,failures={},{},{},{},{};completed,completionOrder={},{} end
 end
-function learning.Export()
+function learning.Export(compact)
+    if compact then
+        local savedModels,savedOrder={},{}
+        for index=math.max(1,#order-7),#order do
+            local id=order[index]
+            savedOrder[#savedOrder+1]=id
+            local model=schema.Clone(models[id])
+            while #model.values>8 do table.remove(model.values,1) end
+            for index,value in ipairs(model.values) do model.values[index]=math.floor(value*1000+.5)/1000 end
+            savedModels[id]=model
+        end
+        local savedFailures,ids={},{}
+        for id in pairs(failures) do ids[#ids+1]=id end;table.sort(ids)
+        for index=1,math.min(16,#ids) do savedFailures[ids[index]]=failures[ids[index]] end
+        local saved={version=1,identity=identityKey,models=savedModels,order=savedOrder,
+            recent=schema.Clone(recent),visits=schema.Clone(visits),failures=savedFailures,completed=schema.Clone(completionOrder)}
+        if RikUI.Codec then
+            for _=1,12 do
+                local wire=RikUI.Codec.Encode(saved)
+                if wire and #wire<=6000 then break end
+                if #saved.order>0 then saved.models[table.remove(saved.order,1)]=nil
+                elseif next(saved.failures) then saved.failures={}
+                elseif #saved.completed>64 then for _=1,64 do table.remove(saved.completed,1) end
+                else saved.visits={};break end
+            end
+        end
+        return saved
+    end
     return {version=1,identity=identityKey,models=schema.Clone(models),order=schema.Clone(order),
-        recent=schema.Clone(recent),visits=schema.Clone(visits)}
+        recent=schema.Clone(recent),visits=schema.Clone(visits),failures=schema.Clone(failures),completed=schema.Clone(completionOrder)}
 end
 function learning.Restore(raw)
     local copy=schema.CopyLimited(raw,24000,180000,8)
@@ -86,6 +128,19 @@ function learning.Restore(raw)
         n=n+1;if n>128 or not schema.ID(id) or value~=true then return false end
         restoredVisits[id]=true
     end
-    models,order,recent,visits=restored,copy.order,copy.recent,restoredVisits
+    local restoredCompleted,restoredOrder,restoredFailures={},{},{}
+    if not schema.List(copy.completed or {},256) then return false end
+    for _,id in ipairs(copy.completed or {}) do
+        if not schema.ID(id) or restoredCompleted[id] then return false end
+        restoredCompleted[id]=true;restoredOrder[#restoredOrder+1]=id
+    end
+    local failureCount=0
+    for id,value in pairs(copy.failures or {}) do
+        failureCount=failureCount+1
+        if failureCount>128 or not schema.Text(id) or #id>160 or not schema.Integer(value,1,2) then return false end
+        restoredFailures[id]=value
+    end
+    models,order,recent,visits,failures=restored,copy.order,copy.recent,restoredVisits,restoredFailures
+    completed,completionOrder=restoredCompleted,restoredOrder
     return true
 end

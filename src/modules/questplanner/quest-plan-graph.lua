@@ -10,7 +10,7 @@ local VERBS={kill="Defeat",drop="Collect from",loot="Loot",talk="Talk to",intera
 local function point(area)
     if not area or not schema.ID(area.mapID) or not schema.Number(area.x,0,1) or not schema.Number(area.y,0,1) then return end
     return {mapID=area.mapID,x=area.x,y=area.y,floor=area.floor,phase=area.phase,areaID=area.id,
-        floorKnown=area.floorKnown,access=area.access,source=area.source or "source-reference"}
+        floorKnown=area.floorKnown,access=area.access,source=area.source or "source-reference",scope="semantic-objective-area",api="QuestieDB"}
 end
 local function usable(area,state,policy)
     if not point(area) or policy.avoids[area.mapID] then return false end
@@ -78,7 +78,7 @@ local function relationship(graph,record,kind,state,policy)
         if n>MAX_METHODS then break end
         for index,area in ipairs(nearestAreas(method,state,policy)) do
             if index>2 then break end
-            local action=baseAction(record,kind,n..":"..index)
+            local action=baseAction(record,kind,n..":"..tostring(area.id or (area.x..","..area.y)))
             locate(action,method,area)
             action.instruction=(kind=="pickup" and "Check for "..record.title.." with " or "Turn in "..record.title.." to ")..(method.name or "the quest giver")
             if kind=="pickup" then
@@ -141,7 +141,7 @@ local function objectives(graph,record,state,policy)
             if n>MAX_METHODS then break end
             for index,area in ipairs(nearestAreas(method,state,policy)) do
                 if index>2 then break end
-                append(graph,objectiveAction(record,objective,method,area,state,objective.id..":"..n..":"..index))
+                append(graph,objectiveAction(record,objective,method,area,state,objective.id..":"..n..":"..tostring(area.id or (area.x..","..area.y))))
                 made=made+1
             end
         end
@@ -188,7 +188,7 @@ local function finalize(graph,state,policy)
             list[#list+1]={questID=action.questID,key=action.objectiveKey}
         end
         local live=state.live[action.questID]
-        if live then action.requiredParty=live.requiredParty;action.dungeon=live.dungeon end
+        if live then action.requiredParty=live.requiredParty;action.dungeon=live.dungeon;action.groupRequiredUnknown=live.groupRequiredUnknown end
         local rules=graph.quests[action.questID] and graph.quests[action.questID].planning
         if rules then
             local predecessors={}
