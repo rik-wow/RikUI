@@ -5,6 +5,30 @@ No unverified data is published as runtime traversability.
 import argparse, collections, itertools, json, math, pathlib, struct
 import terrain_probe as t
 import map_profile as fullmap
+from functools import lru_cache
+
+EXTRA_PHYSICS=('PFID','PFDC','PHY2','PCOL')
+WORLD_PROFILES_SHA='8e96673c2d0474423911f112bbc0ab1bc818d50e4f48670f34743ac8382b3119'
+
+@lru_cache(maxsize=1)
+def profiles274():
+    profile=json.loads((pathlib.Path(__file__).parent/'m2-274-world-profiles.json').read_bytes())
+    if t.digest(json.dumps(profile,sort_keys=True,separators=(',',':')).encode())!=WORLD_PROFILES_SHA:
+        t.fail('M2-world-profiles-pin')
+    return {row['sha256']:row for row in profile['records']}
+
+def physics_gap(model,placement):
+    """Unknown extra physics cannot be spatially excluded by static mesh bounds."""
+    extra=[tag for tag in model['chunks'] if tag in EXTRA_PHYSICS]
+    if not extra:return None
+    proof=model.get('physicsExtent')
+    if proof and extra==['PCOL']:
+        vertices=transformed(model,placement)+transformed(proof,placement)
+        return dict(placementID=placement['uniqueID'],fileDataID=placement['reference'],
+            reason='extra-physics-chunks',chunks=extra,bounds=bounds(vertices),padding=.5,
+            boundsProof={k:v for k,v in proof.items() if k!='positions'})
+    return dict(kind='m2',fileDataID=placement['reference'],uniqueID=placement['uniqueID'],
+        reason='extra-physics-chunks',chunks=extra)
 
 def m2(data):
     at=0;payload=None;tags=[]
@@ -20,27 +44,28 @@ def m2(data):
         at=end
     if payload is None or len(payload)<240 or payload[:4]!=b'MD20':t.fail('M2-format')
     version,=struct.unpack_from('<I',payload,4)
-    # Exact v274 assets independently consumed by the unmodified pinned M2Loader.
-    demonstrated274={'0e0f350af340436194c1013d037f81e681876c227dafda816a3c5e3a0c98dfb6',
-        '8a2118873adccadd97330ee4326f2e2420e6711cfe8fd3d3a7c83f36e7005116',
-        'a67e4ef05abeae92860a77d8d269a65de0b289bcf3a0a57d795e9db339c7f2ff',
-        '6ecb28f00e284ef0ad1dfb79b8106cba38c320eaa5f85033e228e77c6829611e',
-        'c7abc3992b9b9687de3f351bc79c96302b68535644235f20b600635e4f69900a',
-        '13207cd82ff6b30bfab434149e00e30e805af5454261356cbf37811d46c8b105',
-        '063da118be429e9b900d39019eb993387dedcf00b1837e78beaade0ea4d66646',
-        'b8f0719325b3bd6da886ad6374f219e8e7cfe8cfc86faf728d077ef71af88af5',
-        'dc3134e549632a6500cee2f314399087c0eeff13294d1c6fce3fc914846d5100'}
-    if version!=272 and not(version==274 and t.digest(data) in demonstrated274):t.fail('unsupported-M2-version')
-    count,offset=struct.unpack_from('<II',payload,216)
-    nverts,vertOffset=struct.unpack_from('<II',payload,224)
-    if count%3 or count>300000 or nverts>65536:t.fail('M2-collision-count')
-    if offset+count*2>len(payload) or vertOffset+nverts*12>len(payload):t.fail('M2-collision-overrun')
+    profile=profiles274().get(t.digest(data)) if version==274 else None
+    if version!=272 and profile is None:t.fail('unsupported-M2-version')
+    count,offset,nverts,vertOffset,nnormals,normalOffset=struct.unpack_from('<6I',payload,216)
+    if count%3 or count>300000 or nverts>65536 or nnormals>100000:t.fail('M2-collision-count')
+    if ((count and offset<240) or (nverts and vertOffset<240) or (nnormals and normalOffset<240) or
+        offset+count*2>len(payload) or vertOffset+nverts*12>len(payload) or normalOffset+nnormals*12>len(payload)):
+        t.fail('M2-collision-overrun')
     indices=list(struct.unpack_from('<'+'H'*count,payload,offset))
     coords=list(struct.unpack_from('<'+'f'*(nverts*3),payload,vertOffset))
+    normals=list(struct.unpack_from('<'+'f'*(nnormals*3),payload,normalOffset))
     if any(i>=nverts for i in indices):t.fail('M2-collision-index')
-    if not all(math.isfinite(v) and abs(v)<100000 for v in coords):t.fail('M2-collision-finite')
+    if not all(math.isfinite(v) and abs(v)<100000 for v in coords+normals):t.fail('M2-collision-finite')
+    if profile and (profile['bytes']!=len(data) or profile['vertices']!=nverts or profile['triangles']*3!=count):
+        t.fail('M2-demonstrated-profile-mismatch')
     import m2_physics_extent
-    return dict(version=version,positions=coords,indices=indices,chunks=tags,physicsExtent=m2_physics_extent.extent(data))
+    result=dict(version=version,positions=coords,indices=indices,normals=normals,chunks=tags,physicsExtent=m2_physics_extent.extent(data))
+    if profile:
+        result['referenceProfile']=dict(fileDataID=profile['fileDataID'],sha256=profile['sha256'],
+            referenceCommit=t.PIN,nativeVerified=False)
+        if profile['fileDataID']==314951:
+            result['profile']='exact-314951-empty-collision-demonstrated-by-pinned-loader'
+    return result
 
 def transformed(model,placement):
     ax,ay,az=map(math.radians,(placement['rotation'][0],placement['rotation'][1]-90,placement['rotation'][2]))
@@ -94,21 +119,17 @@ def main():
         if row['flags'] not in (64,576):
             pin=empty_flags.get(row['reference'])
             if (not pin or pin!=(row['flags'],registered[row['reference']]['sha256']) or model['indices'] or model['positions']
-                or any(tag in model['chunks'] for tag in ('PFID','PHY2','PCOL'))):t.fail('unsupported-MDDF-flags')
+                or any(tag in model['chunks'] for tag in EXTRA_PHYSICS)):t.fail('unsupported-MDDF-flags')
             counts['pinnedEmptyUninterpretedPlacementFlags']+=1
+        gap=physics_gap(model,row)
+        if gap:
+            if 'bounds' in gap:
+                if intersects(gap['bounds'],region):physics_exclusions.append(gap)
+            else:unresolved.append(gap)
         if not model['indices']:
             counts['noStaticM2Collision']+=1;continue
         vertices=transformed(model,row)
         if not intersects(bounds(vertices),region):counts['excludedM2ByBounds']+=1;continue
-        extra=[tag for tag in model['chunks'] if tag in ('PFID','PHY2','PCOL')]
-        if extra:
-            proof=model.get('physicsExtent')
-            if proof and extra==['PCOL']:
-                physics=transformed(proof,row)
-                physics_exclusions.append(dict(placementID=row['uniqueID'],fileDataID=row['reference'],
-                    reason='extra-physics-chunks',chunks=extra,bounds=bounds(vertices+physics),padding=.5,
-                    boundsProof={k:v for k,v in proof.items() if k!='positions'}))
-            else:unresolved.append(dict(kind='m2',fileDataID=row['reference'],uniqueID=row['uniqueID'],reason='extra-physics-chunks',chunks=extra))
         base=len(g['positions'])//3
         g['positions'].extend(vertices);g['indices'].extend(i+base for i in model['indices'])
         counts['includedM2Placements']+=1

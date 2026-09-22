@@ -15,6 +15,7 @@ local function notify()
     if planner.View and planner.View.Refresh then planner.View.Refresh() end
 end
 local function publish(value)
+    if not value.adaptive and planner.PlanRuntime then planner.PlanRuntime.ClearReplay() end
     if journeyState and journeyState.boundModel~=value then planner.JourneyLive.Detach(journeyState) end
     if journeyState and value.selected and journeyState.base.questID~=value.selected.questID then journeyState=nil end
     view=value; stats.published=stats.published+1
@@ -24,6 +25,7 @@ local function cancel()
     if job then job.search:Cancel(); job=nil; stats.cancelled=stats.cancelled+1 end
 end
 function controller.Invalidate(retainJourney)
+    if planner.PlanRuntime then planner.PlanRuntime.ClearReplay() end
     if journeyState then
         if retainJourney then planner.JourneyLive.Detach(journeyState) else journeyState=nil end
     end
@@ -203,6 +205,9 @@ function controller.Step()
         if callbackStart and ended then stats.maxCallbackMS=math.max(stats.maxCallbackMS or 0,ended-callbackStart) end
     end
     refreshPosition()
+    if planner.enabled and remaining() and planner.PlanXP then
+        local ok,at=planner.Context.Call(GetTime);if ok then planner.PlanXP.Tick(at) end
+    end
     if planner.enabled and remaining() and planner.BagScan then planner.BagScan.Step(16) end
     if planner.enabled and planner.Enrichment then planner.Enrichment.Tick() end
     local loadStart=clock()
@@ -268,12 +273,12 @@ local function begin(snapshot,status,ctx,dialog,observed,reason)
         if search then
             job={search=search,revision=revision,observed=observed,reason=reason,adaptive=true,steps=0}
             stats.replans=stats.replans+1
-            local fallback=planner.Guidance.Result({actions={},status="insufficient-data"},observed,ctx,nil,reason,policy)
-            fallback.adaptive=true;fallback.flavor=policy.flavor;fallback.planStatus="refining"
-            fallback.detail=policy.flavor..": refining future quest options"
+            local fallback=planner.PlanRuntime.Result({actions={},status="refining",decisionKind="fallback",
+                reason="Refining future quest options"},observed,ctx,policy,view,search.state)
+            if fallback.status=="observed" then fallback.detail=policy.flavor..": refining future quest options" end
             if view.adaptive and view.selected and view.selected.planAction
                 and planner.PlanTransitions.Check(view.selected.planAction,search.state,policy)==true then
-                fallback=planner.PlanRuntime.Result({actions={view.selected.planAction},status="refining",
+                fallback=planner.PlanRuntime.Result({actions={view.selected.planAction},status="refining",decisionKind="continuity",
                     reason="Continue while future options are updated"},observed,ctx,policy,view,search.state)
             end
             publish(fallback)

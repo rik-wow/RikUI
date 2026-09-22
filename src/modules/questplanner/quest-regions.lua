@@ -67,7 +67,7 @@ end
 local function contains(r,p)
     return p and p.x>=r.bounds[1]-.002 and p.x<=r.bounds[3]+.002 and p.z>=r.bounds[2]-.002 and p.z<=r.bounds[4]+.002
 end
-function regions.Select(start,goal)
+function regions.Select(start,goal,localOnly)
     if not catalog then return nil,"unavailable" end
     local starts,goals,goalSet={},{},{}
     for _,r in ipairs(catalog.regions) do
@@ -75,6 +75,8 @@ function regions.Select(start,goal)
         if contains(r,goal) then goals[#goals+1]=r.id;goalSet[r.id]=true end
     end
     if #starts==0 or #goals==0 then return nil,"outside-coverage" end
+    local path={}
+    if not localOnly then
     local queue,parent,head={},{},1
     for _,id in ipairs(starts) do queue[#queue+1]=id;parent[id]=false end
     local found
@@ -86,8 +88,8 @@ function regions.Select(start,goal)
         end
     end
     if not found then return nil,"no-catalog-path" end
-    local path={}
     while found do table.insert(path,1,found);found=parent[found] end
+    end
     local ids,set,pc,ec={},{},0,0
     local function add(id)
         if set[id] then return true end
@@ -99,14 +101,14 @@ function regions.Select(start,goal)
         for _,id in ipairs(list) do if not add(id) then return nil,"region-working-set-limit" end end
     end
     -- Include a bounded alternative neighborhood; no SCC or region is a zero-cost shortcut.
-    for _=1,expansion do
+    for _=1,localOnly and 0 or expansion do
         local seeds={};for i,id in ipairs(ids) do seeds[i]=id end
         for _,id in ipairs(seeds) do for _,nextID in ipairs(catalog.regions[id].neighbors) do add(nextID) end end
     end
     table.sort(ids)
     local edges=0
     for _,id in ipairs(ids) do for target,n in pairs(catalog.regions[id].edgeCounts) do if set[target] then edges=edges+n end end end
-    return {ids=ids,set=set,polygons=pc,portals=edges,topologyOnly=true,optimal=false}
+    return {ids=ids,set=set,polygons=pc,portals=edges,topologyOnly=true,optimal=false,localOnly=localOnly==true}
 end
 function regions.Retry()
     job,activeKey,activeSet,failed=nil,nil,nil,nil;serial=serial+1;expansion=1
@@ -127,6 +129,9 @@ function regions.Expand()
     return true
 end
 function regions.Enabled() return catalog~=nil end
+function regions.Binding()
+    if catalog then return {identity=schema.Clone(catalog.meta.identity),mapID=catalog.meta.uiMapID,graphSHA256=catalog.graphSHA256} end
+end
 function regions.Stats() return schema.Clone(stats) end
 local function covered(point)
     local found=false
@@ -139,16 +144,16 @@ local function covered(point)
     return found
 end
 -- Called with the shared player snapshot; one synchronous addon load at most per call.
-function regions.Prepare(identity,position,destination)
+function regions.Prepare(identity,position,destination,localOnly)
     if not catalog then return end
     if not same(identity,catalog.meta.identity) then regions.Suspend();return nil,"incompatible-region-identity" end
     local start,goal=project(position),project(destination)
     if not start or not goal then regions.Suspend();return nil,"unavailable-position" end
-    local key=catalog.revision..":"..string.format("%d:%.17g:%.17g",destination.mapID,destination.x,destination.y)
+    local key=catalog.revision..":"..(localOnly and "local:" or "regional:")..string.format("%d:%.17g:%.17g",destination.mapID,destination.x,destination.y)
     if activeKey==key then
         for id in pairs(activeSet) do if contains(catalog.regions[id],start) then return nil,"ready" end end
     end
-    if activeSet and not job and covered(start) and covered(goal) then
+    if activeSet and not job and activeKey and activeKey:find(localOnly and ':local:' or ':regional:',1,true) and covered(start) and covered(goal) then
         activeKey=key;return nil,"ready"
     end
     local origin={}
@@ -161,7 +166,7 @@ function regions.Prepare(identity,position,destination)
         if not covered then job=nil end
     end
     if not job or job.key~=key then
-        local selection,reason=regions.Select(start,goal)
+        local selection,reason=regions.Select(start,goal,localOnly)
         if not selection then failed={key=key,reason=reason,origin=originKey};return nil,reason end
         serial=serial+1;job={key=key,selection=selection,index=1,token=serial}
     end
@@ -193,7 +198,7 @@ function regions.Prepare(identity,position,destination)
     local selection=current.selection;local meta=schema.Clone(catalog.meta)
     meta.corpusRevision=catalog.revision
     meta.revision=catalog.revision..":"..table.concat(selection.ids,",")
-    meta.counts={polygons=selection.polygons,portals=selection.portals};meta.regionalCandidate=true
+    meta.counts={polygons=selection.polygons,portals=selection.portals};meta.regionalCandidate=true;meta.localAttachment=selection.localOnly
     local stream=planner.RegionCodec.Stream(selection.ids,pages,selection.set,meta.identity,#catalog.regions)
     current.validating=true;stats.windows=stats.windows+1
     return {meta=meta,stream=stream,selection=selection,token=current.token},"prepared"

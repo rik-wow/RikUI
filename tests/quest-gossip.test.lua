@@ -15,7 +15,7 @@ local function setup()
     dofile(schemaPath)
     local p=RikUI.QuestPlanner
     p.Context={Position=function() return {mapID=1426,x=.47,y=.52} end,
-        Dialog=function(event) return {event=event,questID=99158,position={mapID=1426,x=.47,y=.52},npcID=123} end}
+        Dialog=function(event) return {event=event,questID=99158,observedAt=400,position={mapID=1426,x=.47,y=.52},npcID=123} end}
     dofile(objectivesPath);dofile(gossipPath);dofile(journalPath)
     local identity={product="forever",build="1.60.1.69913",locale="enUS"}
     GetBuildInfo=function() return "1.60.1","69913","today",16001 end
@@ -44,8 +44,20 @@ offered[1].title="Changed";check("capture detached",captured.offered[1].title=="
 check("journal budget respected",p.Schema.CopyLimited(captured,512,8192,8)~=nil)
 p.Journal.Record("GOSSIP_SHOW",{identity=identity})
 check("gossip integration records observation",p.Journal.Export().entries[1].event=="GOSSIP_SHOW")
+local offers=p.Journal.Offers(identity,400)
+check("exact offered quest and giver authorize availability",offers[98319] and offers[98319].offered and offers[98319].npcID==456 and offers[99158]==nil)
+check("expired or backwards offer time rejected",next(p.Journal.Offers(identity,521))==nil and next(p.Journal.Offers(identity,399))==nil)
+check("offer identity mismatch rejected",next(p.Journal.Offers({product="forever",build="different",locale="enUS"},400))==nil)
+p.Journal.Record("GOSSIP_CLOSED",{identity=identity})
+check("closed gossip cannot establish current availability",next(p.Journal.Offers(identity,400))==nil)
+p.Journal.Record("GOSSIP_SHOW",{identity=identity})
+p.Journal.Record("PLAYER_ENTERING_WORLD",{identity=identity})
+check("world change clears current offers",next(p.Journal.Offers(identity,400))==nil)
 p.Journal.Record("QUEST_DETAIL",{identity=identity})
 check("dialog interaction position labelled",p.Journal.Dialog().positionScope=="player-interaction-position")
+check("open quest detail proves exact quest offer",p.Journal.Offers(identity,400)[99158].npcID==123)
+p.Journal.Record("QUEST_FINISHED",{identity=identity})
+check("closed quest detail clears availability",next(p.Journal.Offers(identity,400))==nil)
 
 p,identity,offered,active=setup()
 identity.build="1.60.1.69999"

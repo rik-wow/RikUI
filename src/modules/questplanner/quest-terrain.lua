@@ -4,6 +4,7 @@ local schema,terrain=planner.Schema,{}
 planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local meta,live,regionalToken
+local preparedGraph,hybridUnavailableKey
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local lastLocation,locationAge=nil,0
 local floorKey,floorChoices,floorIndex=nil,{},0
@@ -15,7 +16,9 @@ local SEARCH_MS, SEARCH_BATCHES, SEARCH_FALLBACK_BATCHES = 2, 16, 4
 local state={status="unavailable",detail="Terrain datasource is not installed"}
 local display
 local stats={plans=0,published=0,generation=0}
-function terrain.Stats() return schema.Clone(stats) end
+function terrain.Stats()
+    local result=schema.Clone(stats);result.paths=planner.Paths and planner.Paths.Stats();return result
+end
 local function setState(status,detail)
     if state.status==status and state.detail==detail then return end
     state={status=status,detail=detail}
@@ -39,6 +42,7 @@ function terrain.Retry()
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" then return nil,"Resume quest guidance before retrying" end
     if not model.selected or not model.selected.destination then return nil,"Choose a quest with a map location" end
+    hybridUnavailableKey=nil
     if regional then planner.Regions.Retry() end
     terrain.Invalidate()
     return true
@@ -119,6 +123,11 @@ local function admissible()
     if #(meta.blockers or {})>0 then return nil,"Terrain coverage is incomplete" end
     return true
 end
+function terrain.ContinuedLocation(point,previous)
+    local continued=route and route.locate and route.locate(point,previous)
+    if continued then return continued end
+    if mesh then return mesh:LocateContinued(point,previous) end
+end
 local function observeLocation(position)
     local start=mesh:Project(position.mapID,position.x,position.y)
     if not start then clear(true);setState("outside-coverage","Location is outside this terrain map");return end
@@ -130,7 +139,7 @@ local function observeLocation(position)
         start={x=world.x,z=world.z}
         if world.verticalStatus=="observed-altitude" then start.height=world.height end
     end
-    local location,problem=mesh:LocateContinued(start,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
+    local location,problem=terrain.ContinuedLocation(start,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
     if not location then
         clear(true)
         if meta.regionalCandidate and planner.Regions.Expand() then setState("loading","Expanding terrain coverage")
@@ -166,7 +175,18 @@ local function requestRoute(row,location,start)
     -- Quest-map POIs represent a vicinity, not an exact standing/interaction position.
     local maxWork=math.max(32768,meta.counts.portals*2+1)
     local problem
-    request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true})
+    if meta.localAttachment and preparedGraph and planner.PathNavigate and planner.PathRoute then
+        request,problem=planner.PathNavigate.Begin(mesh,preparedGraph,start,goal,{speed=speed or 7})
+        if request then stats.hybridPlans=(stats.hybridPlans or 0)+1 end
+        if not request then
+            hybridUnavailableKey=destinationKey(row)
+            planner.Regions.Retry();clear()
+            setState("loading","Checking the quest marker's terrain approach")
+            return
+        end
+    else
+        request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true})
+    end
     if request then stats.plans=stats.plans+1 end
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
@@ -217,7 +237,19 @@ local function prepareRegions()
     end
     local row=model.selected
     local destination=row and row.destination or live.position
-    local packet,reason=manager.Prepare(snapshot.identity,live.position,destination)
+    local graph,pathState
+    if planner.Paths and planner.PathRoute then
+        graph,pathState=planner.Paths.Prepare(snapshot.identity,live.position.mapID,manager.Binding())
+    end
+    if pathState=="loading" then setState("loading","Preparing the walking network");return false end
+    local localOnly=graph~=nil and (not row or hybridUnavailableKey~=destinationKey(row))
+    preparedGraph=localOnly and graph or nil
+    if localOnly and route and route.hybrid and route.pathGraph==preparedGraph and row
+        and route.destinationKey==destinationKey(row) and route.locate and locationAge<=CONTINUITY_SECONDS then
+        local point=mesh:Project(live.position.mapID,live.position.x,live.position.y)
+        if point and route.locate(point,lastLocation) then return true end
+    end
+    local packet,reason=manager.Prepare(snapshot.identity,live.position,destination,localOnly)
     if regionalToken and not manager.Current(regionalToken) then
         if loader then loader:Cancel();loader=nil end
         regionalToken=nil;clear(true)
@@ -273,14 +305,23 @@ function terrain.Step()
                     result.huntHint=row and not row.journey and floorIndex==0 and schema.Clone(row.hunt)
                     result.markerProvenance=row and schema.Clone(row.destination)
                     result.destinationFloor=destinationFloor()
+                    result.destinationKey=row and destinationKey(row)
+                    result.pathGraph=result.hybrid and preparedGraph or nil
                     request=planner.NavFollow.Begin(mesh,result,#floorChoices)
                     return
                 end
                 route=result;stats.published=stats.published+1;stats.generation=stats.generation+1
+                if result.hybrid then stats.hybridPublished=(stats.hybridPublished or 0)+1 end
                 update()
             else
                 display=nil
-                if meta.regionalCandidate then
+                if meta.localAttachment then
+                    stats.hybridFallbacks=(stats.hybridFallbacks or 0)+1
+                    local row=selected()
+                    hybridUnavailableKey=row and destinationKey(row)
+                    planner.Regions.Retry();clear()
+                    setState("loading","Checking alternative terrain approaches")
+                elseif meta.regionalCandidate then
                     if planner.Regions.Expand() then setState("loading","Expanding terrain coverage")
                     else setState("coverage-frontier","No complete route in the bounded terrain window; retry or choose a nearer waypoint") end
                 else setState(result.status,result.detail) end

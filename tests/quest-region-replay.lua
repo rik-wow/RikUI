@@ -77,7 +77,7 @@ local at=0
 local loader=assert(p.NavMesh.Begin(meta,function()at=at+1;if rows[at]then return {identity=meta.identity,polygons={rows[at]}}end end))
 local mesh
 repeat local value,why,done=loader:Step(64);if done then mesh=assert(value,why)end until mesh
-print(string.format("Regional production preparation: %d frames %.3f ms CPU max %.3f; %d addons %.3f ms load CPU max %.3f; %d polygons %d portals",
+print(string.format("Regional production preparation: %d frames %.3f ms host time max %.3f; %d addons %.3f ms host load time max %.3f; %d polygons %d portals",
     frames,cpu,peak,loads,loadCPU,loadPeak,meta.counts.polygons,meta.counts.portals))
 local function tick(point,delta)
     position=mesh:Unproject(point);world=nil;clock=clock+(delta or .2);callback(nil,delta or .2)

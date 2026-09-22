@@ -46,6 +46,7 @@ function guidance.Details(model,snapshot,route)
                 estimate.conditional and "; future work is conditional" or "")
             lines[#lines+1]=(estimate.unknownXP or 0)>0 and "Some XP rewards are unknown."
                 or "Projected XP: "..tostring(estimate.xp or "unknown").."."
+            if (estimate.unknownCombatXP or 0)>0 then lines[#lines+1]="Some combat XP is unknown and omitted from this projection." end
             if estimate.efficiencyCost and estimate.efficiencyCost>.01 then
                 lines[#lines+1]=string.format("Preference tradeoff: about %.0f%% less modeled XP efficiency.",estimate.efficiencyCost*100)
             end
@@ -275,6 +276,17 @@ function guidance.DialogInput(snapshot,status,ctx,dialog)
     if not actions then return nil end
     return {state=state,actions=actions}
 end
+-- Pure fallback selection. The observed list is already ordered by the live reader.
+-- Replay records only its first row identity and maps consulted for explicit pin conflicts.
+function guidance.Fallback(observed,ctx,policy)
+    for id,pinned in pairs(policy and policy.pins or {}) do
+        if pinned then
+            local point=ctx.destinations[id]
+            if policy.skips[id] or (point and policy.avoids[point.mapID]) then return nil,true end
+        end
+    end
+    return observed[1],false
+end
 function guidance.Result(route,observed,ctx,data,reason,policy)
     local first=route.actions and route.actions[1]
     local selected
@@ -285,7 +297,11 @@ function guidance.Result(route,observed,ctx,data,reason,policy)
         selected.destination=node and node.mapID and {mapID=node.mapID,x=node.x,y=node.y} or selected.destination
         selected.hunt=nil -- Authored optimizer actions retain their explicit destination semantics.
         selected.detail=first.kind=="turnin" and "Turn in this quest" or first.kind=="pickup" and "Accept this quest" or "Continue this objective"
-    else selected=observed[1] and schema.Clone(observed[1]) end
+    else
+        local row,conflict=guidance.Fallback(observed,ctx,policy)
+        selected=row and schema.Clone(row)
+        if conflict then route.status="constraint-conflict" end
+    end
     local calculated=first~=nil
     local detail=calculated and (route.unknownXP>0 and "XP estimate incomplete" or "Calculated from available evidence")
         or "Walking route is not verified"
@@ -297,8 +313,6 @@ function guidance.Result(route,observed,ctx,data,reason,policy)
         for id,pinned in pairs(policy and policy.pins or {}) do
             if pinned then
                 if not seen[id] then deferred[#deferred+1]=id; seen[id]=true end
-                local point=ctx.destinations[id]
-                if policy.skips[id] or (point and policy.avoids[point.mapID]) then route.status="constraint-conflict" end
             end
         end
         table.sort(deferred)

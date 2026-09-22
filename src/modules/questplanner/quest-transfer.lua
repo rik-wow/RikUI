@@ -177,7 +177,7 @@ end
 -- Diagnostic packets never promote an imported rollout to live state.
 local PLAN_BYTES,PLAN_NODES=4194296,250000
 local function validatePlan(value)
-    if not schema.PlainTable(value) or (value.version~=1 and value.version~=2) or not schema.PlainTable(value.state)
+    if not schema.PlainTable(value) or (value.version~=1 and value.version~=2 and value.version~=3) or not schema.PlainTable(value.state)
         or not schema.Identity(value.state.identity) or not schema.Text(value.stateKey)
         or not schema.List(value.candidateIDs,768) or not schema.List(value.actions,128)
         or not schema.PlainTable(value.constraints) then error("invalid plan trace") end

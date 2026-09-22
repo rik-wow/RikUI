@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import tempfile
 
 PIN = "baa0998d49695c70a1fb8fec559fa9169e9adf33"
@@ -240,6 +241,11 @@ def prerequisite_clauses(row, entities):
     return result
 
 
+# Pinned QuestieDB src/corrections/enum/constants.lua: event quest sorts.
+# These classify availability; dates and quest names do not establish a live offer.
+SEASONAL_SORTS = frozenset((-21, -22, -41, -364, -366, -369, -370, -374, -375, -376, -378, -402, -404))
+
+
 def planning_rules(row, entities):
     clauses = prerequisite_clauses(row, entities)
     for field, op in (("requiredLevel", "minLevel"), ("requiredMaxLevel", "maxLevel"),
@@ -269,6 +275,7 @@ def planning_rules(row, entities):
             "forbiddenAfter": [row["availableUntilCompleted"]] if row.get("availableUntilCompleted", 0) > 0 else [],
             "breadcrumbFor": row.get("breadcrumbForQuestId") or None,
             "countStatus": "live-required", "availability": "source-reference",
+            "seasonalCategory": row.get("zoneOrSort") if row.get("zoneOrSort") in SEASONAL_SORTS else None,
             "repeatable": bool(int(row.get("specialFlags") or 0) & 1),
             "reset": "daily" if int(row.get("questFlags") or 0) & 4096 else "weekly" if int(row.get("questFlags") or 0) & 32768 else "monthly" if int(row.get("questFlags") or 0) & 65536 else None,
             "specialFlags": row.get("specialFlags"), "questFlags": row.get("questFlags"),
@@ -834,13 +841,67 @@ def verify_provider_manifest(path, data, raw):
     return metadata, proof_raw
 
 
-def corpus_revision(source_hash, compiler_hash, proof_hash, client_hash, identity, partition_size):
+EVENT_PIN = "454b9d072965ee8f1a881429260fcf1fac8d60f7"
+
+
+def event_memberships(repo):
+    """Read only literal membership rows from the audited consumer commit."""
+    def git(*args):
+        try:
+            return subprocess.check_output(["git", "-C", str(repo), *args], text=True, encoding="utf-8", timeout=30)
+        except (subprocess.SubprocessError, OSError) as error:
+            raise ValueError("pinned holiday membership source unavailable") from error
+    prefix = "Database/Corrections/Holidays/quests"
+    files = sorted(git("ls-tree", "-r", "--name-only", EVENT_PIN, "--", prefix).splitlines())
+    if len(files) != 12 or any(not re.fullmatch(prefix + r"/[A-Za-z]+\.lua", file) for file in files):
+        raise ValueError("pinned holiday source inventory differs from audited files")
+    result = {}
+    pattern = re.compile(r'^\s*tinsert\(eventQuests,\s*\{\s*"([^"]+)"\s*,\s*(\d+)(?=\s*[,}])')
+    hashes = {}
+    for file in files:
+        content = git("show", EVENT_PIN + ":" + file)
+        hashes[file] = sha(content.encode("utf-8"))
+        for line_no, line in enumerate(content.splitlines(), 1):
+            if not line.lstrip().startswith("tinsert(eventQuests"):
+                continue
+            match = pattern.match(line)
+            if not match:
+                raise ValueError(f"Unsupported event membership {file}:{line_no}")
+            quest_id = int(match[2])
+            entry = {"key": Path(file).stem, "source": file, "line": line_no}
+            if quest_id in result and result[quest_id]["key"] != entry["key"]:
+                raise ValueError(f"Ambiguous event membership {quest_id}")
+            result[quest_id] = entry
+    # 1,006 active rows; thirteen commented-out rows are intentionally excluded.
+    if len(result) != 1006:
+        raise ValueError("pinned holiday membership count differs from audit")
+    return {"revision": EVENT_PIN, "files": hashes, "quests": result}
+
+
+def apply_event_memberships(records, events):
+    matched = 0
+    for quest_id, row in records.items():
+        membership = events.get("quests", {}).get(quest_id)
+        if not membership:
+            continue
+        for quest in [row.get("base"), *row.get("variants", {}).values()]:
+            if not isinstance(quest, dict) or not quest.get("planning"):
+                continue
+            quest["planning"]["seasonalEvent"] = membership["key"]
+            quest["planning"]["seasonalProvenance"] = {"revision": events["revision"], **membership}
+        matched += 1
+    return matched
+
+
+def corpus_revision(source_hash, compiler_hash, proof_hash, client_hash, identity, partition_size, event_hash=None):
     """Bind runtime cache identity to every input that can alter generated data."""
     inputs = {"schemaVersion": 1, "sourceSHA256": source_hash, "compilerSHA256": compiler_hash, "providerManifestSHA256": proof_hash, "clientIndexSHA256": client_hash, "identity": identity, "partitionSize": partition_size}
+    if event_hash is not None:
+        inputs["eventMembershipSHA256"] = event_hash
     return sha(canonical(inputs).encode("utf-8"))
 
 
-def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None, provider_manifest=None):
+def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None, provider_manifest=None, event_source_root=None):
     if not 16 <= partition_size <= 256:
         raise ValueError("partition size must be 16..256")
     data, raw = load_export(export_path)
@@ -848,6 +909,14 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
     proof, proof_raw = verify_provider_manifest(provider_manifest, data, raw) if provider_manifest else (None, None)
     compiler = Compiler(data, sha(raw))
     records = compiler.compile()
+    events = event_memberships(event_source_root) if event_source_root else None
+    event_raw = canonical(events).encode("utf-8") if events else None
+    event_metadata = None
+    if events:
+        event_metadata = {"revision": EVENT_PIN, "sha256": sha(event_raw),
+                          "sourceMemberships": len(events["quests"]),
+                          "matchedQuests": apply_event_memberships(records, events)}
+        compiler.report["eventMemberships"] = event_metadata
     if proof:
         compiler.report["providerProof"] = proof
     client_raw, client_metadata = None, None
@@ -855,7 +924,7 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         client_rows, client_raw = load_client_index(client_index)
         add_client_records(records, client_rows, compiler.report)
         client_metadata = {"sha256": sha(client_raw), "build": IDENTITY["build"], "table": "QuestV2", "records": len(client_rows)}
-    revision = corpus_revision(sha(raw), compiler_hash, proof["manifestSHA256"] if proof else None, client_metadata["sha256"] if client_metadata else None, IDENTITY, partition_size)
+    revision = corpus_revision(sha(raw), compiler_hash, proof["manifestSHA256"] if proof else None, client_metadata["sha256"] if client_metadata else None, IDENTITY, partition_size, sha(event_raw) if event_raw else None)
     output = safe_output(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=output.name + ".building-", dir=output.parent))
@@ -866,6 +935,8 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         names = {}
         catalog = {"version": 1, "identity": IDENTITY, "revision": revision, "providerRevision": PIN, "sourceSHA256": sha(raw), "partitionSize": partition_size, "partitions": names, "counts": compiler.report["counts"], "baseSelector": "Alliance:WARRIOR", "selectors": sorted(selector_key(variant["selector"]) for variant in data.get("variants", [])), "terms": "local-only; upstream redistribution grant unresolved"}
         catalog["planning"] = planning_index(records)
+        if event_metadata:
+            catalog["eventMemberships"] = event_metadata
         if client_metadata:
             catalog["clientIndex"] = client_metadata
         toc = "## Interface: 16001\n## Title: RikUI Forever Quest Corpus\n## Notes: Local generated QuestieDB data; provenance in build manifest\n## LoadOnDemand: 1\n"
@@ -884,6 +955,8 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         write_json(stage, "catalog.json", catalog)
         write_json(stage, "coverage.json", compiler.report)
         write_bytes(stage, "audit/source-export.json", raw)
+        if event_raw:
+            write_bytes(stage, "audit/event-memberships.json", event_raw)
         if proof_raw:
             write_bytes(stage, "audit/provider-manifest.json", proof_raw)
         if client_raw is not None:
@@ -897,6 +970,8 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
             manifest["providerProof"] = proof
         if client_metadata:
             manifest["clientIndex"] = client_metadata
+        if event_metadata:
+            manifest["eventMemberships"] = event_metadata
         write_json(stage, "manifest.json", manifest)
         verify(stage)
         atomic_publish(stage, output)
@@ -911,7 +986,7 @@ def verify(output):
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     if manifest.get("schemaVersion") != 1 or manifest.get("provider", {}).get("revision") != PIN:
         raise ValueError("invalid corpus manifest")
-    revision = corpus_revision(manifest.get("sourceSHA256"), manifest.get("compilerSHA256"), manifest.get("providerProof", {}).get("manifestSHA256"), manifest.get("clientIndex", {}).get("sha256"), manifest.get("identity"), manifest.get("partitionSize"))
+    revision = corpus_revision(manifest.get("sourceSHA256"), manifest.get("compilerSHA256"), manifest.get("providerProof", {}).get("manifestSHA256"), manifest.get("clientIndex", {}).get("sha256"), manifest.get("identity"), manifest.get("partitionSize"), manifest.get("eventMemberships", {}).get("sha256"))
     if manifest.get("corpusRevision") != revision:
         raise ValueError("corpus revision does not match build inputs")
     actual, expected = manifest_files(output), manifest.get("files", {})
@@ -921,6 +996,8 @@ def verify(output):
         raise ValueError(f"verification failed: missing={missing[:8]} unexpected={extra[:8]} changed={changed[:8]}")
     if sha((output / "audit/source-export.json").read_bytes()) != manifest.get("sourceSHA256"):
         raise ValueError("source hash mismatch")
+    if manifest.get("eventMemberships") and sha((output / "audit/event-memberships.json").read_bytes()) != manifest["eventMemberships"]["sha256"]:
+        raise ValueError("event membership hash mismatch")
     return manifest
 
 
@@ -989,6 +1066,7 @@ def main(argv=None):
     make.add_argument("--partition-size", default=PARTITION_SIZE, type=int)
     make.add_argument("--client-index", type=Path)
     make.add_argument("--provider-manifest", type=Path)
+    make.add_argument("--event-source-root", required=True, type=Path, help="Questie checkout containing the pinned holiday membership commit")
     for name in ("verify", "install", "verify-installed"):
         command = sub.add_parser(name)
         command.add_argument("--output", required=True, type=Path)
@@ -1000,7 +1078,7 @@ def main(argv=None):
             provider_manifest = args.provider_manifest or args.export.with_suffix(".manifest.json")
             if not provider_manifest.is_file():
                 raise ValueError("build requires the exporter's provider provenance manifest")
-            result = build(args.export, args.output, args.partition_size, args.client_index, provider_manifest)
+            result = build(args.export, args.output, args.partition_size, args.client_index, provider_manifest, args.event_source_root)
         elif args.command == "verify":
             result = verify(args.output)
         elif args.command == "install":

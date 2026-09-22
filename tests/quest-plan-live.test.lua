@@ -13,6 +13,7 @@ return function(check)
             Changed=function() end,Print=function() end}
         RikUI["Secret"]={IsSecret=function() return false end,Read=function(fn,...) return pcall(fn,...) end}
         local now,x,counts=1,.1,{[9]=2,[55]=1}
+        local mapID=1426
         GetTime=function() return now end;debugprofilestop=function() return os.clock()*1000 end
         UnitGUID=function() return "Player-test" end
         UnitClass=function() return "Warrior","WARRIOR",1 end
@@ -33,7 +34,7 @@ return function(check)
             GetContainerItemQuestInfo=function() return {isQuestItem=false} end}
         C_Item={GetItemCount=function(id) return (counts[id] or 0)+100 end, -- Aggregate deliberately disagrees with bag contents.
             GetItemInfo=function(id) return "Item",nil,0,nil,nil,nil,nil,20,nil,nil,1 end}
-        C_Map={GetBestMapForUnit=function() return 1426 end,
+        C_Map={GetBestMapForUnit=function() return mapID end,
             GetPlayerMapPosition=function() return {GetXY=function() return x,.3 end} end,
             GetMapWorldSize=function() return 1000,1000 end}
         C_QuestLog={IsQuestFlaggedCompleted=function() return false end,
@@ -46,7 +47,7 @@ return function(check)
         GetFactionInfoByID=function() return "Faction","description",3,-3000,0,-1000 end
         for _,name in ipairs({"schema","objectives","optimizer","area-optimizer","context","steps","step-bindings",
             "observed-steps","semantic-data","semantic-guidance","recommendations","guidance","preferences","plan-state","plan-graph",
-            "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-context","plan-observer","plan-runtime","controller","plan-controls","view","commands"}) do
+            "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-travel","plan-context","plan-xp","plan-observer","plan-runtime","controller","plan-controls","view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         local p=RikUI.QuestPlanner
@@ -84,6 +85,13 @@ return function(check)
         end
         update()
         check("cold normal path has immediate live fallback",p.Controller.Get().selected~=nil)
+        local coldTrace=p.PlanRuntime.Replay()
+        local coldReplay=coldTrace and p.PlanRuntime.RerunReplay(coldTrace,coldTrace.source)
+        check("R20 cold displayed fallback has decision-only evidence",coldTrace and coldTrace.version==3
+            and coldTrace.kind=="fallback" and coldTrace.displayed.selected.questID==p.Controller.Get().selected.questID
+            and not coldTrace.searchWork and not p.PlanRuntime.ReplaySearch())
+        check("R20 cold fallback replay does not claim solver execution",coldReplay and coldReplay.status=="match"
+            and coldReplay.replayKind=="fallback" and not coldReplay.searchActions,coldReplay and coldReplay.reason)
         p.Controller.Step();update("source loaded")
         for _=1,2000 do p.Controller.Step() end
         local model=p.Controller.Get()
@@ -186,6 +194,137 @@ return function(check)
         local failedReplay=p.PlanRuntime.RerunReplay(replay,source);p.PlanSearch.Begin=oldBegin
         check("R20 failed replay restores live learning",failedReplay.reason=="replay_error" and same(liveLearning,p.PlanLearning.Export()))
 
+        check("R20 ready trace captures actual displayed decision",replay.version==3 and replay.kind=="search"
+            and same(replay.displayed,p.PlanRuntime.Displayed(p.Controller.Get()))
+            and same(rerun.displayed,replay.displayed))
+        local legacy=p.Schema.Clone(replay);legacy.version=2;legacy.displayInputs=nil;legacy.displayed=nil;legacy.kind=nil
+        local legacyPacket=assert(p.Transfer.EncodePlan(legacy))
+        local legacyDecoded=assert(p.Transfer.DecodePlan(legacyPacket))
+        check("R20 v2 packet still imports without invented display evidence",legacyDecoded.version==2
+            and legacyDecoded.state.fresh==false
+            and p.PlanRuntime.RerunReplay(legacyDecoded,source).reason=="display_evidence_unavailable")
+        local state=p.Schema.Clone(replay.state);state.fresh=true
+        local graph=p.Schema.Clone(replay.graph);graph.byID={};graph.byQuest={}
+        for _,action in ipairs(graph.actions) do
+            graph.byID[action.id]=action;graph.byQuest[action.questID]=graph.byQuest[action.questID] or {}
+            table.insert(graph.byQuest[action.questID],action)
+        end
+        local replayCtx=p.Controller.Context()
+        local replayObserved=p.Guidance.Observed(snapshot,replayCtx,p.Controller.Policy(),900,false,p.Controller.Get().selected)
+        local replayPolicy=p.Schema.Clone(replay.constraints)
+        local function annotate(raw)
+            raw.replayGraph=replay.graph;raw.replayState=state;raw.replayEnvironment=replay.environment
+            raw.replayLearning=replay.learning;raw.candidateIDs=replay.candidateIDs;raw.stateKey=replay.stateKey
+            return raw
+        end
+        local function replayDisplayed(raw,ctx,pref,initial)
+            local model=p.PlanRuntime.Result(raw,replayObserved,ctx or replayCtx,pref or replayPolicy,nil,initial or state)
+            local trace=assert(p.PlanRuntime.Replay())
+            local packet,problem=p.Transfer.EncodePlan(trace);assert(packet,problem)
+            local imported=assert(p.Transfer.DecodePlan(packet))
+            local out=p.PlanRuntime.RerunReplay(imported,source)
+            check("R20 displayed model agrees with captured identity",same(trace.displayed,p.PlanRuntime.Displayed(model)))
+            check("R20 displayed decision reexecutes "..trace.kind,out.status=="match"
+                and same(out.displayed,trace.displayed),out.reason or out.phase)
+            check("R20 displayed replay preserves imported freshness",imported.state.fresh==false)
+            return model,trace,imported,out
+        end
+        local readySearch=p.PlanRuntime.ReplaySearch()
+        local beforeLearning=p.PlanLearning.Export()
+        local boundaries={}
+        local ran,boundaryError=p.PlanLearning.WithSnapshot(replay.learning,function()
+            local search=assert(p.PlanSearch.Begin(graph,state,replayPolicy,replay.environment))
+            boundaries[1]=search:Peek()
+            assert(not search:Step(1));boundaries[2]=search:Peek()
+            for _=1,1000 do
+                assert(not search:Step(1),"fixture must expose a refining incumbent")
+                local preview=search:Peek()
+                if #preview.actions>0 then
+                    boundaries[3]=preview
+                    assert(not search:Step(1));boundaries[4]=search:Peek()
+                    break
+                end
+            end
+            search:Cancel()
+        end)
+        assert(ran,boundaryError)
+        check("R20 fixture exposes zero one and incumbent work boundaries",#boundaries==4
+            and boundaries[1].metrics.work==0 and boundaries[2].metrics.work==1
+            and boundaries[3].metrics.work>1 and #boundaries[3].actions>0
+            and boundaries[4].metrics.work==boundaries[3].metrics.work+1)
+        for index,raw in ipairs(boundaries) do
+            local model,trace,imported,out=replayDisplayed(annotate(raw))
+            check("R20 refining exact work boundary "..index,trace.searchStatus=="refining"
+                and out.metrics and out.metrics.work==raw.metrics.work)
+            local shifted=p.Schema.Clone(imported);shifted.searchWork=shifted.searchWork+1
+            check("R20 inconsistent work receipt rejected "..index,
+                p.PlanRuntime.RerunReplay(shifted,source).reason=="invalid_search_boundary")
+            local premature=p.Schema.Clone(imported);premature.searchStatus="ready"
+            check("R20 refining trace cannot claim terminal work "..index,
+                p.PlanRuntime.RerunReplay(premature,source).reason=="search_boundary_mismatch")
+            if index<=2 then
+                check("R20 empty solver preview replays actual live fallback "..index,#trace.searchActions==0
+                    and model.selected and model.selected.questID==900 and not model.actionID)
+            end
+        end
+        check("R20 partial replays leave live learning and completed evidence unchanged",
+            same(beforeLearning,p.PlanLearning.Export()) and same(readySearch,p.PlanRuntime.ReplaySearch()))
+
+        local action=assert(graph.byID[replay.displayed.actionID],"Displayed action must have source graph evidence")
+        local retainedModel,retainedTrace=replayDisplayed({actions={action},status="refining",decisionKind="continuity",
+            reason="Continue while future options are updated"})
+        check("R20 continuity rechecks the current action without solver claims",retainedTrace.kind=="continuity"
+            and retainedModel.actionID==action.id and not retainedTrace.searchWork and not retainedTrace.graph
+            and same(readySearch,p.PlanRuntime.ReplaySearch()))
+        local fallbackModel,fallbackTrace,fallbackImport=replayDisplayed({actions={},status="refining",decisionKind="fallback",
+            reason="Refining future quest options"})
+        check("R20 fallback identity is independent of last searched action",fallbackModel.selected.questID==900
+            and fallbackModel.selected.kind=="turnin" and not fallbackModel.actionID and #fallbackTrace.actions==0)
+        wrong=p.Schema.Clone(fallbackImport);wrong.displayed.selected.questID=901
+        check("R20 changing displayed fallback expectation is detected",p.PlanRuntime.RerunReplay(wrong,source).phase=="display")
+        local blockedCtx=p.Schema.Clone(replayCtx);blockedCtx.failures={[action.id]=2}
+        local blockedModel,blockedTrace=replayDisplayed({actions={},status="refining",decisionKind="fallback",
+            reason="Refining future quest options"},blockedCtx)
+        check("R20 failure-suppressed fallback is an actual replayed decision",blockedModel.status=="unavailable"
+            and not blockedModel.selected and blockedTrace.displayInputs.previous.id==action.id
+            and blockedTrace.displayInputs.previousFailures==2)
+        local conflictPolicy=p.Schema.Clone(replayPolicy);conflictPolicy.pins[900]=true;conflictPolicy.skips[900]=true
+        local conflictModel=replayDisplayed({actions={},status="refining",decisionKind="fallback",
+            reason="Refining future quest options"},replayCtx,conflictPolicy)
+        check("R20 pin conflict uses the same live fallback projection",conflictModel.status=="constraint-conflict"
+            and not conflictModel.selected)
+        check("R20 decision-only replay leaves learning unchanged",same(beforeLearning,p.PlanLearning.Export()))
+        p.Controller.Invalidate(false)
+        check("R20 invalidated display does not expose old decision as current",p.PlanRuntime.Replay()==nil
+            and same(readySearch,p.PlanRuntime.ReplaySearch()))
+        update("R20 replay fixture restored");for _=1,2000 do p.Controller.Step() end
+        check("R20 normal publication restores current decision evidence",p.PlanRuntime.Replay()
+            and same(p.PlanRuntime.Replay().displayed,p.PlanRuntime.Displayed(p.Controller.Get())))
+
+
+        local unavailableAction=p.Controller.Get().actionID
+        p.Command("unavailable");p.Command("unavailable");update("S09 unavailable giver")
+        for _=1,2000 do p.Controller.Step() end
+        local unavailable=p.Controller.Get()
+        check("S09 exhausted interaction does not return through fallback",unavailable.status=="unavailable"
+            and not unavailable.selected and p.PlanLearning.State().failures[unavailableAction]==2,unavailable.status)
+        p.Command("retry-action");update("S09 explicit retry")
+        for _=1,2000 do p.Controller.Step() end
+        check("S09 explicit retry restores feasible guidance",p.Controller.Get().selected and p.Controller.Get().selected.questID==900
+            and not p.PlanLearning.State().failures[unavailableAction])
+        snapshot.order={900,999};snapshot.reportedCount=2;snapshot.observedCount=2
+        snapshot.quests[999]={id=999,title="New server expedition",level=10,failed=false,objectivesComplete=false,
+            objectives={{text="Read the new server expedition instructions",type="event",numFulfilled=0,numRequired=1,finished=false}}}
+        update("S13 new server quest")
+        for _=1,2000 do p.Controller.Step() end
+        local unknownRow
+        for _,row in ipairs(p.Controller.Quests()) do if row.questID==999 then unknownRow=row end end
+        check("S13 missing provider preserves live quest instructions",unknownRow and unknownRow.title=="New server expedition"
+            and type(unknownRow.detail)=="string" and #unknownRow.detail>0)
+        check("S13 production graph reports live-only coverage",p.Controller.Get().coverage and p.Controller.Get().coverage.liveOnly>=1)
+        snapshot.order={900};snapshot.reportedCount=1;snapshot.observedCount=1;snapshot.quests[999]=nil
+        update("S13 fixture restored");for _=1,2000 do p.Controller.Step() end
+
         local beforeTeleport=invalidations
         now=now+1;x=.9
         p.Controller.Step()
@@ -270,6 +409,51 @@ return function(check)
         check("completion memory retained with identity",p.PlanLearning.State().completed[300]==true)
         local before=p.PlanLearning.Export();p.PlanLearning.Bind(identity,"different-character")
         check("cross-character memory rejected",not p.PlanLearning.Restore(before))
+
+        -- S19 two virtual hours,24 map changes,6 actual module reloads and cancelled old jobs.
+        RikUI.CharDB.questPolicy=p.Preferences.Normalize({flavor="Explorer",readingSeconds=0,
+            skips={[98761]=true},defers={[98762]=true},avoids={[98763]=true}})
+        p.Controller.Invalidate(false);p.Controller.Restore();p.PlanLearning.Bind(identity,"Player-test")
+        local function keys(t) local n=0;for _ in pairs(t or {}) do n=n+1 end;return n end
+        local requestPending=false
+        p.Request=function() requestPending=true end
+        for cycle=1,24 do
+            mapID=cycle%2==0 and 1426 or 1427;now=now+300;x=.40+(cycle%7)*.002
+            for n=1,40 do
+                local id=cycle*40+n
+                p.PlanLearning.Observe("combat","long-session:"..id,10+n/10,1)
+                p.PlanLearning.Activity("kill");p.PlanLearning.Completion(id,true);p.PlanLearning.Visit(id);p.PlanLearning.VisitPlace("place:"..id)
+            end
+            update("S19 map transition");p.Controller.Step()
+            if cycle%4==0 then
+                local retired=p.Controller;retired.Invalidate(false)
+                p.PlanRuntime.OnEvent("PLAYER_LOGOUT")
+                local packet=assert(RikUI.Codec.Encode(RikUI.CharDB.questPlanMemory))
+                check("S19 durable packet bound "..cycle,#packet<=6000)
+                local memory=RikUI.Codec.Decode(packet)
+                for _,name in ipairs({"plan-learning","plan-runtime","controller"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
+                RikUI.CharDB.questPlanMemory=memory
+                p.Controller.Start();update("S19 module reload");retired.Step()
+            end
+            for _=1,2000 do
+                p.Controller.Step()
+                if requestPending then
+                    requestPending=false;p.Controller.Update(snapshot,{state="current"},"S19 queued live refresh")
+                end
+            end
+            local ctx=p.Controller.Context();local view=p.Controller.Get();local trace=p.PlanRuntime.Replay()
+            check("S19 latest map and generation "..cycle,ctx.position.mapID==mapID and view.status~="updating"
+                and (not trace or trace.state.position.mapID==mapID and trace.state.generation==snapshot.generation),
+                tostring(ctx.position.mapID)..":"..tostring(view.status)..":"..tostring(view.adaptive)..":"..tostring(trace and trace.state.position.mapID)..":"..tostring(trace and trace.state.generation)..":"..snapshot.generation)
+            local restored=p.Controller.Policy()
+            check("S19 durable explicit preferences "..cycle,restored.flavor=="Explorer" and restored.skips[98761]
+                and restored.defers[98762] and restored.avoids[98763])
+            local learned=p.PlanLearning.Export();local bounded=#learned.order<=128 and #learned.completed<=256
+                and #learned.recent<=12 and keys(learned.visits)<=128 and keys(learned.places)<=128 and keys(learned.failures)<=128
+            for _,model in pairs(learned.models) do bounded=bounded and #model.values<=32 end
+            check("S19 bounded state after churn "..cycle,bounded and #learned.order>0)
+        end
+
         print("Adaptive normal controller, six style widgets, resource loss, completion, teleport, services, replay and persistence verified")
     end)
     for _,name in ipairs(names) do _G[name]=saved[name] end

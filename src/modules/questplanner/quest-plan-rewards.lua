@@ -18,9 +18,11 @@ local function items(countFn,itemFn)
         local good,name,_,quantity,quality,usable,id=read(itemFn,index)
         if not good or not schema.ID(id) or not schema.Integer(quantity,1,2147483647) then return end
         local meta,_,_,_,_,_,_,_,stack,equip=read(api(C_Item,"GetItemInfo") or GetItemInfo,id)
+        local knownUsable,knownEquipment
+        if type(usable)=="boolean" then knownUsable=usable end
+        if meta and schema.Text(equip) then knownEquipment=equip~="" end
         rows[#rows+1]={itemID=id,count=quantity,name=schema.Text(name) and name or nil,
-            usable=type(usable)=="boolean" and usable or nil,
-            equipment=meta and schema.Text(equip) and equip~="" or nil,
+            usable=knownUsable,equipment=knownEquipment,
             stackSize=meta and schema.Integer(stack,1,2147483647) and stack or nil}
     end
     return rows
@@ -44,7 +46,9 @@ function rewards.Read(ctx,snapshot)
     end
     if selected()~=id then return end
     ctx.rewards=ctx.rewards or {};local prior=ctx.rewards[id] or {}
-    for key,value in pairs(row) do prior[key]=value end
+    -- Replace this API family's observation atomically. Nil is unknown, not an
+    -- invitation to spend an earlier reward. Keep independently observed XP.
+    for _,key in ipairs({"authority","questID","items","choices","money","spells"}) do prior[key]=row[key] end
     ctx.rewards[id]=prior
     ctx.stackSizes=ctx.stackSizes or {}
     for _,list in ipairs({row.items or {},row.choices or {}}) do

@@ -176,6 +176,13 @@ function transitions.Check(action,state,policy)
     if action.kind=="pickup" then
         local active,done=membership(state,"active",id),membership(state,"completed",id)
         if active then return false,"Quest already active" end
+        if action.seasonal then
+            local offer=(state.questOffers or {})[id]
+            if not offer or offer.offered~=true then return nil,"Seasonal quest availability is not currently observed" end
+            if action.target and action.target.kind=="npc" and offer.npcID~=action.target.id then
+                return nil,"This seasonal quest giver has not offered the quest"
+            end
+        end
         if state.branchLocks[id] then return false,"Incompatible branch already selected" end
         if done and not action.resetAvailable then return false,"Already completed; reset not observed" end
         if active==nil or done==nil then return nil,"Quest history incomplete" end
@@ -206,6 +213,11 @@ function transitions.Check(action,state,policy)
         end
     elseif action.kind=="explore" then
         if policy.explorationMinutes<=0 then return false,"Exploration declined" end
+        if action.discoveryNode then
+            local node=state.travel and state.travel.flightNodes and state.travel.flightNodes[action.discoveryNode]
+            if not node or node.undiscovered~=true then return false,"Flight point no longer observed as undiscovered" end
+        end
+        if action.visitKey and (state.optionalVisits or {})[action.visitKey] then return false,"Optional visit already recorded" end
     else return nil,"Unsupported action mechanic" end
     if action.moneyCost then
         if state.money==nil then return nil,"Currency unknown" end
@@ -226,7 +238,7 @@ function transitions.Check(action,state,policy)
 end
 -- Source graph/observed metadata are immutable and shared. Only rollout fields copy.
 local MAPS={"active","completed","failed","objectivesComplete","applied","branchLocks","inventory","skills",
-    "capabilities","spells","cooldowns","visited","credited","conditionalCompleted","inventoryLower","simulatedWork","stackRoom","genericStacks","soldSlots"}
+    "capabilities","spells","cooldowns","optionalVisits","visited","credited","conditionalCompleted","inventoryLower","simulatedWork","stackRoom","genericStacks","soldSlots"}
 local NESTED={"progress","conditionalObjectives"}
 function transitions.Fork(state)
     local result={}
@@ -337,7 +349,15 @@ function transitions.Apply(action,state,policy,cost)
         for _,slot in ipairs(action.saleSlots or {}) do result.soldSlots[slot]=true end
         for skill,value in pairs(action.skillGains or {}) do result.skills[skill]=value end
         for key,value in pairs(action.capabilityGains or {}) do result.capabilities[key]=value end
-    elseif action.kind=="explore" then result.explorationSeconds=(state.explorationSeconds or 0)+(cost and cost.seconds or 0) end
+    elseif action.kind=="explore" then
+        result.explorationSeconds=(state.explorationSeconds or 0)+(cost and cost.upper or 0)
+        if action.visitKey then
+            result.optionalVisits[action.visitKey]=true
+            result.optionalInterest=(state.optionalInterest or 0)+1
+            result.position=state.position;result.floor=state.floor
+            assume(result,"Optional visit; earlier exploration history is unknown; return time is included")
+        end
+    end
     local consumed={}
     for _,row in ipairs(action.consumes or {}) do consumed[row.itemID]=(consumed[row.itemID] or 0)+row.count end
     for itemID,count in pairs(consumed) do
@@ -371,6 +391,7 @@ function transitions.Apply(action,state,policy,cost)
         result.bagFree=nil;result.stackRoom={}
         assume(result,"Collection capacity is unresolved; check bags before proceeding")
     end
+    if cost and cost.combatXPUnknown then result.unknownCombatXP=(state.unknownCombatXP or 0)+1 end
     if cost and cost.xp~=nil then
         levelXP(result,cost.xp)
         if cost.xp>0 and cost.xpAuthority~="observed" then assume(result,"XP and level progression are estimates") end
@@ -378,7 +399,7 @@ function transitions.Apply(action,state,policy,cost)
     local activity=action.activity or action.kind
     result.recent[#result.recent+1]=activity
     if #result.recent>12 then table.remove(result.recent,1) end
-    if action.zoneID and result.visited[action.zoneID]==false then
+    if not action.optionalExploration and action.zoneID and result.visited[action.zoneID]==false then
         result.discoveries=(state.discoveries or 0)+1
         result.visited[action.zoneID]=true
     end

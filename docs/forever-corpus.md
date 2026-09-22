@@ -162,7 +162,9 @@ python -m pip install --target D:/RikUI-local/questiedb-python-tools -r tools/re
 $env:PYTHONPATH = "D:/RikUI-local/questiedb-python-tools"
 python -B tools/export_forever.py --source-root D:/RikUI-local/QuestieDB --output D:/RikUI-local/forever-provider.json
 python -B tools/quest_inventory.py --client-root "C:/Program Files (x86)/World of Warcraft" --observations D:/RikUI-local/observations --output-dir D:/RikUI-local/forever-inventory
-python -B tools/quest_corpus.py build --export D:/RikUI-local/forever-provider.json --client-index D:/RikUI-local/forever-inventory/QuestV2-1.60.1.69913.csv --output D:/RikUI-local/forever-corpus-build
+git clone https://github.com/Questie/Questie D:/RikUI-local/Questie-consumer-review
+git -C D:/RikUI-local/Questie-consumer-review checkout --detach 454b9d072965ee8f1a881429260fcf1fac8d60f7
+python -B tools/quest_corpus.py build --export D:/RikUI-local/forever-provider.json --client-index D:/RikUI-local/forever-inventory/QuestV2-1.60.1.69913.csv --event-source-root D:/RikUI-local/Questie-consumer-review --output D:/RikUI-local/forever-corpus-build
 python -B tools/quest_corpus.py verify --output D:/RikUI-local/forever-corpus-build
 python -B tools/quest_corpus.py install --output D:/RikUI-local/forever-corpus-build --addons "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
 python -B tools/quest_corpus.py verify-installed --output D:/RikUI-local/forever-corpus-build --addons "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
@@ -184,6 +186,22 @@ identifies inherited Questie material, but a separate comprehensive QuestieDB
 redistribution grant was not established. This delivery supplies local
 acquisition/compiler code and a local installation; it does not commit or
 redistribute the generated provider database.
+
+## Seasonal availability
+
+Builds also read the twelve holiday membership tables from the pinned Questie
+consumer commit. The parser includes 1,006 active membership rows and excludes
+thirteen commented-out rows. Membership input and source-file hashes are retained
+in the local audit and bound into the corpus revision. These are event
+classifications, not a calendar or current availability feed.
+
+The planner blocks source-only holiday pickups without a fresh exact quest-ID
+offer from the matching giver. Closing the dialog, changing worlds, expiry or
+identity mismatch clears that evidence. Goldwell the Elder (8653) is classified
+as Lunar Festival. Generated membership also covers holiday quests whose
+category is an ordinary area or SPECIAL. Existing compiled event categories
+remain gated until the refreshed corpus is installed. Active quest instructions
+remain visible; source coordinates do not prove a seasonal NPC is present.
 
 ## Verification evidence
 

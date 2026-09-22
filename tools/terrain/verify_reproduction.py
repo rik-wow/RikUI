@@ -7,7 +7,7 @@ files=sorted(p.name for p in first.iterdir() if p.is_file())
 if files!=sorted(p.name for p in second.iterdir() if p.is_file()):raise ValueError('replay-file-list')
 for name in files:
     if (first/name).read_bytes()!=(second/name).read_bytes():raise ValueError('replay-byte-difference:'+name)
-scripts=['acquire.py','acquisition-profile.json','portable_bake.py','terrain_probe.py','collision_probe.py','wmo_probe.py','merge_geometry.py','bake.mjs','bake_tile.mjs','test_probe.py','test_wmo_probe.py','test_nav_artifact.py','test_acquire.py','reproduce.ps1','verify_reproduction.py','package.json','package-lock.json','m2-274-reference.json','wmo-transform-validation.json']
+scripts=['acquire.py','acquisition-profile.json','portable_bake.py','terrain_probe.py','collision_probe.py','wmo_probe.py','merge_geometry.py','bake.mjs','bake_tile.mjs','test_probe.py','test_wmo_probe.py','test_nav_artifact.py','test_acquire.py','reproduce.ps1','verify_reproduction.py','package.json','package-lock.json','m2-274-reference.json','m2-274-world-profiles.json','m2_physics_extent.py','wmo-transform-validation.json']
 artifacts=['geometry-full-collision.json','collision-wmo.json','nav-region-collision.json','full-tile/manifest.json','full-tile/navmesh.bin']
 manifest=json.loads((first/'manifest.json').read_text())
 tests=subprocess.run([sys.executable,'-m','unittest','-v','test_probe','test_wmo_probe','test_nav_artifact','test_acquire'],cwd=root,capture_output=True,text=True)

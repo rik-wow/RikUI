@@ -35,10 +35,14 @@ local function requirements(records)
     return result
 end
 function context.Enrich(ctx,snapshot,records)
+    ctx.questOffers=planner.Journal and planner.Journal.Offers and planner.Journal.Offers(snapshot.identity,ctx.observedAt) or {}
     ctx.money=value(GetMoney,number)
     local party=value(GetNumGroupMembers,function(v) return schema.Integer(v,0,40) end)
     ctx.partySize=party and math.max(1,party)
     ctx.characterKey=value(UnitGUID,schema.Text,"player")
+    ctx.petGUID=value(UnitGUID,schema.Text,"pet")
+    local exhausted=value(GetXPExhaustion,number)
+    if exhausted~=nil then ctx.xpRested=exhausted>0 end
     ctx.bagFree=bagFree()
     if planner.BagScan then
         local bags=planner.BagScan.Read(records)
@@ -97,17 +101,33 @@ function context.Enrich(ctx,snapshot,records)
             if read and schema.Number(standing,-42000,100000) then ctx.reputation[id]=standing end
         end
     end
+    if planner.PlanTravel then
+        ctx.cooldowns,ctx.travel=planner.PlanTravel.Read(ctx,records)
+        ctx.explorationOffers=planner.PlanTravel.Exploration(ctx)
+    end
     if planner.PlanRewards then planner.PlanRewards.Read(ctx,snapshot) end
     ctx.services=planner.PlanServices and planner.PlanServices.Read(ctx,records) or {}
     return ctx
 end
 function context.Signature(ctx)
     local result={}
-    for _,key in ipairs({"money","bagFree","partySize","characterKey","dead","floor","phase","inventoryRevision","inventoryExact","equipmentKey"}) do result[#result+1]=key..":"..tostring(ctx[key]) end
+    for _,key in ipairs({"money","bagFree","partySize","characterKey","dead","floor","phase","inventoryRevision","inventoryExact","equipmentKey","xpRested"}) do result[#result+1]=key..":"..tostring(ctx[key]) end
     for _,name in ipairs({"spells","reputation","skills","inventory","inventoryLower","stackRoom"}) do
         local ids={};for id in pairs(ctx[name] or {}) do ids[#ids+1]=id end;table.sort(ids)
         for _,id in ipairs(ids) do result[#result+1]=name..":"..id..":"..tostring(ctx[name][id]) end
     end
+    if ctx.travel then
+        result[#result+1]="binding:"..tostring(ctx.travel.bindLabel)..":"..tostring(ctx.travel.bindingRevision)
+        local items={};for id in pairs(ctx.travel.items or {}) do items[#items+1]=id end;table.sort(items)
+        for _,id in ipairs(items) do
+            local row=ctx.travel.items[id]
+            result[#result+1]="cooldown:"..id..":"..tostring(row.enabled)..":"..tostring(row.readyAt)..":"..tostring(row.remaining==0)
+        end
+        local nodes={};for id in pairs(ctx.travel.flightNodes or {}) do nodes[#nodes+1]=id end;table.sort(nodes)
+        for _,id in ipairs(nodes) do result[#result+1]="flight:"..id..":"..tostring(ctx.travel.flightNodes[id].undiscovered) end
+    end
+    local offered={};for id in pairs(ctx.questOffers or {}) do offered[#offered+1]=id end;table.sort(offered)
+    for _,id in ipairs(offered) do result[#result+1]="offer:"..id..":"..tostring(ctx.questOffers[id].npcID) end
     for _,service in ipairs(ctx.services or {}) do result[#result+1]=service.id..":"..tostring(service.moneyCost)..":"..tostring(service.freesSlots) end
     return table.concat(result,"|")
 end

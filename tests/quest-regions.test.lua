@@ -71,6 +71,17 @@ return function(check)
         eq(route(mesh,{x=29,z=1,height=0},{x=1,z=1,height=0}).status,"no-known-path","reverse seam")
         assert(f.p.Regions.Accept(packet.token));for i=1,3 do eq(f.calls[i],1) end
         check("regional streamed directed topology validated",true)
+        local endpoints=assert(f.p.Regions.Select({x=1,z=1},{x=29,z=1},true))
+        check("compact local windows omit intermediate terrain",#endpoints.ids==2 and endpoints.ids[1]==1 and endpoints.ids[2]==3 and endpoints.portals==0)
+        local reverse=assert(f.p.Regions.Select({x=29,z=1},{x=1,z=1},true))
+        check("local endpoint collection does not require a region-level forward path",#reverse.ids==2 and reverse.localOnly)
+        local bound=f.p.Regions.Binding()
+        check("local network binding retains exact graph and identity",bound.graphSHA256==f.catalog.graphSHA256 and bound.mapID==1426 and bound.identity.build==f.identity.build)
+        local previousWindow=f.p.Regions.Stats().windows
+        local _,mode=f.p.Regions.Prepare(f.identity,f.position,f.destination,true)
+        check("switching to endpoint mode does not reuse a dense window",mode~="ready" and f.p.Regions.Stats().windows>=previousWindow)
+        f.p.Regions.Retry()
+        packet=prepare(f);assert(ingest(f,packet));assert(f.p.Regions.Accept(packet.token))
         local windows,calls=f.p.Regions.Stats().windows,f.totalCalls
         local _,nearby=f.p.Regions.Prepare(f.identity,f.position,{mapID=1426,x=.95,y=.99})
         check("nearby changed goal reuses accepted terrain window",nearby=="ready"

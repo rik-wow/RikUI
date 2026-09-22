@@ -96,7 +96,7 @@ for frame=1,maxFrames do
     end
 end
 local stats=p.Terrain.Stats()
-print(string.format("COLD quest%d: first route frame %s; %d/%d route frames; %d loading frames; %d windows; %d destination changes; %d plans; CPU total/max %.3f/%.3fms",
+print(string.format("COLD quest%d: first route frame %s; %d/%d route frames; %d loading frames; %d windows; %d destination changes; %d plans; host callback time total/max %.3f/%.3fms",
     questID,tostring(firstRoute),routeFrames,maxFrames,loadFrames,p.Regions.Stats().windows,changed,stats.plans,total,peak))
 assert(firstRoute and firstRoute<=600,"cold route did not prepare within 12 simulated seconds")
 assert(p.Regions.Stats().windows<=4,"terrain window repeatedly rebuilt while stationary")

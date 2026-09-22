@@ -5,6 +5,7 @@ planner.Journal = journal
 local LIMIT = 48
 local entries, dropped, dialog = {}, 0, nil
 local turnIns={}
+local currentOffers
 function journal.TurnedIn(id,identity)
     local seen=turnIns[id]
     return seen and identity and seen.product==identity.product and seen.build==identity.build and seen.locale==identity.locale or false
@@ -52,14 +53,20 @@ local function questEvent(event,snapshot,id,xp,money)
     append(row)
 end
 function journal.Record(event, snapshot, ...)
-    if event=="QUEST_FINISHED" or event=="GOSSIP_CLOSED" then dialog=nil; return end
+    if event=="QUEST_FINISHED" or event=="GOSSIP_CLOSED" or event=="PLAYER_ENTERING_WORLD" or event=="PLAYER_LEAVING_WORLD" then
+        dialog=nil;currentOffers=nil;return
+    end
     if event=="GOSSIP_SHOW" then
-        dialog=nil
+        dialog=nil;currentOffers=nil
         local observed=planner.Gossip and snapshot and planner.Gossip.Read(snapshot.identity)
-        if observed then append(observed) end
+        if observed then
+            append(observed)
+            if observed.offeredStatus and observed.offeredStatus.state=="observed" then currentOffers=observed end
+        end
         return
     end
     if event=="QUEST_DETAIL" or event=="QUEST_PROGRESS" or event=="QUEST_COMPLETE" then
+        currentOffers=nil
         dialog=planner.Context.Dialog(event)
         if dialog then
             if snapshot and schema.Identity(snapshot.identity) then dialog.identity=snapshot.identity end
@@ -70,6 +77,7 @@ function journal.Record(event, snapshot, ...)
         return
     end
     if event=="QUEST_TURNED_IN" or event=="QUEST_ACCEPTED" or event=="QUEST_REMOVED" then
+        currentOffers=nil
         questEvent(event,snapshot,...)
         if event=="QUEST_TURNED_IN" then dialog=nil end
     end
@@ -142,6 +150,21 @@ function journal.SnapshotChanged(snapshot,previous)
     recordChange("observed-quest-removed",removed,snapshot,"absent-from-complete-current-log")
 end
 function journal.Dialog() return schema.Clone(dialog) end
+function journal.Offers(identity,now)
+    local result={}
+    local source=currentOffers or dialog and dialog.event=="QUEST_DETAIL" and dialog
+    if not source or not source.identity or not identity or source.identity.product~=identity.product
+        or source.identity.build~=identity.build or source.identity.locale~=identity.locale
+        or not schema.Number(now,0,2147483647) or not schema.Number(source.observedAt,0,2147483647)
+        or now<source.observedAt or now-source.observedAt>120 then return result end
+    local function add(id)
+        if schema.ID(id) then result[id]={offered=true,npcID=source.npcID,observedAt=source.observedAt} end
+    end
+    if currentOffers then
+        for index,row in ipairs(currentOffers.offered or {}) do if index>32 then break end;add(row.questID) end
+    else add(source.questID) end
+    return result
+end
 function journal.Export() return {entries=schema.Clone(entries),dropped=dropped,scope="session-only"} end
 local LOG_EVENTS={["initial-observation"]="initial log",["newly-observed"]="new quest observed",
     ["observed-progress"]="objective progress",["observed-objective-reduction"]="objective counters reduced",

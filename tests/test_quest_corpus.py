@@ -39,6 +39,29 @@ class CorpusTests(unittest.TestCase):
         records = compiler.compile()
         return compiler, records
 
+    def test_event_memberships_cover_ordinary_categories_and_all_personas(self):
+        _, records = self.compile()
+        variant = copy.deepcopy(records[1]["base"])
+        records[1]["variants"]["Horde:MAGE"] = variant
+        events = {"revision": corpus.EVENT_PIN, "quests": {
+            1: {"key": "ExampleEvent", "source": "pinned.lua", "line": 7}}}
+        self.assertEqual(corpus.apply_event_memberships(records, events), 1)
+        for quest in (records[1]["base"], variant):
+            self.assertEqual(quest["zoneOrSort"], 12)
+            self.assertEqual(quest["planning"]["seasonalEvent"], "ExampleEvent")
+            self.assertEqual(quest["planning"]["seasonalProvenance"]["revision"], corpus.EVENT_PIN)
+        inputs = ("source", "compiler", None, None, corpus.IDENTITY, 128)
+        self.assertNotEqual(corpus.corpus_revision(*inputs), corpus.corpus_revision(*inputs, event_hash="holiday-input"))
+        self.assertNotEqual(corpus.corpus_revision(*inputs, event_hash="one"), corpus.corpus_revision(*inputs, event_hash="two"))
+
+    def test_seasonal_categories_do_not_confuse_script_or_profession_requirements(self):
+        for category in corpus.SEASONAL_SORTS:
+            plan = corpus.planning_rules({"zoneOrSort": category}, {})
+            self.assertEqual(plan["seasonalCategory"], category)
+        for category in (-284, -161, -81, 1537):
+            plan = corpus.planning_rules({"zoneOrSort": category, "specialFlags": 2}, {})
+            self.assertIsNone(plan["seasonalCategory"])
+
     def test_typed_planner_rules_preserve_optional_and_exclusive_semantics(self):
         data = fixture()
         row = data["base"]["quests"]["1"]

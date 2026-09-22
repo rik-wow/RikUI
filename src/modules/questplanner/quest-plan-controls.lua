@@ -81,6 +81,7 @@ local function create()
     button(window,"Reset learned times",460,-472,202,function() command("reset-learning") end)
     button(window,"Start / stop waiting",16,-502,206,function() command("waiting") end)
     button(window,"Start / stop recovery",238,-502,206,function() command("recovery") end)
+    button(window,"Retry action",460,-502,202,function() command("retry-action") end)
     window.note=label(window,"",16,-540,640);window.note:SetHeight(70)
     if type(UISpecialFrames)=="table" then table.insert(UISpecialFrames,"RikUIQuestPlannerPreferences") end
     controls.Window=window

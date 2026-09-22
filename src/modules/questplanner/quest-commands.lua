@@ -94,6 +94,7 @@ function planner.Command(arguments)
     elseif verb=="defer" or verb=="quest-goal" or verb=="zone-goal" then
         local names={defer="defers",["quest-goal"]="questGoals",["zone-goal"]="zoneGoals"}
         ok,reason=controller.Toggle(names[verb],tonumber(value))
+    elseif verb=="retry-action" then ok,reason=controller.Feedback("retry")
     elseif verb=="waiting" or verb=="recovery" or verb=="unavailable" or verb=="reset-learning" or verb=="reset-history" then
         ok,reason=controller.Feedback(verb)
     elseif verb=="decline-exploration" then ok,reason=controller.Preference("explorationMinutes",0)

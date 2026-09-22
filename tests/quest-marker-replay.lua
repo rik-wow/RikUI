@@ -61,7 +61,7 @@ while p.Terrain.Status().status=="loading" do
     loadPeak=math.max(loadPeak,spent);loadCPU=loadCPU+spent;loadFrames=loadFrames+1
     assert(loadFrames<=math.ceil(meta.counts.polygons*2/32)+2,"loader exceeded work bound")
 end
-print(string.format("Production loader: %d headless frames, %.3f ms CPU, peak %.3f ms; native unverified",loadFrames,loadCPU,loadPeak))
+print(string.format("Production loader: %d headless frames, %.3f ms host time, peak %.3f ms; native unverified",loadFrames,loadCPU,loadPeak))
 if arg[10] then assert(loadFrames<=assert(tonumber(arg[10])),"preparation frame budget exceeded") end
 assert(p.Terrain.Status().status~="invalid","terrain did not load")
 local function runtimeReplay(start,questID,destination,archived)

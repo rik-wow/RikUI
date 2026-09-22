@@ -395,6 +395,23 @@ end
 local function publish(data)
     return {
         Revision=function() return data.meta.revision end,
+        BeginAttachments=function(_,start,goal,graph)
+            local first,why=locate(data,start)
+            if not first then return nil,why end
+            local last,problem=locate(data,goal)
+            if not last then return nil,problem end
+            return planner.NavAttach.Begin(data,first,last,graph)
+        end,
+        PathVertex=function(_,id)
+            local value=data.polygons[id]
+            if value then return {id=id,center=schema.Clone(value.center),points=schema.Clone(value.points)} end
+        end,
+        PathPortal=function(_,from,to)
+            local value=data.polygons[from]
+            for _,portal in ipairs(value and value.portals or {}) do
+                if portal.to==to then return schema.Clone(portal) end
+            end
+        end,
         Metadata=function() return schema.Clone(data.meta) end,
         Locate=function(_,point) return locate(data,point) end,
         MarkerFloors=function(_,point)

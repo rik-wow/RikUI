@@ -3,6 +3,10 @@ local planner=RikUI.QuestPlanner
 local schema,graphModel=planner.Schema,{}
 planner.PlanGraph=graphModel
 local MAX_QUESTS,MAX_ACTIONS,MAX_METHODS,MAX_AREAS=96,768,6,12
+-- QuestieDB baa0998d src/corrections/enum/constants.lua; categories, not quest IDs.
+-- Retain this check for installed corpus pages compiled before availability metadata.
+local SEASONAL_SORTS={[-21]=true,[-22]=true,[-41]=true,[-364]=true,[-366]=true,
+    [-369]=true,[-370]=true,[-374]=true,[-375]=true,[-376]=true,[-378]=true,[-402]=true,[-404]=true}
 local VERBS={kill="Defeat",drop="Collect from",loot="Loot",talk="Talk to",interact="Interact with",
     ["use-item"]="Use the quest item at",explore="Explore",escort="Escort",defend="Defend",
     deliver="Deliver to",craft="Craft",vendor="Purchase from",herb="Gather",mine="Mine",fish="Fish at",
@@ -36,7 +40,8 @@ local function nearestAreas(method,state,policy)
     return areas
 end
 local function append(graph,action)
-    if #graph.actions>=MAX_ACTIONS then graph.limited=true;return end
+    local reserve=graph.previousID and action.id~=graph.previousID and not graph.byID[graph.previousID] and 1 or 0
+    if #graph.actions>=MAX_ACTIONS-reserve then graph.limited=true;return end
     if graph.byID[action.id] then return end
     graph.actions[#graph.actions+1],graph.byID[action.id]=action,action
     graph.byQuest[action.questID]=graph.byQuest[action.questID] or {}
@@ -51,6 +56,7 @@ local function baseAction(record,kind,key)
         forbiddenAfter=kind=="pickup" and rules.forbiddenAfter or nil,
         activeBreadcrumbs=rules.activeBreadcrumbs,blockedWhileActive=rules.blockedWhileActive,breadcrumbFor=rules.breadcrumbFor,
         unsupportedRequirements=kind=="pickup" and rules.unsupportedRequirements or nil,
+        seasonal=kind=="pickup" and (rules.seasonalCategory~=nil or rules.seasonalEvent~=nil or SEASONAL_SORTS[record.zoneOrSort]) or nil,
         repeatable=rules.repeatable,reset=rules.reset,authority="reference",
         provenance=record.provenance,sourceRevision=record.provenance and record.provenance.revision,
         level=record.eligibility and record.eligibility.questLevel,minLevel=record.eligibility and record.eligibility.requiredLevel,
@@ -78,30 +84,32 @@ local function relationship(graph,record,kind,state,policy)
     for n,method in ipairs(methods or {}) do
         if n>MAX_METHODS then break end
         for index,area in ipairs(nearestAreas(method,state,policy)) do
-            if index>2 then break end
-            local action=baseAction(record,kind,n..":"..tostring(area.id or (area.x..","..area.y)))
-            locate(action,method,area)
-            action.instruction=(kind=="pickup" and "Check for "..record.title.." with " or "Turn in "..record.title.." to ")..(method.name or "the quest giver")
-            if kind=="pickup" then
-                action.gains=record.providedItemID and {{itemID=record.providedItemID,count=1,source=true}} or nil
-                action.initialProgress={}
-                for _,objective in ipairs(record.objectives or {}) do
-                    action.initialProgress[objective.id]=objective.required or -1
-                end
-                action.availability="source-suggestion"
-            else
-                action.reward=record.reward;action.consumes={};action.unknownConsumeItems={}
-                for _,objective in ipairs(record.objectives or {}) do
-                    local info=state.objectiveInfo[record.id] and state.objectiveInfo[record.id][objective.id]
-                    if objective.type=="item" then
-                        local required=info and info.required or objective.required
-                        if required then action.consumes[#action.consumes+1]={itemID=objective.targetID,count=required}
-                        else action.unknownConsumeItems[#action.unknownConsumeItems+1]=objective.targetID end
+            local key=n..":"..tostring(area.id or (area.x..","..area.y))
+            if index<=2 or graph.previousID==record.id..":"..kind..":"..key then
+                local action=baseAction(record,kind,key)
+                locate(action,method,area)
+                action.instruction=(kind=="pickup" and "Check for "..record.title.." with " or "Turn in "..record.title.." to ")..(method.name or "the quest giver")
+                if kind=="pickup" then
+                    action.gains=record.providedItemID and {{itemID=record.providedItemID,count=1,source=true}} or nil
+                    action.initialProgress={}
+                    for _,objective in ipairs(record.objectives or {}) do
+                        action.initialProgress[objective.id]=objective.required or -1
+                    end
+                    action.availability="source-suggestion"
+                else
+                    action.reward=record.reward;action.consumes={};action.unknownConsumeItems={}
+                    for _,objective in ipairs(record.objectives or {}) do
+                        local info=state.objectiveInfo[record.id] and state.objectiveInfo[record.id][objective.id]
+                        if objective.type=="item" then
+                            local required=info and info.required or objective.required
+                            if required then action.consumes[#action.consumes+1]={itemID=objective.targetID,count=required}
+                            else action.unknownConsumeItems[#action.unknownConsumeItems+1]=objective.targetID end
+                        end
                     end
                 end
+                if planner.PlanRewards then planner.PlanRewards.Attach(action,record,state,policy) end
+                append(graph,action);added=added+1
             end
-            if planner.PlanRewards then planner.PlanRewards.Attach(action,record,state,policy) end
-            append(graph,action);added=added+1
         end
     end
     if added==0 then graph.excluded[#graph.excluded+1]={questID=record.id,kind=kind,reason="No supported location; live instructions retained"} end
@@ -124,7 +132,10 @@ local function objectiveAction(record,objective,method,area,state,key)
         action.instruction=action.instruction.."; open the collected container and check its contents"
         action.mechanicUncertain=true
     end
-    if objective.sourceItemID then action.preconditions={{op="item",itemID=objective.sourceItemID,count=1}} end
+    if objective.sourceItemID then
+        action.preconditions={{op="item",itemID=objective.sourceItemID,count=1}}
+        if method.kind=="use-item" then action.cooldownKey="item:"..objective.sourceItemID end
+    end
     if objective.type=="item" and action.count then
         action.gains={{itemID=objective.targetID,count=action.count}}
         action.itemID=objective.targetID
@@ -142,9 +153,11 @@ local function objectives(graph,record,state,policy)
         for n,method in ipairs(objective.methods or {}) do
             if n>MAX_METHODS then break end
             for index,area in ipairs(nearestAreas(method,state,policy)) do
-                if index>2 then break end
-                append(graph,objectiveAction(record,objective,method,area,state,objective.id..":"..n..":"..tostring(area.id or (area.x..","..area.y))))
-                made=made+1
+                local key=objective.id..":"..n..":"..tostring(area.id or (area.x..","..area.y))
+                if index<=2 or graph.previousID==record.id..":objective:"..key then
+                    append(graph,objectiveAction(record,objective,method,area,state,key))
+                    made=made+1
+                end
             end
         end
         if made==0 then graph.excluded[#graph.excluded+1]={questID=record.id,objective=objective.id,reason="Objective mechanic/location unresolved"} end
@@ -203,6 +216,13 @@ local function finalize(graph,state,policy)
         end
     end
     for _,action in ipairs(graph.actions) do if action.sharedCredit then action.credits=credits[action.sharedCredit] end end
+    for _,offer in ipairs(state.explorationOffers or {}) do
+        if offer.supported and offer.discoveryNode and offer.destination and usable(offer.destination,state,policy) then
+            append(graph,schema.Clone(offer))
+        end
+    end
+    -- A future quest trigger is not an exploration attraction.
+    -- Quest exploration stays attached to its actual eligibility and live objectives.
     for index,service in ipairs(state.services or {}) do
         if index>16 then break end
         if service.supported==true and schema.Text(service.id) and service.destination and usable(service.destination,state,policy) then
@@ -216,10 +236,11 @@ local function finalize(graph,state,policy)
         end
     end
 end
-function graphModel.Begin(state,records,observed,policy)
+function graphModel.Begin(state,records,observed,policy,previousID)
     if not state or not state.fresh then return nil,"Live state required" end
     local graph={version=1,identity=state.identity,revision=state.sourceRevision,actions={},byID={},byQuest={},quests={},
-        excluded={},coverage={semantic=0,future=0,liveOnly=0},limited=false}
+        excluded={},coverage={semantic=0,future=0,liveOnly=0},limited=false,
+        previousID=schema.Text(previousID) and #previousID<=160 and previousID or nil}
     local ids,seen,rows={},{},{}
     for id in pairs(state.live) do ids[#ids+1]=id;seen[id]=true end
     table.sort(ids)

@@ -19,12 +19,14 @@ def unpack(fmt,data,offset=0):
     return struct.unpack_from(fmt,data,offset)
 
 
-def table(data):
+def table(data,repeated=()):
     result={}; inventory=[]
     for tag,a,b in t.chunks(data):
         inventory.append(dict(tag=tag,bytes=b-a))
-        if tag in result: t.fail('WMO-duplicate-chunk:'+tag)
-        result[tag]=data[a:b]
+        if tag in result and tag not in repeated:t.fail('WMO-duplicate-chunk:'+tag)
+        # Repeated UV/color layers do not participate in this collision parser;
+        # preserve every layer's framing in inventory and validate each below.
+        if tag not in result:result[tag]=data[a:b]
     return result,inventory
 
 
@@ -50,10 +52,18 @@ def root(data):
     if len(h)!=64:t.fail('WMO-MOHD-size')
     group_count=unpack('<I',h,4)[0];doodad_count=unpack('<I',h,20)[0];set_count=unpack('<I',h,24)[0]
     if not 0<group_count<=512 or set_count>256:t.fail('WMO-root-cap')
-    groups=require(parts,'GFID',4)
-    if len(groups)!=group_count*4:t.fail('WMO-LOD-or-group-count')
-    groups=list(unpack('<'+'I'*group_count,groups))
+    # GFID is groupCount-sized blocks, base first then progressively coarser LODs.
+    # Pinned wow.export WMOExporter 1253-1272 and TrinityCore wmo.cpp 129-152
+    # independently use this ordering. MGI2's opaque fields are not used here.
+    group_data=require(parts,'GFID',4)
+    rootflags,lod=unpack('<2H',h,60)
+    if lod>8 or len(group_data)!=group_count*max(1,lod)*4:t.fail('WMO-LOD-or-group-count')
+    group_slots=list(unpack('<'+'I'*(len(group_data)//4),group_data))
+    groups=group_slots[:group_count]
     if not all(groups) or len(set(groups))!=len(groups):t.fail('WMO-group-reference')
+    tail=group_slots[group_count:]
+    # Null tail slots are absent LODs; base slots may never be substituted from them.
+    if set(groups).intersection(value for value in tail if value):t.fail('WMO-base-LOD-alias')
     if len(require(parts,'MOGI',32))!=group_count*32:t.fail('WMO-MOGI-count')
     sets_data=require(parts,'MODS',32)
     if len(sets_data)!=set_count*32:t.fail('WMO-set-count')
@@ -80,9 +90,22 @@ def root(data):
         doodads.append(dict(reference=references[offset],referenceIndex=offset,flags=flags,position=pos,rotation=quat,scale=scale))
     rootflags,lod=unpack('<2H',h,60)
     finite(unpack('<6f',h,36))
-    known={'MVER','MOHD','MOMT','MOGN','MOGI','MOSB','MOPV','MOPT','MOPR','MOVV','MOVB','MOLT','MODS','MODD','MFOG','GFID','MODI'}
+    # Versioned appearance records independently typed by the primary loaders.
+    # They are not static collision geometry; keep their sizes in source audit.
+    render_metadata={}
+    for tag,stride in (('MDDI',4),('MAVG',48),('MFED',16),('MNLD',184),('MOLV',100),('MOSI',4)):
+        if tag not in parts:continue
+        payload=require(parts,tag,stride)
+        if tag=='MDDI':
+            if len(payload)!=actual_doodad_count*4:t.fail('WMO-MDDI-count')
+            finite(unpack('<'+'f'*(len(payload)//4),payload))
+        if tag=='MFED' and payload and len(payload)//16!=len(require(parts,'MFOG',48))//48:t.fail('WMO-MFED-count')
+        if tag=='MOSI' and len(payload)!=4:t.fail('WMO-MOSI-size')
+        render_metadata[tag]=dict(bytes=len(payload),records=len(payload)//stride)
+    known={'MDDI','MAVG','MFED','MNLD','MOLV','MOSI','MVER','MOHD','MOMT','MOGN','MOGI','MOSB','MOPV','MOPT','MOPR','MOVV','MOVB','MOLT','MODS','MODD','MFOG','GFID','MODI'}
     unknown=sorted(set(parts)-known)
-    return dict(groups=groups,sets=sets,doodads=doodads,inventory=inventory,flags=rootflags,lod=lod,unknownChunks=unknown,advertisedDoodadCount=doodad_count,framedDoodadCount=actual_doodad_count)
+    return dict(groups=groups,groupCount=group_count,groupSlots=group_slots,lodGroupSlots=tail,
+        groupSelection='first-groupCount-base-slots',renderMetadata=render_metadata,sets=sets,doodads=doodads,inventory=inventory,flags=rootflags,lod=lod,unknownChunks=unknown,advertisedDoodadCount=doodad_count,framedDoodadCount=actual_doodad_count)
 
 
 def collision_face(flags):
@@ -96,15 +119,37 @@ def group(data,root_flags=None):
     raw=require(parts,'MOGP')
     if len(raw)<68:t.fail('WMO-MOGP-header')
     flags=unpack('<I',raw,8)[0];liquid=unpack('<I',raw,52)[0];flags2=unpack('<I',raw,60)[0]
-    sub,subs=table(raw[68:]);verts=require(sub,'MOVT',12);inds=require(sub,'MOVI',6);mopy=require(sub,'MOPY',2)
+    if flags&0x400:t.fail('WMO-LOD-group-not-base-collision')
+    sub,subs=table(raw[68:],('MOTV','MOCV'));verts=require(sub,'MOVT',12);inds=require(sub,'MOVI',6)
+    # Preserve 8-bit MOPY behavior; MPY2 widens both fields, not just material.
+    # Reject coexistence rather than guess precedence or silently truncate flags.
+    if ('MOPY' in sub)==('MPY2' in sub):t.fail('WMO-triangle-metadata-choice')
+    metadata='MPY2' if 'MPY2' in sub else 'MOPY';stride=4 if metadata=='MPY2' else 2
+    material_data=require(sub,metadata,stride)
     nv=len(verts)//12;nt=len(inds)//6
-    if nv>65536 or nt>100000 or len(mopy)!=nt*2:t.fail('WMO-geometry-count')
+    if nv>65536 or nt>100000 or len(material_data)!=nt*stride:t.fail('WMO-geometry-count')
+    render_layers=collections.Counter()
+    for entry in subs:
+        tag=entry['tag']
+        if tag in ('MOTV','MOCV'):
+            render_layers[tag]+=1
+            if entry['bytes']!=nv*(8 if tag=='MOTV' else 4):t.fail('WMO-render-array-count:'+tag)
+    if render_layers['MOTV']>4 or render_layers['MOCV']>2:t.fail('WMO-render-layer-cap')
+    # Primary readers identify these as color, fog/light references and point
+    # lights. Their framing is validated; none changes triangle selection.
+    if 'MDAL' in sub and len(sub['MDAL'])!=4:t.fail('WMO-MDAL-size')
+    for tag in ('MNLR','MFVR'):
+        if tag in sub:require(sub,tag,2)
+    if 'MOLP' in sub:
+        lights=require(sub,'MOLP',44)
+        for at in range(0,len(lights),44):finite(unpack('<9f',lights,at+8))
     positions=list(unpack('<'+'f'*(nv*3),verts));finite(positions)
     allindices=list(unpack('<'+'H'*(nt*3),inds))
     if any(i>=nv for i in allindices):t.fail('WMO-vertex-index')
-    indices=[];faceflags=collections.Counter();material255=0
+    indices=[];faceflags=collections.Counter();materials=collections.Counter();material255=0
     for i in range(nt):
-        f,material=mopy[2*i:2*i+2];faceflags[f]+=1
+        f,material=unpack('<HH' if metadata=='MPY2' else '<BB',material_data,stride*i)
+        faceflags[f]+=1;materials[material]+=1
         if collision_face(f):
             indices.extend(allindices[i*3:i*3+3]);material255+=material==255
     unsupported=[]
@@ -115,12 +160,13 @@ def group(data,root_flags=None):
     # Unknown root semantics never establish absence. MLIQ/has-liquid still wins.
     absent=root_flags is not None and liquid==(0 if root_flags&4 else 15)
     if 'MLIQ' in sub or flags&0x1000 or not absent:unsupported.append('WMO-liquid-not-modeled')
-    known={'MOPY','MOVI','MOVT','MONR','MOTV','MOBA','MOBS','MOLR','MODR','MOBN','MOBR','MOCV'}
+    known={'MDAL','MNLR','MFVR','MOLP','MOPY','MPY2','MOVI','MOVT','MONR','MOTV','MOBA','MOBS','MOLR','MODR','MOBN','MOBR','MOCV'}
     unsupported.extend('unknown-group-chunk:'+tag for tag in sorted(set(sub)-known))
     if set(parts)!={'MVER','MOGP'}:unsupported.append('unknown-group-top-level-chunk')
     doodad_refs=require(sub,'MODR',2) if 'MODR' in sub else b''
     return dict(positions=positions,indices=indices,flags=flags,flags2=flags2,liquidType=liquid,liquidRootFlags=root_flags,
-        inventory=inventory,subchunks=subs,faceFlags=dict(faceflags),sourceTriangles=nt,
+        inventory=inventory,subchunks=subs,triangleMetadata=metadata,faceFlags=dict(faceflags),
+        materialCounts=dict(materials),renderLayers=dict(render_layers),sourceTriangles=nt,
         collisionTriangles=len(indices)//3,collisionOnlyMaterialTriangles=material255,
         unsupported=unsupported,doodadReferences=list(unpack('<'+'H'*(len(doodad_refs)//2),doodad_refs)))
 
@@ -289,7 +335,7 @@ def build(geometry_path,directory,recursive_path):
                 counts['unsupportedDoodadInstances']+=1
                 continue
             if model.get('profile'):counts['demonstratedEmpty274Instances']+=1
-            extra=[tag for tag in model['chunks'] if tag in ('PFID','PHY2','PCOL')]
+            extra=[tag for tag in model['chunks'] if tag in ('PFID','PFDC','PHY2','PCOL')]
             unsupported.extend(dict(placementID=uid,fileDataID=did,doodadIndex=idx,reason='extra-model-physics:'+tag) for tag in extra)
             if not model['indices']:
                 counts['doodadsWithoutStaticCollision']+=1;continue
@@ -319,7 +365,8 @@ def build(geometry_path,directory,recursive_path):
         coverage=dict(staticWMO=not unsupported,selectedDoodads=not unsupported,framedSelectedStaticDecoded=not unsupported,allGroupDoodadRefsInRange=True,liquids=('present-and-unmodeled-in-selected-WMO-groups' if any(v['reason']=='WMO-liquid-not-modeled' for v in unsupported) else 'no-encoded-liquids-and-no-effective-WMO-liquid-types'),
             transformsNativeVerified=False,dynamicObjects=False,phaseState=False),
         audit=dict(placements=audit,counts=dict(counts),unsupported=unsupported,headerCountNotes=countNotes,
-            roots=[dict(fileDataID=i,groups=r['groups'],sets=r['sets'],flags=r['flags'],chunks=r['inventory'],advertisedDoodadCount=r['advertisedDoodadCount'],framedDoodadCount=r['framedDoodadCount']) for i,r in roots.items()],
+            roots=[dict(fileDataID=i,groups=r['groups'],groupCount=r['groupCount'],groupSlots=r['groupSlots'],
+                lodGroupSlots=r['lodGroupSlots'],groupSelection=r['groupSelection'],renderMetadata=r['renderMetadata'],sets=r['sets'],flags=r['flags'],chunks=r['inventory'],advertisedDoodadCount=r['advertisedDoodadCount'],framedDoodadCount=r['framedDoodadCount']) for i,r in roots.items()],
             groups=[dict(fileDataID=i,**{k:v for k,v in g.items() if k not in ('positions','indices')}) for i,g in groups.items()]),
         limitations=['Static collision interpretation is an offline derived candidate, not verified Forever client traversal.',
             'Doodad sets include the default set and selected MODF set; dynamic doors, gameobjects and phasing remain unknown.',

@@ -115,7 +115,10 @@ return function(check)
             pref=p.Preferences.Normalize({flavor=flavor,readingSeconds=0,strictSession=true});pref.maxSeconds=120
             g=graph(records,s,pref,{[base]=98,[other]=harder and 108 or 103})
             for _,action in ipairs(g.actions) do
-                if action.kind=="objective" then action.encounter={minLevel=action.questID==base and 10 or harder and 12 or 8};action.rank=0 end
+                if action.kind=="objective" then
+                    action.encounter={minLevel=action.questID==base and 10 or harder and 12 or 8};action.rank=0
+                    for sample=1,3 do p.PlanLearning.Observe("combat",p.PlanCosts.Context(action,s),10,1) end
+                end
             end
             result=run(g,s,pref)
             local expected=(flavor=="Relaxed" or flavor=="Challenge") and other or base
@@ -125,6 +128,59 @@ return function(check)
                 check("unknown capability earns no Challenge fit claim",unknown.actions[1].questID==base)
             end
         end
+
+
+
+        -- An inaccessible future exploration trigger is not a standalone attraction.
+        records={[501]=source(501,0,100),[502]=source(502,.005,0,503)}
+        records[502].objectives[1].methods[1].kind="explore"
+        s=initial({501,502,503});s.visited[1]=true
+        for _,flavor in ipairs({"Balanced","Efficient","Story","Explorer","Relaxed","Challenge"}) do
+            pref=p.Preferences.Normalize({flavor=flavor,readingSeconds=0,strictSession=true});pref.maxSeconds=120
+            g=graph(records,s,pref,{[501]=98,[502]=1})
+            local fabricated=false
+            for _,a in ipairs(g.actions) do if a.optionalExploration then fabricated=true end end
+            check("no invented exploration attraction "..flavor,not fabricated)
+            result=run(g,s,pref)
+            local unrelated=false
+            for _,a in ipairs(result.actions) do if a.questID==502 then unrelated=true end end
+            check("unavailable exploration quest never sends player to empty point "..flavor,not unrelated and result.xp==100)
+        end
+
+        -- Seasonal source references need an exact currently observed offer, even when pinned.
+        records={[8653]=source(8653,0,100)}
+        records[8653].title="Goldwell the Elder";records[8653].zoneOrSort=-366
+        records[8653].starts[1].targetID=15569
+        for _,flavor in ipairs({"Balanced","Efficient","Story","Explorer","Relaxed","Challenge"}) do
+            s=initial({8653})
+            pref=p.Preferences.Normalize({flavor=flavor,readingSeconds=0});pref.pins[8653]=true
+            g=graph(records,s,pref,{[8653]=1})
+            local pickup
+            for _,a in ipairs(g.actions) do if a.kind=="pickup" then pickup=a;break end end
+            check("Goldwell is seasonal "..flavor,pickup and pickup.seasonal==true)
+            check("seasonal source reference cannot authorize pickup "..flavor,p.PlanTransitions.Check(pickup,s,pref)==nil)
+            result=run(g,s,pref)
+            check("pinned seasonal quest cannot bypass availability "..flavor,#result.actions==0)
+            s.questOffers={[8653]={offered=true,npcID=15569}}
+            check("exact live giver offer permits seasonal pickup "..flavor,p.PlanTransitions.Check(pickup,s,pref)==true)
+            s.questOffers={[8654]={offered=true,npcID=15569}}
+            check("one elder offer does not activate all elders "..flavor,p.PlanTransitions.Check(pickup,s,pref)==nil)
+            s.questOffers={[8653]={offered=true,npcID=999}}
+            check("different giver does not prove source location "..flavor,p.PlanTransitions.Check(pickup,s,pref)==nil)
+            s.active[8653]=true;s.logCount=1;s.objectivesComplete[8653]=true
+            local turnin
+            for _,a in ipairs(g.actions) do if a.kind=="turnin" then turnin=a;break end end
+            check("active seasonal quest is retained "..flavor,p.PlanTransitions.Check(turnin,s,pref)==true)
+        end
+        records[8653].zoneOrSort=-284;records[8653].planning.seasonalEvent="ChildrensWeek"
+        s=initial({8653});g=graph(records,s,pref,{[8653]=1})
+        local pickup
+        for _,a in ipairs(g.actions) do if a.kind=="pickup" then pickup=a;break end end
+        check("membership gates holiday with ordinary category",pickup.seasonal==true)
+        records[8653].planning.seasonalEvent=nil;records[8653].planning.specialFlags=2
+        g=graph(records,s,pref,{[8653]=1})
+        for _,a in ipairs(g.actions) do if a.kind=="pickup" then pickup=a;break end end
+        check("script completion flag is not a holiday",not pickup.seasonal and p.PlanTransitions.Check(pickup,s,pref)==true)
 
         -- R06 signed reputation and explicit non-XP reward preferences.
         records={[401]=source(401,0,100),[402]=source(402,0,100)}

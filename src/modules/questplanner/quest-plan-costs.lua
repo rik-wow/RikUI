@@ -6,6 +6,20 @@ local function valid(value) return schema.Number(value,0,86400) end
 function costs.Reward(action,state)
     if action.kind~="turnin" then
         if action.kind=="objective" and schema.Number(action.confirmedCombatXP,0,2147483647) then return action.confirmedCombatXP,"observed" end
+        if action.kind=="objective" and (action.method=="kill" or action.method=="drop") and planner.PlanLearning then
+            local model=planner.PlanLearning.Estimate("combatXP",costs.Context(action,state))
+            local count=planner.PlanTransitions.Remaining(action,state)
+            if model and schema.Number(count,0,2147483647) then
+                local attempts=count
+                if action.method=="drop" then
+                    local probability=action.dropEstimate and action.dropEstimate.probability
+                    if not schema.Number(probability,.000001,1) then return nil,"combat-effort-unknown" end
+                    attempts=count/probability
+                end
+                return model.mean*attempts,"observed-local-estimate"
+            end
+        end
+        if action.kind=="objective" and (action.method=="kill" or action.method=="drop") then return 0,"combat-xp-unknown" end
         return 0,"not-applicable"
     end
     local live=state.live and state.live[action.questID]
@@ -25,7 +39,8 @@ function costs.Reward(action,state)
 end
 function costs.Context(action,state)
     return table.concat({state.identity.build,state.class or "?",state.level or "?",state.partySize or "?",
-        state.equipmentKey or "?",action.zoneID or "?",action.target and action.target.id or action.questID,action.method or action.kind},":")
+        state.equipmentKey or "?",tostring(state.xpRested),action.zoneID or "?",action.target and action.target.id or action.questID,action.method or action.kind,
+        action.encounter and (action.encounter.minLevel or action.encounter.level) or "?",action.rank or "?"},":")
 end
 local function travel(action,state,environment)
     if not action.destination then return {seconds=0,lower=0,upper=0,status="not-applicable"} end
@@ -111,7 +126,17 @@ function costs.Estimate(action,state,policy,environment)
         add(out,"reading",reading,reading,reading,"preference")
     elseif action.kind=="service" then
         add(out,"service",action.serviceSeconds or 30,10,120,"engineering-prior")
-    elseif action.kind=="explore" then add(out,"exploration",action.exploreSeconds or 120,30,300,"engineering-prior") end
+    elseif action.kind=="explore" then
+        add(out,"exploration",action.exploreSeconds or 30,action.exploreLower or 5,action.exploreUpper or 60,"engineering-prior")
+        if action.optionalExploration then
+            local returnState={position=action.destination,identity=state.identity}
+            local back=travel({destination=state.position},returnState,environment)
+            if back.status=="inaccessible" then return nil,"Optional return route inaccessible" end
+            add(out,"returnTravel",back.seconds or 0,back.lower or 0,back.upper or 120,
+                back.status=="unverified" and "engineering-prior" or back.status)
+            out.travel=out.travel+(back.seconds or 0)
+        end
+    end
     if action.cost and valid(action.cost.seconds) then
         -- Validated observed/authored durations, also used by replay cases.
         out.seconds=out.travel+action.cost.seconds;out.lower=(route.lower or out.travel)+(action.cost.lower or action.cost.seconds)
@@ -120,12 +145,19 @@ function costs.Estimate(action,state,policy,environment)
         out.components.work={seconds=action.cost.seconds,authority=action.cost.authority}
     end
     out.xp,out.xpAuthority=costs.Reward(action,state)
+    out.combatXPUnknown=out.xpAuthority=="combat-xp-unknown" or out.xpAuthority=="combat-effort-unknown"
     out.variance=math.max(0,out.upper-out.lower)
     -- Encounter level is a feature, never sufficient to certify capability.
     local difficulty=action.encounter and (action.encounter.minLevel or action.encounter.level)
     out.difficulty=difficulty and state.level and difficulty-state.level or nil
     out.pressure=out.variance/600+(action.requiredParty and action.requiredParty>1 and 1 or 0)
         +(action.rank and action.rank>0 and 1 or 0)
-    out.capabilityKnown=state.capabilities and state.capabilities.combat~=nil
+    local profile=state.capabilities and state.capabilities.combat
+    out.profileKnown=profile~=nil
+    local experience=action.kind=="objective" and action.method=="kill" and planner.PlanLearning
+        and planner.PlanLearning.Estimate("combat",context)
+    out.capabilityKnown=profile~=nil and type(experience)=="table" and experience.samples>=3
+        and schema.Number(experience.mean,.000001,1200000)
+    out.difficultyAuthority=out.capabilityKnown and "observed-combat-with-level-prior" or "level-prior"
     return out
 end

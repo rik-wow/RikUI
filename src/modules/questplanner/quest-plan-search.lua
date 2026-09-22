@@ -2,7 +2,7 @@
 local planner=RikUI.QuestPlanner
 local schema,search=planner.Schema,{}
 planner.PlanSearch=search
-search.REVISION="adaptive-3"
+search.REVISION="adaptive-7"
 local MAX_WORK,MAX_ACTIONS,MAX_DEPTH,WIDTH=48000,128,64,16
 local function copyList(values)
     local result={};for _,value in ipairs(values or {}) do result[#result+1]=value end;return result
@@ -16,6 +16,7 @@ local function features(node,initial,policy)
     local variety,seen=0,{}
     local previous=initial.recent and initial.recent[#initial.recent]
     local chain,goals,pressure,challenge,work,repetition,breadcrumbs=0,0,0,0,0,0,0
+    local pressureExposures=0
     local priorID
     for index,action in ipairs(node.actions) do
         local activity=action.activity
@@ -32,7 +33,9 @@ local function features(node,initial,policy)
         end
         if action.kind=="objective" then work=work+1 end
         local cost=node.costs[index]
-        pressure=pressure+(cost.pressure or 0)
+        if action.kind~="complete" and not action.optionalExploration then
+            pressure=pressure+(cost.pressure or 0);pressureExposures=pressureExposures+1
+        end
         if cost.difficulty and cost.capabilityKnown then
             local desired=policy.difficulty=="hard" and 2 or policy.difficulty=="easy" and -2 or 0
             challenge=challenge+math.max(0,1-math.abs(cost.difficulty-desired)/5)
@@ -42,17 +45,17 @@ local function features(node,initial,policy)
     local rewardValue=0
     if planner.PlanRewards then for _,action in ipairs(node.actions) do rewardValue=rewardValue+planner.PlanRewards.Value(action,policy) end end
     return {efficiency=efficiency,progress=progress,minutes=minutes,variety=math.min(3,variety),chain=math.min(6,chain),
-        breadcrumbs=math.min(3,breadcrumbs),discoveries=math.min(3,discoveries),goals=goals,pressure=pressure/math.max(1,#node.actions),
+        breadcrumbs=math.min(3,breadcrumbs),discoveries=math.min(3,discoveries),goals=goals,pressure=pressure/math.max(1,pressureExposures),
         challenge=challenge/math.max(1,work),finished=state.finished or 0,work=work,
         conditional=state.conditional==true,unknownXP=state.unknownXP or 0,repetition=math.min(6,repetition),
-        rewardValue=math.max(-8,math.min(8,rewardValue)),pinned=node.actions[1] and policy.pins[node.actions[1].questID] or false}
+        optionalInterest=math.min(3,state.optionalInterest or 0),rewardValue=math.max(-8,math.min(8,rewardValue)),pinned=node.actions[1] and policy.pins[node.actions[1].questID] or false}
 end
 function search.Score(node,initial,policy)
     local f=features(node,initial,policy)
     -- Fixed scales, never normalized to the current candidate set.
     local utility=f.efficiency*100+f.progress*.5+f.finished*.5
         +policy.variety*f.variety*1.5+policy.continuity*(f.chain*3+f.breadcrumbs*6)
-        +policy.discovery*f.discoveries*3+f.goals*3+f.rewardValue*6
+        +policy.discovery*(f.discoveries*3+f.optionalInterest*.75)+f.goals*3+f.rewardValue*6
         -policy.pressure*f.pressure*3+f.challenge*(policy.difficulty=="hard" and 3 or 1)
         -f.repetition*(policy.grind=="low" and .4 or policy.grind=="medium" and .1 or 0)+(f.pinned and 10 or 0)
     if f.finished==0 and f.progress==0 then utility=utility+math.min(2,f.work)*.05 end
@@ -330,12 +333,12 @@ function search.Begin(graph,initial,policy,environment)
         if commitment then
             output.commitment={actions=commitment.actions,costs=commitment.costs,score=commitment.score,features=commitment.features,
                 seconds=commitment.state.elapsed,upperSeconds=commitment.state.upperElapsed,xp=commitment.state.xpGained,
-                unknownXP=commitment.state.unknownXP,conditional=commitment.state.conditional,assumptions=commitment.state.assumptions}
+                unknownXP=commitment.state.unknownXP,unknownCombatXP=commitment.state.unknownCombatXP,conditional=commitment.state.conditional,assumptions=commitment.state.assumptions}
         end
         if best then
             output.actions=best.actions;output.costs=best.costs;output.score=best.score;output.features=best.features
             output.seconds=best.state.elapsed;output.upperSeconds=best.state.upperElapsed
-            output.xp=best.state.xpGained;output.unknownXP=best.state.unknownXP;output.conditional=best.state.conditional
+            output.xp=best.state.xpGained;output.unknownXP=best.state.unknownXP;output.unknownCombatXP=best.state.unknownCombatXP;output.conditional=best.state.conditional
             output.assumptions=best.state.assumptions
             if policy.rewardFocus and policy.rewardFocus~="xp" then output.reason=output.reason.."; prefer "..policy.rewardFocus.." rewards within your detour allowance" end
             if best.features.breadcrumbs>0 then output.reason=output.reason.."; preserve a missable quest step before its follow-up" end

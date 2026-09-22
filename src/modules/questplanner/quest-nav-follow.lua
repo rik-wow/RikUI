@@ -11,7 +11,29 @@ function planner.NavFollow.Begin(mesh,route,floorCount)
         end
         local corridorLookup,projected,suffix={},{},route.suffix or {}
         local display,lastTrim,lastAim,localRoute
-        for at,id in ipairs(route.corridor) do corridorLookup[id]=at;coroutine.yield() end
+        local continuity=route.hybrid and {polygons={}}
+        for at,id in ipairs(route.corridor) do
+            corridorLookup[id]=at
+            if continuity then
+                local polygon=continuity.polygons[id]
+                if not polygon then polygon={id=id,points=route.surfaces[at],portals={}};continuity.polygons[id]=polygon end
+                if route.portals[at] then polygon.portals[#polygon.portals+1]=route.portals[at] end
+            end
+            coroutine.yield()
+        end
+        if continuity then
+            -- Continue only from a previously admitted surface through its
+            -- directed corridor portals. This is never a new XY floor lookup.
+            route.locate=function(point,previous)
+                if not previous or not schema.PlainTable(point) or not schema.Number(point.x,-100000,100000)
+                    or not schema.Number(point.z,-100000,100000) then return end
+                local matches=planner.NavGeometry.FollowSurface(continuity,previous,point,3)
+                if not matches or #matches~=1 then return end
+                local match=matches[1]
+                if point.height~=nil and (not schema.Number(point.height,-100000,100000) or math.abs(match.point[2]-point.height)>1) then return end
+                return match
+            end
+        end
         for at,point in ipairs(route.walkPoints) do projected[at]=mesh:Unproject(point);coroutine.yield() end
         local function localCorridor(location,index)
             if localRoute and localRoute.index==index then return localRoute end

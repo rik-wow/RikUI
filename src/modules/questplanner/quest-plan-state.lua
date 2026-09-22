@@ -90,7 +90,7 @@ local function attributes(state,ctx)
     for _,key in ipairs({"level","xp","xpMax","class","race","faction","logCapacity","questXPMultiplier"}) do state[key]=values[key] end
     state.classMask=schema.Integer(state.class,1,32) and 2^(state.class-1) or nil
     state.raceMask=schema.Integer(state.race,1,32) and 2^(state.race-1) or nil
-    for _,key in ipairs({"partySize","money","bagFree","floor","phase","characterKey","equipmentKey"}) do state[key]=ctx[key] end
+    for _,key in ipairs({"partySize","money","bagFree","floor","phase","characterKey","equipmentKey","xpRested"}) do state[key]=ctx[key] end
     state.reputation=numberMap(ctx.reputation,64,-42000);state.skills=numberMap(ctx.skills,64)
     state.spells=schema.Clone(ctx.spells or {});state.capabilities=schema.Clone(ctx.capabilities or {})
     state.bank=numberMap(ctx.bank,MAX_ITEMS);state.equipped=numberMap(ctx.equipped,MAX_ITEMS)
@@ -113,8 +113,10 @@ function stateModel.Build(snapshot,status,ctx,records,policy)
         completed=completed(snapshot,ctx,records),position=schema.Clone(ctx.position),
         observedAt=ctx.observedAt,elapsed=0,xpGained=0,unknownXP=0,assumptions={},evidence={},
         policy=schema.Clone(policy),bank={},equipped={},conditionalObjectives={},conditionalCompleted={},
-        visited=schema.Clone(ctx.visited or {}),recent=schema.Clone(ctx.recent or {}),failures=schema.Clone(ctx.failures or {}),
-        cooldowns=schema.Clone(ctx.cooldowns or {}),services=schema.Clone(ctx.services or {})}
+        optionalVisits=schema.Clone(ctx.places or {}),visited=schema.Clone(ctx.visited or {}),recent=schema.Clone(ctx.recent or {}),failures=schema.Clone(ctx.failures or {}),
+        questOffers=schema.Clone(ctx.questOffers or {}),
+        cooldowns=schema.Clone(ctx.cooldowns or {}),services=schema.Clone(ctx.services or {}),
+        travel=schema.Clone(ctx.travel or {}),explorationOffers=schema.Clone(ctx.explorationOffers or {})}
     attributes(state,ctx)
     state.inventory,state.inventoryQueries=inventory(ctx,records)
     for _,id in ipairs(snapshot.order) do addLive(state,snapshot,ctx,id) end

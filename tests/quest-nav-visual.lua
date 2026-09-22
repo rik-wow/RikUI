@@ -127,7 +127,7 @@ end
 local uniqueHints=0
 for _ in pairs(hints) do uniqueHints=uniqueHints+1 end
 assert(uniqueHints>1,"actual movement did not change instructions")
-print(string.format("Route display: %d frames, %d distinct instructions, %.3f ms peak headless display CPU",displayFrames,uniqueHints,displayPeak))
+print(string.format("Route display: %d frames, %d distinct instructions, %.3f ms peak headless display time",displayFrames,uniqueHints,displayPeak))
 local function encode(value)
     if type(value)=="number" then assert(value==value and math.abs(value)<math.huge);return string.format("%.12g",value) end
     if type(value)=="boolean" then return tostring(value) end

@@ -51,6 +51,38 @@ return function(check)
         graphJob=assert(p.PlanGraph.Begin(state,{[11]=record},{},preferences));graphJob:Cancel()
         check("graph construction is cancellable",graphJob:Step().status=="cancelled")
 
+        -- Moving past the nearest-area shortlist must not remove a still-valid commitment.
+        method.areas={{id="near-a",mapID=1,x=.21,y=.3},{id="near-b",mapID=1,x=.22,y=.3},
+            {id="committed",mapID=1,x=.9,y=.3}}
+        local function build(records,prior)
+            local job=assert(p.PlanGraph.Begin(state,records,{},preferences,prior))
+            for _=1,100 do local result=job:Step(4);if result then return result end end
+            error("graph failed to finish")
+        end
+        local committed="11:objective:kill:99:1:committed"
+        graph=build({[11]=record},committed)
+        check("valid current area survives nearest two pruning",graph.byID[committed] and #graph.byQuest[11]==6)
+        method.name="Updated live source name"
+        graph=build({[11]=record},committed)
+        check("retained candidate is regenerated from current source",graph.byID[committed].target.name==method.name)
+        method.areas[3].access=false
+        graph=build({[11]=record},committed)
+        check("commitment never bypasses source accessibility",not graph.byID[committed])
+        method.areas[3].access=nil
+        record.ends[1].areas=method.areas
+        graph=build({[11]=record},"11:turnin:1:committed")
+        check("valid current giver survives nearest two pruning",graph.byID["11:turnin:1:committed"]~=nil)
+        local crowded={}
+        for id=1,96 do
+            local row=p.Schema.Clone(record);row.id=id;row.objectives={}
+            for n=1,8 do row.objectives[n]={id="kill:"..n,type="monster",targetID=99,methods={method}} end
+            crowded[id]=row
+        end
+        graph=build(crowded,"96:objective:kill:8:1:committed")
+        check("bounded graph reserves room for current valid candidate",#graph.actions==768 and graph.limited
+            and graph.byID["96:objective:kill:8:1:committed"]~=nil)
+
+
     end)
     RikUI=old
     check("adaptive state fixture completes",ok,err)

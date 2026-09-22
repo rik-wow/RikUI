@@ -38,7 +38,7 @@ function observer.Reset() episode,lastContext,phase=nil,nil,nil end
 function observer.Observe(snapshot,ctx,policy,action)
     local at=ctx.observedAt
     local key=action and planner.PlanCosts.Context(action,{identity=snapshot.identity,class=ctx.attributes.class,
-        level=ctx.attributes.level,partySize=ctx.partySize,equipmentKey=ctx.equipmentKey})
+        level=ctx.attributes.level,partySize=ctx.partySize,equipmentKey=ctx.equipmentKey,xpRested=ctx.xpRested})
     local interrupted=policy.paused or ctx.afk or not at or not action
         or lastContext and (lastContext.characterKey~=ctx.characterKey or lastContext.position and ctx.position
             and lastContext.position.mapID~=ctx.position.mapID)
@@ -82,7 +82,8 @@ function observer.OnEvent(event,...)
     elseif event=="QUEST_FINISHED" or event=="GOSSIP_CLOSED" or event=="LOOT_CLOSED" then
         if phase=="interaction" then phase=nil end
     elseif event=="QUEST_ACCEPTED" or event=="QUEST_TURNED_IN" then
-        if select(1,...)==episode.action.questID then commit(1) end
+        local id=select(event=="QUEST_ACCEPTED" and 2 or 1,...)
+        if id==episode.action.questID then commit(1);observer.Reset() end
     end
 end
 function observer.Feedback(kind)

@@ -105,7 +105,14 @@ src/modules/questplanner/quest-nav-funnel.lua
 src/modules/questplanner/quest-nav-follow.lua
 src/modules/questplanner/quest-nav-search.lua
 src/modules/questplanner/quest-region-codec.lua
+src/modules/questplanner/quest-path-codec.lua
+src/modules/questplanner/quest-path-graph.lua
+src/modules/questplanner/quest-path-search.lua
+src/modules/questplanner/quest-paths.lua
+src/modules/questplanner/quest-path-route.lua
+src/modules/questplanner/quest-path-navigate.lua
 src/modules/questplanner/quest-regions.lua
+src/modules/questplanner/quest-nav-attach.lua
 src/modules/questplanner/quest-navmesh.lua
 src/modules/questplanner/quest-context.lua
 src/modules/questplanner/quest-enrichment.lua
@@ -132,7 +139,9 @@ src/modules/questplanner/quest-plan-costs.lua
 src/modules/questplanner/quest-plan-search.lua
 src/modules/questplanner/quest-bag-scan.lua
 src/modules/questplanner/quest-plan-services.lua
+src/modules/questplanner/quest-plan-travel.lua
 src/modules/questplanner/quest-plan-context.lua
+src/modules/questplanner/quest-plan-xp.lua
 src/modules/questplanner/quest-plan-observer.lua
 src/modules/questplanner/quest-plan-runtime.lua
 src/modules/questplanner/quest-controller.lua
