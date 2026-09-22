@@ -57,6 +57,20 @@ def identity(value):need(value==IDENTITY,'unsupported-product-build-locale')
 def carve_aabb(points,rect):
     xs=[p[0] for p in points];zs=[p[2] for p in points]
     return max(xs)>=rect[0] and min(xs)<=rect[2] and max(zs)>=rect[1] and min(zs)<=rect[3]
+def exclusion_index(rectangles):
+    cells={}
+    for rect in rectangles:
+        for x in range(math.floor(rect[0]/64),math.floor(rect[2]/64)+1):
+            for z in range(math.floor(rect[1]/64),math.floor(rect[3]/64)+1):cells.setdefault((x,z),[]).append(rect)
+    def near(points):
+        xs=[p[0] for p in points];zs=[p[2] for p in points];seen=set()
+        for x in range(math.floor(min(xs)/64),math.floor(max(xs)/64)+1):
+            for z in range(math.floor(min(zs)/64),math.floor(max(zs)/64)+1):
+                for rect in cells.get((x,z),[]):
+                    key=tuple(rect)
+                    if key not in seen:seen.add(key);yield rect
+    return near
+
 def polygon(row,exclusions,region_bounds):
     row=obj(row,'polygon');need(set(row)=={'id','points','portals','center'},'unsupported-polygon-fields')
     ident=integer(row.get('id'),1,2147483647,'polygon-ID');pts=array(row.get('points'),6,'polygon-points');need(len(pts)>=3,'polygon-too-small')
@@ -72,7 +86,7 @@ def polygon(row,exclusions,region_bounds):
     for i,a in enumerate(pts):
         b=pts[(i+1)%len(pts)]
         need(all(((b[0]-a[0])*(v[2]-a[2])-(b[2]-a[2])*(v[0]-a[0]))*orientation>=-1e-5 for v in pts),'nonconvex-or-self-intersecting-polygon')
-    need(not any(carve_aabb(pts,r) for r in exclusions),'polygon-touches-exclusion');portals=[];targets=set()
+    need(not any(carve_aabb(pts,r) for r in (exclusions(pts) if callable(exclusions) else exclusions)),'polygon-touches-exclusion');portals=[];targets=set()
     for portal in array(row.get('portals'),32,'polygon-portals'):
         portal=obj(portal,'portal');need(set(portal)=={'to','left','right','meters'},'unsupported-portal-fields')
         target=integer(portal.get('to'),1,2147483647,'portal-target');need(target!=ident and target not in targets,'self-or-duplicate-portal');targets.add(target)
@@ -110,9 +124,11 @@ def portal_heights(portal,source,target,modeled_max_step):
         need(source_error<=.002 and target_error<=.01,'portal-not-on-both-boundaries')
         need(abs(point[1]-source_y)<=.002,'portal-height-disagrees-with-source-edge')
         need(abs(source_y-target_y)<=modeled_max_step+.002,'portal-exceeds-modeled-step')
-def validate(manifest_path,expected_sha):
-    hash_string(expected_sha,'expected-manifest-SHA256');manifest_path=pathlib.Path(manifest_path).absolute();data=read_bounded(manifest_path,MAX_MANIFEST)
+def validate(manifest_path,expected_sha,*,regional=False):
+    hash_string(expected_sha,'expected-manifest-SHA256');manifest_path=pathlib.Path(manifest_path).absolute();data=read_bounded(manifest_path,16*1024*1024 if regional else MAX_MANIFEST)
     need(sha(data)==expected_sha,'manifest-hash-mismatch');m=obj(parse_json(data),'manifest');identity(m.get('identity'))
+    large=regional and m.get('regionID')=='dun-morogh-map-69913'
+    polygon_cap,portal_cap,shard_cap,total_cap=(524288,1048576,4096,512*1024*1024) if large else (MAX_POLYGONS,MAX_PORTALS,MAX_SHARDS,MAX_TOTAL)
     need(m.get('format') in ('rikui-nav-tile-proof-v1',region_contract.REGION_FORMAT),'unsupported-manifest-format')
     need(m.get('status')=='derived-pending-validation' and m.get('publishable') is False,'unsupported-publication-state')
     need(m.get('coordinateSystem')=='Y-up; X=game world Y; Z=game world X','unsupported-coordinate-system')
@@ -124,30 +140,31 @@ def validate(manifest_path,expected_sha):
     if m['generator'].get('agentProfile')=='classic-reference-step-v1':
         limitations.append('One-yard step uses a Classic server reference rounded down; Forever player physics are unverified.')
     for gate in gates:
-        limitations.append('Excluded placement %d: %s (source file %d).'%(gate['placementID'],gate['reason'],gate['fileDataID']))
-    stats=obj(m.get('statistics'),'statistics');pc=integer(stats.get('polygons'),1,MAX_POLYGONS,'polygon-count');ec=integer(stats.get('directedEdges'),0,MAX_PORTALS,'portal-count');rc=integer(stats.get('regions'),1,MAX_SHARDS,'region-count')
-    regions=array(m.get('regions'),MAX_SHARDS,'regions');need(len(regions)==rc,'region-count-mismatch')
+        limitations.append('Excluded placement %d: %s (source file %s).'%(gate['placementID'],gate['reason'],gate.get('fileDataID','unknown')))
+    rectangle_query=exclusion_index(rectangles) if large else rectangles
+    stats=obj(m.get('statistics'),'statistics');pc=integer(stats.get('polygons'),1,polygon_cap,'polygon-count');ec=integer(stats.get('directedEdges'),0,portal_cap,'portal-count');rc=integer(stats.get('regions'),1,shard_cap,'region-count')
+    regions=array(m.get('regions'),shard_cap,'regions');need(len(regions)==rc,'region-count-mismatch')
     parent=manifest_path.parent.resolve();names=set();ids=set();grids=set();polys={};shards=[];total=0;edges=0;inputs=[]
     for record in regions:
         record=obj(record,'region-reference');name=record.get('filename');need(type(name) is str and REGION.fullmatch(name),'unsafe-region-path')
         need(name.casefold() not in names,'duplicate-region-path');names.add(name.casefold())
-        rid=integer(record.get('id'),0,MAX_SHARDS-1,'region-ID');need(rid not in ids,'duplicate-region-ID');ids.add(rid)
+        rid=integer(record.get('id'),0,shard_cap-1,'region-ID');need(rid not in ids,'duplicate-region-ID');ids.add(rid)
         grid=record.get('grid');need(type(grid) is list and len(grid)==3,'invalid-region-grid')
         for x in grid:integer(x,0,127,'region-grid')
         need(tuple(grid) not in grids,'duplicate-region-grid');grids.add(tuple(grid));need(name=='region-%d-%d-%d.json'%tuple(grid),'region-name-grid-mismatch')
-        path=parent/name;need(path.resolve().parent==parent,'escaped-region-path');raw=read_bounded(path,MAX_SHARD);total+=len(raw);need(total<=MAX_TOTAL,'total-input-size-bound')
+        path=parent/name;need(path.resolve().parent==parent,'escaped-region-path');raw=read_bounded(path,MAX_SHARD);total+=len(raw);need(total<=total_cap,'total-input-size-bound')
         need(len(raw)==integer(record.get('bytes'),1,MAX_SHARD,'region-bytes'),'region-size-mismatch');need(sha(raw)==hash_string(record.get('sha256'),'region-hash'),'region-hash-mismatch')
         shard=obj(parse_json(raw),'shard');identity(shard.get('identity'));need(set(shard)=={'format','identity','mapID','status','publishable','id','grid','polygons'},'unsupported-shard-fields')
         need(shard.get('format')=='rikui-nav-shard-v1' and shard.get('status')=='derived-pending-validation' and shard.get('publishable') is False,'unsupported-shard-format-or-state')
         need(type(shard.get('mapID')) is int and shard['mapID']==0 and type(shard.get('id')) is int and shard['id']==rid and shard.get('grid')==grid,'shard-identity-mismatch')
         rows=array(shard.get('polygons'),MAX_SHARD_POLYGONS,'shard-polygons');need(len(rows)==integer(record.get('polygons'),0,MAX_SHARD_POLYGONS,'region-polygon-count'),'region-polygon-count-mismatch');runtime=[];region_edges=0
         for row in rows:
-            p=polygon(row,rectangles,region_bounds);need(p['id'] not in polys,'duplicate-polygon-ID');polys[p['id']]=p;runtime.append(p);region_edges+=len(p['portals']);need(len(polys)<=MAX_POLYGONS,'polygon-resource-bound')
+            p=polygon(row,rectangle_query,region_bounds);need(p['id'] not in polys,'duplicate-polygon-ID');polys[p['id']]=p;runtime.append(p);region_edges+=len(p['portals']);need(len(polys)<=polygon_cap,'polygon-resource-bound')
             need(region_edges<=MAX_SHARD_PORTALS,'shard-portal-resource-bound')
-        need(region_edges==integer(record.get('directedEdges'),0,MAX_SHARD_PORTALS,'region-edge-count'),'region-edge-count-mismatch');edges+=region_edges;need(edges<=MAX_PORTALS,'portal-resource-bound')
+        need(region_edges==integer(record.get('directedEdges'),0,MAX_SHARD_PORTALS,'region-edge-count'),'region-edge-count-mismatch');edges+=region_edges;need(edges<=portal_cap,'portal-resource-bound')
         shards.append({'identity':dict(RUNTIME_IDENTITY),'polygons':runtime});inputs.append(dict(filename=name,sha256=sha(raw),bytes=len(raw),polygons=len(rows),directedEdges=region_edges))
-    need(len(polys)==pc and edges==ec,'manifest-count-mismatch');need(total==integer(stats.get('jsonShardBytes'),1,MAX_TOTAL,'json-shard-byte-count'),'total-shard-byte-count-mismatch')
-    runtime_geometry(polys.values())
+    need(len(polys)==pc and edges==ec,'manifest-count-mismatch');need(total==integer(stats.get('jsonShardBytes'),1,total_cap,'json-shard-byte-count'),'total-shard-byte-count-mismatch')
+    runtime_geometry(polys.values(),max_cells=16384 if large else 4096)
     for p in polys.values():
         for portal in p['portals']:
             need(portal['to'] in polys,'dangling-portal');target=polys[portal['to']]
@@ -157,14 +174,14 @@ def validate(manifest_path,expected_sha):
         probe=obj(probe,'probe');need(probe.get('success') is True,'unsupported-validation-probe')
         need(integer(probe.get('from'),1,2**32-1,'probe-from') in polys and integer(probe.get('to'),1,2**32-1,'probe-to') in polys,'probe-polygon-missing')
         need(number(probe.get('meters'),'probe-distance')>=0,'invalid-probe-distance')
-        for pos in array(probe.get('path'),4096,'probe-path'):point(pos,'probe-position')
-        for ident in array(probe.get('polygonPath'),MAX_POLYGONS,'probe-polygon-path'):need(integer(ident,1,2**32-1,'probe-path-ID') in polys,'probe-path-polygon-missing')
+        for pos in array(probe.get('path'),32768 if large else 4096,'probe-path'):point(pos,'probe-position')
+        for ident in array(probe.get('polygonPath'),polygon_cap,'probe-polygon-path'):need(integer(ident,1,2**32-1,'probe-path-ID') in polys,'probe-path-polygon-missing')
     meta={'format':'rikui-navmesh-v1','identity':dict(RUNTIME_IDENTITY),'revision':expected_sha,'uiMapID':1426,'worldMapID':0,'source':{'sha256':expected_sha,'parser':PARSER},'projection':dict(PROJECTION),'counts':{'polygons':pc,'portals':ec},'exclusions':rectangles,'bounds':region_bounds,'blockers':[],'coverageScope':m['coverageScope'],'modeledMaxStep':modeled_max_step,'nativeVerified':False,'agentProfileCalibrated':False,'limitations':limitations}
     receipt={'format':'rikui-terrain-compile-receipt-v1','compiler':PARSER,'compilerSha256':sha(pathlib.Path(__file__).read_bytes()),'inputManifest':{'path':str(manifest_path.resolve()),'bytes':len(data),'sha256':expected_sha},'inputRegions':inputs,'sourceAudit':source,'inputCoverage':m['coverage'],'coverageGates':gates,'excludedFootprints':m['exclusions'],'projection':PROJECTION,'projectionSource':PROJECTION_SOURCE,'counts':{'shards':rc,'polygons':pc,'directedPortals':ec},'runtimeIdentity':RUNTIME_IDENTITY,'sourceAuthenticity':'Caller supplied expected hash; integrity does not independently authenticate acquisition claims.','modeledTraversal':'Only carved JSON graph compiled; raw Detour binary and game assets are not copied.','nativeVerified':False,'agentProfileCalibrated':False,'limitations':limitations,'geometryTolerance':{'polygonContainment':0.002,'portalBoundary':0.01},'validationProbes':array(m.get('probes',[]),8,'validation-probes')}
     meta['sourceRegion']=source_region
     meta['agentProfile']=m['generator'].get('agentProfile','uncalibrated-conservative-v1')
     receipt['agentProfile']=meta['agentProfile']
-    runtime_metadata(meta)
+    if not regional:runtime_metadata(meta)
     receipt['sourceRegion']=source_region
     receipt['regionContractSha256']=sha(pathlib.Path(region_contract.__file__).read_bytes())
     receipt['coverageContractSha256']=sha(pathlib.Path(coverage_contract.__file__).read_bytes())

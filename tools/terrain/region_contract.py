@@ -1,5 +1,6 @@
 """Pinned geographic profiles for local derived meshes; never native traversal proof."""
 import west_profile as west
+import map_profile as fullmap
 
 REGION_ID = 'dun-morogh-kharanos-seam-69913'
 REGION_FORMAT = 'rikui-nav-region-proof-v1'
@@ -24,6 +25,20 @@ def validate(manifest, source, region_bounds, need):
         region = {'kind': 'single-tile', 'tiles': [[33, 42]]}
     else:
         need(manifest.get('format') == REGION_FORMAT, 'unsupported-manifest-format')
+        if manifest.get('regionID')==fullmap.REGION_ID:
+            need(manifest.get('tiles')==[r[0] for r in fullmap.TILES] and 'tile' not in manifest,'unsupported-map-source-tiles')
+            inputs=source.get('inputs')
+            need(type(inputs) is dict and set(inputs)=={'wdt','tiles'},'map-source-inputs')
+            rows=inputs.get('tiles')
+            need(type(rows) is list and len(rows)==70,'map-source-tile-count')
+            records=[inputs['wdt']]
+            for row,(tile,root,obj) in zip(rows,fullmap.TILES):
+                need(row.get('tile')==tile and row['root']['fileDataID']==root and row['obj']['fileDataID']==obj,'map-source-tile-mapping')
+                records.extend((row['root'],row['obj']))
+            need(inputs['wdt']['fileDataID']==775971 and fullmap.record_digest(records)==fullmap.ROOT_RECORDS_SHA256,'map-source-record-pin')
+            need(source['acquisitionReceipt']['sha256']==fullmap.RECEIPT_SHA256,'map-source-receipt-pin')
+            need(all(abs(a-b)<.002 for a,b in zip(region_bounds,fullmap.BOUNDS)),'map-source-bounds')
+            return {'kind':'sourced-region','regionID':fullmap.REGION_ID,'tiles':[r[0] for r in fullmap.TILES]}
         expanded=manifest.get('regionID')==west.REGION_ID
         selected=west.TILES if expanded else TILES
         pins=west.FILES if expanded else FILES

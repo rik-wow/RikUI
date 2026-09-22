@@ -42,7 +42,7 @@ def runtime_convex(points):
     return all(cross(a,points[(index+1)%len(points)],p)*sign >= -.00001
                for index,a in enumerate(points) for p in points)
 
-def runtime_geometry(polygons):
+def runtime_geometry(polygons,*,max_cells=RUNTIME_MAX_CELLS):
     cells = {}
     for polygon in polygons:
         points = polygon['points']
@@ -58,7 +58,7 @@ def runtime_geometry(polygons):
                 count = cells.get(key, 0) + 1
                 need(count <= RUNTIME_MAX_CELL_POLYGONS, 'runtime-navigation-cell-limit')
                 if key not in cells:
-                    need(len(cells) < RUNTIME_MAX_CELLS, 'runtime-navigation-spatial-index-limit')
+                    need(len(cells) < max_cells, 'runtime-navigation-spatial-index-limit')
                 cells[key] = count
 
 def runtime_metadata(value):

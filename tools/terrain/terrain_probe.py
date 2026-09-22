@@ -14,9 +14,9 @@ def fail(message):
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
-def load(path):
+def load(path, cap=64 * 1024 * 1024):
     p = pathlib.Path(path)
-    if not 0 < p.stat().st_size <= 64 * 1024 * 1024:
+    if not 0 < p.stat().st_size <= cap:
         fail('input-size')
     return p.read_bytes()
 

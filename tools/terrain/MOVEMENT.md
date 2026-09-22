@@ -1,5 +1,10 @@
 # Movement profile and observed-marker approaches
 
+Current full-map geometry, height safeguards and regional loading are documented
+in [MAP.md](MAP.md). The route-quality measurements in
+[questplanner.md](../../docs/questplanner.md) supersede the earlier arrival/90-degree
+reversal-only acceptance below. Native movement calibration remains outstanding.
+
 ## Scope
 
 This is a static terrain model for Forever 1.60.1.69913, enUS. Model connectivity,

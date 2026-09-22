@@ -3,10 +3,11 @@ Derived navigation models never become verified game traversal through this tool
 """
 import argparse, copy, json, math, pathlib
 import terrain_probe as t
+import map_profile as fullmap
 
-def validate_mesh(value):
+def validate_mesh(value,large=False):
     p=value['positions'];i=value['indices']
-    if len(p)%3 or len(i)%3 or len(p)>1500000 or len(i)>2000000:t.fail('mesh-budget')
+    if len(p)%3 or len(i)%3 or len(p)>(fullmap.MAX_POSITIONS if large else 1500000) or len(i)>(fullmap.MAX_INDICES if large else 2000000):t.fail('mesh-budget')
     if not all(type(v) in (int,float) and math.isfinite(v) and abs(v)<100000 for v in p):t.fail('mesh-position')
     if not all(type(v) is int and 0<=v<len(p)//3 for v in i):t.fail('mesh-index')
 
@@ -16,13 +17,14 @@ def merge(geometry,wmo):
     if wmo['product']!=g['identity']['product'] or wmo['build']!=g['identity']['build']:t.fail('identity-mismatch')
     if wmo['source']['acquisitionReceipt']['sha256']!=g['source']['acquisitionReceipt']['sha256']:t.fail('receipt-mismatch')
     if wmo['source']['geometry']['sha256']!=g['source']['geometryBeforeCollisionSha256']:t.fail('terrain-base-mismatch')
-    validate_mesh(g);validate_mesh(wmo)
+    large=g.get('regionID')==fullmap.REGION_ID
+    validate_mesh(g,large);validate_mesh(wmo,large)
     observed={p['uniqueID']:p['reference'] for p in g['placements'] if p['kind']=='wmo'}
     decoded={p['placementID']:p['fileDataID'] for p in wmo['audit']['placements']}
     if decoded!=observed or len(decoded)!=len(wmo['audit']['placements']):t.fail('WMO-placement-coverage')
     base=len(g['positions'])//3
     g['positions'].extend(wmo['positions']);g['indices'].extend(i+base for i in wmo['indices'])
-    validate_mesh(g)
+    validate_mesh(g,large)
     unresolved=[r for r in g['collisionAudit']['unresolved'] if not(r['reason']=='overlapping-WMO-unprocessed' and decoded.get(r['uniqueID'])==r['fileDataID'])]
     gates=copy.deepcopy(wmo['audit']['unsupported'])
     placements={p['placementID']:p for p in wmo['audit']['placements']}
@@ -30,7 +32,11 @@ def merge(geometry,wmo):
     for gate in gates:
         ident=gate.get('placementID')
         if ident not in placements:t.fail('unlocated-coverage-gate')
-        bounds=placements[ident]['MODFworldBounds']
+        bounds=copy.deepcopy(placements[ident]['MODFworldBounds'])
+        decoded_bounds=placements[ident].get('decodedGroupWorldBounds')
+        if large and decoded_bounds:
+            bounds=[[min(bounds[0][a],decoded_bounds[0][a]) for a in range(3)],
+                    [max(bounds[1][a],decoded_bounds[1][a]) for a in range(3)]]
         if len(bounds)!=2 or any(len(p)!=3 for p in bounds):t.fail('exclusion-bounds')
         if not all(math.isfinite(v) for row in bounds for v in row):t.fail('exclusion-finite')
         if any(bounds[0][a]>bounds[1][a] for a in range(3)):t.fail('exclusion-order')
@@ -66,7 +72,7 @@ def merge(geometry,wmo):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--input',default='geometry-full-m2.json');p.add_argument('--wmo',default='collision-wmo.json');p.add_argument('--out',default='geometry-full-collision.json');a=p.parse_args()
-    first=t.load(a.input);second=t.load(a.wmo)
+    first=t.load(a.input,fullmap.MAX_BYTES);second=t.load(a.wmo,fullmap.MAX_BYTES)
     result=merge(json.loads(first),json.loads(second))
     result['source']['mergeInputs']=[dict(path=str(pathlib.Path(path).resolve()),sha256=t.digest(data)) for path,data in ((a.input,first),(a.wmo,second))]
     target=pathlib.Path(a.out);target.write_text(json.dumps(result,separators=(',',':'),allow_nan=False))

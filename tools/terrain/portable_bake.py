@@ -4,6 +4,7 @@ import acquire
 
 HERE=pathlib.Path(__file__).resolve().parent
 FILES=('acquire.py','acquisition-profile.json','portable_bake.py','reproduce.ps1',
+    'map_profile.py','m2_physics_extent.py','bounded_tiled.mjs',
     'mesh_filter.mjs','test_mesh_filter.mjs','terrain_probe.py','collision_probe.py','wmo_probe.py','merge_geometry.py','bake.mjs','bake_tile.mjs',
     'test_probe.py','test_wmo_probe.py','test_nav_artifact.py','test_acquire.py','verify_reproduction.py',
     'plot_proof.py','package.json','package-lock.json','README.md','m2-274-reference.json','wmo-transform-validation.json',

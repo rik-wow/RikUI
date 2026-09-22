@@ -12,6 +12,8 @@ REASONS=(GATE,LIQUID_GATE,FLAG_GATE,ROOT_GATE)
 def profile(manifest):
     cov=obj(manifest.get('coverage'),'coverage')
     generator=obj(manifest.get('generator'),'generator');config=obj(generator.get('config'),'agent-config')
+    import height_contract
+    height_contract.validate(generator)
     expected_profile={'cs':.5,'ch':.1,'walkableRadius':1,'walkableHeight':18,'walkableClimb':3,'walkableSlopeAngle':40,'maxVertsPerPoly':6}
     if config.get('cs')==.25:expected_profile.update(cs=.25,walkableRadius=2)
     reference=generator.get('agentProfile')
@@ -105,6 +107,9 @@ def terrain_rectangles(manifest):
     return rectangles
 
 def validate(manifest,region_bounds):
+    if manifest.get('regionID')=='dun-morogh-map-69913':
+        import map_coverage_contract
+        return map_coverage_contract.validate(manifest,region_bounds)
     cov,config=profile(manifest)
     audit=obj(manifest.get('wmoAudit'),'WMO-audit');gates=array(manifest.get('coverageGates'),64,'coverage-gates')
     unresolved=array(audit.get('unsupported'),64,'WMO-unsupported')

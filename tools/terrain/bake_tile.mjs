@@ -3,15 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {init,NavMeshQuery,exportNavMesh} from 'recast-navigation';
-import {generateTiledNavMesh} from 'recast-navigation/generators';
-import {hasHorizontalArea,removeBlockedPortals,clipPortalToTarget} from './mesh_filter.mjs';
+import {generateBoundedTiled} from './bounded_tiled.mjs';
+import {hasHorizontalArea,removeBlockedPortals,clipPortalToTarget,exclusionLookup,voxelVertex,pruneStepPortals} from './mesh_filter.mjs';
 const [input='geometry-full-m2.json',outdir='full-tile',resolution,profile] = process.argv.slice(2);
 if(resolution!==undefined&&resolution!=='--half-cell')throw Error('unsupported-resolution');
 if(profile!==undefined&&(profile!=='--reference-step'||resolution!=='--half-cell'))throw Error('unsupported-agent-profile');
 const bytes=fs.readFileSync(input);
-if(bytes.length>64*1024*1024) throw Error('input-byte-budget');
-const g=JSON.parse(bytes);
-if(g.format!=='rikui-navigation-geometry-probe-v1'||g.positions.length>1500000||g.indices.length>2000000) throw Error('geometry-budget');
+if(bytes.length>512*1024*1024) throw Error('input-byte-budget');
+const g=JSON.parse(bytes),large=g.regionID==='dun-morogh-map-69913';
+if(!large&&bytes.length>64*1024*1024)throw Error('input-byte-budget');
+if(large&&(g.tiles?.length!==70||g.source?.acquisitionReceipt?.sha256!=='80463316410b74d54c0a6b67fe9537e5c313acbb75919e078df4e2cf7371a002'))throw Error('map-source-profile');
+if(g.format!=='rikui-navigation-geometry-probe-v1'||g.positions.length>(large?18000000:1500000)||g.indices.length>(large?30000000:2000000)) throw Error('geometry-budget');
 if(g.positions.length%3||g.indices.length%3||!g.positions.every(Number.isFinite)||!g.indices.every(v=>Number.isInteger(v)&&v>=0&&v<g.positions.length/3))throw Error('geometry-shape');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const round=v=>Math.round(v*10000)/10000;
@@ -28,11 +30,12 @@ if(resolution==='--half-cell')Object.assign(config,{cs:.25,tileSize:256,walkable
 // Classic reference 4 * .2666666 yards, rounded down to 1 yard on this grid.
 if(profile==='--reference-step')config.walkableClimb=10;
 await init();const started=performance.now();
-const result=generateTiledNavMesh(g.positions.map((v,i)=>v-origin[i%3]),g.indices,config);
-if(!result.success)throw Error('bake-failed');
+const result=generateBoundedTiled(g.positions.map((v,i)=>v-origin[i%3]),g.indices,config);
+if(!result.success)throw Error('bake-failed:'+result.error);
 const nav=result.navMesh,byRef=new Map(),shards=[];
-const exclusions=[...(g.exclusions??[]),...(g.terrainExclusions??[])];
-if(exclusions.length>64)throw Error('exclusion-budget');
+const exclusions=[...(g.exclusions??[]),...(g.terrainExclusions??[]),...(g.m2Exclusions??[])];
+if(exclusions.length>(large?4096:64))throw Error('exclusion-budget');
+const touchesExclusion=exclusionLookup(exclusions);
 for(const box of exclusions)if(box.bounds?.length!==2||!box.bounds.every(p=>p.length===3&&p.every(Number.isFinite))||!Number.isFinite(box.padding)||box.padding<0||box.padding>10)throw Error('exclusion-shape');
 const excludedIDs=[],degeneratePolygons=[];
 let outsideSourceRegionPolygons=0;
@@ -41,7 +44,7 @@ for(let ti=0;ti<nav.getMaxTiles();ti++){
  const tile=nav.getTile(ti),header=tile.header();if(!header)continue;
  if(header.polyCount()>1024)throw Error('shard-polygon-budget');
  const base=nav.getPolyRefBase(tile)>>>0,polygons=[];
- const vertex=i=>[0,1,2].map(a=>tile.verts(i*3+a)+origin[a]);
+ const vertex=i=>voxelVertex([0,1,2].map(a=>tile.verts(i*3+a)+origin[a]),region[0],config.cs);
  for(let pi=0;pi<header.polyCount();pi++){
   const poly=tile.polys(pi);if(poly.getType()!==0)throw Error('unexpected-offmesh-connection');
   const points=[];for(let vi=0;vi<poly.vertCount();vi++)points.push(vertex(poly.verts(vi)));
@@ -59,7 +62,7 @@ for(let ti=0;ti<nav.getMaxTiles();ti++){
   const row={id:base+pi,center:center.map(round),points:points.map(p=>p.map(round)),portals};
   if(byRef.has(row.id))throw Error('duplicate-polygon-ref');
   // Deliberately conservative polygon AABB exclusion, including touching bounds.
-  const denied=exclusions.some(box=>[0,2].every(a=>Math.max(...points.map(p=>p[a]))>=box.bounds[0][a]-box.padding&&Math.min(...points.map(p=>p[a]))<=box.bounds[1][a]+box.padding));
+  const denied=touchesExclusion(points);
   // Recast rounds the last shard to tileSize cells; source collision models can
   // protrude beyond the source ADT. Never admit that unsourced outer strip.
   const outside=points.some(p=>[0,2].some(a=>p[a]<region[0][a]-0.0001||p[a]>region[1][a]+0.0001));
@@ -74,7 +77,7 @@ for(let ti=0;ti<nav.getMaxTiles();ti++){
 const blocked=new Set(excludedIDs);
 edges=0;
 for(const shard of shards)for(const poly of shard.polygons){poly.portals=removeBlockedPortals(poly.portals,blocked);edges+=poly.portals.length;}
-if(shards.length>512||byRef.size>65536||edges>262144)throw Error('whole-tile-budget');
+if(shards.length>(large?4096:512)||byRef.size>(large?524288:65536)||edges>(large?1048576:262144))throw Error('whole-tile-budget');
 let clippedPortals=0;
 for(const poly of byRef.values())for(const portal of poly.portals){
  const target=byRef.get(portal.to);if(!target)throw Error('dangling-portal');
@@ -85,6 +88,8 @@ for(const poly of byRef.values())for(const portal of poly.portals){
  const middle=portal.left.map((v,i)=>(v+portal.right[i])/2);
  portal.meters=round(Math.hypot(...poly.center.map((v,i)=>v-middle[i]))+Math.hypot(...target.center.map((v,i)=>v-middle[i])));
 }
+const stepPortalAudit=pruneStepPortals([...byRef.values()],config.ch*config.walkableClimb);
+edges=[...byRef.values()].reduce((n,p)=>n+p.portals.length,0);
 const seen=new Set(),components=[];
 for(const poly of byRef.values()){
  if(seen.has(poly.id))continue;const todo=[poly.id];seen.add(poly.id);
@@ -100,7 +105,7 @@ function modelPath(from,to){
  const pop=()=>{const top=heap[0],tail=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let child=i*2+1;if(child+1<heap.length&&less(heap[child+1],heap[child]))child++;if(!less(heap[child],tail))break;heap[i]=heap[child];i=child;}heap[i]=tail;}return top;};
  push({id:from,cost:0});let pops=0;
  while(heap.length){
-  if(++pops>131072)throw Error('model-query-budget');
+  if(++pops>(large?1048576:131072))throw Error('model-query-budget');
   const at=pop();if(at.cost!==dist.get(at.id))continue;if(at.id===to)break;
   for(const portal of byRef.get(at.id).portals){const cost=at.cost+portal.meters;if(cost<(dist.get(portal.to)??Infinity)){dist.set(portal.to,cost);previous.set(portal.to,{id:at.id,portal});push({id:portal.to,cost});}}
  }
@@ -151,18 +156,19 @@ for(const shard of shards){
 const manifest={format:g.tiles?'rikui-nav-region-proof-v1':'rikui-nav-tile-proof-v1',identity:g.identity,mapID:g.mapID,
  ...(g.tiles?{regionID:g.regionID,tiles:g.tiles}:{tile:g.tile}),
  status:'derived-pending-validation',publishable:false,geometryStatus:g.status,coverage:g.coverage,
- clippedPortals,collisionAudit:g.collisionAudit,wmoAudit:g.wmoAudit,exclusions:g.exclusions??[],terrainExclusions:g.terrainExclusions??[],coverageGates:g.coverageGates,degeneratePolygons,
+ clippedPortals,stepPortalAudit,collisionAudit:g.collisionAudit,wmoAudit:g.wmoAudit,exclusions:g.exclusions??[],terrainExclusions:g.terrainExclusions??[],m2Exclusions:g.m2Exclusions??[],coverageGates:g.coverageGates,degeneratePolygons,
  coverageScope:exclusions.length?'outside-exclusions':'whole-source-region',
  limitations:g.limitations,source:g.source,
  geometrySha256:sha(bytes),navmeshSha256:sha(binary),coordinateSystem:g.coordinateSystem,
  bounds:{min:region[0],max:region[1]},origin,
  generator:{wrapperSHA256:sha(fs.readFileSync(new URL(import.meta.url))),filterSHA256:sha(fs.readFileSync(new URL('./mesh_filter.mjs',import.meta.url))),package:'recast-navigation',version:'0.43.1',repositoryCommit:'8769e8b9995f127033af9f6e6eeac3fad7d66201',
+ heightStrategy:'per-tile-bounded-v1',heightAudit:result.heightAudit,boundedWrapperSHA256:sha(fs.readFileSync(new URL('./bounded_tiled.mjs',import.meta.url))),
  recastForkCommit:'599fd0f023181c0a484df2a18cf1d75a3553852e',config,agentProfileNativeVerified:false,
  ...(profile?{agentProfile:'classic-reference-step-v1'}:{})},
  statistics:{inputVertices:g.positions.length/3,inputTriangles:g.indices.length/3,
  regions:shards.length,polygons:byRef.size,directedEdges:edges,excludedPolygons:excludedIDs.length,outsideSourceRegionPolygons,degeneratePolygonsRemoved:degeneratePolygons.length,components:components.map(c=>c.length),
  binaryBytes:binary.length,jsonShardBytes:entries.reduce((s,e)=>s+e.bytes,0)},regions:entries,probes};
 const data=Buffer.from(JSON.stringify(manifest));fs.writeFileSync(path.join(outdir,'manifest.json'),data);
-console.log(JSON.stringify({outdir,sha256:sha(data),statistics:manifest.statistics,
+console.log(JSON.stringify({outdir,sha256:sha(data),statistics:{...manifest.statistics,components:manifest.statistics.components.slice(0,10),componentCount:components.length},stepPortalAudit,
  probes:probes.map(p=>({success:p.success,from:p.from,to:p.to,points:p.path.length,endpointError:p.endpointError})),milliseconds:performance.now()-started}));
 nav.destroy();

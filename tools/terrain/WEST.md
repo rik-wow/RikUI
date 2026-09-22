@@ -1,5 +1,9 @@
 # Western Dun Morogh terrain
 
+Historical western/central delivery. [MAP.md](MAP.md) supersedes its installation
+and unfinished full-map compiler/loading status; the source and replay notes below
+remain useful regression evidence.
+
 This local exact-build delivery addresses the reported 35.5,46.6 position and
 archived Frostmane Hold marker 25.95,40.57. It is a static walking estimate, not
 verified native traversal or a quest action corpus.
@@ -114,8 +118,8 @@ logs and their actual encoding keys. No existing output is overwritten. WMO
 7801267 and 7952336 have unsupported LOD layouts; 113881 has an unsupported
 selected doodad-set index. Their roots remain acquired and must retain collision
 exclusions until decoded. This acquisition is not a navigation-pack installation:
-the full-map compiler, bounded runtime loading and cross-region routing remain
-unfinished. The installed pack is still the western/central delivery above.
+the compiler and runtime were unfinished at the time of this acquisition. They
+are now implemented and verified as described in [MAP.md](MAP.md).
 
 ## Earlier western results and limits
 

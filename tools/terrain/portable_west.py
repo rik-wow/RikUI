@@ -3,7 +3,8 @@ import argparse,json,os,pathlib,shutil,subprocess,sys
 import acquire,west_profile
 HERE=pathlib.Path(__file__).resolve().parent
 FILES=('terrain_probe.py','terrain_region.py','west_profile.py','collision_probe.py','wmo_probe.py',
-       'merge_geometry.py','bake_tile.mjs','mesh_filter.mjs','package.json','package-lock.json',
+       'map_profile.py','map_coverage_contract.py','m2_physics_extent.py','height_contract.py',
+       'merge_geometry.py','bounded_tiled.mjs','bake_tile.mjs','mesh_filter.mjs','package.json','package-lock.json',
        'm2-274-reference.json','m2-274-collision-profiles.json',
        'compile_quest_terrain.py','terrain_contract.py','region_contract.py','coverage_contract.py')
 

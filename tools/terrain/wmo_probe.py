@@ -186,7 +186,11 @@ def placement_bounds(placement):
 
 def build(geometry_path,directory,recursive_path):
     directory=pathlib.Path(directory);geometry_path=pathlib.Path(geometry_path)
-    geometry_bytes=t.load(geometry_path);geometry=json.loads(geometry_bytes)
+    import map_profile as fullmap
+    geometry_bytes=t.load(geometry_path,fullmap.MAX_BYTES);geometry=json.loads(geometry_bytes)
+    large=geometry.get('regionID')==fullmap.REGION_ID
+    if not large and len(geometry_bytes)>64*1024*1024:t.fail('input-size')
+    if large:fullmap.validate_sources(directory)
     receipt_info=geometry['source']['acquisitionReceipt'];receipt_bytes=t.load(receipt_info['path'])
     if t.digest(receipt_bytes)!=receipt_info['sha256']:t.fail('WMO-changed-receipt')
     receipt=json.loads(receipt_bytes);receipt_identity(receipt)
@@ -206,7 +210,7 @@ def build(geometry_path,directory,recursive_path):
         decoded,_,names=t.objects(obj_bytes)
     if names or decoded!=geometry['placements']:t.fail('WMO-placement-provenance')
     placements=[p for p in decoded if p['kind']=='wmo']
-    if len(placements)>64:t.fail('WMO-placement-cap')
+    if len(placements)>(fullmap.MAX_WMO_PLACEMENTS if large else 64):t.fail('WMO-placement-cap')
     assets={};models={};roots={};groups={};unsupported=[];countNotes=[];audit=[];positions=[];indices=[];counts=collections.Counter()
     def asset(ident):
         entry=registered.get(ident)
@@ -220,7 +224,7 @@ def build(geometry_path,directory,recursive_path):
         return data
     def add(verts,inds):
         base=len(positions)//3;positions.extend(verts);indices.extend(i+base for i in inds)
-        if len(positions)>1500000 or len(indices)>3000000:t.fail('WMO-output-cap')
+        if len(positions)>(fullmap.MAX_POSITIONS if large else 1500000) or len(indices)>(fullmap.MAX_INDICES if large else 3000000):t.fail('WMO-output-cap')
     for placement in placements:
         ident=placement['reference'];uid=placement['uniqueID']
         if placement['flags']!=12:t.fail('WMO-unsupported-MODF-flags')
@@ -239,7 +243,13 @@ def build(geometry_path,directory,recursive_path):
         unsupported.extend(dict(placementID=uid,reason='root-chunk:'+x) for x in wmo['unknownChunks'])
         if wmo['advertisedDoodadCount']!=wmo['framedDoodadCount']:
             countNotes.append(dict(placementID=uid,fileDataID=ident,reason='MOHD-count-advisory-MODD-framing-authoritative',advertised=wmo['advertisedDoodadCount'],framed=wmo['framedDoodadCount']))
-        active,selected=selected_doodads(wmo,placement['doodadSet'])
+        try:active,selected=selected_doodads(wmo,placement['doodadSet'])
+        except ValueError as error:
+            if not large or str(error)!='WMO-selected-set-range':raise
+            unsupported.append(dict(placementID=uid,fileDataID=ident,reason='WMO-selected-set-range'))
+            audit.append(dict(placementID=uid,fileDataID=ident,groupIDs=[],
+                unsupportedRootLayout=str(error),MODFworldBounds=placement_bounds(placement),transformNativeVerified=False))
+            continue
         rowaudit=dict(placementID=uid,fileDataID=ident,selectedSetIndices=active,
             selectedSets=[wmo['sets'][i] for i in active],selectedDoodads=len(selected),groupIDs=wmo['groups'],
             nameSet=placement['nameSet'],transformNativeVerified=False)
