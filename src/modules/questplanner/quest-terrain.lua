@@ -30,13 +30,16 @@ local function clear(forgetLocation)
     route,display,selectedKey,lastAttempt=nil,nil,nil,nil
     if forgetLocation then lastLocation,locationAge=nil,0 end
 end
+local function roadMode() return planner.RoadGuidance and planner.RoadGuidance.Active() end
 function terrain.Invalidate()
+    if planner.RoadGuidance then planner.RoadGuidance.Invalidate() end
     clear()
     if loader then setState("loading","Preparing terrain guidance")
     elseif mesh then setState("updating","Updating walking route") end
 end
 function terrain.Retry()
     if not planner.enabled then return nil,"Quest planner is disabled" end
+    if roadMode() then planner.RoadGuidance.Invalidate();return true end
     local regional=planner.Regions and planner.Regions.Enabled()
     if not mesh and not loader and not regional then return nil,state.detail end
     local model=(planner.Controller.Peek or planner.Controller.Get)()
@@ -58,9 +61,14 @@ function terrain.Install(meta,shards)
     setState("loading","Preparing terrain guidance")
     return true
 end
-function terrain.Status() return schema.Clone(state) end
+function terrain.Status()
+    if roadMode() then return planner.RoadGuidance.Status() end
+    return schema.Clone(state)
+end
+local function current() if roadMode() then return planner.RoadGuidance.PeekGuidance() end return display end
 function terrain.Guidance()
-    if not display then return end
+    local display=current()
+    if not display or not display.path then return end
     local result={}
     for key,value in pairs(display) do if key~="path" then result[key]=schema.Clone(value) end end
     result.points={}
@@ -68,7 +76,7 @@ function terrain.Guidance()
     for at=display.path.first,#display.path.tail do result.points[#result.points+1]=schema.Clone(display.path.tail[at]) end
     return result
 end
-function terrain.PeekGuidance() return display end
+function terrain.PeekGuidance() return current() end
 local function selected()
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     local row=model.selected
@@ -301,6 +309,8 @@ function terrain.Step()
         if regionalToken and loader then loader:Cancel();loader=nil;regionalToken=nil end
         setState("disabled","Quest planner is disabled");return
     end
+    -- Where a road network covers the player's map it owns walking guidance.
+    if planner.RoadGuidance and planner.RoadGuidance.Step() then return end
     if not prepareRegions() then return end
     if loader then
         local value,reason,done=loadSlice()
@@ -406,6 +416,7 @@ end
 -- Area probes are isolated and cannot publish routes or infer quest floors.
 function terrain.AreaRevision() return mesh and mesh:Revision() end
 function terrain.BeginAreaEstimate(identity,position,area,budget)
+    if roadMode() then return planner.RoadGuidance.BeginAreaEstimate(identity,position,area,budget) end
     if not mesh or loader or not position or not same(meta.identity,identity) then return end
     local point=mesh:Project(position.mapID,position.x,position.y)
     local goal=mesh:Project(area.mapID,area.x,area.y)
