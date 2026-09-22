@@ -104,7 +104,8 @@ def connect_to_nodes(polys, chosen, reps):
 
 
 PATCH_UNITS = 1024.0  # vertex units per yard; well inside the loader's .002 yd tolerances
-MAX_PATCH_FILE = 131072
+MAX_PATCH_FILE = 131072      # soft size of one cell's file; a dense cell may reach 4x
+MAX_PATCH_ADDON = 1048576    # cells per LoadOnDemand addon, so both continents need ~150 addons
 NL = chr(10)
 TOC = ('## Interface: 16001' + NL + '## Title: RikUI Road Patches %d-%d' + NL + '## AllowLoadGameType: camelot' + NL
        + '## Dependencies: RikUI' + NL + '## LoadOnDemand: 1' + NL + NL)
@@ -181,7 +182,7 @@ def patch_files(world, revision, patches, lua, encode):
             lua(revision), key, p['vertexCount'], p['polygons'], p['portals'], len(p['records']),
             encode(p['vertices']), encode(p['records']))
         need(len(text) <= MAX_PATCH_FILE * 4, 'patch cell file bound')
-        if body and size + len(text) > MAX_PATCH_FILE:
+        if body and size + len(text) > MAX_PATCH_ADDON:
             flush(); size = 0
         body.append(text); size += len(text)
         rows.append((key, addon, p['polygons'], p['portals']))
