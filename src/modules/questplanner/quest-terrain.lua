@@ -223,6 +223,7 @@ local function searchSlice()
     end
 end
 local function prepareRegions()
+    if planner.TerrainPacks and planner.TerrainPacks.IsLoading()then return false end
     local manager=planner.Regions
     if not manager then return true end
     if not manager.Admit and not manager.Enabled()then return true end
@@ -252,7 +253,7 @@ local function prepareRegions()
                 why=="loading"and"Loading this map's terrain catalog"or why or"Terrain pack is unavailable")
             return false
         end
-        local binding=manager.Binding();local key=binding and binding.packKey
+        local binding=(manager.PeekBinding or manager.Binding)();local key=binding and binding.packKey
         if key~=packKey then
             if loader then loader:Cancel();loader=nil end
             regionalToken,mesh,meta,preparedGraph=nil,nil,nil,nil
@@ -261,10 +262,14 @@ local function prepareRegions()
         end
     end
     local graph,pathState
+    local regionBinding=(manager.PeekBinding or manager.Binding)()
     if planner.Paths and planner.PathRoute then
-        graph,pathState=planner.Paths.Prepare(snapshot.identity,live.position.mapID,manager.Binding())
+        graph,pathState=planner.Paths.Prepare(snapshot.identity,live.position.mapID,regionBinding)
     end
     if pathState=="loading" then setState("loading","Preparing the walking network");return false end
+    if regionBinding and regionBinding.packs and not graph then
+        clear(true);setState("coverage-frontier",pathState or "Composed walking network unavailable");return false
+    end
     local localOnly=graph~=nil and (not row or hybridUnavailableKey~=destinationKey(row))
     preparedGraph=localOnly and graph or nil
     if localOnly and route and route.hybrid and route.pathGraph==preparedGraph and row
@@ -338,7 +343,10 @@ function terrain.Step()
                 update()
             else
                 display=nil
-                if meta.localAttachment then
+                if meta.composedCandidate then
+                    if planner.Regions.Expand()then clear(true);setState("loading","Expanding connected terrain packs")
+                    else clear(true);setState("coverage-frontier","No modeled route in the bounded connected pack corridor")end
+                elseif meta.localAttachment then
                     stats.hybridFallbacks=(stats.hybridFallbacks or 0)+1
                     local row=selected()
                     hybridUnavailableKey=row and destinationKey(row)

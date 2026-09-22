@@ -3,6 +3,8 @@ local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
 local packs={};planner.TerrainPacks=packs
 local indexes,catalogs,failures={},{},{}
 local busy=false
+local seamPages,seamBytes,routeCache,routeExpansion={ },0,nil,1
+local MAX_ROUTE_PACKS=8
 local stats={indexes=0,catalogs=0,loads=0,metadataNodes=0,metadataBytes=0}
 local MAX_INDEXES,MAX_CATALOGS,MAX_NODES,MAX_BYTES=32,64,131072,4194304
 local function same(a,b)return a and b and a.product==b.product and a.build==b.build and a.locale==b.locale end
@@ -72,6 +74,19 @@ function packs.InstallIndex(raw)
    names[pack.namespace]=true
   end
   table.sort(binding.packs,function(a,b)return a.namespace<b.namespace end)
+  if binding.connections~=nil then
+   if not schema.List(binding.connections,1024)then return nil,'invalid-terrain-connections'end
+   local seenConnections={}
+   for _,c in ipairs(binding.connections)do
+    if not schema.PlainTable(c)or not names[c.fromNamespace]or not names[c.toNamespace]
+     or c.fromNamespace==c.toNamespace or c.worldMapID~=binding.worldMapID or not hash(c.seamRevision)
+     or c.seamAddon~='RikUIQuestSeams_S'..c.seamRevision:sub(1,16)
+     or not schema.Integer(c.rows,1,128)or not schema.Integer(c.bytes,1,32768)
+     or seenConnections[c.seamRevision]then return nil,'invalid-terrain-connection'end
+    seenConnections[c.seamRevision]=true
+   end
+   table.sort(binding.connections,function(a,b)return a.seamRevision<b.seamRevision end)
+  end
  end
  local prior=indexes[value.uiMapID]
  if prior then return prior.revision==value.revision and same(prior.identity,value.identity)or nil,'terrain-map-index-already-loaded'end
@@ -167,4 +182,135 @@ function packs.Select(identity,position,destination,worldMapID)
  if not agrees(value,index,binding,reference)then return nil,'incompatible-terrain-pack-source'end
  return {catalog=value,namespace=value.namespace,binding=binding,indexRevision=index.revision,
   key=value.namespace..':'..value.revision..':'..binding.assignmentID..':'..binding.projectionSHA256},'ready'
+end
+
+-- Exact directed seam metadata is loaded only for the selected physical corridor.
+function packs.RegisterSeams(revision,raw)
+ if not hash(revision)or not schema.List(raw,128)or#raw<1 then return nil,'invalid-seam-page'end
+ local value=schema.CopyLimited(raw,32768,32768,12)
+ if not value then return nil,'invalid-seam-page'end
+ if seamPages[revision]then return nil,'duplicate-seam-page'end
+ local _,bytes=measure(value)
+ if seamBytes+bytes>4194304 then return nil,'seam-cache-limit'end
+ local seen={}
+ for _,r in ipairs(value)do
+  if not schema.PlainTable(r)or not hash(r.id)or not hash(r.proofSHA256)or seen[r.id]
+   or not schema.Integer(r.worldMapID,0,100000)or not packs.Namespace(r.fromNamespace,r.worldMapID)
+   or not packs.Namespace(r.toNamespace,r.worldMapID)or r.fromNamespace==r.toNamespace
+   or not schema.ID(r.fromID)or not schema.ID(r.toID)or not schema.Text(r.fromKey)or not schema.Text(r.toKey)
+   or not schema.Number(r.meters,0,1000000)or not schema.Number(r.authoredCenterCost,0,1000000)then return nil,'invalid-seam-record'end
+  seen[r.id]=true
+  for _,key in ipairs({'left','right','midpoint'})do
+   local point=r[key]
+   if not schema.List(point,3)or#point~=3 then return nil,'invalid-seam-point'end
+   for _,v in ipairs(point)do if not number(v,-100000,100000)then return nil,'invalid-seam-point'end end
+  end
+ end
+ seamPages[revision]=value;seamBytes=seamBytes+bytes;return true
+end
+function packs.PrepareSeams(connections)
+ if not schema.List(connections,1024)then return nil,'invalid-seam-connections'end
+ local total=0
+ for _,ref in ipairs(connections)do total=total+ref.rows;if total>4096 then return nil,'seam-working-set-limit'end end
+ for _,ref in ipairs(connections)do
+  if not seamPages[ref.seamRevision]then
+   return load(ref.seamAddon,function()return seamPages[ref.seamRevision]~=nil end)
+  end
+ end
+ local rows,seen={},{}
+ for _,ref in ipairs(connections)do
+  local page=seamPages[ref.seamRevision]
+  if #page~=ref.rows then return nil,'seam-page-count-mismatch'end
+  for _,row in ipairs(page)do
+   if row.worldMapID~=ref.worldMapID or row.fromNamespace~=ref.fromNamespace or row.toNamespace~=ref.toNamespace
+    or seen[row.id]then return nil,'seam-page-source-mismatch'end
+   seen[row.id]=true;rows[#rows+1]=row
+  end
+ end
+ return rows,'ready'
+end
+local function projectionPoint(binding,position)
+ local p=binding.projection;return p.originY-position.x*p.width,p.originX-position.y*p.height
+end
+local function traverse(seeds,adj)
+ local distance,parent,queue={}, {},{}
+ for _,id in ipairs(seeds)do distance[id]=0;parent[id]=false;queue[#queue+1]=id end
+ local at=1
+ while at<=#queue do
+  local id=queue[at];at=at+1
+  for _,to in ipairs(adj[id]or{})do
+   if distance[to]==nil then distance[to]=distance[id]+1;parent[to]=id;queue[#queue+1]=to end
+  end
+ end
+ return distance,parent
+end
+local function corridor(binding,sx,sz,gx,gz)
+ local references,starts,goals,outgoing,incoming={}, {},{},{},{}
+ for _,p in ipairs(binding.packs)do
+  references[p.namespace]=p
+  if inside(p.ownedBounds,sx,sz)then starts[#starts+1]=p.namespace end
+  if inside(p.ownedBounds,gx,gz)then goals[#goals+1]=p.namespace end
+ end
+ if#starts==0 or#goals==0 then return nil,'outside-pack-coverage'end
+ for _,c in ipairs(binding.connections or{})do
+  local a=outgoing[c.fromNamespace]or{};outgoing[c.fromNamespace]=a;a[#a+1]=c.toNamespace
+  local b=incoming[c.toNamespace]or{};incoming[c.toNamespace]=b;b[#b+1]=c.fromNamespace
+ end
+ for _,map in ipairs({outgoing,incoming})do for _,list in pairs(map)do table.sort(list)end end
+ local forward,parent=traverse(starts,outgoing);local backward=traverse(goals,incoming)
+ local last
+ for _,id in ipairs(goals)do if forward[id]and(not last or forward[id]<forward[last])then last=id end end
+ if not last then return nil,'cross-pack-coverage-frontier'end
+ local selected,names={},{}
+ while last do selected[last]=true;names[#names+1]=last;last=parent[last]end
+ if#names>MAX_ROUTE_PACKS then return nil,'pack-corridor-limit'end
+ local extras={}
+ for id in pairs(references)do
+  if not selected[id]and forward[id]and backward[id]then extras[#extras+1]={id=id,cost=forward[id]+backward[id]}end
+ end
+ table.sort(extras,function(a,b)return a.cost<b.cost or a.cost==b.cost and a.id<b.id end)
+ local available=#names+#extras;local capacity=math.max(#names,math.min(MAX_ROUTE_PACKS,2+routeExpansion*2))
+ for _,row in ipairs(extras)do if#names>=capacity then break end;selected[row.id]=true;names[#names+1]=row.id end
+ table.sort(names)
+ local refs,connections={},{}
+ for _,id in ipairs(names)do refs[#refs+1]=references[id]end
+ for _,c in ipairs(binding.connections or{})do if selected[c.fromNamespace]and selected[c.toNamespace]then connections[#connections+1]=c end end
+ return {references=refs,connections=connections,set=selected,canExpand=available>#names and capacity<MAX_ROUTE_PACKS}
+end
+function packs.ExpandRoute()
+ if not routeCache or not routeCache.selection.canExpand or routeExpansion>=3 then return false end
+ routeExpansion=routeExpansion+1;routeCache=nil;return true
+end
+function packs.RetryRoute()routeCache=nil;routeExpansion=1 end
+function packs.SelectRoute(identity,position,destination,worldMapID)
+ -- Existing single-pack admission preserves the legacy path and returns explicit failures.
+ local one,why=packs.Select(identity,position,destination,worldMapID)
+ if one then
+  if not routeCache or routeCache.single or routeCache.mapID~=position.mapID then return one,why end
+ elseif why~='cross-pack-coverage-frontier'then return nil,why end
+ local index=indexes[position.mapID]
+ local binding,problem=matching(index,position,worldMapID);if not binding then return nil,problem end
+ local goal=matching(index,destination,worldMapID)
+ if not goal or binding.assignmentID~=goal.assignmentID then return nil,'cross-assignment-coverage-frontier'end
+ local sx,sz=projectionPoint(binding,position);local gx,gz=projectionPoint(binding,destination)
+ local key=index.revision..':'..binding.assignmentID..':'..string.format('%.17g:%.17g',destination.x,destination.y)
+ local selection
+ if routeCache and routeCache.key==key then
+  for _,ref in ipairs(routeCache.selection.references)do if inside(ref.ownedBounds,sx,sz)then selection=routeCache.selection;break end end
+ end
+ if not selection then
+  selection,problem=corridor(binding,sx,sz,gx,gz);if not selection then return nil,problem end
+  routeCache={key=key,mapID=position.mapID,selection=selection}
+ end
+ local admitted={};local names={}
+ for _,ref in ipairs(selection.references)do
+  local value=catalogs[ref.namespace]
+  if not value then return load(ref.catalogAddon,function()return catalogs[ref.namespace]~=nil end)end
+  if not agrees(value,index,binding,ref)then return nil,'incompatible-terrain-pack-source'end
+  admitted[#admitted+1]={catalog=value,namespace=ref.namespace};names[#names+1]=ref.namespace..':'..value.revision
+ end
+ if#admitted==1 then return {catalog=admitted[1].catalog,namespace=admitted[1].namespace,binding=binding,indexRevision=index.revision,
+  key=admitted[1].namespace..':'..admitted[1].catalog.revision..':'..binding.assignmentID..':'..binding.projectionSHA256},'ready'end
+ return {packs=admitted,connections=selection.connections,binding=binding,indexRevision=index.revision,
+  key=key..':'..table.concat(names,':')},'ready'
 end

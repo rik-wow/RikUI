@@ -6,6 +6,7 @@ local rawSeen,catalog,loader,graph,failure,busy,partAt,requestKey
 local stats={loads=0,maxLoadMS=0,admissionSlices=0,retainedSourceBudgetBytes=0}
 local catalogs,loadedNames={},{}
 local catalogCount=0
+local composition
 local MAX_RETAINED_SOURCE=134217728
 local function hash(v)return type(v)=="string"and#v==64 and v:match("^[a-f0-9]+$")end
 function paths.Install(raw)
@@ -24,7 +25,7 @@ end
 local function same(a,b) return a and b and a.product==b.product and a.build==b.build and a.locale==b.locale end
 local function reject(reason) failure=reason;loader=nil;return nil,reason end
 function paths.Stats() return schema.Clone(stats) end
-function paths.Reset()
+local function resetSingle()
     if loader then loader:Cancel() end
     rawSeen,catalog,loader,graph,failure,partAt,requestKey=nil,nil,nil,nil,nil,1,nil
 end
@@ -56,16 +57,16 @@ local function loadPart(name,raw,declaredBytes)
     if not ok or not loaded then return reject("path-addon-unavailable") end
     return true
 end
-function paths.Prepare(identity,mapID,binding)
+local function prepareSingle(identity,mapID,binding)
     if busy then return nil,"loading"end
     local key=table.concat({tostring(identity and identity.product),tostring(identity and identity.build),
         tostring(identity and identity.locale),tostring(mapID),tostring(binding and binding.packKey),
         tostring(binding and binding.namespace),tostring(binding and binding.graphSHA256)},":")
-    if requestKey~=key then paths.Reset();requestKey=key end
+    if requestKey~=key then resetSingle();requestKey=key end
     local raw=binding and binding.namespace and catalogs[binding.namespace]or(not(binding and binding.namespace)and RikUIQuestPathsCatalog)
     if raw==nil then return nil,"unavailable" end
     if raw~=rawSeen then
-        paths.Reset();requestKey=key;rawSeen=raw
+        resetSingle();requestKey=key;rawSeen=raw
         local copy=schema.CopyLimited(raw,4096,65536,12)
         if not copy or copy.format~="rikui-path-backbone-v2" or not schema.Identity(copy.identity)
             or not schema.ID(copy.uiMapID) or type(copy.addonName)~="string"
@@ -125,6 +126,57 @@ function paths.Prepare(identity,mapID,binding)
             if not value then return reject(problem or "invalid-path-payload") end
             graph=value;return graph,"ready"
         end
+        if clock and clock()-before>=2 then break end
+    end
+    return nil,"loading"
+end
+
+
+function paths.Reset()
+    if composition and composition.job then composition.job:Cancel()end
+    composition=nil;resetSingle()
+end
+function paths.Prepare(identity,mapID,binding)
+    if not binding or not binding.packs then
+        if composition then paths.Reset()end
+        return prepareSingle(identity,mapID,binding)
+    end
+    if not planner.PathCompose or not planner.TerrainPacks then return nil,"composition-unavailable"end
+    if not same(identity,binding.identity)or binding.mapID~=mapID or not schema.List(binding.packs,8)
+        or#binding.packs<2 or type(binding.packKey)~="string"then return nil,"invalid-composition-binding"end
+    if not composition or composition.key~=binding.packKey then
+        paths.Reset();composition={key=binding.packKey,at=1,inputs={},binding=binding}
+    end
+    local current=composition
+    if current.failure then return nil,current.failure end
+    if current.graph then return current.graph,"ready"end
+    local part=current.binding.packs[current.at]
+    if part then
+        local value,why=prepareSingle(identity,mapID,part)
+        if composition~=current then return nil,"loading"end
+        if not value then
+            if why~="loading"and why~="combat-loading-deferred"then current.failure=why end
+            return nil,why
+        end
+        current.inputs[#current.inputs+1]={namespace=part.namespace,graph=value,meta=part.meta}
+        current.at=current.at+1;return nil,"loading"
+    end
+    if not current.job then
+        local seams,why=planner.TerrainPacks.PrepareSeams(current.binding.connections)
+        if not seams then
+            if why~="loading"and why~="combat-loading-deferred"then current.failure=why end
+            return nil,why
+        end
+        current.job,why=planner.PathCompose.Begin(current.inputs,seams,{maxStep=current.binding.maxStep,
+            isCurrent=function()return composition==current end})
+        if not current.job then current.failure=why;return nil,why end
+        return nil,"loading"
+    end
+    local clock=type(debugprofilestop)=="function"and debugprofilestop;local before=clock and clock()
+    for _=1,clock and 16 or 4 do
+        local value,why,done=current.job:Step(8)
+        if composition~=current then return nil,"loading"end
+        if done then current.job=nil;current.graph=value;current.failure=not value and why or nil;return value,value and"ready"or why end
         if clock and clock()-before>=2 then break end
     end
     return nil,"loading"

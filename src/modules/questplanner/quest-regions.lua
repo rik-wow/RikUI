@@ -6,6 +6,7 @@ local catalog,pages,registeredBytes,job,activeKey,activeSet,failed=nil,{},0,nil,
 local serial,expansion=0,1
 local stores,currentStore,admissionKey,activeView={},nil,nil,nil
 local retainedBytes=0
+local composedBinding,peekBinding
 local MAX_RETAINED_SOURCE=134217728
 local stats={loads=0,maxLoadMS=0,sourceBytes=0,windows=0}
 local function same(a,b) return a and b and a.product==b.product and a.build==b.build and a.locale==b.locale end
@@ -28,12 +29,79 @@ local function activate(store,key,binding)
     end
     catalog,pages,registeredBytes=value,store.pages,store.registeredBytes
     currentStore,admissionKey,activeView=store,key,binding
+    composedBinding,peekBinding=nil,nil
     job,activeKey,activeSet,failed=nil,nil,nil,nil;serial=serial+1;expansion=1
     return true
 end
 function regions.InstallIndex(raw)
     if not planner.TerrainPacks then return nil,"terrain pack manager unavailable"end
     return planner.TerrainPacks.InstallIndex(raw)
+end
+local function activateComposition(selected,position)
+    if admissionKey==selected.key and currentStore then return true end
+    local first=selected.packs[1].catalog
+    local meta=schema.Clone(first.meta);local rows,offsets={},{}
+    meta.uiMapID=position.mapID;meta.projection=schema.Clone(selected.binding.projection)
+    meta.projectionSHA256=selected.binding.projectionSHA256;meta.assignmentID=selected.binding.assignmentID
+    meta.source={sha256=selected.indexRevision,parser="rikui-composed-region-index-v1",profileSHA256=first.meta.source.profileSHA256}
+    meta.composedCandidate=true;meta.sources={};meta.exclusions={};meta.blockers={};meta.bounds={100000,100000,-100000,-100000}
+    local binding={identity=schema.Clone(meta.identity),mapID=position.mapID,worldMapID=meta.worldMapID,
+        packKey=selected.key,projectionSHA256=selected.binding.projectionSHA256,assignmentID=selected.binding.assignmentID,
+        maxStep=meta.modeledMaxStep,packs={},connections=schema.Clone(selected.connections)}
+    local total=0
+    for slot,pack in ipairs(selected.packs)do
+        local c=pack.catalog
+        if not same(c.meta.identity,meta.identity)or c.meta.worldMapID~=meta.worldMapID
+            or c.meta.modeledMaxStep~=meta.modeledMaxStep or c.meta.source.profileSHA256~=meta.source.profileSHA256 then return nil,"composed-model-mismatch"end
+        offsets[pack.namespace]=#rows;total=total+c.sourceBytes
+        meta.sources[#meta.sources+1]={namespace=pack.namespace,sourceSHA256=c.sourceSHA256,catalogRevision=c.revision,graphSHA256=c.graphSHA256}
+        for _,key in ipairs({"exclusions","blockers"})do
+            for _,value in ipairs(c.meta[key]or{})do if#meta[key]>=64 then return nil,"composed-coverage-limit"end;meta[key][#meta[key]+1]=schema.Clone(value)end
+        end
+        local box=c.ownedBounds
+        meta.bounds[1]=math.min(meta.bounds[1],box[1]);meta.bounds[2]=math.min(meta.bounds[2],box[2])
+        meta.bounds[3]=math.max(meta.bounds[3],box[3]);meta.bounds[4]=math.max(meta.bounds[4],box[4])
+        binding.packs[#binding.packs+1]={identity=schema.Clone(c.meta.identity),mapID=position.mapID,worldMapID=c.meta.worldMapID,
+            graphSHA256=c.graphSHA256,namespace=c.namespace,sourceSHA256=c.sourceSHA256,meta=schema.Clone(c.meta),
+            projectionSHA256=selected.binding.projectionSHA256,packKey=c.namespace..":"..c.revision..":"..selected.binding.projectionSHA256}
+        for _,r in ipairs(c.regions)do
+            local row=schema.Clone(r);row.id=#rows+1;row.physicalID=r.id;row.namespace=pack.namespace;row.slot=slot
+            for i,id in ipairs(row.neighbors)do row.neighbors[i]=offsets[pack.namespace]+id end
+            local counts={};for id,n in pairs(row.edgeCounts)do counts[offsets[pack.namespace]+id]=n end;row.edgeCounts=counts
+            rows[#rows+1]=row
+        end
+    end
+    local value={composed=true,format="rikui-region-catalog-v1",revision=selected.indexRevision,meta=meta,regions=rows,sourceBytes=total}
+    local store={catalog=value,pages={},registeredBytes=0}
+    activate(store,selected.key);composedBinding=binding;return true
+end
+local function regionPages(row)
+    if row.namespace then local store=stores[row.namespace];return store and store.pages[row.physicalID]end
+    return pages[row.id]
+end
+local function regionStream(selection,meta)
+    if not catalog.composed then return planner.RegionCodec.Stream(selection.ids,pages,selection.set,meta.identity,#catalog.regions)end
+    local streams={}
+    for slot,pack in ipairs(composedBinding.packs)do
+        local store=stores[pack.namespace];local ids,set={},{}
+        for _,id in ipairs(selection.ids)do local row=catalog.regions[id];if row.namespace==pack.namespace then ids[#ids+1]=row.physicalID;set[row.physicalID]=true end end
+        if#ids>0 then streams[#streams+1]={offset=(slot-1)*16777216,next=planner.RegionCodec.Stream(ids,store.pages,set,meta.identity,#store.catalog.regions)}end
+    end
+    local at=1
+    return function()
+        while streams[at]do
+            local entry=streams[at];local shard,why=entry.next()
+            if shard then
+                for _,polygon in ipairs(shard.polygons)do
+                    polygon.id=polygon.id+entry.offset
+                    for _,portal in ipairs(polygon.portals)do portal.to=portal.to+entry.offset end
+                end
+                return shard
+            end
+            if why then return nil,why end
+            at=at+1
+        end
+    end
 end
 function regions.Admit(identity,position,destination,worldMapID)
     local manager=planner.TerrainPacks
@@ -44,8 +112,9 @@ function regions.Admit(identity,position,destination,worldMapID)
         and same(identity,legacy.catalog.meta.identity)and not manager.HasIndex(position.mapID)then
         return activate(legacy,"legacy:"..legacy.catalog.revision),"ready"
     end
-    local selected,why=manager.Select(identity,position,destination,worldMapID)
+    local selected,why=(manager.SelectRoute or manager.Select)(identity,position,destination,worldMapID)
     if not selected then regions.Suspend();activeKey,activeSet,admissionKey=nil,nil,nil;return nil,why end
+    if selected.packs then return activateComposition(selected,position)end
     local store=stores[selected.namespace]
     if not store then return nil,"terrain pack registration missing"end
     local binding=schema.Clone(selected.binding);binding.packs=nil;binding.uiMapID=position.mapID
@@ -186,16 +255,23 @@ function regions.Accept(token,problem)
 end
 function regions.Expand()
     if not catalog or expansion>=3 then return false end
+    if catalog.composed then
+        if not planner.TerrainPacks.ExpandRoute()then return false end
+        admissionKey=nil
+    end
     expansion=expansion+1;job,activeKey,activeSet=nil,nil,nil;serial=serial+1
     return true
 end
 function regions.Enabled() return catalog~=nil end
-function regions.Binding()
-    if catalog then return {identity=schema.Clone(catalog.meta.identity),mapID=catalog.meta.uiMapID,worldMapID=catalog.meta.worldMapID,
+function regions.PeekBinding()
+    if composedBinding then return composedBinding end
+    if not peekBinding and catalog then peekBinding={identity=schema.Clone(catalog.meta.identity),mapID=catalog.meta.uiMapID,worldMapID=catalog.meta.worldMapID,
         graphSHA256=catalog.graphSHA256,namespace=catalog.namespace,sourceSHA256=catalog.sourceSHA256,
         ownedBounds=schema.Clone(catalog.ownedBounds),projectionSHA256=activeView and activeView.projectionSHA256,
         assignmentID=activeView and activeView.assignmentID,packKey=admissionKey}end
+    return peekBinding
 end
+function regions.Binding()return schema.Clone(regions.PeekBinding())end
 function regions.Stats()
     local value=schema.Clone(stats);value.packs=planner.TerrainPacks and planner.TerrainPacks.Stats()
     value.activePack=currentStore and(currentStore.catalog.namespace or"legacy");return value
@@ -243,7 +319,7 @@ function regions.Prepare(identity,position,destination,localOnly)
     if current.validating then return nil,"validating" end
     local id=current.selection.ids[current.index]
     if id then
-        local r=catalog.regions[id];local list=pages[id]
+        local r=catalog.regions[id];local list=regionPages(r)
         if not list or list.count~=r.pages or list.bytes~=r.bytes then
             if type(InCombatLockdown)=="function" and InCombatLockdown() then return nil,"combat-loading-deferred" end
             local load=type(C_AddOns)=="table" and C_AddOns.LoadAddOn
@@ -260,7 +336,7 @@ function regions.Prepare(identity,position,destination,localOnly)
             if job~=current then return nil,"loading" end
             if before then stats.maxLoadMS=math.max(stats.maxLoadMS,debugprofilestop()-before) end
             stats.loads=stats.loads+1
-            list=pages[id]
+            list=regionPages(r)
             if not ok or not loaded or not list or list.count~=r.pages or list.bytes~=r.bytes then
                 failed={key=key,reason="regional-addon-unavailable: "..tostring(reason or loaded or "registration missing"),permanent=true}
                 return nil,failed.reason
@@ -273,7 +349,7 @@ function regions.Prepare(identity,position,destination,localOnly)
     meta.packNamespace=catalog.namespace;meta.packSourceSHA256=catalog.sourceSHA256;meta.packOwnedBounds=schema.Clone(catalog.ownedBounds)
     meta.revision=(admissionKey or catalog.revision)..":"..table.concat(selection.ids,",")
     meta.counts={polygons=selection.polygons,portals=selection.portals};meta.regionalCandidate=true;meta.localAttachment=selection.localOnly
-    local stream=planner.RegionCodec.Stream(selection.ids,pages,selection.set,meta.identity,#catalog.regions)
+    local stream=regionStream(selection,meta)
     current.validating=true;stats.windows=stats.windows+1
     return {meta=meta,stream=stream,selection=selection,["token"]=current.token},"prepared"
 end

@@ -115,6 +115,7 @@ src/modules/questplanner/quest-path-navigate.lua
 src/modules/questplanner/quest-regions.lua
 src/modules/questplanner/quest-nav-attach.lua
 src/modules/questplanner/quest-navmesh.lua
+src/modules/questplanner/quest-path-compose.lua
 src/modules/questplanner/quest-context.lua
 src/modules/questplanner/quest-enrichment.lua
 src/modules/questplanner/quest-gossip.lua
