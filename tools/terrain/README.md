@@ -1,5 +1,8 @@
 # Local Forever terrain datasource tools
 
+**Current navigation:** [ROADS.md](ROADS.md) describes the road network and
+quest-spot patches that replace the regional mesh and compact path packs.
+
 ## World pack pipeline
 
 `world_bake.py` builds a source-hashed placement index and independently bounded physical-world batches. `world_export.py --capture-runs ... --output input.json` captures immutable run receipts; export then requires that input hash and the exact source directory. The exporter validates current decoder hashes, owned/halo seams, directed connectivity, source exclusions and projection assignments before writing lazy addon packs. `--verify-output` rederives and compares existing output. Source acquisition, static modeling and native traversal are separate evidence levels.
