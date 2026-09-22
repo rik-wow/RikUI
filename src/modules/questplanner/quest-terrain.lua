@@ -77,7 +77,7 @@ end
 local function destinationKey(row)
     local target=row.destination
     return string.format("%d:%d:%.17g:%.17g:%s:%s:%s:%s",row.questID,target.mapID,target.x,target.y,
-        target.scope or "",target.api or "",row.kind or "",(row.stepIdentity~="snapshot-slot" and row.stepIdentity~="quest-marker" and row.stepID or "")..":"..(row.targetHint and row.targetHint.id or ""))
+        target.scope or "",target.api or "",row.kind or "",(row.stepIdentity~="snapshot-slot" and row.stepIdentity~="quest-marker" and row.stepID or "")..":"..(row.targetHint and row.targetHint.id or "")..":"..(row.hunt and (row.hunt.objectiveID..":"..row.hunt.radius) or "")..":"..(target.terrainHeight or ""))
 end
 local function refreshFloors(row,goal)
     local key=mesh:Revision()..":"..destinationKey(row)..":"..(row.destinationSignature or "")
@@ -146,6 +146,9 @@ local function requestRoute(row,location,start)
     local target=row.destination
     local goal=mesh:Project(target.mapID,target.x,target.y)
     if not goal then clear();setState("outside-coverage","Destination is outside this terrain map");return end
+    if target.scope=="observed-hunt-area" and target.corpusRevision~=(meta.corpusRevision or mesh:Revision()) then
+        clear();setState("unknown-target","Observed hunting terrain changed; refresh quest guidance");return
+    end
     refreshFloors(row,goal)
     local signature=mesh:Revision()..":"..destinationKey(row)..":"..floorIndex
     if selectedKey~=signature then clear();selectedKey=signature end
@@ -153,7 +156,7 @@ local function requestRoute(row,location,start)
     if floor then goal.height=floor.height
     elseif target.corpusRevision==(meta.corpusRevision or mesh:Revision()) and schema.Number(target.terrainHeight,-100000,100000) then goal.height=target.terrainHeight end
     display=route and route.follow(location,live)
-    if display then setState(display.approach and "modeled-approach" or "modeled",display.detail);return end
+    if display then setState(display.searching and "hunting" or display.approach and "modeled-approach" or "modeled",display.detail);return end
     if request then return end
     local attempt=signature..":"..location.id
     if lastAttempt==attempt then return end
@@ -264,6 +267,7 @@ function terrain.Step()
             if result.status=="modeled" then
                 if not result.prepared then
                     local row=selected()
+                    result.huntHint=row and not row.journey and floorIndex==0 and schema.Clone(row.hunt)
                     result.markerProvenance=row and schema.Clone(row.destination)
                     result.destinationFloor=destinationFloor()
                     request=planner.NavFollow.Begin(mesh,result,#floorChoices)
@@ -324,6 +328,28 @@ function terrain.PlanningOrigin(identity,position)
     end
     return origin,bridge
 end
+function terrain.ProgressConnected(a,b)
+    if not mesh or not a or not b or a.corpusRevision~=b.corpusRevision
+        or a.corpusRevision~=(meta.corpusRevision or mesh:Revision()) or a.instanceID~=b.instanceID then return false end
+    local x,y=mesh:Project(a.mapID,a.x,a.y),mesh:Project(b.mapID,b.x,b.y)
+    return x and y and mesh:ConnectedNearby({id=a.polygon,point={x.x,a.terrainHeight,x.z}},
+        {id=b.polygon,point={y.x,b.terrainHeight,y.z}},35)
+end
+-- A progress sample is bound to this modeled surface, never promoted to a mob spawn.
+function terrain.ProgressAnchor(frame)
+    if not mesh or loader or not frame.position or not frame.world or frame.world.mapID~=meta.worldMapID then return end
+    local point=mesh:Project(frame.position.mapID,frame.position.x,frame.position.y)
+    if not point or math.abs(frame.world.x-point.x)>5 or math.abs(frame.world.z-point.z)>5 then return end
+    local located=mesh:LocateContinued(point,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
+    if not located then return end
+    local unique=mesh:Locate({x=point.x,z=point.z,height=located.point[2]})
+    if not unique or unique.id~=located.id then return end
+    local anchor=mesh:Unproject(located.point)
+    anchor.scope,anchor.api="observed-hunt-area","quest-objective-progress"
+    anchor.terrainHeight,anchor.corpusRevision=located.point[2],meta.corpusRevision or mesh:Revision()
+    anchor.instanceID,anchor.polygon=meta.worldMapID,located.id
+    return anchor
+end
 -- Arrival receipts certify the selected connected modeled anchor, never a quest interaction.
 function terrain.Arrival(node,frame,sequence)
     local anchor=node and node.terrain
@@ -340,7 +366,7 @@ function terrain.Arrival(node,frame,sequence)
     if not located or math.abs(located.point[2]-endpoint.point[2])>1 then return nil end
     local distance=planner.NavGeometry.Distance(located.point,endpoint.point)
     if distance>4 then return nil end
-    local connected=located.id==endpoint.id or (route and display and not display.approach
+    local connected=located.id==endpoint.id or (route and not route.hunt and display and not display.approach
         and route.corridor[#route.corridor]==endpoint.id and display.meters<=4)
     if not connected then return nil end
     return {sequence=sequence,anchorVerified=true,connected=true,partial=false,distance=distance,

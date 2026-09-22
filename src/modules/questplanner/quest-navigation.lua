@@ -186,7 +186,8 @@ local function marker(canvas,index)
     pin.label:SetText(tostring(index))
     pin:SetScript("OnEnter",function()
         GameTooltip:SetOwner(pin,"ANCHOR_RIGHT"); GameTooltip:SetText(pin.title or "Quest destination")
-        GameTooltip:AddLine("Destination marker; follow verified paths. Click to open the quest.",1,1,1,true); GameTooltip:Show()
+        GameTooltip:AddLine(pin.hunt and "Search approach; look for targets nearby. Click to open the quest."
+            or "Destination marker; follow verified paths. Click to open the quest.",1,1,1,true); GameTooltip:Show()
     end)
     pin:SetScript("OnLeave",function() GameTooltip:Hide() end)
     pin:SetScript("OnClick",function() if pin.questID then planner.OpenQuest(pin.questID) end end)
@@ -201,15 +202,17 @@ local function draw()
     local mapID,width,height=frame:GetMapID(),canvas:GetWidth(),canvas:GetHeight()
     if not planner.Schema.ID(mapID) or not planner.Schema.Number(width,1,20000) or not planner.Schema.Number(height,1,20000) then return end
     drawTerrain(canvas,width,height,mapID)
+    local terrain=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     local count=0
     for _,row in ipairs(model.stops or {model.selected}) do
         local point=row.destination
+        if row.questID==model.selected.questID and terrain and terrain.huntEndpoint then point=terrain.huntEndpoint end
         if point and point.mapID==mapID and planner.Schema.Number(point.x,0,1) and planner.Schema.Number(point.y,0,1) then
             count=count+1; if count>8 then break end
             local pin=pins[count] or marker(canvas,count); pins[count]=pin
             if pin:GetParent()~=canvas then pin:SetParent(canvas) end
             pin:ClearAllPoints(); pin:SetPoint("CENTER",canvas,"TOPLEFT",point.x*width,-point.y*height)
-            pin.title,pin.questID=row.title,row.questID
+            pin.title,pin.questID,pin.hunt=row.title,row.questID,row.hunt~=nil
             pin:Show()
         end
     end

@@ -3,6 +3,11 @@ local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
 local bindings,packs={},{}
 planner.StepBindings=bindings
 local function token(v) return schema.Text(v) and #v>0 and #v<=128 end
+local function hunt(v)
+    return v==nil or (schema.PlainTable(v) and v.kind=="hunt" and schema.Number(v.radius,10,150)
+        and schema.Text(v.text) and schema.Text(v.basis)
+        and (v.instructions==nil or schema.Text(v.instructions)) and (v.nearby==nil or schema.Text(v.nearby)) and (v.source=="user-reported" or v.source=="objective-text"))
+end
 function bindings.Install(raw)
     local data=schema.Copy(raw)
     if not data or not schema.Identity(data.identity) or not schema.Source(data.source)
@@ -18,7 +23,8 @@ function bindings.Install(raw)
         local ids={}
         for _,objective in ipairs(quest.objectives) do
             if not token(objective.id) or ids[objective.id] or not schema.Text(objective.text)
-                or not schema.Text(objective.type) or not schema.Integer(objective.required,0,1000000) then return nil,"invalid-objective-binding" end
+                or not schema.Text(objective.type) or not schema.Integer(objective.required,0,1000000)
+                or not hunt(objective.navigation) or (objective.navigation and objective.type~="monster" and objective.type~="item") then return nil,"invalid-objective-binding" end
             ids[objective.id]=true
         end
     end
@@ -51,7 +57,9 @@ function bindings.Match(snapshot,id)
                     local ids=matchQuest(quest,snapshot.quests[id])
                     if ids then
                         if result then return nil end
-                        result={ids=ids,source=schema.Clone(pack.source),observationSHA256=pack.observationSHA256,revision=pack.revision}
+                        local navigation={}
+                        for _,objective in ipairs(quest.objectives) do navigation[objective.id]=schema.Clone(objective.navigation) end
+                        result={ids=ids,navigation=navigation,source=schema.Clone(pack.source),observationSHA256=pack.observationSHA256,revision=pack.revision}
                     end
                 end
             end

@@ -22,6 +22,10 @@ function guidance.Details(model,snapshot,route)
         if selected.step.state=="blocked" then lines[#lines+1]="Waiting for quest prerequisites."
         elseif selected.step.state=="unknown" then lines[#lines+1]="Check the quest log; step evidence is incomplete." end
     end
+    if selected.hunt then
+        lines[#lines+1]=plain(selected.hunt.instructions or selected.hunt.text,2048)
+        lines[#lines+1]=plain(selected.hunt.basis,2048)
+    end
     local hint=selected.targetHint
     if hint and hint.instructions then
         lines[#lines+1]="Reported interaction: "..plain(hint.instructions,2048)
@@ -32,7 +36,7 @@ function guidance.Details(model,snapshot,route)
     if route and route.detail then lines[#lines+1]=route.detail end
     return table.concat(lines,"\n")
 end
-local TERRAIN_STATUS={loading="Preparing terrain guidance",ready="No walking route selected",["unavailable-position"]="Your position is unavailable",updating="Updating walking route",
+local TERRAIN_STATUS={hunting="Look for quest targets nearby",loading="Preparing terrain guidance",ready="No walking route selected",["unavailable-position"]="Your position is unavailable",updating="Updating walking route",
     calculating="Calculating walking route",modeled="Terrain route estimate",["modeled-approach"]="Approach estimate; final gap unverified",
     ["outside-coverage"]="Outside terrain map coverage",["no-known-path"]="No connected route in terrain model",
     ["coverage-frontier"]="Route coverage needs a nearer waypoint or retry",["budget-exhausted"]="Walking route search reached its limit",invalid="Terrain guidance is unavailable",
@@ -73,6 +77,8 @@ local function facingText(bearing,facing)
     return "Continue ahead"
 end
 local function ending(route,distance)
+    if route.hunt then return {text=route.hunt.text,subtext=route.hunt.source=="observed-progress"
+        and "Continue hunting nearby" or route.hunt.nearby or "Search nearby for targets",distance=distance,ending=true} end
     if route.destinationFloor then
         local inferred=route.destinationFloor.source=="quest-text-model-inference"
         return {text=route.destinationFloor.label..(inferred and " approach reached" or " reached"),
@@ -87,6 +93,7 @@ local function ending(route,distance)
 end
 -- Distances are to the current steering aim, not invented named turns or interactions.
 function guidance.Instruction(route,position,facing,width,height)
+    if route and route.searching then return ending(route,0) end
     local point=route and route.next
     if not point or not position or point.mapID~=position.mapID
         or not schema.Number(width,1,100000) or not schema.Number(height,1,100000)
@@ -143,6 +150,7 @@ end
 function guidance.Signature(snapshot,status,ctx,dialog)
     if not snapshot or not ctx then return status.state end
     local parts={bytes=0}
+    signatureField(parts,planner.Hunts and planner.Hunts.Revision())
     for _,value in ipairs({status.state,snapshot.identity.product,snapshot.identity.build,snapshot.identity.locale,
         snapshot.coverage,snapshot.reportedCount}) do signatureField(parts,value) end
     signatureField(parts,ctx.position and ctx.position.mapID)
@@ -166,13 +174,15 @@ function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded)
             for _,objective in ipairs(quest.objectives or {}) do if not objective.finished then detail=objective.text; break end end
             local hint=planner.Targets and planner.Targets.Match(snapshot,id,point)
             local step=planner.Steps and planner.Steps.ObservedQuest(snapshot,id,ctx)
+            local hunt
+            if planner.Hunts then point,hunt=planner.Hunts.Destination(snapshot,id,step,point) end
             local stage={bytes=0}
             questSignature(stage,id,quest,ctx)
             rows[#rows+1]={questID=id,title=plain(quest.title),kind=quest.objectivesComplete and "turnin" or "objective",
                 destinationSignature=not stage.limited and table.concat(stage) or nil,
                 detail=plain(hint and hint.detail or detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
                 step=step,stepID=step and step.stepID,stepIdentity="quest-marker",
-                targetHint=hint,destination=schema.Clone(point),pinned=policy.pins[id]==true,
+                targetHint=hint,hunt=hunt,destination=schema.Clone(point),pinned=policy.pins[id]==true,
                 skipped=policy.skips[id]==true,avoided=point and policy.avoids[point.mapID]==true or false,failed=quest.failed==true}
         end
     end
@@ -208,6 +218,7 @@ function guidance.Result(route,observed,ctx,data,reason,policy)
         for _,row in ipairs(observed) do if row.questID==first.questID then selected=schema.Clone(row); break end end
         selected=selected or {questID=first.questID,title=plain(first.title),kind=first.kind}
         selected.destination=node and node.mapID and {mapID=node.mapID,x=node.x,y=node.y} or selected.destination
+        selected.hunt=nil -- Authored optimizer actions retain their explicit destination semantics.
         selected.detail=first.kind=="turnin" and "Turn in this quest" or first.kind=="pickup" and "Accept this quest" or "Continue this objective"
     else selected=observed[1] and schema.Clone(observed[1]) end
     local calculated=first~=nil

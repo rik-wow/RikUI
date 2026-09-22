@@ -114,6 +114,7 @@ src/modules/questplanner/quest-steps.lua
 src/modules/questplanner/quest-step-bindings.lua
 src/modules/questplanner/quest-guide-data.lua
 src/modules/questplanner/quest-observed-steps.lua
+src/modules/questplanner/quest-hunts.lua
 src/modules/questplanner/quest-targets.lua
 src/modules/questplanner/quest-guidance.lua
 src/modules/questplanner/quest-controller.lua

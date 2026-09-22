@@ -432,6 +432,14 @@ local function publish(data)
             -- A disconnected floor cannot replace established continuity at an overlap.
             return nil,reason or "Movement left the connected walking surface"
         end,
+        ConnectedNearby=function(_,from,to,limit)
+            if not from or not to or not schema.Number(limit,0,35) then return false end
+            local matches=geometry.FollowSurface(data,from,{x=to.point[1],z=to.point[3]},limit)
+            for _,value in ipairs(matches or {}) do
+                if value.id==to.id and math.abs(value.point[2]-to.point[2])<.01 then return true end
+            end
+            return false
+        end,
         Project=function(_,mapID,x,y)
             if mapID~=data.meta.uiMapID or not schema.Number(x,0,1) or not schema.Number(y,0,1) then return nil end
             local p=data.meta.projection

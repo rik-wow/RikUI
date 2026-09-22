@@ -71,6 +71,14 @@ return function(check)
         eq(route(mesh,{x=29,z=1,height=0},{x=1,z=1,height=0}).status,"no-known-path","reverse seam")
         assert(f.p.Regions.Accept(packet.token));for i=1,3 do eq(f.calls[i],1) end
         check("regional streamed directed topology validated",true)
+        local windows,calls=f.p.Regions.Stats().windows,f.totalCalls
+        local _,nearby=f.p.Regions.Prepare(f.identity,f.position,{mapID=1426,x=.95,y=.99})
+        check("nearby changed goal reuses accepted terrain window",nearby=="ready"
+            and f.p.Regions.Stats().windows==windows and f.totalCalls==calls)
+        f=fixture(function(v)v.destination={mapID=1426,x=.95,y=.99}end)
+        packet=prepare(f);assert(ingest(f,packet));assert(f.p.Regions.Accept(packet.token))
+        local _,outside=f.p.Regions.Prepare(f.identity,f.position,{mapID=1426,x=.75,y=.99})
+        check("unloaded goal region still requires a new window",outside~="ready")
         f=fixture()
         local row,all=f.p.RegionCodec.Decode(f.lines[1]:sub(1,-2),{[1]=true,[2]=true},3)
         assert(row and #row.portals==1 and all==1)

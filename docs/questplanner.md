@@ -28,6 +28,55 @@ RikUI's profile/CVar/macro transport, whose codec is bounded to 21,600 bytes.
 Explicit RIKQ1 exports can be archived and verified with the separate offline
 importer; this does not provide automatic persistence on this beta.
 
+### Hunting objectives use search areas
+
+The Grizzled Den's Wendigo Mane objective no longer treats the cave POI as a
+required standing position. Its exact 69913/enUS objective binding carries a
+separate, user-reported outdoor-first hunting instruction. Frostmane's kill
+objective also supports search guidance; its subsequent exploration objective,
+Bitter Rivals, explicit client waypoints, authored travel legs and manually
+selected destination floors retain their precise destination behavior.
+
+The accepted walking corridor is shortened once during sliced finalization:
+120 yards before the Wendigo marker approach, or 40 for the Frostmane kill
+stage. These are search policies, **not verified spawn boundaries or cave
+entrance coordinates**. The funnel is revalidated on the connected prefix.
+The map search-approach marker, route geometry, arrow and remaining walking
+distance share that result. At the approach, the arrow switches to hunting
+instructions. A connected-surface check and entry/exit margins allow nearby
+hunting movement without repeatedly pointing back to the stopping point.
+Uncertain-floor/partial approaches retain their limitations.
+
+A recent live increase in a reviewed hunt objective can retain a productive
+collection area at the player's modeled position. Receipt admission requires
+a count baseline within eight seconds, movement within 35 yards, the same
+instance, no taxi ride and a proven connected surface. Within 25 connected
+yards, further progress refreshes the existing anchor instead of moving it.
+The bounded session cache expires after five minutes and resets across map,
+build, completed/removed objective or mesh changes. Stale snapshots reset the
+receipt baseline. Learned locations keep modeled height and corpus revision;
+they never establish mob identity, spawn coordinates or a particular kill.
+A new nearby goal reuses the accepted terrain window only when every region
+covering both endpoints is already loaded. This avoids losing floor continuity
+while adopting a productive area; targets outside the window still load normally.
+Party credit, delayed loot and inventory updates remain possible explanations.
+Only observed objective/turn-in evidence advances the quest.
+
+Installed 231-region data and the actual archived 3/8 observation replayed from
+the same .429/.472 Den start: former marker corridor 521.321 yards, displayed
+search approach 401.456, walked 401.196, approximately 119.865 yards of marker
+tail avoided. The replay recorded zero moving replans or route changes and
+seven small aim oscillations. Host callback p99/max was 1/2 ms; stationary
+allocation was approximately 1.65–1.89 KB/frame, including replay adapters. These
+are automated host measurements, not native performance or outdoor spawn
+verification. `tests/quest-hunt-replay.lua` also checks learned floor anchors
+and the 8/8 turn-in transition; unit cases cover floor discontinuities, stale
+evidence, zero-length routes, shared portals and elevation steps.
+
+The installed executable remains Forever 1.60.1.69913. The addon junction points
+at this checkout. The new `quest-hunts.lua` TOC entry requires a full client
+restart; native hunting, interaction and performance acceptance remain open.
+
 ### Current building-navigation repair
 
 The Bitter Rivals export reproduced a disconnected stair approach under the

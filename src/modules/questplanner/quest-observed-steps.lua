@@ -35,6 +35,7 @@ function steps.ObservedQuest(snapshot,id,ctx)
     if not handle then return {state="unknown",reason=reason} end
     local result=handle:Evaluate(evidence)
     result.objectiveBinding=binding
+    if binding and result.active then result.navigation=schema.Clone(binding.navigation[result.active.objectiveID]) end
     local point=ctx.destinations and ctx.destinations[id]
     if point then
         result.questMarker=schema.Clone(point)

@@ -128,6 +128,16 @@ function regions.Expand()
 end
 function regions.Enabled() return catalog~=nil end
 function regions.Stats() return schema.Clone(stats) end
+local function covered(point)
+    local found=false
+    for _,region in ipairs(catalog.regions) do
+        if contains(region,point) then
+            found=true
+            if not activeSet[region.id] then return false end
+        end
+    end
+    return found
+end
 -- Called with the shared player snapshot; one synchronous addon load at most per call.
 function regions.Prepare(identity,position,destination)
     if not catalog then return end
@@ -137,6 +147,9 @@ function regions.Prepare(identity,position,destination)
     local key=catalog.revision..":"..string.format("%d:%.17g:%.17g",destination.mapID,destination.x,destination.y)
     if activeKey==key then
         for id in pairs(activeSet) do if contains(catalog.regions[id],start) then return nil,"ready" end end
+    end
+    if activeSet and not job and covered(start) and covered(goal) then
+        activeKey=key;return nil,"ready"
     end
     local origin={}
     for _,r in ipairs(catalog.regions) do if contains(r,start) then origin[#origin+1]=r.id end end

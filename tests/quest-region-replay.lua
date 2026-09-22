@@ -4,7 +4,7 @@ local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 local questID=assert(tonumber(arg[8]),"regional replay requires questID in arg8")
 RikUI={};RikUI["Secret"]={IsSecret=function()return false end}
 for _,name in ipairs({"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
-    "region-codec","regions","navmesh","steps","step-bindings","guide-data","observed-steps","targets","guidance","terrain"}) do
+    "region-codec","regions","navmesh","steps","step-bindings","guide-data","observed-steps","hunts","targets","guidance","terrain"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p=RikUI.QuestPlanner
@@ -94,5 +94,5 @@ local function replay(start,id,destination,archived)
     end
     error("regional route replay exceeded bound")
 end
-return {mesh=mesh,meta=meta,raw=raw,snapshot=snapshot,replay=replay,tick=tick,
+return {mesh=mesh,meta=meta,raw=raw,snapshot=snapshot,selected=selected,replay=replay,tick=tick,
     move=function(point,delta)tick(point,delta);return p.Terrain.Guidance(),p.Terrain.Status()end}

@@ -192,10 +192,12 @@ end
 function controller.Update(snapshot,status,reason)
     if not planner.enabled then cancel(); return end
     if not snapshot or status.state=="stale" or status.state=="unavailable" then
+        if planner.Hunts then planner.Hunts.Suspend() end
         controller.Invalidate(true); publish({status=status.state,detail="Current quest data is unavailable",quests={}}); return
     end
     local ctx=planner.Context.Read(snapshot,policy.pins)
     if not ctx then controller.Invalidate(true); return end
+    if planner.Hunts then planner.Hunts.Observe(snapshot,ctx) end
     local dialog=planner.Journal.Dialog()
     local nextSignature,signatureProblem=planner.Guidance.Signature(snapshot,status,ctx,dialog)
     context=ctx
