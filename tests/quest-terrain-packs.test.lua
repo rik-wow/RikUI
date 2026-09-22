@@ -1,9 +1,9 @@
 return function(check)
  local saved={}
- for _,name in ipairs({'RikUI','C_AddOns','InCombatLockdown','debugprofilestop','GetTime','RikUIQuestPathsCatalog','RikUIQuestPathsPayloads'})do saved[name]={rawget(_G,name)}end
+ for _,name in ipairs({'RikUI','C_AddOns','InCombatLockdown','debugprofilestop','GetTime'})do saved[name]={rawget(_G,name)}end
  local ok,why=pcall(function()
   RikUI={};RikUI['Secret']={IsSecret=function()return false end}
-  for _,name in ipairs({'schema','nav-geometry','nav-funnel','nav-follow','nav-search','region-codec','terrain-packs','regions','navmesh','paths','terrain'})do
+  for _,name in ipairs({'schema','nav-geometry','nav-funnel','nav-follow','nav-search','region-codec','terrain-packs','regions','navmesh','terrain'})do
    dofile('src/modules/questplanner/quest-'..name..'.lua')
   end
   local p=RikUI.QuestPlanner
@@ -42,23 +42,16 @@ return function(check)
    return out
   end
   local indexes={[1427]=index(1427,{101}),[1430]=index(1430,{102}),[1431]=index(1431,{103}),[947]=index(947,{104,105})}
-  local function pathCatalog(c)return {format='rikui-path-backbone-v2',namespace=c.namespace,sourceSHA256=c.sourceSHA256,
-   identity=identity,uiMapID=c.meta.uiMapID,worldMapID=c.meta.worldMapID,graphSHA256=c.graphSHA256,payloadID=c.revision,
-   addonName='RikUIQuestPaths_'..c.namespace}
-  end
   InCombatLockdown=function()return combat end;debugprofilestop=nil;GetTime=function()return 1 end
-  RikUIQuestPathsCatalog=nil;RikUIQuestPathsPayloads={}
   C_AddOns={LoadAddOn=function(name)
    calls[name]=(calls[name]or 0)+1
    local map=tonumber(name:match('^RikUIQuestTerrainMap_M(%d+)$'))
    if map then if indexes[map]then assert(p.Regions.InstallIndex(indexes[map]));return true end return nil,'MISSING'end
    for namespace,c in pairs(catalogs)do
     if name=='RikUIQuestTerrain_'..namespace then
-     assert(p.Regions.Install(c));assert(p.Paths.Install(pathCatalog(c)));return true
+     assert(p.Regions.Install(c));return true
     elseif name==c.regions[1].addon then
      assert(p.Regions.RegisterPage(c.revision,1,1,line(1),namespace));return true
-    elseif name=='RikUIQuestPaths_'..namespace then
-     RikUIQuestPathsPayloads[c.revision]={format='rikui-path-backbone-v2'};return true
     end
    end
    return nil,'MISSING'
@@ -117,41 +110,15 @@ return function(check)
   local malformed=clone(catalogs[names.a]);malformed.namespace='W0_G0123456789abcdef';malformed.regions[1].addon='RikUIQuestTerrain_R001'
   check('multimap region namespace cannot collide with legacy page names',not p.Regions.Install(malformed))
   check('multimap pages reject a correct revision under another namespace',not p.Regions.RegisterPage(catalogs[names.a].revision,1,1,line(1),names.b))
-  local cancelled,steps=0,0
-  p.PathGraph={Begin=function(c)
-   local n=0;return {Cancel=function()cancelled=cancelled+1 end,Step=function()n=n+1;steps=steps+1;if n==6 then return {namespace=c.namespace},nil,true end end}
-  end}
-  binding=admit(1427,0);p.Paths.Prepare(identity,1427,binding)
-  p.Paths.Prepare(identity,1427,binding)
-  local b=admit(1430,1);p.Paths.Prepare(identity,1430,b)
-  check('multimap path graph admission cancels stale map work',cancelled==1)
-  local result
-  for _=1,8 do result=p.Paths.Prepare(identity,1430,b);if result then break end end
-  check('multimap path publication uses the selected physical graph',result and result.namespace==names.b)
-  b=clone(b);b.sourceSHA256=hash('0')
-  check('multimap path binding rejects a different source even with matching graph',select(2,p.Paths.Prepare(identity,1430,b))=='incompatible-path-source')
-  local samePhysical=admit(1431,0,.975)
-  for _=1,8 do result=p.Paths.Prepare(identity,1431,samePhysical);if result then break end end
-  check('multimap compact graph can attach through a second validated UI view',result and result.namespace==names.a)
-  -- Real NavMesh/Terrain integration: display is dropped before spending an old-map slice.
+  -- A single physical pack still routes on its own regional mesh; the compact
+  -- path layer that composed several packs was replaced by the road network.
   p.enabled=true
-  local currentMap,currentWorld,currentX=1427,0,.95
-  p.Context={Frame=function()local pos=position(currentMap,currentX);local scale=currentMap==1431 and 200 or 100
-   return {position=pos,world={mapID=currentWorld,x=scale-pos.x*scale,z=scale-pos.y*scale,height=0,verticalStatus='observed-altitude'},speed=7}
-  end}
-  p.Controller={Get=function()return {status='observed',selected={questID=7,kind='objective',destination=position(currentMap,currentX)}}end}
+  p.Context={Frame=function()local pos=position(1427);return {position=pos,world={mapID=0,x=100-pos.x*100,z=100-pos.y*100},speed=7}end}
+  p.Controller={Get=function()return {status='observed',selected={questID=7,kind='objective',destination=position(1427)}}end}
   p.GetSnapshot=function()return {identity=identity}end
   for _=1,32 do p.Terrain.Step()end
-  check('multimap terrain admits actual regional mesh',p.Terrain.Status().status=='modeled'or p.Terrain.Status().status=='ready')
-  currentMap,currentWorld=9998,0;p.Terrain.Step()
-  check('multimap terrain clears old guidance on missing new map',p.Terrain.Guidance()==nil and p.Terrain.Status().status=='coverage-frontier')
-  currentMap,currentWorld=1427,0
-  for _=1,32 do p.Terrain.Step()end
-  check('multimap terrain recovers same physical map after an unavailable excursion',p.Terrain.Status().status=='modeled'or p.Terrain.Status().status=='ready')
-  currentMap,currentWorld=1430,1
-  for _=1,32 do p.Terrain.Step()end
-  check('multimap terrain can recover on another installed map',p.Terrain.Status().status=='modeled'or p.Terrain.Status().status=='ready')
-  check('multimap traversal does not reload already loaded map pages',calls[catalogs[names.a].regions[1].addon]==1 and calls[catalogs[names.b].regions[1].addon]==1)
+  local state=p.Terrain.Status()
+  check('single physical pack still routes on its regional mesh',state.status=='modeled' or state.status=='ready',state.status..': '..tostring(state.detail))
  end)
  for name,row in pairs(saved)do rawset(_G,name,row[1])end
  check('multi-map physical pack admission suite completes',ok,why)

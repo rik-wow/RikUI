@@ -4,7 +4,7 @@ local schema,terrain=planner.Schema,{}
 planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local meta,live,regionalToken
-local preparedGraph,hybridUnavailableKey,packKey
+local packKey
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local lastLocation,locationAge=nil,0
 local floorKey,floorChoices,floorIndex=nil,{},0
@@ -17,7 +17,7 @@ local state={status="unavailable",detail="Terrain datasource is not installed"}
 local display
 local stats={plans=0,published=0,generation=0}
 function terrain.Stats()
-    local result=schema.Clone(stats);result.paths=planner.Paths and planner.Paths.Stats();return result
+    local result=schema.Clone(stats);result.roads=planner.RoadGuidance and planner.RoadGuidance.Stats();return result
 end
 local function setState(status,detail)
     if state.status==status and state.detail==detail then return end
@@ -45,7 +45,6 @@ function terrain.Retry()
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" then return nil,"Resume quest guidance before retrying" end
     if not model.selected or not model.selected.destination then return nil,"Choose a quest with a map location" end
-    hybridUnavailableKey=nil
     if regional then planner.Regions.Retry() end
     terrain.Invalidate()
     return true
@@ -183,18 +182,7 @@ local function requestRoute(row,location,start)
     -- Quest-map POIs represent a vicinity, not an exact standing/interaction position.
     local maxWork=math.max(32768,meta.counts.portals*2+1)
     local problem
-    if meta.localAttachment and preparedGraph and planner.PathNavigate and planner.PathRoute then
-        request,problem=planner.PathNavigate.Begin(mesh,preparedGraph,start,goal,{speed=speed or 7})
-        if request then stats.hybridPlans=(stats.hybridPlans or 0)+1 end
-        if not request then
-            hybridUnavailableKey=destinationKey(row)
-            planner.Regions.Retry();clear()
-            setState("loading","Checking the quest marker's terrain approach")
-            return
-        end
-    else
-        request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true})
-    end
+    request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true})
     if request then stats.plans=stats.plans+1 end
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
@@ -254,8 +242,7 @@ local function prepareRegions()
             if mesh and meta and not meta.regionalCandidate and same(meta.identity,snapshot.identity)
                 and live.position.mapID==meta.uiMapID then return true end
             if loader then loader:Cancel();loader=nil end
-            regionalToken,mesh,meta,preparedGraph,packKey=nil,nil,nil,nil,nil
-            if planner.Paths then planner.Paths.Reset()end
+            regionalToken,mesh,meta,packKey=nil,nil,nil,nil
             clear(true)
             setState(why=="loading"and"loading"or"coverage-frontier",
                 why=="loading"and"Loading this map's terrain catalog"or why or"Terrain pack is unavailable")
@@ -264,28 +251,17 @@ local function prepareRegions()
         local binding=(manager.PeekBinding or manager.Binding)();local key=binding and binding.packKey
         if key~=packKey then
             if loader then loader:Cancel();loader=nil end
-            regionalToken,mesh,meta,preparedGraph=nil,nil,nil,nil
-            if planner.Paths then planner.Paths.Reset()end
-            clear(true);hybridUnavailableKey=nil;packKey=key
+            regionalToken,mesh,meta=nil,nil,nil
+            clear(true);packKey=key
         end
     end
-    local graph,pathState
+    -- Physical world packs were composed by the compact-path runtime, now
+    -- replaced by the road network; only single regional packs load here.
     local regionBinding=(manager.PeekBinding or manager.Binding)()
-    if planner.Paths and planner.PathRoute then
-        graph,pathState=planner.Paths.Prepare(snapshot.identity,live.position.mapID,regionBinding)
+    if regionBinding and regionBinding.packs then
+        clear(true);setState("coverage-frontier","This map is served by the road network");return false
     end
-    if pathState=="loading" then setState("loading","Preparing the walking network");return false end
-    if regionBinding and regionBinding.packs and not graph then
-        clear(true);setState("coverage-frontier",pathState or "Composed walking network unavailable");return false
-    end
-    local localOnly=graph~=nil and (not row or hybridUnavailableKey~=destinationKey(row))
-    preparedGraph=localOnly and graph or nil
-    if localOnly and route and route.hybrid and route.pathGraph==preparedGraph and row
-        and route.destinationKey==destinationKey(row) and route.locate and locationAge<=CONTINUITY_SECONDS then
-        local point=mesh:Project(live.position.mapID,live.position.x,live.position.y)
-        if point and route.locate(point,lastLocation) then return true end
-    end
-    local packet,reason=manager.Prepare(snapshot.identity,live.position,destination,localOnly)
+    local packet,reason=manager.Prepare(snapshot.identity,live.position,destination,false)
     if regionalToken and not manager.Current(regionalToken) then
         if loader then loader:Cancel();loader=nil end
         regionalToken=nil;clear(true)
@@ -344,24 +320,16 @@ function terrain.Step()
                     result.markerProvenance=row and schema.Clone(row.destination)
                     result.destinationFloor=destinationFloor()
                     result.destinationKey=row and destinationKey(row)
-                    result.pathGraph=result.hybrid and preparedGraph or nil
                     request=planner.NavFollow.Begin(mesh,result,#floorChoices)
                     return
                 end
                 route=result;stats.published=stats.published+1;stats.generation=stats.generation+1
-                if result.hybrid then stats.hybridPublished=(stats.hybridPublished or 0)+1 end
                 update()
             else
                 display=nil
                 if meta.composedCandidate then
                     if planner.Regions.Expand()then clear(true);setState("loading","Expanding connected terrain packs")
                     else clear(true);setState("coverage-frontier","No modeled route in the bounded connected pack corridor")end
-                elseif meta.localAttachment then
-                    stats.hybridFallbacks=(stats.hybridFallbacks or 0)+1
-                    local row=selected()
-                    hybridUnavailableKey=row and destinationKey(row)
-                    planner.Regions.Retry();clear()
-                    setState("loading","Checking alternative terrain approaches")
                 elseif meta.regionalCandidate then
                     if planner.Regions.Expand() then setState("loading","Expanding terrain coverage")
                     else setState("coverage-frontier","No complete route in the bounded terrain window; retry or choose a nearer waypoint") end

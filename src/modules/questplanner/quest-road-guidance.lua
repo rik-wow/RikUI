@@ -49,8 +49,9 @@ local function searchSlice()
     local clock=type(debugprofilestop)=="function" and debugprofilestop
     local started=clock and clock()
     for _=1,SEARCH_SLICES do
-        local result=request:Step(16)
+        local result,signal=request:Step(16)
         if result then return result end
+        if signal=="end-frame" then return end
         if clock and clock()-started>=SEARCH_MS then return end
     end
 end

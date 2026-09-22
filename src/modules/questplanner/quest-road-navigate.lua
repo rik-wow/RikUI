@@ -2,11 +2,12 @@
 -- a patch covers that end, straight open-ground legs otherwise, and road A*
 -- in between. Short trips inside one patch use the mesh directly.
 local planner=RikUI.QuestPlanner
-local schema,navigate=planner.Schema,{}
+local navigate={}
 planner.RoadNavigate=navigate
 
 local GATEWAYS=3            -- nearest gateway nodes tried per end
 local DIRECT_YARDS=240      -- try a mesh-only route when both ends are this close
+local END_FRAME="end-frame" -- yielded after a synchronous addon load
 local MESH_OPTIONS={maxWork=262144,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true}
 
 -- Mesh searches return their result table from Step once finished.
@@ -76,6 +77,10 @@ function navigate.Begin(graph,view,start,goal,options)
     local worker=coroutine.create(function()
         local mesh
         local loader,why=planner.RoadPatches.Begin(graph,view,{start,goal})
+        while not loader and why=="loading" do
+            coroutine.yield(END_FRAME)  -- a patch addon was loaded; nothing more this frame
+            loader,why=planner.RoadPatches.Begin(graph,view,{start,goal})
+        end
         if loader then
             local value,reason
             while true do
@@ -108,6 +113,7 @@ function navigate.Begin(graph,view,start,goal,options)
             local ok,value=coroutine.resume(worker)
             if not ok then output={status="invalid",detail="Road navigation failed: "..tostring(value)};return output end
             if coroutine.status(worker)=="dead" then output=value;return output end
+            if value==END_FRAME then return nil,END_FRAME end
         end
     end}
 end

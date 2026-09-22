@@ -49,9 +49,16 @@ labelled as such. `quest-road-follow.lua` follows the resulting polyline and
 publishes the same display table as the corridor follower, so the arrow,
 tracker and map dots are unchanged.
 
+Loading never does more than one synchronous addon load per frame: the
+continent network (about 2 MB) loads alone, then one patch addon (at most
+1 MB) per frame, then patch cells decode 64 polygons at a time and the NavMesh
+validates in slices. Recently decoded cells are cached for the next plan.
+
 Floor choices, learned hunting anchors and journey arrival receipts still
-come from the old regional mesh. Where that isn't installed they are simply
-unavailable; road mode doesn't fake them.
+come from the old regional mesh. With the legacy packs retired they are
+unavailable; road mode doesn't fake them. The compact gateway runtime
+(`quest-paths`, `quest-path-graph/search/route/navigate/compose`) was removed.
+A single regional pack can still be installed and routes on its own mesh.
 
 ## Measured results (build 69913)
 
@@ -78,6 +85,20 @@ edges between bake batches. Dun Morogh's Kharanos, Grizzled Den, Brewnall and
 Coldridge are one piece; many zone-to-zone crossings are not. The network
 reports no route rather than inventing a connection.
 
+## Installed state (2026-09-22)
+
+`install_roads.py` installed 145 addons (road index, five world networks,
+139 patch addons) and verified 8,317 files. `retire` moved 805 legacy folders
+(Dun Morogh regional mesh, compact paths, five-world packs) and their two
+ownership receipts to `D:/RikUI-local/retired-legacy-navigation-20260922`.
+A full client restart is needed for the new TOCs.
+
+Host replays on the installed files (`tests/quest-adaptive-roads.lua`, quest
+315, all six flavors): first route at frame 59-65 (about 1.2 simulated
+seconds, versus frame 242 on the regional mesh), decision replay match with
+596 candidates, a 559.5-yard walk with no replans, and a worst callback of
+16-22 ms on this PC. The worst frame is the one-time network addon load.
+
 ## Tests
 
 ```text
@@ -88,6 +109,7 @@ python -B tools/terrain/test_install_roads.py
 luajit tests/run_tests.lua                                  # includes quest-roads
 luajit tests/quest-roads-real.lua <network dir> <world> [pairs]
 luajit tests/quest-roads-navigate-real.lua <network dir> <uiMapID> sx sy gx gy ...
+luajit tests/quest-adaptive-roads.lua <AddOns root> <RIKQ packet> [questID] [frames] [flavor]
 ```
 
 Everything here is modeled geometry. Native walking, doors, swimming and

@@ -135,6 +135,16 @@ The new target module adds a TOC entry, so this delivery requires one full clien
 restart. [Automatic and explicit replay evidence](../tools/terrain/MOVEMENT.md#automatic-basement-annotation)
 establishes modeled routes only; native walking and interactions remain unverified.
 
+### Road network navigation (2026-09-22)
+
+Walking routes now come from a road-preferring walk network plus detailed
+mesh patches around every corpus quest spot, for Eastern Kingdoms, Kalimdor
+and three smaller worlds. It replaces the Dun Morogh regional mesh and the
+compact gateway packs, which were retired from AddOns. See
+[ROADS.md](../tools/terrain/ROADS.md) for the pipeline, sizes, frame budget
+and remaining limits. Floor choices and learned hunting anchors depend on the
+retired regional mesh and are unavailable in road mode.
+
 ## Choosing and recovering guidance
 
 Open `/rik quests show` for the detailed quest list and full scrollable objectives.

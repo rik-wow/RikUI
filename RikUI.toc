@@ -107,15 +107,9 @@ src/modules/questplanner/quest-nav-follow.lua
 src/modules/questplanner/quest-nav-search.lua
 src/modules/questplanner/quest-region-codec.lua
 src/modules/questplanner/quest-path-codec.lua
-src/modules/questplanner/quest-path-graph.lua
-src/modules/questplanner/quest-path-search.lua
-src/modules/questplanner/quest-paths.lua
-src/modules/questplanner/quest-path-route.lua
-src/modules/questplanner/quest-path-navigate.lua
 src/modules/questplanner/quest-regions.lua
 src/modules/questplanner/quest-nav-attach.lua
 src/modules/questplanner/quest-navmesh.lua
-src/modules/questplanner/quest-path-compose.lua
 src/modules/questplanner/quest-roads.lua
 src/modules/questplanner/quest-road-patches.lua
 src/modules/questplanner/quest-road-route.lua

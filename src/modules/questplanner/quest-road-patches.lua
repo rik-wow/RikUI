@@ -6,6 +6,9 @@ local schema,patches=planner.Schema,{}
 planner.RoadPatches=patches
 
 local RING=1                -- cells around each point (3x3)
+local DECODE_SLICE=64       -- polygons decoded between yields
+local CACHE_CELLS=48        -- decoded cells kept for later plans
+local decoded,decodedOrder={},{}
 local MAX_MESH_POLYGONS=60000
 local registered={}
 local stats={loads=0,cells=0}
@@ -64,7 +67,8 @@ local function decode(graph,key,row)
         return value
     end
     local rows={}
-    for _=1,row.polygons do
+    for index=1,row.polygons do
+        if index%DECODE_SLICE==0 then coroutine.yield() end
         local id=u(4);local count=u(1)
         local points={}
         for k=1,count do points[k]=vertex(u(2)) end
@@ -92,10 +96,13 @@ local function cellsAround(graph,points)
     return keys
 end
 
+-- Loads at most one patch addon per call (each is a synchronous ~1 MB load);
+-- returns nil,"loading" until every needed cell is registered.
 local function ensureLoaded(graph,keys)
-    local have=registered[graph.revision] or {}
+    local have,loadedThisCall=registered[graph.revision] or {},false
     for _,key in ipairs(keys) do
         if not have[key] then
+            if loadedThisCall then return nil,"loading" end
             if type(InCombatLockdown)=="function" and InCombatLockdown() then return nil,"combat-loading-deferred" end
             local load=type(C_AddOns)=="table" and C_AddOns.LoadAddOn
             if type(load)~="function" then return nil,"road-loader-unavailable" end
@@ -105,26 +112,13 @@ local function ensureLoaded(graph,keys)
             if not ok or not loaded then return nil,"road-patch-unavailable" end
             have=registered[graph.revision] or {}
             if not have[key] then return nil,"road-patch-revision" end
+            loadedThisCall=true
         end
     end
     return have
 end
 
--- Returns a NavMesh loader job for the patch cells around points, or nil+reason.
--- "no-patch" means none of those cells has quest mesh.
-function patches.Begin(graph,view,points)
-    local keys=cellsAround(graph,points)
-    if #keys==0 then return nil,"no-patch" end
-    local have,why=ensureLoaded(graph,keys)
-    if not have then return nil,why end
-    local polygons,byID={}, {}
-    for _,key in ipairs(keys) do
-        local rows,problem=decode(graph,key,have[key])
-        if not rows then return nil,problem end
-        for _,row in ipairs(rows) do polygons[#polygons+1]=row;byID[row.id]=true end
-        stats.cells=stats.cells+1
-    end
-    if #polygons>MAX_MESH_POLYGONS then return nil,"road patch mesh limit" end
+local function meshFor(graph,view,keys,polygons,byID)
     local portals,minX,minZ,maxX,maxZ=0,math.huge,math.huge,-math.huge,-math.huge
     for _,row in ipairs(polygons) do
         local kept={}
@@ -146,6 +140,66 @@ function patches.Begin(graph,view,points)
         bounds={minX-1,minZ-1,maxX+1,maxZ+1},exclusions={},blockers={},coverageScope="quest-patches",
         nativeVerified=false}
     return planner.NavMesh.Begin(meta,shards)
+end
+
+-- Decoded cell rows, cached by revision and key. Must run inside a coroutine.
+local function cellRows(graph,key,row)
+    local id=graph.revision..":"..key
+    if decoded[id] then return decoded[id] end
+    local rows,problem=decode(graph,key,row)
+    if not rows then return nil,problem end
+    decoded[id]=rows;decodedOrder[#decodedOrder+1]=id
+    if #decodedOrder>CACHE_CELLS then decoded[table.remove(decodedOrder,1)]=nil end
+    return rows
+end
+
+local function copyRow(row)
+    local points,portals={}, {}
+    for i,point in ipairs(row.points) do points[i]={point[1],point[2],point[3]} end
+    for i,portal in ipairs(row.portals) do
+        portals[i]={to=portal.to,left={portal.left[1],portal.left[2],portal.left[3]},right={portal.right[1],portal.right[2],portal.right[3]}}
+    end
+    return {id=row.id,points=points,portals=portals}
+end
+
+-- Returns a sliced job for the patch cells around points: each step decodes at
+-- most one cell, then the NavMesh loader validates incrementally. Step returns
+-- value,reason,done like other loaders. "no-patch": none of the cells has mesh.
+function patches.Begin(graph,view,points)
+    local keys=cellsAround(graph,points)
+    if #keys==0 then return nil,"no-patch" end
+    local have,why=ensureLoaded(graph,keys)
+    if not have then return nil,why end
+    local polygons,byID,loader,cancelled={}, {},nil,false
+    -- Decoding yields every DECODE_SLICE polygons; the mesh loader is sliced too.
+    local collector=coroutine.create(function()
+        for _,key in ipairs(keys) do
+            local rows,problem=cellRows(graph,key,have[key])
+            if not rows then return nil,problem end
+            for index,row in ipairs(rows) do
+                polygons[#polygons+1]=copyRow(row);byID[row.id]=true
+                if index%DECODE_SLICE==0 then coroutine.yield() end
+            end
+            stats.cells=stats.cells+1
+            if #polygons>MAX_MESH_POLYGONS then return nil,"road patch mesh limit" end
+        end
+        return true
+    end)
+    return {Cancel=function() cancelled=true;if loader then loader:Cancel() end end,Step=function(_,budget)
+        if cancelled then return nil,"cancelled",true end
+        if coroutine.status(collector)~="dead" then
+            local ok,value,problem=coroutine.resume(collector)
+            if not ok then return nil,"invalid road patch",true end
+            if coroutine.status(collector)~="dead" then return nil,nil,false end
+            if not value then return nil,problem,true end
+        end
+        if not loader then
+            local problem
+            loader,problem=meshFor(graph,view,keys,polygons,byID)
+            if not loader then return nil,problem,true end
+        end
+        return loader:Step(budget)
+    end}
 end
 
 function patches.Stats() return schema.Clone(stats) end
