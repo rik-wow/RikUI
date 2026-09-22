@@ -7,18 +7,35 @@ local function same(a,b)
     return a and b and a.product==b.product and a.build==b.build and a.locale==b.locale
 end
 stateModel.SameIdentity=same
-local function numberMap(raw,maximum)
+local function numberMap(raw,maximum,minimum)
     local result,count={},0
     for id,value in pairs(schema.PlainTable(raw) and raw or {}) do
         count=count+1
         if count>maximum then break end
-        if schema.ID(id) and schema.Number(value,0,2147483647) then result[id]=value end
+        if schema.ID(id) and schema.Number(value,minimum or 0,2147483647) then result[id]=value end
     end
     return result
 end
 local function completed(snapshot,ctx,records)
-    local result,ids={},{}
-    for id,record in pairs(records or {}) do if schema.ID(id) and #ids<MAX_QUESTS then ids[#ids+1]=id end end
+    local result,ids,seen={},{},{}
+    local function add(id)
+        if schema.ID(id) and not seen[id] and #ids<256 then ids[#ids+1]=id;seen[id]=true end
+    end
+    local function rule(value,depth)
+        if not value or depth>10 then return end
+        add(value.questID)
+        if value.arg then rule(value.arg,depth+1) end
+        for _,child in ipairs(value.args or {}) do rule(child,depth+1) end
+    end
+    local sorted={};for id in pairs(records or {}) do if schema.ID(id) then sorted[#sorted+1]=id end end;table.sort(sorted)
+    for _,id in ipairs(sorted) do add(id) end
+    for _,id in ipairs(sorted) do
+        local plan=records[id].planning or {}
+        rule(plan.requirements,0)
+        for _,field in ipairs({"blockedBy","forbiddenAfter","activeBreadcrumbs","blockedWhileActive"}) do
+            for _,other in ipairs(plan[field] or {}) do add(other) end
+        end
+    end
     table.sort(ids)
     local observed=planner.Context and planner.Context.History and planner.Context.History(ids) or {}
     for _,id in ipairs(ids) do
@@ -67,11 +84,11 @@ local function addLive(state,snapshot,ctx,id)
 end
 local function attributes(state,ctx)
     local values=ctx.attributes or {}
-    for _,key in ipairs({"level","xp","xpMax","class","race","faction","logCapacity"}) do state[key]=values[key] end
+    for _,key in ipairs({"level","xp","xpMax","class","race","faction","logCapacity","questXPMultiplier"}) do state[key]=values[key] end
     state.classMask=schema.Integer(state.class,1,32) and 2^(state.class-1) or nil
     state.raceMask=schema.Integer(state.race,1,32) and 2^(state.race-1) or nil
     for _,key in ipairs({"partySize","money","bagFree","floor","phase","characterKey"}) do state[key]=ctx[key] end
-    state.reputation=numberMap(ctx.reputation,64);state.skills=numberMap(ctx.skills,64)
+    state.reputation=numberMap(ctx.reputation,64,-42000);state.skills=numberMap(ctx.skills,64)
     state.spells=schema.Clone(ctx.spells or {});state.capabilities=schema.Clone(ctx.capabilities or {})
     state.bank=numberMap(ctx.bank,MAX_ITEMS);state.equipped=numberMap(ctx.equipped,MAX_ITEMS)
     state.xpThresholds=numberMap(ctx.xpThresholds,128)
@@ -88,7 +105,9 @@ function stateModel.Build(snapshot,status,ctx,records,policy)
         active={},failed={},progress={},objectiveInfo={},objectivesComplete={},live={},applied={},branchLocks={},
         completed=completed(snapshot,ctx,records),position=schema.Clone(ctx.position),
         observedAt=ctx.observedAt,elapsed=0,xpGained=0,unknownXP=0,assumptions={},evidence={},
-        policy=schema.Clone(policy),bank={},equipped={}}
+        policy=schema.Clone(policy),bank={},equipped={},conditionalObjectives={},conditionalCompleted={},
+        visited=schema.Clone(ctx.visited or {}),recent=schema.Clone(ctx.recent or {}),failures=schema.Clone(ctx.failures or {}),
+        cooldowns=schema.Clone(ctx.cooldowns or {}),services=schema.Clone(ctx.services or {})}
     attributes(state,ctx)
     state.inventory,state.inventoryQueries=inventory(ctx,records)
     for _,id in ipairs(snapshot.order) do addLive(state,snapshot,ctx,id) end

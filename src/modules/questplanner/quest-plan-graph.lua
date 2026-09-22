@@ -52,6 +52,7 @@ local function baseAction(record,kind,key)
         unsupportedRequirements=kind=="pickup" and rules.unsupportedRequirements or nil,
         repeatable=rules.repeatable,reset=rules.reset,authority="reference",
         provenance=record.provenance,sourceRevision=record.provenance and record.provenance.revision,
+        level=record.eligibility and record.eligibility.questLevel,minLevel=record.eligibility and record.eligibility.requiredLevel,
         interaction=kind,completionEvidence=kind=="pickup" and "Quest appears in the live log"
             or kind=="turnin" and "QUEST_TURNED_IN or live completed history"
             or "Live objective progress or completion",
@@ -61,7 +62,10 @@ local function locate(action,method,area)
     action.destination=point(area);action.zoneID=area.mapID
     action.target={kind=method.targetKind,id=method.targetID,name=method.name}
     action.method=method.kind;action.dropEstimate=method.dropEstimate
+    action.viaItemID=method.viaItemID;action.acquisition=method.acquisition
     action.encounter=method.eligibility;action.rank=method.rank
+    action.dispositionKnown=method.dispositionKnown;action.friendlyToFaction=method.friendlyToFaction
+    action.npcFlags=method.npcFlags
     action.topologyKey=table.concat({area.mapID,tostring(area.floor or "?"),tostring(area.phase or "?"),
         tostring(area.entrance or area.id or "?")},":")
     action.travelStatus=area.access==true and "supported" or "unverified"
@@ -105,16 +109,24 @@ local function objectiveAction(record,objective,method,area,state,key)
     locate(action,method,area)
     action.objectiveKey=objective.id
     local info=state.objectiveInfo[record.id] and state.objectiveInfo[record.id][objective.id]
+    action.objectiveTarget=objective.targetID
+    if objective.type=="item" then action.itemID=objective.targetID end
     action.count=info and math.max(0,info.required-info.fulfilled) or objective.required
     action.countUnknown=action.count==nil
     action.objectiveType=(objective.type=="monster" or objective.type=="kill-credit") and method.kind=="kill" and "kill" or objective.type
     action.activity=method.kind
     action.instruction=(VERBS[method.kind] or VERBS.unknown).." "..(method.name or objective.name or record.title)
     action.progressText=info and info.text
+    if method.viaItemID then
+        action.stages={{interaction=method.kind,targetID=method.targetID},{interaction="open-container",itemID=method.viaItemID}}
+        action.instruction=action.instruction.."; open the collected container and check its contents"
+        action.mechanicUncertain=true
+    end
     if objective.sourceItemID then action.preconditions={{op="item",itemID=objective.sourceItemID,count=1}} end
     if objective.type=="item" and action.count then
         action.gains={{itemID=objective.targetID,count=action.count}}
         action.itemID=objective.targetID
+        action.requiredCount=info and info.required or objective.required
     end
     if method.kind=="vendor" then action.moneyCost=method.price;action.priceUnknown=method.price==nil end
     if method.kind=="quest-reward" then action.prerequisite={op="completed",questID=method.targetID} end
@@ -168,6 +180,40 @@ local function addQuest(graph,state,id,record,policy,rows)
     -- A contradictory or unbound source objective cannot replace live instructions.
     if state.active[id] then liveFallback(graph,state,id,rows[id]) end
 end
+local function finalize(graph,state,policy)
+    local credits={}
+    for _,action in ipairs(graph.actions) do
+        if action.sharedCredit and action.objectiveType=="kill" then
+            local list=credits[action.sharedCredit] or {};credits[action.sharedCredit]=list
+            list[#list+1]={questID=action.questID,key=action.objectiveKey}
+        end
+        local live=state.live[action.questID]
+        if live then action.requiredParty=live.requiredParty;action.dungeon=live.dungeon end
+        local rules=graph.quests[action.questID] and graph.quests[action.questID].planning
+        if rules then
+            local predecessors={}
+            local function walk(rule,depth)
+                if not rule or depth>10 then return end
+                if rule.op=="completed" then predecessors[rule.questID]=true end
+                for _,child in ipairs(rule.args or {}) do walk(child,depth+1) end
+            end
+            walk(rules.requirements,0);action.chainPredecessors=predecessors
+        end
+    end
+    for _,action in ipairs(graph.actions) do if action.sharedCredit then action.credits=credits[action.sharedCredit] end end
+    for index,service in ipairs(state.services or {}) do
+        if index>16 then break end
+        if service.supported==true and schema.Text(service.id) and service.destination and usable(service.destination,state,policy) then
+            local action=schema.Clone(service)
+            action.kind="service";action.id="service:"..service.id;action.questID=service.questID or 0
+            action.zoneID=service.destination.mapID
+            action.instruction=service.instruction or "Use the observed service"
+            action.completionEvidence="Live currency, capacity or capability change"
+            action.recovery="Leave this optional stop or choose another action"
+            append(graph,action)
+        end
+    end
+end
 function graphModel.Begin(state,records,observed,policy)
     if not state or not state.fresh then return nil,"Live state required" end
     local graph={version=1,identity=state.identity,revision=state.sourceRevision,actions={},byID={},byQuest={},quests={},
@@ -185,7 +231,7 @@ function graphModel.Begin(state,records,observed,policy)
         if cancelled then return {status="cancelled"} end
         for _=1,math.min(4,budget or 1) do
             local id=ids[at]
-            if not id then graph.status="ready";return graph end
+            if not id then finalize(graph,state,policy);graph.status="ready";return graph end
             addQuest(graph,state,id,records[id],policy,rows);at=at+1
         end
     end}

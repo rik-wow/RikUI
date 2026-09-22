@@ -14,18 +14,18 @@ Baseline: commit 1169c27, clean checkout, 9,204 recorded Lua checks before this 
 | R04 | Executable actions | Steps and semantic methods | quest-plan-graph.lua; quest-plan-transitions.lua | Mechanic preconditions/effects/recovery | Action, evidence and recovery text | Pending |
 | R05 | Resources/capacity/services | Prepared simulation consumes items | quest-plan-state.lua; quest-plan-transitions.lua | No double spend, capacity, services | Missing resources/service alternative | Pending |
 | R06 | XP/time/rewards | Selected quest live XP; prepared durations | Compiler XP; quest-plan-costs.lua | Level scaling, cost components, no reward duplication | Honest estimates and incomplete XP | Pending |
-| R07 | Uncertainty and risk | Source unknowns; route limitations | quest-plan-costs.lua; quest-plan-memory.lua | Ranges, retry bounds, alternatives | Range and risk explanations | Pending |
+| R07 | Uncertainty and risk | Source unknowns; route limitations | quest-plan-costs.lua; quest-plan-learning.lua | Ranges, retry bounds, alternatives | Range and risk explanations | Pending |
 | R08 | Topology clusters | Source areas; directed terrain | quest-plan-graph.lua; transitions | Shared kills vs drops; future pickup batching | Shared visits and access limits | Pending |
 | R09 | Recursive lookahead | Prepared beam depth <=8 | quest-plan-search.lua; graph | Deep chain, future value, incremental repair | Future continuation | Pending |
 | R10 | Multiple plans/flavors | Live local heuristic | quest-preferences.lua; search | Stable units, six tradeoffs, no sunk costs | Alternatives and efficiency tradeoff | Pending |
-| R11 | Variety/continuity/agency | Manual selection/pin/skip/avoid | quest-plan-memory.lua; preferences | Bounded history, explicit feedback, decline | Continuity and dismissible discovery | Pending |
+| R11 | Variety/continuity/agency | Manual selection/pin/skip/avoid | quest-plan-learning.lua; preferences | Bounded history, explicit feedback, decline | Continuity and dismissible discovery | Pending |
 | R12 | Session pacing | Prepared maxSeconds | search; preferences | Short/long, stopping reserve | Session length and milestones | Pending |
 | R13 | Capability and party | Class/race/faction/level snapshot | state; costs; transitions | Solo/group gates, observed failure | Difficulty and group control | Pending |
 | R14 | Hierarchical travel | Directed travel; terrain search/follower | graph travel adapter; controller | Cliff/floor/conditional access | Marker vs verified route | Pending |
 | R15 | Stable replanning | Controller/terrain revision guards | controller; search; memory | Progress/completion/teleport/resource changes | Stable current action and change reason | Pending |
 | R16 | Runtime/fallback | Sliced source/terrain/optimizer | graph/search shared scheduler | Caps, cancel, timeout, cold/warm timings | Immediate useful fallback | Pending |
 | R17 | Explanations/controls | Tracker/details/map controls | quest-plan-view.lua; view/commands/guidance | Real widget interactions and details | All six presets and reversible controls | Pending |
-| R18 | Learning/persistence | CharDB policy; session observations | quest-plan-memory.lua; persistence bridge | Migration, reload, bounded learning/reset | Learned sample counts and reset | Pending |
+| R18 | Learning/persistence | CharDB policy; session observations | quest-plan-learning.lua; persistence bridge | Migration, reload, bounded learning/reset | Learned sample counts and reset | Pending |
 | R19 | Compatibility/coverage | Identity/personas/partitioned corpus | compiler; data; state | Bad partition isolation, locale, unknown quest | Semantic/future/navigation coverage | Pending |
 | R20 | Evaluation/observability | 9204 baseline Lua checks; installed replays | tests/quest-plan*.lua; delivery receipt | Exact oracle, baselines, held-out/long-session | Replay diagnostics; native/playtest evidence | Pending |
 
@@ -99,6 +99,16 @@ The first source slice adds production `quest-preferences.lua`, `quest-plan-stat
 R01/R02/R03/R04/R06/R07/R19 have implemented foundation code with host tests; their integrated UI/gameplay acceptance remains pending. No future source quantity or NPC placeholder health is treated as observed fact. These modules are loaded by the addon but normal Controller integration is the next dependent delivery, not claimed here.
 
 The source contracts were checked against the [pinned eligibility consumer](https://github.com/Questie/Questie/blob/454b9d072965ee8f1a881429260fcf1fac8d60f7/Database/QuestieDB.lua), [pinned drop resolver](https://github.com/Questie/Questie/blob/454b9d072965ee8f1a881429260fcf1fac8d60f7/Database/DropTables/dropDB.lua), and [owned Forever support inputs](https://github.com/Questie/QuestieDB/tree/baa0998d49695c70a1fb8fec559fa9169e9adf33/support/Forever). Host corpus rebuild passed for 7,311 IDs and 18 source personas. Recorded final-source receipts and exact measurements live on the state/graph verification task.
+
+## Implementation evidence: transitions, costs and search
+
+Production now includes `quest-plan-transitions.lua`, `quest-plan-costs.lua`, `quest-plan-learning.lua` and `quest-plan-search.lua`. Tri-state pickup rules, typed resource consumption, branch locks, shared kill credit, conditional unknown-quantity completion, bag/log capacity and optional supported services share one transition model. Validation-only completion cannot grant rewards. Source-item acquisition preserves unknown totals with a lower bound. Future estimates never mutate the live snapshot.
+
+Search combines individual actions (for batching/resource alternatives) with recursive quest continuations. Limits are 48,000 checked expansions, 128 actions per plan, 24 prerequisite quests, 64 beam rounds, width 16, 96 retained first-action alternatives and 128 exclusion diagnostics. This is bounded approximate search, not a global-optimality guarantee. Macros choose a cheap supported completion; primitive alternatives preserve resource-saving methods in the tested cases. Cost ranges expose engineering priors and local sample counts; source XP follows the pinned Questie estimator and remains an estimate.
+
+`tests/quest-plan-search.test.lua` independently enumerates small finite quest jobs: delayed continuation reaches 155 XP, exclusive branches reach 110 XP, and an 18-quest/72-action continuation reaches 1,000 XP. All six flavors preserve legality and choose the delayed chain. A separate quantified preference comparison yields six distinct choices with fixed units. Tests cover duplicate spending/credit, unknown history/counts, stale conditional proofs, compiled skill/reputation/spell fields, source-item lower bounds, full log/bags, optional service capacity, resource-preserving acquisition, short/long stopping points, cycles, cancellation, bounded learning and identity-bound restore.
+
+R04–R16/R18 now have additional production mechanisms and host evidence. Normal controller/UI wiring, real-source search replays, complete scenario acceptance and native gameplay remain pending. The research supports explicit feasibility and measured bounded search; it does not certify this implementation. See the [MCTS evaluation](https://arxiv.org/html/2409.03170v1), [GNN distribution-shift evaluation](https://arxiv.org/html/2409.04653v2) and [D* Lite paper](https://www.cs.cmu.edu/afs/cs/Web/People/motionplanning/papers/sbp_papers/integrated3/koenig_dstarlite_aaai02b.pdf).
 
 ## Current known evidence gaps
 
