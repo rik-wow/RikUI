@@ -1,0 +1,192 @@
+-- Corpus-to-action graph. References describe opportunities, never observed completion.
+local planner=RikUI.QuestPlanner
+local schema,graphModel=planner.Schema,{}
+planner.PlanGraph=graphModel
+local MAX_QUESTS,MAX_ACTIONS,MAX_METHODS,MAX_AREAS=96,768,6,12
+local VERBS={kill="Defeat",drop="Collect from",loot="Loot",talk="Talk to",interact="Interact with",
+    ["use-item"]="Use the quest item at",explore="Explore",escort="Escort",defend="Defend",
+    deliver="Deliver to",craft="Craft",vendor="Purchase from",herb="Gather",mine="Mine",fish="Fish at",
+    event="Follow the quest instructions at",unknown="Check the quest instructions at"}
+local function point(area)
+    if not area or not schema.ID(area.mapID) or not schema.Number(area.x,0,1) or not schema.Number(area.y,0,1) then return end
+    return {mapID=area.mapID,x=area.x,y=area.y,floor=area.floor,phase=area.phase,areaID=area.id,
+        floorKnown=area.floorKnown,access=area.access,source=area.source or "source-reference"}
+end
+local function usable(area,state,policy)
+    if not point(area) or policy.avoids[area.mapID] then return false end
+    if area.access==false or area.reachable==false then return false end
+    if area.phase and area.phase~=state.phase then return false end
+    if area.floor and state.floor and area.mapID==(state.position and state.position.mapID) and area.floor~=state.floor
+        and not area.entrance then return false end
+    return true
+end
+local function nearestAreas(method,state,policy)
+    local areas={}
+    for n,area in ipairs(method.areas or {}) do
+        if n>MAX_AREAS then break end
+        if usable(area,state,policy) then areas[#areas+1]=area end
+    end
+    local origin=state.position
+    table.sort(areas,function(a,b)
+        local da=origin and origin.mapID==a.mapID and (a.x-origin.x)^2+(a.y-origin.y)^2 or math.huge
+        local db=origin and origin.mapID==b.mapID and (b.x-origin.x)^2+(b.y-origin.y)^2 or math.huge
+        if da~=db then return da<db end
+        return tostring(a.id or "")<tostring(b.id or "")
+    end)
+    return areas
+end
+local function append(graph,action)
+    if #graph.actions>=MAX_ACTIONS then graph.limited=true;return end
+    if graph.byID[action.id] then return end
+    graph.actions[#graph.actions+1],graph.byID[action.id]=action,action
+    graph.byQuest[action.questID]=graph.byQuest[action.questID] or {}
+    local rows=graph.byQuest[action.questID];rows[#rows+1]=action
+end
+local function baseAction(record,kind,key)
+    local rules=record.planning or {}
+    return {id=record.id..":"..kind..":"..key,questID=record.id,title=record.title,kind=kind,
+        prerequisite=kind=="pickup" and rules.requirements or nil,
+        excludes=kind=="pickup" and rules.blockedBy or nil,
+        forbiddenAfter=kind=="pickup" and rules.forbiddenAfter or nil,
+        activeBreadcrumbs=rules.activeBreadcrumbs,blockedWhileActive=rules.blockedWhileActive,breadcrumbFor=rules.breadcrumbFor,
+        unsupportedRequirements=kind=="pickup" and rules.unsupportedRequirements or nil,
+        repeatable=rules.repeatable,reset=rules.reset,authority="reference",
+        provenance=record.provenance,sourceRevision=record.provenance and record.provenance.revision,
+        interaction=kind,completionEvidence=kind=="pickup" and "Quest appears in the live log"
+            or kind=="turnin" and "QUEST_TURNED_IN or live completed history"
+            or "Live objective progress or completion",
+        recovery="If unavailable, retry once, then choose another action"}
+end
+local function locate(action,method,area)
+    action.destination=point(area);action.zoneID=area.mapID
+    action.target={kind=method.targetKind,id=method.targetID,name=method.name}
+    action.method=method.kind;action.dropEstimate=method.dropEstimate
+    action.encounter=method.eligibility;action.rank=method.rank
+    action.topologyKey=table.concat({area.mapID,tostring(area.floor or "?"),tostring(area.phase or "?"),
+        tostring(area.entrance or area.id or "?")},":")
+    action.travelStatus=area.access==true and "supported" or "unverified"
+    action.clusterKey=action.topologyKey
+end
+local function relationship(graph,record,kind,state,policy)
+    local methods=kind=="pickup" and record.starts or record.ends
+    local added=0
+    for n,method in ipairs(methods or {}) do
+        if n>MAX_METHODS then break end
+        for index,area in ipairs(nearestAreas(method,state,policy)) do
+            if index>2 then break end
+            local action=baseAction(record,kind,n..":"..index)
+            locate(action,method,area)
+            action.instruction=(kind=="pickup" and "Check for "..record.title.." with " or "Turn in "..record.title.." to ")..(method.name or "the quest giver")
+            if kind=="pickup" then
+                action.gains=record.providedItemID and {{itemID=record.providedItemID,count=1,source=true}} or nil
+                action.initialProgress={}
+                for _,objective in ipairs(record.objectives or {}) do
+                    action.initialProgress[objective.id]=objective.required or -1
+                end
+                action.availability="source-suggestion"
+            else
+                action.reward=record.reward;action.consumes={};action.unknownConsumeItems={}
+                for _,objective in ipairs(record.objectives or {}) do
+                    local info=state.objectiveInfo[record.id] and state.objectiveInfo[record.id][objective.id]
+                    if objective.type=="item" then
+                        local required=info and info.required or objective.required
+                        if required then action.consumes[#action.consumes+1]={itemID=objective.targetID,count=required}
+                        else action.unknownConsumeItems[#action.unknownConsumeItems+1]=objective.targetID end
+                    end
+                end
+            end
+            append(graph,action);added=added+1
+        end
+    end
+    if added==0 then graph.excluded[#graph.excluded+1]={questID=record.id,kind=kind,reason="No supported location; live instructions retained"} end
+end
+local function objectiveAction(record,objective,method,area,state,key)
+    local action=baseAction(record,"objective",key)
+    locate(action,method,area)
+    action.objectiveKey=objective.id
+    local info=state.objectiveInfo[record.id] and state.objectiveInfo[record.id][objective.id]
+    action.count=info and math.max(0,info.required-info.fulfilled) or objective.required
+    action.countUnknown=action.count==nil
+    action.objectiveType=(objective.type=="monster" or objective.type=="kill-credit") and method.kind=="kill" and "kill" or objective.type
+    action.activity=method.kind
+    action.instruction=(VERBS[method.kind] or VERBS.unknown).." "..(method.name or objective.name or record.title)
+    action.progressText=info and info.text
+    if objective.sourceItemID then action.preconditions={{op="item",itemID=objective.sourceItemID,count=1}} end
+    if objective.type=="item" and action.count then
+        action.gains={{itemID=objective.targetID,count=action.count}}
+        action.itemID=objective.targetID
+    end
+    if method.kind=="vendor" then action.moneyCost=method.price;action.priceUnknown=method.price==nil end
+    if method.kind=="quest-reward" then action.prerequisite={op="completed",questID=method.targetID} end
+    if action.objectiveType=="kill" then action.sharedCredit="kill:"..method.targetID..":"..action.topologyKey end
+    return action
+end
+local function objectives(graph,record,state,policy)
+    for objectiveIndex,objective in ipairs(record.objectives or {}) do
+        if objectiveIndex>32 then graph.limited=true;break end
+        local made=0
+        for n,method in ipairs(objective.methods or {}) do
+            if n>MAX_METHODS then break end
+            for index,area in ipairs(nearestAreas(method,state,policy)) do
+                if index>2 then break end
+                append(graph,objectiveAction(record,objective,method,area,state,objective.id..":"..n..":"..index))
+                made=made+1
+            end
+        end
+        if made==0 then graph.excluded[#graph.excluded+1]={questID=record.id,objective=objective.id,reason="Objective mechanic/location unresolved"} end
+    end
+    local action=baseAction(record,"complete","milestone")
+    action.instruction="Finish the quest objectives";action.completionEvidence="All live objectives complete"
+    append(graph,action)
+end
+local function liveFallback(graph,state,id,row)
+    local live=state.live[id]
+    if not live then return end
+    local kind=live.objectivesComplete and "turnin" or "objective"
+    local action={id=id..":live:"..kind,questID=id,title=live.title,kind=kind,authority="live",liveFallback=true,
+        destination=row and row.destination or live.destination,detail=row and row.detail,
+        instruction=row and row.detail or (kind=="turnin" and "Turn in this quest" or "Follow the live quest instructions"),
+        completionEvidence="Live progress or QUEST_TURNED_IN; proximity never completes",
+        recovery="Check the quest log or choose an alternative",countUnknown=true}
+    action.zoneID=action.destination and action.destination.mapID
+    append(graph,action)
+end
+local function addQuest(graph,state,id,record,policy,rows)
+    if not record or (record.known and record.known.semanticRecord==false) then
+        graph.coverage.liveOnly=graph.coverage.liveOnly+1;liveFallback(graph,state,id,rows[id]);return
+    end
+    if record.id~=id or not schema.Text(record.title) or not schema.List(record.objectives or {},32) then
+        graph.excluded[#graph.excluded+1]={questID=id,reason="Invalid source record"};liveFallback(graph,state,id,rows[id]);return
+    end
+    graph.quests[id]=record
+    graph.coverage.semantic=graph.coverage.semantic+1
+    if record.planning and record.planning.version==1 then
+        relationship(graph,record,"pickup",state,policy);graph.coverage.future=graph.coverage.future+1
+    end
+    objectives(graph,record,state,policy)
+    relationship(graph,record,"turnin",state,policy)
+    -- A contradictory or unbound source objective cannot replace live instructions.
+    if state.active[id] then liveFallback(graph,state,id,rows[id]) end
+end
+function graphModel.Begin(state,records,observed,policy)
+    if not state or not state.fresh then return nil,"Live state required" end
+    local graph={version=1,identity=state.identity,revision=state.sourceRevision,actions={},byID={},byQuest={},quests={},
+        excluded={},coverage={semantic=0,future=0,liveOnly=0},limited=false}
+    local ids,seen,rows={},{},{}
+    for id in pairs(state.live) do ids[#ids+1]=id;seen[id]=true end
+    table.sort(ids)
+    local future={}
+    for id in pairs(records or {}) do if not seen[id] then future[#future+1]=id end end
+    table.sort(future)
+    for _,id in ipairs(future) do if #ids<MAX_QUESTS then ids[#ids+1]=id else graph.limited=true end end
+    for _,row in ipairs(observed or {}) do rows[row.questID]=row end
+    local at,cancelled=1,false
+    return {Cancel=function() cancelled=true end,Step=function(_,budget)
+        if cancelled then return {status="cancelled"} end
+        for _=1,math.min(4,budget or 1) do
+            local id=ids[at]
+            if not id then graph.status="ready";return graph end
+            addQuest(graph,state,id,records[id],policy,rows);at=at+1
+        end
+    end}
+end

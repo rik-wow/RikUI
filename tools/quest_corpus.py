@@ -221,6 +221,92 @@ def lua_partition(bucket, rows, revision):
     return result
 
 
+
+def quest_atom(op, quest_id):
+    return {"op": op, "questID": abs(int(quest_id))}
+
+
+def prerequisite_clauses(row, entities):
+    single = ids(row.get("preQuestSingle"))
+    if single:
+        return [{"op": "any", "args": [quest_atom("completed", value) for value in single]}]
+    result = []
+    for value in ids(row.get("preQuestGroup")):
+        alternatives = [quest_atom("completed", value)]
+        if value > 0:
+            other = entities["quests"].get(str(value), {})
+            alternatives += [quest_atom("completed", item) for item in ids(other.get("exclusiveTo")) if item > 0]
+        result.append(alternatives[0] if len(alternatives) == 1 else {"op": "any", "args": alternatives})
+    return result
+
+
+def planning_rules(row, entities):
+    clauses = prerequisite_clauses(row, entities)
+    for field, op in (("requiredLevel", "minLevel"), ("requiredMaxLevel", "maxLevel"),
+                      ("requiredClasses", "classMask"), ("requiredRaces", "raceMask")):
+        if row.get(field, 0) > 0:
+            clauses.append({"op": op, "value": row[field]})
+    for field, op in (("requiredMinRep", "reputationMin"), ("requiredMaxRep", "reputationMax"), ("requiredSkill", "skill")):
+        value = row.get(field)
+        if slot(value, 1, 0) > 0:
+            clauses.append({"op": op, "id": slot(value, 1), "value": slot(value, 2, 0)})
+    if row.get("requiredSpell", 0):
+        clauses.append({"op": "spell", "id": abs(row["requiredSpell"]), "value": row["requiredSpell"] > 0})
+    if row.get("parentQuest", 0) > 0:
+        clauses.append(quest_atom("active", row["parentQuest"]))
+    if row.get("availableStartingWith", 0) > 0:
+        value = row["availableStartingWith"]
+        clauses.append({"op": "any", "args": [quest_atom("active", value), quest_atom("completed", value)]})
+    blocked = set(ids(row.get("exclusiveTo")))
+    for field in ("nextQuestInChain", "breadcrumbForQuestId"):
+        if row.get(field, 0) > 0:
+            blocked.add(row[field])
+    return {"version": 1, "requirements": {"op": "all", "args": clauses},
+            "blockedBy": sorted(value for value in blocked if value > 0),
+            "activeBreadcrumbs": sorted(abs(value) for value in ids(row.get("breadcrumbs"))),
+            "blockedWhileActive": [row["disabledByQuest"]] if row.get("disabledByQuest", 0) > 0 else [],
+            "forbiddenAfter": [row["availableUntilCompleted"]] if row.get("availableUntilCompleted", 0) > 0 else [],
+            "breadcrumbFor": row.get("breadcrumbForQuestId") or None,
+            "countStatus": "live-required", "availability": "source-reference",
+            "repeatable": bool(int(row.get("specialFlags") or 0) & 1),
+            "reset": "daily" if int(row.get("questFlags") or 0) & 4096 else "weekly" if int(row.get("questFlags") or 0) & 32768 else "monthly" if int(row.get("questFlags") or 0) & 65536 else None,
+            "specialFlags": row.get("specialFlags"), "questFlags": row.get("questFlags"),
+            "unsupportedRequirements": {field: row[field] for field in ("requiredSpecialization", "requiredRanks") if nondefault(row.get(field))}}
+
+
+def planning_links(quest):
+    result = set()
+    for field, value in quest.get("prerequisites", {}).items():
+        values = [value] if finite(value) else ids(value)
+        result.update(abs(int(item)) for item in values if item)
+    return result
+
+
+def planning_maps(quest):
+    methods = list(quest.get("starts", [])) + list(quest.get("ends", []))
+    for objective in quest.get("objectives", []):
+        methods.extend(objective.get("methods", []))
+    return {area["mapID"] for method in methods for area in method.get("areas", [])}
+
+
+def planning_index(records):
+    maps, links, quests = collections.defaultdict(set), collections.defaultdict(set), {}
+    for quest_id, record in sorted(records.items()):
+        base = record.get("base", {})
+        variants = [base, *[value for value in record["variants"].values() if isinstance(value, dict)]]
+        semantic = base.get("known", {}).get("semanticRecord", bool(base.get("title")))
+        quests[quest_id] = {"semantic": semantic, "minLevel": base.get("eligibility", {}).get("requiredLevel", 0),
+                            "level": base.get("eligibility", {}).get("questLevel", 0)}
+        for quest in variants:
+            for map_id in planning_maps(quest):
+                maps[map_id].add(quest_id)
+            for other in planning_links(quest):
+                links[quest_id].add(other)
+                links[other].add(quest_id)
+    return {"version": 1, "maps": {key: sorted(value) for key, value in sorted(maps.items())},
+            "links": {key: sorted(value) for key, value in sorted(links.items())}, "quests": quests}
+
+
 class Compiler:
     def __init__(self, data, source_hash):
         self.data = data
@@ -233,6 +319,7 @@ class Compiler:
 
     def set_maps(self, data):
         support = data.get("decodedSupport", self.data.get("decodedSupport", {}))
+        self.support = support
         zones = support.get("ZoneDB", {})
         private = zones.get("private", {})
         maps = data.get("maps", self.data.get("maps", {}))
@@ -330,12 +417,34 @@ class Compiler:
                 self.unknown("location-unknown", source)
             if target_kind == "npc":
                 method["eligibility"] = {field: row[field] for field in ("friendlyToFaction", "minLevel", "maxLevel") if field in row}
+                method["rank"] = row.get("rank")
+                method["npcFlags"] = row.get("npcFlags")
                 method["dispositionKnown"] = True
                 method["friendlyToFaction"] = row.get("friendlyToFaction") or "none"
             if kind == "vendor":
                 method["costKnown"] = False
         self.method_cache[cache_key] = method
         return method
+
+
+    def drop_rate(self, item_id, npc_id):
+        drops = self.support.get("QuestieClassicItemDrops", {})
+        wowhead = drops.get("wowheadData", {}).get(str(item_id), {}).get(str(npc_id))
+        private = drops.get("cmangosData", {}).get(str(item_id), {}).get(str(npc_id))
+        correction = self.support.get("QuestieItemDropCorrections", {}).get("Era", {}).get(str(item_id), {}).get(str(npc_id))
+        if finite(correction) and correction >= 0:
+            rate, source = correction, "correction"
+        elif correction == -1 and finite(wowhead):
+            rate, source = wowhead, "wowhead"
+        elif correction == -2 and finite(private):
+            rate, source = private, "cmangos"
+        elif finite(private):
+            rate, source = private, "cmangos"
+        else:
+            rate, source = wowhead, "wowhead"
+        if finite(rate) and 0 <= rate <= 100:
+            return {"probability": rate / 100, "source": source, "revision": PIN, "authority": "reference"}
+        return None
 
     def item_methods(self, item_id, trail=()):
         if not trail and item_id in self.item_cache:
@@ -359,6 +468,7 @@ class Compiler:
         for quest_id in sorted(set(ids(row.get("questRewards")))):
             quest = self.entities["quests"].get(str(quest_id), {})
             result.append({"kind": "quest-reward", "targetKind": "quest", "targetID": quest_id, "name": quest.get("name", f"Quest {quest_id}"), "areas": [], "source": "QuestieDB"})
+        result = [{**method, "dropEstimate": self.drop_rate(item_id, method["targetID"])} if method["kind"] == "drop" else method for method in result]
         result = list({canonical(method): method for method in result}.values())
         if not trail:
             self.item_cache[item_id] = result
@@ -510,6 +620,11 @@ class Compiler:
                     self.unknown("extra-reference-kind", f"quest:{quest_id}:extra:{index}", reference)
             extras.append({"id": f"extra:{quest_id}:{index}", "type": "extra", "name": text, "text": text, "objectiveIndex": slot(extra, 4), "iconType": slot(extra, 2), "methods": methods})
         quest = {"id": quest_id, "title": row.get("name", f"Quest {quest_id}"), "objectives": objectives, "extraObjectives": extras, "starts": self.relationships(quest_id, row, "starts"), "ends": self.relationships(quest_id, row, "ends"), "eligibility": {field: row[field] for field in ELIGIBILITY if field in row}, "prerequisites": {field: row[field] for field in PREREQUISITES if field in row}, "provenance": {"provider": "QuestieDB", "revision": PIN, "flavor": "Forever"}}
+        quest["planning"] = planning_rules(row, self.entities)
+        reward = self.support.get("QuestXP", {}).get("db", {}).get(str(quest_id))
+        level, xp = slot(reward, 1), slot(reward, 2)
+        if finite(level) and level > 0 and finite(xp) and xp >= 0:
+            quest["reward"] = {"baseXP": xp, "level": level, "source": "QuestieDB.Forever.QuestXP", "revision": PIN, "authority": "reference"}
         if not objective_order_known:
             quest["objectiveOrderUnknown"] = "sparse-source-objectives"
         for field in ("zoneOrSort", "objectivesText", "reputationReward"):
@@ -749,6 +864,7 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
             partitions[quest_id // partition_size][quest_id] = row
         names = {}
         catalog = {"version": 1, "identity": IDENTITY, "revision": revision, "providerRevision": PIN, "sourceSHA256": sha(raw), "partitionSize": partition_size, "partitions": names, "counts": compiler.report["counts"], "baseSelector": "Alliance:WARRIOR", "selectors": sorted(selector_key(variant["selector"]) for variant in data.get("variants", [])), "terms": "local-only; upstream redistribution grant unresolved"}
+        catalog["planning"] = planning_index(records)
         if client_metadata:
             catalog["clientIndex"] = client_metadata
         toc = "## Interface: 16001\n## Title: RikUI Forever Quest Corpus\n## Notes: Local generated QuestieDB data; provenance in build manifest\n## LoadOnDemand: 1\n"

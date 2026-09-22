@@ -122,6 +122,9 @@ src/modules/questplanner/quest-hunts.lua
 src/modules/questplanner/quest-targets.lua
 src/modules/questplanner/quest-recommendations.lua
 src/modules/questplanner/quest-guidance.lua
+src/modules/questplanner/quest-preferences.lua
+src/modules/questplanner/quest-plan-state.lua
+src/modules/questplanner/quest-plan-graph.lua
 src/modules/questplanner/quest-controller.lua
 src/modules/questplanner/quest-terrain.lua
 src/modules/questplanner/quest-view.lua

@@ -1,0 +1,57 @@
+-- Synthetic mechanics and source claims; never asserted as world facts.
+return function(check)
+    local old=RikUI
+    RikUI={Secret={IsSecret=function() return false end}}
+    local ok,err=pcall(function()
+        for _,name in ipairs({"schema","preferences","plan-state"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
+        local p=RikUI.QuestPlanner
+        local preferences=assert(p.Preferences.Normalize({}))
+        check("balanced is default",preferences.flavor=="Balanced")
+        check("flavor names bounded",not p.Preferences.Normalize({flavor="Invented"}))
+        for _,flavor in ipairs(p.Preferences.Flavors()) do
+            check("all six presets validate "..flavor,p.Preferences.Normalize({flavor=flavor})~=nil)
+        end
+        check("invalid session rejected",not p.Preferences.Normalize({sessionMinutes=-1}))
+        local snapshot={identity={product="forever",build="test",locale="enUS"},order={10},generation=1,
+            quests={[10]={id=10,title="Collect",failed=false,objectivesComplete=false,
+                objectives={{text="2/5 Tokens",type="item",numFulfilled=2,numRequired=5,finished=false}}}},
+            reportedCount=1,coverage="log-complete"}
+        local ctx={origin="live",attributes={level=5,class=1,race=3,faction="Alliance",logCapacity=20,xp=10,xpMax=100},
+            history={[11]=false},inventory={[7]=2},position={mapID=1,x=.2,y=.3},partySize=1,characterKey="test-character"}
+        local state=assert(p.PlanState.Build(snapshot,{state="current"},ctx,{},preferences))
+        check("state detaches live input",state.active[10] and state.progress[10]["live:1"]==3)
+        check("source absence cannot erase live quest",state.live[10] and state.logCount==1)
+        check("absent history remains unknown",state.completed[12]==nil and state.completed[11]==false)
+        check("inventory owned separately",state.inventory[7]==2 and state.bank[7]==nil)
+        state.progress[10]["live:1"]=0
+        check("simulated completion never changes live progress",snapshot.quests[10].objectives[1].numFulfilled==2)
+        check("stale snapshot cannot plan",not p.PlanState.Build(snapshot,{state="stale"},ctx,{},preferences))
+        snapshot.origin="imported-untrusted"
+        check("untrusted import cannot plan",not p.PlanState.Build(snapshot,{state="current"},ctx,{},preferences))
+        dofile("src/modules/questplanner/quest-plan-graph.lua")
+        snapshot.origin=nil
+        local method={kind="kill",targetKind="npc",targetID=99,name="Beast",areas={{id="field",mapID=1,x=.3,y=.3}}}
+        local record={id=11,title="Future work",objectives={{id="kill:99",type="monster",targetID=99,name="Beast",methods={method}}},
+            starts={{kind="start",targetKind="npc",targetID=8,name="Scout",areas={{id="hub",mapID=1,x=.2,y=.3}}}},
+            ends={{kind="finish",targetKind="npc",targetID=8,name="Scout",areas={{id="hub",mapID=1,x=.2,y=.3}}}},
+            planning={version=1,requirements={op="completed",questID=10},blockedBy={12}},
+            provenance={revision="fixture"},reward={baseXP=500,level=5}}
+        local graphJob=assert(p.PlanGraph.Begin(state,{[11]=record},{{questID=10,detail="Collect Tokens"}},preferences))
+        local graph
+        for _=1,20 do graph=graphJob:Step(1);if graph then break end end
+        check("normal corpus record constructs all future transitions",graph and #graph.byQuest[11]==4)
+        check("unsupported future counts remain unknown",graph.byID["11:objective:kill:99:1:1"].countUnknown)
+        check("pickup keeps typed prerequisite and exclusion",graph.byID["11:pickup:1:1"].prerequisite.questID==10
+            and graph.byID["11:pickup:1:1"].excludes[1]==12)
+        check("unknown live quest retains useful instructions",graph.byID["10:live:objective"].instruction=="Collect Tokens")
+        method.areas[1].phase=2
+        graphJob=assert(p.PlanGraph.Begin(state,{[11]=record},{},preferences))
+        for _=1,20 do graph=graphJob:Step(1);if graph then break end end
+        check("unknown phase never admitted as usable method",not graph.byID["11:objective:kill:99:1:1"])
+        graphJob=assert(p.PlanGraph.Begin(state,{[11]=record},{},preferences));graphJob:Cancel()
+        check("graph construction is cancellable",graphJob:Step().status=="cancelled")
+
+    end)
+    RikUI=old
+    check("adaptive state fixture completes",ok,err)
+end

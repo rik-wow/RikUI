@@ -118,6 +118,49 @@ function data.Quest(identity,id)
     if value==false then return end
     return value or record.base
 end
+
+-- Stable bounded frontier: active quests first, then connected chains and local opportunities.
+local MAX_FRONTIER,MAX_LINKS=96,24
+function data.Request(id)
+    if not catalog or not schema.ID(id) then return false end
+    local bucket=math.floor(id/catalog.partitionSize)
+    if not catalog.partitions[bucket] then return false end
+    if not pages[bucket] and not queued[bucket] and #queue<MAX_PARTITIONS then
+        queued[bucket]=true;queue[#queue+1]=bucket
+    end
+    return pages[bucket]~=nil
+end
+function data.Frontier(snapshot,ctx)
+    local ids,seen={},{}
+    local function add(id)
+        if schema.ID(id) and not seen[id] and #ids<MAX_FRONTIER then seen[id]=true;ids[#ids+1]=id end
+    end
+    for _,id in ipairs(snapshot.order or {}) do add(id) end
+    local index=catalog and catalog.planning
+    if not index or index.version~=1 or not same(wanted,snapshot.identity) then return ids end
+    local at=1
+    while at<=#ids and at<=MAX_FRONTIER do
+        for n,id in ipairs(index.links[ids[at]] or {}) do if n>MAX_LINKS then break end;add(id) end
+        at=at+1
+    end
+    local mapID=ctx.position and ctx.position.mapID
+    local level=ctx.attributes and ctx.attributes.level
+    for _,id in ipairs(index.maps[mapID] or {}) do
+        local metadata=index.quests[id]
+        if metadata and metadata.semantic and (not level or (metadata.minLevel or 0)<=level+3) then add(id) end
+    end
+    for _,id in ipairs(ids) do data.Request(id) end
+    return ids
+end
+function data.Records(snapshot,ctx)
+    local records,ids={},data.Frontier(snapshot,ctx)
+    for _,id in ipairs(ids) do
+        local record=data.Quest(snapshot.identity,id)
+        if record then records[id]=record end
+    end
+    return records,ids
+end
+
 function data.Revision() return revision end
 function data.Status()
     return {revision=catalog and catalog.revision,loadedPartitions=loaded,queuedPartitions=math.max(0,#queue-head+1),

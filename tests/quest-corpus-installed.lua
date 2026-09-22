@@ -2,7 +2,7 @@
 local root=assert(arg[1],"addon directory required"):gsub("\\","/"):gsub("/$","")
 RikUI={Secret={IsSecret=function() return false end}}
 for _,name in ipairs({"schema","objectives","transfer","optimizer","area-optimizer","steps","step-bindings","guide-data",
-    "observed-steps","semantic-data","semantic-guidance","hunts","targets","guidance"}) do
+    "observed-steps","semantic-data","semantic-guidance","hunts","targets","guidance","preferences","plan-state","plan-graph"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p=RikUI.QuestPlanner
@@ -47,11 +47,30 @@ collectgarbage("collect")
 local retained=collectgarbage("count")-before
 local records,objectives,matched,located,zones,methods=0,0,0,0,{},{}
 local callbackTimes={}
+local plannerRecords,plannerActions,plannerFuture=0,0,0
+local plannerPolicy=assert(p.Preferences.Normalize({}))
+local function admitPlan(record)
+    local state={fresh=true,identity=identity,sourceRevision=catalog.revision,live={},active={},
+        objectiveInfo={},position=context.position,progress={}}
+    local job=assert(p.PlanGraph.Begin(state,{[record.id]=record},{},plannerPolicy))
+    local graph
+    for _=1,4 do graph=job:Step(1);if graph then break end end
+    assert(graph and graph.status=="ready","bounded graph admission did not finish")
+    assert(#graph.actions<=768,"action cap")
+    for _,action in ipairs(graph.actions) do
+        assert(action.questID==record.id and action.completionEvidence and action.recovery)
+        assert(action.authority=="reference","source graph cannot become live proof")
+        if action.kind=="objective" then assert(action.countUnknown or action.count~=nil) end
+    end
+    plannerRecords=plannerRecords+1;plannerActions=plannerActions+#graph.actions
+    plannerFuture=plannerFuture+graph.coverage.future
+end
 for _,bucket in ipairs(buckets) do
     for id=math.max(1,bucket*catalog.partitionSize),(bucket+1)*catalog.partitionSize-1 do
         local record=p.SemanticData.Quest(identity,id)
         if record then
             records=records+1
+            admitPlan(record)
             local observed={}
             local first
             for _,objective in ipairs(record.objectives or {}) do
@@ -96,6 +115,17 @@ print(string.format("INSTALLED CORPUS: %d records, %d partitions; %d synthetic s
     records,#buckets,objectives,matched,located,zoneCount,retained,total,peak,
     callbackTimes[math.max(1,math.ceil(#callbackTimes*.99))],callbackTimes[#callbackTimes]))
 for method,count in pairs(methods) do print("SOURCE METHOD",method,count) end
+assert(plannerRecords==records,"all records must pass production graph admission")
+if catalog.planning then assert(plannerFuture>4000,"future planning corpus missing") end
+print("PLANNER GRAPH",plannerRecords,"records",plannerFuture,"future records",plannerActions,"action transitions")
+for _,persona in ipairs({{class=8,faction="Horde"},{class=2,faction="Alliance"},{class=11,faction="Horde"}}) do
+    context.attributes=persona;p.SemanticData.Ensure(snapshot,context)
+    for _,id in ipairs({2,287,310,315,384,638,1462,6564,96608}) do
+        local record=p.SemanticData.Quest(identity,id)
+        if record then admitPlan(record) end
+    end
+end
+context.attributes={class=1,faction="Alliance"};p.SemanticData.Ensure(snapshot,context)
 if arg[2] then
     local file=assert(io.open(arg[2],"rb"));local wire=file:read("*a");file:close()
     snapshot=assert(p.Transfer.Decode(wire:gsub("[\r\n]+$","")))

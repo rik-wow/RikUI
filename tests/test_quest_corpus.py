@@ -39,6 +39,74 @@ class CorpusTests(unittest.TestCase):
         records = compiler.compile()
         return compiler, records
 
+    def test_typed_planner_rules_preserve_optional_and_exclusive_semantics(self):
+        data = fixture()
+        row = data["base"]["quests"]["1"]
+        row.update(preQuestGroup={"1": 8, "2": -9}, exclusiveTo={"1": 7},
+                   breadcrumbForQuestId=12, parentQuest=5, availableStartingWith=6)
+        data["base"]["quests"]["8"] = {"name": "Either route", "exclusiveTo": {"1": 18}}
+        _, records = self.compile(data)
+        plan = records[1]["base"]["planning"]
+        self.assertEqual(plan["version"], 1)
+        clauses = plan["requirements"]["args"]
+        self.assertIn({"op": "any", "args": [{"op": "completed", "questID": 8}, {"op": "completed", "questID": 18}]}, clauses)
+        self.assertIn({"op": "completed", "questID": 9}, clauses)
+        self.assertIn(7, plan["blockedBy"])
+        self.assertIn(12, plan["blockedBy"])
+        self.assertEqual(plan["breadcrumbFor"], 12)
+        self.assertNotIn({"op": "completed", "questID": 12}, clauses)
+
+    def test_planner_single_precedence_xp_and_unknown_counts(self):
+        data = fixture()
+        row = data["base"]["quests"]["1"]
+        row.update(preQuestSingle={"1": 3, "2": 4}, requiredLevel=5, requiredClasses=1)
+        data["decodedSupport"] = {"QuestXP": {"db": {"1": {"1": 9, "2": 780}}}}
+        _, records = self.compile(data)
+        quest = records[1]["base"]
+        self.assertEqual(quest["reward"]["baseXP"], 780)
+        self.assertEqual(quest["reward"]["level"], 9)
+        self.assertEqual(quest["reward"]["source"], "QuestieDB.Forever.QuestXP")
+        self.assertNotIn({"op": "completed", "questID": 9}, quest["planning"]["requirements"]["args"])
+        self.assertTrue(all("required" not in o for o in quest["objectives"]))
+        self.assertEqual(quest["planning"]["countStatus"], "live-required")
+
+    def test_future_index_includes_all_personas_and_chain_links(self):
+        _, records = self.compile()
+        index = corpus.planning_index(records)
+        self.assertEqual(index["version"], 1)
+        self.assertIn(1, index["maps"][1429])
+        self.assertIn(1, index["maps"][1436])
+        self.assertIn(9, index["links"][1])
+        self.assertEqual(index["quests"][1]["semantic"], True)
+        corpus.add_client_records(records, {99: {"ID": 99}}, {"counts": {}})
+        self.assertFalse(corpus.planning_index(records)["quests"][99]["semantic"])
+
+    def test_drop_estimates_keep_zero_precedence_and_source_identity(self):
+        data = fixture()
+        data["decodedSupport"] = {
+            "QuestieClassicItemDrops": {"wowheadData": {"30": {"10": 25}}, "cmangosData": {"30": {"10": 40}}},
+            "QuestieItemDropCorrections": {"Era": {"30": {"10": 0}}}}
+        _, records = self.compile(data)
+        item = next(o for o in records[1]["base"]["objectives"] if o["type"] == "item")
+        drop = next(m for m in item["methods"] if m["kind"] == "drop")
+        self.assertEqual(drop["dropEstimate"]["probability"], 0)
+        self.assertEqual(drop["dropEstimate"]["source"], "correction")
+        data["decodedSupport"]["QuestieItemDropCorrections"]["Era"]["30"]["10"] = -1
+        _, records = self.compile(data)
+        item = next(o for o in records[1]["base"]["objectives"] if o["type"] == "item")
+        self.assertEqual(next(m for m in item["methods"] if m["kind"] == "drop")["dropEstimate"]["probability"], .25)
+
+    def test_pickup_blockers_keep_distinct_active_and_completed_scopes(self):
+        data = fixture()
+        data["base"]["quests"]["1"].update(availableUntilCompleted=8, disabledByQuest=9, breadcrumbs={"1": 10})
+        _, records = self.compile(data)
+        plan = records[1]["base"]["planning"]
+        self.assertEqual(plan["forbiddenAfter"], [8])
+        self.assertEqual(plan["blockedWhileActive"], [9])
+        self.assertEqual(plan["activeBreadcrumbs"], [10])
+        self.assertNotIn(8, plan["blockedBy"])
+        self.assertNotIn(9, plan["blockedBy"])
+
     def test_all_acquisition_methods_join_entity_locations(self):
         compiler, records = self.compile()
         quest = records[1]["base"]

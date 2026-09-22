@@ -90,8 +90,18 @@ Evaluation compares identical state/information/constraints against nearest feas
 
 Host simulations, actual native UI/performance and gameplay/engagement are separately recorded. Proposed warm 250 ms / cold few seconds / approximately 1 ms per incremental frame targets require native measurements, including synchronous addon loads and total callbacks. Playtest questions cover repetition, coherence, stress, discovery, choice and enjoyment; overrides alone do not imply failure.
 
+## Implementation evidence: state and source graph
+
+The first source slice adds production `quest-preferences.lua`, `quest-plan-state.lua` and `quest-plan-graph.lua`, plus `SemanticData.Frontier/Records`. The compiler now emits typed pickup predicates, distinct active/completed blockers, optional breadcrumb relationships, recurrence metadata, source XP, supported drop probabilities, encounter rank and service flags. The compact map/link index covers the full compiled universe; runtime admission remains explicitly bounded.
+
+`tests/quest-plan-state.test.lua` covers six valid presets, invalid controls, live-state authority and isolation, unknown history/inventory, stale/untrusted rejection, separate future transitions, unknown quantities, live-only fallback, phase exclusion and cancellation. `tests/test_quest_corpus.py` covers prerequisite precedence/alternatives, distinct blocker scopes, unknown counts, reward provenance, drop correction precedence (including zero), all-persona indexes and existing ingestion guarantees. `tests/quest-corpus-installed.lua` now admits every record through the production graph and samples additional personas.
+
+R01/R02/R03/R04/R06/R07/R19 have implemented foundation code with host tests; their integrated UI/gameplay acceptance remains pending. No future source quantity or NPC placeholder health is treated as observed fact. These modules are loaded by the addon but normal Controller integration is the next dependent delivery, not claimed here.
+
+The source contracts were checked against the [pinned eligibility consumer](https://github.com/Questie/Questie/blob/454b9d072965ee8f1a881429260fcf1fac8d60f7/Database/QuestieDB.lua), [pinned drop resolver](https://github.com/Questie/Questie/blob/454b9d072965ee8f1a881429260fcf1fac8d60f7/Database/DropTables/dropDB.lua), and [owned Forever support inputs](https://github.com/Questie/QuestieDB/tree/baa0998d49695c70a1fb8fec559fa9169e9adf33/support/Forever). Host corpus rebuild passed for 7,311 IDs and 18 source personas. Recorded final-source receipts and exact measurements live on the state/graph verification task.
+
 ## Current known evidence gaps
 
-The corpus has locations, methods and raw source relationships, but no guaranteed world-wide navigation or native interaction truth. Required counts, drop rates, vendor prices, exact capabilities and future rewards need source/live support, explicit unknowns and acquisition attempts. SavedVariables are declared but this beta's cross-reload behavior must be verified. Native new/changed chains, lift availability/timing, movement and engagement acceptance cannot be inferred from host tests.
+The corpus has locations, methods and raw source relationships, but no guaranteed world-wide navigation or native interaction truth. Future objective counts, missing drop rates, vendor prices, exact capabilities and missing rewards still require source/live support and explicit unknowns. Available Forever XP and NPC drop support tables are now compiled with provenance. SavedVariables are declared but this beta's cross-reload behavior must be verified. Native new/changed chains, lift availability/timing, movement and engagement acceptance cannot be inferred from host tests.
 
 This ledger will be updated as implementation and evidence land. No requirement or scenario is fully accepted merely because its mechanism exists.
