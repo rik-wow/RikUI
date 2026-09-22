@@ -4,6 +4,11 @@ local journal = {}
 planner.Journal = journal
 local LIMIT = 48
 local entries, dropped, dialog = {}, 0, nil
+local turnIns={}
+function journal.TurnedIn(id,identity)
+    local seen=turnIns[id]
+    return seen and identity and seen.product==identity.product and seen.build==identity.build and seen.locale==identity.locale or false
+end
 local function append(value)
     local copy = schema.CopyLimited(value,512,8192,8)
     if not copy then dropped=dropped+1; return false end
@@ -33,7 +38,13 @@ end
 local function questEvent(event,snapshot,id,xp,money)
     if not schema.ID(id) then return end
     local row=eventContext({event=event,questID=id,source="client-event"},snapshot)
+    if event=="QUEST_ACCEPTED" then turnIns[id]=nil end
     if event=="QUEST_TURNED_IN" then
+        if snapshot and schema.Identity(snapshot.identity) then
+            local count=0;for _ in pairs(turnIns) do count=count+1 end
+            if count>=48 then turnIns={} end
+            turnIns[id]=schema.Clone(snapshot.identity)
+        end
         row.source="QUEST_TURNED_IN"
         if schema.Number(xp,0,2147483647) then row.receivedXP=xp end
         if schema.Number(money,0,2147483647) then row.receivedMoney=money end
@@ -112,6 +123,7 @@ function journal.SnapshotChanged(snapshot,previous)
         and previous.identity.product==snapshot.identity.product and previous.identity.build==snapshot.identity.build
         and previous.identity.locale==snapshot.identity.locale
     if not sameIdentity then
+        turnIns={}
         recordChange("initial-observation",snapshot.order,snapshot,previous and "identity-changed" or "first-snapshot")
         return
     end

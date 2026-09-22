@@ -3,7 +3,7 @@
 local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={}
 RikUI["Secret"]={IsSecret=function() return false end}
-for _,name in ipairs({"schema","transfer","nav-geometry","nav-funnel","nav-follow","nav-search","navmesh","targets","guidance"}) do
+for _,name in ipairs({"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search","navmesh","steps","step-bindings","guide-data","observed-steps","targets","guidance"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p,meta,shards=RikUI.QuestPlanner

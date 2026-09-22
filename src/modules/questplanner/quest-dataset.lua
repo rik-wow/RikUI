@@ -59,6 +59,14 @@ local function metadata(raw, corpus, nodes)
         if not anchor then return nil,"invalid anchor data" end
         if not nodes[anchor.node] or not schema.ID(anchor.npcID) or not schema.ID(anchor.mapID)
             or not sourced(anchor.source,raw.identity,manifests) then return nil,"invalid interaction anchor" end
+        if anchor.terrain and (nodes[anchor.node].mapID~=anchor.mapID
+            or not schema.Number(nodes[anchor.node].x,0,1) or not schema.Number(nodes[anchor.node].y,0,1)
+            or not schema.PlainTable(anchor.terrain)
+            or not schema.Text(anchor.terrain.revision) or not schema.Number(anchor.terrain.height,-100000,100000)
+            or not sourced(anchor.terrain.source,raw.identity,manifests)
+            or anchor.terrain.source.authority~="verified") then return nil,"invalid terrain anchor" end
+        local node=nodes[anchor.node]
+        anchor.x,anchor.y,anchor.zoneID=node.x,node.y,node.zoneID
         anchors[#anchors+1]=schema.Clone(anchor)
     end
     local ids={}
@@ -100,7 +108,26 @@ local function prepare(data,snapshot,status,ctx,dialog)
     local state=planner.Eligibility.FromSnapshot(snapshot,status,ctx.attributes,planner.Context.History(data.meta.history))
     if not state then return nil,"current state unavailable" end
     state.node=locate(data.meta,ctx,dialog)
-    if not state.node then return nil,"player is outside a verified graph anchor" end
+    local graph=data.graph
+    if not state.node and planner.JourneyGraph and planner.Terrain and planner.Terrain.PlanningOrigin then
+        local origin,bridge=planner.Terrain.PlanningOrigin(state.identity,ctx.position)
+        local anchors={}
+        for _,anchor in ipairs(data.meta.anchors) do
+            if anchor.terrain and anchor.source.authority=="verified" then anchors[#anchors+1]=anchor end
+        end
+        table.sort(anchors,function(a,b)
+            local function distance(v)
+                if not ctx.position or v.mapID~=ctx.position.mapID or not v.x or not v.y then return math.huge end
+                return (v.x-ctx.position.x)^2+(v.y-ctx.position.y)^2
+            end
+            local da,db=distance(a),distance(b)
+            return da==db and a.node<b.node or da<db
+        end)
+        if origin and #anchors>0 then
+            graph=planner.JourneyGraph.New(data.graph,origin,anchors,bridge);state.node=origin.id
+        end
+    end
+    if not state.node then return nil,"No qualified walking connection to the travel graph; use the quest marker or observe an anchor" end
     state.xp,state.xpMax=ctx.attributes.xp,ctx.attributes.xpMax
     state.travel={identity=schema.Clone(state.identity),departure=ctx.observedAt,flights={},transport={}}
     state.objectives,state.inventory=counters(snapshot,data.meta.bindings),{}
@@ -118,7 +145,7 @@ local function prepare(data,snapshot,status,ctx,dialog)
             end
         end
     end
-    return {state=state,actions=planner.Actions.New(state.identity,rows),book=data.book,graph=data.graph}
+    return {state=state,actions=planner.Actions.New(state.identity,rows),book=data.book,graph=graph}
 end
 local function construct(raw)
     if not schema.PlainTable(raw) or not schema.Identity(raw.identity) then return nil,"invalid dataset" end

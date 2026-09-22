@@ -38,8 +38,8 @@ return function(check)
         QuestMapFrame_OpenToQuestDetails=function(id) opened=id end
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
-        for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","actions","simulation","optimizer",
-            "context","gossip","journal","dataset","targets","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
+        for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","journey-graph","actions","simulation","optimizer",
+            "context","gossip","journal","dataset","steps","step-bindings","guide-data","observed-steps","targets","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         dofile("src/modules/questplanner/questplanner.lua")
@@ -95,6 +95,17 @@ return function(check)
         check("compiled adapter binds complete matching objective signature",input.state.objectives[11].wolves==1)
         check("compiled adapter overrides only selected contextual XP",input.actions:Get("turnin").xp==120)
         check("coordinate proximity cannot establish graph anchor",not region:Prepare(p.GetSnapshot(),(select(2,p.GetSnapshot())),ctx,nil))
+        local qualified=p.Schema.Clone(raw)
+        qualified.anchors[1].terrain={revision="test-mesh",height=0,source=source}
+        local movementRegion=assert(p.Dataset.New(qualified))
+        p.Terrain={PlanningOrigin=function()
+            return {id="player-origin",revision="fixture-origin",identity=identity,valid=function() return true end},
+                function() return {Step=function() return {status="modeled",revision="test-mesh",seconds=2,meters=14,uncertainty=0} end} end
+        end}
+        local movementInput=assert(movementRegion:Prepare(p.GetSnapshot(),(select(2,p.GetSnapshot())),ctx,nil))
+        check("qualified mesh attachment removes open-dialog requirement",movementInput.state.node=="player-origin"
+            and movementInput.graph:Estimate("player-origin","npc",movementInput.state.travel).seconds==2)
+        p.Terrain=nil
         local changed=p.GetSnapshot(); changed.quests[11].objectives[1].text="Bears: 1/2"
         local changedInput=assert(region:Prepare(changed,(select(2,p.GetSnapshot())),ctx,{npcID=123}))
         check("changed Forever objective text cannot inherit old mapping",changedInput.state.objectives[11]==nil)

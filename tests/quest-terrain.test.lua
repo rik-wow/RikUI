@@ -38,6 +38,17 @@ return function(check)
         check("installed region produces live modeled corridor",guidance.status=="modeled" and not guidance.nativeVerified)
         check("bearing anticipates beyond bend while retaining portal crossings",guidance.next.x<.9 and guidance.next.y<.9
             and guidance.points[2].y>.9 and guidance.points[3].x<.9)
+        local origin,bridge=p.Terrain.PlanningOrigin(identity,position)
+        check("ordinary movement supplies a modeled planning origin",origin and origin.valid())
+        local attachment=assert(bridge({mapID=1426,x=.81,y=.81,terrain={revision="fixture-v1",height=0}},4096))
+        local connected
+        repeat connected=attachment:Step(32) until connected
+        check("planning attachment uses complete mesh geometry",connected.status=="modeled" and connected.meters>0 and not connected.approach)
+        check("planning attachment rejects an unmodeled target floor",not bridge({mapID=1426,x=.81,y=.81,terrain={revision="fixture-v1",height=10}},4096))
+        local capturedPosition=position.x
+        position.x=position.x-.04
+        check("moving beyond frozen origin rejects pending planning attachment",not origin.valid())
+        position.x=capturedPosition
         local oldStart=guidance.points[1].x
         position.x=.98
         env.runScript(driver,"OnUpdate",.016)

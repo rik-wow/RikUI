@@ -92,6 +92,7 @@ src/modules/questplanner/quest-transfer.lua
 src/modules/questplanner/quest-eligibility.lua
 src/modules/questplanner/quest-elevators.lua
 src/modules/questplanner/quest-travel.lua
+src/modules/questplanner/quest-journey-graph.lua
 src/modules/questplanner/quest-actions.lua
 src/modules/questplanner/quest-simulation.lua
 src/modules/questplanner/quest-optimizer.lua
@@ -105,6 +106,10 @@ src/modules/questplanner/quest-context.lua
 src/modules/questplanner/quest-gossip.lua
 src/modules/questplanner/quest-journal.lua
 src/modules/questplanner/quest-dataset.lua
+src/modules/questplanner/quest-steps.lua
+src/modules/questplanner/quest-step-bindings.lua
+src/modules/questplanner/quest-guide-data.lua
+src/modules/questplanner/quest-observed-steps.lua
 src/modules/questplanner/quest-targets.lua
 src/modules/questplanner/quest-guidance.lua
 src/modules/questplanner/quest-controller.lua

@@ -1093,3 +1093,44 @@ polygons, 74,568 directed portals and 408 shards, revision
 Four of nine rounded Den starts remain floor-ambiguous; quest 319 is outside
 coverage, 98326 has no shared approach, and 96608/384 lack observed markers.
 These statuses remain explicit; an approach never completes a quest interaction.
+
+### Observed steps and walking access to planning
+
+The step engine separates travel, interaction, objective, item, turn-in and
+transport actions. Definitions carry exact product/build/locale provenance,
+objective and target identities when known, normalized-map locations, instance,
+floor, access anchors, prerequisites and explicit completion predicates.
+Only a complete connected arrival can finish a travel waypoint. Interaction
+completion requires matching target/outcome evidence; turn-ins require the
+observed quest event. Missing evidence remains unknown. Transport completion
+requires boarding, exit and the matching connected destination.
+
+The first reviewed observation pack covers Bitter Rivals (310), The Grizzled Den
+(313) and Frostmane Hold (287), pinned to captured packet SHA-256
+`042db64be2fffd28595a36e9d727962f77a81b0aa18f926f455ec091e8ebdf4c`.
+Whole objective lists bind by exact build, title, objective type, required count
+and counter-normalized text. Stable authored IDs survive progress and reordering;
+mismatches fall back to explicitly temporary snapshot slots. Quest-level markers
+are never upgraded into objective locations or NPC/gameobject identities.
+
+The real archive replay confirms 310 selects an uncompleted turn-in, 313 selects
+Wendigo Manes at 3/8, and 287 selects headhunter kills before exploration. The
+captured API does not provide durable objective IDs. The existing distillery
+interaction explanation remains user-reported; it is not an observed inventory,
+Jarven dialog, guard departure, barrel interaction or turn-in sequence.
+
+A bounded virtual walking origin now connects normal movement to independently
+qualified graph anchors. It uses a complete mesh path to the authored height and
+polygon, validates mesh revision and source identity, includes actual walking
+time before scheduled transport waiting, and rejects stale origins, partial
+approaches and wrong floors. It does not grant NPC access or flight unlocks.
+The installed quest corpus does not yet contain those verified terrain anchor
+bindings, so this capability currently has synthetic integration coverage.
+Unknown connections continue to produce marker guidance and an explanation.
+
+Validation: 9,003 Lua checks and the actual installed-data objective replay pass.
+New cases cover wrong target/floor, no proximity interaction completion,
+objective progression/reordering, contradictory counters, copy boundaries,
+transport waiting/riding/exiting, partial bridges, bounded work and stale origins.
+All 413 generated companion outputs were also checked against their installed
+receipt's byte lengths and SHA-256 values. Native interactions remain outstanding.

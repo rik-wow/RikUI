@@ -15,6 +15,12 @@ function guidance.Details(model,snapshot,route)
     for _,objective in ipairs(quest and quest.objectives or {}) do
         lines[#lines+1]=(objective.finished and "Done: " or "Objective: ")..plain(objective.text,2048)
     end
+    if selected.step and selected.step.active then
+        local action=selected.step.active
+        lines[#lines+1]="Next action: "..plain(action.text or action.kind)
+        if selected.step.state=="blocked" then lines[#lines+1]="Waiting for quest prerequisites."
+        elseif selected.step.state=="unknown" then lines[#lines+1]="Check the quest log; step evidence is incomplete." end
+    end
     local hint=selected.targetHint
     if hint and hint.instructions then
         lines[#lines+1]="Reported interaction: "..plain(hint.instructions,2048)
@@ -158,11 +164,13 @@ function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded)
             local detail
             for _,objective in ipairs(quest.objectives or {}) do if not objective.finished then detail=objective.text; break end end
             local hint=planner.Targets and planner.Targets.Match(snapshot,id,point)
+            local step=planner.Steps and planner.Steps.ObservedQuest(snapshot,id,ctx)
             local stage={bytes=0}
             questSignature(stage,id,quest,ctx)
             rows[#rows+1]={questID=id,title=plain(quest.title),kind=quest.objectivesComplete and "turnin" or "objective",
                 destinationSignature=not stage.limited and table.concat(stage) or nil,
                 detail=plain(hint and hint.detail or detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
+                step=step,stepID=step and step.stepID,stepIdentity="quest-marker",
                 targetHint=hint,destination=schema.Clone(point),pinned=policy.pins[id]==true,
                 skipped=policy.skips[id]==true,avoided=point and policy.avoids[point.mapID]==true or false,failed=quest.failed==true}
         end

@@ -73,7 +73,7 @@ end
 local function destinationKey(row)
     local target=row.destination
     return string.format("%d:%d:%.17g:%.17g:%s:%s:%s:%s",row.questID,target.mapID,target.x,target.y,
-        target.scope or "",target.api or "",row.kind or "",(row.stepID or "")..":"..(row.targetHint and row.targetHint.id or ""))
+        target.scope or "",target.api or "",row.kind or "",(row.stepIdentity~="snapshot-slot" and row.stepIdentity~="quest-marker" and row.stepID or "")..":"..(row.targetHint and row.targetHint.id or ""))
 end
 local function refreshFloors(row,goal)
     local key=mesh:Revision()..":"..destinationKey(row)..":"..(row.destinationSignature or "")
@@ -220,6 +220,49 @@ function terrain.Step()
             else display=nil; setState(result.status,result.detail) end
         end
     end
+end
+-- Internal planner bridge. A modeled position never grants NPC access or taxi unlocks.
+function terrain.PlanningOrigin(identity,position)
+    if not mesh or not position or not same(meta.identity,identity) then return nil end
+    local point=mesh:Project(position.mapID,position.x,position.y)
+    if not point then return nil end
+    local located=mesh:LocateContinued(point,locationAge<=CONTINUITY_SECONDS and lastLocation or nil)
+    if not located then return nil end
+    local currentMesh=mesh
+    local origin={id="player-origin",identity=schema.Clone(identity),
+        revision=mesh:Revision()..":"..located.id..":"..string.format("%.6f:%.6f",point.x,point.z)}
+    origin.valid=function()
+        if mesh~=currentMesh or not planner.enabled then return false end
+        local frame=planner.Context.Frame and planner.Context.Frame()
+        local now
+        if frame then now=frame.position else now=planner.Context.Position() end
+        if not now or now.mapID~=position.mapID then return false end
+        local current=mesh:Project(now.mapID,now.x,now.y)
+        return current and (current.x-point.x)^2+(current.z-point.z)^2<=3^2
+    end
+    local start={x=located.point[1],height=located.point[2],z=located.point[3]}
+    local function bridge(anchor,budget)
+        if not origin.valid() or budget<1 or not anchor.terrain or anchor.terrain.revision~=mesh:Revision() then return nil end
+        local goal=mesh:Project(anchor.mapID,anchor.x,anchor.y)
+        if not goal then return nil end
+        goal.height=anchor.terrain.height
+        local endpoint=mesh:Locate(goal)
+        if not endpoint or (anchor.terrain.polygon and anchor.terrain.polygon~=endpoint.id) then return nil end
+        local search=mesh:Begin(start,goal,{maxWork=budget,speed=(planner.Context.RunSpeed and planner.Context.RunSpeed()) or 7})
+        if not search then return nil end
+        return {Step=function(_,work)
+            if not origin.valid() then search:Cancel();return {status="cancelled"} end
+            local result=search:Step(work,true)
+            if result and result.status=="modeled" then
+                local last=result.walkPoints[#result.walkPoints]
+                if result.corridor[#result.corridor]~=endpoint.id or planner.NavGeometry.Distance(last,endpoint.point)>.002 then
+                    return {status="invalid"} end
+                result.uncertainty=.25
+            end
+            return result
+        end}
+    end
+    return origin,bridge
 end
 function terrain.Start()
     if driver then return end
