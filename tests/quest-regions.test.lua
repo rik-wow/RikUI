@@ -10,7 +10,7 @@ return function(check)
         end
         local function fixture(configure)
             RikUI={};RikUI["Secret"]={IsSecret=function()return false end}
-            for _,n in ipairs({"schema","nav-geometry","nav-funnel","nav-follow","nav-search","region-codec","regions","navmesh"}) do
+            for _,n in ipairs({"schema","nav-geometry","nav-funnel","nav-follow","nav-search","region-codec","terrain-packs","regions","navmesh"}) do
                 dofile("src/modules/questplanner/quest-"..n..".lua")
             end
             local p=RikUI.QuestPlanner

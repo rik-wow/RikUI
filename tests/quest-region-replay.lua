@@ -4,7 +4,7 @@ local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 local questID=assert(tonumber(arg[8]),"regional replay requires questID in arg8")
 RikUI={};RikUI["Secret"]={IsSecret=function()return false end}
 for _,name in ipairs({"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
-    "region-codec","regions","navmesh","steps","step-bindings","guide-data","observed-steps","hunts","targets","guidance","terrain"}) do
+    "region-codec","terrain-packs","regions","navmesh","steps","step-bindings","guide-data","observed-steps","hunts","targets","guidance","terrain"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p=RikUI.QuestPlanner

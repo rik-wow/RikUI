@@ -1,0 +1,105 @@
+"""Source/job/portal regression fixtures; actual source checks are optional."""
+import argparse,copy,json,pathlib,tempfile,unittest
+from unittest.mock import patch
+import terrain_probe,world_projection,world_source as s,world_stitch as stitch
+import world_geometry as geometry
+PROFILE_SHA='de8b30b38337373f951a4a1570dd720554cfd14aa2fb52b94f0aed966ab1abf8'
+def pair():
+ source={'profileSHA256':'p','tileWorklistSHA256':'t','projectionSources':{}}
+ gen={k:'h' for k in ('wrapperSHA256','boundedWrapperSHA256','filterSHA256')}
+ akey='w30:r7:0:0:p0';bkey='w30:r8:0:0:p0'
+ pa=dict(key=akey,grid=[7,0,0],points=[[448,0,0],[512,0,0],[512,0,64],[448,0,64]],center=[480,0,32],portals=[dict(to=bkey,left=[512,0,0],right=[512,0,64],meters=64)])
+ pb=dict(key=bkey,grid=[8,0,0],points=[[512,0,0],[576,0,0],[576,0,64],[512,0,64]],center=[544,0,32],portals=[dict(to=akey,left=[512,0,64],right=[512,0,0],meters=64)])
+ manifest=dict(job=dict(lattice={},source=source),generator=gen)
+ a=dict(namespace=(30,0,0),manifest=copy.deepcopy(manifest),polygons={akey:pa},witnesses={bkey:copy.deepcopy(pb)},sha256='a')
+ b=dict(namespace=(30,1,0),manifest=copy.deepcopy(manifest),polygons={bkey:pb},witnesses={akey:copy.deepcopy(pa)},sha256='b')
+ return a,b
+
+class Tests(unittest.TestCase):
+ def test_full_index_footprint_survives_smaller_modf_bounds(self):
+  placement=dict(kind='wmo',reference=7,uniqueID=8,scale=1024,flags=12,doodadSet=0)
+  job=dict(worldMapID=30,batchGrid=[0,0],inputXZ=[0,0,10,10],ownedXZ=[0,0,10,10],tiles=[])
+  class Source:
+   used={};tiles={}
+   def job(self,*args):return job
+   def asset(self,*args):return b''
+  class Index:
+   sha256='index'
+   def query(self,*args):return [placement]
+  model=dict(positions=[1,0,1,2,0,1,1,0,2],indices=[0,1,2],doodadReferences=[],unsupported=[])
+  root=dict(groups=[9],flags=4,unknownChunks=[],doodads=[])
+  with patch.object(geometry.wmo,'placement_bounds',return_value=[[20,0,20],[21,1,21]]),patch.object(geometry.wmo,'root',return_value=root),patch.object(geometry.wmo,'group',return_value=model),patch.object(geometry.wmo,'selected_doodads',return_value=([],[])),patch.object(geometry.collision,'transformed',side_effect=lambda m,p:m['positions']):
+   # A contradicted MODF box cannot drop the full indexed geometry before exclusion.
+   calls=[]
+   real=geometry.collision.bounds
+   def captured(points):calls.append(points);return real(points)
+   with patch.object(geometry.collision,'bounds',side_effect=captured):
+    with self.assertRaisesRegex(ValueError,'empty world geometry'):geometry.geometry(Source(),job,Index())
+   self.assertTrue(any(points==model['positions'] for points in calls))
+ def test_tile_axes(self):self.assertEqual(s.tile_rect(32,32),[-s.terrain.TILE,-s.terrain.TILE,0,0])
+ def test_world_namespace(self):self.assertNotEqual(s.polygon_key(0,1,2,0,0),s.polygon_key(1,1,2,0,0))
+ def test_fixed_batch_bounds(self):self.assertEqual(s.batch_rect(-1,0),[-512,0,0,512]);self.assertEqual(s.BORDER,1.25)
+ def test_reciprocal_seam(self):
+  a,b=pair();r=stitch.admit(a,b);self.assertEqual(len(r['directedLinks']),2);self.assertEqual(r['exactWitnessMatches'],2)
+ def test_never_cross_world(self):
+  a,b=pair();b['namespace']=(1,1,0)
+  with self.assertRaisesRegex(ValueError,'share a world'):stitch.admit(a,b)
+ def test_not_nearest_join(self):
+  a,b=pair();next(iter(b['polygons'].values()))['points'][0][0]+=.001
+  with self.assertRaisesRegex(ValueError,'geometry mismatch'):stitch.admit(a,b)
+ def test_missing_reciprocal(self):
+  a,b=pair();next(iter(b['polygons'].values()))['portals']=[]
+  with self.assertRaisesRegex(ValueError,'reciprocal'):stitch.admit(a,b)
+ def test_source_pin_mismatch(self):
+  a,b=pair();b['manifest']['job']['source']['profileSHA256']='changed'
+  with self.assertRaisesRegex(ValueError,'source mismatch'):stitch.admit(a,b)
+ def test_interval_intersection(self):
+  a,b=pair();next(iter(b['polygons'].values()))['portals'][0]['left'][2]=63
+  result=stitch.admit(a,b);self.assertEqual(result['normalization']['narrowedDirectedLinks'],1)
+  self.assertEqual(result['normalization']['minimumRetainedWidth'],63)
+  self.assertEqual(result['normalization']['maxEndpointDiscrepancy'],1)
+  self.assertTrue(all(0<=p[2]<=63 for row in result['directedLinks'] for p in (row['left'],row['right'])))
+ def test_disjoint_intervals(self):
+  f=dict(left=[0,0,0],right=[0,0,2]);r=dict(left=[0,0,3],right=[0,0,4])
+  with self.assertRaisesRegex(ValueError,'disjoint'):stitch.shared_interval(f,r)
+ def test_touch_only_intervals(self):
+  f=dict(left=[0,0,0],right=[0,0,2]);r=dict(left=[0,0,2],right=[0,0,4])
+  with self.assertRaisesRegex(ValueError,'touch-only'):stitch.shared_interval(f,r)
+ def test_off_line_interval(self):
+  f=dict(left=[0,0,0],right=[0,0,2]);r=dict(left=[1,0,0],right=[1,0,2])
+  with self.assertRaisesRegex(ValueError,'off source boundary'):stitch.shared_interval(f,r)
+ def test_intersection_does_not_waive_step(self):
+  a,b=pair();other=next(iter(b['polygons'].values()))
+  for point in other['points']:point[1]=2
+  other['center'][1]=2
+  for edge in other['portals']:edge['left'][1]=2;edge['right'][1]=2
+  a['witnesses'][other['key']]=copy.deepcopy(other)
+  with self.assertRaisesRegex(ValueError,'step mismatch'):stitch.admit(a,b)
+ def test_convex_and_center(self):
+  a,_=pair();row=next(iter(a['polygons'].values()));stitch.validate_poly(row);row['center'][1]=1
+  with self.assertRaisesRegex(ValueError,'center mismatch'):stitch.validate_poly(row)
+ def test_source_expected_hash(self):
+  with tempfile.TemporaryDirectory() as root:
+   path=pathlib.Path(root)/'profile.json';path.write_text('{}')
+   with self.assertRaisesRegex(ValueError,'source hash mismatch'):s.Source(path,'0'*64,root,path,path)
+
+if __name__=='__main__':
+ p=argparse.ArgumentParser();p.add_argument('--actual-source-directory');p.add_argument('--profile');p.add_argument('--first-bake');p.add_argument('--second-bake');p.add_argument('--receipt');a,unknown=p.parse_known_args()
+ result=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromTestCase(Tests));need=result.wasSuccessful()
+ if not need:raise SystemExit(1)
+ receipt={'unitTests':result.testsRun,'nativeVerified':False}
+ if a.actual_source_directory:
+  r=pathlib.Path(a.actual_source_directory);path=pathlib.Path(a.profile);source=s.Source(path,PROFILE_SHA,r,r/'all-projected-world-tile-worklist.csv',r/'inventory.json');jobs=source.jobs()
+  assert len(source.tiles)==1888 and len(jobs)==2290 and len({j['id'] for j in jobs})==2290
+  assert set(j['worldMapID'] for j in jobs)==set(s.WDT_PINS)
+  assert all(len(j['tiles'])<=9 and j['bakeXZ']==s.expand(j['ownedXZ'],64) and j['inputXZ']==s.expand(j['bakeXZ'],1.25) for j in jobs)
+  receipt['actualSource']={'tiles':len(source.tiles),'jobs':len(jobs),'maxInputADTs':max(len(j['tiles']) for j in jobs),'profileSHA256':source.profile_sha}
+ if a.first_bake and a.second_bake:
+  batches=[]
+  for path in (a.first_bake,a.second_bake):
+   path=pathlib.Path(path);batches.append(stitch.load(path,s.sha((path/'manifest.json').read_bytes())))
+  proof=stitch.admit(*batches);assert len(proof['directedLinks'])>0
+  receipt['actualSeam']={'directedLinks':len(proof['directedLinks']),'exactWitnessMatches':proof['exactWitnessMatches'],'proofSHA256':s.sha(s.canonical(proof))}
+ if a.receipt:
+  with pathlib.Path(a.receipt).open('xb') as f:f.write(s.canonical(receipt))
+ print(json.dumps(receipt))

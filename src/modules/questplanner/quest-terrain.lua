@@ -4,7 +4,7 @@ local schema,terrain=planner.Schema,{}
 planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
 local meta,live,regionalToken
-local preparedGraph,hybridUnavailableKey
+local preparedGraph,hybridUnavailableKey,packKey
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local lastLocation,locationAge=nil,0
 local floorKey,floorChoices,floorIndex=nil,{},0
@@ -224,7 +224,8 @@ local function searchSlice()
 end
 local function prepareRegions()
     local manager=planner.Regions
-    if not manager or not manager.Enabled() then return true end
+    if not manager then return true end
+    if not manager.Admit and not manager.Enabled()then return true end
     live=planner.Context.Frame and planner.Context.Frame() or {position=planner.Context.Position()}
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     local snapshot=(planner.PeekSnapshot or planner.GetSnapshot)()
@@ -237,6 +238,28 @@ local function prepareRegions()
     end
     local row=model.selected
     local destination=row and row.destination or live.position
+    if manager.Admit then
+        local admitted,why=manager.Admit(snapshot.identity,live.position,destination,live.world and live.world.mapID)
+        if not admitted then
+            -- A directly installed legacy mesh can remain useful without regional packs.
+            if mesh and meta and not meta.regionalCandidate and same(meta.identity,snapshot.identity)
+                and live.position.mapID==meta.uiMapID then return true end
+            if loader then loader:Cancel();loader=nil end
+            regionalToken,mesh,meta,preparedGraph,packKey=nil,nil,nil,nil,nil
+            if planner.Paths then planner.Paths.Reset()end
+            clear(true)
+            setState(why=="loading"and"loading"or"coverage-frontier",
+                why=="loading"and"Loading this map's terrain catalog"or why or"Terrain pack is unavailable")
+            return false
+        end
+        local binding=manager.Binding();local key=binding and binding.packKey
+        if key~=packKey then
+            if loader then loader:Cancel();loader=nil end
+            regionalToken,mesh,meta,preparedGraph=nil,nil,nil,nil
+            if planner.Paths then planner.Paths.Reset()end
+            clear(true);hybridUnavailableKey=nil;packKey=key
+        end
+    end
     local graph,pathState
     if planner.Paths and planner.PathRoute then
         graph,pathState=planner.Paths.Prepare(snapshot.identity,live.position.mapID,manager.Binding())

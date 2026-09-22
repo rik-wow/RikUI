@@ -2,24 +2,50 @@
 local planner=RikUI.QuestPlanner
 local schema,paths=planner.Schema,{}
 planner.Paths=paths
-local rawSeen,catalog,loader,graph,failure,busy,partAt
-local stats={loads=0,maxLoadMS=0,admissionSlices=0}
+local rawSeen,catalog,loader,graph,failure,busy,partAt,requestKey
+local stats={loads=0,maxLoadMS=0,admissionSlices=0,retainedSourceBudgetBytes=0}
+local catalogs,loadedNames={},{}
+local catalogCount=0
+local MAX_RETAINED_SOURCE=134217728
+local function hash(v)return type(v)=="string"and#v==64 and v:match("^[a-f0-9]+$")end
+function paths.Install(raw)
+    local value=schema.CopyLimited(raw,4096,65536,12)
+    if not value or not planner.TerrainPacks or not planner.TerrainPacks.Namespace(value.namespace,value.worldMapID)
+        or not schema.Identity(value.identity)or not hash(value.sourceSHA256)or not hash(value.graphSHA256)
+        or value.addonName~="RikUIQuestPaths_"..value.namespace then return nil,"invalid physical path catalog"end
+    local prior=catalogs[value.namespace]
+    if prior then
+        if prior.payloadID==value.payloadID and prior.graphSHA256==value.graphSHA256 and prior.sourceSHA256==value.sourceSHA256 then return true end
+        return nil,"path namespace already loaded"
+    end
+    if catalogCount>=64 then return nil,"path catalog cache limit"end
+    catalogs[value.namespace]=value;catalogCount=catalogCount+1;return true
+end
 local function same(a,b) return a and b and a.product==b.product and a.build==b.build and a.locale==b.locale end
 local function reject(reason) failure=reason;loader=nil;return nil,reason end
 function paths.Stats() return schema.Clone(stats) end
 function paths.Reset()
     if loader then loader:Cancel() end
-    rawSeen,catalog,loader,graph,failure,partAt=nil,nil,nil,nil,nil,1
+    rawSeen,catalog,loader,graph,failure,partAt,requestKey=nil,nil,nil,nil,nil,1,nil
 end
-local function loadPart(name,raw)
+local function loadPart(name,raw,declaredBytes)
+    if planner.TerrainPacks and planner.TerrainPacks.IsLoading()then return nil,"loading"end
     if type(InCombatLockdown)=="function" and InCombatLockdown() then return nil,"combat-loading-deferred" end
     local load=type(C_AddOns)=="table" and C_AddOns.LoadAddOn
     if type(load)~="function" then return reject("path-loader-unavailable") end
+    local bytes=declaredBytes or 131072
+    if not schema.Integer(bytes,1,131072)then return reject("invalid-path-load-budget")end
+    if not loadedNames[name]then
+        if stats.retainedSourceBudgetBytes+bytes>MAX_RETAINED_SOURCE then return reject("path source cache limit")end
+        loadedNames[name]=bytes;stats.retainedSourceBudgetBytes=stats.retainedSourceBudgetBytes+bytes
+    end
     local clock=type(debugprofilestop)=="function" and debugprofilestop
     local before=clock and clock()
+    if planner.TerrainPacks and not planner.TerrainPacks.BeginLoad()then return nil,"loading"end
     busy=true
     local ok,loaded=pcall(load,name)
     busy=nil
+    if planner.TerrainPacks then planner.TerrainPacks.EndLoad()end
     if rawSeen~=raw then return nil,"loading" end
     if before then
         local duration=clock()-before
@@ -31,15 +57,21 @@ local function loadPart(name,raw)
     return true
 end
 function paths.Prepare(identity,mapID,binding)
-    if busy then return nil,"loading" end
-    local raw=RikUIQuestPathsCatalog
+    if busy then return nil,"loading"end
+    local key=table.concat({tostring(identity and identity.product),tostring(identity and identity.build),
+        tostring(identity and identity.locale),tostring(mapID),tostring(binding and binding.packKey),
+        tostring(binding and binding.namespace),tostring(binding and binding.graphSHA256)},":")
+    if requestKey~=key then paths.Reset();requestKey=key end
+    local raw=binding and binding.namespace and catalogs[binding.namespace]or(not(binding and binding.namespace)and RikUIQuestPathsCatalog)
     if raw==nil then return nil,"unavailable" end
     if raw~=rawSeen then
-        paths.Reset();rawSeen=raw
+        paths.Reset();requestKey=key;rawSeen=raw
         local copy=schema.CopyLimited(raw,4096,65536,12)
         if not copy or copy.format~="rikui-path-backbone-v2" or not schema.Identity(copy.identity)
             or not schema.ID(copy.uiMapID) or type(copy.addonName)~="string"
-            or copy.addonName~="RikUIQuestPaths_M"..copy.uiMapID then return reject("invalid-path-catalog") end
+            or copy.addonName~=(copy.namespace and("RikUIQuestPaths_"..copy.namespace)or("RikUIQuestPaths_M"..copy.uiMapID))then return reject("invalid-path-catalog")end
+        if copy.namespace and(not planner.TerrainPacks or not planner.TerrainPacks.Namespace(copy.namespace,copy.worldMapID)
+            or not hash(copy.sourceSHA256))then return reject("invalid-path-catalog")end
         if copy.loadParts~=nil then
             if not schema.PlainTable(copy.loadParts) or #copy.loadParts<1 or #copy.loadParts>512 then return reject("invalid-path-parts") end
             for key,part in pairs(copy.loadParts) do
@@ -52,14 +84,16 @@ function paths.Prepare(identity,mapID,binding)
         catalog=copy
     end
     if failure then return nil,failure end
-    if not catalog or not same(identity,catalog.identity) or mapID~=catalog.uiMapID then return nil,"unavailable" end
+    if not catalog or not same(identity,catalog.identity)or(not catalog.namespace and mapID~=catalog.uiMapID)then return nil,"unavailable"end
     if not binding or binding.graphSHA256~=catalog.graphSHA256 or not same(binding.identity,catalog.identity)
-        or binding.mapID~=mapID then return nil,"incompatible-path-source" end
+        or binding.mapID~=mapID or binding.namespace~=catalog.namespace
+        or catalog.namespace and(binding.worldMapID~=catalog.worldMapID or binding.sourceSHA256~=catalog.sourceSHA256
+            or not hash(binding.projectionSHA256))then return nil,"incompatible-path-source"end
     if graph then return graph,"ready" end
     if not loader then
         local payload=RikUIQuestPathsPayloads and RikUIQuestPathsPayloads[catalog.payloadID]
         if not payload then
-            local loaded,why=loadPart(catalog.addonName,raw)
+            local loaded,why=loadPart(catalog.addonName,raw,catalog.baseBytes)
             if not loaded then return nil,why end
             payload=RikUIQuestPathsPayloads and RikUIQuestPathsPayloads[catalog.payloadID]
             if not payload then return reject("missing-path-payload") end
@@ -69,7 +103,7 @@ function paths.Prepare(identity,mapID,binding)
             if not schema.PlainTable(payload) or payload.format~=catalog.format or not schema.PlainTable(payload.loadedParts) then return reject("invalid-path-payload") end
             while partAt<=#catalog.loadParts and payload.loadedParts[partAt]==true do partAt=partAt+1 end
             if partAt<=#catalog.loadParts then
-                local loaded,why=loadPart(catalog.loadParts[partAt].addon,raw)
+                local loaded,why=loadPart(catalog.loadParts[partAt].addon,raw,catalog.loadParts[partAt].bytes)
                 if not loaded then return nil,why end
                 if payload.loadedParts[partAt]~=true then return reject("incomplete-path-part") end
                 partAt=partAt+1

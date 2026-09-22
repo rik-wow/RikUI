@@ -4,6 +4,9 @@ local regions={}
 planner.Regions=regions
 local catalog,pages,registeredBytes,job,activeKey,activeSet,failed=nil,{},0,nil,nil,nil,nil
 local serial,expansion=0,1
+local stores,currentStore,admissionKey,activeView={},nil,nil,nil
+local retainedBytes=0
+local MAX_RETAINED_SOURCE=134217728
 local stats={loads=0,maxLoadMS=0,sourceBytes=0,windows=0}
 local function same(a,b) return a and b and a.product==b.product and a.build==b.build and a.locale==b.locale end
 local function hash(v) return type(v)=="string" and #v==64 and v:match("^[a-f0-9]+$") end
@@ -11,6 +14,43 @@ local function rectangle(v)
     if not schema.List(v,4) or #v~=4 then return false end
     for _,n in ipairs(v) do if not schema.Number(n,-100000,100000) then return false end end
     return v[1]<=v[3] and v[2]<=v[4]
+end
+local function activate(store,key,binding)
+    if currentStore==store and admissionKey==key then return true end
+    local value={};for k,v in pairs(store.catalog)do value[k]=v end
+    value.meta=schema.Clone(store.catalog.meta)
+    if binding then
+        value.meta.uiMapID=binding.uiMapID or store.mapID
+        value.meta.projection=schema.Clone(binding.projection)
+        value.meta.projectionSHA256=binding.projectionSHA256
+        value.meta.projectionSourceSHA256=binding.projectionSourceSHA256
+        value.meta.assignmentID=binding.assignmentID
+    end
+    catalog,pages,registeredBytes=value,store.pages,store.registeredBytes
+    currentStore,admissionKey,activeView=store,key,binding
+    job,activeKey,activeSet,failed=nil,nil,nil,nil;serial=serial+1;expansion=1
+    return true
+end
+function regions.InstallIndex(raw)
+    if not planner.TerrainPacks then return nil,"terrain pack manager unavailable"end
+    return planner.TerrainPacks.InstallIndex(raw)
+end
+function regions.Admit(identity,position,destination,worldMapID)
+    local manager=planner.TerrainPacks
+    if manager and manager.IsLoading()then return nil,"loading"end
+    if not manager then return catalog~=nil,catalog and "ready"or"unavailable"end
+    local legacy=stores.legacy
+    if legacy and position and position.mapID==legacy.catalog.meta.uiMapID
+        and same(identity,legacy.catalog.meta.identity)and not manager.HasIndex(position.mapID)then
+        return activate(legacy,"legacy:"..legacy.catalog.revision),"ready"
+    end
+    local selected,why=manager.Select(identity,position,destination,worldMapID)
+    if not selected then regions.Suspend();activeKey,activeSet,admissionKey=nil,nil,nil;return nil,why end
+    local store=stores[selected.namespace]
+    if not store then return nil,"terrain pack registration missing"end
+    local binding=schema.Clone(selected.binding);binding.packs=nil;binding.uiMapID=position.mapID
+    store.mapID=position.mapID
+    return activate(store,selected.key,binding),"ready"
 end
 function regions.Install(raw)
     local value=schema.CopyLimited(raw,32768,1048576,12)
@@ -21,9 +61,15 @@ function regions.Install(raw)
     local checked,problem=planner.NavMesh.ValidateMetadata(value.meta)
     if not checked then return nil,problem end
     value.meta=checked
+    local namespace=value.namespace
+    if namespace~=nil then
+        if not planner.TerrainPacks then return nil,"terrain pack manager unavailable"end
+        local valid,why=planner.TerrainPacks.ValidateCatalog(value);if not valid then return nil,why end
+    end
+    local prefix=namespace and("RikUIQuestTerrain_"..namespace)or"RikUIQuestTerrain"
     local total=0
     for i,r in ipairs(value.regions) do
-        if r.id~=i or r.addon~=string.format("RikUIQuestTerrain_R%03d",i)
+        if r.id~=i or r.addon~=prefix..string.format("_R%03d",i)
             or not rectangle(r.bounds) or not schema.Integer(r.polygons,1,8192)
             or not schema.Integer(r.portals,0,32768) or not schema.Integer(r.pages,1,128)
             or not schema.Integer(r.bytes,1,4194304) or not schema.List(r.neighbors,32)
@@ -43,20 +89,35 @@ function regions.Install(raw)
         total=total+r.bytes
     end
     if total~=value.sourceBytes then return nil,"regional source byte count" end
-    catalog,pages,registeredBytes,job,activeKey,activeSet,failed=value,{},0,nil,nil,nil,nil
-    serial=serial+1;expansion=1
+    local key=namespace or"legacy";local store=stores[key]
+    if store then
+        if store.catalog.revision~=value.revision or store.catalog.graphSHA256~=value.graphSHA256
+            or not same(store.catalog.meta.identity,value.meta.identity)then return nil,"region namespace already loaded"end
+        if not namespace then activate(store,"legacy:"..value.revision)end
+        return true
+    end
+    if namespace then
+        local ok,why=planner.TerrainPacks.Register(value);if not ok then return nil,why end
+    end
+    store={catalog=value,pages={},registeredBytes=0};stores[key]=store
+    if not namespace then activate(store,"legacy:"..value.revision)end
     return true
 end
-function regions.RegisterPage(revision,id,index,payload)
-    local r=catalog and catalog.regions[id]
-    if not r or revision~=catalog.revision or not schema.Integer(index,1,r.pages)
+function regions.RegisterPage(revision,id,index,payload,namespace)
+    local store=stores[namespace or"legacy"]
+    local owner=store and store.catalog
+    local r=owner and owner.regions[id]
+    if not r or revision~=owner.revision or not schema.Integer(index,1,r.pages)
         or type(payload)~="string" or #payload<1 or #payload>32768
         or payload:sub(-1)~="\n" or payload:find("[^%d%,%.%-%+eE\n]") then return nil,"invalid regional source page" end
-    local list=pages[id] or {bytes=0,count=0}
+    local list=store.pages[id] or {bytes=0,count=0}
     if list[index] then return nil,"duplicate regional page" end
-    if list.bytes+#payload>r.bytes or registeredBytes+#payload>catalog.sourceBytes then return nil,"regional source cache limit" end
-    pages[id]=list;list[index]=payload;list.bytes=list.bytes+#payload;list.count=list.count+1
-    registeredBytes=registeredBytes+#payload;stats.sourceBytes=registeredBytes
+    if list.bytes+#payload>r.bytes or store.registeredBytes+#payload>owner.sourceBytes
+        or retainedBytes+#payload>MAX_RETAINED_SOURCE then return nil,"regional source cache limit"end
+    store.pages[id]=list;list[index]=payload;list.bytes=list.bytes+#payload;list.count=list.count+1
+    store.registeredBytes=store.registeredBytes+#payload;retainedBytes=retainedBytes+#payload
+    if store==currentStore then registeredBytes=store.registeredBytes end
+    stats.sourceBytes=retainedBytes
     return true
 end
 local function project(position)
@@ -114,7 +175,7 @@ function regions.Retry()
     job,activeKey,activeSet,failed=nil,nil,nil,nil;serial=serial+1;expansion=1
 end
 function regions.Suspend() job=nil;serial=serial+1 end
-function regions.Current(token) return job and job.token==token end
+function regions.Current(token) return job and job["token"]==token end
 function regions.Accept(token,problem)
     if not regions.Current(token) then return false end
     if problem then
@@ -130,9 +191,15 @@ function regions.Expand()
 end
 function regions.Enabled() return catalog~=nil end
 function regions.Binding()
-    if catalog then return {identity=schema.Clone(catalog.meta.identity),mapID=catalog.meta.uiMapID,graphSHA256=catalog.graphSHA256} end
+    if catalog then return {identity=schema.Clone(catalog.meta.identity),mapID=catalog.meta.uiMapID,worldMapID=catalog.meta.worldMapID,
+        graphSHA256=catalog.graphSHA256,namespace=catalog.namespace,sourceSHA256=catalog.sourceSHA256,
+        ownedBounds=schema.Clone(catalog.ownedBounds),projectionSHA256=activeView and activeView.projectionSHA256,
+        assignmentID=activeView and activeView.assignmentID,packKey=admissionKey}end
 end
-function regions.Stats() return schema.Clone(stats) end
+function regions.Stats()
+    local value=schema.Clone(stats);value.packs=planner.TerrainPacks and planner.TerrainPacks.Stats()
+    value.activePack=currentStore and(currentStore.catalog.namespace or"legacy");return value
+end
 local function covered(point)
     local found=false
     for _,region in ipairs(catalog.regions) do
@@ -149,7 +216,7 @@ function regions.Prepare(identity,position,destination,localOnly)
     if not same(identity,catalog.meta.identity) then regions.Suspend();return nil,"incompatible-region-identity" end
     local start,goal=project(position),project(destination)
     if not start or not goal then regions.Suspend();return nil,"unavailable-position" end
-    local key=catalog.revision..":"..(localOnly and "local:" or "regional:")..string.format("%d:%.17g:%.17g",destination.mapID,destination.x,destination.y)
+    local key=(admissionKey or catalog.revision)..":"..(localOnly and "local:" or "regional:")..string.format("%d:%.17g:%.17g",destination.mapID,destination.x,destination.y)
     if activeKey==key then
         for id in pairs(activeSet) do if contains(catalog.regions[id],start) then return nil,"ready" end end
     end
@@ -168,9 +235,10 @@ function regions.Prepare(identity,position,destination,localOnly)
     if not job or job.key~=key then
         local selection,reason=regions.Select(start,goal,localOnly)
         if not selection then failed={key=key,reason=reason,origin=originKey};return nil,reason end
-        serial=serial+1;job={key=key,selection=selection,index=1,token=serial}
+        serial=serial+1;job={key=key,selection=selection,index=1,["token"]=serial}
     end
     local current=job
+    if planner.TerrainPacks and planner.TerrainPacks.IsLoading()then return nil,"loading"end
     if current.loading then return nil,"loading" end
     if current.validating then return nil,"validating" end
     local id=current.selection.ids[current.index]
@@ -180,10 +248,15 @@ function regions.Prepare(identity,position,destination,localOnly)
             if type(InCombatLockdown)=="function" and InCombatLockdown() then return nil,"combat-loading-deferred" end
             local load=type(C_AddOns)=="table" and C_AddOns.LoadAddOn
             if type(load)~="function" then failed={key=key,reason="regional-loader-unavailable",permanent=true};return nil,failed.reason end
+            if retainedBytes+r.bytes-(list and list.bytes or 0)>MAX_RETAINED_SOURCE then
+                failed={key=key,reason="regional source cache limit",permanent=true};return nil,failed.reason
+            end
             local before=type(debugprofilestop)=="function" and debugprofilestop()
+            if planner.TerrainPacks and not planner.TerrainPacks.BeginLoad()then return nil,"loading"end
             current.loading=true
             local ok,loaded,reason=pcall(load,r.addon)
             current.loading=nil
+            if planner.TerrainPacks then planner.TerrainPacks.EndLoad()end
             if job~=current then return nil,"loading" end
             if before then stats.maxLoadMS=math.max(stats.maxLoadMS,debugprofilestop()-before) end
             stats.loads=stats.loads+1
@@ -197,9 +270,10 @@ function regions.Prepare(identity,position,destination,localOnly)
     end
     local selection=current.selection;local meta=schema.Clone(catalog.meta)
     meta.corpusRevision=catalog.revision
-    meta.revision=catalog.revision..":"..table.concat(selection.ids,",")
+    meta.packNamespace=catalog.namespace;meta.packSourceSHA256=catalog.sourceSHA256;meta.packOwnedBounds=schema.Clone(catalog.ownedBounds)
+    meta.revision=(admissionKey or catalog.revision)..":"..table.concat(selection.ids,",")
     meta.counts={polygons=selection.polygons,portals=selection.portals};meta.regionalCandidate=true;meta.localAttachment=selection.localOnly
     local stream=planner.RegionCodec.Stream(selection.ids,pages,selection.set,meta.identity,#catalog.regions)
     current.validating=true;stats.windows=stats.windows+1
-    return {meta=meta,stream=stream,selection=selection,token=current.token},"prepared"
+    return {meta=meta,stream=stream,selection=selection,["token"]=current.token},"prepared"
 end
