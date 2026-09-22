@@ -3,7 +3,7 @@
 local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={}
 RikUI["Secret"]={IsSecret=function() return false end}
-for _,name in ipairs({"schema","transfer","nav-geometry","nav-search","navmesh","targets","guidance"}) do
+for _,name in ipairs({"schema","transfer","nav-geometry","nav-funnel","nav-follow","nav-search","navmesh","targets","guidance"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p,meta,shards=RikUI.QuestPlanner
@@ -49,7 +49,7 @@ CreateFrame=function() return {SetScript=function(_,_,callback) onUpdate=callbac
 dofile("src/modules/questplanner/quest-terrain.lua")
 p.enabled=true
 p.GetSnapshot=function() return snapshot end
-p.Controller={Get=function() return p.Schema.Clone(liveModel) end}
+p.Controller={Get=function() return p.Schema.Clone(liveModel) end,Peek=function() return liveModel end}
 p.Context={Position=function() return p.Schema.Clone(livePosition) end,
     WorldPosition=function() return p.Schema.Clone(liveWorld) end,RunSpeed=function() return context.runSpeed end}
 liveModel={status="observed"}
@@ -164,8 +164,11 @@ if arg[3] then
 end
 print(string.format("Maximum headless search slice %.3f ms; no native traversal tested",maxSlice))
 -- Offline visualization/movement harness; never loaded by the addon.
+local function tick(point,delta)
+    livePosition=mesh:Unproject(point);liveWorld=nil;onUpdate(nil,delta or .2)
+end
 return {mesh=mesh,raw=raw,meta=meta,snapshot=snapshot,replay=runtimeReplay,
-    move=function(point,delta)
-        livePosition=mesh:Unproject(point);liveWorld=nil;onUpdate(nil,delta or .2)
+    tick=tick,move=function(point,delta)
+        tick(point,delta)
         return p.Terrain.Guidance(),p.Terrain.Status()
     end}

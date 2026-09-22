@@ -61,10 +61,18 @@ local pos=assert(mesh:Locate(start)).point
 local lastDX,lastDZ
 local done=false
 local peak=0
+local qualityModule=dofile("tests/quest-route-quality.lua")
+local quality=qualityModule.New()
+local callbackTimes,copyTimes={},{}
+local initialStats=p.Terrain.Stats()
 for tick=1,6000 do
     local before=os.clock()
-    local g,state=h.move(pos,delta)
-    peak=math.max(peak,(os.clock()-before)*1000)
+    h.tick(pos,delta)
+    local callbackMS=(os.clock()-before)*1000
+    callbackTimes[#callbackTimes+1]=callbackMS;peak=math.max(peak,callbackMS)
+    local copyStart=os.clock()
+    local g,state=p.Terrain.Guidance(),p.Terrain.Status()
+    copyTimes[#copyTimes+1]=(os.clock()-copyStart)*1000
     if not g then
         local old=samples[#samples] or {}
         error(string.format("movement lost guidance: %s / %s at %d pos %.9f,%.9f,%.9f prior %.9f,%.9f",
@@ -86,9 +94,11 @@ for tick=1,6000 do
     local endpoint=assert(mesh:Project(g.points[#g.points].mapID,g.points[#g.points].x,g.points[#g.points].y))
     if g.meters<.5 and math.sqrt((pos[1]-endpoint.x)^2+(pos[3]-endpoint.z)^2)<.5 then
         if goal.height then assert(math.abs(pos[2]-goal.height)<1,"arrival on wrong floor") end
+        quality:Observe(pos,nil,tick*delta)
         done=true;break
     end
     local target=assert(mesh:Project(g.next.mapID,g.next.x,g.next.y))
+    quality:Observe(pos,target,tick*delta)
     local dx,dz=target.x-pos[1],target.z-pos[3]
     local distance=math.sqrt(dx*dx+dz*dz)
     if math.abs(dx)+math.abs(dz)<1 then hidden=hidden+1 end
@@ -119,11 +129,35 @@ for _ in pairs(hints) do uniqueHints=uniqueHints+1 end
 assert(uniqueHints>1,"actual movement did not change instructions")
 print(string.format("Route display: %d frames, %d distinct instructions, %.3f ms peak headless display CPU",displayFrames,uniqueHints,displayPeak))
 local function encode(value)
-    if type(value)=="number" then return string.format("%.12g",value) end
+    if type(value)=="number" then assert(value==value and math.abs(value)<math.huge);return string.format("%.12g",value) end
+    if type(value)=="boolean" then return tostring(value) end
+    if type(value)=="string" then return '"'..value:gsub("\\","\\\\"):gsub('"','\\"'):gsub("\n","\\n")..'"' end
     local result={}
-    for _,item in ipairs(value) do result[#result+1]=encode(item) end
-    return "["..table.concat(result,",").."]"
+    if #value>0 then
+        for _,item in ipairs(value) do result[#result+1]=encode(item) end
+        return "["..table.concat(result,",").."]"
+    end
+    local keys={};for key in pairs(value) do keys[#keys+1]=key end;table.sort(keys)
+    for _,key in ipairs(keys) do result[#result+1]=encode(key)..":"..encode(value[key]) end
+    return "{"..table.concat(result,",").."}"
 end
+local finalStats=p.Terrain.Stats()
+local endpoint=route.walkPoints[#route.walkPoints]
+local metrics={evidence="automated-replay",durationSeconds=#samples*delta,walkingYards=quality.spatial,
+    horizontalYards=quality.distance,funnelYards=route.meters,graphYards=route.graphMeters,
+    excessOverSelectedFunnelPercent=(quality.spatial/route.meters-1)*100,
+    aim=quality.aim,movement=quality.movement,
+    plansDuringMovement=finalStats.plans-initialStats.plans,routeChanges=finalStats.published-initialStats.published,
+    plansPerMinute=(finalStats.plans-initialStats.plans)*60/math.max(delta,#samples*delta),
+    finalPoint=pos,endpoint=endpoint,endpointError= p.NavGeometry.Distance(pos,endpoint),
+    callbackMS=qualityModule.Timing(callbackTimes),publicCopyMS=qualityModule.Timing(copyTimes)}
+metrics.stationaryAllocation=qualityModule.Allocations(function() h.tick(pos,delta) end,100)
+local movingA=mesh:LocateContinued({x=pos[1]+.01,z=pos[3]}, {id=route.corridor[progress],point=pos})
+local movingB=mesh:LocateContinued({x=pos[1]-.01,z=pos[3]}, {id=route.corridor[progress],point=pos})
+if movingA and movingB and movingA.id==movingB.id then
+    metrics.localMovementAllocation=qualityModule.Allocations(function(at) h.tick(at%2==0 and movingA.point or movingB.point,delta) end,100)
+end
+print("QUALITY "..encode(metrics))
 local polygons={}
 local ids={}
 for id in pairs(h.raw) do ids[#ids+1]=id end
@@ -138,7 +172,8 @@ local data="{\"meshSourceSha256\":\""..h.meta.source.sha256.."\",\"startMap\":".
     ..",\"selectedModelFloor\":"..(selectedFloor or "null")..",\"automaticModelFloor\":"..(not selectedFloor and automatic and automatic.index or "null")
     ..",\"targetModelHeight\":"..(goal.height or "null")
     ..",\"stride\":"..stride..",\"polygons\":"..encode(polygons)..",\"corridor\":"..encode(route.corridor)
-    ..",\"coarse\":"..encode(route.points)..",\"samples\":"..encode(samples)..",\"sampleHeights\":"..encode(sampleHeights)
+    ..",\"delta\":"..delta..",\"deviation\":"..deviation..",\"quality\":"..encode(metrics)
+    ..",\"funnel\":"..encode(route.walkPoints)..",\"coarse\":"..encode(route.points)..",\"samples\":"..encode(samples)..",\"sampleHeights\":"..encode(sampleHeights)
     ..",\"marker\":"..encode({goal.x,goal.z})..",\"complete\":"..tostring(done)
     ..",\"reversals\":"..reversals..",\"hidden\":"..hidden.."}"
 local function write(suffix,value)

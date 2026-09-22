@@ -310,7 +310,7 @@ local function exactApproachWorker(data,start,goal,last,options,metrics)
     local job,issue=planner.NavSearch.Begin(data,start,goal,options,locate,candidates)
     if not job then return approachResult(data,"unknown-target",issue,metrics) end
     while true do
-        local result=job:Step(1)
+        local result=job:Step(1,true)
         if result then result.metrics.endpointChecks=metrics.endpointChecks;return result end
         coroutine.yield()
     end
@@ -321,7 +321,7 @@ local function approachWorker(data,start,goal,options,metrics)
     local job,issue=planner.NavSearch.Begin(data,start,{x=endpoint.point[1],z=endpoint.point[3]},options,locate)
     if not job then return approachResult(data,"unknown-target",issue,metrics) end
     while true do
-        local result=job:Step(1)
+        local result=job:Step(1,true)
         if result then
             result.metrics.endpointChecks=metrics.endpointChecks
             if result.status=="modeled" then
@@ -370,15 +370,15 @@ local function beginApproach(data,start,goal,options)
     local cancelled,output=false,nil
     return {
         Cancel=function() cancelled=true end,
-        Step=function(_,budget)
+        Step=function(_,budget,borrow)
             if cancelled then return approachResult(data,"cancelled","navigation request changed",metrics) end
-            if output then return schema.Clone(output) end
+            if output then return borrow and output or schema.Clone(output) end
             if not schema.Integer(budget or 32,1,128) then return nil,"invalid navigation slice" end
             for _=1,budget or 32 do
                 local ok,result=coroutine.resume(worker)
                 if not ok then output=approachResult(data,"invalid","marker approach failed",metrics)
                 elseif coroutine.status(worker)=="dead" then output=result end
-                if output then return schema.Clone(output) end
+                if output then return borrow and output or schema.Clone(output) end
             end
         end,
     }
@@ -405,13 +405,17 @@ local function publish(data)
             return result
         end,
         LocateContinued=function(_,point,previous)
-            local result,reason=locate(data,point)
             if not schema.PlainTable(point) or point.height~=nil or not schema.PlainTable(previous)
                 or not geometry.Point(previous.point) or not schema.Number(point.x,-100000,100000)
-                or not schema.Number(point.z,-100000,100000) then return result,reason end
-            if (point.x-previous.point[1])^2+(point.z-previous.point[3])^2>CONTINUITY_DISTANCE^2 then return result,reason end
+                or not schema.Number(point.z,-100000,100000) then return locate(data,point) end
+            if (point.x-previous.point[1])^2+(point.z-previous.point[3])^2>CONTINUITY_DISTANCE^2 then return locate(data,point) end
             local matches=geometry.FollowSurface(data,previous,point,CONTINUITY_DISTANCE)
-            if result and matches and #matches==0 then matches=geometry.FollowLocalSurface(data,previous,point,CONTINUITY_DISTANCE) end
+            local reason
+            if matches and #matches==0 then
+                local result
+                result,reason=locate(data,point)
+                if result then matches=geometry.FollowLocalSurface(data,previous,point,CONTINUITY_DISTANCE) end
+            end
             if matches and #matches>0 then
                 local continued=boundaryMatches(data,matches)
                 if continued then return continued end

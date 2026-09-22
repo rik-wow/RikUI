@@ -3,7 +3,7 @@ return function(check)
     local previous=RikUI
     RikUI={Secret={IsSecret=function() return false end}}
     local ok,reason=pcall(function()
-        for _,name in ipairs({"schema","nav-geometry","nav-search","navmesh"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
+        for _,name in ipairs({"schema","nav-geometry","nav-funnel","nav-follow","nav-search","navmesh"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
         local p=RikUI.QuestPlanner
         local identity={product="forever",build="1.60.1.69913",locale="enUS"}
         local meta={format="rikui-navmesh-v1",identity=identity,revision="fixture-v1",modeledMaxStep=.3,uiMapID=1426,worldMapID=0,bounds={0,0,20,20},
@@ -146,8 +146,35 @@ return function(check)
         end
         local _,_,broadLast=p.NavGeometry.CorridorAim(broad,{5,0,2},1)
         check("spatial horizon preserves existing broad-polygon anticipation",broadLast==13)
+        local pulled,crossings,corners=p.NavGeometry.StringPull(route)
+        check("whole corridor funnel matches independent straight diagonal",pulled
+            and #corners>=1 and math.abs(p.NavGeometry.Distance(pulled[1],pulled[#pulled])-math.sqrt(648))<.00001)
+        local densePath=assert(p.NavGeometry.StringPull(dense))
+        local length=0
+        for at=2,#densePath do length=length+p.NavGeometry.Distance(densePath[at-1],densePath[at]) end
+        check("full funnel is independent of dense subdivision",math.abs(length-9.9)<.00001)
+        local reversePath=assert(p.NavGeometry.StringPull(reversed))
+        check("whole funnel normalizes portal winding",#reversePath==#pulled
+            and p.NavGeometry.Distance(reversePath[#reversePath],pulled[#pulled])<.00001)
+        local obstacle={corridor={1,2,3},surfaces={
+            {{-10,0,-20},{40,0,-20},{40,0,20},{-10,0,20}},
+            {{40,0,10},{60,0,10},{60,0,20},{40,0,20}},
+            {{60,0,-20},{110,0,-20},{110,0,20},{60,0,20}}},
+            portals={{left={40,0,10},right={40,0,20}},{left={60,0,20},right={60,0,10}}},
+            points={{0,0,0},{100,0,0}}}
+        local around=assert(p.NavGeometry.StringPull(obstacle))
+        local total=0
+        for at=2,#around do total=total+p.NavGeometry.Distance(around[at-1],around[at]) end
+        check("obstacle funnel equals independent visibility-graph route",
+            math.abs(total-(2*math.sqrt(1700)+20))<.00001)
+        local pointGate=p.Schema.Clone(obstacle)
+        pointGate.portals[1].right=pointGate.portals[1].left
+        check("degenerate portal preserves mandatory shared vertex",p.NavGeometry.StringPull(pointGate)~=nil)
+        local invalidOrder=p.Schema.Clone(obstacle)
+        invalidOrder.portals[1],invalidOrder.portals[2]=invalidOrder.portals[2],invalidOrder.portals[1]
+        check("funnel cannot skip inconsistent portal adjacency",p.NavGeometry.StringPull(invalidOrder)==nil)
         local exact=2*math.sqrt(32)+20
-        check("center-graph distance matches independent geometry",math.abs(route.meters-exact)<.000001)
+        check("center-graph distance matches independent geometry",math.abs(route.graphMeters-exact)<.000001)
         check("derived path never claims native or continuous global optimality",route.nativeVerified==false and not route.globalOptimal)
         check("path slice sizes preserve deterministic cost",path(mesh,start,goal,nil,128).meters==route.meters)
         check("location outside polygons never snaps to nearest",not mesh:Locate({x=1,z=19}))
@@ -191,7 +218,7 @@ return function(check)
         local wideResult
         repeat wideResult=completeWide:Step(128) until wideResult
         check("graph-derived work bound finishes a route beyond the old cap",
-            wideResult.status=="modeled" and wideResult.metrics.work==2*edgeCount+1)
+            wideResult.status=="invalid" and wideResult.metrics.work==2*edgeCount+1)
         local cancelWide=wideJob(2*edgeCount+1)
         cancelWide:Step(128);cancelWide:Cancel()
         check("large in-progress searches remain cancellable",cancelWide:Step(128).status=="cancelled")

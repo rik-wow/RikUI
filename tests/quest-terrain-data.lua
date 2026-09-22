@@ -2,7 +2,7 @@
 -- Usage: luajit tests/quest-terrain-data.lua <generated-addon-directory>
 local root=assert(arg[1],"generated terrain addon directory required"):gsub("\\","/"):gsub("/$","")
 RikUI={Secret={IsSecret=function() return false end}}
-for _,name in ipairs({"schema","nav-geometry","nav-search","navmesh"}) do
+for _,name in ipairs({"schema","nav-geometry","nav-funnel","nav-follow","nav-search","navmesh"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local planner,meta,shards=RikUI.QuestPlanner
@@ -69,7 +69,9 @@ for _,probe in ipairs(probes) do
     assert(route.status=="modeled",route.detail)
     local exact=assert(oracle(probe.from,probe.to))
         +planner.NavGeometry.Distance(locatedStart.point,a)+planner.NavGeometry.Distance(locatedGoal.point,b)
-    assert(math.abs(route.meters-exact)<.0001,string.format("A* %.8f differs from Dijkstra+endpoint connectors %.8f",route.meters,exact))
+    assert(math.abs((route.metrics.baselineGraphMeters or route.graphMeters)-exact)<.0001,string.format("A* %.8f differs from Dijkstra+endpoint connectors %.8f",route.graphMeters,exact))
+    assert(route.walkPoints and route.meters<=route.graphMeters+.001,"funnel worsened usable length")
+    print(string.format("Route quality: center %.3f yd, funnel %.3f yd, reduction %.2f%%",route.graphMeters,route.meters,100*(1-route.meters/route.graphMeters)))
     assert(planner.NavGeometry.Distance(route.points[1],locatedStart.point)<.0001,"wrong start")
     assert(planner.NavGeometry.Distance(route.points[#route.points],locatedGoal.point)<.0001,"wrong goal")
     assert(route.nativeVerified==false and route.globalOptimal==false,"overclaimed path")
@@ -78,6 +80,12 @@ for _,probe in ipairs(probes) do
         local midpoint=route.points[index*2+1]
         assert(planner.NavGeometry.Contains(source.points,midpoint[1],midpoint[3]),"corridor exits source polygon")
         assert(planner.NavGeometry.Contains(target.points,midpoint[1],midpoint[3]),"corridor exits target polygon")
+    end
+    if route.metrics.baselineFunnelMeters then
+        assert(route.meters<=route.metrics.baselineFunnelMeters+.001,"alternative worsened baseline")
+        print(string.format("Corridor choice: %s; baseline %.3f yd, chosen %.3f yd; %d/%d complete alternatives",
+            route.corridorChoice,route.metrics.baselineFunnelMeters,route.meters,
+            route.metrics.completedAlternatives,route.metrics.alternatives))
     end
     tested=tested+1; maxWork=math.max(maxWork,route.metrics.work)
 end

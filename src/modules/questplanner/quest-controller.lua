@@ -37,6 +37,7 @@ function controller.Quests()
     return planner.Guidance.Observed(snapshot,context,policy,view.selected and view.selected.questID,true)
 end
 function controller.Policy() return schema.Clone(policy) end
+function controller.ArrowEnabled() return policy.arrow end
 function controller.Stats() return schema.Clone(stats) end
 function controller.Context() return schema.Clone(context) end
 local function flagMap(raw)

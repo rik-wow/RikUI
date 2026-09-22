@@ -51,6 +51,24 @@ function context.RunSpeed()
     if ok and schema.Number(value,.1,100) then return value end
 end
 
+
+-- One compact observation per render tick; API reads stay in their explicit systems.
+local frameSnapshot,mapSizes
+function context.Frame(force)
+    local now=scalar(GetTime,number)
+    if not force and now and frameSnapshot and frameSnapshot.time==now then return frameSnapshot end
+    local position=context.Position()
+    if not mapSizes or not mapSizes.width or mapSizes.mapID~=(position and position.mapID) then
+        mapSizes={mapID=position and position.mapID}
+        local ok,w,h=call(api(C_Map,"GetMapWorldSize"),mapSizes.mapID)
+        if ok and schema.Number(w,1,100000) and schema.Number(h,1,100000) then mapSizes.width,mapSizes.height=w,h end
+    end
+    frameSnapshot={time=now,position=position,world=context.WorldPosition(),speed=context.RunSpeed(),
+        facing=scalar(GetPlayerFacing,function(v) return schema.Number(v,0,math.pi*2) end),
+        width=mapSizes.width,height=mapSizes.height}
+    return frameSnapshot
+end
+
 local function attributes()
     return {class=tupleID(UnitClass),race=tupleID(UnitRace),
         faction=scalar(UnitFactionGroup,schema.Text,"player"),

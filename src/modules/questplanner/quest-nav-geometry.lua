@@ -7,6 +7,7 @@ local LOOKAHEAD_PORTALS, PORTAL_MARGIN, CONTINUATION = 64, .0001, .25
 local LOOKAHEAD_YARDS = 24
 local MAX_CONTINUITY_POLYGONS = 64
 local ANTICIPATION, CONTINUATION_TRIES = 6, 6
+local AIM_RELEASE_YARDS = .75
 function geometry.Point(value)
     return schema.List(value,3) and #value==3 and schema.Number(value[1],-100000,100000)
         and schema.Number(value[2],-100000,100000) and schema.Number(value[3],-100000,100000)
@@ -357,7 +358,7 @@ function geometry.CorridorAim(route,origin,index,previous)
     local tx,tz=target[1]-origin[1],target[3]-origin[3]
     local short=tx*tx+tz*tz<1 and dx*dx+dz*dz>tx*tx+tz*tz
     local passed=previous.origin and (old[1]-previous.origin[1])*dx+(old[3]-previous.origin[3])*dz<=0
-    if passed or (dx*tx+dz*tz>=0 and not short) or dx*dx+dz*dz<=EPSILON*EPSILON then return target,proof,last end
+    if passed or (dx*tx+dz*tz>=0 and not short) or dx*dx+dz*dz<=AIM_RELEASE_YARDS^2 then return target,proof,last end
     local surface=route.surfaces[previous.index]
     if not surface or not geometry.Contains(surface,old[1],old[3]) then return target,proof,last end
     local retained=crossings(route,origin,old,index,previous.index)

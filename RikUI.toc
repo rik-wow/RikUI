@@ -97,6 +97,8 @@ src/modules/questplanner/quest-simulation.lua
 src/modules/questplanner/quest-optimizer.lua
 src/modules/questplanner/quest-reader.lua
 src/modules/questplanner/quest-nav-geometry.lua
+src/modules/questplanner/quest-nav-funnel.lua
+src/modules/questplanner/quest-nav-follow.lua
 src/modules/questplanner/quest-nav-search.lua
 src/modules/questplanner/quest-navmesh.lua
 src/modules/questplanner/quest-context.lua

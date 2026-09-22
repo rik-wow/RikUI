@@ -1030,3 +1030,66 @@ The new companion TOC includes 408 shard files and therefore requires a full
 client restart. No quest actions, eligibility, XP or interaction facts were added;
 the Forever corpus, actual lift instances and native interface acceptance remain
 separate outstanding work.
+
+## Complete corridor paths and measured following
+
+The walking search now extracts a complete portal funnel, with portal orientation
+derived from the source polygon. Every crossing remains in the selected directed
+corridor and is sampled on both connected surfaces. Elevation changes and narrow
+portals are retained. The map tail no longer reverts to polygon centers. The
+algorithm follows the independently described
+[portal funnel](https://digestingduck.blogspot.com/2010/03/simple-stupid-funnel-algorithm.html);
+it improves the selected corridor, not global optimality.
+
+Center costs remain a bounded search seed. Two deterministic alternative searches
+penalize different interior edges, each capped at 8,192 operations and sharing the
+original total work limit. Only a complete alternative with a shorter pulled path
+(by at least .25 yard or .5%) replaces the baseline. Four installed probe paths
+shrank from center costs 3457.968/1200.859/449.265/52.865 yards to pulled lengths
+2270.197/626.560/223.189/26.560 yards; the last alternative improved further to
+24.740 yards. These are geometry comparisons, not measured native walking savings.
+No road/hazard preference is invented where the mesh has no reliable labels.
+
+Following keeps a bounded local corridor, permits backward progress, and uses
+connected movement queries before a broader spatial lookup. The landing aim
+releases within .75 yard when a fresh safe continuation exists. Geometry,
+normalized projections and suffix distances are prepared incrementally; ordinary
+movement replaces a small prefix and borrows the immutable tail. Internal view,
+snapshot and guidance accessors avoid whole-model copies; public accessors still
+return detached data. Position, facing, speed and map dimensions share one compact
+frame observation. Arrow bearing is smoothed in world space, with immediate
+camera rotation; text/animation update at lower rates and unchanged line endpoints
+are retained.
+
+The replay emits full funnel geometry, final modeled endpoint/error, walking
+distance, small alternating turns (1–20 degrees within .5 second), route changes,
+plans during movement, callback percentiles and separate GC-paused allocation
+estimates. Callback timing excludes the public full-route copy, which is reported
+separately. The host clock has roughly millisecond resolution; zero means below
+its resolution. Loader peaks of 21–27 ms demonstrate that time checks between
+batches do not guarantee a hard latency bound.
+
+| Installed case | Replay movement | Walked / funnel yards | Endpoint error | >90° reversals | Replans |
+| --- | --- | --- | --- | --- | --- |
+| Bitter Rivals basement | .15 yd per .02 s, no perturbation | 185.581 / 185.002 | .429 yd | 0 | 0 |
+| Bitter Rivals basement | .15 yd lateral perturbation | 210.094 / 185.002 | .386 yd | 0 | 0 |
+| Grizzled Den | .15 yd lateral perturbation | 634.050 / 539.494 | .477 yd | 0 | 0 |
+| Frostmane | .15 yd lateral perturbation | 903.596 / 753.056 | .407 yd | 0 | 0 |
+
+The natural basement run has .313% excess over its selected funnel and four small
+oscillation pairs. Perturbed cases deliberately inject oscillation and therefore
+are recovery stress tests, not natural-jitter benchmarks. All have zero route
+changes during movement. Headless callback p99/max was 1 ms in these runs.
+At the cave endpoints, 100-callback batches measured approximately 1.46 KB per
+stationary callback and 4.60–5.25 KB during tiny local moves with GC paused.
+Those allocations include the replay context adapters, and are not a before/after
+native performance claim. The full client is not running in this session;
+visual rendering, physical walking, interaction completion, GC pauses and
+Forever-native movement calibration remain unverified.
+
+Current installed companion identity remains Forever 1.60.1.69913/enUS, 38,142
+polygons, 74,568 directed portals and 408 shards, revision
+`d1981b5ac045133c7f2db478e91774432a3eaa82c4e93295478a43bfea5e118e`.
+Four of nine rounded Den starts remain floor-ambiguous; quest 319 is outside
+coverage, 98326 has no shared approach, and 96608/384 lack observed markers.
+These statuses remain explicit; an approach never completes a quest interaction.

@@ -5,6 +5,8 @@ planner.NavSearch=search
 -- Each directed edge can insert at most one heap entry and is expanded once.
 -- Two operations per edge plus the initial pop bound complete finite-graph work.
 local MAX_WORK,MAX_PATH=262145,1024
+local ALTERNATIVE_WORK,ALTERNATIVE_COUNT=8192,2
+local choose
 local function less(a,b) return a.priority<b.priority or (a.priority==b.priority and a.id<b.id) end
 local function push(heap,value)
     local index=#heap+1
@@ -39,6 +41,7 @@ local function attachCorridor(job,order,result)
         result.corridor[#result.corridor+1]=id
         result.surfaces[#result.surfaces+1]=schema.Clone(job.data.polygons[id].points)
         if index<#order then result.portals[#result.portals+1]=schema.Clone(job.previous[id].portal) end
+        coroutine.yield()
     end
 end
 local function finish(job)
@@ -62,6 +65,19 @@ local function finish(job)
     local result=response(job,"modeled","Terrain corridor estimate; game traversal is unverified")
     result.points,result.meters,result.seconds=points,meters,meters/job.speed
     attachCorridor(job,order,result)
+    result.graphMeters=meters
+    if geometry.StringPull then
+        local pulled,crossings,corners=geometry.StringPull(result,nil,nil,coroutine.yield)
+        if not pulled then return response(job,"invalid",crossings) end
+        result.walkPoints,result.crossings,result.corners=pulled,crossings,corners
+        result.meters=0;result.suffix={}
+        for at=#pulled,1,-1 do
+            if at<#pulled then result.meters=result.meters+geometry.Distance(pulled[at],pulled[at+1]) end
+            result.suffix[at]=result.meters
+            coroutine.yield()
+        end
+        result.seconds=result.meters/job.speed
+    end
     result.shortestWithinCenterGraph=true
     result.globalOptimal=false
     return result
@@ -150,11 +166,12 @@ local function run(job)
         if current.cost==job.distance[current.id] and not job.closed[current.id] then
             job.closed[current.id]=true; job.visited=job.visited+1
             local result=reached(job,current.id)
-            if result then return result end
+            if result then return choose and choose(job,result) or result end
             for _,portal in ipairs(job.data.polygons[current.id].portals) do
                 if job.work>=job.maxWork then return response(job,"budget-exhausted","navigation work limit") end
                 job.work=job.work+1
-                local cost=current.cost+portal.meters
+                local penalty=job.penaltyFrom==current.id and job.penaltyTo==portal.to and (portal.meters*3+8) or 0
+                local cost=current.cost+portal.meters+penalty
                 if not job.closed[portal.to] and (job.distance[portal.to]==nil or cost<job.distance[portal.to]) then
                     job.distance[portal.to]=cost
                     job.previous[portal.to]={from=current.id,portal=portal}
@@ -183,14 +200,14 @@ local function handle(job)
     local cancelled,output=false,nil
     return {
         Cancel=function() cancelled=true end,
-        Step=function(_,budget)
+        Step=function(_,budget,borrow)
             if cancelled then return response(job,"cancelled","navigation request changed") end
-            if output then return schema.Clone(output) end
+            if output then return borrow and output or schema.Clone(output) end
             if not schema.Integer(budget or 32,1,128) then return nil,"invalid navigation slice" end
             for _=1,budget or 32 do
                 local ok,result=coroutine.resume(worker)
-                if not ok then output=response(job,"invalid","navigation search failed"); return schema.Clone(output) end
-                if coroutine.status(worker)=="dead" then output=result; return schema.Clone(output) end
+                if not ok then output=response(job,"invalid","navigation search failed"); return borrow and output or schema.Clone(output) end
+                if coroutine.status(worker)=="dead" then output=result; return borrow and output or schema.Clone(output) end
             end
         end,
     }
@@ -204,6 +221,33 @@ local function seed(job)
     job.distance[first.id]=geometry.Distance(first.point,job.data.polygons[first.id].center)
     push(job.heap,{id=first.id,cost=job.distance[first.id],priority=job.distance[first.id]+heuristic(job,first.id)})
     return handle(job)
+end
+choose=function(job,result)
+    if job.candidate or job.goals or result.status~="modeled" or #result.corridor<4 then return result end
+    local baseline,best,work=result,result,job.work
+    local tried,completed=0,0
+    for choice=1,ALTERNATIVE_COUNT do
+        local budget=math.min(ALTERNATIVE_WORK,job.maxWork-work)
+        if budget<1 then break end
+        local at=math.max(1,math.floor((#baseline.corridor-1)*choice/(ALTERNATIVE_COUNT+1)))
+        local other={data=job.data,start=job.start,goal=job.goal,maxWork=budget,speed=job.speed,work=0,visited=0,
+            heap={},distance={},previous={},closed={},locate=job.locate,candidate=true,
+            penaltyFrom=baseline.corridor[at],penaltyTo=baseline.corridor[at+1]}
+        local pending=seed(other)
+        local candidate
+        repeat candidate=pending:Step(1,true);coroutine.yield() until candidate
+        tried=tried+1;work=work+other.work
+        if candidate.status=="modeled" then
+            completed=completed+1
+            if candidate.meters<best.meters-math.max(.25,best.meters*.005) then best=candidate end
+        end
+    end
+    best.metrics.work=work
+    best.metrics.alternatives,best.metrics.completedAlternatives=tried,completed
+    best.metrics.baselineGraphMeters,best.metrics.baselineFunnelMeters=baseline.graphMeters,baseline.meters
+    best.shortestWithinCenterGraph=best==baseline
+    best.corridorChoice=best==baseline and "baseline" or "measured-alternative"
+    return best
 end
 function search.Begin(data,start,goal,options,locate,alternatives,commonGoals)
     local settings=schema.Copy(options or {})

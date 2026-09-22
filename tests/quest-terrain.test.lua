@@ -5,7 +5,7 @@ return function(check)
     RikUI={Secret={IsSecret=function() return false end}}
     env.frames={}
     local ok,reason=pcall(function()
-        for _,name in ipairs({"schema","guidance","nav-geometry","nav-search","navmesh","terrain"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
+        for _,name in ipairs({"schema","guidance","nav-geometry","nav-funnel","nav-follow","nav-search","navmesh","terrain"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
         local p=RikUI.QuestPlanner
         local identity={product="forever",build="1.60.1.69913",locale="enUS"}
         local meta={format="rikui-navmesh-v1",identity=identity,revision="fixture-v1",modeledMaxStep=.3,uiMapID=1426,worldMapID=0,bounds={0,0,20,20},

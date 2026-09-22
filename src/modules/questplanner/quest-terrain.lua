@@ -3,6 +3,7 @@ local core,planner=RikUI,RikUI.QuestPlanner
 local schema,terrain=planner.Schema,{}
 planner.Terrain=terrain
 local mesh,loader,request,route,driver=nil,nil,nil,nil,nil
+local meta,live
 local selectedKey,lastAttempt,elapsed=nil,nil,0
 local lastLocation,locationAge=nil,0
 local floorKey,floorChoices,floorIndex=nil,{},0
@@ -12,7 +13,9 @@ local STEERING_INTERVAL = .05
 local LOAD_MS, LOAD_BATCHES, LOAD_FALLBACK_BATCHES = 4, 32, 4
 local SEARCH_MS, SEARCH_BATCHES, SEARCH_FALLBACK_BATCHES = 2, 16, 4
 local state={status="unavailable",detail="Terrain datasource is not installed"}
-local display,lastAim
+local display
+local stats={plans=0,published=0,generation=0}
+function terrain.Stats() return schema.Clone(stats) end
 local function setState(status,detail)
     if state.status==status and state.detail==detail then return end
     state={status=status,detail=detail}
@@ -21,7 +24,7 @@ end
 local function same(a,b) return a.product==b.product and a.build==b.build and a.locale==b.locale end
 local function clear(forgetLocation)
     if request then request:Cancel(); request=nil end
-    route,display,selectedKey,lastAttempt,lastAim=nil,nil,nil,nil,nil
+    route,display,selectedKey,lastAttempt=nil,nil,nil,nil
     if forgetLocation then lastLocation,locationAge=nil,0 end
 end
 function terrain.Invalidate()
@@ -48,12 +51,21 @@ function terrain.Install(meta,shards)
     return true
 end
 function terrain.Status() return schema.Clone(state) end
-function terrain.Guidance() return schema.Clone(display) end
+function terrain.Guidance()
+    if not display then return end
+    local result={}
+    for key,value in pairs(display) do if key~="path" then result[key]=schema.Clone(value) end end
+    result.points={}
+    for _,point in ipairs(display.path.prefix) do result.points[#result.points+1]=schema.Clone(point) end
+    for at=display.path.first,#display.path.tail do result.points[#result.points+1]=schema.Clone(display.path.tail[at]) end
+    return result
+end
 function terrain.PeekGuidance() return display end
 local function selected()
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     local row=model.selected
-    local position=planner.Context.Position()
+    local position
+    if live then position=live.position else position=planner.Context.Position() end
     if not position then return nil,nil,"Player position is unavailable" end
     if not row or not row.destination or model.status=="paused" or model.status=="updating" then return nil,position end
     return row,position
@@ -76,7 +88,7 @@ function terrain.Floors()
     local row=selected()
     if not row then return {choices={},selected=0} end
     local snapshot=(planner.PeekSnapshot or planner.GetSnapshot)()
-    if not snapshot or not same(mesh:Metadata().identity,snapshot.identity) then return {choices={},selected=0} end
+    if not snapshot or not same(meta.identity,snapshot.identity) then return {choices={},selected=0} end
     local goal=mesh:Project(row.destination.mapID,row.destination.x,row.destination.y)
     if not goal then return {choices={},selected=0} end
     refreshFloors(row,goal)
@@ -97,48 +109,8 @@ local function destinationFloor()
     floor.source,floor.questTargetVerified="user-selected-model-floor",false
     return floor
 end
-local function remainingPoints(location,index)
-    local aim,crossed,last=planner.NavGeometry.CorridorAim(route,location.point,index,lastAim)
-    lastAim={point=aim,index=last,origin=schema.Clone(location.point)}
-    local points={location.point}
-    for _,point in ipairs(crossed) do points[#points+1]=point end
-    points[#points+1]=aim
-    if last<#route.corridor then
-        for at=last*2+1,#route.points do points[#points+1]=route.points[at] end
-    elseif aim~=route.points[#route.points] then points[#points+1]=route.points[#route.points] end
-    return points,aim
-end
-local function trim(location)
-    if not route then return nil end
-    local index
-    for at,id in ipairs(route.corridor) do if id==location.id then index=at; break end end
-    if not index then return nil end
-    local points,aim=remainingPoints(location,index)
-    local result={points={},meters=0,status="modeled",nativeVerified=false,revision=route.revision,detail="Terrain estimate; traversal unverified"}
-    if route.destinationFloor then result.destinationFloor=schema.Clone(route.destinationFloor) end
-    result.floorChoiceAvailable=#floorChoices>1
-    if route.approach then
-        result.approach=schema.Clone(route.approach)
-        result.approach.marker=mesh:Unproject({route.approach.marker.x,0,route.approach.marker.z})
-        result.approach.provenance=schema.Clone(route.markerProvenance)
-        local uncertain=route.approach.kind=="observed-marker-common-approach"
-            or route.approach.kind=="observed-marker-uncertain-vicinity"
-        result.detail=uncertain and "Approach; quest floor is uncertain"
-            or string.format("Modeled approach; %.2f yd gap and interaction unverified",route.approach.gap)
-    end
-    for at,point in ipairs(points) do
-        result.points[#result.points+1]=mesh:Unproject(point)
-        if at>1 then result.meters=result.meters+planner.NavGeometry.Distance(points[at-1],point) end
-    end
-    local speed=planner.Context.RunSpeed and planner.Context.RunSpeed()
-    result.speedSource=speed and "current-run-speed" or "default-run-speed"
-    result.seconds=result.meters/(speed or 7)
-    result.next=mesh:Unproject(aim)
-    return result
-end
 local function admissible()
     local snapshot=(planner.PeekSnapshot or planner.GetSnapshot)()
-    local meta=mesh:Metadata()
     if not snapshot or not same(meta.identity,snapshot.identity) then return nil,"Terrain build or locale does not match" end
     if #(meta.blockers or {})>0 then return nil,"Terrain coverage is incomplete" end
     return true
@@ -146,9 +118,9 @@ end
 local function observeLocation(position)
     local start=mesh:Project(position.mapID,position.x,position.y)
     if not start then clear(true);setState("outside-coverage","Location is outside this terrain map");return end
-    local world=planner.Context.WorldPosition and planner.Context.WorldPosition()
+    local world=live and live.world
     if world then
-        if world.mapID~=mesh:Metadata().worldMapID or math.abs(world.x-start.x)>5 or math.abs(world.z-start.z)>5 then
+        if world.mapID~=meta.worldMapID or math.abs(world.x-start.x)>5 or math.abs(world.z-start.z)>5 then
             clear(true);setState("unknown-location","Map and world positions disagree");return
         end
         start={x=world.x,z=world.z}
@@ -170,22 +142,25 @@ local function requestRoute(row,location,start)
     if selectedKey~=signature then clear();selectedKey=signature end
     local floor=destinationFloor()
     if floor then goal.height=floor.height end
-    display=trim(location)
+    display=route and route.follow(location,live)
     if display then setState(display.approach and "modeled-approach" or "modeled",display.detail);return end
     if request then return end
     local attempt=signature..":"..location.id
     if lastAttempt==attempt then return end
     lastAttempt=attempt
-    local speed=planner.Context.RunSpeed and planner.Context.RunSpeed()
+    local speed=live and live.speed
     local begin=target.scope=="current-map-quest-poi" and mesh.BeginMarkerApproach or mesh.Begin
     -- Quest-map POIs represent a vicinity, not an exact standing/interaction position.
-    local maxWork=math.max(32768,mesh:Metadata().counts.portals*2+1)
+    local maxWork=math.max(32768,meta.counts.portals*2+1)
     local problem
     request,problem=begin(mesh,start,goal,{maxWork=maxWork,speed=speed or 7,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true})
+    if request then stats.plans=stats.plans+1 end
     setState(request and "calculating" or "unknown-target",problem or "Calculating terrain corridor")
 end
 local function update()
     if not mesh then return end
+    live=planner.Context.Frame and planner.Context.Frame() or {position=planner.Context.Position(),
+        world=planner.Context.WorldPosition and planner.Context.WorldPosition(),speed=planner.Context.RunSpeed and planner.Context.RunSpeed()}
     local ok,reason=admissible()
     if not ok then clear(true);setState("unavailable",reason);return end
     local row,position,issue=selected()
@@ -209,7 +184,7 @@ local function searchSlice()
     local clock=type(debugprofilestop)=="function" and debugprofilestop
     local started=clock and clock()
     for _=1,clock and SEARCH_BATCHES or SEARCH_FALLBACK_BATCHES do
-        local result=request:Step(64)
+        local result=request:Step(64,true)
         if result then return result end
         if clock and clock()-started>=SEARCH_MS then return end
     end
@@ -219,7 +194,7 @@ function terrain.Step()
     if loader then
         local value,reason,done=loadSlice()
         if done then
-            loader=nil; mesh=value
+            loader=nil; mesh=value;meta=value and value:Metadata()
             setState(value and "ready" or "invalid",reason or "Terrain model ready")
             if value then update() end
         end
@@ -233,10 +208,14 @@ function terrain.Step()
         if result then
             request=nil
             if result.status=="modeled" then
-                route=result;lastAim=nil
-                local row=selected()
-                route.markerProvenance=row and schema.Clone(row.destination)
-                route.destinationFloor=destinationFloor()
+                if not result.prepared then
+                    local row=selected()
+                    result.markerProvenance=row and schema.Clone(row.destination)
+                    result.destinationFloor=destinationFloor()
+                    request=planner.NavFollow.Begin(mesh,result,#floorChoices)
+                    return
+                end
+                route=result;stats.published=stats.published+1;stats.generation=stats.generation+1
                 update()
             else display=nil; setState(result.status,result.detail) end
         end

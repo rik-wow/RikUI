@@ -4,6 +4,14 @@ local navigation={}
 planner.Navigation=navigation
 local pins,frame,arrow,elapsed={},nil,nil,0
 local bearingElapsed=0
+local lastText,textAge,rotation,rotationTime=nil,0,nil,nil
+local function playerFrame()
+    if planner.Context.Frame then return planner.Context.Frame() end
+    local position=planner.Context.Position()
+    local _,facing=planner.Context.Call(GetPlayerFacing)
+    local _,width,height=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,position and position.mapID)
+    return {position=position,facing=facing,width=width,height=height}
+end
 local MAP_INTERVAL, BEARING_INTERVAL = .2, .05
 local lines,lineHolder={},nil
 local MAX_ROUTE_LINES,NEW_LINES_PER_REFRESH=2048,32
@@ -33,11 +41,21 @@ local function paintAnts(pool,parent,points,width,height,limit,round)
         dot:ClearAllPoints();dot:SetPoint("CENTER",holder,"TOPLEFT",samples[at][1],-samples[at][2]);dot:Show()
     end
 end
+local function routeCount(route)
+    local path=route and route.path
+    return path and #path.prefix+#path.tail-path.first+1 or route and route.points and #route.points or 0
+end
+local function routePoint(route,at)
+    local path=route.path
+    if not path then return route.points[at] end
+    return at<=#path.prefix and path.prefix[at] or path.tail[at-#path.prefix+path.first-1]
+end
 local function routePoints(route,mapID,project)
     local points={}
-    if #route.points>MAX_ROUTE_LINES+1 then return nil end
-    for at=1,#route.points do
-        local point=route.points[at]
+    local count=routeCount(route)
+    if count>MAX_ROUTE_LINES+1 then return nil end
+    for at=1,count do
+        local point=routePoint(route,at)
         if point.mapID~=mapID or not planner.Schema.Number(point.x,0,1)
             or not planner.Schema.Number(point.y,0,1) then return nil end
         points[#points+1]=project(point)
@@ -46,10 +64,12 @@ local function routePoints(route,mapID,project)
 end
 local function minimapAnts(route)
     if not Minimap or not Minimap:IsShown() then return end
-    local position=planner.Context.Position()
+    local live=playerFrame()
+    local position=live.position
     local ok,radius=planner.Context.Call(C_Minimap and C_Minimap.GetViewRadius)
     if not ok or not planner.Schema.Number(radius,1,100000) or not position then return end
-    local sized,mw,mh=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,position.mapID)
+    local mw,mh=live.width,live.height
+    local sized=mw and mh
     local readable,rotates=planner.Context.Call(GetCVarBool,"rotateMinimap")
     if not sized or not planner.Schema.Number(mw,1,100000) or not planner.Schema.Number(mh,1,100000)
         or not readable or type(rotates)~="boolean" then return end
@@ -57,7 +77,8 @@ local function minimapAnts(route)
     if ignored and ignore==true then rotates=false end
     local rotation=0
     if rotates then
-        local faced,facing=planner.Context.Call(GetPlayerFacing)
+        local facing=live.facing
+        local faced=facing~=nil
         if not faced or not planner.Schema.Number(facing,0,math.pi*2) then return end
         rotation=facing
     end
@@ -75,7 +96,7 @@ local function drawAnts()
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or model.status=="updating" or not model.selected then return end
     local route=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
-    if not route or not route.points or #route.points<2 then return end
+    if routeCount(route)<2 then return end
     if frame and frame:IsShown() then
         local canvas,mapID=frame:GetCanvas(),frame:GetMapID()
         local w,h=canvas:GetWidth(),canvas:GetHeight()
@@ -86,23 +107,20 @@ local function drawAnts()
     end
     minimapAnts(route)
 end
-function navigation.Instruction()
+function navigation.Instruction(live)
     if not planner.enabled then return nil end
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or model.status=="updating" or not model.selected then return nil end
     local route=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
-    local position=planner.Context.Position()
-    if not route or not position then return nil end
-    local sized,w,h=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,position.mapID)
-    local _,facing=planner.Context.Call(GetPlayerFacing)
-    if not sized then return nil end
-    return planner.Guidance.Instruction(route,position,facing,w,h)
+    live=live or playerFrame()
+    if not route or not live.position or not live.width then return nil end
+    return planner.Guidance.Instruction(route,live.position,live.facing,live.width,live.height)
 end
 local function hideLines() for _,line in ipairs(lines) do line:Hide() end end
 local function drawTerrain(canvas,width,height,mapID)
     if not planner.Terrain then return end
     local route=(planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
-    if not route or not route.points or #route.points<2 then return end
+    if routeCount(route)<2 then return end
     local points=routePoints(route,mapID,function(point) return {point.x*width,-point.y*height} end)
     if not points then return end
     if not lineHolder then
@@ -112,7 +130,7 @@ local function drawTerrain(canvas,width,height,mapID)
         lineHolder:SetParent(canvas); lineHolder:SetAllPoints(canvas)
     end
     if type(lineHolder.CreateLine)~="function" then return end
-    for index=1,math.min(#route.points-1,MAX_ROUTE_LINES,#lines+NEW_LINES_PER_REFRESH) do
+    for index=1,math.min(routeCount(route)-1,MAX_ROUTE_LINES,#lines+NEW_LINES_PER_REFRESH) do
         local a,b=points[index],points[index+1]
         local line=lines[index]
         if not line then
@@ -120,8 +138,12 @@ local function drawTerrain(canvas,width,height,mapID)
             if not line then return end
             line:SetThickness(2); line:SetColorTexture(1,.7,.2,.8); lines[index]=line
         end
-        line:SetStartPoint("TOPLEFT",canvas,a[1],a[2])
-        line:SetEndPoint("TOPLEFT",canvas,b[1],b[2]); line:Show()
+        local key=string.format("%.3f:%.3f:%.3f:%.3f",a[1],a[2],b[1],b[2])
+        if line.routeKey~=key then
+            line:SetStartPoint("TOPLEFT",canvas,a[1],a[2])
+            line:SetEndPoint("TOPLEFT",canvas,b[1],b[2]);line.routeKey=key
+        end
+        line:Show()
     end
 end
 local function hidePins() hideLines(); for _,pin in ipairs(pins) do pin:Hide() end end
@@ -173,26 +195,39 @@ end
 local function bearing()
     if not arrow then return end
     arrow:Hide()
-    if not planner.enabled or not planner.Controller.Policy().arrow then return end
+    if not planner.enabled or not (planner.Controller.ArrowEnabled and planner.Controller.ArrowEnabled()
+        or not planner.Controller.ArrowEnabled and planner.Controller.Policy().arrow) then return end
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     if model.status=="paused" or not model.selected or not model.selected.destination then return end
     local terrain=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
-    local point,position=terrain and terrain.next or model.selected.destination,planner.Context.Position()
-    local hint=navigation.Instruction()
+    local live=playerFrame()
+    local point,position=terrain and terrain.next or model.selected.destination,live.position
+    local hint=navigation.Instruction(live)
     if not position or position.mapID~=point.mapID then return end
-    local ok,facing=planner.Context.Call(GetPlayerFacing)
-    local sized,width,height=planner.Context.Call(C_Map and C_Map.GetMapWorldSize,point.mapID)
+    local facing,width,height=live.facing,live.width,live.height
+    local ok,sized=facing~=nil,width and height
     if not ok or not sized or not planner.Schema.Number(facing,0,math.pi*2)
         or not planner.Schema.Number(width,1,100000) or not planner.Schema.Number(height,1,100000) or not math.atan2 then return end
     hint=hint or planner.Guidance.MarkerInstruction(point,position,width,height,
         planner.Terrain and planner.Terrain.Status())
     if not hint then return end
-    arrow.label:SetText(hint.text.."\n"..hint.subtext)
+    local label=hint.text.."\n"..hint.subtext
+    if label~=lastText and (textAge>=BEARING_INTERVAL or not lastText or hint.ending) then
+        arrow.label:SetText(label);lastText=label;textAge=0
+    end
     local dx,dy=(point.x-position.x)*width,(point.y-position.y)*height
     if hint and hint.ending then arrow.icon:Hide();arrow:Show();return end
     arrow.icon:Show()
     if math.abs(dx)+math.abs(dy)<1 then return end
-    arrow.icon:SetRotation(math.atan2(-dx,-dy)-facing)
+    local desired=math.atan2(-dx,-dy)
+    local delta=live.time and rotationTime and math.max(0,live.time-rotationTime) or .05
+    if rotation then
+        local difference=(desired-rotation+math.pi)%(math.pi*2)-math.pi
+        rotation=rotation+difference*(1-math.exp(-delta/.08))
+    else rotation=desired end
+    rotationTime=live.time
+    -- Smooth the world bearing; camera rotation remains immediate.
+    arrow.icon:SetRotation(rotation-facing)
     arrow:Show()
 end
 local function refreshBearing()
@@ -205,6 +240,8 @@ local function refreshRouteDisplay()
     if planner.View and planner.View.RefreshInstruction then planner.View.RefreshInstruction(navigation.Instruction()) end
 end
 function navigation.Refresh()
+    textAge=BEARING_INTERVAL
+    if planner.Context.Frame then planner.Context.Frame(true) end
     local ok,reason=pcall(draw)
     if not ok then hidePins(); navigation.lastError=tostring(reason) end
     refreshBearing();refreshRouteDisplay()
@@ -214,6 +251,7 @@ function navigation.Start()
         if not arrow then arrowBuild() end
         local driver=CreateFrame("Frame")
         driver:SetScript("OnUpdate",function(_,delta)
+            textAge=textAge+delta
             antPhase=(antPhase+delta*20)%14
             elapsed=elapsed+delta; bearingElapsed=bearingElapsed+delta
             if elapsed>=MAP_INTERVAL then

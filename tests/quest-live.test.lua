@@ -4,7 +4,7 @@ return function(check)
     local restore=require("widget_stub").install()
     local names={"RikUI","RikUIDB","RikUICharDB","C_QuestLog","C_Map","C_Item","GetBuildInfo","GetLocale",
         "C_GossipInfo","UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax","GetQuestID","GetTitleText","GetRewardXP",
-        "GetQuestLogRewardXP","UnitGUID","debugprofilestop","QuestMapFrame_OpenToQuestDetails","WorldMapFrame","GetPlayerFacing","UnitPosition"}
+        "GetQuestLogRewardXP","UnitGUID","debugprofilestop","QuestMapFrame_OpenToQuestDetails","WorldMapFrame","GetPlayerFacing","UnitPosition","GetTime"}
     local saved={}
     for _,name in ipairs(names) do saved[name]=_G[name] end
     local added={}
@@ -141,7 +141,8 @@ return function(check)
         WorldMapFrame.GetCanvas=function() return canvas end
         WorldMapFrame.GetMapID=function() return 1426 end
         WorldMapFrame:Show()
-        local facing=0
+        local facing,testTime=0,0
+        GetTime=function() return testTime end
         GetPlayerFacing=function() return facing end
         C_Map.GetMapWorldSize=function() return 2000,1000 end
         p.Command("arrow on"); env.flushTimers()
@@ -159,7 +160,7 @@ return function(check)
         arrow.icon.SetRotation=function(_,value) angle=value end
         p.Navigation.Refresh()
         check("east target while facing north points right",math.abs(angle+math.pi/2)<.000001)
-        facing=3*math.pi/2
+        facing=3*math.pi/2;testTime=testTime+.016
         local oldPointCalls,pointCalls=canvas.GetWidth,0
         canvas.GetWidth=function(...) pointCalls=pointCalls+1;return oldPointCalls(...) end
         for _,driver in ipairs(env.frames) do
