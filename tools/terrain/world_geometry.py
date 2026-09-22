@@ -64,6 +64,11 @@ def geometry(source,job,placement_index):
     r=tile_rect(tx,ty);exclude([[r[0],-100000,r[1]],[r[2],100000,r[3]]],'unsourced-physical-tile',tile=[tx,ty])
  placements={(row['kind'],row['uniqueID']):row for row in placement_index.query(world,rect)}
  need(len(placements)<=MAX_PLACEMENTS,'world indexed placement bound')
+ # Unknown physics never contributes geometry; its padded footprint is carved out.
+ unknown=getattr(placement_index,'unknown_exclusions',None)
+ for row in (unknown(world,rect) if unknown else []):
+  exclude(row['bounds'],'unknown-physics-extent',fileDataID=row['reference'],placementID=row['uniqueID'],reasons=[row['reason']])
+  gates.append(dict(worldMapID=world,placementID=row['uniqueID'],fileDataID=row['reference'],reasons=[row['reason']],bounds=row['bounds']));stats['excludedUnknownExtentPlacements']+=1
  for key,placement in sorted(placements.items()):
   ident=placement['reference'];uid=placement['uniqueID']
   need(0<placement['scale']<=65535,'world placement scale')

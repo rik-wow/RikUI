@@ -39,6 +39,40 @@ class Tests(unittest.TestCase):
    self.assertEqual(result['positions'],[]);self.assertEqual(result['indices'],[])
    self.assertEqual(result['coverageGates'][0]['bounds'],[[1,0,1],[21,1,21]])
    self.assertIn('WMO-transform-outside-MODF-bounds',result['coverageGates'][0]['reasons'])
+ def test_unknown_physics_is_excluded_not_fatal(self):
+  job=dict(worldMapID=0,batchGrid=[0,0],inputXZ=[0,0,100,100],ownedXZ=[0,0,100,100],tiles=[])
+  box=[[40,-5,40],[60,20,60]]
+  class Source:
+   used={};tiles={}
+   def job(self,*args):return job
+  class Index:
+   sha256='index'
+   def query(self,*args):return []
+   def unknown_exclusions(self,*args):return [dict(kind='m2',uniqueID=5,reference=304027,reason='unbounded-model-physics:304027',bounds=box)]
+  result=geometry.geometry(Source(),job,Index())
+  rows=[r for r in result['exclusions'] if r['reason']=='unknown-physics-extent']
+  self.assertEqual(len(rows),1);self.assertEqual(rows[0]['bounds'],box);self.assertEqual(rows[0]['fileDataID'],304027)
+  self.assertEqual(result['statistics']['excludedUnknownExtentPlacements'],1)
+ def _index(self,rows):
+  import sqlite3,world_placements as wp
+  db=sqlite3.connect(':memory:')
+  db.executescript('CREATE TABLE placements(id INTEGER PRIMARY KEY,world INTEGER NOT NULL,kind TEXT NOT NULL,uid INTEGER NOT NULL,body TEXT NOT NULL,bounds TEXT,reason TEXT); CREATE VIRTUAL TABLE extents USING rtree(id,minX,maxX,minZ,maxZ);')
+  for uid,box,reason in rows:
+   body=json.dumps(dict(kind='m2',uniqueID=uid,reference=uid*10))
+   c=db.execute('INSERT INTO placements(world,kind,uid,body,bounds,reason) VALUES(0,?,?,?,?,?)',('m2',uid,body,json.dumps(box) if box else None,reason))
+   if box:db.execute('INSERT INTO extents VALUES(?,?,?,?,?)',(c.lastrowid,box[0][0],box[1][0],box[0][2],box[1][2]))
+  index=object.__new__(wp.Index);index.db=db;return index
+ def test_index_separates_unknown_footprints(self):
+  import world_placements as wp
+  known=[[0,0,0],[10,1,10]];unknown=wp.padded([[20,0,20],[22,2,22]])
+  self.assertEqual(unknown,[[12,-8,12],[30,10,30]])
+  index=self._index([(1,known,None),(2,unknown,'unbounded-model-physics:9')])
+  self.assertEqual([p['uniqueID'] for p in index.query(0,[0,0,100,100])],[1])
+  rows=index.unknown_exclusions(0,[0,0,100,100]);self.assertEqual([(r['uniqueID'],r['bounds']) for r in rows],[(2,unknown)])
+  self.assertEqual(index.unknown_exclusions(0,[50,50,60,60]),[])
+ def test_undecodable_footprint_still_blocks_world(self):
+  index=self._index([(1,[[0,0,0],[1,1,1]],None),(3,None,'unbounded-model-physics:9')])
+  with self.assertRaisesRegex(ValueError,'unbounded world placement extents'):index.query(0,[0,0,100,100])
  def test_tile_axes(self):self.assertEqual(s.tile_rect(32,32),[-s.terrain.TILE,-s.terrain.TILE,0,0])
  def test_world_namespace(self):self.assertNotEqual(s.polygon_key(0,1,2,0,0),s.polygon_key(1,1,2,0,0))
  def test_fixed_batch_bounds(self):self.assertEqual(s.batch_rect(-1,0),[-512,0,0,512]);self.assertEqual(s.BORDER,1.25)
