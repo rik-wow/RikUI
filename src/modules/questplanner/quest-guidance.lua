@@ -13,6 +13,7 @@ function guidance.Details(model,snapshot,route)
     if not selected then return model.detail or "Choose a quest to see its instructions." end
     local quest=snapshot and snapshot.quests and snapshot.quests[selected.questID]
     local lines={plain(quest and quest.title or selected.title,2048),plain(selected.detail,2048)}
+    if selected.recommendation then lines[#lines+1]=selected.recommendation.text end
     for _,objective in ipairs(quest and quest.objectives or {}) do
         lines[#lines+1]=(objective.finished and "Done: " or "Objective: ")..plain(objective.text,2048)
     end
@@ -163,6 +164,9 @@ function guidance.Signature(snapshot,status,ctx,dialog)
     for _,value in ipairs({status.state,snapshot.identity.product,snapshot.identity.build,snapshot.identity.locale,
         snapshot.coverage,snapshot.reportedCount}) do signatureField(parts,value) end
     signatureField(parts,ctx.position and ctx.position.mapID)
+    if planner.Recommendations then
+        signatureField(parts,planner.Recommendations.PositionKey(ctx.position,planner.Context.Frame()))
+    end
     local items={}
     for id in pairs(ctx.inventory or {}) do items[#items+1]=id end
     table.sort(items)
@@ -178,7 +182,7 @@ function guidance.Signature(snapshot,status,ctx,dialog)
     if parts.limited then return nil,"Quest observations exceed the planning size limit" end
     return table.concat(parts)
 end
-function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded)
+function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded,prior)
     local rows={}
     for _,id in ipairs(snapshot.order) do
         local quest,point=snapshot.quests[id],ctx.destinations[id]
@@ -202,19 +206,30 @@ function guidance.Observed(snapshot,ctx,policy,previous,includeExcluded)
             questSignature(stage,id,quest,ctx)
             rows[#rows+1]={questID=id,title=plain(quest.title),kind=quest.objectivesComplete and "turnin" or "objective",
                 destinationSignature=not stage.limited and table.concat(stage) or nil,
-                detail=plain(hint and hint.detail or detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
+                detail=plain(hint and hint.detail or semantic and semantic.action or step and step.active and step.active.text
+                    or detail or (quest.objectivesComplete and "Ready to turn in" or "Check the quest log")),
                 step=step,stepID=step and step.stepID,stepIdentity="quest-marker",
                 targetHint=hint,hunt=hunt,semantic=semantic,
                 referenceAdvice=planner.SemanticGuidance and schema.Clone(planner.SemanticGuidance.Advice(snapshot,id)),destination=schema.Clone(point),pinned=policy.pins[id]==true,
                 skipped=policy.skips[id]==true,avoided=point and policy.avoids[point.mapID]==true or false,failed=quest.failed==true}
         end
     end
-    table.sort(rows,function(a,b)
-        if a.pinned~=b.pinned then return a.pinned end
-        if a.kind~=b.kind then return a.kind=="turnin" end
-        if (a.questID==previous)~=(b.questID==previous) then return a.questID==previous end
-        return a.questID<b.questID
-    end)
+    if not includeExcluded then
+        for index=#rows,1,-1 do
+            local row=rows[index]
+            if row.skipped or row.avoided or row.failed then table.remove(rows,index) end
+        end
+    end
+    if planner.Recommendations then
+        planner.Recommendations.Sort(rows,snapshot,ctx,previous,prior)
+    else
+        table.sort(rows,function(a,b)
+            if a.pinned~=b.pinned then return a.pinned end
+            if a.kind~=b.kind then return a.kind=="turnin" end
+            if (a.questID==previous)~=(b.questID==previous) then return a.questID==previous end
+            return a.questID<b.questID
+        end)
+    end
     while #rows>40 do table.remove(rows) end
     return rows
 end

@@ -7,7 +7,7 @@ local policy={pins={},avoids={},skips={},paused=false,arrow=false,dungeons=false
 local view={status="unavailable",detail="Reading the quest log",quests={}}
 local revision,signature,data,job,context=0,nil,nil,nil,nil
 local stats={replans=0,published=0,cancelled=0,maxSliceMS=0,timingSamples=0,frameCalls=0}
-local worker,manualQuest,journeyState
+local worker,manualQuest,journeyState,recommendationPosition
 local function notify()
     if core.QuestTracker and core.QuestTracker.Request then core.QuestTracker.Request() end
     if planner.View and planner.View.Refresh then planner.View.Refresh() end
@@ -39,7 +39,7 @@ function controller.Get() return schema.Clone(view) end
 function controller.Quests()
     local snapshot,status=planner.GetSnapshot()
     if not snapshot or not context or status.state=="stale" or status.state=="unavailable" then return {} end
-    return planner.Guidance.Observed(snapshot,context,policy,view.selected and view.selected.questID,true)
+    return planner.Guidance.Observed(snapshot,context,policy,view.selected and view.selected.questID,true,view.selected)
 end
 function controller.Policy() return schema.Clone(policy) end
 function controller.ArrowEnabled() return policy.arrow end
@@ -134,7 +134,19 @@ local function finish(current,result)
     if prior and value.selected and prior~=value.selected.questID then value.change="Next action changed: "..current.reason end
     job=nil; publish(value)
 end
+local function refreshPosition()
+    if not planner.enabled or policy.paused or manualQuest or not context or not planner.Recommendations then return end
+    local frame=planner.Context.Frame()
+    local position=frame and frame.position
+    if not position then return end
+    if not recommendationPosition or planner.Recommendations.Moved(recommendationPosition,position,frame) then
+        local changed=recommendationPosition~=nil
+        recommendationPosition={mapID=position.mapID,x=position.x,y=position.y}
+        if changed and planner.Request then planner.Request() end
+    end
+end
 function controller.Step()
+    refreshPosition()
     if planner.enabled and planner.Enrichment then planner.Enrichment.Tick() end
     if planner.enabled and planner.SemanticData then planner.SemanticData.Step() end
     if planner.enabled and planner.SemanticGuidance then planner.SemanticGuidance.Step() end
@@ -211,7 +223,7 @@ function controller.Update(snapshot,status,reason)
     end
     if signature==nextSignature then return end
     cancel(); revision=revision+1; signature=nextSignature
-    local observed=planner.Guidance.Observed(snapshot,ctx,policy,view.selected and view.selected.questID)
+    local observed=planner.Guidance.Observed(snapshot,ctx,policy,view.selected and view.selected.questID,false,view.selected)
     if policy.paused then publish({status="paused",detail="Quest guidance paused",quests=observed}); return end
     begin(snapshot,status,ctx,dialog,observed,reason or "quest state changed")
 end

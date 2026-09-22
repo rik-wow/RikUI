@@ -3,7 +3,8 @@ local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
 local guidance,bindings,choices={}, {}, {}
 planner.SemanticGuidance=guidance
 local current,receipts,receiptKeys,advice=nil,{},{},{}
-local comparison,comparisonKey,comparisonMesh,compared,revision=nil,nil,nil,nil,0
+local comparison,comparisonKey,comparisonMesh,compared,provisional,revision=nil,nil,nil,nil,nil,0
+local COMPARISON_MS,COMPARISON_BATCHES=1,16
 local metrics={matched=0,unknown=0,conflicts=0,areas=0,limited=false}
 local MAX_AREAS,MAX_METHODS,MAX_RECEIPTS=8192,2048,128
 local sourceRevision
@@ -226,12 +227,12 @@ local function choiceKey(snapshot,selected,ctx,policy,list,shared)
     table.sort(avoids)
     for _,mapID in ipairs(avoids) do parts[#parts+1]="avoid:"..mapID end
     for _,o in ipairs(live.objectives or {}) do
-        parts[#parts+1]=tostring(o.text);parts[#parts+1]=tostring(o.type);parts[#parts+1]=tostring(o.numFulfilled)
+        parts[#parts+1]=tostring(observedName(o));parts[#parts+1]=tostring(o.type)
         parts[#parts+1]=tostring(o.numRequired);parts[#parts+1]=tostring(o.finished)
     end
     for itemID in pairs(ctx.inventory) do inventoryIDs[#inventoryIDs+1]=itemID end
     table.sort(inventoryIDs)
-    for _,itemID in ipairs(inventoryIDs) do parts[#parts+1]="item:"..itemID.."="..ctx.inventory[itemID] end
+    for _,itemID in ipairs(inventoryIDs) do parts[#parts+1]="item:"..itemID.."="..tostring(ctx.inventory[itemID]>0) end
     for _,candidate in ipairs(list) do
         parts[#parts+1]=tostring(candidate.area.id).."/"..candidate.index.."/"..candidate.method.kind.."/"..tostring(shared[candidate.area.id])
     end
@@ -246,12 +247,12 @@ local function compareAreas(snapshot,ctx,policy,previous,pending,shared)
     local key=choiceKey(snapshot,selected,ctx,policy,pending[selected],shared)
     local meshRevision=planner.Terrain and planner.Terrain.AreaRevision and planner.Terrain.AreaRevision()
     if comparisonKey~=key or comparisonMesh~=meshRevision then
-        if comparisonKey~=key then compared=nil end
+        if comparisonKey~=key then compared=nil;provisional=choices[selected] end
         comparisonKey,comparisonMesh=key,meshRevision
         comparison=planner.Optimizer.BeginAreas(pending[selected],shared,snapshot.identity,schema.Clone(ctx.position))
         if comparison then comparison.questID=selected end
     end
-    if compared then choices[selected]=compared end
+    choices[selected]=compared or provisional or choices[selected]
 end
 function guidance.Observe(snapshot,ctx,policy,previous)
     current=snapshot;bindings={};choices={};advice={}
@@ -290,13 +291,14 @@ function guidance.Apply(snapshot,id,point,step)
     if value.prerequisiteItemID then action=action.." for required item "..value.prerequisiteItemID end
     local semantic={authority="reference",source="QuestieDB",method=method.kind,targetKind=method.targetKind,targetID=method.targetID,
         areaID=area.id,sharedQuests=value.shared,prerequisiteItemID=value.prerequisiteItemID,costBasis=value.costBasis or "map-distance estimate",floorKnown=area.floorKnown==true,
-        instructions=action..". "..(value.sourceHint and ("Source hint: "..value.sourceHint..". ") or "").."Confirm progress in the quest log.",basis=value.distance==math.huge and "Source location; travel between zones, access and floor are unverified."
+        action=action,instructions=action..". "..(value.sourceHint and ("Source hint: "..value.sourceHint..". ") or "").."Confirm progress in the quest log.",basis=value.distance==math.huge and "Source location; travel between zones, access and floor are unverified."
             or "Forever provider reference; current spawn availability, access and floor are unverified."}
     semantic.comparison=value.comparison and schema.Clone(value.comparison)
-    if point and value.comparison and value.comparison.terrainAvailable and not value.modeledMeters then
+    if point and not value.modeledMeters then
         semantic.areaID=nil;semantic.locationSource="runtime-quest-marker"
-        semantic.costBasis="source areas unmodeled; live quest marker"
-        semantic.basis="Source action; use the live quest marker because no source area has a modeled approach in the loaded terrain."
+        local evaluated=value.comparison and value.comparison.terrainAvailable
+        semantic.costBasis=evaluated and "source areas unmodeled; live quest marker" or "checking source areas; live quest marker"
+        semantic.basis="Source action; follow the live quest marker until a source area has a usable modeled approach."
         return point,nil,semantic
     end
     local target={mapID=area.mapID,x=area.x,y=area.y,scope="semantic-objective-area",api="QuestieDB",areaID=area.id}
@@ -316,11 +318,17 @@ end
 function guidance.Revision() return revision end
 function guidance.Step()
     if not comparison then return end
-    local value,done=comparison:Step()
-    if done then
-        choices[comparison.questID],compared=value,value
-        comparison=nil;revision=revision+1
-        if planner.Request then planner.Request() end
+    local clock=type(debugprofilestop)=="function" and debugprofilestop
+    local started=clock and clock()
+    for _=1,clock and COMPARISON_BATCHES or 4 do
+        local value,done=comparison:Step()
+        if done then
+            choices[comparison.questID],compared=value,value
+            comparison=nil;revision=revision+1
+            if planner.Request then planner.Request() end
+            return
+        end
+        if clock and clock()-started>=COMPARISON_MS then return end
     end
 end
 function guidance.Status() return schema.Clone(metrics) end

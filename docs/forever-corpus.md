@@ -201,6 +201,39 @@ installed corpus and terrain, measures moving callback costs and verifies zero
 moving route changes and no proximity completion. Its arguments match
 `tests/quest-region-replay.lua`.
 
+## Live guidance stability follow-up
+
+The installed cold-start replay now starts corpus and terrain loading together,
+as the client does. Previously the live marker could be replaced repeatedly
+while source areas were still being compared. The provisional source choice is
+now stable, and an available live marker remains the destination until a source
+area has a usable modeled approach. Partial item counts do not restart that
+comparison; finished objectives, source-item availability and actual constraint
+changes still invalidate it. Source comparison work has a bounded frame budget.
+
+Automatic recommendations now use a cheap same-map distance estimate, small
+turn-in/progress preferences and shared source-area tie-breaks. Pins and manual
+selection remain authoritative within exclusions; hysteresis prevents small
+score differences from changing the current quest. Meaningful movement can
+refresh recommendations. These are local heuristics, not an XP optimizer or
+recursive planning over future chains. Unknown travel remains unknown.
+
+The compact quest instruction shows the source action when available. Expanded
+details explain the local recommendation. `/rik quests status` prints the
+selected quest, recommendation, quest sequence searches and separate walking
+search/window counters.
+
+Run `tests/quest-corpus-live.lua <AddOns root> <archived packet> 315` for the
+Perfect Stout regression. With the installed corpus, terrain and archived native
+packet, the failing reproduction required 2,751 simulated frames (55 seconds),
+24 walking searches and three terrain windows. The corrected replay obtained a
+route in 146 frames (2.92 seconds), one search and one terrain window. Its
+598.48-yard movement replay, including partial progress updates, required no
+additional search or route publication and never completed the quest by
+proximity. These are host results at a simulated 50 Hz, not measured client
+latency or native gameplay acceptance. The main test suite covers recommendation
+stability, pins, exclusions, progress, unknown travel and shared-area preferences.
+
 The final delivery receipt records exact gate totals, artifact hashes, installed
 counts, all-record replay results and route measurements. Native game walking,
 visual/interaction acceptance, current new-chain observations and exact lift

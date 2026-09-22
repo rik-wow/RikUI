@@ -46,7 +46,19 @@ function planner.Command(arguments)
                 ..semantic.matched.." objectives matched; "..semantic.unknown.." unmatched.")
         end
         local timing=stats.timingSamples>0 and string.format("%.2fms (observed this session)",stats.maxSliceMS) or "not measured"
-        core:Print("Planner replans="..stats.replans.." max-slice="..timing)
+        if model.selected then
+            local row=model.selected
+            core:Print("Quest selection: "..row.title.." ("..row.questID.."); "..row.detail)
+            if row.recommendation then core:Print("Next-step advice: "..(model.manual and "Selected by you" or row.recommendation.text)) end
+        end
+        core:Print("Quest sequence searches="..stats.replans.." max-slice="..timing)
+        if planner.Terrain and planner.Terrain.Stats then
+            local walking=planner.Terrain.Stats()
+            local regions=planner.Regions and planner.Regions.Stats()
+            core:Print("Walking searches="..walking.plans.."; routes published="..walking.published
+                .."; terrain windows started="..(regions and regions.windows or 0)
+                .."; terrain addons loaded="..(regions and regions.loads or 0))
+        end
         if planner.Terrain then local terrain=planner.Terrain.Status(); core:Print("Terrain guidance: "..terrain.status..". "..terrain.detail) end
         if planner.Navigation.lastError then core:Print("Quest map guidance: "..planner.Navigation.lastError) end
         return

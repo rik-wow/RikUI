@@ -39,7 +39,7 @@ return function(check)
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
         for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","journey-graph","actions","simulation","optimizer",
-            "context","gossip","journal","dataset","steps","step-bindings","guide-data","observed-steps","targets","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
+            "context","gossip","journal","dataset","steps","step-bindings","guide-data","observed-steps","targets","recommendations","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         dofile("src/modules/questplanner/questplanner.lua")
