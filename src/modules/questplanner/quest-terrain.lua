@@ -39,7 +39,7 @@ function terrain.Invalidate()
 end
 function terrain.Retry()
     if not planner.enabled then return nil,"Quest planner is disabled" end
-    if roadMode() then planner.RoadGuidance.Invalidate();return true end
+    if roadMode() then planner.RoadGuidance.Reset();return true end
     local regional=planner.Regions and planner.Regions.Enabled()
     if not mesh and not loader and not regional then return nil,state.detail end
     local model=(planner.Controller.Peek or planner.Controller.Get)()

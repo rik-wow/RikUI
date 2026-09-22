@@ -8,6 +8,7 @@ planner.RoadNavigate=navigate
 local GATEWAYS=3            -- nearest gateway nodes tried per end
 local DIRECT_YARDS=240      -- try a mesh-only route when both ends are this close
 local END_FRAME="end-frame" -- yielded after a synchronous addon load
+local STEP_MS=4              -- per-frame time budget for one request
 local MESH_OPTIONS={maxWork=262144,markerRadius=8,reachableApproach=true,commonApproach=true,uncertainVicinity=true}
 
 -- Mesh searches return their result table from Step once finished.
@@ -109,7 +110,12 @@ function navigate.Begin(graph,view,start,goal,options)
     return {Cancel=function() cancelled=true end,Step=function(_,budget)
         if output then return output end
         if cancelled then return {status="cancelled",detail="Road request changed"} end
+        -- Stop at a time budget as well as a step count: steps cost several
+        -- times more in the client's Lua 5.1 than in LuaJIT.
+        local clock=type(debugprofilestop)=="function" and debugprofilestop
+        local started=clock and clock()
         for _=1,budget or 16 do
+            if clock and clock()-started>=STEP_MS then return nil end
             local ok,value=coroutine.resume(worker)
             if not ok then output={status="invalid",detail="Road navigation failed: "..tostring(value)};return output end
             if coroutine.status(worker)=="dead" then output=value;return output end

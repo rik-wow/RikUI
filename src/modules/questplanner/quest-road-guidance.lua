@@ -5,10 +5,11 @@ local planner=RikUI.QuestPlanner
 local schema,guidance=planner.Schema,{}
 planner.RoadGuidance=guidance
 
-local SEARCH_MS,SEARCH_SLICES=2,16
+local SEARCH_MS,SEARCH_SLICES=4,16
 local REPLAN_SECONDS=1.5
 local state={status="unavailable",detail="Road network is not installed"}
 local active,request,follower,requestKey,routeKey,display,lastReplan=false,nil,nil,nil,nil,nil,0
+local lastTarget -- {key,row}: kept while the planner briefly has no selection
 local stats={plans=0,published=0,replans=0}
 
 local function setState(status,detail)
@@ -19,14 +20,19 @@ end
 
 local function clear()
     if request then request:Cancel() end
-    request,follower,requestKey,routeKey,display=nil,nil,nil,nil,nil
+    request,follower,requestKey,routeKey,display,lastTarget=nil,nil,nil,nil,nil,nil
 end
 
 function guidance.Active() return active end
 function guidance.Status() return schema.Clone(state) end
 function guidance.PeekGuidance() return display end
 function guidance.Stats() return schema.Clone(stats) end
-function guidance.Invalidate() clear() end
+-- Quest-state events invalidate the planner often, sometimes several times a
+-- second. A road plan takes about a second, so the request and route are kept
+-- and only replaced when the destination itself changes (see Step).
+function guidance.Invalidate() end
+-- Explicit retry: drop everything and plan again.
+function guidance.Reset() clear() end
 
 local function isMarker(target)
     return target.scope=="current-map-quest-poi" or target.scope=="semantic-objective-area"
@@ -107,7 +113,13 @@ function guidance.Step()
     local model=(planner.Controller.Peek or planner.Controller.Get)()
     local row=model.selected
     if model.status=="paused" then clear();setState("paused","Quest guidance is paused");return true end
-    if not row or not row.destination or row.suppressSteering then clear();setState("ready","No active walking destination");return true end
+    if row and row.suppressSteering then clear();setState("ready","No active walking destination");return true end
+    if not row or not row.destination then
+        -- The planner is between results: keep working toward the last destination.
+        if not (model.status=="updating" and lastTarget) then clear();setState("ready","No active walking destination");return true end
+        row=lastTarget
+    end
+    lastTarget=row
     local goalWorld,goalPoint=roads.Locate(row.destination.mapID,row.destination.x,row.destination.y)
     if goalWorld~=world then clear();setState("outside-coverage","Destination is on another continent or map");return true end
     local key=destinationKey(row,graph.revision)

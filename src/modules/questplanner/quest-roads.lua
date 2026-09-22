@@ -10,7 +10,8 @@ local FORMAT,INDEX_FORMAT="rikui-road-network-v1","rikui-road-index-v1"
 local STREAMS={nodes=13,offsets=4,edges=8,points=4,cells=8,reps=4,patches=10}
 local MAX_NODES,MAX_EDGES,MAX_POINTS=4194304,16777215,16777215
 local CELL_BIAS,CELL_SPAN=2048,4096
-local LOAD_SLICE=512
+local LOAD_SLICE=128
+local LOAD_MS=3  -- per-frame time budget for network validation
 
 local index={byMap={},worlds={}}
 local catalogs,pages,graphs,loading={}, {}, {}, {}
@@ -182,7 +183,10 @@ local function beginGraph(catalog)
     return {Cancel=function() cancelled=true end,Step=function(_,budget)
         if cancelled then return nil,"cancelled",true end
         if done then return nil,"road loader finished",true end
+        local clock=type(debugprofilestop)=="function" and debugprofilestop
+        local started=clock and clock()
         for _=1,budget or 8 do
+            if clock and clock()-started>=LOAD_MS then return nil,nil,false end
             local ok,value,reason=coroutine.resume(worker)
             if not ok then done=true;return nil,"invalid road data",true end
             if coroutine.status(worker)=="dead" then done=true;return value,reason,true end

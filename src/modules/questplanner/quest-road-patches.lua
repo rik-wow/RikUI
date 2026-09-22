@@ -5,7 +5,10 @@ local planner=RikUI.QuestPlanner
 local schema,patches=planner.Schema,{}
 planner.RoadPatches=patches
 
-local RING=1                -- cells around each point (3x3)
+local REACH=48              -- yards around each end whose patch cells are loaded
+local SHORT_TRIP=240        -- trips this short also load the cells between the ends
+local MESH_CACHE=3          -- validated meshes kept for plans over the same cells
+local meshes={}
 local DECODE_SLICE=64       -- polygons decoded between yields
 local CACHE_CELLS=48        -- decoded cells kept for later plans
 local decoded,decodedOrder={},{}
@@ -84,13 +87,21 @@ local function decode(graph,key,row)
 end
 
 local function cellsAround(graph,points)
-    local keys,seen={}, {}
-    for _,p in ipairs(points) do
-        local cx,cz=math.floor(p.x/graph.cellYards),math.floor(p.z/graph.cellYards)
-        for dx=-RING,RING do for dz=-RING,RING do
-            local key=graph:CellKey(cx+dx,cz+dz)
-            if not seen[key] and graph:PatchAddon(key) then seen[key]=true;keys[#keys+1]=key end
-        end end
+    local keys,seen,size={}, {},graph.cellYards
+    local function box(x0,z0,x1,z1)
+        for cx=math.floor(x0/size),math.floor(x1/size) do
+            for cz=math.floor(z0/size),math.floor(z1/size) do
+                local key=graph:CellKey(cx,cz)
+                if not seen[key] and graph:PatchAddon(key) then seen[key]=true;keys[#keys+1]=key end
+            end
+        end
+    end
+    for _,p in ipairs(points) do box(p.x-REACH,p.z-REACH,p.x+REACH,p.z+REACH) end
+    -- Short trips also load the cells between the ends so a direct mesh route
+    -- is possible instead of a detour through 128-yard network nodes.
+    local a,b=points[1],points[2]
+    if a and b and (a.x-b.x)^2+(a.z-b.z)^2<=SHORT_TRIP^2 then
+        box(math.min(a.x,b.x)-REACH,math.min(a.z,b.z)-REACH,math.max(a.x,b.x)+REACH,math.max(a.z,b.z)+REACH)
     end
     table.sort(keys)
     return keys
@@ -168,6 +179,12 @@ end
 function patches.Begin(graph,view,points)
     local keys=cellsAround(graph,points)
     if #keys==0 then return nil,"no-patch" end
+    local cacheKey=graph.revision..":"..table.concat(keys,",")
+    for _,row in ipairs(meshes) do
+        if row.key==cacheKey then
+            return {Cancel=function() end,Step=function() return row.mesh,nil,true end}
+        end
+    end
     local have,why=ensureLoaded(graph,keys)
     if not have then return nil,why end
     local polygons,byID,loader,cancelled={}, {},nil,false
@@ -198,7 +215,12 @@ function patches.Begin(graph,view,points)
             loader,problem=meshFor(graph,view,keys,polygons,byID)
             if not loader then return nil,problem,true end
         end
-        return loader:Step(budget)
+        local value,reason,done=loader:Step(budget)
+        if done and value then
+            table.insert(meshes,1,{key=cacheKey,mesh=value})
+            meshes[MESH_CACHE+1]=nil
+        end
+        return value,reason,done
     end}
 end
 

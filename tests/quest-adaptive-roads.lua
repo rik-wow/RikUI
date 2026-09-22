@@ -2,7 +2,8 @@
 -- native observation: the planner's choice, its decision replay, then a
 -- simulated walk that follows road guidance's aim to arrival.
 -- This is a host replay, not native gameplay acceptance.
--- Usage: luajit tests/quest-adaptive-roads.lua <AddOns root> <RIKQ packet> [questID] [frames] [flavor] [x y]
+-- Usage: luajit tests/quest-adaptive-roads.lua <AddOns root> <RIKQ packet> [questID] [frames] [flavor] [x y] [churn frames]
+-- churn: invalidate the controller every N frames, as rapid quest-state events do in game.
 local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={CharDB={},Changed=function() end};RikUI["Secret"]={IsSecret=function() return false end}
 local modules={"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
@@ -73,10 +74,12 @@ local function refresh()
     p.Controller.Update(snapshot,{state="current"},"poll")
 end
 local maxFrames=tonumber(arg[4]) or 3500
+local churn=tonumber(arg[8])
 local firstRoute,routeFrames,peak,slow=nil,0,0,0
 for frame=1,maxFrames do
     elapsed=frame*.02
     local began=os.clock()
+    if churn and frame%churn==0 then p.Controller.Invalidate(true);requested=true end
     if requested or frame%10==0 then refresh() end
     p.Controller.Step();terrainCallback(nil,.02)
     if p.Terrain.PeekGuidance() then firstRoute=firstRoute or frame;routeFrames=routeFrames+1 end
@@ -92,6 +95,13 @@ print(string.format("ROADS COLD %s quest%d: first route frame %s; %d/%d route fr
     flavor,questID,tostring(firstRoute),routeFrames,maxFrames,tostring(p.RoadGuidance.Active()),status.status,peak,loadMS))
 assert(p.RoadGuidance.Active(),"road mode did not engage")
 assert(firstRoute and firstRoute<=600,"cold road route did not prepare within 12 simulated seconds: "..tostring(status.detail))
+if churn then
+    -- In game, quest events invalidate the planner several times a second; the
+    -- route must still appear and stay up. Decision and walk run without churn.
+    assert(routeFrames>=(maxFrames-firstRoute)*.9,"route kept disappearing under invalidation churn")
+    print("ROADS_CHURN_OK")
+    os.exit(0)
+end
 assert(p.Controller.Peek().adaptive,"ordinary controller did not use adaptive planner")
 local decision=assert(p.PlanRuntime.Replay(),"current displayed decision has no evidence")
 local packet=assert(p.Transfer.EncodePlan(decision))
