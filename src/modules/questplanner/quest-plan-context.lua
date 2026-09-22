@@ -45,6 +45,13 @@ function context.Enrich(ctx,snapshot,records)
         for key,value in pairs(bags) do ctx[key]=value end
         ctx.bagFree=bags.bagFree -- A pending scan cannot retain an older capacity claim.
     end
+    local guid=value(UnitGUID,schema.Text,"target")
+    local kind,id
+    if guid then kind,id=guid:match("^([%a]+)%-[^-]+%-[^-]+%-[^-]+%-[^-]+%-(%d+)%-") end
+    ctx.targetNPC=(kind=="Creature" or kind=="Vehicle") and tonumber(id) or nil
+    local ids={};for itemID in pairs(ctx.equipped or {}) do ids[#ids+1]=itemID end;table.sort(ids)
+    local gear=0;for _,itemID in ipairs(ids) do gear=(gear*31+itemID)%2147483647 end
+    ctx.equipmentKey=tostring(gear)
     ctx.afk=value(UnitIsAFK,boolean,"player")
     ctx.dead=value(UnitIsDeadOrGhost,boolean,"player")
     ctx.inCombat=value(UnitAffectingCombat,boolean,"player")
@@ -90,12 +97,13 @@ function context.Enrich(ctx,snapshot,records)
             if read and schema.Number(standing,-42000,100000) then ctx.reputation[id]=standing end
         end
     end
+    if planner.PlanRewards then planner.PlanRewards.Read(ctx,snapshot) end
     ctx.services=planner.PlanServices and planner.PlanServices.Read(ctx,records) or {}
     return ctx
 end
 function context.Signature(ctx)
     local result={}
-    for _,key in ipairs({"money","bagFree","partySize","characterKey","dead","floor","phase","inventoryRevision","inventoryExact"}) do result[#result+1]=key..":"..tostring(ctx[key]) end
+    for _,key in ipairs({"money","bagFree","partySize","characterKey","dead","floor","phase","inventoryRevision","inventoryExact","equipmentKey"}) do result[#result+1]=key..":"..tostring(ctx[key]) end
     for _,name in ipairs({"spells","reputation","skills","inventory","inventoryLower","stackRoom"}) do
         local ids={};for id in pairs(ctx[name] or {}) do ids[#ids+1]=id end;table.sort(ids)
         for _,id in ipairs(ids) do result[#result+1]=name..":"..id..":"..tostring(ctx[name][id]) end

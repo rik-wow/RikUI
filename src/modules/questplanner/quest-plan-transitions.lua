@@ -226,7 +226,7 @@ function transitions.Check(action,state,policy)
 end
 -- Source graph/observed metadata are immutable and shared. Only rollout fields copy.
 local MAPS={"active","completed","failed","objectivesComplete","applied","branchLocks","inventory","skills",
-    "capabilities","cooldowns","visited","credited","conditionalCompleted","inventoryLower","simulatedWork","stackRoom","genericStacks","soldSlots"}
+    "capabilities","spells","cooldowns","visited","credited","conditionalCompleted","inventoryLower","simulatedWork","stackRoom","genericStacks","soldSlots"}
 local NESTED={"progress","conditionalObjectives"}
 function transitions.Fork(state)
     local result={}
@@ -241,6 +241,7 @@ function transitions.Fork(state)
             result[key][id]=copy
         end
     end
+    result.projectedRewards=schema.Clone(state.projectedRewards)
     result.assumptions={};for _,value in ipairs(state.assumptions or {}) do result.assumptions[#result.assumptions+1]=value end
     result.recent={};for _,value in ipairs(state.recent or {}) do result.recent[#result.recent+1]=value end
     return result
@@ -277,7 +278,7 @@ function transitions.Apply(action,state,policy,cost)
         for key,count in pairs(action.initialProgress or {}) do result.progress[id][key]=count end
         result.conditionalObjectives[id]={}
         if action.availability=="source-suggestion" then assume(result,"Availability is a source suggestion; confirm at the giver") end
-        for _,other in ipairs(action.excludes or {}) do result.branchLocks[other]=id end
+        for _,other in ipairs(action.branchExcludes or action.excludes or {}) do result.branchLocks[other]=id end
     elseif action.kind=="objective" then
         result.simulatedWork[id]=true
         local count=remaining(action,state)
@@ -307,6 +308,24 @@ function transitions.Apply(action,state,policy,cost)
     elseif action.kind=="turnin" then
         result.active[id]=false;result.completed[id]=true;result.logCount=math.max(0,result.logCount-1)
         result.finished=(state.finished or 0)+1
+        local reward=action.typedRewards
+        if reward then
+            result.projectedRewards=result.projectedRewards or {money=0,reputation={},spells={}}
+            local projection=result.projectedRewards
+            if reward.money then
+                projection.money=projection.money+reward.money
+                if result.money~=nil then result.money=result.money+reward.money end
+            end
+            for _,rep in ipairs(reward.reputation) do
+                projection.reputation[rep.factionID]=(projection.reputation[rep.factionID] or 0)+rep.value
+                assume(result,"Reputation is a source estimate; live standing must confirm unlocks")
+            end
+            for _,spellID in ipairs(reward.spells) do
+                projection.spells[spellID]=true;result.spells[spellID]=true
+                assume(result,"Confirm the offered learned spell after turn-in")
+            end
+            if reward.choiceItemID then assume(result,"Choose reward item "..reward.choiceItemID.." for this plan") end
+        end
         if result.conditional then result.conditionalCompleted[id]=true end
         for _,itemID in ipairs(action.unknownConsumeItems or {}) do
             result.inventory[itemID]=nil;result.inventoryLower[itemID]=nil;assume(result,"Turn-in consumes an unresolved item quantity")

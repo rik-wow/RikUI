@@ -263,6 +263,7 @@ def planning_rules(row, entities):
             blocked.add(row[field])
     return {"version": 1, "requirements": {"op": "all", "args": clauses},
             "blockedBy": sorted(value for value in blocked if value > 0),
+            "exclusiveWith": sorted(value for value in ids(row.get("exclusiveTo")) if value > 0),
             "activeBreadcrumbs": sorted(abs(value) for value in ids(row.get("breadcrumbs"))),
             "blockedWhileActive": [row["disabledByQuest"]] if row.get("disabledByQuest", 0) > 0 else [],
             "forbiddenAfter": [row["availableUntilCompleted"]] if row.get("availableUntilCompleted", 0) > 0 else [],

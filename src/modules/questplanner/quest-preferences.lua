@@ -12,7 +12,8 @@ local PRESETS={
     Challenge={detour=.35,variety=.5,continuity=.3,discovery=.2,pressure=.1,difficulty="hard",grind="medium",maxRisk=.5},
 }
 local CHOICES={difficulty={easy=true,standard=true,hard=true},group={solo=true,available=true},
-    travel={localOnly=true,regional=true,world=true},grind={low=true,medium=true,high=true}}
+    travel={localOnly=true,regional=true,world=true},grind={low=true,medium=true,high=true},
+    rewardFocus={xp=true,equipment=true,reputation=true,currency=true,unlocks=true}}
 local function flags(value)
     local result,count={},0
     if value==nil then return result end
@@ -33,6 +34,9 @@ function preferences.Normalize(raw)
     if not PRESETS[flavor] then return nil,"Unknown flavor" end
     local result=schema.Clone(PRESETS[flavor])
     result.version,result.flavor=1,flavor
+    result.rewardFocus="xp"
+    if raw.rewardTarget~=nil and not schema.ID(raw.rewardTarget) then return nil,"Invalid reward target ID" end
+    result.rewardTarget=raw.rewardTarget
     result.sessionMinutes=raw.sessionMinutes or 60
     if not schema.Integer(result.sessionMinutes,5,480) then return nil,"Session length must be 5 to 480 minutes" end
     result.maxSeconds=result.sessionMinutes*60

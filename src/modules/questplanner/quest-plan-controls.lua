@@ -31,7 +31,7 @@ local function selected(verb)
 end
 local function create()
     window=CreateFrame("Frame","RikUIQuestPlannerPreferences",UIParent)
-    window:SetSize(680,568);window:SetPoint("CENTER");window:SetClampedToScreen(true);window:SetFrameStrata("DIALOG");window:EnableMouse(true)
+    window:SetSize(680,628);window:SetPoint("CENTER");window:SetClampedToScreen(true);window:SetFrameStrata("DIALOG");window:EnableMouse(true)
     local fill=window:CreateTexture(nil,"BACKGROUND");fill:SetAllPoints();fill:SetColorTexture(.04,.05,.07,.99)
     label(window,"Questing preferences",16,-14,480)
     button(window,"Close",598,-8,66,function() window:Hide() end)
@@ -55,29 +55,33 @@ local function create()
         {"dungeons","Dungeons",{false,true}},
         {"spoilers","Future story details",{false,true}},
         {"strictSession","Strict time budget",{false,true}},
+        {"rewardFocus","Reward focus",{"xp","equipment","reputation","currency","unlocks"}},
     }
     for index,row in ipairs(rows) do
         local key,title,choices=row[1],row[2],row[3]
         fields[key]={title=title,button=button(window,title,16+((index-1)%2)*328,-150-math.floor((index-1)/2)*30,320,
             function() cycle(key,choices) end)}
     end
-    label(window,"Completion goals (quest ID or map ID)",16,-312,620)
+    label(window,"Goals: quest / map ID; reward target: item / faction / spell ID (empty = any)",16,-342,620)
     window.goal=CreateFrame("EditBox",nil,window)
     media.Font(window.goal,"small")
     local inputFill=window.goal:CreateTexture(nil,"BACKGROUND");inputFill:SetAllPoints();inputFill:SetColorTexture(.12,.15,.18,1)
-    window.goal:SetSize(100,24);window.goal:SetPoint("TOPLEFT",22,-340);window.goal:SetAutoFocus(false);window.goal:SetNumeric(true)
+    window.goal:SetSize(100,24);window.goal:SetPoint("TOPLEFT",22,-370);window.goal:SetAutoFocus(false);window.goal:SetNumeric(true)
     window.goal:SetMaxLetters(10)
-    button(window,"Toggle quest goal",132,-340,170,function() command("quest-goal "..window.goal:GetText()) end)
-    button(window,"Toggle zone goal",310,-340,170,function() command("zone-goal "..window.goal:GetText()) end)
-    window.goals=label(window,"",16,-372,640)
-    button(window,"Pin current",16,-408,154,function() selected("pin") end)
-    button(window,"Defer / restore",180,-408,154,function() selected("defer") end)
-    button(window,"Unavailable",344,-408,154,function() command("unavailable") end)
-    button(window,"Skip / restore",508,-408,154,function() selected("skip") end)
-    button(window,"Decline exploration",16,-442,206,function() command("decline-exploration") end)
-    button(window,"New session",238,-442,206,function() command("new-session") end)
-    button(window,"Reset learned times",460,-442,202,function() command("reset-learning") end)
-    window.note=label(window,"",16,-480,640);window.note:SetHeight(70)
+    button(window,"Toggle quest goal",132,-370,170,function() command("quest-goal "..window.goal:GetText()) end)
+    button(window,"Toggle zone goal",310,-370,170,function() command("zone-goal "..window.goal:GetText()) end)
+    button(window,"Reward target",490,-370,172,function() command("reward-target "..window.goal:GetText()) end)
+    window.goals=label(window,"",16,-402,640)
+    button(window,"Pin current",16,-438,154,function() selected("pin") end)
+    button(window,"Defer / restore",180,-438,154,function() selected("defer") end)
+    button(window,"Unavailable",344,-438,154,function() command("unavailable") end)
+    button(window,"Skip / restore",508,-438,154,function() selected("skip") end)
+    button(window,"Decline exploration",16,-472,206,function() command("decline-exploration") end)
+    button(window,"New session",238,-472,206,function() command("new-session") end)
+    button(window,"Reset learned times",460,-472,202,function() command("reset-learning") end)
+    button(window,"Start / stop waiting",16,-502,206,function() command("waiting") end)
+    button(window,"Start / stop recovery",238,-502,206,function() command("recovery") end)
+    window.note=label(window,"",16,-540,640);window.note:SetHeight(70)
     if type(UISpecialFrames)=="table" then table.insert(UISpecialFrames,"RikUIQuestPlannerPreferences") end
     controls.Window=window
 end
@@ -94,7 +98,7 @@ function controls.Refresh()
     for _ in pairs(policy.questGoals or {}) do quests=quests+1 end
     for _ in pairs(policy.zoneGoals or {}) do zones=zones+1 end
     for _ in pairs(policy.defers or {}) do deferred=deferred+1 end
-    window.goals:SetText("Goals: "..quests.." quests, "..zones.." zones. Deferred this session: "..deferred..".")
+    window.goals:SetText("Goals: "..quests.." quests, "..zones.." zones. Reward target: "..tostring(policy.rewardTarget or "any")..". Deferred: "..deferred..".")
     local model=planner.Controller.Get()
     local note=model.reason or model.detail or "Live instructions remain available while future options are evaluated."
     for _,conflict in ipairs(model.conflicts or {}) do note=note.." "..conflict end

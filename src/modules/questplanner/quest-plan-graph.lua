@@ -47,6 +47,7 @@ local function baseAction(record,kind,key)
     return {id=record.id..":"..kind..":"..key,questID=record.id,title=record.title,kind=kind,
         prerequisite=kind=="pickup" and rules.requirements or nil,
         excludes=kind=="pickup" and rules.blockedBy or nil,
+        branchExcludes=kind=="pickup" and (rules.exclusiveWith or {}) or nil,
         forbiddenAfter=kind=="pickup" and rules.forbiddenAfter or nil,
         activeBreadcrumbs=rules.activeBreadcrumbs,blockedWhileActive=rules.blockedWhileActive,breadcrumbFor=rules.breadcrumbFor,
         unsupportedRequirements=kind=="pickup" and rules.unsupportedRequirements or nil,
@@ -99,6 +100,7 @@ local function relationship(graph,record,kind,state,policy)
                     end
                 end
             end
+            if planner.PlanRewards then planner.PlanRewards.Attach(action,record,state,policy) end
             append(graph,action);added=added+1
         end
     end

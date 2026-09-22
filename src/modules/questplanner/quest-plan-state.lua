@@ -90,7 +90,7 @@ local function attributes(state,ctx)
     for _,key in ipairs({"level","xp","xpMax","class","race","faction","logCapacity","questXPMultiplier"}) do state[key]=values[key] end
     state.classMask=schema.Integer(state.class,1,32) and 2^(state.class-1) or nil
     state.raceMask=schema.Integer(state.race,1,32) and 2^(state.race-1) or nil
-    for _,key in ipairs({"partySize","money","bagFree","floor","phase","characterKey"}) do state[key]=ctx[key] end
+    for _,key in ipairs({"partySize","money","bagFree","floor","phase","characterKey","equipmentKey"}) do state[key]=ctx[key] end
     state.reputation=numberMap(ctx.reputation,64,-42000);state.skills=numberMap(ctx.skills,64)
     state.spells=schema.Clone(ctx.spells or {});state.capabilities=schema.Clone(ctx.capabilities or {})
     state.bank=numberMap(ctx.bank,MAX_ITEMS);state.equipped=numberMap(ctx.equipped,MAX_ITEMS)

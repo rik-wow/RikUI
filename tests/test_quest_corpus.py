@@ -54,6 +54,7 @@ class CorpusTests(unittest.TestCase):
         self.assertIn(7, plan["blockedBy"])
         self.assertIn(12, plan["blockedBy"])
         self.assertEqual(plan["breadcrumbFor"], 12)
+        self.assertEqual(plan["exclusiveWith"], [7])
         self.assertNotIn({"op": "completed", "questID": 12}, clauses)
 
     def test_planner_single_precedence_xp_and_unknown_counts(self):

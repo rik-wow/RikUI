@@ -35,20 +35,20 @@ Every flavor shares the same state, legal transitions, travel and hard constrain
 
 | Flavor | Required observable choice in a real tradeoff | Test/UI/native evidence |
 | --- | --- | --- |
-| Balanced | Useful local progress with coherent arcs and bounded variety | Pending |
-| Efficient | Highest supported reliable progress per elapsed time; permitted repetition | Pending |
-| Story | Preserve supported narrative/missable arcs within explicit detour allowance | Pending |
+| Balanced | Useful local progress with coherent arcs and bounded variety | Production S15 variety family108s; real style widget; native pending |
+| Efficient | Highest supported reliable progress per elapsed time; permitted repetition | Production S01 batching/S15 fastest90s family; real widget; native pending |
+| Story | Preserve supported narrative/missable arcs within explicit detour allowance | Production S03 breadcrumb/S15 linked117s family; no narrative labels invented; native pending |
 | Explorer | Optional recorded discoveries/varied routes within allowance; honor decline | Pending |
-| Relaxed | Short predictable solo progress, low waiting and observed failure exposure | Pending |
-| Challenge | Harder capability-appropriate objectives within the same feasibility rules | Pending |
+| Relaxed | Short predictable solo progress, low waiting and observed failure exposure | Production easier105s encounter vs Efficient100s; real widget; native pending |
+| Challenge | Harder capability-appropriate objectives within the same feasibility rules | Production harder110s encounter vs Efficient100s; unknown capability removes fit bonus; native pending |
 
 ## Acceptance scenarios
 
 | ID | Scenario | Required result/check | Production path | Host evidence | Native evidence |
 | --- | --- | --- | --- | --- | --- |
-| S01 | Pickups unlock three upcoming objectives | Graph/search batching | Graph/search | Batching regression still required | Pending |
+| S01 | Pickups unlock three upcoming objectives | Graph/search batching | Graph/search | Production three-pickup route:300 XP/276s, all pickups before excursion | Pending |
 | S02 | Turn-in unlocks valuable nearby follow-ups | Full continuation | PlanGraph → PlanSearch | Delayed 155 XP exact oracle; ordinary future graph/UI | Pending |
-| S03 | Missable optional breadcrumb | Story/completion preservation | Compiler breadcrumb rules → transitions/search | Availability enforced; Story opportunity regression still required | Pending |
+| S03 | Missable optional breadcrumb | Story/completion preservation | Compiler breadcrumb rules → transitions/search | Production Story preserves optional breadcrumb:105 XP/100s vs Efficient100/80; defer overrides | Pending |
 | S04 | Mutually exclusive chains | Prefix feasibility | PlanTransitions → PlanSearch | Exclusive-branch 110 XP exact oracle | Pending |
 | S05 | Shared kill credit, different drops | Separate acquisition | Graph shared credits → transitions | Deduplicated shared kill; drop credit isolated | Pending |
 | S06 | Two turn-ins consume same five items | Inventory reservation | BagScan → state → transitions | Summed consumption; bank/equipment cannot pay twice | Pending |
@@ -60,7 +60,7 @@ Every flavor shares the same state, legal transitions, travel and hard constrain
 | S12 | Teleport during path query | Stale rejection | Controller revision → Terrain | Normal controller teleport invalidation and new-origin result | Pending |
 | S13 | New quest without provider semantics | Live fallback and coverage gap | Live observed fallback → controller | Unknown-record graph fallback; integrated case still required | Pending |
 | S14 | Value beyond shallow horizon | Bounded deep continuation | PlanSearch recursive continuations | 18 quests /72 actions /1000 XP | Pending |
-| S15 | Balanced/Story/Efficient tradeoff | Distinct choices, identical feasibility | Preferences → PlanSearch → controls | Six Score tradeoffs + six real widgets; full-search tradeoff still required | Pending |
+| S15 | Balanced/Story/Efficient tradeoff | Distinct choices, identical feasibility | Preferences → PlanSearch → controls | Production Efficient/Balanced/Story choose300XP in90/108/117s with distinct families and bounded detours | Pending |
 | S16 | Explorer detour declined | No repeated nag | Controls/Preference → persistence | Decline maintained through style/settings restore | Pending |
 | S17 | Short versus long session | Suitable stopping point | Preferences → PlanSearch | 6-second versus7-second milestone regression | Pending |
 | S18 | Native Perfect Stout, cold corpus+terrain | Useful timely stable guidance | Automatic corpus → controller → terrain | Installed archived315: first route176frames/3.52s simulated; actual native pending | Pending |
@@ -126,6 +126,18 @@ Action IDs now use source area identities, and current-action retention compares
 Current full Lua suite:9,404 checks. Final committed-source gates are still required. Installation changed420 owned corpus addons; the RikUI source junction remains the delivery path. Full client restart is required for new TOC files.
 
 Native capability inspection was attempted through the documented computer-use runtime: its Windows pipe was unavailable after documented recovery, and read-only process inventory found Battle.net but no running WoW process. No native UI, gameplay, performance or engagement receipt has been earned. Independent implementation and host acceptance work continue.
+
+## Acceptance hardening milestone: rewards, episodes and replay
+
+Production search now includes bounded same-hub pickup bundles. The S01 adversarial source graph attains the independently calculated spatial optimum:three pickups before leaving,300 XP in276s. Compiler `exclusiveWith` separates mutual exclusion from directed breadcrumb blockers; S03 Story completes the missable step before its target, and explicit defer still wins. S15 runs full production graph/search over identical exclusive families:Efficient90s, Balanced108s and Story117s for300XP, with visible efficiency costs0/16.67/23.08 percent. Relaxed/Challenge production searches select easier/harder supported encounters while Efficient keeps the shorter alternative.
+
+`quest-plan-rewards.lua` guards selected-quest reward reads without changing selection. Guaranteed items plus at most one choice, money, explicitly learned reward spells and signed source reputation feed an explicit reward focus/target control. Equipment rewards are not called upgrades. Only earning turn-ins apply rewards; source reputation remains a separate conditional projection and cannot unlock hard standing requirements. Source contracts follow the [pinned reputation field](https://github.com/Questie/QuestieDB/blob/baa0998d49695c70a1fb8fec559fa9169e9adf33/src/meta/questMeta.lua), [Classic reward UI](https://github.com/Gethe/wow-ui-source/blob/classic/Interface/AddOns/Blizzard_UIPanels_Game/Vanilla/QuestInfo.lua), and [reward spell API](https://github.com/Gethe/wow-ui-source/blob/classic/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestInfoSystemDocumentation.lua).
+
+`quest-plan-observer.lua` keeps bounded evidence episodes across context refreshes. Matching target combat/interaction windows and explicit waiting/recovery feedback train only on confirmed progress; AFK, identity/world changes and stale episodes invalidate attribution. Timing tests verify100 refreshes still measure10s combat, and stationary/AFK time does not become invented combat/waiting. Learned component durations use consistent per-unit costs. Compact learned summaries are recomputed from retained samples.
+
+Version2 diagnostic traces capture the exact production graph, state, constraints, environment, learning snapshot and pre/post-retention sequences. `PlanRuntime.RerunReplay` invokes production search and the shared retention rule in an isolated offline context. Source mismatches, duplicate candidates and incomplete inputs reject; expected outputs only participate in comparison. Export/import reexecutes the production decision exactly and preserves live learning even on failure. Diagnostics have a separate bounded4MiB payload/8MiB wire budget; ordinary observation and persistence limits are unchanged.
+
+Current host suite:9,461 checks. These changes remain within active `adaptive-acceptance`; combat-XP attribution, optional exploration, long-session/held-out evidence, final installed-source gates and native acceptance remain in progress.
 
 ## Current known evidence gaps
 

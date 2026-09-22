@@ -20,7 +20,7 @@ end
 
 local function visit(state, depth)
     state.nodes = state.nodes + 1
-    if state.nodes > (state.maxNodes or MAX_NODES) or depth > MAX_DEPTH then error("observation limit") end
+    if state.nodes > (state.maxNodes or MAX_NODES) or depth > (state.maxDepth or MAX_DEPTH) then error("observation limit") end
 end
 
 local function encode(value, state, depth)
@@ -175,9 +175,9 @@ function transfer.Decode(wire)
 end
 
 -- Diagnostic packets never promote an imported rollout to live state.
-local PLAN_BYTES,PLAN_NODES=524280,65536
+local PLAN_BYTES,PLAN_NODES=4194296,250000
 local function validatePlan(value)
-    if not schema.PlainTable(value) or value.version~=1 or not schema.PlainTable(value.state)
+    if not schema.PlainTable(value) or (value.version~=1 and value.version~=2) or not schema.PlainTable(value.state)
         or not schema.Identity(value.state.identity) or not schema.Text(value.stateKey)
         or not schema.List(value.candidateIDs,768) or not schema.List(value.actions,128)
         or not schema.PlainTable(value.constraints) then error("invalid plan trace") end
@@ -188,20 +188,20 @@ end
 function transfer.EncodePlan(trace)
     local ok,wire=pcall(function()
         validatePlan(trace)
-        local payload=encode(trace,{nodes=0,bytes=0,seen={},maxBytes=PLAN_BYTES,maxNodes=PLAN_NODES},0)
+        local payload=encode(trace,{nodes=0,bytes=0,seen={},maxBytes=PLAN_BYTES,maxNodes=PLAN_NODES,maxDepth=24},0)
         return "RIKP1:"..checksum(payload)..":"..payload:gsub(".",function(byte) return string.format("%02x",byte:byte()) end)
     end)
     if ok then return wire end
     return nil,"Plan trace is unavailable or exceeds the bounded export size"
 end
 function transfer.DecodePlan(wire)
-    if guard.IsSecret(wire) or type(wire)~="string" or #wire>1048576 then return nil,"invalid plan packet" end
+    if guard.IsSecret(wire) or type(wire)~="string" or #wire>8388608 then return nil,"invalid plan packet" end
     local hash,hex=wire:match("^RIKP1:([a-f0-9]+):([a-f0-9]+)$")
     if not hash or #hash~=8 or #hex%2~=0 then return nil,"invalid plan packet" end
     local payload=hex:gsub("..",function(byte) return string.char(tonumber(byte,16)) end)
     if checksum(payload)~=hash then return nil,"plan checksum mismatch" end
     local ok,result=pcall(function()
-        local state={text=payload,at=1,nodes=0,maxNodes=PLAN_NODES}
+        local state={text=payload,at=1,nodes=0,maxNodes=PLAN_NODES,maxDepth=24}
         local value=decode(state,0)
         if state.at~=#payload+1 then error("trailing plan bytes") end
         validatePlan(value);value.origin="imported-untrusted";value.state.origin="imported-untrusted";value.state.fresh=false

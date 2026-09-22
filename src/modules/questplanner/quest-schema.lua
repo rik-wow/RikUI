@@ -77,6 +77,13 @@ function schema.CopyLimited(value, nodes, bytes, depth)
     return nil, "invalid or oversized plain data"
 end
 
+-- Explicit diagnostic budget; ordinary observation and SavedVariables bounds remain unchanged.
+function schema.CopyDiagnostic(value)
+    local ok,result=pcall(copyValue,value,{nodes=0,bytes=0,seen={},maxNodes=250000,maxBytes=4194304,maxDepth=24},0)
+    if ok then return result end
+    return nil,"Invalid or oversized diagnostic data"
+end
+
 -- Only for already validated, privately owned data.
 function schema.Clone(value)
     if type(value) ~= "table" then return value end

@@ -46,7 +46,7 @@ return function(check)
         GetFactionInfoByID=function() return "Faction","description",3,-3000,0,-1000 end
         for _,name in ipairs({"schema","objectives","optimizer","area-optimizer","context","steps","step-bindings",
             "observed-steps","semantic-data","semantic-guidance","recommendations","guidance","preferences","plan-state","plan-graph",
-            "plan-transitions","plan-learning","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-context","plan-runtime","controller","plan-controls","view","commands"}) do
+            "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-context","plan-observer","plan-runtime","controller","plan-controls","view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         local p=RikUI.QuestPlanner
@@ -161,6 +161,31 @@ return function(check)
             and p.PlanTransitions.Check(p.Controller.Get().selected.planAction,replay.state,p.Controller.Policy())==false)
         check("plan export is deterministic",p.Transfer.EncodePlan(trace)==packet)
         check("damaged plan rejected",not p.Transfer.DecodePlan(packet:sub(1,-2).."z"))
+
+        local source={searchRevision=p.PlanSearch.REVISION,corpusRevision="fixture",identity=identity}
+        local function same(a,b)
+            if type(a)~=type(b) then return false end
+            if type(a)~="table" then return a==b end
+            for k,v in pairs(a) do if not same(v,b[k]) then return false end end
+            for k in pairs(b) do if a[k]==nil then return false end end
+            return true
+        end
+        local liveLearning=p.PlanLearning.Export()
+        local rerun=p.PlanRuntime.RerunReplay(replay,source)
+        check("R20 imported production trace exactly reexecutes",rerun.status=="match",rerun.reason or rerun.phase)
+        check("R20 repeat deterministic and live learning unchanged",same(rerun,p.PlanRuntime.RerunReplay(replay,source))
+            and same(liveLearning,p.PlanLearning.Export()) and replay.state.fresh==false)
+        local wrong=p.Schema.Clone(replay);wrong.source.corpusRevision="stale"
+        check("R20 stale source rejected",p.PlanRuntime.RerunReplay(wrong,source).reason=="source_mismatch")
+        wrong=p.Schema.Clone(replay);wrong.searchActions={}
+        local mismatch=p.PlanRuntime.RerunReplay(wrong,source)
+        check("R20 expectations cannot influence solver",mismatch.status=="mismatch" and mismatch.phase=="search")
+        wrong=p.Schema.Clone(replay);wrong.graph.actions[2]=p.Schema.Clone(wrong.graph.actions[1]);wrong.candidateIDs[2]=wrong.candidateIDs[1]
+        check("R20 duplicate graph rejected",p.PlanRuntime.RerunReplay(wrong,source).reason=="invalid_graph")
+        local oldBegin=p.PlanSearch.Begin;p.PlanSearch.Begin=function() error("deliberate offline failure") end
+        local failedReplay=p.PlanRuntime.RerunReplay(replay,source);p.PlanSearch.Begin=oldBegin
+        check("R20 failed replay restores live learning",failedReplay.reason=="replay_error" and same(liveLearning,p.PlanLearning.Export()))
+
         local beforeTeleport=invalidations
         now=now+1;x=.9
         p.Controller.Step()
@@ -188,6 +213,43 @@ return function(check)
         check("unaffordable repair/training excluded",#p.PlanServices.Read(serviceCtx,{})==1)
         p.PlanServices.OnEvent("MERCHANT_CLOSED");p.PlanServices.OnEvent("TRAINER_CLOSED")
         check("closed services immediately disappear",#p.PlanServices.Read(serviceCtx,{})==0)
+
+
+        -- Frequent refreshes must not shorten witnessed work episodes.
+        p.PlanObserver.Reset();p.PlanLearning.Reset("estimates")
+        local timedAction={id="timed:kill",questID=900,kind="objective",method="kill",liveIndex=1,target={id=7},zoneID=1426}
+        local timedSnapshot={identity=identity,quests={[900]={objectives={{numFulfilled=0}}}}}
+        local timedCtx={observedAt=100,characterKey="Player-test",attributes={class=1,level=10},partySize=1,
+            position={mapID=1426,x=.2,y=.3},targetNPC=7,inCombat=true,equipmentKey="1"}
+        local timedPolicy={paused=false}
+        now=100;p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction)
+        for tick=1,100 do
+            now=100+tick/10;timedCtx=p.Schema.Clone(timedCtx);timedCtx.observedAt=now
+            if tick==100 then timedSnapshot.quests[900].objectives[1].numFulfilled=1 end
+            p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction)
+        end
+        local timingKey=p.PlanCosts.Context(timedAction,{identity=identity,class=1,level=10,partySize=1,equipmentKey="1"})
+        check("R18 refresh frequency does not shrink combat time",math.abs(p.PlanLearning.Estimate("combat",timingKey).mean-10)<.0001)
+        timedCtx.inCombat=false;p.PlanObserver.OnEvent("PLAYER_REGEN_ENABLED")
+        p.PlanObserver.Feedback("waiting")
+        for tick=1,20 do now=110+tick;timedCtx.observedAt=now;p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction) end
+        p.PlanObserver.Feedback("waiting");p.PlanObserver.Feedback("recovery")
+        now=135;timedCtx.observedAt=now;p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction)
+        p.PlanObserver.Feedback("recovery")
+        timedCtx.inCombat=true;p.PlanObserver.OnEvent("PLAYER_REGEN_DISABLED")
+        now=145;timedCtx.observedAt=now;timedSnapshot.quests[900].objectives[1].numFulfilled=2
+        p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction)
+        check("R18 explicit waiting and recovery require confirmed progress",p.PlanLearning.Estimate("waiting",timingKey).mean==20
+            and p.PlanLearning.Estimate("recovery",timingKey).mean==5)
+        local sampleCount=p.PlanLearning.Estimate("combat",timingKey).samples
+        timedCtx.afk=true;now=150;timedCtx.observedAt=now;p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction)
+        timedCtx.afk=false;timedCtx.inCombat=false;now=155;timedCtx.observedAt=now;p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction)
+        now=175;timedCtx.observedAt=now;timedSnapshot.quests[900].objectives[1].numFulfilled=3
+        p.PlanObserver.Observe(timedSnapshot,timedCtx,timedPolicy,timedAction)
+        check("R18 stationary and AFK time not invented combat/waiting",p.PlanLearning.Estimate("combat",timingKey).samples==sampleCount
+            and p.PlanLearning.Estimate("waiting",timingKey).samples==1)
+        p.PlanObserver.OnEvent("PLAYER_ENTERING_WORLD")
+        check("R18 reload/world boundary discards pending attribution",not p.PlanObserver.Status().active)
 
         -- Real persistence codec, adversarial maximum histories and bounded samples.
         dofile("src/persistence/codec.lua")

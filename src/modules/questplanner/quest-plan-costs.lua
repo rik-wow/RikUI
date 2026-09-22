@@ -25,7 +25,7 @@ function costs.Reward(action,state)
 end
 function costs.Context(action,state)
     return table.concat({state.identity.build,state.class or "?",state.level or "?",state.partySize or "?",
-        action.zoneID or "?",action.target and action.target.id or action.questID,action.method or action.kind},":")
+        state.equipmentKey or "?",action.zoneID or "?",action.target and action.target.id or action.questID,action.method or action.kind},":")
 end
 local function travel(action,state,environment)
     if not action.destination then return {seconds=0,lower=0,upper=0,status="not-applicable"} end
@@ -86,21 +86,29 @@ function costs.Estimate(action,state,policy,environment)
             out.quantityUnknown=true
         end
         add(out,"loot",kind=="combat" and (count or 1)*3 or 0,0,kind=="combat" and (count or 1)*8 or 0,"engineering-prior")
-        add(out,"waiting",action.waitSeconds or 0,action.waitLower or 0,action.waitUpper or 120,
-            action.waitSeconds and "source-estimate" or "engineering-prior")
+        local waiting=planner.PlanLearning and planner.PlanLearning.Estimate("waiting",context)
+        add(out,"waiting",waiting and waiting.mean*(count or 1) or action.waitSeconds or 0,
+            waiting and waiting.minimum*(count or 1) or action.waitLower or 0,
+            waiting and waiting.maximum*(count or 1) or action.waitUpper or 120,
+            waiting and "observed-local" or action.waitSeconds and "source-estimate" or "engineering-prior",waiting and waiting.samples)
         local recovery=planner.PlanLearning and planner.PlanLearning.Estimate("recovery",context)
-        add(out,"recovery",recovery and recovery.mean or action.recoverySeconds or 15,
-            recovery and recovery.minimum or 0,recovery and recovery.maximum or action.recoveryUpper or 90,
+        add(out,"recovery",recovery and recovery.mean*(count or 1) or action.recoverySeconds or 15,
+            recovery and recovery.minimum*(count or 1) or 0,recovery and recovery.maximum*(count or 1) or action.recoveryUpper or 90,
             recovery and "observed-local" or "engineering-prior",recovery and recovery.samples)
-        add(out,"death",action.deathSeconds or 0,0,action.deathUpper or 180,
-            action.deathSeconds and "observed-local" or "engineering-prior")
+        local death=planner.PlanLearning and planner.PlanLearning.Estimate("death",context)
+        add(out,"death",death and death.mean*(count or 1) or action.deathSeconds or 0,
+            death and death.minimum*(count or 1) or 0,death and death.maximum*(count or 1) or action.deathUpper or 180,
+            death and "observed-local" or "engineering-prior",death and death.samples)
         if action.method=="escort" or action.method=="defend" then
             out.commitment=true
             add(out,"event",action.eventSeconds or 300,action.eventLower or 60,action.eventUpper or 900,"engineering-prior")
         end
     elseif action.kind=="pickup" or action.kind=="turnin" then
-        add(out,"interaction",5,2,20,"engineering-prior")
-        add(out,"reading",policy.readingSeconds,policy.readingSeconds,policy.readingSeconds,"preference")
+        local interaction=planner.PlanLearning and planner.PlanLearning.Estimate("interaction",context)
+        add(out,"interaction",interaction and interaction.mean or 5,interaction and interaction.minimum or 2,
+            interaction and interaction.maximum or 20,interaction and "observed-local" or "engineering-prior",interaction and interaction.samples)
+        local reading=math.max(0,policy.readingSeconds-(interaction and interaction.mean or 0))
+        add(out,"reading",reading,reading,reading,"preference")
     elseif action.kind=="service" then
         add(out,"service",action.serviceSeconds or 30,10,120,"engineering-prior")
     elseif action.kind=="explore" then add(out,"exploration",action.exploreSeconds or 120,30,300,"engineering-prior") end

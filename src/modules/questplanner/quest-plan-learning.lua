@@ -5,6 +5,15 @@ planner.PlanLearning=learning
 local models,order,recent,visits,failures={}, {}, {}, {}, {}
 local completed,completionOrder={},{}
 local identityKey
+local function summarize(model)
+    model.mean,model.minimum,model.maximum=0,math.huge,0
+    for _,value in ipairs(model.values) do
+        model.mean=model.mean+value;model.minimum=math.min(model.minimum,value);model.maximum=math.max(model.maximum,value)
+    end
+    model.mean=model.mean/#model.values
+    model.samples=math.max(#model.values,model.samples or 0)
+    return model
+end
 local function key(identity,character)
     return identity and table.concat({identity.product,identity.build,identity.locale,character or "session"},":")
 end
@@ -16,7 +25,7 @@ function learning.Observe(kind,context,seconds,units,options)
     options=options or {}
     if options.paused or options.afk or options.unrelated or not schema.Text(context) or #context>160
         or not schema.Number(seconds,.05,1200) or not schema.Number(units,.001,10000) then return false end
-    if kind~="combat" and kind~="collection" and kind~="travel" and kind~="waiting" and kind~="interaction" and kind~="recovery" then return false end
+    if kind~="combat" and kind~="collection" and kind~="travel" and kind~="waiting" and kind~="interaction" and kind~="recovery" and kind~="death" then return false end
     local id=kind..":"..context
     local model=models[id]
     if not model then
@@ -87,8 +96,8 @@ function learning.Export(compact)
             savedOrder[#savedOrder+1]=id
             local model=schema.Clone(models[id])
             while #model.values>8 do table.remove(model.values,1) end
-            for index,value in ipairs(model.values) do model.values[index]=math.floor(value*1000+.5)/1000 end
-            savedModels[id]=model
+            for index,value in ipairs(model.values) do model.values[index]=math.max(.000001,math.floor(value*1000+.5)/1000) end
+            savedModels[id]=summarize(model)
         end
         local savedFailures,ids={},{}
         for id in pairs(failures) do ids[#ids+1]=id end;table.sort(ids)
@@ -120,7 +129,8 @@ function learning.Restore(raw)
         if not schema.Text(id) or not model or not schema.List(model.values,32) or #model.values==0
             or not schema.Number(model.mean,.000001,1200000) then return false end
         for _,value in ipairs(model.values) do if not schema.Number(value,.000001,1200000) then return false end end
-        restored[id]=model
+        if restored[id] or not schema.Integer(model.samples or #model.values,1,2147483647) then return false end
+        restored[id]=summarize(model)
     end
     local restoredVisits={}
     local n=0
@@ -143,4 +153,17 @@ function learning.Restore(raw)
     models,order,recent,visits,failures=restored,copy.order,copy.recent,restoredVisits,restoredFailures
     completed,completionOrder=restoredCompleted,restoredOrder
     return true
+end
+local replayActive=false
+function learning.WithSnapshot(raw,fn)
+    if replayActive or type(fn)~="function" or not schema.PlainTable(raw) or not schema.Text(raw.identity) then return false,"Invalid replay learning" end
+    local saved={identityKey,models,order,recent,visits,failures,completed,completionOrder}
+    replayActive=true;identityKey=raw.identity
+    local restored,accepted=pcall(learning.Restore,raw)
+    local ok,result
+    if not restored or accepted~=true then ok=false;result="Invalid replay learning"
+    else ok,result=pcall(fn) end
+    identityKey,models,order,recent,visits,failures,completed,completionOrder=unpack(saved,1,8)
+    replayActive=false
+    return ok,result
 end

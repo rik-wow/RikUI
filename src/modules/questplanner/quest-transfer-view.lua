@@ -47,7 +47,7 @@ function transferView.OpenPlan()
     if not wire then return core:Print(reason) end
     core.Combat.Queue(function()
         if not window then build() end
-        window.inspect=false;window.edit:SetMaxLetters(1048576)
+        window.inspect=false;window.edit:SetMaxLetters(8388608)
         window.title:SetText("Copy plan evidence for replay")
         window.hint:SetText("State, source revision, candidates, costs and exclusions; inspection only.")
         window.edit:SetText(wire);window:Show();window.edit:SetFocus();window.edit:HighlightText()
@@ -66,7 +66,7 @@ function transferView.Open(inspect)
     end
     core.Combat.Queue(function()
         if not window then build() end
-        window.inspect=inspect==true;window.edit:SetMaxLetters(inspect and 1048576 or 131072)
+        window.inspect=inspect==true;window.edit:SetMaxLetters(inspect and 8388608 or 131072)
         window.title:SetText(inspect and "Paste observations to inspect (never used as live state)" or "Copy quest observations from this session")
         window.hint:SetText(exported and exported.omittedEntries>0
             and ("Newest "..exported.exportedEntries.." of "..exported.availableEntries.." journal entries; current log included.")

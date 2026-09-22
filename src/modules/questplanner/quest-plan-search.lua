@@ -2,6 +2,7 @@
 local planner=RikUI.QuestPlanner
 local schema,search=planner.Schema,{}
 planner.PlanSearch=search
+search.REVISION="adaptive-3"
 local MAX_WORK,MAX_ACTIONS,MAX_DEPTH,WIDTH=48000,128,64,16
 local function copyList(values)
     local result={};for _,value in ipairs(values or {}) do result[#result+1]=value end;return result
@@ -10,11 +11,11 @@ local function features(node,initial,policy)
     local state=node.state
     local scale=initial.xpMax and math.max(100,initial.xpMax) or 1000
     local progress=(state.xpGained or 0)/scale
-    local minutes=math.max(1,(state.elapsed or 0)/60)
+    local minutes=math.max(1,(state.elapsed or 0)/60) -- One-minute evaluation floor prevents instant-reward rate spikes.
     local efficiency=progress/minutes
     local variety,seen=0,{}
     local previous=initial.recent and initial.recent[#initial.recent]
-    local chain,goals,pressure,challenge,work,repetition=0,0,0,0,0,0
+    local chain,goals,pressure,challenge,work,repetition,breadcrumbs=0,0,0,0,0,0,0
     local priorID
     for index,action in ipairs(node.actions) do
         local activity=action.activity
@@ -24,6 +25,7 @@ local function features(node,initial,policy)
             if activity~=previous then variety=variety+1 end
         end
         if action.kind=="turnin" then
+            if schema.ID(action.breadcrumbFor) then breadcrumbs=breadcrumbs+1 end
             if policy.questGoals[action.questID] or policy.zoneGoals[action.zoneID] then goals=goals+1 end
             if priorID and action.chainPredecessors and action.chainPredecessors[priorID] then chain=chain+1 end
             priorID=action.questID
@@ -37,18 +39,20 @@ local function features(node,initial,policy)
         end
     end
     local discoveries=state.discoveries or 0
+    local rewardValue=0
+    if planner.PlanRewards then for _,action in ipairs(node.actions) do rewardValue=rewardValue+planner.PlanRewards.Value(action,policy) end end
     return {efficiency=efficiency,progress=progress,minutes=minutes,variety=math.min(3,variety),chain=math.min(6,chain),
-        discoveries=math.min(3,discoveries),goals=goals,pressure=pressure/math.max(1,#node.actions),
+        breadcrumbs=math.min(3,breadcrumbs),discoveries=math.min(3,discoveries),goals=goals,pressure=pressure/math.max(1,#node.actions),
         challenge=challenge/math.max(1,work),finished=state.finished or 0,work=work,
         conditional=state.conditional==true,unknownXP=state.unknownXP or 0,repetition=math.min(6,repetition),
-        pinned=node.actions[1] and policy.pins[node.actions[1].questID] or false}
+        rewardValue=math.max(-8,math.min(8,rewardValue)),pinned=node.actions[1] and policy.pins[node.actions[1].questID] or false}
 end
 function search.Score(node,initial,policy)
     local f=features(node,initial,policy)
     -- Fixed scales, never normalized to the current candidate set.
     local utility=f.efficiency*100+f.progress*.5+f.finished*.5
-        +policy.variety*f.variety*1.5+policy.continuity*f.chain*3
-        +policy.discovery*f.discoveries*3+f.goals*3
+        +policy.variety*f.variety*1.5+policy.continuity*(f.chain*3+f.breadcrumbs*6)
+        +policy.discovery*f.discoveries*3+f.goals*3+f.rewardValue*6
         -policy.pressure*f.pressure*3+f.challenge*(policy.difficulty=="hard" and 3 or 1)
         -f.repetition*(policy.grind=="low" and .4 or policy.grind=="medium" and .1 or 0)+(f.pinned and 10 or 0)
     if f.finished==0 and f.progress==0 then utility=utility+math.min(2,f.work)*.05 end
@@ -192,12 +196,67 @@ function search.Begin(graph,initial,policy,environment)
         if complete then node=complete end
         return finish(chooseAction(node,actions,function(action) return action.kind=="turnin" end))
     end
+    -- Hub bundles preserve low-immediate-value pickups before their shared excursion.
+    -- Every step still passes the same resource, branch, travel and time checks.
+    local function sameHub(a,b)
+        return a and b and a.mapID==b.mapID and a.x==b.x and a.y==b.y and a.floor==b.floor and a.phase==b.phase
+    end
+    local function cluster(node,first)
+        local hub=first.destination
+        if not hub then return end
+        node=extend(node,first);if not node then return end
+        local selected,ids={[first.questID]=true},{first.questID}
+        for _,action in ipairs(graph.actions) do
+            if #ids>=8 then break end
+            if action.kind=="pickup" and not selected[action.questID] and sameHub(hub,action.destination) then
+                local candidate=extend(node,action)
+                if candidate then node=candidate;selected[action.questID]=true;ids[#ids+1]=action.questID end
+            end
+        end
+        if #ids<2 then return end
+        for _=1,64 do
+            local best
+            for _,id in ipairs(ids) do
+                for _,action in ipairs(graph.byQuest[id] or {}) do
+                    if action.kind=="objective" then
+                        local candidate=extend(node,action)
+                        if candidate and (not best or candidate.state.elapsed<best.state.elapsed
+                            or candidate.state.elapsed==best.state.elapsed and candidate.key<best.key) then best=candidate end
+                    end
+                end
+            end
+            if not best then break end
+            node=best
+        end
+        for _,id in ipairs(ids) do
+            local complete=chooseAction(node,graph.byQuest[id],function(a) return a.kind=="complete" end)
+            if complete then node=complete end
+        end
+        for _=1,#ids do
+            local best
+            for _,id in ipairs(ids) do
+                local candidate=chooseAction(node,graph.byQuest[id],function(a) return a.kind=="turnin" end)
+                if candidate and (not best or candidate.state.elapsed<best.state.elapsed
+                    or candidate.state.elapsed==best.state.elapsed and candidate.key<best.key) then best=candidate end
+            end
+            if not best then break end
+            node=best;retain(node)
+        end
+        return node
+    end
     local co=coroutine.create(function()
         -- Primitive first actions yield a useful incumbent before deeper continuations.
         local beam={}
         for _,action in ipairs(graph.actions) do
             local node=extend(root,action)
             if node then retain(node);beam[#beam+1]=node end
+        end
+        local clustered=0
+        for _,action in ipairs(graph.actions) do
+            if action.kind=="pickup" and sameHub(initial.position,action.destination) and clustered<8 then
+                local node=cluster(root,action);clustered=clustered+1
+                if node then retain(node);beam[#beam+1]=node end
+            end
         end
         local ids={};for id in pairs(graph.byQuest) do ids[#ids+1]=id end;table.sort(ids)
         for _,id in ipairs(ids) do
@@ -278,6 +337,8 @@ function search.Begin(graph,initial,policy,environment)
             output.seconds=best.state.elapsed;output.upperSeconds=best.state.upperElapsed
             output.xp=best.state.xpGained;output.unknownXP=best.state.unknownXP;output.conditional=best.state.conditional
             output.assumptions=best.state.assumptions
+            if policy.rewardFocus and policy.rewardFocus~="xp" then output.reason=output.reason.."; prefer "..policy.rewardFocus.." rewards within your detour allowance" end
+            if best.features.breadcrumbs>0 then output.reason=output.reason.."; preserve a missable quest step before its follow-up" end
             output.efficiencyCost=baseline>0 and math.max(0,1-best.features.efficiency/baseline) or nil
             output.stoppingPoint=best.features.finished>0 and "Finish a quest segment" or "Complete the current objective"
         else output.actions={};output.reason="No supported feasible plan; live guidance remains available" end

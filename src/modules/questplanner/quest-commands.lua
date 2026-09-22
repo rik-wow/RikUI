@@ -82,6 +82,10 @@ function planner.Command(arguments)
     elseif verb=="session" or verb=="exploration" or verb=="reading" then
         local names={session="sessionMinutes",exploration="explorationMinutes",reading="readingSeconds"}
         ok,reason=controller.Preference(names[verb],tonumber(value))
+    elseif verb=="reward" then ok,reason=controller.Preference("rewardFocus",value)
+    elseif verb=="reward-target" then
+        if value=="any" or value=="" then ok,reason=controller.Preference("rewardTarget",nil)
+        else ok,reason=controller.Preference("rewardTarget",tonumber(value)) end
     elseif verb=="difficulty" or verb=="group" or verb=="travel" or verb=="grind" then
         ok,reason=controller.Preference(verb,value=="local" and "localOnly" or value)
     elseif verb=="services" or verb=="spoilers" or verb=="strict-session" then
@@ -90,7 +94,7 @@ function planner.Command(arguments)
     elseif verb=="defer" or verb=="quest-goal" or verb=="zone-goal" then
         local names={defer="defers",["quest-goal"]="questGoals",["zone-goal"]="zoneGoals"}
         ok,reason=controller.Toggle(names[verb],tonumber(value))
-    elseif verb=="unavailable" or verb=="reset-learning" or verb=="reset-history" then
+    elseif verb=="waiting" or verb=="recovery" or verb=="unavailable" or verb=="reset-learning" or verb=="reset-history" then
         ok,reason=controller.Feedback(verb)
     elseif verb=="decline-exploration" then ok,reason=controller.Preference("explorationMinutes",0)
     elseif verb=="new-session" then

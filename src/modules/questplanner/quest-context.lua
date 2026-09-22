@@ -178,7 +178,7 @@ end
 
 local function rewards(result,snapshot,ids)
     local selectionAPI="C_QuestLog.GetSelectedQuest"
-    local selectedStatus,selected=read(selectionAPI,api(C_QuestLog,"GetSelectedQuest"))
+    local selectedStatus,selected=read(selectionAPI,GetQuestLogSelectedID or api(C_QuestLog,"GetSelectedQuest"))
     local default=status("no-result","GetQuestLogRewardXP(selected)","quest-not-selected")
     if selectedStatus.state~="observed" then
         default=selectedStatus
@@ -199,7 +199,7 @@ local function rewards(result,snapshot,ids)
             xpStatus.state,xpStatus.reason="rejected","invalid-xp"
         end
     end
-    local afterStatus,after=read(selectionAPI,api(C_QuestLog,"GetSelectedQuest"))
+    local afterStatus,after=read(selectionAPI,GetQuestLogSelectedID or api(C_QuestLog,"GetSelectedQuest"))
     if afterStatus.state~="observed" or not schema.ID(after) or after~=selected then
         xpStatus=status("rejected","GetQuestLogRewardXP(selected)","selection-changed-or-unavailable")
     end

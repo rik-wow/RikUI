@@ -26,20 +26,7 @@ function runtime.Observe(snapshot,ctx,policy)
     local elapsed=lastContext and ctx.observedAt and lastContext.observedAt and ctx.observedAt-lastContext.observedAt
     local moved=lastContext and distance(lastContext.position,ctx.position,frame)
     local usable=elapsed and elapsed>0 and elapsed<=120 and not policy.paused and not ctx.afk and not ctx.dead
-    if usable and lastAction and lastSnapshot and moved and moved<80 then
-        local before=lastSnapshot.quests[lastAction.questID]
-        local after=snapshot.quests[lastAction.questID]
-        local index=lastAction.liveIndex
-        local a=before and before.objectives and before.objectives[index or 0]
-        local b=after and after.objectives and after.objectives[index or 0]
-        if a and b and a.type==b.type and a.numRequired==b.numRequired and b.numFulfilled>a.numFulfilled then
-            local state={identity=snapshot.identity,class=ctx.attributes.class,level=ctx.attributes.level,partySize=ctx.partySize}
-            local kind=lastAction.method=="kill" and "combat" or "collection"
-            planner.PlanLearning.Observe(kind,planner.PlanCosts.Context(lastAction,state),elapsed,b.numFulfilled-a.numFulfilled)
-            planner.PlanLearning.Activity(lastAction.activity or lastAction.method or "objective")
-            planner.PlanLearning.Failure(lastAction.id,false)
-        end
-    end
+    if planner.PlanObserver then planner.PlanObserver.Observe(snapshot,ctx,policy,lastAction) end
     if usable and elapsed<=30 and moved and moved>2 and moved/elapsed>=2 and moved/elapsed<=15 and not ctx.inCombat then
         local key=snapshot.identity.build..":"..ctx.position.mapID..":foot"
         planner.PlanLearning.Observe("travel",key,elapsed,moved)
@@ -51,6 +38,7 @@ function runtime.Observe(snapshot,ctx,policy)
     save(ctx)
 end
 function runtime.OnEvent(event,...)
+    if planner.PlanObserver then planner.PlanObserver.OnEvent(event,...) end
     if event=="PLAYER_LOGOUT" and core.CharDB then
         core.CharDB.questPlanMemory=planner.PlanLearning.Export(true)
         if core.Changed then core:Changed() end
@@ -59,6 +47,7 @@ function runtime.OnEvent(event,...)
     elseif event=="PLAYER_DEAD" and lastAction then planner.PlanLearning.Failure(lastAction.id,true) end
 end
 function runtime.Feedback(kind,actionID)
+    if (kind=="waiting" or kind=="recovery") and planner.PlanObserver then return planner.PlanObserver.Feedback(kind) end
     if kind=="unavailable" then
         if not actionID and lastAction then actionID=lastAction.id end
         if not actionID then return nil,"No current action" end
@@ -71,7 +60,7 @@ function runtime.Feedback(kind,actionID)
     return nil,"Unknown feedback"
 end
 function runtime.Replay()
-    return schema.CopyLimited(lastTrace,32768,524288,16)
+    return schema.CopyDiagnostic(lastTrace)
 end
 function runtime.Status()
     return {restored=restored,persistence=core.CharDB and "SavedVariables with configured persistence fallback" or "session-only",
@@ -96,6 +85,7 @@ function runtime.Begin(snapshot,status,ctx,records,observed,policy)
     local function annotate(result)
         if not result then return end
         result.adaptive=true;result.stateKey=planner.PlanState.Key(state)
+        result.replayGraph=graph and {version=graph.version,status=graph.status,identity=graph.identity,revision=graph.revision,coverage=graph.coverage,actions=graph.actions}
         result.replayState=state;result.replayEnvironment=environment;result.replayLearning=replayLearning;result.candidateIDs={}
         for _,action in ipairs(graph and graph.actions or {}) do result.candidateIDs[#result.candidateIDs+1]=action.id end
         return result
@@ -165,7 +155,12 @@ local function actionRow(action,observed,state,prior)
     row.planAction=action
     return row
 end
-function runtime.Result(result,observed,ctx,policy,prior,state)
+local function replayIDs(actions)
+    local out={}
+    for _,action in ipairs(actions or {}) do out[#out+1]=action.id end
+    return out
+end
+function runtime.SelectResult(result,policy,prior)
     local commitment=result.commitment
     local retained=false
     if prior and commitment and commitment.score and result.score and prior.flavor==policy.flavor
@@ -178,6 +173,14 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
         copy.reason="Continue the current feasible action";copy.efficiencyCost=nil
         result=copy;retained=true
     end
+    return result,retained
+end
+function runtime.Result(result,observed,ctx,policy,prior,state)
+    local searchActions=replayIDs(result.actions)
+    local searchReason,searchLimited,searchStatus=result.reason,result.limited==true,result.status
+    local replayPrior=prior and {flavor=prior.flavor,actionID=prior.actionID,selected=prior.selected and {questID=prior.selected.questID}}
+    local retained
+    result,retained=runtime.SelectResult(result,policy,prior)
     local model=planner.Guidance.Result({actions={},status="insufficient-data"},observed,ctx,nil,result.reason,policy)
     model.adaptive=true;model.flavor=policy.flavor;model.sessionMinutes=policy.sessionMinutes
     model.planStatus=result.status;model.refining=result.status=="refining";model.reason=result.reason
@@ -229,9 +232,75 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
     end
     if not model.selected then model.detail=result.reason or "Follow the live quest instructions while planning" end
     if #model.stops==0 and model.selected then model.stops[1]=model.selected end
-    lastTrace={version=1,stateKey=result.stateKey,generation=result.generation,revision=result.revision,flavor=policy.flavor,
+    lastTrace={version=2,source={searchRevision=planner.PlanSearch.REVISION,corpusRevision=result.revision,identity=schema.Clone(state.identity)},
+        maxSteps=50000,graph=result.replayGraph,searchActions=searchActions,searchReason=searchReason,searchLimited=searchLimited,
+        searchStatus=searchStatus,replayPrior=replayPrior,retained=retained,stateKey=result.stateKey,generation=result.generation,revision=result.revision,flavor=policy.flavor,
         constraints=schema.Clone(policy),state=result.replayState,environment=result.replayEnvironment,learning=result.replayLearning,candidateIDs=result.candidateIDs,actions={},costs=result.costs,excluded=result.excluded,metrics=result.metrics,
         reason=model.reason,score=result.score,conditional=result.conditional}
     for index,action in ipairs(result.actions or {}) do if index<=128 then lastTrace.actions[index]=action.id end end
     return model
+end
+
+local function replaySame(a,b)
+    if type(a)~=type(b) then return false end
+    if type(a)~="table" then return a==b end
+    for k,v in pairs(a) do if not replaySame(v,b[k]) then return false end end
+    for k in pairs(b) do if a[k]==nil then return false end end
+    return true
+end
+local function replayDiff(a,b)
+    for i=1,math.max(#a,#b) do if a[i]~=b[i] then return {index=i,expected=a[i],actual=b[i]} end end
+end
+local function replayFailure(reason,detail) return {status="rejected",offline=true,reason=reason,detail=detail} end
+-- Diagnostic-only replay. It never publishes guidance, hydrates live state or writes learning.
+function runtime.RerunReplay(raw,currentSource)
+    local t=schema.CopyDiagnostic(raw)
+    local source=schema.CopyLimited(currentSource,256,16384,6)
+    if not t or t.version~=2 or not source or source.searchRevision~=planner.PlanSearch.REVISION
+        or source.corpusRevision==nil or not schema.Identity(source.identity) then return replayFailure("invalid_replay") end
+    if not replaySame(t.source,source) then return replayFailure("source_mismatch") end
+    if not schema.PlainTable(t.state) or not schema.PlainTable(t.graph) or not schema.PlainTable(t.constraints)
+        or not schema.PlainTable(t.environment) or not schema.PlainTable(t.learning) or t.graph.status~="ready"
+        or type(t.retained)~="boolean" or type(t.searchLimited)~="boolean" or t.maxSteps~=50000 then
+        return replayFailure("incomplete_replay")
+    end
+    if not schema.List(t.graph.actions,768) or not schema.List(t.candidateIDs,768)
+        or #t.graph.actions~=#t.candidateIDs or not schema.List(t.searchActions,128)
+        or not schema.List(t.actions,128) then return replayFailure("invalid_sequences") end
+    if not replaySame(t.state.identity,source.identity) or not replaySame(t.graph.identity,source.identity)
+        or t.graph.revision~=source.corpusRevision or t.state.sourceRevision~=source.corpusRevision then
+        return replayFailure("source_mismatch")
+    end
+    local graph=t.graph;graph.byID={};graph.byQuest={}
+    for i,a in ipairs(graph.actions) do
+        if not schema.PlainTable(a) or not schema.Text(a.id) or graph.byID[a.id] or a.id~=t.candidateIDs[i]
+            or not schema.Integer(a.questID,0,2147483647) then return replayFailure("invalid_graph") end
+        graph.byID[a.id]=a;graph.byQuest[a.questID]=graph.byQuest[a.questID] or {}
+        table.insert(graph.byQuest[a.questID],a)
+    end
+    for _,ids in ipairs({t.searchActions,t.actions}) do
+        for i,id in ipairs(ids) do if not graph.byID[id] then return replayFailure("unknown_expected_action",{index=i,id=id}) end end
+    end
+    t.state.fresh=true
+    local ok,out=planner.PlanLearning.WithSnapshot(t.learning,function()
+        if not replaySame(planner.PlanLearning.Export(),t.learning) then return replayFailure("learning_restore_mismatch") end
+        local job=planner.PlanSearch.Begin(graph,t.state,t.constraints,t.environment)
+        if not job then return replayFailure("search_construction_failed") end
+        local result
+        for _=1,t.maxSteps do result=job:Step(1);if result then break end end
+        if not result then return replayFailure("replay_step_limit") end
+        local searched=replayIDs(result.actions)
+        local difference=replayDiff(t.searchActions,searched)
+        if difference then return {status="mismatch",offline=true,phase="search",difference=difference} end
+        if result.status~=t.searchStatus or result.reason~=t.searchReason or (result.limited==true)~=t.searchLimited then
+            return {status="mismatch",offline=true,phase="search_terminal",actual={status=result.status,reason=result.reason,limited=result.limited==true}}
+        end
+        local selected,retained=runtime.SelectResult(result,t.constraints,t.replayPrior)
+        local ids=replayIDs(selected.actions);difference=replayDiff(t.actions,ids)
+        if difference or retained~=t.retained then return {status="mismatch",offline=true,phase="selection",difference=difference} end
+        return {status="match",offline=true,searchActions=searched,actions=ids,retained=retained,
+            reason=selected.reason,limited=selected.limited==true,metrics=schema.Clone(selected.metrics)}
+    end)
+    if not ok then return replayFailure("replay_error",tostring(out)) end
+    return out
 end
