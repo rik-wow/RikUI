@@ -2,7 +2,7 @@
 local planner=RikUI.QuestPlanner
 local schema,search=planner.Schema,{}
 planner.PlanSearch=search
-search.REVISION="adaptive-7"
+search.REVISION="adaptive-8"
 local MAX_WORK,MAX_ACTIONS,MAX_DEPTH,WIDTH=48000,128,64,16
 local function copyList(values)
     local result={};for _,value in ipairs(values or {}) do result[#result+1]=value end;return result
@@ -52,14 +52,18 @@ local function features(node,initial,policy)
 end
 function search.Score(node,initial,policy)
     local f=features(node,initial,policy)
-    -- Fixed scales, never normalized to the current candidate set.
-    local utility=f.efficiency*100+f.progress*.5+f.finished*.5
-        +policy.variety*f.variety*1.5+policy.continuity*(f.chain*3+f.breadcrumbs*6)
+    -- One bonus point is 2% of a level. Travel and work time dilute every
+    -- benefit equally; a distant breadcrumb cannot keep a fixed score bonus.
+    local scale=initial.xpMax and math.max(100,initial.xpMax) or 1000
+    local points=f.finished*.5+policy.variety*f.variety*1.5+policy.continuity*(f.chain*3+f.breadcrumbs*6)
         +policy.discovery*(f.discoveries*3+f.optionalInterest*.75)+f.goals*3+f.rewardValue*6
-        -policy.pressure*f.pressure*3+f.challenge*(policy.difficulty=="hard" and 3 or 1)
-        -f.repetition*(policy.grind=="low" and .4 or policy.grind=="medium" and .1 or 0)+(f.pinned and 10 or 0)
-    if f.finished==0 and f.progress==0 then utility=utility+math.min(2,f.work)*.05 end
-    return utility,f
+        +f.challenge*(policy.difficulty=="hard" and 3 or 1)
+    if f.finished==0 and f.progress==0 then points=points+math.min(2,f.work)*.05 end
+    local value=math.max(0,(node.state.xpGained or 0)+points*.02*scale)
+    local pressure=1+policy.pressure*f.pressure*.3
+    local repetition=1+f.repetition*(policy.grind=="low" and .04 or policy.grind=="medium" and .01 or 0)
+    local utility=value/scale*60/f.minutes/pressure/repetition
+    return utility+(f.pinned and 1000000 or 0),f
 end
 local REASONS={
     Balanced="Reliable progress with local continuity and variety",

@@ -160,13 +160,27 @@ return function(check)
         g=graph({{id=1,pre=2,work=1,turn=1,xp=100},{id=2,pre=1,work=1,turn=1,xp=100}})
         result=run(g,s,policy)
         check("dependency cycle never manufactures reward",#result.actions==0)
+        -- Preferences trade small rate differences in the shared 2%-of-level currency.
+        local rateNode={state=state(),actions={{kind="turnin",questID=1,breadcrumbFor=2}},costs={{pressure=0}}}
+        rateNode.state.elapsed=600;rateNode.state.xpGained=100;rateNode.state.finished=1
+        local ratePolicy=p.Preferences.Normalize({flavor="Story"})
+        local fast=p.PlanSearch.Score(rateNode,state(),ratePolicy)
+        rateNode.state.elapsed=1200
+        local slow=p.PlanSearch.Score(rateNode,state(),ratePolicy)
+        check("travel time dilutes XP and breadcrumb value equally",math.abs(fast-2*slow)<1e-9)
+        check("score uses two-percent-level bonus currency",math.abs(fast-(100+(6+.5)*20)/1000*6)<1e-9)
+        rateNode.costs[1].pressure=1
+        check("pressure multiplicatively reduces a positive rate",p.PlanSearch.Score(rateNode,state(),ratePolicy)>0
+            and p.PlanSearch.Score(rateNode,state(),ratePolicy)<slow)
+        ratePolicy.pins[1]=true
+        check("explicit pin remains dominant",p.PlanSearch.Score(rateNode,state(),ratePolicy)>1000000)
         local flavorPlans={
             Efficient={xp=1000,types={"kill"},pressure=.5},
-            Balanced={xp=900,types={"kill","talk","explore"},pressure=.5},
-            Story={xp=825,types={"kill"},pressure=.5,chain=true},
-            Explorer={xp=820,types={"kill"},pressure=.5,discovery=1},
-            Relaxed={xp=860,types={"kill"},pressure=0},
-            Challenge={xp=850,types={"kill"},pressure=.5,difficulty=2},
+            Balanced={xp=980,types={"kill","talk","explore"},pressure=.5},
+            Story={xp=945,types={"kill"},pressure=.5,chain=true},
+            Explorer={xp=960,types={"kill"},pressure=.5,discovery=1},
+            Relaxed={xp=925,types={"kill"},pressure=0},
+            Challenge={xp=960,types={"kill"},pressure=.5,difficulty=2},
         }
         for _,flavor in ipairs(p.Preferences.Flavors()) do
             local pref=p.Preferences.Normalize({flavor=flavor})

@@ -90,6 +90,8 @@ return function(check)
         end
         s=initial(ids);s.xpMax=6000
         local expected={Efficient=100,Balanced=200,Story=300}
+        -- Rates favor a completed prefix once variety saturates; Story gains another chain link.
+        local expectedXP={Efficient=200,Balanced=200,Story=300}
         for _,flavor in ipairs({"Efficient","Balanced","Story"}) do
             pref=p.Preferences.Normalize({flavor=flavor,readingSeconds=0});pref.maxSeconds=180
             g=graph(records,s,pref,durations)
@@ -99,7 +101,7 @@ return function(check)
             end
             result=run(g,s,pref)
             local selectedFamily=math.floor(result.actions[1].questID/100)*100
-            check("S15 production tradeoff "..flavor,selectedFamily==expected[flavor] and result.xp==300,
+            check("S15 production tradeoff "..flavor,selectedFamily==expected[flavor] and result.xp==expectedXP[flavor],
                 selectedFamily..":"..result.xp..":"..result.seconds)
             check("S15 bounded efficiency envelope "..flavor,result.efficiencyCost<=pref.detour/(1+pref.detour)+.000001)
             print("S15 production",flavor,selectedFamily,result.xp,result.seconds,result.efficiencyCost)
