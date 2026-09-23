@@ -62,6 +62,8 @@ return function(check)
         { "src/ui/unit-colors.lua", "src/modules/unitframes/unitframes-status.lua" },
         { "src/ui/media.lua", "src/ui/skin.lua" },
         { "src/ui/skin.lua", "src/modules/cooldownviewer/cooldownviewer.lua" },
+        { "src/platform/hooks.lua", "src/modules/personalresource/personalresource.lua" },
+        { "src/ui/skin.lua", "src/modules/personalresource/personalresource.lua" },
         { "src/platform/hooks.lua", "src/modules/cooldownviewer/cooldownviewer.lua" },
         { "src/modules/cooldownviewer/cooldownviewer.lua", "src/modules/cooldownviewer/cooldownviewer-style.lua" },
         { "src/modules/cooldownviewer/cooldownviewer-style.lua", "src/modules/cooldownviewer/cooldownviewer-layout.lua" },
