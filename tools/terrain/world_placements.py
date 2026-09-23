@@ -82,8 +82,16 @@ def build(source,path):
     if selection_gap:counts['boundedUnknownDoodadScopes']+=1
     for at in selected:
      dd=root['doodads'][at]
-     need(not w.unsupported_doodad_flags(dd['flags']),'unbounded-WMO-doodad-flags:'+str(ident))
-     box=model(dd['reference'])
+     # MODD bit 0x20 is not decoded. It does not change the transform
+     # (wmo_probe: placement uses position/rotation/scale only), but its
+     # collision is not claimed either: the doodad is left out, not the WMO.
+     if w.unsupported_doodad_flags(dd['flags']):counts['skippedFlaggedDoodads']+=1;continue
+     try:box=model(dd['reference'])
+     except ValueError as error:
+      # A doodad whose physics extent is undecoded is left out of the WMO's
+      # extent; world_geometry leaves its collision out as well.
+      if not str(error).startswith('unbounded-model-physics'):raise
+      counts['skippedUnknownPhysicsDoodads']+=1;continue
      if box:pts.extend(w.doodad_positions(dict(positions=corners(box)),dd))
     root_extents[key]=c.bounds(pts) if pts else None
    return root_extents[key]

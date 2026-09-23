@@ -66,6 +66,7 @@ local function onEvent(event,...)
     if planner.BagScan then planner.BagScan.OnEvent(event,...) end
     if planner.PlanServices then planner.PlanServices.OnEvent(event) end
     if planner.PlanTravel then planner.PlanTravel.OnEvent(event) end
+    if planner.RoadTravel then planner.RoadTravel.OnEvent(event) end
     if planner.PlanRuntime then planner.PlanRuntime.OnEvent(event,...) end
     -- Attribution events are frequent and do not themselves change quest feasibility.
     -- Quest progress, player XP and inventory events schedule the ordinary live refresh.

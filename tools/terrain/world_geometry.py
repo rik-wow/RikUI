@@ -113,8 +113,13 @@ def geometry(source,job,placement_index):
    wadd(collision.transformed(group,placement),group['indices'])
   for index in selected:
    dd=root['doodads'][index]
-   need(not wmo.unsupported_doodad_flags(dd['flags']),'unbounded-WMO-doodad-flags:'+str(ident))
-   m=model(dd['reference']);extent_positions=placement_extents.model_extent_positions(m,dd['reference'])
+   # Undecoded MODD bit 0x20: leave this doodad's collision out, keep the WMO.
+   if wmo.unsupported_doodad_flags(dd['flags']):reasons.append('skipped-flagged-doodad');stats['skippedFlaggedDoodads']+=1;continue
+   m=model(dd['reference'])
+   try:extent_positions=placement_extents.model_extent_positions(m,dd['reference'])
+   except ValueError as error:
+    if not str(error).startswith('unbounded-model-physics'):raise
+    reasons.append('skipped-unknown-physics-doodad');stats['skippedUnknownPhysicsDoodads']+=1;continue
    reasons.extend('extra-doodad-physics:'+tag for tag in m['chunks'] if tag in ('PFID','PFDC','PHY2','PCOL'))
    # wadd retains static vertices. Include every additional proven physics point
    # even when the static collision has no triangles; these only bound exclusions.

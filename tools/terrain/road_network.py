@@ -392,12 +392,18 @@ def addon_files(world, catalog, encoded):
     return files
 
 
-def index_files(worlds, source_directory):
-    """Always-loaded index: which LoadOnDemand addon serves which map views."""
+def index_files(worlds, source_directory, travel=None):
+    """Always-loaded index: which LoadOnDemand addon serves which map views, plus
+    travel stops and links (flights, transports, tram) across all worlds."""
     rows = [dict(worldMapID=w['worldMapID'], revision=w['revision'], addon='RikUIQuestRoads_W%d' % w['worldMapID'],
                  views=[dict(uiMapID=v['uiMapID'], projection=v['projection'], validUIRectangle=v['validUIRectangle'])
                         for v in views(source_directory, w['worldMapID'])]) for w in worlds]
     index = dict(format='rikui-road-index-v1', identity=graph.RUNTIME_IDENTITY, worlds=rows)
+    if travel:
+        index['travel'] = dict(format=travel['format'], sources=travel['sources'], estimates=travel['estimates'],
+                               stops=[{k: s[k] for k in ('id', 'kind', 'name', 'world', 'point', 'factions', 'taxiNode', 'transport')
+                                       if k in s} for s in travel['stops']],
+                               links=travel['links'])
     toc = '## Interface: 16001\n## Title: RikUI Roads\n## AllowLoadGameType: camelot\n## Dependencies: RikUI\n\nindex.lua\n'
     return {'RikUIQuestRoads/index.lua': ('RikUI.QuestPlanner.Roads.InstallIndex(' + lua(index) + ')\n').encode(),
             'RikUIQuestRoads/RikUIQuestRoads.toc': toc.encode()}
@@ -415,7 +421,7 @@ def b85(raw):
     return text
 
 
-def compile_world(admitted, world, lookup, source_directory, rects=(), log=print, minimum=MIN_GROUP_NODES):
+def compile_world(admitted, world, lookup, source_directory, rects=(), log=print, minimum=MIN_GROUP_NODES, travel=()):
     """Single-process path, kept for small inputs and tests."""
     import quest_pockets
     batches = [b for ns, b in sorted(admitted['batches'].items()) if ns[0] == world and b['polygons']]
@@ -432,11 +438,15 @@ def compile_world(admitted, world, lookup, source_directory, rects=(), log=print
             return {}, 0, 0
         local = {g: i for i, g in enumerate(polys.gid)}
         return quest_pockets.build_patches(polys, [local[info[0]] for info in infos], rects)
-    return finish_world(sources, world, source_directory, admitted['inputSHA256'], len(rects), builder, patcher, log, minimum)
+    return finish_world(sources, world, source_directory, admitted['inputSHA256'], len(rects), builder, patcher, log, minimum,
+                        travel)
 
 
-def finish_world(sources, world, source_directory, input_sha, quests, builder, patcher, log=print, minimum=MIN_GROUP_NODES):
-    """builder() -> (node infos, edges, polygon count); patcher(infos) -> (patches, chosen, kept)."""
+def finish_world(sources, world, source_directory, input_sha, quests, builder, patcher, log=print, minimum=MIN_GROUP_NODES,
+                 travel=(), mapper=map):
+    """builder() -> (node infos, edges, polygon count); patcher(infos) -> (patches, chosen, kept).
+    travel: this world's stops from travel_links.py; mapper runs their Dijkstras."""
+    import road_travel
     import quest_pockets
     started = time.monotonic()
     reps, edges, polygon_count = builder()
@@ -451,6 +461,10 @@ def finish_world(sources, world, source_directory, input_sha, quests, builder, p
     need(len(reps) <= MAX_NODES, 'road node bound')
     streams = pack(reps, edges)
     started = time.monotonic()
+    stops = road_travel.section(reps, edges, travel, mapper)
+    log('world %d travel stops %d attached, %d missing, %d walks, %.0fs' % (
+        world, len(stops['stops']), len(stops['missing']), len(stops['walks']), time.monotonic() - started))
+    started = time.monotonic()
     patches, chosen, kept = patcher(reps)
     log('world %d patches %d cells, %d quest polygons, %d kept, %.0fs' % (world, len(patches), chosen, kept, time.monotonic() - started))
     placeholder_files, patch_stream = quest_pockets.patch_files(world, '0' * 64, patches, lua, b85)
@@ -461,7 +475,7 @@ def finish_world(sources, world, source_directory, input_sha, quests, builder, p
                    counts=dict(nodes=len(reps), edges=sum(map(len, edges)), points=streams['points'][2],
                                polygons=polygon_count, patchCells=len(patches), patchPolygons=kept),
                    streams=specs, views=views(source_directory, world), sourceSHA256=sha(canonical(sources)),
-                   inputSHA256=input_sha, quests=quests, nativeVerified=False)
+                   inputSHA256=input_sha, quests=quests, travel=stops, nativeVerified=False)
     catalog['revision'] = sha(canonical(catalog))
     patch_addons, _ = quest_pockets.patch_files(world, catalog['revision'], patches, lua, b85)
     need(len(patch_addons) == len(placeholder_files), 'patch addon layout changed with revision')
@@ -518,7 +532,7 @@ def compile_serial(args):
     for world in args.world:
         started = time.monotonic()
         yield world, started, compile_world(admitted, world, roads.RoadLookup(args.road_rasters, world),
-                                            args.source_directory, rects.get(world, ()))
+                                            args.source_directory, rects.get(world, ()), travel=travel_stops(args, world))
 
 
 def compile_parallel(args, workers):
@@ -541,7 +555,23 @@ def compile_parallel(args, workers):
             builder = lambda w=world: road_parallel.build(batches[w], args.road_rasters, w, pool)
             patcher = lambda infos, w=world, r=world_rects: road_parallel.patches(batches[w], infos, r, pool)
             yield world, started, finish_world(sources[world], world, args.source_directory, args.expected_sha256,
-                                               len(world_rects), builder, patcher)
+                                               len(world_rects), builder, patcher, travel=travel_stops(args, world),
+                                               mapper=pool.map)
+
+
+def travel_doc(args):
+    if not args.travel:
+        return None
+    raw = pathlib.Path(args.travel).read_bytes()
+    need(sha(raw) == args.travel_sha256, 'travel links hash')
+    doc = json.loads(raw)
+    need(doc.get('format') == 'rikui-travel-links-v1', 'travel links format')
+    return doc
+
+
+def travel_stops(args, world):
+    doc = travel_doc(args)
+    return [s for s in doc['stops'] if s['world'] == world] if doc else []
 
 
 def patch_policy():
@@ -564,6 +594,8 @@ def main():
     p.add_argument('--patch-spawn-radius', type=float)
     p.add_argument('--patch-margin', type=float)
     p.add_argument('--patch-max-half', type=float)
+    p.add_argument('--travel', help='travel_links.py output; attaches stops and embeds links in the index')
+    p.add_argument('--travel-sha256')
     args = p.parse_args()
     if args.capture:
         return capture(args.capture, args.output)
@@ -579,7 +611,8 @@ def main():
     policy = dict(spawnRadius=quest_pockets.SPAWN_RADIUS, clusterMargin=quest_pockets.CLUSTER_MARGIN, maxHalf=quest_pockets.MAX_HALF)
     files, report = {}, dict(format='rikui-road-network-receipt-v1', inputSHA256=args.expected_sha256,
                              semanticSHA256=args.semantic_sha256, patchPolicy=policy,
-                             compilerSHA256=sha(pathlib.Path(__file__).read_bytes()), worlds=[], nativeVerified=False)
+                             compilerSHA256=sha(pathlib.Path(__file__).read_bytes()), travelSHA256=args.travel_sha256,
+                             worlds=[], nativeVerified=False)
     if workers > 1:
         compiled = compile_parallel(args, workers)
     else:
@@ -596,7 +629,7 @@ def main():
                                      rawBytes=sum(s['bytes'] for s in catalog['streams'].values()),
                                      seconds=round(time.monotonic() - started, 1)))
         print(json.dumps(report['worlds'][-1]), flush=True)
-    files.update(index_files(report['worlds'], args.source_directory))
+    files.update(index_files(report['worlds'], args.source_directory, travel_doc(args)))
     report['files'] = [dict(path=k, bytes=len(v), sha256=sha(v)) for k, v in sorted(files.items())]
     output.mkdir(parents=True)
     for name, data in files.items():

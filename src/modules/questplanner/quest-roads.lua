@@ -27,8 +27,11 @@ local function validView(view)
         and schema.Number(p.height,1,200000) and schema.List(view.validUIRectangle,4)
 end
 
+-- Index and catalogs carry travel stops, links and stop-to-stop walks.
+local COPY_NODES,COPY_BYTES,COPY_DEPTH=32768,1048576,8
+
 function roads.InstallIndex(raw)
-    local value=schema.CopyLimited(raw,4096,65536,8)
+    local value=schema.CopyLimited(raw,COPY_NODES,COPY_BYTES,COPY_DEPTH)
     if not value or value.format~=INDEX_FORMAT or not schema.Identity(value.identity)
         or not schema.List(value.worlds,64) then return nil,"invalid road index" end
     for _,world in ipairs(value.worlds) do
@@ -42,11 +45,15 @@ function roads.InstallIndex(raw)
             list[#list+1]={world=world.worldMapID,view=view}
         end
     end
+    if value.travel~=nil and planner.RoadTravel then
+        local ok,why=planner.RoadTravel.Install(value.travel)
+        if not ok then return nil,why end
+    end
     return true
 end
 
 function roads.Install(raw)
-    local value=schema.CopyLimited(raw,4096,65536,8)
+    local value=schema.CopyLimited(raw,COPY_NODES,COPY_BYTES,COPY_DEPTH)
     if not value or value.format~=FORMAT or not schema.Identity(value.identity) or not hash(value.revision)
         or not schema.Integer(value.worldMapID,0,100000) or not schema.PlainTable(value.streams)
         or not schema.PlainTable(value.counts) then return nil,"invalid road catalog" end

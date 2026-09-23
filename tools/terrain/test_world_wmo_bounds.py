@@ -48,8 +48,11 @@ class Tests(unittest.TestCase):
  def test_antiportal_group_adds_no_collision(self):
   result=fixture(False,None,g.ANTIPORTAL_GROUP)
   self.assertEqual(result['statistics']['skippedAntiportalGroups'],1);self.assertEqual(len(result['indices']),6)
- def test_unknown_physics_has_no_finite_exclusion(self):
-  with self.assertRaisesRegex(ValueError,'unbounded-model-physics:5'):fixture(False,'PFDC')
+ def test_unknown_physics_doodad_is_skipped_not_the_wmo(self):
+  result=fixture(False,'PFDC');gate=result['coverageGates'][0]
+  self.assertIn('skipped-unknown-physics-doodad',gate['reasons'])
+  self.assertEqual(result['statistics']['skippedUnknownPhysicsDoodads'],1)
+  self.assertEqual(len(result['indices']),6)  # terrain and the WMO group, no doodad
  def test_known_physics_requires_extent_even_when_empty(self):
   with self.assertRaisesRegex(ValueError,'unbounded-model-physics:5'):p.model_extent_positions(dict(positions=[],chunks=['PCOL']),5)
 

@@ -115,6 +115,7 @@ src/modules/questplanner/quest-road-patches.lua
 src/modules/questplanner/quest-road-route.lua
 src/modules/questplanner/quest-road-follow.lua
 src/modules/questplanner/quest-road-navigate.lua
+src/modules/questplanner/quest-road-travel.lua
 src/modules/questplanner/quest-road-guidance.lua
 src/modules/questplanner/quest-context.lua
 src/modules/questplanner/quest-enrichment.lua
