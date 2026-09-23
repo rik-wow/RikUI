@@ -193,7 +193,7 @@ function micromenu:OnEnable()
     core:RegisterEvent("BAG_UPDATE_DELAYED", micromenu.RefreshBags)
     local bars = core.Bars
     if type(bars) == "table" and type(bars.UpdateStockVisibility) == "function" then
-        hooksecurefunc(bars, "UpdateStockVisibility", micromenu.UpdateStock)
+        core.Hooks.Owned(bars, "UpdateStockVisibility", micromenu.UpdateStock)
     end
 end
 

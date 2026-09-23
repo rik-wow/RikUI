@@ -142,7 +142,9 @@ local function attach()
     if not candidate or type(candidate.GetCanvasContainer) ~= "function" then return end
     frame = candidate
     frame:HookScript("OnShow", opened)
-    if type(frame.OnMapChanged) == "function" then hooksecurefunc(frame, "OnMapChanged", map.RequestTools) end
+    if EventRegistry and type(EventRegistry.RegisterCallback) == "function" then
+        EventRegistry:RegisterCallback("MapCanvas.MapSet", map.RequestTools, map)
+    end
     if frame:IsShown() then opened() end
 end
 function map.DebugTools()
@@ -167,7 +169,7 @@ function map.EnableTools()
     for _, event in ipairs({ "MAP_EXPLORATION_UPDATED", "PLAYER_ENTERING_WORLD" }) do
         core:RegisterEvent(event, map.RequestTools)
     end
-    hooksecurefunc(core, "SetProfile", map.RequestTools)
+    core.Hooks.Owned(core, "SetProfile", map.RequestTools)
 end
 map.Options = { title = "World map", settings = {
     { type = "checkbox", key = "worldmap.fog", label = "Fog of war (off reveals terrain)",

@@ -179,13 +179,13 @@ local function multiPress(name, id, down)
 end
 
 local function hook(name, callback)
-    local ok, reason = pcall(hooksecurefunc, name, callback)
+    local ok, reason = pcall(core.Hooks.Function, name, callback)
     if not ok then warnOnce(name, reason) end
 end
 
 local function keepRangeNotifications()
     if not C_ActionBar or type(C_ActionBar.EnableActionRangeCheck) ~= "function" then return end
-    local ok, reason = pcall(hooksecurefunc, C_ActionBar, "EnableActionRangeCheck", function(slot, enabled)
+    local ok, reason = pcall(core.Hooks.Namespace, "C_ActionBar", "EnableActionRangeCheck", function(slot, enabled)
         if core.Secret.IsSecret(slot) or readableBoolean(enabled) ~= false or not rangeSlots[slot] then return end
         -- Native OnHide disables this global slot subscription when we park stock bars.
         local restored, failure = pcall(C_ActionBar.EnableActionRangeCheck, slot, true)

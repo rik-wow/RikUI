@@ -73,13 +73,13 @@ local function addGroup(container)
 end
 
 -- NamePlateAurasMixin shows its debuff list with SetShown on every aura display update, so the
--- list is hidden again from a post-hook. Alpha alone left both rows on screen.
+-- list is hidden again from its OnShow. Alpha alone left both rows on screen.
 local function hideStockDebuffs(frame)
     local stock = isRegion(frame.AurasFrame) and frame.AurasFrame.DebuffListFrame
     if not isRegion(stock) then return end
     stock:SetAlpha(0)
     stock:Hide()
-    hooksecurefunc(stock, "SetShown", function(self, shown) if shown then self:Hide() end end)
+    core.Hooks.Script(stock, "OnShow", function(self) self:Hide() end)
 end
 
 -- Blizzard's debuff list goes only where ours exists, so a refused container costs nothing.
@@ -125,6 +125,35 @@ local function unitFrameFor(unit)
     return isRegion(frame.HealthBarsContainer.healthBar) and frame or nil
 end
 
+-- Blizzard lays a plate out in UpdateAnchors: from ApplyFrameOptions, which runs inside
+-- CompactUnitFrame_SetUpFrame, and from UpdateShowOnlyName (when a plate gets its unit and on a CVar
+-- change). RikUI's layout follows the first through a hook on that global function and the others one
+-- frame later. The plate's own methods are never hooked: on 69977 that left UpdateAnchors nil for
+-- Blizzard's callers.
+local function relayout(frame)
+    if not nameplates.Parts[frame] then return end
+    nameplates.Skin.Apply(frame)
+    nameplates.Target.Sync(frame)
+end
+
+local pendingLayout = setmetatable({}, weak)
+local function relayoutSoon(frame)
+    if pendingLayout[frame] then return end
+    pendingLayout[frame] = true
+    C_Timer.After(0, function()
+        pendingLayout[frame] = nil
+        relayout(frame)
+    end)
+end
+
+local function relayoutAllSoon()
+    for _, frame in pairs(nameplates.Active) do relayoutSoon(frame) end
+end
+
+local function syncName(frame)
+    if nameplates.Parts[frame] then nameplates.Skin.SyncPlaque(frame) end
+end
+
 function nameplates.Added(_, unit)
     local ok, frame = pcall(unitFrameFor, unit)
     if not ok then auras.Warn("nameplate", frame) return end
@@ -134,6 +163,7 @@ function nameplates.Added(_, unit)
     nameplates.Skin.Apply(frame)
     nameplates.Skin.SetUnit(frame, unit)
     attachAuras(frame, unit)
+    relayoutSoon(frame)
 end
 
 function nameplates.Removed(_, unit)
@@ -166,6 +196,10 @@ function nameplates:OnEnable()
     core:RegisterEvent("NAME_PLATE_UNIT_REMOVED", nameplates.Removed)
     core:RegisterEvent("PLAYER_REGEN_ENABLED", nameplates.LeftCombat)
     for event in pairs(UNIT_EVENTS) do core:RegisterEvent(event, unitEvent) end
+    core:RegisterEvent("CVAR_UPDATE", relayoutAllSoon)
+    core.Hooks.Function("CompactUnitFrame_SetUpFrame", relayout)
+    core.Hooks.Function("CompactUnitFrame_UpdateName", syncName)
+    core.Hooks.Function("CompactUnitFrame_UpdateAggroHighlight", nameplates.Target.Sync)
     nameplates.Target.ApplyCVars()
 end
 

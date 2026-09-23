@@ -43,10 +43,10 @@ return function(check)
                 if behavior[name] == "write-error" then error("bitfield write failed") end
                 if behavior[name] == "false" or behavior[name] == index then return false end
                 if behavior[name] == "readonly" then return end
-                local bit = require("bit")
-                local mask = bit.lshift(1, index - 1)
+                local mask = 2 ^ (index - 1)
                 local data = values[name]:byte(2)
-                data = value and bit.bor(data, mask) or bit.band(data, bit.bnot(mask))
+                local set = math.floor(data / mask) % 2 == 1
+                if value and not set then data = data + mask elseif not value and set then data = data - mask end
                 values[name] = values[name]:sub(1, 1) .. string.char(data)
                 return true
             end,

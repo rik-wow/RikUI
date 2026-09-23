@@ -10,12 +10,18 @@ return function(check)
     local originals = {}
     for _, name in ipairs(names) do originals[name] = _G[name] end
     local function frame(parent)
-        local result = { parent = parent, events = { ACTIONBAR_PAGE_CHANGED = true }, shown = true, writes = 0 }
+        local result = { parent = parent, events = { ACTIONBAR_PAGE_CHANGED = true }, shown = true, writes = 0, onShow = {} }
         function result:GetParent() return self.parent end
+        function result:HookScript(script, fn) if script == "OnShow" then table.insert(self.onShow, fn) end end
+        -- Leaving the hidden container makes a shown frame visible again, which fires its OnShow.
         function result:SetParent(value)
             if self.secureNextParent then self.secureNextParent = nil
             else assert(not InCombatLockdown(), "stock frame reparented in combat") end
+            local wasHidden = self.parent == rawget(_G, "RikUIHiddenFrames")
             self.parent, self.writes = value, self.writes + 1
+            if wasHidden and value ~= rawget(_G, "RikUIHiddenFrames") and self.shown then
+                for _, fn in ipairs(self.onShow) do fn(self) end
+            end
         end
         function result:Show() self.shown = true end
         function result:UnregisterAllEvents() error("native events must be preserved") end
@@ -32,6 +38,7 @@ return function(check)
         env.frames, env.inCombat, env.printed = {}, false, {}
         RikUIDB, RikUICharDB = { profiles = { Default = profile or {} } }, nil
         assert(loadfile("src/core/core.lua"))("RikUI", {})
+        assert(loadfile("src/platform/hooks.lua"))("RikUI", {})
         assert(loadfile("src/platform/hide.lua"))("RikUI", {})
         env.fire("ADDON_LOADED", "RikUI")
         RikUI.Bars = { Frames = {}, ControlFrames = {}, Options = { settings = {} },

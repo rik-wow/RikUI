@@ -3,16 +3,18 @@
 -- meter's settings; none of those is written. What changes: a flat header with an accent rule and
 -- flat glyph buttons, flat bars on an own track with an edge, cropped framed icons, the typeface, a
 -- fade-in for new rows, a hover tween, and a RikUI holder so /rik move can drag the meter.
--- Two client facts shape the code. Entries restore their shadow art in UpdateBackground, so that
--- method is post-hooked per entry. Rows are handed out again on every data refresh, so only a newly
--- created row fades in; anything else would flicker through a whole fight.
+-- Two client facts shape the code. Rows are handed out again on every data refresh, so only a newly
+-- created row fades in; anything else would flicker through a whole fight. Entries restore their
+-- shadow art in UpdateBackground, so the art is faded again each time a row is handed out.
+-- No Blizzard method is hooked (on 69977 that left methods nil for Blizzard's callers): new session
+-- windows come from SetupSessionWindow, so while the meter is shown RikUI looks for them once a second.
 local core, skin, media, motion = RikUI, RikUI.Skin, RikUI.Media, RikUI.Motion
 local weak = { __mode = "k" }
 local meter = { Headers = setmetatable({}, weak), Entries = setmetatable({}, weak), Buttons = setmetatable({}, weak) }
 core.DamageMeter = meter
 
-local OWNER, SETUP, ANCHOR, WINDOW_PREFIX, MAX_WINDOWS = "DamageMeter", "SetupSessionWindow", "ApplySystemAnchor",
-    "DamageMeterSessionWindow", 8
+local OWNER, SETUP, WINDOW_PREFIX, MAX_WINDOWS = "DamageMeter", "SetupSessionWindow", "DamageMeterSessionWindow", 8
+local SCAN_SECONDS = 1
 local CONTAINER, SOURCE, LIST, LOCAL_ENTRY = "MinimizeContainer", "SourceWindow", "ScrollBox", "LocalPlayerEntry"
 local HOLDER_NAME, LAYOUT_KEY = "RikUIDamageMeterHolder", "damagemeter"
 -- Right edge, above the tooltip anchor, which ends at y=330.
@@ -28,7 +30,7 @@ local STATE_TEXTURES = { "GetNormalTexture", "GetPushedTexture", "GetHighlightTe
 local ENTRY_TEXT, ENTRY_ART = { "GetName", "GetValue" }, { "GetBackground", "GetBackgroundEdge" }
 local TRACK, ACCENT, ACCENT_HEIGHT, BOX_INSET = { 0, 0, 0, 0.45 }, { 0.3, 0.75, 1, 1 }, 2, 2
 local watched, failed, warnings = setmetatable({}, weak), setmetatable({}, weak), {}
-local lastError
+local lastError, scanning = nil, false
 
 local function warn(operation, reason)
     lastError = operation .. ": " .. tostring(reason)
@@ -55,7 +57,7 @@ local function hoverTween(frame, record)
     record.highlight:SetTexture(media.highlight)
     record.hover = motion.Tween(record.highlight, 0, 1, skin.FADE_SECONDS)
     if type(frame.HookScript) == "function" then
-        frame:HookScript("OnEnter", function() motion.Play(record.hover) end)
+        core.Hooks.Script(frame, "OnEnter", function() motion.Play(record.hover) end)
     end
 end
 
@@ -89,8 +91,6 @@ end
 
 local function applyEntry(entry)
     local record = {}
-    fadeEntryArt(entry)
-    if type(entry.UpdateBackground) == "function" then hooksecurefunc(entry, "UpdateBackground", fadeEntryArt) end
     entryBar(entry, record)
     entryIcon(entry, record)
     for _, getter in ipairs(ENTRY_TEXT) do skin.Typeface(part(entry, getter)) end
@@ -106,6 +106,7 @@ local function skinEntry(entry, isNew)
         local ok, reason = pcall(applyEntry, entry)
         if not ok then failed[entry] = true; return warn("entry", reason) end
     end
+    fadeEntryArt(entry)
     if isNew then motion.Play(meter.Entries[entry].fade) end
 end
 
@@ -209,7 +210,7 @@ local function createHolder(owner)
     meter.Holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     follow(owner)
     core.Layout.Register(meter.Holder, LAYOUT_KEY, DEFAULTS)
-    owner:HookScript("OnSizeChanged", follow)
+    core.Hooks.Script(owner, "OnSizeChanged", follow)
     core.EditMode.Guard(owner, "damage meter", hang)
     hang(owner)
 end
@@ -220,13 +221,28 @@ local function count(set)
     return total
 end
 
+local function scanWindows()
+    for index = 1, MAX_WINDOWS do skinWindow(_G[WINDOW_PREFIX .. index]) end
+end
+
+local function scanLoop()
+    scanWindows()
+    if not _G[OWNER]:IsShown() then scanning = false; return end
+    C_Timer.After(SCAN_SECONDS, scanLoop)
+end
+
+local function startScanning()
+    if scanning then return end
+    scanning = true
+    C_Timer.After(0, scanLoop)
+end
+
 function meter:OnEnable()
     local owner = _G[OWNER]
     if not skin.IsRegion(owner) or type(owner[SETUP]) ~= "function" then return end
-    hooksecurefunc(owner, SETUP, function(_, _, data)
-        if type(data) == "table" then skinWindow(data.sessionWindow) end
-    end)
-    for index = 1, MAX_WINDOWS do skinWindow(_G[WINDOW_PREFIX .. index]) end
+    scanWindows()
+    core.Hooks.Script(owner, "OnShow", startScanning)
+    if owner:IsShown() then startScanning() end
     if core.Layout and type(owner.HookScript) == "function" then createHolder(owner) end
 end
 

@@ -4,7 +4,7 @@
 return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
-    local saved = WorldMapFrame
+    local saved, savedRegistry, savedReset, savedAdd = WorldMapFrame, EventRegistry, NavBar_Reset, NavBar_AddButton
     local restore = widgets.install()
     local GETTERS = { "GetNormalTexture", "GetPushedTexture", "GetHighlightTexture" }
     local function regions(frame, count)
@@ -39,9 +39,11 @@ return function(check)
         frame.TitleCanvasSpacerFrame = CreateFrame("Frame", nil, frame)
         function frame:Minimize()
             self.NavBar:SetPoint("TOPLEFT", self.TitleCanvasSpacerFrame, "TOPLEFT", 64, -25)
+            EventRegistry:TriggerEvent("WorldMapMinimized")
         end
         function frame:Maximize()
             self.NavBar:SetPoint("TOPLEFT", self.TitleCanvasSpacerFrame, "TOPLEFT", 8, -25)
+            EventRegistry:TriggerEvent("WorldMapMaximized")
         end
         frame.BorderFrame = CreateFrame("Frame", nil, frame)
         local createTexture = frame.CreateTexture
@@ -84,13 +86,18 @@ return function(check)
         regions(bar.overlay, 2)
         bar.home = crumb(bar, "World")
         bar.navList = { bar.home }
-        function bar:Refresh() self.refreshes = (self.refreshes or 0) + 1 end
+        function bar:Refresh() self.refreshes = (self.refreshes or 0) + 1; NavBar_Reset(self); NavBar_AddButton(self) end
         frame.NavBar = bar
         frame:Hide()
         return frame
     end
     local function load(profile, prepare)
         widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/worldmap/worldmap.lua" }, profile, false, function()
+            local callbacks = {}
+            EventRegistry = { RegisterCallback = function(_, event, fn, owner) callbacks[event] = function() fn(owner) end end,
+                TriggerEvent = function(_, event) if callbacks[event] then callbacks[event]() end end }
+            NavBar_Reset = function() end
+            NavBar_AddButton = function() end
             map()
             if prepare then prepare() end
         end)
@@ -201,7 +208,7 @@ return function(check)
         check("a disabled module leaves the bar stock", WorldMapFrame.NavBar.rikFill == nil)
     end)
     restore()
-    WorldMapFrame = saved
+    WorldMapFrame, EventRegistry, NavBar_Reset, NavBar_AddButton = saved, savedRegistry, savedReset, savedAdd
     env.inCombat = false
     check("world map suite completes", ok, reason)
 end

@@ -1,7 +1,5 @@
 -- The flat look for the world map's navigation bar. The map's chrome is the panels module's job;
--- this file covers the breadcrumb bar inside it. WorldMapNavBarMixin:Refresh rebuilds the
--- breadcrumbs on every map change, so it is post-hooked on the bar itself, not on the global NavBar
--- functions that other windows share. The obsolete portrait inset is removed out of combat. The two
+-- this file covers the breadcrumb bar through its NavBar globals and map-size events. The two
 -- round buttons on the canvas get a flat backing too. The map is where taint does the most damage,
 -- so the content overlays (bounty board, action button, threat frame) are never touched.
 local core, media, skin = RikUI, RikUI.Media, RikUI.Skin
@@ -230,10 +228,6 @@ local function onShow(frame)
     skinOverlays(frame)
     local bar = frame.NavBar
     if not isFrame(bar) then return end
-    if not worldmap.Hooked and type(bar.Refresh) == "function" then
-        worldmap.Hooked = true
-        hooksecurefunc(bar, "Refresh", refresh)
-    end
     refresh(bar)
 end
 
@@ -241,10 +235,17 @@ local function attachSkin()
     local frame = _G[MAP]
     if worldmap.HookedFrame or not isFrame(frame) then return end
     worldmap.HookedFrame = frame
-    frame:HookScript("OnShow", onShow)
-    for _, method in ipairs({ "Minimize", "Maximize" }) do
-        if type(frame[method]) == "function" then hooksecurefunc(frame, method, alignNavigation) end
+    core.Hooks.Script(frame, "OnShow", onShow)
+    local function resized() alignNavigation(frame) end
+    if EventRegistry and type(EventRegistry.RegisterCallback) == "function" then
+        EventRegistry:RegisterCallback("WorldMapMinimized", resized, worldmap)
+        EventRegistry:RegisterCallback("WorldMapMaximized", resized, worldmap)
     end
+    local function navigationChanged(bar)
+        if bar == frame.NavBar then refresh(bar) end
+    end
+    core.Hooks.Function("NavBar_Reset", navigationChanged)
+    core.Hooks.Function("NavBar_AddButton", navigationChanged)
     if frame:IsShown() then onShow(frame) end
 end
 
@@ -253,7 +254,7 @@ function worldmap:OnEnable()
     attachSkin()
     core:RegisterEvent("ADDON_LOADED", attachSkin)
     if type(QuestLogQuests_Update) == "function" then
-        hooksecurefunc("QuestLogQuests_Update", function()
+        core.Hooks.Function("QuestLogQuests_Update", function()
             local frame = worldmap.HookedFrame
             if frame and frame:IsShown() then
                 local ok, reason = pcall(questChrome, frame)

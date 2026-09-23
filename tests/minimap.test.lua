@@ -64,7 +64,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/platform/editmode.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/minimap/minimap.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -86,8 +86,12 @@ return function(check)
         check("the Minimap moves into the holder as a 198 square with the flat mask", map.parent == holder
             and map.width == 198 and map.height == 198 and map.mask == "Interface\\BUTTONS\\WHITE8X8"
             and map.point[1] == "TOPLEFT" and map.point[2] == holder)
+        -- Skin.lua's rotateMinimap callback puts the round mask back when the CVar changes.
         map:SetMaskTexture(stub.ROUND_MASK)
-        check("a Skin.lua mask reset is answered with the square mask again", map.mask == "Interface\\BUTTONS\\WHITE8X8")
+        env.fire("CVAR_UPDATE", "rotateMinimap")
+        check("a Skin.lua mask reset waits for Blizzard's callback", map.mask == stub.ROUND_MASK)
+        env.flushTimers()
+        check("and is answered with the square mask a frame later", map.mask == "Interface\\BUTTONS\\WHITE8X8")
         check("cluster art, native coords and both zoom buttons are parked", parked(cluster.BorderTop)
             and parked(cluster.ZoneTextButton) and parked(cluster.InstanceDifficulty) and parked(cluster.DielFrame)
             and parked(cluster.MinimapContainer.PlayerCoords) and parked(map.ZoomIn) and parked(map.ZoomOut)
@@ -111,12 +115,17 @@ return function(check)
             end
         end)
         holder, cluster, map = module.Holder, MinimapCluster, Minimap
-        cluster:UpdateSystem()
+        local function applyLayout()
+            cluster:UpdateSystem()
+            env.fire("EDIT_MODE_LAYOUTS_UPDATED")
+            env.flushTimers()
+        end
+        applyLayout()
         check("Edit Mode applying its layout leaves the indicator and the tracking frame on the holder",
             cluster.IndicatorFrame.point[1] == "TOPRIGHT" and cluster.IndicatorFrame.point[2] == holder
             and cluster.Tracking.point[2] == holder and map.point[2] == holder and #module.Adopted == 3)
         env.inCombat = true
-        cluster:UpdateSystem()
+        applyLayout()
         check("in combat the answer waits", cluster.IndicatorFrame.point[1] == "BOTTOMRIGHT")
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")

@@ -53,10 +53,14 @@ local function restyleWarnings(frame)
     end
 end
 
+-- RaidWarningFrame runs OnUpdate every frame while it shows a line, and a new line is added during
+-- event handling, before the next frame draws; restyling from OnUpdate reaches every line first.
+-- AcquireOrEvictSlot is not hooked: on 69977 a method hook on a Blizzard frame left the method nil
+-- for Blizzard's callers.
 local function hookWarnings()
     local frame = _G[WARNING_FRAME]
     if type(frame) ~= "table" or type(frame[WARNING_METHOD]) ~= "function" then return end
-    hooksecurefunc(frame, WARNING_METHOD, restyleWarnings)
+    core.Hooks.Script(frame, "OnUpdate", restyleWarnings)
 end
 
 -- Font writes are not protected, so nothing here waits for combat to end.

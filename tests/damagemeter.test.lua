@@ -132,15 +132,16 @@ return function(check)
             record.iconEdge[1].layer == "OVERLAY" and record.iconEdge[1].points[1][2] == row.parts.icon
             and record.iconEdge[1].points[1][4] == 0)
         check("Blizzard's shadow art is faded", row.parts.background.alpha == 0 and row.parts.edge.alpha == 0)
+        local watch = container.ScrollBox.callbacks[1]
         row:UpdateBackground()
-        check("and faded again after Blizzard's UpdateBackground puts it back", row.parts.background.alpha == 0
-            and row.parts.edge.alpha == 0)
+        watch.callback(watch.owner, row, {}, false)
+        check("and faded again when the row is handed out after Blizzard's UpdateBackground put it back",
+            row.parts.background.alpha == 0 and row.parts.edge.alpha == 0)
         check("the local player entry is skinned too", module.Entries[container.LocalPlayerEntry] ~= nil)
         check("both scroll boxes are watched once for rows handed out later", #container.ScrollBox.callbacks == 1
             and #container.SourceWindow.ScrollBox.callbacks == 1
             and container.ScrollBox.callbacks[1].event == "OnAcquiredFrame")
 
-        local watch = container.ScrollBox.callbacks[1]
         local late = entry(container.ScrollBox)
         watch.callback(watch.owner, late, {}, true)
         check("a newly created row is skinned and fades in once", module.Entries[late] ~= nil
@@ -157,10 +158,15 @@ return function(check)
         check("the meter hangs on a RikUI holder that /rik move can drag, sized like the meter",
             holder ~= nil and group ~= nil and group.frames[1] == holder and holder.width == 400 and holder.height == 200
             and anchoredTo(DamageMeter, holder))
-        DamageMeter:ApplySystemAnchor()
+        local function applyLayout()
+            DamageMeter:ApplySystemAnchor()
+            env.fire("EDIT_MODE_LAYOUTS_UPDATED")
+            env.flushTimers()
+        end
+        applyLayout()
         check("when Edit Mode re-anchors the meter it goes back onto the holder", anchoredTo(DamageMeter, holder))
         function DamageMeter:IsEditing() return true end
-        DamageMeter:ApplySystemAnchor()
+        applyLayout()
         check("but while Edit Mode is open the meter is left where Edit Mode puts it", not anchoredTo(DamageMeter, holder))
         DamageMeter.IsEditing = nil
         DamageMeter:SetSize(300, 150)
@@ -170,10 +176,12 @@ return function(check)
         local data = {}
         DamageMeter:SetupSessionWindow(2, data)
         local second = data.sessionWindow
-        check("a window Blizzard sets up later is skinned after Blizzard's own setup",
+        env.flushTimers()
+        check("a window Blizzard sets up later is found while the meter is shown and skinned after Blizzard's setup",
             second.alpha == 0.8 and second.Header.alpha == 0 and module.Headers[second] ~= nil)
         local header = module.Headers[second]
         DamageMeter:SetupSessionWindow(2, data)
+        env.flushTimers()
         check("a second setup of the same window adds nothing", module.Headers[second] == header
             and #second.MinimizeContainer.ScrollBox.callbacks == 1 and #env.printed == 0)
         SlashCmdList.RIKUI("debug")
@@ -192,6 +200,7 @@ return function(check)
             function DamageMeterSessionWindow1.Header:SetAlpha() error("header locked") end
         end)
         DamageMeter:SetupSessionWindow(1, { sessionWindow = DamageMeterSessionWindow1 })
+        env.flushTimers()
         SlashCmdList.RIKUI("debug")
         check("a window that refuses the skin is reported once, not retried, and debug repeats the reason",
             widgets.printedContains(env, "DamageMeter skin") and widgets.printedContains(env, "header locked")

@@ -49,7 +49,7 @@ function chat.SetNameClicks(value)
 end
 
 function chat.EnableClicks()
-    if type(SetItemRef) == "function" then hooksecurefunc("SetItemRef", onLink) end
+    if type(SetItemRef) == "function" then core.Hooks.Function("SetItemRef", onLink) end
 end
 
 table.insert(chat.Options.settings, { type = "checkbox", key = "nameClicks", label = "Alt-click a name to invite, Ctrl-click for who",

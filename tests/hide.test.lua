@@ -3,12 +3,16 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local function frame(parent)
-        local f = { parent = parent, events = { UNIT_HEALTH = true }, writes = 0 }
+        local f = { parent = parent, events = { UNIT_HEALTH = true }, writes = 0, onShow = {} }
         function f:GetParent() return self.parent end
+        function f:HookScript(script, fn) if script == "OnShow" then table.insert(self.onShow, fn) end end
         function f:SetParent(value)
             if self.nativeWrite then self.nativeWrite = nil
             else assert(not InCombatLockdown(), "frame reparented in combat") end
+            local wasParked = self.parent == RikUIHiddenFrames
             self.parent, self.writes = value, self.writes + 1
+            -- Leaving the hidden container makes a shown frame visible again, which fires OnShow.
+            if wasParked and value ~= RikUIHiddenFrames then for _, fn in ipairs(self.onShow) do fn(self) end end
         end
         function f:UnregisterAllEvents() self.events = {}; self.unregistered = (self.unregistered or 0) + 1 end
         function f:GetName() return "Fake" end
@@ -19,6 +23,7 @@ return function(check)
         EditModeManagerFrame.hooks.OnShow = nil
         RikUIDB, RikUICharDB = nil, nil
         assert(loadfile("src/core/core.lua"))("RikUI", {})
+        assert(loadfile("src/platform/hooks.lua"))("RikUI", {})
         assert(loadfile("src/platform/hide.lua"))("RikUI", {})
         local hide = RikUI.Hide
         check("helper exposes Frame, Restore and IsHidden", type(hide.Frame) == "function"

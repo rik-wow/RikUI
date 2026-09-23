@@ -75,7 +75,11 @@ return function(check)
         local frame = makeWindow("PlayerSpellsFrame")
         frame.TabSystem = { tabs = { makeTab(frame, 1), makeTab(frame, 2) } }
         for _, tab in ipairs(frame.TabSystem.tabs) do
-            function tab:SetTabSelected(selected) self.selected = selected end
+            -- TabSystemButtonArtMixin: the selected tab is disabled, the others enabled.
+            function tab:SetTabSelected(selected)
+                self.selected, self.isSelected = selected, selected
+                env.runScript(self, selected and "OnDisable" or "OnEnable")
+            end
         end
         env.fire("ADDON_LOADED", "Blizzard_PlayerSpells")
         return frame
@@ -88,7 +92,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
             "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/panels/panels.lua", "src/modules/panels/panels-skin.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end

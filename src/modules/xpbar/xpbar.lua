@@ -243,10 +243,10 @@ function xpbar:OnEnable()
         core:RegisterEvent(event, xpbar.Refresh)
     end
     if xpbar.Details then core:RegisterEvent("PLAYER_LEVEL_UP", xpbar.Details.LevelUp) end
-    hooksecurefunc(core, "SetProfile", xpbar.Refresh)
+    core.Hooks.Owned(core, "SetProfile", xpbar.Refresh)
     local bars = core.Bars
     if type(bars) == "table" and type(bars.UpdateStockVisibility) == "function" then
-        hooksecurefunc(bars, "UpdateStockVisibility", xpbar.UpdateStock)
+        core.Hooks.Owned(bars, "UpdateStockVisibility", xpbar.UpdateStock)
     end
 end
 

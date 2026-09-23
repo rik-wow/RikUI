@@ -239,7 +239,7 @@ function bags:OnEnable()
     createHolder()
     park()
     for _, name in ipairs(TOGGLES) do
-        if type(_G[name]) == "function" then hooksecurefunc(name, bags.Sync) end
+        if type(_G[name]) == "function" then core.Hooks.Function(name, bags.Sync) end
     end
     for _, event in ipairs(REFRESH_EVENTS) do core:RegisterEvent(event, refreshIfOpen) end
     core:RegisterEvent("PLAYER_MONEY", bags.UpdateMoney)

@@ -2,7 +2,9 @@
 -- out with the window; with this option on they are set to 1 (selected) and 0.6 instead, and back
 -- to zero when it is switched off. A docked window that receives a line while another tab is shown
 -- gets a gold dot on its tab, pulsing when the line was a whisper, cleared when the window shows.
--- The combat log window receives lines all the time and gets no dot.
+-- The combat log window receives lines all the time and gets no dot. New lines are seen from the
+-- window's OnEvent script and its history buffer, never from a hook on its AddMessage (on 69977 a
+-- method hook on a Blizzard frame left the method nil for Blizzard's callers).
 local core, media, motion = RikUI, RikUI.Media, RikUI.Motion
 local chat = core.Chat
 
@@ -10,7 +12,7 @@ local SELECTED_ALPHA, NORMAL_ALPHA, HIDDEN_ALPHA = 1, 0.6, 0
 local ALPHA_GLOBALS = { CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = SELECTED_ALPHA, CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = NORMAL_ALPHA }
 local DOT_SIZE, DOT_INSET, PULSE_LOW, PULSE_SECONDS, COMBAT_LOG_ID = 5, 3, 0.25, 0.6, 2
 local WHISPERS = { CHAT_MSG_WHISPER = true, CHAT_MSG_BN_WHISPER = true }
-local tabs = {}
+local tabs, seen = {}, {}
 
 local function enabled() return chat.Settings().tabsVisible ~= false end
 
@@ -31,9 +33,14 @@ local function clear(frame)
     tab.rikDot:Hide()
 end
 
-local function onMessage(frame, _, _, _, _, _, _, _, event)
+-- After the window handled a chat event: a hidden window whose newest line changed gets the dot.
+-- Filtered or ignored events add no line and change nothing.
+local function afterEvent(frame, event)
     local tab = tabs[frame]
-    if not tab or not enabled() or frame:IsShown() then return end
+    if not tab then return end
+    local count, newest = chat.NewLines(frame, seen[frame])
+    seen[frame] = newest
+    if count == 0 or not enabled() or frame:IsShown() then return end
     tab.rikDot:Show()
     if WHISPERS[event] and not (tab.rikPulse and tab.rikPulse:IsPlaying()) then motion.Play(tab.rikPulse) end
 end
@@ -50,8 +57,9 @@ local function addDot(frame)
     tab.rikDot:Hide()
     tab.rikPulse = motion.Pulse(tab.rikDot, 1, PULSE_LOW, PULSE_SECONDS)
     tabs[frame] = tab
-    if type(frame.AddMessage) == "function" then hooksecurefunc(frame, "AddMessage", onMessage) end
-    frame:HookScript("OnShow", clear)
+    seen[frame] = select(2, chat.NewLines(frame, nil))
+    core.Hooks.Script(frame, "OnEvent", afterEvent)
+    core.Hooks.Script(frame, "OnShow", clear)
 end
 
 function chat.SetTabsVisible(value)

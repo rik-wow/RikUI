@@ -8,7 +8,7 @@ return function(check)
     local API = { "CHAT_FRAMES", "NUM_CHAT_WINDOWS", "ChatFrameUtil", "EventRegistry", "SetItemRef", "ChatFontNormal",
         "FCF_SetChatWindowFontSize", "FCFTab_UpdateAlpha", "FCFTab_UpdateColors", "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA",
         "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA", "ItemRefTooltip", "RikUIChatCopy" }
-    local FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+    local FILES = { "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
         "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/layout/layout-resize.lua", "src/platform/editmode.lua", "src/modules/chat/chat.lua", "src/modules/chat/chat-skin.lua", "src/modules/chat/chat-copy.lua", "src/modules/chat/chat-move.lua", "src/modules/chat/chat-size.lua" }
     local STOCK_FONT, URL = "Fonts\\FRIZQT__.TTF", "https://example.com/a?b=1"
     local saved, savedGet, savedSet = {}, C_CVar.GetCVar, C_CVar.SetCVar
@@ -264,7 +264,7 @@ return function(check)
         end)
         check("missing link APIs print one line each and the rest still applies", printedContains("Chat links")
             and printedContains("Chat clicks") and #env.printed == 2 and ChatFrame1.fontPath == RikUI.Media.font
-            and #module.Parked == 12 and #env.hooks == stub.WINDOWS * 3 + 10)
+            and #module.Parked == 12 and #env.hooks == 1)
         check("without Blizzard's size function SetFontSize writes the fonts itself", module.SetFontSize(15) == true
             and ChatFrame3.fontSize == 15 and ChatFrame3EditBox.fontSize == 15)
 
@@ -308,7 +308,21 @@ return function(check)
         UIParent.GetWidth, UIParent.GetHeight = function() return 1365 end, function() return 768 end
         local cursor = { 0, 0 }
         GetCursorPosition = function() return cursor[1], cursor[2] end
-        local function sized() ChatFrame1.width, ChatFrame1.height = 430, 180 end
+        -- ChatFrame1 is an Edit Mode system: a layout apply re-anchors it and clamps it by its selection box.
+        local function sized()
+            ChatFrame1.width, ChatFrame1.height = 430, 180
+            function ChatFrame1:UpdateSystem()
+                self:SetClampRectInsets(-35, 35, 26, -50)
+                self:SetClampedToScreen(true)
+                self:ClearAllPoints()
+                self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 32, 95)
+            end
+        end
+        local function applyLayout()
+            ChatFrame1:UpdateSystem()
+            env.fire("EDIT_MODE_LAYOUTS_UPDATED")
+            env.flushTimers()
+        end
         local function tick() env.runScript(RikUI.Layout.DragDriver, "OnUpdate", 0.016) end
         module = load(nil, false, sized)
         env.fire("PLAYER_ENTERING_WORLD")
@@ -327,12 +341,11 @@ return function(check)
             return clamp ~= nil and clamp[1] == 0 and clamp[2] == 0 and clamp[3] == 0 and clamp[4] == 0
         end
         check("the window's screen clamp has no insets, so it can reach every edge the layout allows", freed())
-        ChatFrame1:SetClampRectInsets(-35, 35, 26, -50)
-        check("insets written by Edit Mode are taken away again", freed())
         check("the window is not clamped to the screen at all: the layout keeps the chat on screen",
             ChatFrame1.clamped == false)
-        ChatFrame1:SetClampedToScreen(true)
-        check("and clamping switched back on by the client is switched off again", ChatFrame1.clamped == false)
+        applyLayout()
+        check("insets written by an Edit Mode layout apply are taken away again", freed())
+        check("and the clamping it switched back on is switched off again", ChatFrame1.clamped == false)
         ChatFrame1.left, ChatFrame1.bottom, holder.left, holder.bottom = 40, 66, 16, 16
         env.printed = {}
         SlashCmdList.RIKUI("debug")
@@ -368,8 +381,7 @@ return function(check)
         check("the grip resizes the window and its holder and saves the size", RikUI.Profile.chat.size.width == 500
             and RikUI.Profile.chat.size.height == 200 and ChatFrame1.width == 500 and holder.height == 200
             and math.abs(layout.Rect("chat").left - after.left) < 0.01)
-        ChatFrame1:ClearAllPoints()
-        ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 32, 95)
+        applyLayout()
         check("an Edit Mode re-anchor is answered by putting the window back on the holder",
             #ChatFrame1.points == 1 and ChatFrame1.points[1][2] == holder)
         SlashCmdList.RIKUI("chat lock")

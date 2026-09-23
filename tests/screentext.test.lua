@@ -49,9 +49,13 @@ return function(check)
         check("the auto-follow text takes the font too", restyled(AutoFollowStatusText, 20))
         check("the shared huge game font is left alone", GameFontNormalHuge.writes == 0)
 
+        -- The frame's OnUpdate runs every frame while a line shows, before the new line is drawn.
+        local function frameTick() env.runScript(RaidWarningFrame, "OnUpdate", 0.016) end
         local first = RaidWarningFrame:AcquireOrEvictSlot()
-        check("a raid warning line gets the font as the pool hands it out", restyled(first, 20))
+        frameTick()
+        check("a raid warning line gets the font before its first frame is drawn", restyled(first, 20))
         local second = RaidWarningFrame:AcquireOrEvictSlot()
+        frameTick()
         check("a reused line is restyled once, a new one on arrival", first.writes == 1 and restyled(second, 20))
         check("nothing was printed by a clean restyle", #env.printed == 0)
         SlashCmdList.RIKUI("debug")

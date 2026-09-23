@@ -9,7 +9,7 @@ core.Minimap = minimap
 local HOLDER_NAME, KEY = "RikUIMinimap", "minimap"
 local SIZE, EDGE, TEXT_GAP = 198, 1, 4
 local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -16, y = -16 }
-local SQUARE_MASK = "Interface\\BUTTONS\\WHITE8X8"
+local SQUARE_MASK, ROTATE_CVAR = "Interface\\BUTTONS\\WHITE8X8", "rotateMinimap"
 local BORDER = { 0.25, 0.28, 0.32, 1 }
 local UPDATE_SECONDS, COORDS_FORMAT = 0.2, "%.1f, %.1f"
 local MILITARY_CVAR, MILITARY_FORMAT, CIVIL_FORMAT = "timeMgrUseMilitaryTime", "%H:%M", "%I:%M %p"
@@ -139,11 +139,15 @@ local function createHolder()
     minimap.Holder = holder
 end
 
+local function squareMask() Minimap:SetMaskTexture(SQUARE_MASK) end
+
+-- Camelot/Skin.lua restores the round atlas mask from its rotateMinimap CVar callback, which runs on
+-- CVAR_UPDATE; the square mask goes back one frame later, after it. Minimap's SetMaskTexture is not
+-- hooked: on 69977 a method hook on a Blizzard frame left the method nil for Blizzard's callers.
 local function keepSquare()
-    Minimap:SetMaskTexture(SQUARE_MASK)
-    -- Camelot/Skin.lua restores the round atlas mask on every rotateMinimap change.
-    hooksecurefunc(Minimap, "SetMaskTexture", function(_, texture)
-        if texture ~= SQUARE_MASK then Minimap:SetMaskTexture(SQUARE_MASK) end
+    squareMask()
+    core:RegisterEvent("CVAR_UPDATE", function(_, name)
+        if name == ROTATE_CVAR then C_Timer.After(0, squareMask) end
     end)
 end
 

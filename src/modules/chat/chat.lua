@@ -45,6 +45,24 @@ function chat.IsFrame(value) return hasMethod(value, "SetParent") end
 
 function chat.Settings() return core.Profile.chat end
 
+-- How many lines a window received since `seen`, and its newest line now. Lines are the history
+-- buffer's own entries (index 1 is the newest), so a line is known by identity. Pass nil for a first
+-- look (nothing is counted) and store `newest or false`: false stands for an empty window.
+local NEW_LINE_LIMIT = 999
+function chat.NewLines(frame, seen)
+    local buffer = frame.historyBuffer
+    if type(buffer) ~= "table" or type(buffer.GetEntryAtIndex) ~= "function" then return 0, false end
+    local newest = buffer:GetEntryAtIndex(1)
+    if seen == nil then return 0, newest or false end
+    local count = 0
+    while count < NEW_LINE_LIMIT do
+        local entry = buffer:GetEntryAtIndex(count + 1)
+        if entry == nil or entry == seen then break end
+        count = count + 1
+    end
+    return count, newest or false
+end
+
 -- Blizzard toggles the focus art with SetShown, so alpha is the write that lasts.
 local function fade(region)
     if hasMethod(region, "SetAlpha") then region:SetAlpha(0) end
@@ -205,7 +223,7 @@ function chat:OnEnable()
     chat.ApplyFonts()
     fadeTabs()
     chat.ApplyTimestamps()
-    if type(_G[SIZE_FUNCTION]) == "function" then hooksecurefunc(SIZE_FUNCTION, rememberSize) end
+    if type(_G[SIZE_FUNCTION]) == "function" then core.Hooks.Function(SIZE_FUNCTION, rememberSize) end
     for _, name in ipairs(ENABLERS) do
         if chat[name] then chat[name]() end
     end

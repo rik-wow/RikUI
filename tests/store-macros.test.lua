@@ -32,7 +32,7 @@ return function(check)
         C_Timer = { NewTicker = function(_, callback) tickers[#tickers + 1] = callback; return {} end }
         UnitName, GetRealmName = function() return character end, function() return "Classic Beta PvE" end
     end
-    local WITH_LAYOUT = { "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua",
+    local WITH_LAYOUT = { "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua",
         "data/layouts.lua", "src/layout/layout-audit.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua",
         "src/layout/layout-drag.lua", "src/layout/layout-presets.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }
     local files = { "src/core/core.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }

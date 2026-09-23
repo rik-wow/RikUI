@@ -15,6 +15,7 @@ src/core/commands.lua
 src/core/combat.lua
 src/core/lifecycle.lua
 src/core/diagnostics.lua
+src/platform/hooks.lua
 src/platform/hide.lua
 src/ui/media.lua
 src/ui/primitives.lua

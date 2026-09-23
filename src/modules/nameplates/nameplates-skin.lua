@@ -3,7 +3,8 @@
 -- fill is faded. A child frame draws above its parent's regions, which is why Blizzard's health
 -- text moves onto the overlay and the bar's RikUI regions live on it. The name sits in its own
 -- plaque on top of the bar.
--- UpdateAnchors resets fonts, anchors, sizes and atlases on each layout pass; Apply runs after it.
+-- UpdateAnchors resets fonts, anchors, sizes and atlases on each layout pass; Apply runs after it
+-- (src/modules/nameplates/nameplates.lua decides when).
 local core, media, ui = RikUI, RikUI.Media, RikUI.UI
 local nameplates = core.Nameplates
 local skin = {}
@@ -80,16 +81,12 @@ local function createLevel(parts, level)
 end
 
 -- The name's own box: same backing and edge as the bar and the level box, and exactly as wide
--- as the row below it. Blizzard hides the name on some plates, and the box follows it.
+-- as the row below it. Blizzard hides the name on some plates (CompactUnitFrame_UpdateName), and
+-- src/modules/nameplates/nameplates.lua syncs the box after it.
 local function createPlaque(parts, frame)
-    local name = frame.name
-    if not isRegion(name) then return end
+    if not isRegion(frame.name) then return end
     parts.plaque = nameplates.Block(frame, "BACKGROUND", BACKING)
     parts.plaqueBorder = nameplates.Outline(frame, parts.plaque, LINE)
-    local function sync() skin.SyncPlaque(frame) end
-    for _, method in ipairs({ "SetShown", "Show", "Hide" }) do
-        if type(name[method]) == "function" then hooksecurefunc(name, method, sync) end
-    end
 end
 
 function skin.SyncPlaque(frame)
@@ -116,7 +113,6 @@ function skin.Ensure(frame)
     createPlaque(parts, frame)
     createCast(parts, isRegion(frame.CastBarsContainer) and frame.CastBarsContainer.castBar or nil)
     nameplates.Target.Build(frame, parts)
-    hooksecurefunc(frame, "UpdateAnchors", skin.Apply)
     return parts
 end
 

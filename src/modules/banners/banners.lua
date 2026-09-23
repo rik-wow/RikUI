@@ -7,7 +7,7 @@ local core, skin = RikUI, RikUI.Skin
 local banners = { Hooked = {}, IconEdges = setmetatable({}, { __mode = "k" }) }
 core.Banners = banners
 
-local MANAGER, MANAGER_DISPLAY, MANAGER_LINES = "EventToastManagerFrame", "DisplayToast", "SetupGLineAtlas"
+local MANAGER, MANAGER_DISPLAY = "EventToastManagerFrame", "DisplayToast"
 local TOAST_TEXT = { "Title", "SubTitle", "Description", "InstructionalText", "RarityValue" }
 local LINE_KEYS, LINE_HEIGHT, ICON_EDGE_INSET = { "GLine", "GLine2" }, 1, -1
 -- Every piece below has its alpha driven by the banner's own animation groups.
@@ -82,22 +82,53 @@ local function guarded(name, callback, ...)
     warn("skin " .. name, reason)
 end
 
+-- DisplayToast shows the manager, releases the old toast and shows a pooled one, whose Setup plays
+-- the banner and so re-applies the line atlas, all in one call. The skin follows one frame later,
+-- from the manager's OnShow and OnEvent and every toast's OnShow and OnHide. DisplayToast and
+-- SetupGLineAtlas are not hooked: on 69977 a method hook on a Blizzard frame left the method nil for
+-- Blizzard's callers. The toasts' own grow and fade-in start after a delay, so nothing gold shows.
+local watchedToasts, skinPending = setmetatable({}, { __mode = "k" }), false
+
+local function skinManager(manager)
+    skinToast(manager)
+    flattenLines(manager)
+end
+
+local scheduleSkin
+local function watchToast(manager)
+    local toast = manager.currentDisplayingToast
+    if not skin.IsRegion(toast) or watchedToasts[toast] then return end
+    watchedToasts[toast] = true
+    core.Hooks.Script(toast, "OnShow", scheduleSkin)
+    core.Hooks.Script(toast, "OnHide", scheduleSkin)
+end
+
+scheduleSkin = function()
+    if skinPending then return end
+    skinPending = true
+    C_Timer.After(0, function()
+        skinPending = false
+        local manager = _G[MANAGER]
+        guarded(MANAGER, skinManager, manager)
+        watchToast(manager)
+    end)
+end
+
 local function hookManager()
     local manager = _G[MANAGER]
     if not skin.IsRegion(manager) or type(manager[MANAGER_DISPLAY]) ~= "function" then return end
     banners.Hooked[MANAGER] = true
-    hooksecurefunc(manager, MANAGER_DISPLAY, function(self) guarded(MANAGER, skinToast, self) end)
-    if type(manager[MANAGER_LINES]) ~= "function" then return end
-    hooksecurefunc(manager, MANAGER_LINES, function(self) guarded(MANAGER, flattenLines, self) end)
+    core.Hooks.Script(manager, "OnShow", scheduleSkin)
+    core.Hooks.Script(manager, "OnEvent", scheduleSkin)
 end
 
 local function hookFrame(target)
     local frame = _G[target.name]
     if not skin.IsRegion(frame) or type(frame.HookScript) ~= "function" then return end
     banners.Hooked[target.name] = true
-    frame:HookScript("OnShow", function(self) guarded(target.name, skinFrame, self, target) end)
+    core.Hooks.Script(frame, "OnShow", function(self) guarded(target.name, skinFrame, self, target) end)
     if not target.rowSetup or type(_G[target.rowSetup]) ~= "function" then return end
-    hooksecurefunc(target.rowSetup, function(row) guarded(target.name, skinRow, row, target) end)
+    core.Hooks.Function(target.rowSetup, function(row) guarded(target.name, skinRow, row, target) end)
 end
 
 local function count(set)

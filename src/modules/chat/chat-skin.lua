@@ -113,7 +113,7 @@ function chat.SkinFrame(frame)
     skinTab(frame)
     if hooked or type(_G[COLOR_HOOK]) ~= "function" then return end
     hooked = true
-    hooksecurefunc(COLOR_HOOK, onTabColors)
+    core.Hooks.Function(COLOR_HOOK, onTabColors)
 end
 
 function chat.SetPanel(shown)

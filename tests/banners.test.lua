@@ -1,5 +1,5 @@
--- Fake banners with the 69913 keys: the event toast manager (DisplayToast stores a pooled toast in
--- currentDisplayingToast and re-applies the gold line atlas), the boss banner (animated art, title,
+-- Fake banners with the 69913 keys: the event toast manager (DisplayToast hides the old toast, shows a
+-- pooled one as currentDisplayingToast, re-applies the gold line atlas and shows itself), the boss banner (animated art, title,
 -- loot rows) and the objective tracker's top banner. The suite checks the typeface, the emptied
 -- art, the flat lines and that the module adds no tween, point or size.
 return function(check)
@@ -37,10 +37,13 @@ return function(check)
         manager.pooled = makeToast(manager)
         function manager:SetupGLineAtlas() self.GLine.texture, self.GLine2.texture = "gold-bar", "gold-bar" end
         function manager:DisplayToast()
+            if self.currentDisplayingToast then self.currentDisplayingToast:Hide() end
             self.currentDisplayingToast = self.pooled
+            self.pooled:Show()
             self:SetupGLineAtlas()
+            self:Show()
         end
-        manager.shown = false
+        manager.shown, manager.pooled.shown = false, false
     end
     local function installClient()
         for _, name in ipairs(NAMES) do _G[name] = nil end
@@ -66,6 +69,8 @@ return function(check)
         local toast = manager.pooled
         check("a toast that was never displayed is left alone", rawget(toast.Title, "fontPath") == nil)
         manager:DisplayToast()
+        check("the skin waits for the rest of Blizzard's display call", rawget(toast.Title, "fontPath") == nil)
+        env.flushTimers()
         check("the displayed toast's strings take the typeface at Blizzard's size and keep their colour",
             toast.Title.fontPath == RikUI.Media.font and toast.Title.fontSize == 26 and toast.SubTitle.fontSize == 14
             and rawget(toast.Title, "textColor") == nil)
@@ -79,6 +84,7 @@ return function(check)
             and toast.width == nil and toast:GetScript("OnShow") == nil)
         local edges = module.IconEdges[toast]
         manager:DisplayToast()
+        env.flushTimers()
         check("a second display flattens the lines again without a second icon edge",
             manager.GLine.texture == RikUI.Skin.FLAT and module.IconEdges[toast] == edges)
 
@@ -109,6 +115,7 @@ return function(check)
 
         module = load({ modules = { banners = false } })
         EventToastManagerFrame:DisplayToast()
+        env.flushTimers()
         BossBanner:Show()
         check("a disabled module leaves banners stock", rawget(EventToastManagerFrame.pooled.Title, "fontPath") == nil
             and BossBanner.BannerTop.texture == "stock-art" and EventToastManagerFrame.GLine.texture == "gold-bar")

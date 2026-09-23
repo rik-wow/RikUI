@@ -1,15 +1,16 @@
 -- Finding your way in the scrollback. A flat button fades in at a window's bottom-right corner as
 -- soon as it is scrolled up and counts the lines that arrive meanwhile; a click returns to the
 -- newest line. Blizzard's wheel handler only scrolls one line, so Ctrl-wheel (jump to either end)
--- and Shift-wheel (page) are added beside it. Everything follows post-hooks on the window's own
--- scroll methods, so key bindings and Blizzard's buttons keep the button in step too.
+-- and Shift-wheel (page) are added beside it. Every scroll and every new line marks the window's
+-- display dirty, and the window calls its display-refreshed callbacks after redrawing, so one such
+-- callback keeps the button in step with key bindings and Blizzard's buttons too. The window's own
+-- methods are never hooked: on 69977 that left them nil for Blizzard's callers.
 local core, media, motion = RikUI, RikUI.Media, RikUI.Motion
 local chat = core.Chat
 
 local HEIGHT, MIN_WIDTH, INSET, PAD = 18, 22, 4, 6
 local ICON, ICON_SIZE, ICON_GAP, FADE_SECONDS = "chevron-down", 10, 3, 0.15
-local SCROLL_METHODS = { "ScrollUp", "ScrollDown", "PageUp", "PageDown", "ScrollToTop", "ScrollToBottom", "SetScrollOffset" }
-local unread = {}
+local unread, seen = {}, {}
 
 local function enabled() return chat.Settings().jumpButton ~= false end
 
@@ -39,10 +40,12 @@ local function refresh(frame)
     if wanted then motion.Play(button.fade) end
 end
 
-local function onMessage(frame)
-    if not frame.rikJump or atBottom(frame) then return end
-    unread[frame] = (unread[frame] or 0) + 1
-    label(frame)
+-- Lines that arrived since the last redraw count as unread while the window is scrolled up.
+local function onRefreshed(frame)
+    local count, newest = chat.NewLines(frame, seen[frame])
+    seen[frame] = newest
+    if count > 0 and frame.rikJump and not atBottom(frame) then unread[frame] = (unread[frame] or 0) + count end
+    refresh(frame)
 end
 
 local function onWheel(frame, delta)
@@ -76,11 +79,13 @@ end
 
 local function hookFrame(frame)
     createButton(frame)
-    for _, method in ipairs(SCROLL_METHODS) do
-        if type(frame[method]) == "function" then hooksecurefunc(frame, method, refresh) end
+    seen[frame] = select(2, chat.NewLines(frame, nil))
+    if type(frame.AddOnDisplayRefreshedCallback) == "function" then
+        frame:AddOnDisplayRefreshedCallback(onRefreshed)
+    else
+        chat.Warn("scroll", "display refresh callbacks unavailable on this client")
     end
-    if type(frame.AddMessage) == "function" then hooksecurefunc(frame, "AddMessage", onMessage) end
-    frame:HookScript("OnMouseWheel", onWheel)
+    core.Hooks.Script(frame, "OnMouseWheel", onWheel)
     refresh(frame)
 end
 

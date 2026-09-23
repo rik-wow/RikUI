@@ -1,10 +1,4 @@
--- Flat skin for the UI widget bars: status bars, double status bars and capture bars, which is
--- what battlegrounds, world PvP towers and scripted events draw. Each widget mixin's Setup runs on
--- every update, so it is post-hooked on the mixin table; a frame copies its mixin's functions when
--- it is made, so a widget made before login keeps the stock Setup until a reload. Blizzard's fill
--- textures, colours, sparks, state glows and values stay: the fill colour carries the faction or the
--- state, and nothing about a value is read here. Setup re-applies label font objects, so the
--- typeface is written again every time; fill and edge are made once per frame.
+-- Widget skinning follows native manager updates; Setup methods remain untouched.
 local core, skin = RikUI, RikUI.Skin
 local widgets = {}
 core.Widgets = widgets
@@ -63,11 +57,7 @@ local function skinCaptureBar(frame)
     return true
 end
 
-local TARGETS = {
-    { mixin = "UIWidgetTemplateStatusBarMixin", apply = skinStatusBar },
-    { mixin = "UIWidgetTemplateDoubleStatusBarMixin", apply = skinDoubleStatusBar },
-    { mixin = "UIWidgetTemplateCaptureBarMixin", apply = skinCaptureBar },
-}
+local TARGETS = { StatusBar = skinStatusBar, DoubleStatusBar = skinDoubleStatusBar, CaptureBar = skinCaptureBar }
 
 -- A failed widget is not retried: half a skin applied on every update is worse than half a skin.
 local function afterSetup(frame, apply)
@@ -83,14 +73,37 @@ local function afterSetup(frame, apply)
     end
 end
 
-function widgets:OnEnable()
-    for _, target in ipairs(TARGETS) do
-        local mixin = _G[target.mixin]
-        if type(mixin) == "table" and type(mixin.Setup) == "function" then
-            hooksecurefunc(mixin, "Setup", function(frame) afterSetup(frame, target.apply) end)
-            counts.hooked = counts.hooked + 1
+local function scanContainer(container)
+    local types = Enum and Enum.UIWidgetVisualizationType
+    if not types or type(container.widgetFrames) ~= "table" then return end
+    for _, frame in pairs(container.widgetFrames) do
+        for name, apply in pairs(TARGETS) do
+            if types[name] and frame.widgetType == types[name] then afterSetup(frame, apply) end
         end
     end
+end
+
+local pending = false
+local function scan()
+    pending = false
+    local manager = _G.UIWidgetManager
+    for container in pairs(manager and manager.registeredWidgetContainers or {}) do scanContainer(container) end
+end
+
+-- Wait until every native container has processed Setup, regardless of event ordering.
+local function requestScan()
+    if pending then return end
+    pending = true
+    C_Timer.After(0, scan)
+end
+
+function widgets:OnEnable()
+    if core.Hooks.Function("DefaultWidgetLayout", scanContainer) then counts.hooked = 1 end
+    for _, event in ipairs({ "UPDATE_UI_WIDGET", "UPDATE_ALL_UI_WIDGETS", "NAME_PLATE_UNIT_ADDED",
+        "PLAYER_ENTERING_WORLD", "ADDON_LOADED" }) do
+        core:RegisterEvent(event, requestScan)
+    end
+    scan()
 end
 
 function widgets:Debug()

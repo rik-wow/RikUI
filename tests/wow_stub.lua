@@ -47,6 +47,7 @@ local KNOWN_EVENTS = {
     CHAT_MSG_SAY = true, CHAT_MSG_YELL = true, CHAT_MSG_PARTY = true, CHAT_MSG_PARTY_LEADER = true,
     CHAT_MSG_MONSTER_SAY = true, CHAT_MSG_MONSTER_YELL = true, CHAT_MSG_MONSTER_PARTY = true,
     PLAYER_TOTEM_UPDATE = true, ADDON_ACTION_BLOCKED = true, ADDON_ACTION_FORBIDDEN = true,
+    EDIT_MODE_LAYOUTS_UPDATED = true, PLAYER_SPECIALIZATION_CHANGED = true,
 }
 env.KNOWN_EVENTS = KNOWN_EVENTS
 
@@ -220,8 +221,16 @@ function UnregisterStateDriver() end
 function SecureHandlerWrapScript() error("attempt to call a nil value") end
 function SecureHandlerExecute() error("attempt to call a nil value") end
 function hooksecurefunc(a, b, c)
+    -- On 1.60.1.69977 a hook on an object's method leaves the method nil for Blizzard's callers.
+    -- RikUI hooks global functions by name, and functions of plain C_ namespace tables
+    -- (src/platform/hooks.lua). A widget has a metatable; a namespace table has none.
     local tbl, name, fn = _G, a, b
-    if type(a) == "table" then tbl, name, fn = a, b, c end
+    if type(a) ~= "string" then
+        if type(a) ~= "table" or getmetatable(a) ~= nil then
+            error("hooksecurefunc(): object-method hooks break Blizzard callers on 69977", 2)
+        end
+        tbl, name, fn = a, b, c
+    end
     local orig = tbl[name]
     if type(orig) ~= "function" then error("hooksecurefunc(): " .. tostring(name) .. " is not a function", 2) end
     -- Like the client, the hook runs after the original and the original's returns are kept.

@@ -8,7 +8,6 @@ local core = RikUI
 local chat = core.Chat
 
 local MAIN = "ChatFrame1"
-local SETTERS = { "SetSize", "SetWidth", "SetHeight" }
 chat.SizeBounds = { minWidth = 250, minHeight = 120, maxWidth = 1200, maxHeight = 800 }
 local bounds = chat.SizeBounds
 local applying, guarded, answered = false, false, 0
@@ -62,8 +61,7 @@ local function adoptEditModeSize()
     if chat.SetSize(width, height) and core.Layout.Settle then core.Layout.Settle("chat") end
 end
 
--- Whoever writes the window's size, by whatever route, is answered with the saved size. It is the
--- mechanism that keeps the window's place (src/modules/chat/chat-move.lua hooks SetPoint the same way).
+-- Whoever writes the window's size, by whatever route, is answered with the saved size.
 local function onNativeSize()
     if applying then return end
     if core.EditMode.IsActive() then return adoptEditModeSize() end
@@ -84,12 +82,12 @@ function chat.SizeDebug()
         .. sizeText(_G[MAIN]:GetSize()) .. " guarded=" .. tostring(guarded) .. " answered=" .. answered)
 end
 
+-- Size writes are seen through OnSizeChanged, never through hooks on the window's setters: on 69977
+-- a method hook on a Blizzard frame left the method nil for Blizzard's own callers.
 function chat.EnableSize()
     if not chat.IsFrame(_G[MAIN]) then return end
     chat.ApplySize()
     guarded = core.EditMode.Guard(_G[MAIN], "chat size", chat.ApplySize)
-    for _, setter in ipairs(SETTERS) do
-        if type(_G[MAIN][setter]) == "function" then hooksecurefunc(_G[MAIN], setter, onNativeSize) end
-    end
+    core.Hooks.Script(_G[MAIN], "OnSizeChanged", onNativeSize)
     core:RegisterEvent("PLAYER_ENTERING_WORLD", chat.ApplySize)
 end

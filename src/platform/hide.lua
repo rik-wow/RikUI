@@ -71,10 +71,14 @@ local function remember(frame)
     if record then return record end
     record = { frame = frame, parent = frame:GetParent() }
     records[frame] = record
-    hooksecurefunc(frame, "SetParent", function(self)
-        if changing or self:GetParent() == hiddenParent() then return end
-        -- Track the latest native attachment, including Edit Mode changes, then re-park.
-        record.parent = self:GetParent()
+    -- A native reparent (Edit Mode, a Blizzard layout pass) makes a parked frame visible again, which
+    -- fires its OnShow. Track that attachment, then re-park. SetParent itself is not hooked: on 69977
+    -- a method hook on a Blizzard frame leaves the method nil for Blizzard's callers.
+    core.Hooks.Script(frame, "OnShow", function(self)
+        if changing then return end
+        local parent = self:GetParent()
+        if parent == hiddenParent() then return end
+        record.parent = parent
         if record.wanted then schedule(record) end
     end)
     return record

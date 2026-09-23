@@ -4,7 +4,8 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
-    local API = { "C_NamePlate", "PixelUtil", "UnitClassification" }
+    local API = { "C_NamePlate", "PixelUtil", "UnitClassification", "CompactUnitFrame_SetUpFrame",
+        "CompactUnitFrame_UpdateName", "CompactUnitFrame_UpdateAggroHighlight" }
     local saved, savedCVar, savedInfoEnum = {}, C_CVar, Enum.NamePlateInfoDisplay
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
@@ -108,13 +109,28 @@ return function(check)
         frame.aggroHighlight = toggled(frame:CreateTexture())
         frame.aggroHighlightTextures = { frame:CreateTexture(), frame:CreateTexture() }
         frame.aggroHighlightTextures[1].texture = "flare"
-        function frame:UpdateAggroHighlight() end
         function frame:IsShowOnlyName() return self.nameOnly == true end
         function frame:UpdateAnchors()
             bar.bgTexture.texture, self.name.fontPath, self.HealthBarsContainer.height = "atlas-bg", "stock-font", 8
         end
         return frame
     end
+    -- Blizzard's paths: CompactUnitFrame_UpdateName shows or hides the name, the plate's target event
+    -- toggles the selected border, CompactUnitFrame_UpdateAggroHighlight the aggro region, and
+    -- ApplyFrameOptions runs UpdateAnchors inside CompactUnitFrame_SetUpFrame.
+    local function nameShown(frame, shown)
+        frame.name.shown = shown
+        CompactUnitFrame_UpdateName(frame)
+    end
+    local function targeted(frame, shown)
+        frame.HealthBarsContainer.healthBar.selectedBorder.shown = shown
+        env.runScript(frame, "OnEvent", "PLAYER_TARGET_CHANGED")
+    end
+    local function aggro(frame, shown)
+        frame.aggroHighlight.shown = shown
+        CompactUnitFrame_UpdateAggroHighlight(frame)
+    end
+    local function layoutPass(frame) CompactUnitFrame_SetUpFrame(frame, frame.UpdateAnchors) end
     local function plate(unit, forbidden)
         local result = { UnitFrame = unitFrame() }
         function result:IsForbidden() return forbidden == true end
@@ -142,12 +158,15 @@ return function(check)
         C_NamePlate = { GetNamePlateForUnit = function(unit) return stub.plates[unit] end }
         PixelUtil = { GetNearestPixelSize = function(size, scale) return size / scale end }
         UnitClassification = function() return stub.classification end
+        CompactUnitFrame_SetUpFrame = function(frame, func) func(frame) end
+        CompactUnitFrame_UpdateName = function() end
+        CompactUnitFrame_UpdateAggroHighlight = function() end
         installCVars()
         profile = profile or {}
         profile.modules = profile.modules or {}
         profile.modules.unitframes, profile.modules.auras, profile.modules.unitauras = false, false, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua", "src/modules/nameplates/nameplates.lua",
             "src/modules/nameplates/nameplates-skin.lua", "src/modules/nameplates/nameplates-target.lua" }) do
             assert(loadfile(file))("RikUI", {})
@@ -190,10 +209,10 @@ return function(check)
             and parts.plaque.points[2][1] == "BOTTOMRIGHT" and parts.plaque.points[2][2] == parts.levelBox
             and #parts.plaqueBorder == 4 and parts.plaqueBorder[1].height == 0.5
             and parts.plaqueBorder[1].shown == true)
-        frame.name:Hide()
+        nameShown(frame, false)
         check("the plaque hides when Blizzard hides the name", parts.plaque.shown == false
             and parts.plaqueBorder[3].shown == false)
-        frame.name:SetShown(true)
+        nameShown(frame, true)
         check("and returns with it", parts.plaque.shown == true)
         check("all three of Blizzard's health texts are centred inside the bar", bar.LeftText.parent == own
             and bar.LeftText.fontPath == media.font and bar.LeftText.points[1][1] == "CENTER"
@@ -227,13 +246,13 @@ return function(check)
 
         check("Blizzard's selection art is faded and the target indicators start hidden", bar.selectedBorder.alpha == 0
             and parts.arrowLeft.shown == false and parts.arrowRight.shown == false and parts.accent.shown == false)
-        bar.selectedBorder:SetShown(true)
+        targeted(frame, true)
         check("Blizzard selecting the plate shows the arrows and the pulsing accent line", parts.arrowLeft.shown
             and parts.arrowRight.shown and parts.accent.shown and parts.accentPulse.playing
             and parts.accentPulse.looping == "BOUNCE" and parts.arrowLeft.appear.plays == 1)
-        bar.selectedBorder:SetShown(true)
+        targeted(frame, true)
         check("a repeated selection does not restart the animations", parts.arrowLeft.appear.plays == 1)
-        bar.selectedBorder:Hide()
+        targeted(frame, false)
         check("deselecting hides them and stops the pulse", parts.arrowLeft.shown == false
             and parts.accent.shown == false and parts.accentPulse.playing == false)
         check("arrows flank the marker and the level box; the accent line runs under the backing",
@@ -243,12 +262,10 @@ return function(check)
 
         check("Blizzard's aggro flare art is blanked and the threat line starts hidden",
             rawget(frame.aggroHighlightTextures[1], "texture") == nil and parts.threat.shown == false)
-        frame.aggroHighlight.shown = true
-        frame:UpdateAggroHighlight()
+        aggro(frame, true)
         check("the threat line follows Blizzard's aggro state", parts.threat.shown == true
             and parts.threat.color[1] == 1 and parts.threat.points[1][3] == "TOPLEFT")
-        frame.aggroHighlight.shown = false
-        frame:UpdateAggroHighlight()
+        aggro(frame, false)
         check("and hides with it", parts.threat.shown == false)
 
         local cast = frame.CastBarsContainer.castBar
@@ -256,15 +273,19 @@ return function(check)
             and cast.Background.texture == "Interface\\BUTTONS\\WHITE8X8" and cast.Text.fontPath == media.font
             and #parts.castBorder == 4 and rawget(cast, "barTexture") == nil)
 
-        frame:UpdateAnchors()
+        layoutPass(frame)
         check("the layout is reapplied after Blizzard's layout pass", frame.HealthBarsContainer.height == 14
             and bar.bgTexture.texture == "Interface\\BUTTONS\\WHITE8X8" and frame.name.fontPath == media.font)
         frame.nameOnly = true
-        frame:UpdateAnchors()
+        layoutPass(frame)
         check("a name-only plate gets no plaque", parts.plaque.shown == false)
         frame.nameOnly = false
         frame:UpdateAnchors()
-        check("the plaque returns when the plate shows its bar again", parts.plaque.shown == true)
+        env.fire("CVAR_UPDATE", "nameplateShowOnlyNames")
+        check("a layout pass from a CVar change waits for Blizzard's handler", frame.HealthBarsContainer.height == 8)
+        env.flushTimers()
+        check("and is followed one frame later; the plaque returns when the plate shows its bar again",
+            parts.plaque.shown == true and frame.HealthBarsContainer.height == 14)
 
         local container = module.Containers[frame]
         check("own debuffs sit in a container above the name plaque", container ~= nil and container.unit == "nameplate1"
@@ -279,6 +300,9 @@ return function(check)
         check("a removed plate hides its container", container:IsShown() == false and module.Active.nameplate1 == nil)
         stub.plates.nameplate7, stub.plates.nameplate1 = first, nil
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
+        frame:UpdateAnchors() -- OnUnitSet's UpdateShowOnlyName, after RikUI saw the event
+        env.flushTimers()
+        check("an added plate is laid out again a frame later", frame.HealthBarsContainer.height == 14)
         check("a pooled frame is reused without new hooks or parts and fades in again", #env.hooks == hooks
             and module.Parts[frame] == parts and container.unit == "nameplate7" and container.updates == updates + 1
             and parts.fade.plays == 2 and own.easing == Enum.StatusBarInterpolation.Immediate)

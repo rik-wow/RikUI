@@ -721,9 +721,9 @@ return function(check)
     C_CVar.SetCVarBitfield = function(name, index, value)
         record("cvar")
         assert(name == "nameplateStackingTypes" and value == true)
-        local bit = require("bit")
-        settings[name] = settings[name]:sub(1, 1)
-            .. string.char(bit.bor(settings[name]:byte(2), bit.lshift(1, index - 1)))
+        local data, mask = settings[name]:byte(2), 2 ^ (index - 1)
+        if math.floor(data / mask) % 2 == 0 then data = data + mask end
+        settings[name] = settings[name]:sub(1, 1) .. string.char(data)
         return true
     end
     result = setup.Apply("WARRIOR", nil, only("cvars"))

@@ -92,7 +92,7 @@ end
 
 local function hook(name, callback)
     if type(_G[name]) ~= "function" then tooltip.Warn(name, "unavailable on this client"); return false end
-    hooksecurefunc(name, callback)
+    core.Hooks.Function(name, callback)
     return true
 end
 

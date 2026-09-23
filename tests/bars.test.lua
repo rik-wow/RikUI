@@ -100,7 +100,7 @@ return function(check)
     local function loadBars(profile, combat)
         env.frames, env.printed, env.timers, env.inCombat = {}, {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile or {} } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
             "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end

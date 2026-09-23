@@ -86,7 +86,7 @@ function terrain.Refresh(frame)
     for pin in frame:EnumeratePinsByTemplate("MapExplorationPinTemplate") do
         if not records[pin] then
             records[pin] = { textures = {} }
-            hooksecurefunc(pin, "RefreshOverlays", refreshPin)
+            core.Hooks.Script(pin, "OnShow", refreshPin)
         end
         refreshPin(pin)
     end

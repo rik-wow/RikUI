@@ -42,15 +42,6 @@ local function setSelected(parts, shown)
     nameplates.Skin.Play(parts.arrowRight.appear)
 end
 
-local function followSelection(parts, border)
-    border:SetAlpha(0)
-    local function sync() setSelected(parts, border:IsShown() == true) end
-    for _, method in ipairs({ "SetShown", "Show", "Hide" }) do
-        if type(border[method]) == "function" then hooksecurefunc(border, method, sync) end
-    end
-    sync()
-end
-
 -- The flare is animated by Blizzard, so its alpha cannot be pinned; the art is blanked instead.
 local function blankFlare(frame)
     if type(frame.aggroHighlightTextures) ~= "table" then return end
@@ -59,12 +50,15 @@ local function blankFlare(frame)
     end
 end
 
-local function followThreat(frame, parts)
-    if not isRegion(frame.aggroHighlight) or type(frame.UpdateAggroHighlight) ~= "function" then return end
-    blankFlare(frame)
-    local function sync() parts.threat:SetShown(frame.aggroHighlight:IsShown() == true) end
-    hooksecurefunc(frame, "UpdateAggroHighlight", sync)
-    sync()
+-- Copies Blizzard's shown states onto the indicators. Blizzard sets them while the plate handles its
+-- events (target, focus, threat) and in its layout pass, so this runs after the plate's OnEvent
+-- script and from the global-function hooks in src/modules/nameplates/nameplates.lua. The regions'
+-- own Show/Hide are never hooked: on 69977 that left name:Show nil inside CompactUnitFrame_UpdateName.
+function target.Sync(frame)
+    local parts = nameplates.Parts[frame]
+    if not parts then return end
+    if parts.selection then setSelected(parts, parts.selection:IsShown() == true) end
+    if parts.aggro then parts.threat:SetShown(parts.aggro:IsShown() == true) end
 end
 
 function target.Build(frame, parts)
@@ -74,8 +68,16 @@ function target.Build(frame, parts)
     parts.accentPulse = pulse(parts.accent)
     parts.threat = nameplates.Block(own, "OVERLAY", THREAT)
     parts.threat:SetShown(false)
-    followSelection(parts, bar.selectedBorder)
-    followThreat(frame, parts)
+    if isRegion(bar.selectedBorder) then
+        bar.selectedBorder:SetAlpha(0)
+        parts.selection = bar.selectedBorder
+    end
+    if isRegion(frame.aggroHighlight) then
+        blankFlare(frame)
+        parts.aggro = frame.aggroHighlight
+    end
+    core.Hooks.Script(frame, "OnEvent", target.Sync)
+    target.Sync(frame)
 end
 
 -- Arrows hug the bar and the level box, with the marker beyond the left arrow: the marker is

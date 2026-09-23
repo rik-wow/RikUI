@@ -9,6 +9,7 @@ return function(check)
     env.frames, env.printed, env.inCombat = {}, {}, false
     RikUI, RikUIDB, RikUICharDB = nil, nil, nil
     assert(loadfile("src/core/core.lua"))("RikUI", {})
+    assert(loadfile("src/platform/hooks.lua"))("RikUI", {})
     assert(loadfile("src/modules/bars/bars.lua"))("RikUI", {})
     -- Diagnostic-only load avoids needing secure frame creation.
     RikUI.Bars.OnEnable = nil

@@ -23,10 +23,17 @@ function stub.animationGroup()
     return group
 end
 
+-- The client runs OnSizeChanged (and its hooks) after a size that really changed.
+local function resize(self, w, h)
+    if self.width == w and self.height == h then return end
+    self.width, self.height = w, h
+    if type(rawget(self, "scripts")) == "table" then require("wow_stub").runScript(self, "OnSizeChanged", w, h) end
+end
+
 local function recordCommon(value)
-    function value:SetSize(w, h) self.width, self.height = w, h end
-    function value:SetHeight(h) self.height = h end
-    function value:SetWidth(w) self.width = w end
+    function value:SetSize(w, h) resize(self, w, h) end
+    function value:SetHeight(h) resize(self, self.width, h) end
+    function value:SetWidth(w) resize(self, w, self.height) end
     function value:GetHeight() return self.height end
     function value:GetWidth() return self.width end
     function value:GetSize() return self.width, self.height end
@@ -108,11 +115,11 @@ end
 
 -- Fresh addon load for a furniture suite: resets the environment, loads the shared files and the
 -- module's own, then logs in. prepare() runs before the files load, to install or remove client API.
-local SHARED_FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+local SHARED_FILES = { "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
     "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua" }
 
 function stub.loadAddon(env, files, profile, combat, prepare)
-    env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
+    env.frames, env.printed, env.inCombat, env.hooks, env.timers = {}, {}, false, {}, {}
     if prepare then prepare() end
     profile = profile or {}
     profile.modules = profile.modules or {}

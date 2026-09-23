@@ -1,7 +1,7 @@
 return function(check)
     local env, widgets = require("wow_stub"), require("widget_stub")
     local restore = widgets.install()
-    local names = { "WorldMapFrame", "C_Map", "C_MapExplorationInfo" }
+    local names = { "WorldMapFrame", "C_Map", "C_MapExplorationInfo", "EventRegistry" }
     local saved = {}
     for _, name in ipairs(names) do saved[name] = _G[name] end
     local mapID, explored, pin, canvas, ready, refreshes, loading
@@ -10,6 +10,9 @@ return function(check)
         "src/modules/worldmap/worldmap-terrain.lua", "src/modules/worldmap/worldmap-navigation.lua",
         "src/modules/worldmap/worldmap-tools.lua" }
     local function prepare()
+        local callbacks = {}
+        EventRegistry = { RegisterCallback = function(_, event, fn, owner) callbacks[event] = function() fn(owner) end end,
+            TriggerEvent = function(_, event) if callbacks[event] then callbacks[event]() end end }
         mapID, explored = 1411, {}
         ready, refreshes, loading = false, 0, {}
         details, sized, nativeLoads = false, false, 0
@@ -70,7 +73,7 @@ return function(check)
             pin:RefreshOverlays()
         end
         function WorldMapFrame:GetMapID() return mapID end
-        function WorldMapFrame:OnMapChanged() end
+        function WorldMapFrame:OnMapChanged() EventRegistry:TriggerEvent("MapCanvas.MapSet") end
         function WorldMapFrame:SetMapID(id) mapID = id; self:OnMapChanged() end
         function WorldMapFrame:AddMaskableTexture() end
         pin = CreateFrame("Frame", nil, canvas)
@@ -143,6 +146,7 @@ return function(check)
         check("reveal reuses textures", #pin.created == count and pin.created[1].shown)
         explored = { { textureWidth = 215, textureHeight = 215, offsetX = 355, offsetY = 320 } }
         pin:RefreshOverlays()
+        env.fire("MAP_EXPLORATION_UPDATED"); env.flushTimers()
         check("newly explored terrain is excluded", pin.created[1].texture ~= 271443)
         C_Map.GetMapArtID = function() return 1200 end
         module.Terrain.Refresh(WorldMapFrame)

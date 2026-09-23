@@ -4,7 +4,7 @@
 -- its own size, the holder is a layout group under the key chat, and the window gets the lock tag,
 -- the overlay, the drag engine and the resize grip of the arrangement system. The padlock on the
 -- window and dragging its first tab are shortcuts onto the same unlock state and the same drag.
--- Edit Mode re-anchoring the window is answered by putting it back on the holder. Nothing here is
+-- Edit Mode applying a layout is answered by putting the window back on the holder. Nothing here is
 -- protected.
 local core, layout = RikUI, RikUI.Layout
 local chat = core.Chat
@@ -22,7 +22,7 @@ local LOCKED_COLOR, UNLOCKED_COLOR = { 1, 1, 1 }, { 1, 0.78, 0.3 }
 -- The overlay of an unlocked group is a DIALOG frame over the whole window; the open padlock sits above it.
 local OPEN_STRATA = "FULLSCREEN_DIALOG"
 local HOVER_FADE = 0.12
-local holder, lockButton, anchoring, dragging, clamping = nil, nil, false, false, false
+local holder, lockButton, dragging = nil, nil, false
 
 local NO_FOOTPRINT = { left = 0, right = 0, top = 0, bottom = 0 }
 
@@ -42,19 +42,12 @@ end
 
 local function anchor()
     local frame = _G[MAIN]
-    anchoring = true
     local ok, reason = pcall(function()
         local foot = chat.Footprint()
         frame:ClearAllPoints()
         frame:SetPoint("TOPLEFT", holder, "TOPLEFT", foot.left, -foot.top)
     end)
-    anchoring = false
     if not ok then chat.Warn("move", reason) end
-end
-
--- Edit Mode re-anchors its systems whenever a layout is applied; the window goes back on the holder.
-local function onNativePoint()
-    if holder and not anchoring then anchor() end
 end
 
 -- Edit Mode sets the window's screen clamp from its selection box (EditModeSystemMixin:UpdateClampOffsets),
@@ -63,8 +56,6 @@ end
 -- longer stands where its holder and overlay are. The layout engine keeps the chat on screen itself.
 local function freeClamp()
     local frame = _G[MAIN]
-    if clamping then return end
-    clamping = true
     local ok, reason = pcall(function()
         if type(frame.SetClampRectInsets) == "function" then frame:SetClampRectInsets(0, 0, 0, 0) end
         -- Zero insets were not enough in game: after a reload the window still stood away from a holder
@@ -72,7 +63,6 @@ local function freeClamp()
         -- clamping is switched off altogether.
         if type(frame.SetClampedToScreen) == "function" then frame:SetClampedToScreen(false) end
     end)
-    clamping = false
     if not ok then chat.Warn("clamp", reason) end
 end
 
@@ -136,10 +126,11 @@ local function createHolder()
     local width, height = holderSize()
     if type(width) == "number" and type(height) == "number" then holder:SetSize(chat.HolderSize(width, height)) end
     layout.Register(holder, KEY, nil, { label = "Chat", onUnlock = refreshLock, resize = chat.SetSize and resizeOption() or nil })
-    hooksecurefunc(_G[MAIN], "SetPoint", onNativePoint)
-    for _, method in ipairs({ "SetClampRectInsets", "SetClampedToScreen" }) do
-        if type(_G[MAIN][method]) == "function" then hooksecurefunc(_G[MAIN], method, freeClamp) end
-    end
+    -- The default chat window is placed only by Edit Mode (FCF_RestorePositionAndDimensions skips it),
+    -- so its layout applies are the only native re-anchors. The guard puts the window back on the holder
+    -- and frees the clamp after each one. The window's SetPoint and clamp setters are not hooked: on
+    -- 69977 that left ChatFrame1:SetPoint nil inside Edit Mode's InitSystemAnchors.
+    core.EditMode.Guard(_G[MAIN], "chat place", function() anchor(); freeClamp() end)
     freeClamp()
 end
 

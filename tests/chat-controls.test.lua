@@ -11,7 +11,7 @@ return function(check)
         "CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA", "CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA", "GENERAL_CHAT_DOCK",
         "FCFDock_GetSelectedWindow", "GetChannelList", "IsInGroup", "IsInRaid", "IsInGuild", "C_GuildInfo",
         "C_PartyInfo", "C_FriendList", "IsAltKeyDown", "IsControlKeyDown" }
-    local FILES = { "src/core/core.lua", "src/platform/hide.lua", "src/platform/editmode.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+    local FILES = { "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/platform/editmode.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
         "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/chat/chat.lua", "src/modules/chat/chat-skin.lua", "src/modules/chat/chat-copy.lua",
         "src/modules/chat/chat-move.lua", "src/modules/chat/chat-lines.lua", "src/modules/chat/chat-history.lua", "src/modules/chat/chat-scroll.lua", "src/modules/chat/chat-size.lua", "src/modules/chat/chat-input.lua",
         "src/modules/chat/chat-editbox.lua", "src/modules/chat/chat-strip.lua", "src/modules/chat/chat-tabs.lua", "src/modules/chat/chat-clicks.lua" }
@@ -182,22 +182,25 @@ return function(check)
 
         check("tabs stay visible without the mouse", CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA == 1
             and CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA == 0.6 and ChatFrame1Tab.alpha == 1)
-        ChatFrame3:AddMessage("hi", 1, 1, 1, 1, nil, nil, "CHAT_MSG_GUILD")
+        stub.receive(ChatFrame3, "UPDATE_CHAT_COLOR")
+        check("an event that adds no line puts no dot", ChatFrame3Tab.rikDot.shown == false)
+        stub.receive(ChatFrame3, "CHAT_MSG_GUILD", "hi")
         check("a line in a window that is not shown puts a dot on its tab", ChatFrame3Tab.rikDot.shown == true
             and ChatFrame3Tab.rikPulse.playing ~= true)
-        ChatFrame3:AddMessage("psst", 1, 1, 1, 1, nil, nil, "CHAT_MSG_WHISPER")
+        stub.receive(ChatFrame3, "CHAT_MSG_WHISPER", "psst")
         check("a whisper makes the dot pulse", ChatFrame3Tab.rikPulse.playing == true
             and ChatFrame3Tab.rikPulse.looping == "BOUNCE")
         ChatFrame3:Show()
         check("opening the tab clears the dot and stops the pulse", ChatFrame3Tab.rikDot.shown == false
             and ChatFrame3Tab.rikPulse.playing == false)
-        ChatFrame1:AddMessage("hi", 1, 1, 1)
+        stub.receive(ChatFrame1, "CHAT_MSG_SAY", "hi")
         ChatFrame2.shown = false
-        ChatFrame2:AddMessage("You hit a wolf", 1, 1, 1)
+        stub.receive(ChatFrame2, "COMBAT_LOG_EVENT", "You hit a wolf")
         check("a shown window and the combat log never get a dot", ChatFrame1Tab.rikDot.shown == false
             and rawget(ChatFrame2Tab, "rikDot") == nil)
         ChatFrame3.shown = false
-        ChatFrame3:AddMessage("again", 1, 1, 1)
+        stub.receive(ChatFrame3, "CHAT_MSG_SAY", "again")
+        check("a line after the window was open is new again", ChatFrame3Tab.rikDot.shown == true)
         option(chat, "tabsVisible").set(false)
         check("switching visible tabs off restores the hover fade and clears the dots",
             CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA == 0 and ChatFrame1Tab.alpha == 0 and ChatFrame3Tab.rikDot.shown == false)

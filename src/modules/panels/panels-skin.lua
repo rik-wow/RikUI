@@ -86,6 +86,17 @@ local function setAccent(tab, selected)
     if tabs[tab] then tab.rikAccent:SetShown(selected == true) end
 end
 
+-- TabSystem tabs keep their selection in isSelected; PanelTemplates tabs go through the global hooks.
+-- SetTabSelected also disables the selected tab and enables the others, so the accent follows the
+-- tab's OnEnable and OnDisable, and its OnShow and OnClick. SetTabSelected itself is not hooked: on
+-- 69977 a method hook on a Blizzard frame left the method nil for Blizzard's callers.
+local TAB_SCRIPTS = { "OnEnable", "OnDisable", "OnShow", "OnClick" }
+local function syncTabSystem(tab) setAccent(tab, tab.isSelected == true) end
+
+local function followTabSystem(tab)
+    for _, script in ipairs(TAB_SCRIPTS) do core.Hooks.Script(tab, script, syncTabSystem) end
+end
+
 local function skinTab(tab, selected)
     if tabs[tab] or not isRegion(tab) or type(tab.CreateTexture) ~= "function" then return end
     strip(tab, TAB_ART)
@@ -100,8 +111,7 @@ local function skinTab(tab, selected)
     if isRegion(tab.Text) and type(tab.Text.SetFont) == "function" then media.Font(tab.Text, "small") end
     tabs[tab] = true
     setAccent(tab, selected)
-    -- TabSystem tabs report their own selection; PanelTemplates tabs go through the global hooks.
-    if type(tab.SetTabSelected) == "function" then hooksecurefunc(tab, "SetTabSelected", setAccent) end
+    if type(tab.SetTabSelected) == "function" then followTabSystem(tab) end
 end
 
 local function selectedID(frame)
@@ -123,10 +133,10 @@ end
 
 function skin.HookTabs()
     if type(PanelTemplates_SelectTab) == "function" then
-        hooksecurefunc("PanelTemplates_SelectTab", function(tab) setAccent(tab, true) end)
+        core.Hooks.Function("PanelTemplates_SelectTab", function(tab) setAccent(tab, true) end)
     end
     if type(PanelTemplates_DeselectTab) == "function" then
-        hooksecurefunc("PanelTemplates_DeselectTab", function(tab) setAccent(tab, false) end)
+        core.Hooks.Function("PanelTemplates_DeselectTab", function(tab) setAccent(tab, false) end)
     end
 end
 

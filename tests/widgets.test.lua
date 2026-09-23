@@ -1,12 +1,12 @@
--- Fake UI widget mixins and frames with the 69913 region keys. A frame copies its mixin's Setup
--- when it is made, as the client does, so the suite also pins that a widget made before the hook
--- stays stock. Setup restores art and fonts the way Blizzard's does.
+-- Widget updates retain native Setup methods and restyle from manager events.
 return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
     local MIXINS = { "UIWidgetTemplateStatusBarMixin", "UIWidgetTemplateDoubleStatusBarMixin",
         "UIWidgetTemplateCaptureBarMixin" }
     local saved = {}
+    for _, name in ipairs({ "UIWidgetManager", "DefaultWidgetLayout", "Enum" }) do saved[name] = _G[name] end
+    local container
     for _, name in ipairs(MIXINS) do saved[name] = _G[name] end
     local restore = widgets.install()
     local BAR_ART = { "BGLeft", "BGRight", "BGCenter", "BorderLeft", "BorderRight", "BorderCenter", "BackgroundGlow" }
@@ -33,6 +33,8 @@ return function(check)
         frame.labels = {}
         build(frame)
         frame.Setup = _G[mixin].Setup
+        for index, name in ipairs(MIXINS) do if name == mixin then frame.widgetType = index end end
+        container.widgetFrames[#container.widgetFrames + 1] = frame
         return frame
     end
     local function statusWidget()
@@ -58,6 +60,12 @@ return function(check)
     end
     local function load(profile, prepare)
         widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/widgets/widgets.lua" }, profile, false, function()
+            container = { widgetFrames = {} }
+            UIWidgetManager = { registeredWidgetContainers = { [container] = true } }
+            Enum = { UIWidgetVisualizationType = { StatusBar = 1, DoubleStatusBar = 2, CaptureBar = 3 } }
+            DefaultWidgetLayout = function() end
+            env.KNOWN_EVENTS.UPDATE_UI_WIDGET, env.KNOWN_EVENTS.UPDATE_ALL_UI_WIDGETS = true, true
+            env.KNOWN_EVENTS.NAME_PLATE_UNIT_ADDED = true
             for _, name in ipairs(MIXINS) do _G[name] = { Setup = blizzardSetup } end
             if prepare then prepare() end
         end)
@@ -70,6 +78,7 @@ return function(check)
         local module = load()
         local status = statusWidget()
         status:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("Blizzard's Setup still runs", status.setups == 1)
         check("a status bar widget loses its background and border art and gets a flat fill and edge",
             status.Bar.BGCenter.alpha == 0 and status.Bar.BorderLeft.alpha == 0 and status.Bar.BackgroundGlow.alpha == 0
@@ -82,18 +91,21 @@ return function(check)
         local fill = status.Bar.rikFill
         status.Bar.BGCenter.alpha = 1
         status:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("a later Setup keeps the one fill, fades restored art and rewrites the typeface",
             status.Bar.rikFill == fill and status.Bar.BGCenter.alpha == 0
             and status.Bar.Label.fontPath == RikUI.Media.font)
 
         local double = doubleWidget()
         double:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("both sides of a double status bar go flat", double.LeftBar.BG.alpha == 0
             and double.RightBar.BorderCenter.alpha == 0 and flatBar(double.LeftBar) and flatBar(double.RightBar)
             and double.Label.fontPath == RikUI.Media.font)
 
         local capture = captureWidget()
         capture:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("a capture bar loses its frame art and keeps its zones, spark and glows",
             capture.BarBackground.alpha == 0 and capture.LeftLine.alpha == 0 and capture.Divider.alpha == 0
             and rawget(capture.LeftBar, "alpha") == nil and rawget(capture.Glow1, "alpha") == nil)
@@ -105,37 +117,45 @@ return function(check)
             and #env.printed == 0)
         env.inCombat = true
         statusWidget():Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         env.inCombat = false
         check("a widget that appears in combat is skinned without a protected write", #env.printed == 0)
         SlashCmdList.RIKUI("debug")
-        check("debug reports hooks and frames", widgets.printedContains(env, "Widgets hooked=3 skinned=4 failed=0"))
+        check("debug reports hooks and frames", widgets.printedContains(env, "Widgets hooked=1 skinned=4 failed=0"))
 
         local before
         module = load(nil, function() before = statusWidget() end)
         before:Setup({}, nil)
-        check("a widget made before the hook stays stock", before.Bar.rikFill == nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
+        check("a widget made before login is skinned too", before.Bar.rikFill ~= nil)
+        check("native Setup remains untouched", before.Setup == blizzardSetup)
         local broken = statusWidget()
         function broken.Bar.BGLeft:SetAlpha() error("alpha refused") end
         broken:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         broken:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("a widget that refuses the skin is reported once and not retried",
             widgets.printedContains(env, "Widgets skin") and #env.printed == 1 and broken.setups == 2)
         local bare = make(MIXINS[1], function() end)
         bare:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("a widget without a bar is left alone silently", #env.printed == 1)
 
-        module = load(nil, function() _G[MIXINS[3]] = nil end)
+        module = load(nil, function() DefaultWidgetLayout = nil end)
         SlashCmdList.RIKUI("debug")
-        check("a missing mixin is skipped", widgets.printedContains(env, "Widgets hooked=2"))
+        check("a missing layout global is skipped", widgets.printedContains(env, "Widgets hooked=0"))
 
         module = load({ modules = { widgets = false } })
         local stock = statusWidget()
         stock:Setup({}, nil)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("a disabled module leaves widgets stock", stock.Bar.rikFill == nil
             and rawget(stock.Bar.BGCenter, "alpha") == nil)
     end)
     restore()
     for _, name in ipairs(MIXINS) do _G[name] = saved[name] end
+    for _, name in ipairs({ "UIWidgetManager", "DefaultWidgetLayout", "Enum" }) do _G[name] = saved[name] end
     env.inCombat = false
     check("widget suite completes", ok, reason)
 end

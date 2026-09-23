@@ -79,7 +79,7 @@ end
 
 function alerts:OnEnable()
     if type(_G[HOOK]) ~= "function" then return end
-    hooksecurefunc(HOOK, onShow)
+    core.Hooks.Function(HOOK, onShow)
     counts.hooked = true
 end
 

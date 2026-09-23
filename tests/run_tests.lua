@@ -191,6 +191,8 @@ check("Level-up test suite completes", levelupOk, levelupErr)
 local roleOk, roleErr = pcall(function() dofile("tests/setup-role.test.lua")(check) end)
 check("Role test suite completes", roleOk, roleErr)
 
+dofile("tests/hooks-policy.test.lua")(check)
+
 local barsOk, barsErr = pcall(function() dofile("tests/bars.test.lua")(check) end)
 check("Bar test suite completes", barsOk, barsErr)
 

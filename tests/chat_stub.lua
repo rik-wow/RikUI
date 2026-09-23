@@ -20,17 +20,30 @@ local function installFrameArt(frame, name)
     end
 end
 
+-- A shown window redraws after any change and then runs its display-refreshed callbacks; a hidden
+-- one does not redraw.
+function stub.refresh(frame)
+    if not frame.shown then return end
+    for _, callback in ipairs(frame.refreshed) do callback(frame) end
+end
+
+local function scrollTo(frame, offset)
+    frame.offset = offset
+    stub.refresh(frame)
+end
+
 -- ScrollingMessageFrame's scroll model: offset 0 is the newest line. SetMaxLines clears the window,
 -- as the client's does. Sizing calls are recorded.
 function stub.installScrolling(frame)
-    frame.offset, frame.maxLines, frame.sizing = 0, 128, nil
+    frame.offset, frame.maxLines, frame.sizing, frame.refreshed = 0, 128, nil, {}
+    function frame:AddOnDisplayRefreshedCallback(callback) table.insert(self.refreshed, callback) end
     function frame:AtBottom() return self.offset == 0 end
-    function frame:ScrollUp() self.offset = math.min(#self.messages, self.offset + 1) end
-    function frame:ScrollDown() self.offset = math.max(0, self.offset - 1) end
-    function frame:PageUp() self.offset = math.min(#self.messages, self.offset + stub.PAGE) end
-    function frame:PageDown() self.offset = math.max(0, self.offset - stub.PAGE) end
-    function frame:ScrollToTop() self.offset = #self.messages end
-    function frame:ScrollToBottom() self.offset = 0 end
+    function frame:ScrollUp() scrollTo(self, math.min(#self.messages, self.offset + 1)) end
+    function frame:ScrollDown() scrollTo(self, math.max(0, self.offset - 1)) end
+    function frame:PageUp() scrollTo(self, math.min(#self.messages, self.offset + stub.PAGE)) end
+    function frame:PageDown() scrollTo(self, math.max(0, self.offset - stub.PAGE)) end
+    function frame:ScrollToTop() scrollTo(self, #self.messages) end
+    function frame:ScrollToBottom() scrollTo(self, 0) end
     function frame:GetMaxLines() return self.maxLines end
     function frame:SetMaxLines(lines) self.maxLines, self.messages = lines, {} end
     function frame:SetResizable(flag) self.resizable = flag end
@@ -66,7 +79,12 @@ local function installFrame(id)
     frame.fontPath, frame.fontSize, frame.fontFlags = "Fonts\\FRIZQT__.TTF", 18, ""
     frame.messages = {}
     function frame:GetID() return id end
-    function frame:AddMessage(text, r, g, b) table.insert(self.messages, { text = text, r = r, g = g, b = b }) end
+    function frame:AddMessage(text, r, g, b, ...)
+        table.insert(self.messages, { text = text, r = r, g = g, b = b, extraData = { ... } })
+        stub.refresh(self)
+    end
+    -- The history buffer's entries are the lines themselves; index 1 is the newest.
+    frame.historyBuffer = { GetEntryAtIndex = function(_, index) return frame.messages[#frame.messages - index + 1] end }
     function frame:GetNumMessages() return #self.messages end
     function frame:GetMessageInfo(index)
         if stub.messageError then error(stub.messageError) end
@@ -83,6 +101,13 @@ local function installFrame(id)
     installTab(name, id)
     table.insert(CHAT_FRAMES, name)
     return frame
+end
+
+-- A chat event reaching a window: ChatFrameMixin's handler adds the line (none without text, like a
+-- filtered line or a settings event), then OnEvent hooks run.
+function stub.receive(frame, event, text)
+    if text ~= nil then frame:AddMessage(text, 1, 1, 1, 1, nil, nil, event) end
+    for _, hook in ipairs(frame.hooks.OnEvent or {}) do hook(frame, event, text) end
 end
 
 local function installButtons()
