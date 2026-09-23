@@ -208,9 +208,12 @@ local function loadAddon(name)
     if type(load)~="function" then return nil,"road-loader-unavailable" end
     local clock=type(debugprofilestop)=="function" and debugprofilestop
     local before=clock and clock()
-    local ok,loaded=pcall(load,name)
+    local ok,loaded,reason=pcall(load,name)
     if before then local ms=clock()-before;if ms>stats.maxLoadMS then stats.maxLoadMS=ms end end
     stats.loads=stats.loads+1
+    -- The client lists addon folders only at startup; one added by an install
+    -- since then reads as MISSING until the game restarts.
+    if ok and not loaded and reason=="MISSING" then return nil,"road-addon-missing" end
     if not ok or not loaded then return nil,"road-addon-unavailable" end
     return true
 end

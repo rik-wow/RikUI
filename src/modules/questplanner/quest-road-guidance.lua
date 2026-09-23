@@ -213,6 +213,7 @@ function guidance.Step()
     if not snapshot then setState("unavailable-position","Waiting for quest observations");return true end
     local graph,why=roads.Prepare(snapshot.identity,world)
     if not graph then
+        if why=="road-addon-missing" then clear();setState("restart-required","Restart the game to load the new road data");return true end
         clear();setState(why=="loading" and "loading" or "unavailable",why=="loading" and "Loading the road network" or why)
         return true
     end

@@ -74,7 +74,8 @@ local TERRAIN_STATUS={hunting="Look for quest targets nearby",loading="Preparing
     calculating="Calculating walking route",modeled="Terrain route estimate",["modeled-approach"]="Approach estimate; final gap unverified",
     ["outside-coverage"]="Outside terrain map coverage",["no-known-path"]="No connected route in terrain model",
     ["coverage-frontier"]="Route coverage needs a nearer waypoint or retry",["budget-exhausted"]="Walking route search reached its limit",invalid="Terrain guidance is unavailable",
-    unavailable="Terrain data is unavailable",disabled="Quest planner is disabled",cancelled="Updating walking route"}
+    unavailable="Terrain data is unavailable",disabled="Quest planner is disabled",cancelled="Updating walking route",
+    ["modeled-road"]="Road route estimate",["restart-required"]="Restart the game to load the new road data"}
 function guidance.RouteStatus(model,terrain)
     if model.status=="paused" then return "Paused" end
     if model.calculated or model.status~="observed" or not model.selected or not model.selected.destination then
@@ -92,6 +93,8 @@ function guidance.RouteStatus(model,terrain)
         if (terrain.detail or ""):find("ambiguous",1,true) then return "Quest marker floor is uncertain" end
         return "Quest marker is outside the walking model"
     end
+    -- A travel leg (flight, boat, zeppelin, tram) says what to do in its detail.
+    if terrain.status=="travel" and terrain.detail then return terrain.detail end
     if terrain.status=="modeled-approach" and terrain.detail=="Approach; quest floor is uncertain" then
         return "Follow approach; check quest floor"
     end
