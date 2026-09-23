@@ -160,9 +160,10 @@ The extra action button, zone ability buttons and spell flyout get the bar
 look: a cropped icon in a thin edge that follows your bar border colour. See
 [extra buttons](docs/extrabuttons.md).
 
-The four cooldown viewers use cropped icons, bar-colour edges and RikUI numbers;
-buff bars use the flat statusbar texture and typeface while keeping Blizzard's
-settings and timing. See [cooldown viewers](docs/cooldownviewer.md).
+The cooldown HUD has visible **Cooldowns On/Off**, **Move/Done**, and **Settings**
+buttons above the action bars. Drag the four labeled groups to save their places.
+Dark framed panels, titles, blue accents, layered icons and brief fades surround
+Blizzard's cooldowns and buff timers. See [cooldown viewers](docs/cooldownviewer.md).
 
 Alert toasts (loot won, money, new recipes) are flat panels with a cropped
 icon and Blizzard's text colours, on Blizzard's own timing and stacking. See

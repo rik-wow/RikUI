@@ -1,4 +1,4 @@
--- Cosmetic regions only: Blizzard owns pooled item state, timing, visibility and layout.
+-- Blizzard owns pooled item state, timing, visibility and internal layout.
 -- Do not hook viewer/item methods: the 69977 client can lose them to tainted callers.
 local core, skin, media = RikUI, RikUI.Skin, RikUI.Media
 local viewer = {}
@@ -103,6 +103,7 @@ local function apply(item, isBar)
         counts.items = counts.items + 1
     end
     for _, line in ipairs(edges[item]) do line:SetVertexColor(unpack(color)) end
+    if viewer.DecorateItem then viewer.DecorateItem(item, owner, icon, isBar) end
     -- DebuffBorder, OutOfRange, cooldown swipe, Pip and all native values stay client-owned.
 end
 
@@ -125,6 +126,7 @@ local function scanViewer(frame, isBar)
 end
 
 local function scanVisible()
+    if viewer.RefreshLayout then viewer.RefreshLayout() end
     local visible = false
     for frame, isBar in pairs(watched) do
         if not failedViewers[frame] then
@@ -157,6 +159,7 @@ local function discover()
         if region(frame) and watched[frame] == nil then
             if core.Hooks.Script(frame, "OnShow", refresh) then
                 watched[frame], counts.viewers = isBar, counts.viewers + 1
+                if viewer.Track then viewer.Track(name, frame) end
             end
         end
     end
@@ -164,6 +167,7 @@ local function discover()
 end
 
 function viewer:OnEnable()
+    if viewer.EnableLayout then viewer.EnableLayout() end
     core:RegisterEvent("ADDON_LOADED", function(_, name) if name == ADDON then discover() end end, viewer)
     discover()
 end

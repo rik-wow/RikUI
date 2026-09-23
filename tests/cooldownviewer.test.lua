@@ -102,7 +102,8 @@ return function(check)
     end
     local function load(profile, prepare)
         created, snapshots = {}, {}
-        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/cooldownviewer/cooldownviewer.lua" },
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/cooldownviewer/cooldownviewer.lua",
+            "src/modules/cooldownviewer/cooldownviewer-style.lua" },
             profile, false, function()
                 for _, name in ipairs(names) do _G[name] = nil end
                 if prepare then prepare() end
@@ -130,7 +131,7 @@ return function(check)
         for index = 1, 4 do
             local parts, edge = regions[index], created[items[index]]
             check("viewer " .. index .. " has one cropped icon edge", parts.icon.coords and parts.icon.coords[1] == 0.08
-                and #edge == 4 and edge[1].points[1][2] == parts.icon and edge[1].points[1][4] == -1)
+                and #edge == 10 and edge[1].points[1][2] == parts.icon and edge[1].points[1][4] == -1)
             check("viewer " .. index .. " only removes its decorative mask and overlay",
                 #parts.masks == 1 and parts.masks[1]:GetAtlas() == "unrelated-mask"
                 and parts.overlay.alpha == 0 and parts.range.alpha == nil)
@@ -165,10 +166,10 @@ return function(check)
         env.inCombat = true
         env.flushTimers()
         env.inCombat = false
-        check("visible scan covers new pool frames in combat", lateParts.icon.coords and #created[late] == 4)
+        check("visible scan covers new pool frames in combat", lateParts.icon.coords and #created[late] == 10)
         check("pool reuse restores cosmetics without another edge", regions[1].icon.coords[1] == 0.08
             and regions[1].overlay.alpha == 0 and regions[1].count.fontPath == RikUI.Media.font
-            and #created[items[1]] == 4 and created[items[1]][1] == originalEdge)
+            and #created[items[1]] == 10 and created[items[1]][1] == originalEdge)
         check("edges refresh with the current bar border colour", originalEdge.color[1] == 0.9)
         pools[2][late] = nil
         lateParts.icon:SetTexCoord(0, 1, 0, 1)
@@ -177,7 +178,7 @@ return function(check)
         pools[2][late] = true
         env.flushTimers()
         check("reacquired items reuse their edge and regain the crop", lateParts.icon.coords[1] == 0.08
-            and #created[late] == 4)
+            and #created[late] == 10)
         check("repeated scans still make no protected writes", unchanged() and #env.printed == 0)
         for _, holder in ipairs(holders) do holder:Hide() end
         env.flushTimers()
@@ -192,7 +193,7 @@ return function(check)
         local lateViewer, lateItem, lateRegions = viewer(names[1], "charge", true)
         env.fire("ADDON_LOADED", "Blizzard_CooldownViewer")
         env.fire("ADDON_LOADED", "Blizzard_CooldownViewer")
-        check("late addon load discovers viewers only once", lateRegions.icon.coords and #created[lateItem] == 4
+        check("late addon load discovers viewers only once", lateRegions.icon.coords and #created[lateItem] == 10
             and #lateViewer.hooks.OnShow == 1 and #env.timers == 1)
 
         load(nil, function()
