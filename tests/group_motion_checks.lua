@@ -8,24 +8,15 @@ return function(check, env, module, group, units, prefix)
         and one.presence.template == nil and one.presentation.owner == one.presence
         and one.health.owner == one.presentation and one.presence.mouseEnabled == false)
     env.fire("UNIT_HEALTH", one.unit)
-    env.flushTimers()
-    check(prefix .. " secret fill eases without a guessed damage cue", one.health.value == env.SECRET
-        and one.health.easing == 2 and art.flash.plays == 0)
+    check(prefix .. " health fill and clipped feedback start together", one.health.value == env.SECRET
+        and one.health.easing == 2 and art.flash.plays == 1 and art.heal.plays == 1)
     env.fire("UNIT_POWER_UPDATE", one.unit)
-    check(prefix .. " power eases without flashing", one.power.easing == 2 and art.flash.plays == 0)
-    local settles = 0
-    function one.health:SetToTargetValue() settles = settles + 1 end
-    env.fire("UNIT_COMBAT", one.unit, "HEAL", "", env.SECRET)
-    check(prefix .. " healing has its own glow", art.heal and art.heal.playing and not art.flash.playing)
+    check(prefix .. " power does not restart feedback", one.power.easing == 2 and art.flash.plays == 1)
     env.flushTimers()
-    env.fire("UNIT_HEALTH", one.unit)
-    env.flushTimers()
-    env.fire("UNIT_COMBAT", one.unit, "WOUND", "", env.SECRET)
-    check(prefix .. " damage settles and flashes without a paired health event", settles == 1 and art.flash.playing)
-    check(prefix .. " damage cancels healing", art.flash.playing and art.heal and not art.heal.playing)
-    env.fire("UNIT_COMBAT", two.unit, "HEAL", "", env.SECRET)
-    check(prefix .. " feedback targets only its member", art.heal and not art.heal.playing
-        and two.motion.heal and two.motion.heal.playing)
+    env.fire("UNIT_COMBAT", one.unit, "WOUND")
+    check(prefix .. " later damage event cannot restart flash", art.flash.plays == 1)
+    env.fire("UNIT_HEALTH", two.unit)
+    check(prefix .. " feedback targets only its member", art.flash.plays == 1 and two.motion.flash.plays == 1)
     local range = two.motion.range
     check(prefix .. " initial range target is direct", two.presentation.alpha == group.FadeAlpha)
     units[two.unit].inRange = true

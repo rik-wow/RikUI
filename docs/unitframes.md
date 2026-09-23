@@ -44,32 +44,30 @@ line. Neither script is protected, so hover works in combat.
 Solo, party and raid frames use `src/modules/unitframes/unitframes-motion.lua` and
 the shared `RikUI.Motion` helpers. Their first health and power fill is
 immediate; subsequent updates use the client's `ExponentialEaseOut`
-interpolation. A damage cue settles the bar's current interpolation immediately
-before flashing. Show and target, focus, pet or target-of-target replacement
-events reset that first-fill state, so a new unit does not animate from the
-previous unit's values. A failed read clears the bar immediately, and its
-first successful recovery fill is immediate too.
+interpolation. Show and target, focus, pet or target-of-target replacement
+events reset first-fill state. Failed reads clear the bar and feedback, and
+the first successful recovery establishes a fresh baseline.
 
-A visible frame fades in over 0.15 seconds. Damage and healing have distinct
-feedback on player, target, target-of-target, pet, focus, party and raid frames:
-a readable `UNIT_COMBAT` `WOUND` action plays a sharp red flash (0.18 seconds,
-0.5 starting opacity); `HEAL` plays a softer green glow (0.4 seconds, 0.28
-starting opacity). Each cancels the other so rapid alternation stays distinct.
-The style is shared with custom nameplates through `RikUI.Motion`.
+A visible frame fades in over 0.15 seconds. Health feedback starts in the
+same sink call as the health bar's `SetValue`, including target-of-target
+polling. The lost portion flashes red (0.18 seconds, 0.5 starting opacity);
+the gained portion glows green (0.4 seconds, 0.28 starting opacity). The
+main bar continues easing while the overlay fades. There is no combat-event
+handler, delayed pairing, or snap-to-completion step.
 
-`UNIT_HEALTH` updates the fill synchronously. Readable `UNIT_COMBAT` actions
-start their cue synchronously too, without a timer or a matching health event.
-Damage calls `SetToTargetValue` before the flash to finish any current health
-interpolation without reading its value. Clients without that method still
-show the cue. Healing keeps normal easing. Event delivery time belongs to the
-client; health and combat notifications may arrive in different render passes.
+Two transparent native StatusBars hold the previous and current targets.
+The red overlay is clipped to the previous filled area and starts at the
+current fill's right edge. Green reverses those bounds. Thus native clipping
+shows only the lost or gained interval, with no visible interval for an
+unchanged value. Lua starts both fades synchronously and never needs to
+classify or compare the protected health values. Passive regeneration uses
+the same green gain feedback. Rapid changes replace both regions with the
+latest transition.
 
-Health events carry no direction, so passive regeneration and updates without
-a readable combat action simply move the bar. Secret or unknown combat action
-and unit tokens are ignored; health and combat amounts are never compared.
-These cues indicate a reported damage/heal event, not a measured net health
-delta or proof that a heal increased health. Hidden, replaced and newly
-initialized frames cannot retain an old cue.
+Initial fills, maximum-health refreshes, hidden frames and recycled units
+establish a baseline without feedback. The previous opaque values are retained
+only to feed native StatusBar sinks on the next update; resets clear them.
+All helper frames are mouse-disabled and their anchors are built once.
 
 The readable threat border pulses between full and 0.35 opacity every 0.6
 seconds. Repeated threat refreshes keep the running pulse. Secret, absent or
@@ -265,7 +263,7 @@ line per operation.
 
 `tests/unitframes.test.lua` and its `unitframes_motion_checks.lua` fixture
 exercise immediate first fills, eased updates, unchanged secret-value sinks,
-classified healing/damage cues, hide/show cleanup, replacement/show event ordering,
+synchronous clipped healing/damage cues, hide/show cleanup, replacement/show event ordering,
 reader failures and recovery, threat pulse transitions and missing APIs.
 Existing secure click, tooltip, layout, event filtering, combat-update,
 combat-login, disabled-module and stock-parking checks remain in place.
@@ -273,7 +271,9 @@ Party/raid fixtures share `group_motion_checks.lua` and a deterministic animatio
 double. They cover immediate/eased fills, separate heal/damage cues, range tween reuse and secret
 fallback, departure/rejoin races, roster removal before secure hide, combat
 callbacks and missing-animation fallbacks. Architecture checks enforce the
-helper's manifest dependencies.
+helper's manifest dependencies. `tests/health_feedback_geometry.lua` evaluates the
+recorded native anchors and clipping intersections for loss, gain, unchanged
+health, death, full healing, maximum changes and opaque-value forwarding.
 
 Native/game-client behavior is accepted under the user's standing policy.
 Automated results cover the Lua fixture and source contracts; they are not

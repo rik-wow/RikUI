@@ -213,13 +213,17 @@ end
 
 local function readHealth(unit) return UnitHealth(unit), UnitHealthMax(unit) end
 
-local function feed(parts, unit, easing)
+local function feed(parts, unit, easing, animate)
     local own = parts.bar
     local ok, reason = core.Secret.Apply(function(current, maximum)
         own:SetMinMaxValues(0, maximum)
         own:SetValue(current, easing)
+        core.Motion.UpdateHealthFeedback(own.feedback, current, maximum, animate)
     end, readHealth, unit)
-    if not ok then warn("health", reason) end
+    if not ok then
+        core.Motion.StopHealthFeedback(own.feedback)
+        warn("health", reason)
+    end
 end
 
 function skin.Health(frame, unit)
@@ -227,11 +231,10 @@ function skin.Health(frame, unit)
     if parts then feed(parts, unit, interpolation("ExponentialEaseOut")) end
 end
 
--- Combat actions trigger cues even when health arrives in a different render pass.
-function skin.CombatFeedback(frame, unit, event)
+function skin.HealthChanged(frame, unit)
     local parts = nameplates.Parts[frame]
     if not parts or not frame:IsShown() then return end
-    core.Motion.PlayHealthFeedback(parts.bar.feedback, event)
+    feed(parts, unit, interpolation("ExponentialEaseOut"), true)
 end
 
 function skin.StopFeedback(frame)

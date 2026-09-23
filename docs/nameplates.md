@@ -39,16 +39,14 @@ plates exist is still up to the `nameplateShowEnemies` and
 
 ## Animations
 
-- Health eases to its new value (`ExponentialEaseOut`). A damage cue settles
-  the bar's current interpolation immediately before flashing. A pooled plate's
-  first fill is immediate so it does not sweep from the previous unit's health.
-- Readable `UNIT_COMBAT` damage (`WOUND`) gives a short red flash (0.18s);
-  healing (`HEAL`) gives a softer green glow (0.4s). Each cancels the other.
-  The shared style matches every RikUI unit frame. Unclassified health updates,
-  including passive regeneration, only move the bar. Each readable combat action
-  starts its cue immediately, regardless of when the health event arrives.
-  There is no pairing timer that can discard a legitimate hit. Removal/reuse
-  stops both cues; no deferred callback can restart them.
+- Health eases to its new value (`ExponentialEaseOut`). A pooled plate's first
+  fill is immediate so it does not sweep from the previous unit's health.
+- In that same health update, the lost portion flashes red (0.18s) and the
+  gained portion glows green (0.4s). Native clipping between previous/current
+  fill boundaries selects the visible region, including for secret values.
+  Unchanged health has no visible region. This matches all custom unit frames
+  and includes passive regeneration. Combat events cannot trigger a late cue.
+  Removal/reuse stops both fades and clears the baseline.
 - A plate fades in over 0.15s when it appears.
 - The arrows fade in when you select a plate and the accent line pulses while
   it stays selected. The plate's growth and the dimming of the others are
@@ -64,11 +62,11 @@ combat is not dependable. Nothing here reads or compares either.
   `StatusBar` on top of Blizzard's, filled through `core.Secret.Apply`:
   `UnitHealth` and `UnitHealthMax` go straight into `SetMinMaxValues` and
   `SetValue(value, easing)`, the same reader-to-sink route the RikUI unit
-  frames use. Blizzard's fill texture is faded to alpha zero. The flash is
-  selected by a readable `UNIT_COMBAT` action, never by comparing health or
-  combat amounts. `UNIT_HEALTH` alone cannot identify damage or healing. Secret
-  combat action/unit tokens and unknown actions produce no guessed cue. A heal
-  cue means a reported heal event, not a measured net increase.
+  frames use. Blizzard's fill texture is faded to alpha zero. Two transparent
+  native StatusBars receive previous/current opaque values. Red is clipped to
+  the old fill outside the new fill, and green to the new fill outside the old.
+  Both fades start in the same sink call as the visible bar; native clipping
+  selects direction without Lua arithmetic, comparisons or geometry readback.
 - Percent text. It is Blizzard's own health text, which already works with
   secret values. The module switches it on with the `CurrentHealthPercent`
   bit of `nameplateInfoDisplay` and moves the font strings onto the own bar.
@@ -166,7 +164,7 @@ secret health reaching the bar with an immediate first fill; bar colour; the
 name centred in a plaque as wide as the bar and level box that follows the
 name's shown state; the centred percent texts; the elite marker, a classification change and
 a secret classification; the fade-in; the level box; eased health without an ambiguous flash;
-separate green healing/red damage cues, cancellation and pooled cleanup; other and secret tokens
+simultaneous clipped green gain/red loss cues, cancellation and pooled cleanup; other and secret tokens
 ignored; arrows, accent line and pulse following `selectedBorder` without
 restarting on a repeat; their anchors; the blanked flare and the threat line
 following `aggroHighlight`; the flat cast bar with its fill untouched; the
@@ -186,7 +184,7 @@ units in combat, and whether the hooks taint plate layout. Beta checklist:
 1. Fully restart the client (two new TOC entries). Target a mob: chunky bar
    with the percent centred, the name in its plaque on top, level box flush right, arrows and a pulsing line,
    the plate a little larger and the others dimmer.
-2. Hit the mob: reported damage should settle the bar's current fill and flash. Let it hit you: a red line
+2. Hit the mob: the lost portion should flash as the health decrement starts. Let it hit you: a red line
    should appear over its bar.
 3. Find an elite or a rare and check the marker. Watch a caster: the cast bar
    should be flat with the spell name in the RikUI font.

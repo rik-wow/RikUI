@@ -50,22 +50,45 @@ function motion.Play(group)
     group:Play()
 end
 
--- Typed combat feedback never inspects a health value or combat amount.
+-- Native fill geometry selects loss/gain regions without inspecting secret values.
 local HEALTH_FEEDBACK = {
     damage = { color = { 1, 0.18, 0.12 }, alpha = 0.5, seconds = 0.18 },
     heal = { color = { 0.2, 1, 0.45 }, alpha = 0.28, seconds = 0.4 },
 }
+local FLAT = "Interface\\BUTTONS\\WHITE8X8"
+
+local function healthBoundary(owner)
+    local bar = CreateFrame("StatusBar", nil, owner)
+    bar:SetAllPoints(owner)
+    bar:EnableMouse(false)
+    bar.fill = bar:CreateTexture(nil, "ARTWORK")
+    bar.fill:SetTexture(FLAT)
+    bar:SetStatusBarTexture(bar.fill)
+    bar:SetStatusBarColor(1, 1, 1, 0)
+    return bar
+end
+
+local function healthOverlay(owner, inside, outside, style)
+    local clip = CreateFrame("Frame", nil, owner)
+    clip:SetAllPoints(inside.fill)
+    clip:SetClipsChildren(true)
+    clip:EnableMouse(false)
+    local canvas = CreateFrame("Frame", nil, clip)
+    canvas:SetAllPoints(owner)
+    canvas:EnableMouse(false)
+    local region = canvas:CreateTexture(nil, "OVERLAY")
+    region:SetTexture(FLAT)
+    region:SetVertexColor(unpack(style.color))
+    region:SetPoint("TOPLEFT", outside.fill, "TOPRIGHT")
+    region:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT")
+    region:SetAlpha(0)
+    return { region = region, clip = clip, group = motion.Tween(region, style.alpha, 0, style.seconds) }
+end
 
 function motion.HealthFeedback(owner)
-    local feedback = { owner = owner }
-    for key, style in pairs(HEALTH_FEEDBACK) do
-        local region = owner:CreateTexture(nil, "OVERLAY")
-        region:SetTexture("Interface\\BUTTONS\\WHITE8X8")
-        region:SetVertexColor(unpack(style.color))
-        region:SetAllPoints(owner)
-        region:SetAlpha(0)
-        feedback[key] = { region = region, group = motion.Tween(region, style.alpha, 0, style.seconds) }
-    end
+    local feedback = { previous = healthBoundary(owner), current = healthBoundary(owner) }
+    feedback.damage = healthOverlay(owner, feedback.previous, feedback.current, HEALTH_FEEDBACK.damage)
+    feedback.heal = healthOverlay(owner, feedback.current, feedback.previous, HEALTH_FEEDBACK.heal)
     owner:HookScript("OnHide", function() motion.StopHealthFeedback(feedback) end)
     return feedback
 end
@@ -74,17 +97,28 @@ function motion.StopHealthFeedback(feedback)
     if not feedback then return end
     motion.Stop(feedback.damage.group)
     motion.Stop(feedback.heal.group)
+    feedback.initialized, feedback.value, feedback.maximum = false, nil, nil
 end
 
-function motion.PlayHealthFeedback(feedback, event)
-    if not feedback or RikUI.Secret.IsSecret(event) or type(event) ~= "string" then return end
-    local key = event == "WOUND" and "damage" or event == "HEAL" and "heal"
-    if not key then return end
-    motion.StopHealthFeedback(feedback)
-    -- Combat and health notifications need not share a render pass. Never wait
-    -- for a second event before showing a classified cue.
-    if key == "damage" and type(feedback.owner.SetToTargetValue) == "function" then
-        feedback.owner:SetToTargetValue()
+local function healthBounds(bar, value, maximum)
+    bar:SetMinMaxValues(0, maximum)
+    bar:SetValue(value, motion.Interpolation("Immediate"))
+end
+
+-- Call in the same sink as the visible bar's SetValue. Both fades start now;
+-- clipping leaves only the lost (red) or gained (green) interval visible.
+function motion.UpdateHealthFeedback(feedback, value, maximum, animate)
+    if not feedback then return end
+    local play = animate and feedback.initialized
+    local previous, previousMax = value, maximum
+    if play then previous, previousMax = feedback.value, feedback.maximum end
+    motion.Stop(feedback.damage.group)
+    motion.Stop(feedback.heal.group)
+    healthBounds(feedback.previous, previous, previousMax)
+    healthBounds(feedback.current, value, maximum)
+    feedback.value, feedback.maximum, feedback.initialized = value, maximum, true
+    if play then
+        motion.Play(feedback.damage.group)
+        motion.Play(feedback.heal.group)
     end
-    motion.Play(feedback[key].group)
 end

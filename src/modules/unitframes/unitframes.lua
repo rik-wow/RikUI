@@ -119,7 +119,7 @@ local function poll(frame)
         self.elapsed = self.elapsed + elapsed
         if self.elapsed < POLL_SECONDS then return end
         self.elapsed = 0
-        unitframes.Refresh(self.unit)
+        unitframes.Update(self, true)
     end)
 end
 
@@ -199,15 +199,11 @@ local function onUnitEvent(updater)
     return function(_, unit) eachFrame(updater, unit) end
 end
 
-local function combatFeedback(_, unit, event)
-    -- A secret token must not broadcast a damage/heal cue to every frame.
-    if core.Secret.IsSecret(unit) or type(unit) ~= "string" then return end
-    eachFrame(function(frame) unitframes.Motion.CombatFeedback(frame, event) end, unit)
-end
-
 local function registerUnitEvents()
-    core:RegisterEvent("UNIT_COMBAT", combatFeedback)
-    core:RegisterEvent("UNIT_HEALTH", onUnitEvent(unitframes.HealthChanged))
+    core:RegisterEvent("UNIT_HEALTH", function(_, unit)
+        local updater = core.Secret.IsSecret(unit) and unitframes.UpdateHealth or unitframes.HealthChanged
+        eachFrame(updater, unit)
+    end)
     core:RegisterEvent("UNIT_MAXHEALTH", onUnitEvent(unitframes.UpdateHealth))
     core:RegisterEvent("UNIT_POWER_UPDATE", onUnitEvent(unitframes.UpdatePower))
     core:RegisterEvent("UNIT_MAXPOWER", onUnitEvent(unitframes.UpdatePower))

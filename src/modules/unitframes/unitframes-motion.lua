@@ -34,11 +34,6 @@ function effects.Threat(frame, active)
     end
 end
 
-function effects.CombatFeedback(frame, event)
-    if not frame.motion or not frame.health.motionFilled or not frame:IsShown() then return end
-    motion.PlayHealthFeedback(frame.motion.feedback, event)
-end
-
 local function onShow(frame)
     local art = frame.motion
     motion.Stop(art.leave)

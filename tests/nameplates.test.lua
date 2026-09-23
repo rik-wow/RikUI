@@ -230,39 +230,23 @@ return function(check)
             and level.playerLevelDiffText.points[1][2] == parts.levelBox)
 
         env.fire("UNIT_HEALTH", "nameplate1")
-        env.flushTimers()
-        check("a health event eases without guessing damage", own.easing == Enum.StatusBarInterpolation.ExponentialEaseOut
-            and own.flashAnim.plays == 0 and own.flash.alpha == 0)
-        env.fire("UNIT_MAXHEALTH", "nameplate1")
-        check("a maximum health event refills without a flash", own.flashAnim.plays == 0)
-        env.fire("UNIT_HEALTH", "nameplate9")
-        env.flushTimers()
-        env.fire("UNIT_HEALTH", env.SECRET)
-        env.flushTimers()
-        check("health events for other or secret tokens are ignored", own.flashAnim.plays == 0 and #env.printed == 0)
-        local settles = 0
-        function own:SetToTargetValue() settles = settles + 1 end
-        env.fire("UNIT_COMBAT", "nameplate1", "HEAL", "", env.SECRET)
-        check("nameplate healing uses a separate green glow", own.feedback and own.feedback.heal.group.playing
-            and own.feedback.heal.region.color[2] > own.feedback.heal.region.color[1])
-        env.flushTimers()
-        env.fire("UNIT_COMBAT", "nameplate1", "WOUND", "", env.SECRET)
-        check("nameplate damage cancels healing and flashes red", own.flashAnim.playing and own.feedback
-            and not own.feedback.heal.group.playing
-            and own.feedback.damage.region.color[1] > own.feedback.damage.region.color[2])
-        check("nameplate damage settles with its cue", settles == 1)
+        check("nameplate fill and feedback start in the same health callback",
+            own.easing == Enum.StatusBarInterpolation.ExponentialEaseOut and own.flashAnim.plays == 1
+            and own.feedback.heal.group.plays == 1)
+        check("nameplate feedback has native previous and current geometry",
+            own.feedback.previous ~= nil and own.feedback.current ~= nil)
         local damagePlays = own.flashAnim.plays
-        env.fire("UNIT_HEALTH", "nameplate1")
         env.flushTimers()
         env.fire("UNIT_COMBAT", "nameplate1", "WOUND")
-        env.flushTimers()
-        check("nameplate preserves damage after a separate health batch", own.flashAnim.plays == damagePlays + 1)
-        damagePlays = own.flashAnim.plays
-        env.fire("UNIT_COMBAT", env.SECRET, "WOUND")
-        env.fire("UNIT_COMBAT", "nameplate1", env.SECRET)
-        env.fire("UNIT_COMBAT", "nameplate9", "WOUND")
-        env.fire("UNIT_COMBAT", "nameplate1", "DODGE")
-        check("unclassified nameplate combat never guesses direction", own.flashAnim.plays == damagePlays)
+        env.fire("UNIT_COMBAT", "nameplate1", "HEAL")
+        check("late nameplate combat never replays feedback", own.flashAnim.plays == damagePlays)
+        env.fire("UNIT_MAXHEALTH", "nameplate1")
+        check("maximum changes reset feedback without flashing",
+            own.flashAnim.plays == damagePlays and not own.flashAnim.playing)
+        env.fire("UNIT_HEALTH", "nameplate9")
+        env.fire("UNIT_HEALTH", env.SECRET)
+        check("other and secret plate tokens cannot trigger feedback",
+            own.flashAnim.plays == damagePlays and #env.printed == 0)
         stub.classification = "rare"
         env.fire("UNIT_CLASSIFICATION_CHANGED", "nameplate1")
         check("a classification change updates the marker", own.marker.rikIcon == "diamond")

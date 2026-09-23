@@ -24,15 +24,17 @@ end
 local function readHealth(unit) return UnitHealth(unit), UnitHealthMax(unit) end
 local function readPower(unit) return UnitPower(unit), UnitPowerMax(unit) end
 
-local function fill(bar, current, maximum)
+local function fill(bar, current, maximum, feedback, animate)
     bar:SetMinMaxValues(0, maximum)
     local easing = bar.motionEnabled and unitframes.Motion.Interpolation(bar) or nil
     bar:SetValue(current, easing)
+    if feedback then core.Motion.UpdateHealthFeedback(feedback, current, maximum, animate) end
     if bar.motionEnabled then bar.motionFilled = true end
     if bar.text then bar.text:SetFormattedText(VALUE_FORMAT, current, maximum) end
 end
 
-local function clear(bar)
+local function clear(bar, feedback)
+    if feedback then core.Motion.StopHealthFeedback(feedback) end
     bar:SetMinMaxValues(0, 1)
     bar.motionFilled = false
     local easing = bar.motionEnabled and unitframes.Motion.Interpolation(bar) or nil
@@ -40,9 +42,9 @@ local function clear(bar)
     if bar.text then bar.text:SetText("") end
 end
 
-local function feed(bar, operation, reader, unit)
-    local ok, reason = core.Secret.Apply(function(current, maximum) fill(bar, current, maximum) end, reader, unit)
-    if not ok then clear(bar); warnOnce(operation, reason) end
+local function feed(bar, operation, reader, unit, feedback, animate)
+    local ok, reason = core.Secret.Apply(function(current, maximum) fill(bar, current, maximum, feedback, animate) end, reader, unit)
+    if not ok then clear(bar, feedback); warnOnce(operation, reason) end
     return ok
 end
 
@@ -50,14 +52,16 @@ local function tint(bar, color)
     bar:SetStatusBarColor(color.r, color.g, color.b)
 end
 
-function unitframes.UpdateHealth(frame)
+function unitframes.UpdateHealth(frame, animate)
     if departing(frame) then return end
-    return feed(frame.health, "health", readHealth, frame.unit)
+    local feedback = frame.motion and frame.motion.feedback
+    return feed(frame.health, "health", readHealth, frame.unit, feedback, animate)
 end
 
--- Health events update the fill immediately; readable combat actions own cues.
+-- Fill and clipped gain/loss fades begin in this one health update.
 function unitframes.HealthChanged(frame)
-    return unitframes.UpdateHealth(frame)
+    if not frame:IsShown() then return end
+    return unitframes.UpdateHealth(frame, true)
 end
 
 function unitframes.UpdatePower(frame)
@@ -141,9 +145,9 @@ function unitframes.FadeByRange(frame, fadeAlpha)
     warnOnce("range", reason)
 end
 
-function unitframes.Update(frame)
+function unitframes.Update(frame, animate)
     unitframes.UpdateIdentity(frame)
-    unitframes.UpdateHealth(frame)
+    unitframes.UpdateHealth(frame, animate)
     unitframes.UpdatePower(frame)
     unitframes.UpdateThreat(frame)
 end

@@ -11,14 +11,14 @@ return function(check, env, module, units)
     module.UpdateThreat(target)
     check("repeated threat refresh does not restart pulse", pulse.plays == 1)
     env.fire("UNIT_HEALTH", "target")
-    env.flushTimers()
-    check("health event eases secret values without guessing damage", target.health.value == env.SECRET
-        and target.health.easing == 2 and art.flash.plays == 0)
+    check("health event starts fill and clipped cues before returning", target.health.value == env.SECRET
+        and target.health.easing == 2 and art.flash.plays == 1 and art.heal.plays == 1)
+    local initialPlays = art.flash.plays
     env.fire("UNIT_POWER_UPDATE", "target")
-    check("power update eases without a health flash", target.power.easing == 2 and art.flash.plays == 0)
+    check("power update eases without a health flash", target.power.easing == 2 and art.flash.plays == initialPlays)
     env.fire("UNIT_MAXHEALTH", "target")
     module.Refresh("target")
-    check("maximum and full refresh do not flash", art.flash.plays == 0)
+    check("maximum and full refresh do not flash", art.flash.plays == initialPlays)
     env.fire("PLAYER_TARGET_CHANGED")
     check("new target starts immediately without carrying its old flash", target.health.easing == 0
         and target.power.easing == 0 and not art.flash.playing and tot.health.easing == 0)
@@ -58,75 +58,47 @@ return function(check, env, module, units)
     check("ToT replacement resets easing", tot.health.easing == 0)
     local totFlashes = tot.motion.flash.plays
     env.runScript(tot, "OnUpdate", 0.6)
-    check("ToT polling eases without flashing", tot.health.easing == 2 and tot.motion.flash.plays == totFlashes)
+    check("ToT polling starts fill and clipped feedback together", tot.health.easing == 2
+        and tot.motion.flash.plays == totFlashes + 1)
     env.fire("UNIT_PET", "player")
     env.fire("PLAYER_FOCUS_CHANGED")
     check("pet and focus replacement reset easing", pet.health.easing == 0 and frames.focus.health.easing == 0)
 
-    -- Combat and health may arrive in different render passes, in either order.
+    -- Every custom frame starts feedback in the same health callback.
     for _, frame in pairs(frames) do
         local effects = frame.motion
-        local settles, beforeFlash = 0, nil
-        function frame.health:SetToTargetValue()
-            settles, beforeFlash = settles + 1, effects.flash.plays
-        end
+        local fills, flashes = frame.health.sets, effects.flash.plays
         env.fire("UNIT_HEALTH", frame.unit)
+        check(frame.key .. " fill and feedback start together",
+            frame.health.sets == fills + 1 and effects.flash.plays == flashes + 1
+            and effects.flash.playing and effects.heal.playing)
+        local paired = effects.feedback.previous and effects.feedback.current
+        check(frame.key .. " secret values reach both geometry sinks",
+            paired and effects.feedback.current.value == frame.health.value)
         env.flushTimers()
-        local flashes = effects.flash.plays
-        env.fire("UNIT_COMBAT", frame.unit, "WOUND", "", env.SECRET, env.SECRET)
-        check(frame.key .. " damage flashes immediately after a separate health batch",
-            effects.flash.playing and effects.flash.plays == flashes + 1)
-        check(frame.key .. " damage settles before starting its cue",
-            settles == 1 and beforeFlash == flashes)
-        env.flushTimers()
-        check(frame.key .. " timers cannot replay the damage cue", effects.flash.plays == flashes + 1)
-        env.fire("UNIT_COMBAT", frame.unit, "HEAL", "", env.SECRET, env.SECRET)
-        check(frame.key .. " healing needs no health event and stays distinct", effects.heal.playing
-            and not effects.flash.playing and settles == 1
-            and effects.feedback.heal.region.color[2] > effects.feedback.heal.region.color[1])
-        env.flushTimers()
-        env.fire("UNIT_COMBAT", frame.unit, "WOUND", "", env.SECRET, env.SECRET)
-        check(frame.key .. " combat-first damage immediately replaces healing",
-            effects.flash.playing and not effects.heal.playing and effects.flash.plays == flashes + 2)
-        env.flushTimers()
-        env.fire("UNIT_HEALTH", frame.unit)
-        env.flushTimers()
-        check(frame.key .. " subsequent health does not replay damage", effects.flash.plays == flashes + 2)
+        env.fire("UNIT_COMBAT", frame.unit, "WOUND")
+        env.fire("UNIT_COMBAT", frame.unit, "HEAL")
+        check(frame.key .. " late combat cannot add or restart a flash", effects.flash.plays == flashes + 1)
     end
-    check("healing is softer and slower than damage", art.heal and art.heal.alpha.Duration > art.flash.alpha.Duration
+    check("healing is softer and slower than damage", art.heal.alpha.Duration > art.flash.alpha.Duration
         and art.heal.alpha.FromAlpha < art.flash.alpha.FromAlpha)
-    local damagePlays, healPlays = art.flash.plays, art.heal and art.heal.plays
-    env.fire("UNIT_COMBAT", env.SECRET, "WOUND")
-    env.fire("UNIT_COMBAT", "target", env.SECRET)
-    env.fire("UNIT_COMBAT", "target", "BLOCK")
-    check("unknown combat feedback is never broadcast or guessed", art.flash.plays == damagePlays
-        and art.heal and art.heal.plays == healPlays)
+    local damagePlays = art.flash.plays
     target:Hide()
-    env.fire("UNIT_COMBAT", "target", "HEAL")
-    check("hidden frames cannot start either cue", not art.flash.playing and art.heal and not art.heal.playing)
+    env.fire("UNIT_HEALTH", "target")
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    env.flushTimers()
+    check("hidden frames have no cue or pending replay", not art.flash.playing and not art.heal.playing
+        and art.flash.plays == damagePlays)
     target:Show()
-    env.fire("UNIT_COMBAT", "target", "HEAL")
+    check("show establishes a new baseline", not art.flash.playing and art.flash.plays == damagePlays)
+    env.fire("UNIT_HEALTH", "target")
     env.fire("PLAYER_TARGET_CHANGED")
-    check("replacement stops stale healing", art.heal and not art.heal.playing)
-
-    env.flushTimers()
-    check("replacement has no deferred damage to replay", not art.flash.playing)
-    damagePlays = art.flash.plays
-    env.fire("UNIT_COMBAT", "target", "WOUND")
-    env.fire("UNIT_MAXHEALTH", "target")
-    module.Refresh("target")
-    env.flushTimers()
-    check("direct refresh cannot erase a reported damage cue", art.flash.plays == damagePlays + 1
-        and art.flash.playing)
-    target:Hide()
-    env.flushTimers()
-    check("hide stops damage without a timer restarting it", not art.flash.playing)
-    target:Show()
-    local settle = target.health.SetToTargetValue
-    target.health.SetToTargetValue = false
-    env.fire("UNIT_COMBAT", "target", "WOUND")
-    check("missing settle API does not suppress damage", art.flash.plays == damagePlays + 2)
-    target.health.SetToTargetValue = settle
+    check("replacement clears both cues", not art.flash.playing and not art.heal.playing)
+    if type(RikUI.Motion.UpdateHealthFeedback) == "function" then
+        dofile("tests/health_feedback_geometry.lua")(check, RikUI.Motion, env.SECRET)
+    else
+        check("health feedback has a synchronous value sink", false)
+    end
 
     Enum = nil
     env.fire("UNIT_HEALTH", "target")
