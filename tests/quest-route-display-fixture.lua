@@ -12,9 +12,24 @@ return function(check,p,env,canvas,arrow)
     hint=p.Guidance.Instruction({next={mapID=1426,x=.6,y=.5}},positionTest,nil,1000,1000)
     check("missing facing uses explicit compass direction",hint.text:find("Head E",1,true))
     check("different map cannot supply instruction",not p.Guidance.Instruction({next={mapID=1,x=.6,y=.5}},positionTest,0,1000,1000))
-    local dots={}
+    -- Native exploration/fog pins are canvas siblings around frame level 2000.
+    local oldLevels=WorldMapFrame.GetPinFrameLevelsManager
+    local levels={terrain=2002,fog=2006,route=2007,quest=3000}
+    WorldMapFrame.GetPinFrameLevelsManager=function()
+        return {GetValidFrameLevel=function(_,kind)
+            return kind=="PIN_FRAME_LEVEL_QUEST_BLOB" and levels.route or 2000
+        end}
+    end
+    local dots,lineFrames={},{}
     CreateFrame=function(...)
         local frame=old[1](...)
+        local line=frame.CreateLine
+        if type(line)=="function" then
+            frame.CreateLine=function(self,...)
+                lineFrames[self]=true
+                return line(self,...)
+            end
+        end
         local create=frame.CreateTexture
         frame.CreateTexture=function(self,...)
             local dot=create(self,...);dots[#dots+1]=dot;return dot
@@ -42,6 +57,32 @@ return function(check,p,env,canvas,arrow)
     end
     local world,mini=visible(canvas),visible(Minimap)
     check("world map and minimap both render route ants",#world>0 and #mini>0)
+    local function aboveTerrain(holder)
+        local level=holder and holder.level or 0
+        return level>levels.fog and level<levels.quest
+    end
+    check("world ants sit above explored terrain and fog",world[1] and aboveTerrain(world[1].parent))
+    local raisedLines=0
+    for holder in pairs(lineFrames) do
+        if holder:GetParent()==canvas and aboveTerrain(holder) then raisedLines=raisedLines+1 end
+    end
+    check("world route lines sit above explored terrain and fog",raisedLines==1)
+    local allocated=#dots
+    levels.terrain,levels.fog,levels.route,levels.quest=4002,4006,4007,5000
+    p.Navigation.Refresh()
+    check("world route layer follows native level changes",aboveTerrain(world[1].parent))
+    for holder in pairs(lineFrames) do
+        if holder:GetParent()==canvas then check("existing route lines follow native level changes",aboveTerrain(holder)) end
+    end
+    check("layer change keeps texture pools and minimap independent",#dots==allocated
+        and (mini[1].parent.level or 0)<levels.terrain)
+    local getLevels=WorldMapFrame.GetPinFrameLevelsManager
+    WorldMapFrame.GetPinFrameLevelsManager=function() error("map temporarily unavailable") end
+    p.Navigation.Refresh()
+    check("unavailable map levels preserve existing layer and minimap",aboveTerrain(world[1].parent)
+        and #visible(canvas)>0 and #visible(Minimap)>0)
+    WorldMapFrame.GetPinFrameLevelsManager=getLevels
+
     local oldX=world[1].point[4]
     for _,driver in ipairs(env.frames) do if driver.scripts.OnUpdate then env.runScript(driver,"OnUpdate",.05) end end
     check("world ants advance toward endpoint with time",visible(canvas)[1].point[4]>oldX)
@@ -120,5 +161,6 @@ return function(check,p,env,canvas,arrow)
     position={mapID=1426,x=.48,y=.5};p.Navigation.Refresh()
     check("marker-only distance updates with movement",arrow.label:GetText():find("40 yd",1,true))
     CreateFrame,Minimap,C_Minimap,GetCVarBool,GetPlayerFacing,p.Terrain,p.Context.Position=unpack(old,1,7)
+    WorldMapFrame.GetPinFrameLevelsManager=oldLevels
     p.View.Window:Hide()
 end

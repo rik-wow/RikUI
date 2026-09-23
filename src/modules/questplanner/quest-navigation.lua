@@ -17,6 +17,17 @@ local lines,lineHolder={},nil
 local MAX_ROUTE_LINES,NEW_LINES_PER_REFRESH=2048,32
 local antPools={world={dots={}},mini={dots={}}}
 local antPhase=0
+local WORLD_ROUTE_LEVEL,MAX_MAP_FRAME_LEVEL="PIN_FRAME_LEVEL_QUEST_BLOB",9000
+-- Draw layers only order textures within a frame. Exploration/fog are higher
+-- sibling frames, so use the map's overlay level rather than the canvas default.
+local function syncWorldLayer(holder)
+    local ok,manager=planner.Context.Call(frame and frame.GetPinFrameLevelsManager,frame)
+    if not ok or not manager then return end
+    local readable,level=planner.Context.Call(manager.GetValidFrameLevel,manager,WORLD_ROUTE_LEVEL)
+    if not readable or not planner.Schema.Integer(level,0,MAX_MAP_FRAME_LEVEL) then return end
+    local _,current=planner.Context.Call(holder.GetFrameLevel,holder)
+    if current~=level then holder:SetFrameLevel(level) end
+end
 local function hideAnts(pool) for _,dot in ipairs(pool.dots) do dot:Hide() end end
 local function antHolder(pool,parent)
     if not pool.holder then
@@ -26,6 +37,7 @@ local function antHolder(pool,parent)
         if InCombatLockdown() then return nil end
         pool.holder:SetParent(parent);pool.holder:SetAllPoints(parent)
     end
+    if pool==antPools.world then syncWorldLayer(pool.holder) end
     return pool.holder
 end
 local function paintAnts(pool,parent,points,width,height,limit,round)
@@ -187,6 +199,7 @@ local function drawTerrain(canvas,width,height,mapID)
         if InCombatLockdown() then return end
         lineHolder:SetParent(canvas); lineHolder:SetAllPoints(canvas)
     end
+    syncWorldLayer(lineHolder)
     if type(lineHolder.CreateLine)~="function" then return end
     for index=1,math.min(routeCount(route)-1,MAX_ROUTE_LINES,#lines+NEW_LINES_PER_REFRESH) do
         local a,b=points[index],points[index+1]
