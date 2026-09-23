@@ -58,11 +58,54 @@ local function skinCaptureBar(frame)
 end
 
 local TARGETS = { StatusBar = skinStatusBar, DoubleStatusBar = skinDoubleStatusBar, CaptureBar = skinCaptureBar }
+local MAX_DEPTH, ENTRY_SECONDS = 6, 0.18
+local iconEdges = setmetatable({}, { __mode = "k" })
+
+local function skinContent(frame, depth)
+    if depth > MAX_DEPTH then return end
+    if type(frame.GetRegions) == "function" then
+        for _, region in ipairs({ frame:GetRegions() }) do
+            if region:GetObjectType() == "FontString" then skin.Typeface(region) end
+        end
+    end
+    local icon = frame.Icon
+    if skin.IsRegion(icon) and type(icon.SetTexCoord) == "function" then
+        skin.CropIcon(icon)
+        if not iconEdges[icon] then iconEdges[icon] = skin.Outline(frame, nil, -1, icon) end
+    end
+    if type(frame.GetObjectType) == "function" and frame:GetObjectType() == "StatusBar" then skinBar(frame) end
+    if type(frame.GetChildren) == "function" then
+        for _, child in ipairs({ frame:GetChildren() }) do skinContent(child, depth + 1) end
+    end
+end
+
+local function skinGeneric(frame)
+    if not frame.rikFill then
+        frame.rikFill = skin.Fill(frame)
+        frame.rikBorder = skin.Outline(frame)
+    end
+    return true
+end
+
+local function entryMotion(frame)
+    if frame.rikEntry then return end
+    frame.rikEntry = core.Motion.Tween(frame, 0, 1, ENTRY_SECONDS)
+    core.Hooks.Script(frame, "OnShow", function(self) core.Motion.Play(self.rikEntry) end)
+    core.Hooks.Script(frame, "OnHide", function(self) core.Motion.Stop(self.rikEntry) end)
+    if frame:IsShown() then core.Motion.Play(frame.rikEntry) end
+end
+
+local function applyWidget(frame, apply)
+    local found = apply(frame)
+    skinContent(frame, 0)
+    if found then entryMotion(frame) end
+    return found
+end
 
 -- A failed widget is not retried: half a skin applied on every update is worse than half a skin.
 local function afterSetup(frame, apply)
     if type(frame) ~= "table" or failed[frame] then return end
-    local ok, found = pcall(apply, frame)
+    local ok, found = pcall(applyWidget, frame, apply)
     if not ok then
         failed[frame] = true
         counts.failed = counts.failed + 1
@@ -77,9 +120,11 @@ local function scanContainer(container)
     local types = Enum and Enum.UIWidgetVisualizationType
     if not types or type(container.widgetFrames) ~= "table" then return end
     for _, frame in pairs(container.widgetFrames) do
+        local selected = skinGeneric
         for name, apply in pairs(TARGETS) do
-            if types[name] and frame.widgetType == types[name] then afterSetup(frame, apply) end
+            if types[name] and frame.widgetType == types[name] then selected = apply; break end
         end
+        afterSetup(frame, selected)
     end
 end
 

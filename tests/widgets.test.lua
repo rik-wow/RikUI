@@ -123,6 +123,39 @@ return function(check)
         SlashCmdList.RIKUI("debug")
         check("debug reports hooks and frames", widgets.printedContains(env, "Widgets hooked=1 skinned=4 failed=0"))
 
+        local extra = CreateFrame("Frame", nil, UIParent)
+        extra.widgetType = 99
+        extra.Text, extra.Icon = label(extra), extra:CreateTexture()
+        local resource = CreateFrame("Frame", nil, extra)
+        resource.Text, resource.Icon = label(resource), resource:CreateTexture()
+        local spell = CreateFrame("Frame", nil, extra)
+        spell.Name = label(spell)
+        extra.children = { resource, spell }
+        function extra:GetRegions() return self.Text, self.Icon end
+        function extra:GetChildren() return unpack(self.children) end
+        function resource:GetRegions() return self.Text, self.Icon end
+        function spell:GetRegions() return self.Name end
+        container.widgetFrames[#container.widgetFrames + 1] = extra
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
+        check("icon/text and nested resource/spell regions share the typeface and icon crop",
+            extra.Text.fontPath == RikUI.Media.font and resource.Text.fontPath == RikUI.Media.font
+            and spell.Name.fontPath == RikUI.Media.font and extra.Icon.coords[1] > 0
+            and resource.Icon.coords[1] > 0 and flatBar(extra))
+        check("new widgets fade on first display", extra.rikEntry.plays == 1 and status.rikEntry.plays == 1)
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
+        check("ordinary value updates never restart entry motion", extra.rikEntry.plays == 1)
+        extra:Hide()
+        check("pool release stops entry motion", not extra.rikEntry:IsPlaying())
+        extra:Show()
+        check("pooled reuse replays entry without replacing native scripts", extra.rikEntry.plays == 2
+            and extra:GetScript("OnShow") == nil)
+        local late = CreateFrame("Frame", nil, extra)
+        late.Text = label(late)
+        function late:GetRegions() return self.Text end
+        extra.children[#extra.children + 1] = late
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
+        check("late pooled resource rows are styled", late.Text.fontPath == RikUI.Media.font)
+
         local before
         module = load(nil, function() before = statusWidget() end)
         before:Setup({}, nil)
