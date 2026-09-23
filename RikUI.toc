@@ -184,6 +184,7 @@ src/modules/controls/controls.lua
 src/modules/dialogs/dialogs.lua
 src/modules/lossofcontrol/lossofcontrol.lua
 src/modules/extrabuttons/extrabuttons.lua
+src/modules/extrabuttons/proc-overlay.lua
 src/modules/cooldownviewer/cooldownviewer.lua
 src/modules/cooldownviewer/cooldownviewer-style.lua
 src/modules/cooldownviewer/cooldownviewer-layout.lua
