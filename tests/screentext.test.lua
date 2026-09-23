@@ -4,7 +4,7 @@ return function(check)
     local widgets = require("widget_stub")
     local OBJECTS = { ZoneTextFont = 102, SubZoneTextFont = 26, PVPInfoTextFont = 22, ErrorFont = 16 }
     local API = { "ZoneTextFont", "SubZoneTextFont", "PVPInfoTextFont", "ErrorFont", "GameFontNormalHuge",
-        "AutoFollowStatusText", "RaidWarningFrame" }
+        "AutoFollowStatusText", "RaidWarningFrame", "ZoneTextFrame", "SubZoneTextFrame", "UIErrorsFrame" }
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local restore = widgets.install()
@@ -22,6 +22,12 @@ return function(check)
         for name, size in pairs(OBJECTS) do _G[name] = fontObject(size) end
         GameFontNormalHuge = fontObject(20)
         AutoFollowStatusText = fontObject(20)
+        for _, name in ipairs({ "ZoneTextFrame", "SubZoneTextFrame" }) do
+            local zone = CreateFrame("Frame", name, UIParent)
+            zone.shown = false
+        end
+        UIErrorsFrame = { SetTimeVisible = function(self, n) self.visibleTime = n end,
+            SetFadeDuration = function(self, n) self.fadeTime = n end }
         local frame = CreateFrame("Frame", "RaidWarningFrame", UIParent)
         frame.fontStringPool = { active = {} }
         function frame.fontStringPool:EnumerateActive() return pairs(self.active) end
@@ -57,6 +63,22 @@ return function(check)
         local second = RaidWarningFrame:AcquireOrEvictSlot()
         frameTick()
         check("a reused line is restyled once, a new one on arrival", first.writes == 1 and restyled(second, 20))
+        check("raid accent plays once per message while native font scaling survives",
+            module.Accents[first].animation.plays == 1 and first.writes == 1)
+        first.messageOrder = 2
+        frameTick()
+        check("a reused warning line retriggers its accent", module.Accents[first].animation.plays == 2)
+        ZoneTextFrame:Show()
+        local zoneAccent = module.Accents[ZoneTextFrame]
+        check("zone entrance uses a thin gold accent without moving the parent",
+            zoneAccent.line.width == 128 and zoneAccent.line.height == 1 and zoneAccent.animation.plays == 1
+            and ZoneTextFrame.points == nil and ZoneTextFrame:GetScript("OnShow") == nil)
+        ZoneTextFrame:Hide()
+        ZoneTextFrame:Show()
+        check("zone re-entry reuses the same accent", module.Accents[ZoneTextFrame] == zoneAccent
+            and zoneAccent.animation.plays == 2)
+        check("native errors fade per message after two seconds", UIErrorsFrame.visibleTime == 2
+            and UIErrorsFrame.fadeTime == 0.35)
         check("nothing was printed by a clean restyle", #env.printed == 0)
         SlashCmdList.RIKUI("debug")
         check("debug reports the restyled counts", widgets.printedContains(env, "Screen text fonts=5 warnings=2"))

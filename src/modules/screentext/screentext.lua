@@ -1,6 +1,6 @@
 -- The RikUI font on the text Blizzard writes across the middle of the screen: zone, subzone and
--- PvP zone text, the red error line, auto-follow and raid warnings. Fonts only; no frame is moved,
--- hidden or rescripted. Zone and error text have font objects of their own, so those are restyled.
+-- PvP zone text, the red error line, auto-follow and raid/boss warnings. Accent regions animate;
+-- native message frames retain their queues and scripts. Dedicated font objects are restyled.
 -- Raid warning lines come from a pool on GameFontNormalHuge, which the whole UI shares, so they
 -- are restyled per string as the pool hands them out.
 local core, media = RikUI, RikUI.Media
@@ -41,11 +41,50 @@ local function restyle(object, label, fallback)
     return false
 end
 
+local accents, orders = setmetatable({}, { __mode = "k" }), setmetatable({}, { __mode = "k" })
+screentext.Accents = accents
+local function accent(owner, target)
+    local value = accents[target]
+    if value then return value end
+    if type(owner.CreateTexture) ~= "function" then return end
+    local line = owner:CreateTexture(nil, "OVERLAY")
+    line:SetTexture(media.border)
+    line:SetVertexColor(1, 0.82, 0)
+    line:SetSize(128, 1)
+    line:SetPoint("TOP", target, "BOTTOM", 0, -6)
+    line:SetAlpha(0)
+    local group = line:CreateAnimationGroup()
+    local enter = group:CreateAnimation("Alpha")
+    enter:SetFromAlpha(0)
+    enter:SetToAlpha(1)
+    enter:SetDuration(0.2)
+    enter:SetOrder(1)
+    local leave = group:CreateAnimation("Alpha")
+    leave:SetFromAlpha(1)
+    leave:SetToAlpha(0)
+    leave:SetStartDelay(1.6)
+    leave:SetDuration(0.4)
+    leave:SetOrder(2)
+    value = { line = line, animation = group }
+    accents[target] = value
+    return value
+end
+
+local function playAccent(owner, target)
+    local value = accent(owner, target)
+    if value then value.animation:Stop(); value.animation:Play() end
+end
+
 -- The pool reuses its strings, so each one is restyled once.
 local function restyleWarnings(frame)
     local pool = frame.fontStringPool
     if type(pool) ~= "table" or type(pool.EnumerateActive) ~= "function" then return end
     for line in pool:EnumerateActive() do
+        local order = line.messageOrder or true
+        if orders[line] ~= order then
+            orders[line] = order
+            playAccent(frame, line)
+        end
         if not restyled[line] and hasFont(line) then
             restyled[line] = true
             if restyle(line, "raid warning", WARNING_SIZE) then counts.warnings = counts.warnings + 1 end
@@ -58,9 +97,12 @@ end
 -- AcquireOrEvictSlot is not hooked: on 69977 a method hook on a Blizzard frame left the method nil
 -- for Blizzard's callers.
 local function hookWarnings()
-    local frame = _G[WARNING_FRAME]
-    if type(frame) ~= "table" or type(frame[WARNING_METHOD]) ~= "function" then return end
-    core.Hooks.Script(frame, "OnUpdate", restyleWarnings)
+    for _, name in ipairs({ WARNING_FRAME, "RaidBossEmoteFrame" }) do
+        local frame = _G[name]
+        if type(frame) == "table" and type(frame[WARNING_METHOD]) == "function" then
+            core.Hooks.Script(frame, "OnUpdate", restyleWarnings)
+        end
+    end
 end
 
 -- Font writes are not protected, so nothing here waits for combat to end.
@@ -70,6 +112,18 @@ function screentext:OnEnable()
         if hasFont(object) and restyle(object, target.name, target.size) then counts.fonts = counts.fonts + 1 end
     end
     hookWarnings()
+    for _, name in ipairs({ "ZoneTextFrame", "SubZoneTextFrame" }) do
+        local frame = _G[name]
+        if type(frame) == "table" then
+            local target = _G[name:gsub("Frame$", "String")] or frame
+            core.Hooks.Script(frame, "OnShow", function(self) playAccent(self, target) end)
+        end
+    end
+    local errors = _G.UIErrorsFrame
+    if errors and type(errors.SetTimeVisible) == "function" and type(errors.SetFadeDuration) == "function" then
+        errors:SetTimeVisible(2)
+        errors:SetFadeDuration(0.35)
+    end
 end
 
 function screentext:Debug()
