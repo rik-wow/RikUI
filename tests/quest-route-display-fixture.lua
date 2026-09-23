@@ -57,6 +57,56 @@ return function(check,p,env,canvas,arrow)
     p.Command("arrow on");env.flushTimers()
     radius=50;p.Navigation.Refresh()
     check("zoomed route ants remain clipped",#visible(Minimap)>0)
+    -- A real road follower may project the rest of a continent beyond the city bounds.
+    local savedRoads,savedFollow=p.Roads,p.RoadFollow
+    local savedMap,savedSize=WorldMapFrame.GetMapID,C_Map.GetMapWorldSize
+    dofile("src/modules/questplanner/quest-roads.lua")
+    dofile("src/modules/questplanner/quest-road-follow.lua")
+    local city={uiMapID=1455,projection={originX=0,originY=0,width=2000,height=1000},validUIRectangle={0,0,1,1}}
+    local zone={uiMapID=1426,projection={originX=2000,originY=4000,width=8000,height=6000},validUIRectangle={0,0,1,1}}
+    assert(p.Roads.InstallIndex({format="rikui-road-index-v1",identity={product="forever",build="1.60.1.69913",locale="enUS"},
+        worlds={{worldMapID=0,revision=string.rep("a",64),addon="unused",views={city,zone}},
+            {worldMapID=1,revision=string.rep("b",64),addon="unused",views={
+                {uiMapID=999,projection=zone.projection,validUIRectangle={0,0,1,1}}}}}}))
+    local selectedMap=1455
+    WorldMapFrame.GetMapID=function() return selectedMap end
+    C_Map.GetMapWorldSize=function(id)
+        local v=id==1455 and city or zone;return v.projection.width,v.projection.height
+    end
+    local follow=assert(p.RoadFollow.Begin({points={{-900,0,-500},{-980,0,-500},{-4000,0,-500}},
+        suffix={3100,3020,0}},function(pt) return p.Roads.Unproject(city,pt) end,city,0))
+    local priorRoute,priorPosition=route,position
+    position={mapID=1455,x=.45,y=.5};rotates=false;radius=100
+    C_Minimap.GetViewRadius=function() return radius end
+    route=follow.follow({x=-900,z=-500},{speed=7})
+    p.Navigation.Refresh()
+    check("road follower retains source view and world for display",route.mapView==city and route.worldMapID==0)
+    check("city exit route retains visible minimap ants",#visible(Minimap)>0 and #visible(canvas)>0)
+    selectedMap=1426;p.Navigation.Refresh()
+    check("city route projects onto its surrounding zone map",#visible(canvas)>0)
+    world=visible(canvas)
+    check("zone projection uses world coordinates",world[1] and world[1].point[4]>=612
+        and world[1].point[4]<640 and math.abs(world[1].point[5]+250)<.001)
+    selectedMap=999;p.Navigation.Refresh()
+    check("unrelated world hides route without hiding minimap",#visible(canvas)==0 and #visible(Minimap)>0)
+    selectedMap=1426;position={mapID=1426,x=.65,y=2500/6000}
+    route=follow.follow({x=-1200,z=-500},{speed=7});p.Navigation.Refresh()
+    check("zone transition reprojects retained city route onto minimap",#visible(Minimap)>0 and #visible(canvas)>0)
+    check("zone transition keeps route instruction and arrow",p.Navigation.Instruction()~=nil and arrow:IsShown())
+    local tail=route.path.tail
+    local nextDisplay=follow.follow({x=-1250,z=-500},{speed=7})
+    route=nextDisplay;p.Navigation.Refresh()
+    check("reprojection preserves immutable road tail",route.path.tail==tail and #visible(Minimap)>0)
+    check("rendering does not load road networks",p.Roads.Stats().loads==0)
+    selectedMap=1455;p.Navigation.Refresh()
+    check("switching back restores city route projection",#visible(canvas)>0)
+    WorldMapFrame:Hide();p.Navigation.Refresh()
+    check("minimap route remains visible with world map closed",#visible(Minimap)>0)
+    WorldMapFrame:Show()
+    WorldMapFrame.GetMapID,C_Map.GetMapWorldSize=savedMap,savedSize
+    p.Roads,p.RoadFollow=savedRoads,savedFollow
+    position={mapID=1455,x=.5,y=.5};p.Context.Frame(true)
+    route,position=priorRoute,priorPosition
     C_Minimap.GetViewRadius=nil;p.Navigation.Refresh()
     check("unknown minimap scale hides ants without guessing",#visible(Minimap)==0 and #visible(canvas)>0)
     position=route.next;route.meters=0;p.Navigation.Refresh()

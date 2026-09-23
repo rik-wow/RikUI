@@ -18,7 +18,7 @@ local function project(ax,az,bx,bz,px,pz)
 end
 
 -- route: RoadRoute result. unproject(point{x,y,z}) -> map point.
-function follow.Begin(route,unproject)
+function follow.Begin(route,unproject,mapView,worldMapID)
     if not route or not schema.List(route.points,1048576) or #route.points<2 or type(unproject)~="function" then
         return nil,"invalid road route"
     end
@@ -61,6 +61,7 @@ function follow.Begin(route,unproject)
         local speed=live and live.speed
         local first=index+1
         return {status="modeled",nativeVerified=false,revision=route.revision,road=true,
+            mapView=mapView,worldMapID=worldMapID,
             detail=route.detail,meters=meters,speed=speed,
             speedSource=speed and "current-run-speed" or "default-run-speed",seconds=meters/(speed or 7),
             next=unproject({x=ax,z=az}),

@@ -134,7 +134,7 @@ function runtime.Begin(snapshot,status,ctx,records,observed,policy)
     local state,problem=planner.PlanState.Build(snapshot,status,ctx,records,policy)
     if not state then return nil,problem end
     currentState=state
-    local prior=planner.Controller and planner.Controller.Peek()
+    local prior=planner.Controller and (planner.Controller.Incumbent or planner.Controller.Peek)()
     local previousID=prior and prior.actionID
     local graphJob=planner.PlanGraph.Begin(state,records,observed,policy,previousID)
     if not graphJob then return nil,"Future graph unavailable" end

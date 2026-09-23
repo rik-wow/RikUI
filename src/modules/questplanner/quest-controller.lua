@@ -9,7 +9,7 @@ local view={status="unavailable",detail="Reading the quest log",quests={}}
 local revision,signature,data,job,context=0,nil,nil,nil,nil
 local stats={replans=0,published=0,cancelled=0,maxSliceMS=0,timingSamples=0,frameCalls=0}
 local worker,manualQuest,journeyState,recommendationPosition
-local adaptiveRecords,manualRow
+local adaptiveRecords,manualRow,incumbent
 local function notify()
     if core.QuestTracker and core.QuestTracker.Request then core.QuestTracker.Request() end
     if planner.View and planner.View.Refresh then planner.View.Refresh() end
@@ -18,7 +18,10 @@ local function publish(value)
     if not value.adaptive and planner.PlanRuntime then planner.PlanRuntime.ClearReplay() end
     if journeyState and journeyState.boundModel~=value then planner.JourneyLive.Detach(journeyState) end
     if journeyState and value.selected and journeyState.base.questID~=value.selected.questID then journeyState=nil end
-    if value.adaptive and planner.PlanRuntime then planner.PlanRuntime.RecordSwitch(view,value,context) end
+    if value.adaptive and value.actionID and planner.PlanRuntime then
+        planner.PlanRuntime.RecordSwitch(incumbent,value,context)
+        incumbent=value
+    end
     view=value; stats.published=stats.published+1
     notify()
 end
@@ -37,6 +40,9 @@ function controller.Invalidate(retainJourney)
 end
 -- Borrowed views are private read-only values for presentation/frame consumers.
 function controller.Peek() return view end
+-- Invalidating presentation must not erase the plan used by the next search.
+-- The new state still revalidates and reprices this borrowed incumbent.
+function controller.Incumbent() return incumbent or view end
 function controller.Refresh()
     revision=revision+1;signature=nil;cancel()
 end
@@ -166,7 +172,7 @@ local function finish(current,result)
     if result.status=="cancelled" then job=nil;return end
     local value
     if result.adaptive then
-        value=planner.PlanRuntime.Result(result,current.observed,context,policy,view,current.search.state)
+        value=planner.PlanRuntime.Result(result,current.observed,context,policy,controller.Incumbent(),current.search.state)
     else value=planner.Guidance.Result(result,current.observed,context,data,current.reason,policy) end
     if expired(value) then controller.Invalidate(); planner.Request(); return end
     if not result.adaptive then value.actionID=result.actions and result.actions[1] and result.actions[1].id end
@@ -233,7 +239,7 @@ function controller.Step()
                 if partial and partial.actions and #partial.actions>0
                     and not (view.selected and view.selected.planAction
                         and planner.PlanTransitions.Check(view.selected.planAction,current.search.state,policy)==true) then
-                    publish(planner.PlanRuntime.Result(partial,current.observed,context,policy,view,current.search.state))
+                    publish(planner.PlanRuntime.Result(partial,current.observed,context,policy,controller.Incumbent(),current.search.state))
                 end
             end
         end
@@ -272,15 +278,16 @@ local function begin(snapshot,status,ctx,dialog,observed,reason)
     if not input and planner.PlanRuntime then
         local search,issue=planner.PlanRuntime.Begin(snapshot,status,ctx,adaptiveRecords or {},observed,policy)
         if search then
+            local prior=controller.Incumbent()
             job={search=search,revision=revision,observed=observed,reason=reason,adaptive=true,steps=0}
             stats.replans=stats.replans+1
             local fallback=planner.PlanRuntime.Result({actions={},status="refining",decisionKind="fallback",
-                reason="Refining future quest options"},observed,ctx,policy,view,search.state)
+                reason="Refining future quest options"},observed,ctx,policy,prior,search.state)
             if fallback.status=="observed" then fallback.detail=policy.flavor..": refining future quest options" end
-            if view.adaptive and view.selected and view.selected.planAction
-                and planner.PlanTransitions.Check(view.selected.planAction,search.state,policy)==true then
-                fallback=planner.PlanRuntime.Result({actions={view.selected.planAction},status="refining",decisionKind="continuity",
-                    reason="Continue while future options are updated"},observed,ctx,policy,view,search.state)
+            if prior.adaptive and prior.selected and prior.selected.planAction
+                and planner.PlanTransitions.Check(prior.selected.planAction,search.state,policy)==true then
+                fallback=planner.PlanRuntime.Result({actions={prior.selected.planAction},status="refining",decisionKind="continuity",
+                    reason="Continue while future options are updated"},observed,ctx,policy,prior,search.state)
             end
             publish(fallback)
             return

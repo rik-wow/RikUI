@@ -129,9 +129,9 @@ local function ending(route,distance)
         subtext=floors and "Marker covers multiple floors" or "Check the quest target",distance=distance,ending=true}
 end
 -- Distances are to the current steering aim, not invented named turns or interactions.
-function guidance.Instruction(route,position,facing,width,height)
+function guidance.Instruction(route,position,facing,width,height,projectedPoint)
     if route and route.searching then return ending(route,0) end
-    local point=route and route.next
+    local point=projectedPoint or route and route.next
     if not point or not position or point.mapID~=position.mapID
         or not schema.Number(width,1,100000) or not schema.Number(height,1,100000)
         or not schema.Number(point.x,0,1) or not schema.Number(point.y,0,1)

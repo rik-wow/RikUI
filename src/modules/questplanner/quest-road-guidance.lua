@@ -94,7 +94,7 @@ local function begin(graph,view,start,goal,row,live,key,toStop)
     setState("calculating","Calculating road route")
 end
 
-local function publish(result,view,key,start)
+local function publish(result,view,key,start,world)
     if result.status~="modeled" then
         local detail=result.detail
         -- A walking path exists in the world; this is a gap in the baked model.
@@ -106,7 +106,7 @@ local function publish(result,view,key,start)
         setState(result.status,detail);return
     end
     failure=nil
-    local handle,why=planner.RoadFollow.Begin(result,function(point) return planner.Roads.Unproject(view,point) end)
+    local handle,why=planner.RoadFollow.Begin(result,function(point) return planner.Roads.Unproject(view,point) end,view,world)
     if not handle then setState("invalid",why);return end
     handle.route.meshOnly=result.meshOnly
     follower,routeKey=handle,key;stats.published=stats.published+1
@@ -278,7 +278,7 @@ function guidance.Step()
         return true
     end
     local result=searchSlice()
-    if result then request=nil;publish(result,view,key,{x=start.x,z=start.z}) end
+    if result then request=nil;publish(result,view,key,{x=start.x,z=start.z},world) end
     return true
 end
 

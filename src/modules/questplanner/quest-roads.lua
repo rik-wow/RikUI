@@ -87,6 +87,13 @@ function roads.Locate(mapID,x,y,source)
     end
 end
 
+-- Borrowed validated projection; rendering never loads network geometry.
+function roads.View(world,mapID)
+    for _,row in ipairs(index.byMap[mapID] or {}) do
+        if row.world==world then return row.view end
+    end
+end
+
 function roads.Unproject(view,point)
     local p=view and view.projection
     if not p or not schema.PlainTable(point) then return nil end

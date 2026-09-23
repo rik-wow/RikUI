@@ -100,6 +100,23 @@ return function(check)
             and model.selected.planAction and model.selected.planAction.objectiveKey=="item:9",model.selected and model.selected.detail)
         check("future source record enters normal plan",#(model.upNext or {})>0)
         check("guarded capabilities reach normal context",p.Controller.Context().bagFree==20 and p.Controller.Context().partySize==1)
+        local committedID=model.actionID
+        local switchesBefore=#p.PlanRuntime.Switches()
+        for _,nextMap in ipairs({1455,1426,1455,1426}) do
+            mapID=nextMap;now=now+2
+            p.Controller.Step() -- Observe the boundary before draining the queued refresh.
+            p.Controller.Invalidate(true)
+            check("invalidated display hides stale selection",p.Controller.Get().selected==nil and p.PlanRuntime.Replay()==nil)
+            update("city boundary and quest-event refresh")
+            check("refresh retains the committed action while searching",p.Controller.Get().actionID==committedID
+                and p.PlanRuntime.Replay().kind=="continuity")
+            for _=1,2000 do p.Controller.Step() end
+            local trace=p.PlanRuntime.Replay()
+            check("new search reprices the pre-invalidation incumbent",trace and trace.environment
+                and trace.environment.previousID==committedID and #trace.environment.incumbent>0)
+            check("refresh does not manufacture a new switch",p.Controller.Get().actionID==committedID
+                and #p.PlanRuntime.Switches()==switchesBefore)
+        end
         local before=invalidations
         now=now+10;counts[9]=3;snapshot.quests[900].objectives[1].text="3/4 Field Token"
         snapshot.quests[900].objectives[1].numFulfilled=3
@@ -156,9 +173,16 @@ return function(check)
         C_Container.GetContainerNumFreeSlots=function(bag) return bag==0 and 4 or 4,0 end
         counts[9],counts[55]=4,1;snapshot.quests[900].objectives[1].numFulfilled=4
         snapshot.quests[900].objectives[1].finished=true;snapshot.quests[900].objectivesComplete=true
+        local completedAction=p.Controller.Get().actionID
+        p.Controller.Invalidate(true)
         update("objective completed")
         for _=1,2000 do p.Controller.Step() end
         check("completion promptly advances to turn-in",p.Controller.Get().selected.kind=="turnin")
+        local switch=p.PlanRuntime.Switches()
+        switch=switch[#switch]
+        check("completed action switch keeps its real predecessor",switch and switch.from
+            and switch.from.actionID==completedAction and switch.to.actionID==p.Controller.Get().actionID
+            and switch.reason=="completed")
         local trace=p.PlanRuntime.Replay()
         local packet,why=p.Transfer.EncodePlan(trace)
         check("normal decision exports complete replay evidence",packet~=nil,why)

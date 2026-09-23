@@ -50,14 +50,32 @@ local function routePoint(route,at)
     if not path then return route.points[at] end
     return at<=#path.prefix and path.prefix[at] or path.tail[at-#path.prefix+path.first-1]
 end
+local function routeView(route,mapID)
+    local source=route.mapView
+    if not source then return end
+    if source.uiMapID==mapID then return source end
+    return planner.Roads and planner.Roads.View(route.worldMapID,mapID)
+end
+local function mapPoint(route,point,mapID,target)
+    local source=route.mapView
+    local low,high=source and -100000 or 0,source and 100000 or 1
+    if not point or not planner.Schema.Number(point.x,low,high)
+        or not planner.Schema.Number(point.y,low,high) then return end
+    if not source then if point.mapID==mapID then return point end;return end
+    if point.mapID~=source.uiMapID or not target then return end
+    if target==source then return point end
+    local p=source.projection
+    local x,z=p.originY-point.x*p.width,p.originX-point.y*p.height
+    if not planner.Schema.Number(x,-100000,100000) or not planner.Schema.Number(z,-100000,100000) then return end
+    return planner.Roads.Unproject(target,{x=x,z=z})
+end
 local function routePoints(route,mapID,project)
-    local points={}
+    local points,target={},routeView(route,mapID)
     local count=routeCount(route)
     if count>MAX_ROUTE_LINES+1 then return nil end
     for at=1,count do
-        local point=routePoint(route,at)
-        if point.mapID~=mapID or not planner.Schema.Number(point.x,0,1)
-            or not planner.Schema.Number(point.y,0,1) then return nil end
+        local point=mapPoint(route,routePoint(route,at),mapID,target)
+        if not point then return nil end
         points[#points+1]=project(point)
     end
     return points
@@ -65,25 +83,31 @@ end
 local worldCaches={}
 -- Immutable route tails are projected only when their geometry or map viewport changes.
 local function worldPoints(route,mapID,width,height,inverted)
+    local target=routeView(route,mapID)
+    local function project(point)
+        local p=mapPoint(route,point,mapID,target)
+        if p then return {p.x*width,p.y*height*(inverted and -1 or 1)} end
+    end
     local path=route.path
     if not path then return routePoints(route,mapID,function(p)return {p.x*width,p.y*height*(inverted and -1 or 1)}end) end
     if routeCount(route)>MAX_ROUTE_LINES+1 then return nil end
     local key=inverted and "lines" or "ants"
     local cache=worldCaches[key]
-    if not cache or cache.tail~=path.tail or cache.mapID~=mapID or cache.width~=width or cache.height~=height then
-        cache={tail=path.tail,mapID=mapID,width=width,height=height,points={},projected={}}
+    if not cache or cache.tail~=path.tail or cache.mapID~=mapID or cache.width~=width or cache.height~=height
+        or cache.source~=route.mapView or cache.target~=target then
+        cache={tail=path.tail,mapID=mapID,width=width,height=height,source=route.mapView,target=target,points={},projected={}}
         for at,point in ipairs(path.tail) do
-            if point.mapID~=mapID then return nil end
-            cache.projected[at]={point.x*width,point.y*height*(inverted and -1 or 1)}
+            cache.projected[at]=project(point)
+            if not cache.projected[at] then return nil end
         end
         worldCaches[key]=cache
     end
     if cache.prefix==path.prefix and cache.first==path.first then return cache.points end
     local at=0
     for _,point in ipairs(path.prefix) do
-        if point.mapID~=mapID then return nil end
         at=at+1
-        cache.points[at]={point.x*width,point.y*height*(inverted and -1 or 1)}
+        cache.points[at]=project(point)
+        if not cache.points[at] then return nil end
     end
     for index=path.first,#path.tail do at=at+1;cache.points[at]=cache.projected[index] end
     for index=#cache.points,at+1,-1 do cache.points[index]=nil end
@@ -145,7 +169,10 @@ function navigation.Instruction(live)
     local route=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     live=live or playerFrame()
     if not route or not live.position or not live.width then return nil end
-    return planner.Guidance.Instruction(route,live.position,live.facing,live.width,live.height)
+    local mapID=live.position.mapID
+    local point=mapPoint(route,route.next,mapID,routeView(route,mapID))
+    if not point and not route.searching then return nil end
+    return planner.Guidance.Instruction(route,live.position,live.facing,live.width,live.height,point)
 end
 local function hideLines() for _,line in ipairs(lines) do line:Hide() end end
 local function drawTerrain(canvas,width,height,mapID)
@@ -242,8 +269,9 @@ local function bearing()
     local terrain=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     local live=playerFrame()
     local point,position=terrain and terrain.next or model.selected.destination,live.position
+    if terrain and position then point=mapPoint(terrain,point,position.mapID,routeView(terrain,position.mapID)) end
     local hint=navigation.Instruction(live)
-    if not position or position.mapID~=point.mapID then return end
+    if not point or not position or position.mapID~=point.mapID then return end
     local facing,width,height=live.facing,live.width,live.height
     local ok,sized=facing~=nil,width and height
     if not ok or not sized or not planner.Schema.Number(facing,0,math.pi*2)
