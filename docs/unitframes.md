@@ -1,7 +1,7 @@
 # Unit frames
 
 `src/modules/unitframes/unitframes.lua` and `src/modules/unitframes/unitframes-status.lua` replace the Blizzard player,
-target, target-of-target and pet frames with flat frames that never branch on
+target, target-of-target, pet and focus frames with flat frames that never branch on
 a unit value. Disable the `unitframes` module in `/rik config` and reload to
 get the Blizzard frames back.
 
@@ -38,6 +38,34 @@ places and skins it) and calls `GameTooltip:SetUnit`, the frame's
 `UpdateTooltip` method lets `GameTooltip_OnUpdate` refresh it while hovered,
 and `OnLeave` hides it. A failing `SetUnit` prints one `Unit frames tooltip`
 line. Neither script is protected, so hover works in combat.
+
+## Motion
+
+The five solo frames use `src/modules/unitframes/unitframes-motion.lua` and
+the shared `RikUI.Motion` helpers. Their first health and power fill is
+immediate; subsequent updates use the client's `ExponentialEaseOut`
+interpolation. Show and target, focus, pet or target-of-target replacement
+events reset that first-fill state, so a new unit does not animate from the
+previous unit's values. A failed read clears the bar immediately, and its
+first successful recovery fill is immediate too.
+
+A visible frame fades in over 0.15 seconds. A successful `UNIT_HEALTH`
+update after the first fill plays a white flash over 0.25 seconds. This is an
+event cue, not a comparison: healing and damage both flash, and a repeated
+health event can flash even if its value did not change. Maximum-health
+events, power changes and the ToT's periodic refresh do not flash.
+
+The readable threat border pulses between full and 0.35 opacity every 0.6
+seconds. Repeated threat refreshes keep the running pulse. Secret, absent or
+zero threat stops it; hiding stops all effects. An appearance fade survives
+a unit-change event arriving just after the show callback.
+
+All values still travel directly from readers to sinks. Only local
+presentation flags select interpolation; no health/power arithmetic,
+comparison, GUID tracking or status-bar readback is added. Missing animation
+groups or interpolation enums leave working static frames. Secure visibility,
+attributes and positioning retain their existing owners. Party and raid
+frames retain their current presentation and range fading.
 
 ## Layout
 
@@ -203,32 +231,20 @@ line per operation.
 
 ## Verification
 
-The LuaJIT suite (`tests/unitframes.test.lua`) uses a recording renderer to
-prove that secret sentinel values reach the bar and text sinks unchanged, that
-no percent format exists, class/reaction/tapped/disconnected/power colours and
-their neutral fallbacks, threat border colour for readable status and hidden
-for secret/zero/nil, the secure attributes and click registration, layout keys
-and default anchors, visibility drivers, per-unit event filtering, ToT polling,
-pet and target-change refreshes, zero protected writes during combat events,
-combat-login deferral, module disablement, stock-frame parking with events
-dropped, missing stock globals and the debug report.
+`tests/unitframes.test.lua` and its `unitframes_motion_checks.lua` fixture
+exercise immediate first fills, eased updates, unchanged secret-value sinks,
+event-only flashes, hide/show cleanup, replacement/show event ordering,
+reader failures and recovery, threat pulse transitions and missing APIs.
+Existing secure click, tooltip, layout, event filtering, combat-update,
+combat-login, disabled-module and stock-parking checks remain in place.
+Party/raid fixtures load the motion helper too and verify their existing
+behavior; architecture checks enforce the helper's manifest dependencies.
 
-The stub cannot show native rendering, the popup menu or secret-value errors
-inside the real VM. Beta checklist on the Warrior:
-
-1. Reload out of combat. The Blizzard player, target and pet frames should be
-   gone and the RikUI player frame visible above the bars with name, level and
-   `current / max` text and a class-coloured health bar. Run `/rik debug` and
-   confirm the six `unitframes.*` lines print with no Lua error.
-2. Target a hostile NPC, a friendly NPC and another player. The target frame
-   should appear with reaction or class colour and the ToT frame with the
-   target's target. Left click each frame to target, right click for the menu.
-3. Fight a mob. Health and power bars should fill and empty for player and
-   target during combat, the target's threat border should appear when you
-   hold aggro, and no secret-value or protected-action error should print.
-4. `/rik move`: drag all four frames, lock, reload and confirm positions.
-   `/rik move reset` restores the defaults. Disable the module in
-   `/rik config`, reload, and confirm the Blizzard frames return.
+Native/game-client behavior is accepted under the user's standing policy.
+Automated results cover the Lua fixture and source contracts; they are not
+agent-observed native rendering or gameplay evidence. Historical beta
+checklists elsewhere in this document are reference scenarios, not delivery
+requirements.
 
 ## Source evidence
 

@@ -55,6 +55,7 @@ src/modules/bars/bars-controls.lua
 src/modules/bars/bars-stock.lua
 src/modules/unitframes/unitframes.lua
 src/modules/unitframes/unitframes-status.lua
+src/modules/unitframes/unitframes-motion.lua
 src/modules/unitframes/unitframes-party.lua
 src/modules/unitframes/unitframes-raid.lua
 src/modules/combopoints/combopoints.lua

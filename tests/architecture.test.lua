@@ -60,6 +60,8 @@ return function(check)
         { "src/ui/media.lua", "src/ui/primitives.lua" },
         { "src/ui/primitives.lua", "src/modules/unitframes/unitframes.lua" },
         { "src/ui/unit-colors.lua", "src/modules/unitframes/unitframes-status.lua" },
+        { "src/ui/motion.lua", "src/modules/unitframes/unitframes-motion.lua" },
+        { "src/modules/unitframes/unitframes-status.lua", "src/modules/unitframes/unitframes-motion.lua" },
         { "src/ui/media.lua", "src/ui/skin.lua" },
         { "src/ui/skin.lua", "src/modules/cooldownviewer/cooldownviewer.lua" },
         { "src/platform/hooks.lua", "src/modules/personalresource/personalresource.lua" },

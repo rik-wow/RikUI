@@ -140,6 +140,7 @@ unitframes.Build = build
 
 local function createFrame(spec)
     local frame = build(spec)
+    if unitframes.Motion then unitframes.Motion.Attach(frame) end
     layout.Register(frame, spec.key, DEFAULTS[spec.key])
     return frame
 end
@@ -184,12 +185,20 @@ function unitframes.Refresh(unit)
     eachFrame(unitframes.Update, unit)
 end
 
+-- Unit replacement must not interpolate from a previous unit's fill.
+local function replaceUnit(unit)
+    eachFrame(function(frame)
+        if unitframes.Motion then unitframes.Motion.Reset(frame, true) end
+        unitframes.Update(frame)
+    end, unit)
+end
+
 local function onUnitEvent(updater)
     return function(_, unit) eachFrame(updater, unit) end
 end
 
 local function registerUnitEvents()
-    core:RegisterEvent("UNIT_HEALTH", onUnitEvent(unitframes.UpdateHealth))
+    core:RegisterEvent("UNIT_HEALTH", onUnitEvent(unitframes.HealthChanged))
     core:RegisterEvent("UNIT_MAXHEALTH", onUnitEvent(unitframes.UpdateHealth))
     core:RegisterEvent("UNIT_POWER_UPDATE", onUnitEvent(unitframes.UpdatePower))
     core:RegisterEvent("UNIT_MAXPOWER", onUnitEvent(unitframes.UpdatePower))
@@ -205,16 +214,16 @@ end
 
 local function registerTargetEvents()
     core:RegisterEvent("PLAYER_TARGET_CHANGED", function()
-        unitframes.Refresh("target")
-        unitframes.Refresh("targettarget")
+        replaceUnit("target")
+        replaceUnit("targettarget")
     end)
     -- core refuses an event the client does not know, so a build without focus loses nothing.
-    core:RegisterEvent("PLAYER_FOCUS_CHANGED", function() unitframes.Refresh("focus") end)
+    core:RegisterEvent("PLAYER_FOCUS_CHANGED", function() replaceUnit("focus") end)
     core:RegisterEvent("UNIT_TARGET", function(_, unit)
-        if core.Secret.IsSecret(unit) or unit == "target" then unitframes.Refresh("targettarget") end
+        if core.Secret.IsSecret(unit) or unit == "target" then replaceUnit("targettarget") end
     end)
     core:RegisterEvent("UNIT_PET", function(_, unit)
-        if core.Secret.IsSecret(unit) or unit == "player" then unitframes.Refresh("pet") end
+        if core.Secret.IsSecret(unit) or unit == "player" then replaceUnit("pet") end
     end)
     core:RegisterEvent("PLAYER_ENTERING_WORLD", function()
         unitframes.Refresh()

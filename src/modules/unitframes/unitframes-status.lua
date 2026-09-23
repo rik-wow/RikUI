@@ -22,19 +22,24 @@ local function readPower(unit) return UnitPower(unit), UnitPowerMax(unit) end
 
 local function fill(bar, current, maximum)
     bar:SetMinMaxValues(0, maximum)
-    bar:SetValue(current)
+    local easing = bar.motionEnabled and unitframes.Motion.Interpolation(bar) or nil
+    bar:SetValue(current, easing)
+    if bar.motionEnabled then bar.motionFilled = true end
     if bar.text then bar.text:SetFormattedText(VALUE_FORMAT, current, maximum) end
 end
 
 local function clear(bar)
     bar:SetMinMaxValues(0, 1)
-    bar:SetValue(0)
+    bar.motionFilled = false
+    local easing = bar.motionEnabled and unitframes.Motion.Interpolation(bar) or nil
+    bar:SetValue(0, easing)
     if bar.text then bar.text:SetText("") end
 end
 
 local function feed(bar, operation, reader, unit)
     local ok, reason = core.Secret.Apply(function(current, maximum) fill(bar, current, maximum) end, reader, unit)
     if not ok then clear(bar); warnOnce(operation, reason) end
+    return ok
 end
 
 local function tint(bar, color)
@@ -42,7 +47,14 @@ local function tint(bar, color)
 end
 
 function unitframes.UpdateHealth(frame)
-    feed(frame.health, "health", readHealth, frame.unit)
+    return feed(frame.health, "health", readHealth, frame.unit)
+end
+
+-- The event is the change signal; health is never compared with its previous value.
+function unitframes.HealthChanged(frame)
+    local filled = frame.health.motionFilled
+    local succeeded = unitframes.UpdateHealth(frame)
+    if frame.motion then unitframes.Motion.HealthChanged(frame, filled, succeeded) end
 end
 
 function unitframes.UpdatePower(frame)
@@ -87,6 +99,7 @@ function unitframes.UpdateThreat(frame)
     for _, line in ipairs(frame.threat) do
         if r then line:SetVertexColor(r, g, b, 1); line:Show() else line:Hide() end
     end
+    if frame.motion then unitframes.Motion.Threat(frame, r ~= nil) end
 end
 
 -- A secret boolean is never compared: SetAlphaFromBoolean takes it as it is.

@@ -1,5 +1,5 @@
 local loadfile = dofile("tests/load_addon.lua").Loadfile
--- Secret unit values must reach the sinks untouched; native rendering, clicks and menus need a beta check.
+-- Secret unit values reach sinks untouched; native behavior follows the user acceptance policy.
 return function(check)
     local env = require("wow_stub")
     local originalCreate, originalDriver = CreateFrame, RegisterStateDriver
@@ -11,12 +11,31 @@ return function(check)
     for _, name in ipairs(API) do saved[name] = _G[name] end
     for _, name in ipairs(STOCK) do savedStock[name] = _G[name] end
     local savedColors = { RAID_CLASS_COLORS, FACTION_BAR_COLORS, PowerBarColor }
+    local savedEnum = Enum
+    Enum = { StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 2 } }
+    local animationsMissing = false
+    local function animate(owner)
+        function owner:CreateAnimationGroup()
+            if animationsMissing then return nil end
+            local group = { plays = 0, stops = 0, playing = false, alpha = {} }
+            function group:CreateAnimation() return self.alpha end
+            for _, key in ipairs({ "FromAlpha", "ToAlpha", "Duration" }) do
+                group.alpha["Set" .. key] = function(self, value) self[key] = value end
+            end
+            function group:SetLooping(value) self.looping = value end
+            function group:Play() self.plays = self.plays + 1; self.playing = true end
+            function group:Stop() self.stops = self.stops + 1; self.playing = false end
+            function group:IsPlaying() return self.playing end
+            return group
+        end
+    end
     local units, writes, drivers = {}, 0, {}
     local function protected()
         assert(not InCombatLockdown(), "protected unit frame write in combat")
         writes = writes + 1
     end
     local function region(value)
+        animate(value)
         local methods = getmetatable(value).__index
         setmetatable(value, { __index = function(t, key)
             if key:match("^[A-Z]") then return methods(t, key) end
@@ -39,6 +58,7 @@ return function(check)
         setmetatable(frame, { __index = function(t, key)
             if key:match("^[A-Z]") then return methods(t, key) end
         end })
+        animate(frame)
         frame.sets = 0
         function frame:SetAttribute(key, value) protected(); self.attributes[key] = value end
         function frame:SetSize(w, h) protected(); self.width, self.height = w, h end
@@ -47,7 +67,8 @@ return function(check)
         function frame:SetScale(value) protected(); self.scale = value end
         function frame:RegisterForClicks(...) self.clicks = { ... } end
         function frame:SetMinMaxValues(min, max) self.min, self.max = min, max end
-        function frame:SetValue(value) self.value, self.sets = value, self.sets + 1 end
+        function frame:SetValue(value, easing) self.value, self.easing, self.sets = value, easing, self.sets + 1 end
+        function frame:GetValue() error("unit value must never be read back") end
         function frame:SetStatusBarColor(...) self.color = { ... } end
         function frame:SetStatusBarTexture(texture) self.texture = texture end
         local show, hide = frame.Show, frame.Hide
@@ -110,9 +131,12 @@ return function(check)
         env.frames, env.printed, env.inCombat, writes, drivers = {}, {}, false, 0, {}
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         for _, name in ipairs(STOCK) do _G[name] = (not missingStock) and stockFrame(name) or nil end
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
             "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua" }) do
             assert(loadfile(file))("RikUI", {})
+        end
+        for _, file in ipairs(dofile("tests/load_addon.lua").Manifest()) do
+            if file == "src/modules/unitframes/unitframes-motion.lua" then assert(loadfile(file))("RikUI", {}) end
         end
         env.fire("ADDON_LOADED", "RikUI")
         env.inCombat = combat == true
@@ -134,6 +158,15 @@ return function(check)
         local module = load()
         local frames = module.Frames
         local player, target, tot, pet = frames.player, frames.target, frames.tot, frames.petframe
+        for _, key in ipairs({ "player", "target", "tot", "petframe", "focus" }) do
+            local frame = frames[key]
+            check(key .. " first health and power fill are immediate", frame.health.easing == 0 and frame.power.easing == 0)
+            check(key .. " has appearance, flash and threat animations", frame.motion and frame.motion.fade
+                and frame.motion.flash and #frame.motion.pulses == 4)
+        end
+        if target.motion then
+            dofile("tests/unitframes_motion_checks.lua")(check, env, module, units)
+        end
         check("four secure unit buttons exist", player and target and tot and pet
             and player.template == "SecureUnitButtonTemplate" and pet.template == "SecureUnitButtonTemplate")
         check("left click targets and right click toggles the unit menu", player:GetAttribute("*type1") == "target"
@@ -339,7 +372,10 @@ return function(check)
         module = load({ modules = { unitframes = false } })
         check("disabled module leaves stock frames alone", next(module.Frames) == nil
             and PlayerFrame.parent == UIParent)
+        animationsMissing = true
         module = load(nil, false, true)
+        env.fire("UNIT_HEALTH", "target")
+        check("missing animations preserve working unit sinks", module.Frames.target.health.value == env.SECRET)
         check("missing stock globals are tolerated", module.Frames.player ~= nil and #env.printed == 0)
     end)
     CreateFrame, RegisterStateDriver = originalCreate, originalDriver
@@ -347,5 +383,6 @@ return function(check)
     for _, name in ipairs(STOCK) do _G[name] = savedStock[name] end
     RAID_CLASS_COLORS, FACTION_BAR_COLORS, PowerBarColor = savedColors[1], savedColors[2], savedColors[3]
     env.inCombat = false
+    Enum = savedEnum
     check("unit frame suite completes", ok, reason)
 end

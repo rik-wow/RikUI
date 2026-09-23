@@ -111,8 +111,8 @@ return function(check)
         env.frames, env.printed, env.inCombat, writes, drivers, templates = {}, {}, false, 0, {}, {}
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         for _, name in ipairs(STOCK) do _G[name] = (not missingStock) and stockFrame(name) or nil end
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
-            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/unitframes/unitframes-party.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/unitframes/unitframes-motion.lua", "src/modules/unitframes/unitframes-party.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         -- A missing implementation is a red assertion rather than a crashed suite.
@@ -140,6 +140,8 @@ return function(check)
         assert(raid, "src/modules/unitframes/unitframes-raid.lua did not register UnitFrames.Raid")
         local holder, frames = raid.Holder, raid.Frames
         local one, two, five, six, last = frames[1], frames[2], frames[5], frames[6], frames[40]
+        check("group frames do not opt into solo motion", module.Frames.player.motion ~= nil
+            and one.motion == nil and one.health.motionEnabled == nil and one.power.motionEnabled == nil)
         check("forty fixed secure unit buttons exist for raid1-40", #frames == 40 and one and last
             and one.template == "SecureUnitButtonTemplate" and last.unit == "raid40"
             and one.label == "RikUIUnit_raid1" and last:GetAttribute("unit") == "raid40")

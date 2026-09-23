@@ -117,8 +117,8 @@ return function(check)
         env.frames, env.printed, env.inCombat, writes, drivers, templates = {}, {}, false, 0, {}, {}
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         for _, name in ipairs(STOCK) do _G[name] = (not missingStock) and stockFrame(name) or nil end
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
-            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua" }) do
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/unitframes/unitframes-motion.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         -- A missing implementation is a red assertion rather than a crashed suite.
@@ -148,6 +148,8 @@ return function(check)
         assert(party, "src/modules/unitframes/unitframes-party.lua did not register UnitFrames.Party")
         local holder, frames = party.Holder, party.Frames
         local one, two, three, four = frames[1], frames[2], frames[3], frames[4]
+        check("group frames do not opt into solo motion", module.Frames.player.motion ~= nil
+            and one.motion == nil and one.health.motionEnabled == nil and one.power.motionEnabled == nil)
         check("four fixed secure unit buttons exist for party1-4", one and two and three and four
             and #frames == 4 and one.template == "SecureUnitButtonTemplate" and four.unit == "party4"
             and one.label == "RikUIUnit_party1")
