@@ -184,6 +184,7 @@ local function createWindow()
     window.scroll, window.edit = createEdit()
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, WINDOW_NAME) end
     window:Hide()
+    core.Motion.BindEntrance(window, true)
     chat.Window = window
 end
 

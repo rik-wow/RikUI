@@ -1,5 +1,7 @@
 # Chat
 
+The copy window now fades and slides in over 180ms. Input focus glow fades both ways, tab selection cross-fades the gold underline, and tab hover fades out smoothly. Rapid focus/tab changes cancel the outgoing animation; hiding input or the copy window stops pending motion immediately. Chat panel art replays its entrance when shown. These transitions touch addon art and the addon copy window; native message-frame scripts, routing, existing mention highlights and whisper unread cues are unchanged. Regression coverage includes rapid reversals, Escape, reused copy contents and native message behavior. Native acceptance is supplied by the user's standing policy.
+
 `src/modules/chat/chat.lua` and `src/modules/chat/chat-copy.lua` keep Blizzard's chat frames (the client owns
 message routing, tabs, docking and the edit box logic) and clean up what is
 around them: the RikUI font, no side buttons, a flat edit box, timestamps, a

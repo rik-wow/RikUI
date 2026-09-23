@@ -38,6 +38,8 @@ local function createPanel(frame)
     panel:SetFrameLevel(math.max(0, (frame:GetFrameLevel() or 1) - 1))
     chat.Flat(panel, chat.Colors.background)
     panel.fade = motion.Tween(panel, 0, 1, PANEL_FADE)
+    panel:HookScript("OnShow", function() motion.Play(panel.fade) end)
+    panel:HookScript("OnHide", function() motion.Stop(panel.fade) end)
     if chat.Settings().panel == false then panel:Hide() else motion.Play(panel.fade) end
     frame.rikPanel = panel
 end
@@ -48,7 +50,8 @@ local function underline(tab, selected)
     if not line or (tab.rikSelected == true) == selected then return end
     tab.rikSelected = selected
     line:SetAlpha(selected and 1 or 0)
-    if selected then motion.Play(line.fade) end
+    motion.Stop(selected and line.leave or line.fade)
+    motion.Play(selected and line.fade or line.leave)
 end
 
 local function tintTab(tab, selected)
@@ -64,12 +67,21 @@ local function addHover(tab, box)
     hover:SetVertexColor(HOVER_TINT[1], HOVER_TINT[2], HOVER_TINT[3])
     hover:SetAlpha(0)
     hover.fade = motion.Tween(hover, 0, HOVER_ALPHA, HOVER_FADE)
+    hover.leave = motion.Tween(hover, HOVER_ALPHA, 0, HOVER_FADE)
     tab.rikHover = hover
     tab:HookScript("OnEnter", function()
+        motion.Stop(hover.leave)
         hover:SetAlpha(HOVER_ALPHA)
         motion.Play(hover.fade)
     end)
-    tab:HookScript("OnLeave", function() hover:SetAlpha(0) end)
+    tab:HookScript("OnLeave", function()
+        motion.Stop(hover.fade)
+        hover:SetAlpha(0)
+        motion.Play(hover.leave)
+    end)
+    tab:HookScript("OnHide", function()
+        motion.Stop(hover.fade); motion.Stop(hover.leave); hover:SetAlpha(0)
+    end)
 end
 
 local function addUnderline(tab, box)
@@ -81,6 +93,8 @@ local function addUnderline(tab, box)
     line:SetHeight(UNDERLINE_HEIGHT)
     line:SetAlpha(0)
     line.fade = motion.Tween(line, 0, 1, PANEL_FADE)
+    line.leave = motion.Tween(line, 1, 0, PANEL_FADE)
+    tab:HookScript("OnHide", function() motion.Stop(line.fade); motion.Stop(line.leave) end)
     tab.rikUnderline = line
 end
 

@@ -17,6 +17,14 @@ function stub.animationGroup()
         group.animation = animation
         return animation
     end
+    function group:SetScript(event, callback)
+        self.scripts = self.scripts or {}
+        self.scripts[event] = callback
+    end
+    function group:Finish()
+        self.playing = false
+        if self.scripts and self.scripts.OnFinished then self.scripts.OnFinished(self) end
+    end
     function group:SetLooping(mode) self.looping = mode end
     function group:Stop() self.playing = false end
     function group:Play() self.plays, self.playing = self.plays + 1, true end

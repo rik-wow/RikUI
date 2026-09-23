@@ -42,16 +42,31 @@ local function glow(art)
     frame.lines = ui.Edges(frame, EDGE, "BORDER")
     frame:SetAlpha(0)
     frame.fade = motion.Tween(frame, 0, 1, FADE_SECONDS)
+    frame.leave = motion.Tween(frame, 1, 0, FADE_SECONDS)
     art.glow = frame
 end
 
 local function focusGained(box)
     local frame = box.rikArt.glow
+    motion.Stop(frame.leave)
     frame:SetAlpha(1)
     motion.Play(frame.fade)
 end
 
-local function focusLost(box) box.rikArt.glow:SetAlpha(0) end
+local function focusLost(box)
+    local frame = box.rikArt.glow
+    motion.Stop(frame.fade)
+    frame:SetAlpha(0)
+    motion.Play(frame.leave)
+end
+
+local function stopArt(art)
+    motion.Stop(art.fade)
+    motion.Stop(art.accentPulse)
+    motion.Stop(art.glow.fade)
+    motion.Stop(art.glow.leave)
+    art.glow:SetAlpha(0)
+end
 
 function chat.DressEditBox(box)
     if dressed[box] or not chat.IsFrame(box) then return end
@@ -67,6 +82,7 @@ function chat.DressEditBox(box)
     box:HookScript("OnEditFocusGained", focusGained)
     box:HookScript("OnEditFocusLost", focusLost)
     box:HookScript("OnShow", function() motion.Play(art.fade) end)
+    box:HookScript("OnHide", function() stopArt(art) end)
     chat.PaintEditBox(box, nil, nil, false)
 end
 

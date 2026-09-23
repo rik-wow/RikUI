@@ -23,6 +23,7 @@ return function(check)
         end })
     end
     local function region(value)
+        function value:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         upperOnly(value)
         function value:SetTexture(texture) self.texture = texture end
         function value:SetVertexColor(...) self.color = { ... } end
@@ -35,6 +36,7 @@ return function(check)
     end
     CreateFrame = function(kind, name, parent, template)
         local frame = originalCreate(kind, name, parent, template)
+        function frame:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         upperOnly(frame)
         function frame:SetParent(value) assert(not InCombatLockdown(), "frame reparented in combat"); self.parent = value end
         function frame:GetParent() return self.parent end
@@ -169,6 +171,12 @@ return function(check)
             and window.title.text == "Chat copy: Window 1" and #env.printed == 0)
         env.runScript(window.edit, "OnEscapePressed")
         check("Escape closes the copy window", not window:IsShown())
+        check("copy entry is cancelled on Escape without losing its contents", window.rikEntry.plays == 1
+            and not window.rikEntry:IsPlaying() and window.edit.text ~= "")
+        env.click(button)
+        check("copy window reuses and replays its fade/slide entrance", RikUIChatCopy == window
+            and window.rikEntry.plays == 2 and window.rikEntry.animation.kind == "Translation")
+        module.CloseCopy()
         env.click(rawget(ChatFrame2, "rikCopy"))
         check("another frame's button shows that frame's lines in the same window", RikUIChatCopy == window
             and window:IsShown() and window.edit.text == "other window")

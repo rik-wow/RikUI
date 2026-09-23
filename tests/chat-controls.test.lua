@@ -135,7 +135,10 @@ return function(check)
         check("taking the focus fades a glow in around the box in the channel's colour", art.glow.alpha == 1
             and art.glow.fade.plays == 1 and sameColor(art.glow.lines[1].color, ChatTypeInfo.GUILD))
         env.runScript(box, "OnEditFocusLost")
-        check("losing the focus takes it away", art.glow.alpha == 0)
+        check("losing focus fades the glow away and cancels its entrance", art.glow.alpha == 0
+            and art.glow.leave.plays == 1 and not art.glow.fade:IsPlaying())
+        env.runScript(box, "OnEditFocusGained")
+        check("regaining focus cancels the outgoing glow", not art.glow.leave:IsPlaying())
         env.runScript(box, "OnShow")
         check("the box's art fades in when the box opens, on a frame of RikUI's own", art.fade.plays == 1
             and rawget(box, "fade") == nil)
@@ -162,7 +165,8 @@ return function(check)
         check("hovering a tab fades a soft highlight in", tab.rikHover.alpha == 0.35 and tab.rikHover.fade.plays == 1
             and tab.rikHover.fade.animation.to == 0.35)
         env.runScript(tab, "OnLeave")
-        check("leaving takes it away", tab.rikHover.alpha == 0)
+        check("leaving fades the hover away", tab.rikHover.alpha == 0
+            and tab.rikHover.leave.plays == 1 and not tab.rikHover.fade:IsPlaying())
         FCFTab_UpdateColors(tab, true)
         local gold = RikUI.Chat.Colors.selected
         check("selecting a tab fades a gold underline in under its label", tab.rikUnderline.alpha == 1
@@ -170,7 +174,15 @@ return function(check)
         FCFTab_UpdateColors(tab, true)
         check("a repeated colour update does not replay it", tab.rikUnderline.fade.plays == 1)
         FCFTab_UpdateColors(tab, false)
-        check("deselecting takes the underline away", tab.rikUnderline.alpha == 0)
+        check("deselecting cross-fades the underline out", tab.rikUnderline.alpha == 0
+            and tab.rikUnderline.leave.plays == 1 and not tab.rikUnderline.fade:IsPlaying())
+        FCFTab_UpdateColors(tab, true)
+        check("rapid reselection cancels stale accent exit", not tab.rikUnderline.leave:IsPlaying()
+            and tab.rikUnderline.fade.plays == 2)
+        env.runScript(box, "OnHide")
+        check("hiding input cancels every owned animation", not art.fade:IsPlaying()
+            and not art.accentPulse:IsPlaying() and not art.glow.fade:IsPlaying()
+            and not art.glow.leave:IsPlaying())
         local copy, lock = ChatFrame1.rikCopy, ChatFrame1.rikLock
         env.runScript(copy, "OnEnter")
         env.runScript(lock, "OnEnter")
