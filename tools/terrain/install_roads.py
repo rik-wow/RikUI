@@ -14,6 +14,7 @@ from pathlib import Path
 OWNER = 'rikui-road-network-install-v1'
 RECEIPT = '.rikui-road-network.json'
 MANIFEST = 'road-network-receipt.json'
+REVIEW = 'review/'
 ADDON = re.compile(r'RikUIQuestRoads(?:_W[0-9]+(?:_P[0-9]{3}|_N[0-9]{2})?)?')
 LEAF = re.compile(r'[A-Za-z0-9_-]+\.(?:lua|toc)')
 LEGACY = re.compile(r'RikUIQuest(?:Terrain|Paths|Seams|TerrainMap)(?:_[A-Za-z0-9_]+)?')
@@ -65,6 +66,8 @@ def source_pack(source, expected_sha):
     require(manifest.get('format') == 'rikui-road-network-receipt-v1', 'unknown road receipt')
     expected = {}
     for row in manifest['files']:
+        if row['path'].startswith(REVIEW):
+            continue  # compiler review data (lift candidates); never installed
         parts = row['path'].split('/')
         require(len(parts) == 2 and ADDON.fullmatch(parts[0]) and LEAF.fullmatch(parts[1]), 'invalid road path')
         expected[row['path']] = {'bytes': row['bytes'], 'sha256': row['sha256']}

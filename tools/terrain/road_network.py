@@ -505,7 +505,7 @@ def finish_world(sources, world, source_directory, input_sha, quests, builder, p
     catalog['networkParts'] = parts  # set after the revision hash: the layout follows from the content
     files.update(patch_addons)
     if candidates:  # review data, not shipped in any addon
-        files['lift-candidates-W%d.json' % world] = canonical(dict(worldMapID=world, revision=catalog['revision'], candidates=candidates))
+        files['review/lift-candidates-W%d.json' % world] = canonical(dict(worldMapID=world, revision=catalog['revision'], candidates=candidates))
     return reps, edges, catalog, files
 
 
