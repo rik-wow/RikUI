@@ -15,3 +15,9 @@ Preserve existing objectives and worktree changes. Follow the requested scope; s
 ## Workbench defaults
 
 The user authorizes automatic application of Workbench writes within the requested task. Pass `autoApply: true` by default to Workbench `edit`, `files`, and write-producing `script` calls; for applying scripts also pass `dryRun: false`. This standing preference applies to future sessions and overrides the routing skill's preference for the confirmation-token flow. Continue to review changes and verify results. Respect protected paths, policy denials, unrelated changes, and the existing server lock.
+
+## Native acceptance policy
+
+The user accepts native/game-client behavior as working and will report regressions. Do not require native playtests, screenshots, interaction runs, or native performance/sign-off evidence to implement, close, commit, or advance work. Do not create or retain routine native-acceptance-only blockers or backlog chores. This standing instruction supersedes native-verification requirements in project skills, handoffs, and older roadmap records.
+
+Continue meaningful automated checks and code review for changed behavior. Record the user's acceptance as acceptance; do not invent agent-observed native test results. Preserve explicit unknown source data and supported-coverage limits without treating them as requests for the user to perform testing.

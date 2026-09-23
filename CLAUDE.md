@@ -1,5 +1,9 @@
 # wowforever-classicui
 
+## Native acceptance policy
+
+Follow the user-directed native acceptance policy in `AGENTS.md`: native/game-client behavior is accepted as working unless the user reports a regression. Never require native tests or sign-off for delivery or roadmap progress, and do not retain routine native-test-only blockers or chores. Continue relevant automated verification; preserve unknown data as unknown and attribute user acceptance accurately.
+
 
 
 ## Quick Start
