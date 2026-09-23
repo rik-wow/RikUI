@@ -66,13 +66,15 @@ local function inventory(ctx,records)
     end
     return carried,count
 end
-local function addLive(state,snapshot,ctx,id)
+local function addLive(state,snapshot,ctx,id,record)
     local quest=snapshot.quests[id]
     local binding=planner.StepBindings and planner.StepBindings.Match(snapshot,id)
     state.active[id],state.failed[id]=true,quest.failed
     state.objectivesComplete[id]=quest.objectivesComplete
     local tag=ctx.questTags and ctx.questTags[id]
     state.live[id]={title=quest.title,level=quest.level,objectivesComplete=quest.objectivesComplete,
+        hasPlanningRecord=record~=nil and record.id==id and schema.Text(record.title)
+            and schema.List(record.objectives or {},32) and not (record.known and record.known.semanticRecord==false),
         requiredParty=tag and tag.requiredParty,groupRequiredUnknown=tag and tag.group and not tag.requiredParty,dungeon=tag and tag.dungeon,
         destination=schema.Clone(ctx.destinations and ctx.destinations[id]),reward=schema.Clone(ctx.rewards and ctx.rewards[id])}
     if not quest.objectives then return end
@@ -119,7 +121,7 @@ function stateModel.Build(snapshot,status,ctx,records,policy)
         travel=schema.Clone(ctx.travel or {}),explorationOffers=schema.Clone(ctx.explorationOffers or {})}
     attributes(state,ctx)
     state.inventory,state.inventoryQueries=inventory(ctx,records)
-    for _,id in ipairs(snapshot.order) do addLive(state,snapshot,ctx,id) end
+    for _,id in ipairs(snapshot.order) do addLive(state,snapshot,ctx,id,records[id]) end
     for _,key in ipairs({"level","xp","xpMax","money","bagFree","partySize","characterKey"}) do
         state.evidence[key]={status=state[key]~=nil and "observed" or "unknown",source="live-client"}
     end

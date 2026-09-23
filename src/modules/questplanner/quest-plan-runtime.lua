@@ -93,7 +93,7 @@ end
 function runtime.ReplaySearch()
     return schema.CopyDiagnostic(lastSearchTrace)
 end
-local SWITCH_REASONS={invalid=true,completed=true,better=true,pinned=true,["no-incumbent"]=true}
+local SWITCH_REASONS={invalid=true,completed=true,better=true,pinned=true,coverage=true,["no-incumbent"]=true}
 function runtime.Switches()
     local rows=type(RikUIDB)=="table" and RikUIDB.planSwitches
     local out={}
@@ -264,8 +264,18 @@ end
 function runtime.Displayed(model)
     return {status=model.status,actionID=model.actionID,selected=selectedIdentity(model.selected)}
 end
-local function decisionInputs(observed,ctx,policy,previous)
-    local inputs={observed={},destinations={}}
+local function decisionGraph(result,state)
+    if result.replayGraph then return result.replayGraph end
+    -- Recheck previous source actions against fresh live state during graph rebuilds.
+    -- This preserves stable local destinations without trusting prior feasibility.
+    local trace=lastSearchTrace
+    if state and trace and trace.graph and trace.state and trace.graph.revision==state.sourceRevision
+        and trace.state.characterKey==state.characterKey and planner.PlanState.SameIdentity(trace.state.identity,state.identity) then
+        return trace.graph
+    end
+end
+local function decisionInputs(observed,ctx,policy,previous,state,graph)
+    local inputs={observed={},destinations={},localQuests=planner.Recommendations and planner.Recommendations.Capture(observed,state,policy,graph) or {}}
     if observed[1] then inputs.observed[1]=selectedIdentity(observed[1]) end
     for id,pinned in pairs(policy.pins) do
         local point=pinned and ctx.destinations[id]
@@ -275,7 +285,7 @@ local function decisionInputs(observed,ctx,policy,previous)
         inputs.previous={id=previous.id,questID=previous.questID,kind=previous.kind}
         inputs.previousFailures=(ctx.failures or {})[previous.id]
     end
-    return schema.CopyLimited(inputs,2048,32768,6)
+    return schema.CopyLimited(inputs,4096,65536,6)
 end
 local UNAVAILABLE="This interaction is still unavailable. Choose another quest, or use Retry action when it becomes available."
 -- Pure final choice; no publication, attribution, learning or live API reads.
@@ -285,6 +295,22 @@ function runtime.ProjectDecision(result,policy,prior,state,inputs)
     local fallback,conflict=planner.Guidance.Fallback(inputs.observed,inputs,policy)
     local display={status=conflict and "constraint-conflict" or "observed",selected=selectedIdentity(fallback)}
     local decision={mode=fallback and "fallback" or "none",displayed=display,switchReason=switchReason}
+    local pinned
+    for _,action in ipairs(result.actions or {}) do
+        if policy.pins[action.questID] then pinned=true;break end
+    end
+    local localRow,coverage
+    if not conflict and not pinned and planner.Recommendations then
+        localRow,coverage=planner.Recommendations.LocalChoice(inputs.localQuests,state,policy)
+    end
+    if localRow then
+        local id=localRow.questID..":live:"..localRow.kind
+        display.selected={questID=localRow.questID,kind=localRow.kind,actionID=id};display.actionID=id
+        decision.mode,decision.coverage,decision.switchReason="local",coverage,"coverage"
+        local selected={actions={},status=result.status,reason="Nearby active quests first; planning data is incomplete",
+            coverage=result.coverage,metrics=result.metrics,limited=result.limited,excluded=result.excluded}
+        return selected,prior~=nil and prior.actionID==id,decision
+    end
     local first
     for index,action in ipairs(result.actions or {}) do
         if action.kind~="complete" then first=action;decision.firstIndex=index;break end
@@ -323,7 +349,7 @@ local function traceResult(raw,result,model,state,policy,prior,inputs,retained)
 end
 function runtime.Result(result,observed,ctx,policy,prior,state)
     local raw=result
-    local inputs=decisionInputs(observed,ctx,policy,lastAction)
+    local inputs=decisionInputs(observed,ctx,policy,lastAction,state,decisionGraph(result,state))
     if not inputs then error("Displayed decision inputs exceed their bounded schema") end
     local replayPrior=prior and {flavor=prior.flavor,actionID=prior.actionID,selected=prior.selected and {questID=prior.selected.questID},
         nearDestination=prior.actionID and planner.RoadGuidance and planner.RoadGuidance.NearDestination
@@ -350,7 +376,15 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
             if #model.stops<4 then model.stops[#model.stops+1]=row end
         end
     end
-    if decision.mode=="planned" then
+    if decision.mode=="local" then
+        for _,row in ipairs(observed) do
+            if row.questID==decision.displayed.selected.questID then model.selected=schema.Clone(row);break end
+        end
+        model.selected.actionID=decision.displayed.actionID;model.selected.planAction=nil
+        model.localGuidance,model.localCoverage=true,decision.coverage
+        model.detail=result.reason;model.stops={model.selected}
+        lastAction={id=decision.displayed.actionID,questID=model.selected.questID,kind=model.selected.kind,liveFallback=true}
+    elseif decision.mode=="planned" then
         model.selected=first;model.actionID=first.actionID
         model.detail=policy.flavor..": "..(result.reason or "Continue useful quest work")
         lastAction=first.planAction
@@ -365,7 +399,7 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
         end
     end
     model.retained=retained;model.switchReason=decision.switchReason
-    model.incumbentScore=raw.commitment and raw.commitment.score
+    model.incumbentScore=not model.localGuidance and raw.commitment and raw.commitment.score or nil
     model.actionIDs=replayIDs(result.actions)
     if raw.decisionKind=="continuity" and prior and prior.actionID==model.actionID then
         model.actionIDs=schema.Clone(prior.actionIDs or model.actionIDs)
@@ -373,7 +407,7 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
     if prior and prior.actionID and model.actionID~=prior.actionID then
         model.change="Plan updated for "..policy.flavor.." and current quest state"
     end
-    model.score=result.score or (raw.decisionKind=="continuity" and prior and prior.score);model.estimate={seconds=result.seconds,upper=result.upperSeconds,xp=result.xp,
+    model.score=not model.localGuidance and (result.score or (raw.decisionKind=="continuity" and prior and prior.score)) or nil;model.estimate={seconds=result.seconds,upper=result.upperSeconds,xp=result.xp,
         unknownXP=result.unknownXP,unknownCombatXP=result.unknownCombatXP,conditional=result.conditional,efficiencyCost=result.efficiencyCost,
         stoppingPoint=result.stoppingPoint}
     model.assumptions=result.assumptions;model.excluded=result.excluded
@@ -406,11 +440,20 @@ local function validSelected(row)
         and schema.Text(row.kind) and #row.kind<=32 and (row.actionID==nil or schema.Text(row.actionID) and #row.actionID<=160)
 end
 local function validDisplay(inputs,expected)
-    if not schema.CopyLimited(inputs,2048,32768,6) or not schema.List(inputs.observed,1)
+    if not schema.CopyLimited(inputs,4096,65536,6) or not schema.List(inputs.observed,1)
+        or (inputs.localQuests~=nil and not schema.List(inputs.localQuests,40))
         or not schema.PlainTable(inputs.destinations) or not schema.PlainTable(expected)
         or not schema.Text(expected.status) or #expected.status>64 or not validSelected(expected.selected)
         or (expected.actionID~=nil and (not schema.Text(expected.actionID) or #expected.actionID>160)) then return false end
     if not validSelected(inputs.observed[1]) then return false end
+    for _,row in ipairs(inputs.localQuests or {}) do
+        if not schema.PlainTable(row) or not validSelected(row)
+            or (row.blocked~=nil and type(row.blocked)~="boolean") then return false end
+        local point=row.destination
+        if point~=nil and (not schema.PlainTable(point) or not schema.ID(point.mapID)
+            or not schema.Number(point.x,0,1) or not schema.Number(point.y,0,1)) then return false end
+        if row.distance~=nil and not schema.Number(row.distance,0,1000000) then return false end
+    end
     local count=0
     for id,point in pairs(inputs.destinations) do
         count=count+1

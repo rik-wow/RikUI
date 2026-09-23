@@ -34,6 +34,15 @@ function guidance.Details(model,snapshot,route)
     for _,note in ipairs(selected.referenceAdvice and selected.referenceAdvice.lines or {}) do
         lines[#lines+1]="Source note: "..plain(note,240)
     end
+    if model.localCoverage then
+        local titles={}
+        for _,id in ipairs(model.localCoverage.missing) do
+            local row=snapshot and snapshot.quests and snapshot.quests[id]
+            titles[#titles+1]=plain(row and row.title or tostring(id))
+        end
+        lines[#lines+1]="Planning data missing: "..table.concat(titles,", ")
+        lines[#lines+1]="Following live quest locations; XP and completion time are not compared."
+    end
     if model.adaptive then
         lines[#lines+1]=(model.flavor or "Balanced")..": "..plain(model.reason,240)
         if selected.sourceSuggestion then lines[#lines+1]="Source suggestion; confirm availability and progress in game." end

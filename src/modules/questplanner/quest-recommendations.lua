@@ -103,3 +103,62 @@ function recommendations.Sort(rows,snapshot,ctx,previous,prior)
     return rows
 end
 
+-- These are observations for choosing the next destination, never simulated rewards.
+function recommendations.Capture(rows,state,policy,graph)
+    local result,supported,byQuest={},{},{}
+    for _,row in ipairs(rows or {}) do byQuest[row.questID]=row end
+    for _,action in ipairs(graph and graph.actions or {}) do
+        if not action.liveFallback and (action.kind=="objective" or action.kind=="turnin")
+            and state and state.active[action.questID] then
+            local live=state.live[action.questID]
+            local row=byQuest[action.questID]
+            local key=row and row.semantic and row.semantic.objectiveKey
+            if action.kind==(live.objectivesComplete and "turnin" or "objective")
+                and (not key or action.objectiveKey==key) then
+                supported[action.questID]=supported[action.questID]==true or planner.PlanTransitions.Check(action,state,policy)==true
+            end
+        end
+    end
+    for _,row in ipairs(rows or {}) do
+        if #result>=40 then break end
+        local p=row.destination
+        local point=p and {mapID=p.mapID,x=p.x,y=p.y,floor=p.floor,phase=p.phase,access=p.access}
+        result[#result+1]={questID=row.questID,kind=row.kind,destination=point,
+            blocked=(state and state.live[row.questID] and state.live[row.questID].hasPlanningRecord==true
+                and supported[row.questID]~=true) or supported[row.questID]==false
+                or row.step and row.step.state=="blocked" or false,
+            distance=row.recommendation and row.recommendation.distance}
+    end
+    return result
+end
+local function liveEligible(row,state,policy)
+    local id,point=row.questID,row.destination
+    local live=state.live and state.live[id]
+    if row.blocked or not live or state.active[id]~=true or state.failed[id] or not positioned(point) or point.access==false then return false end
+    if row.kind~=(live.objectivesComplete and "turnin" or "objective") then return false end
+    if policy.skips[id] or policy.defers[id] or policy.avoids[point.mapID] then return false end
+    if live.dungeon and not policy.dungeons or live.groupRequiredUnknown then return false end
+    if live.requiredParty and live.requiredParty>1
+        and (policy.group=="solo" or not state.partySize or state.partySize<live.requiredParty) then return false end
+    if point.phase and point.phase~=state.phase or point.floor and state.floor and point.floor~=state.floor then return false end
+    if policy.travel=="localOnly" and state.position and point.mapID~=state.position.mapID then return false end
+    local prefix=id..":"..row.kind..":"
+    for key,count in pairs(state.failures or {}) do
+        if count>=2 and (key==id..":live:"..row.kind or key==id..":"..row.kind or key:sub(1,#prefix)==prefix) then return false end
+    end
+    return true
+end
+function recommendations.LocalChoice(rows,state,policy)
+    if not state or not state.fresh then return end
+    local chosen,missing=nil,{}
+    for _,row in ipairs(rows or {}) do
+        if liveEligible(row,state,policy) then
+            local measured=state.position and row.destination.mapID==state.position.mapID
+                and schema.Number(row.distance,0,1000000)
+            if not chosen and (measured or policy.pins[row.questID]) then chosen=row end
+            if measured and state.live[row.questID].hasPlanningRecord==false then missing[#missing+1]=row.questID end
+        end
+    end
+    if chosen and #missing>0 then return chosen,{missing=missing,mode="proximity",distance=chosen.distance} end
+end
+

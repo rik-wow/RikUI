@@ -349,8 +349,58 @@ return function(check)
         check("S13 missing provider preserves live quest instructions",unknownRow and unknownRow.title=="New server expedition"
             and type(unknownRow.detail)=="string" and #unknownRow.detail>0)
         check("S13 production graph reports live-only coverage",p.Controller.Get().coverage and p.Controller.Get().coverage.liveOnly>=1)
+        local originalX,originalPOIs=x,C_QuestLog.GetQuestsOnMap
+        x=.5
+        C_QuestLog.GetQuestsOnMap=function()
+            return {{questID=999,mapID=1426,x=.51,y=.3,isQuestStart=false,isMapIndicatorQuest=false,inProgress=true}}
+        end
+        p.Controller.Step();update("live-only quest location")
+        for _=1,2000 do p.Controller.Step() end
+        local localModel=p.Controller.Get()
+        check("coverage normal controller selects live-only nearby quest",localModel.localGuidance
+            and localModel.selected.questID==999 and localModel.actionID=="999:live:objective")
+        p.View.Open()
+        check("coverage real widget displays limitation",p.View.Window.summary.arrowHint:GetText()=="Partial quest data")
+        check("coverage details name missing quest and omit comparison",p.View.Window.instructions:GetText():find("New server expedition",1,true)
+            and p.View.Window.instructions:GetText():find("XP and completion time are not compared",1,true))
+        local trace=p.PlanRuntime.Replay()
+        local rerun=p.PlanRuntime.RerunReplay(trace,trace.source)
+        check("coverage normal controller export replays selection",rerun.status=="match",rerun.reason or rerun.phase)
+        p.Controller.Invalidate(true);update("live-only refresh")
+        for _=1,2000 do p.Controller.Step() end
+        check("coverage controller retains live incumbent across invalidation",p.Controller.Get().actionID==localModel.actionID)
+        snapshot.quests[999].objectivesComplete=true
+        snapshot.quests[999].objectives[1].finished=true
+        snapshot.quests[999].objectives[1].numFulfilled=1
+        update("live-only objective completion")
+        for _=1,2000 do p.Controller.Step() end
+        check("coverage real progress advances live-only turnin",p.Controller.Get().actionID=="999:live:turnin"
+            and p.Controller.Get().selected.kind=="turnin")
+        check("coverage navigation never invents completion history",not p.PlanLearning.State().completed[999])
+        x=originalX;p.Controller.Step();update("modeled nearest with partial coverage")
+        for _=1,2000 do p.Controller.Step() end
+        local modeledLocal=p.Controller.Get()
+        check("coverage nearby modeled work competes with live-only work",modeledLocal.localGuidance and modeledLocal.selected.questID==900)
+        for refresh=1,3 do
+            p.Controller.Invalidate(true);update("modeled local refresh")
+            check("coverage modeled incumbent stable before search "..refresh,p.Controller.Get().actionID==modeledLocal.actionID)
+            for _=1,2000 do p.Controller.Step() end
+            check("coverage modeled incumbent stable after search "..refresh,p.Controller.Get().actionID==modeledLocal.actionID)
+        end
+        local modeledSource
+        for _,action in ipairs(p.PlanRuntime.ReplaySearch().graph.actions) do
+            if action.questID==900 and action.kind=="turnin" and not action.liveFallback then modeledSource=action;break end
+        end
+        assert(modeledSource)
+        p.PlanLearning.Failure(modeledSource.id,true);p.PlanLearning.Failure(modeledSource.id,true)
+        update("modeled incumbent becomes unavailable")
+        check("coverage cached source rechecks new failures immediately",p.Controller.Get().selected.questID==999)
+        local pendingTrace=p.PlanRuntime.Replay()
+        check("coverage cached-source decision exactly replays",p.PlanRuntime.RerunReplay(pendingTrace,pendingTrace.source).status=="match")
+        p.PlanLearning.Failure(modeledSource.id,false)
+        C_QuestLog.GetQuestsOnMap=originalPOIs
         snapshot.order={900};snapshot.reportedCount=1;snapshot.observedCount=1;snapshot.quests[999]=nil
-        update("S13 fixture restored");for _=1,2000 do p.Controller.Step() end
+        p.Controller.Step();update("S13 fixture restored");for _=1,2000 do p.Controller.Step() end
 
         local beforeTeleport=invalidations
         now=now+1;x=.9

@@ -34,6 +34,29 @@ RikUI's profile/CVar/macro transport, whose codec is bounded to 21,600 bytes.
 Explicit RIKQ1 exports can be archived and verified with the separate offline
 importer; this does not provide automatic persistence on this beta.
 
+### Live quests with incomplete planning data
+
+When an eligible active quest has a measured location on the current map but
+no semantic planning record, automatic guidance chooses among nearby active
+quests using live distance, progress and destination stability. Explicit pins,
+manual selection, exclusions, group restrictions and known action requirements
+still apply. Missing locations do not create speculative destinations.
+
+The tracker labels this mode **Partial quest data**; More lists the affected
+quests. It omits projected XP, completion time and future steps because those
+comparisons cannot include the missing quest actions. Arrival never completes
+an objective. Adaptive optimization resumes when the relevant coverage gaps
+are resolved or excluded. Exported decisions include the bounded live choices
+needed to replay this selection.
+
+The September 23 Shimmer Stout export reproduces the original retained quest
+413 and, with this correction, selects nearby Operation Recombobulation (412)
+at Dun Morogh 25.95, 40.57. `tests/quest-plan-coverage-replay.lua` re-evaluates
+the captured graph/state against the installed road index, then exports and
+exactly replays the corrected decision. Run it with PUC Lua 5.1, the packet
+path and the AddOns root; travel fingerprints remain strict across interpreters.
+This is offline evidence, not native gameplay acceptance.
+
 ### Hunting objectives use search areas
 
 The Grizzled Den's Wendigo Mane objective no longer treats the cave POI as a

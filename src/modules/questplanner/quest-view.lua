@@ -46,10 +46,10 @@ local function instruction(frame,model,hint)
     if hint and model.selected and model.status~="paused" and model.status~="updating" then
         local value=hint.text.."\n"..hint.subtext
         if frame.status:GetText()~=value then frame.status:SetText(value) end
-        frame.arrowHint:SetText("Estimated route")
+        frame.arrowHint:SetText(model.localGuidance and "Partial quest data" or "Estimated route")
     else
         frame.status:SetText(planner.Guidance.RouteStatus(model,planner.Terrain and planner.Terrain.Status()))
-        frame.arrowHint:SetText("Direction guide")
+        frame.arrowHint:SetText(model.localGuidance and "Partial quest data" or "Direction guide")
     end
 end
 function view.RefreshInstruction(hint)
