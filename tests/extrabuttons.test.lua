@@ -124,6 +124,11 @@ return function(check)
             possess.actionButtons = { button(possess, "icon"), button(possess, "icon") }
             local override = holder("OverrideActionBar")
             override.SpellButton1, override.SpellButton2 = button(override, "icon"), button(override, "icon")
+            override.EndCapL, override._BG = override:CreateTexture(), override:CreateTexture()
+            override.healthBar = CreateFrame("StatusBar", nil, override)
+            override.powerBar = CreateFrame("StatusBar", nil, override)
+            override.LeaveButton = button(override, "Icon")
+            override.LeaveButton:SetScript("OnClick", function() override.leftVehicle = true end)
         end)
         local possess, override = PossessActionBar, OverrideActionBar
         local cancel = possess.actionButtons[2]
@@ -139,6 +144,13 @@ return function(check)
         check("nothing is written on the secure possess button or its bar", untouched and next(cancel.attributes) == nil
             and cancel.points == nil and possess.points == nil and possess:GetScript("OnShow") == nil)
         override:Show()
+        check("vehicle ornaments are removed and fills are flat", override.EndCapL.alpha == 0
+            and override._BG.alpha == 0 and override.healthBar:GetStatusBarTexture().texture == RikUI.Media.statusbar)
+        env.click(override.LeaveButton)
+        check("leave action survives the skin", override.leftVehicle == true and override.points == nil)
+        override.EndCapL:SetAlpha(1)
+        env.runScript(override, "OnEvent", "UNIT_ENTERED_VEHICLE", "player")
+        check("native texture-kit refresh is reskinned", override.EndCapL.alpha == 0)
         check("the override bar's spell buttons are skinned by key", module.Edges[override.SpellButton1] ~= nil
             and module.Edges[override.SpellButton2] ~= nil and #env.printed == 0)
 

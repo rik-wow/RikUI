@@ -104,20 +104,87 @@ local function flyout(frame)
     skinChildren(frame)
 end
 
--- The possess bar lists its buttons; the override (vehicle) bar keys them. The vehicle bar's own
--- hand-drawn frame stays: it changes with a texture kit per vehicle.
+-- Possess buttons retain native actions. Vehicle artwork is reapplied after texture-kit changes.
 local function possessBar(frame)
     if type(frame.actionButtons) ~= "table" then return end
     for _, button in ipairs(frame.actionButtons) do skinButton(button) end
 end
 
+local vehicleArt = {
+    "EndCapL", "EndCapR", "Divider1", "Divider2", "Divider3", "_BG", "_Border",
+    "MicroBGL", "_MicroBGMid", "MicroBGR", "ButtonBGL", "_ButtonBGMid", "ButtonBGR",
+    "PitchOverlay", "PitchButtonBG", "PitchBG", "ExitBG", "HealthBarBG",
+    "HealthBarOverlay", "PowerBarBG", "PowerBarOverlay",
+}
+local vehicleRegions, vehicleHooks = setmetatable({}, weak), setmetatable({}, weak)
+
+local function flatSurface(frame)
+    if not skin.IsRegion(frame) or vehicleRegions[frame] then return end
+    vehicleRegions[frame] = { skin.Fill(frame, skin.BACKING, 1), skin.Outline(frame) }
+end
+
+local function vehicleControl(button, label)
+    if not skin.IsRegion(button) then return end
+    for _, getter in ipairs({ "GetNormalTexture", "GetPushedTexture", "GetHighlightTexture" }) do
+        local region = type(button[getter]) == "function" and button[getter](button)
+        if skin.IsRegion(region) then
+            region:SetTexture(core.Media.highlight)
+            region:SetTexCoord(0, 1, 0, 1)
+        end
+    end
+    if vehicleRegions[button] then return end
+    flatSurface(button)
+    local text = button:CreateFontString(nil, "OVERLAY")
+    core.Media.Font(text, "label")
+    text:SetPoint("CENTER", button, "CENTER")
+    text:SetText(label)
+end
+
+local function vehicleStatus(bar)
+    if not skin.IsRegion(bar) then return end
+    skin.Strip(bar, { "HealthBarBG", "HealthBarOverlay", "PowerBarBG", "PowerBarOverlay", "XpMid", "XpL", "XpR" })
+    local fill = type(bar.GetStatusBarTexture) == "function" and bar:GetStatusBarTexture()
+    if skin.IsRegion(fill) then fill:SetTexture(core.Media.statusbar) end
+    skin.Font(bar.text, "small")
+    flatSurface(bar)
+end
+
+local function vehicleSkin(frame)
+    skin.Strip(frame, vehicleArt)
+    flatSurface(frame)
+    vehicleControl(frame.LeaveButton, "X")
+    vehicleControl(frame.PitchUpButton, "+")
+    vehicleControl(frame.PitchDownButton, "-")
+    if skin.IsRegion(frame.PitchMarker) then
+        frame.PitchMarker:SetTexture(skin.FLAT)
+        frame.PitchMarker:SetVertexColor(1, 0.78, 0.3)
+    end
+    vehicleStatus(frame.healthBar)
+    vehicleStatus(frame.powerBar)
+    vehicleStatus(frame.xpBar)
+    if skin.IsRegion(frame.xpBar) then
+        for index = 1, 19 do skin.Strip(frame.xpBar, { "XpDiv" .. index }) end
+    end
+end
+
 local function overrideBar(frame)
+    vehicleSkin(frame)
     for index = 1, OVERRIDE_BUTTONS do skinButton(frame[OVERRIDE_KEY .. index]) end
 end
 
+local function attachVehicle()
+    local frame = OverrideActionBar
+    if not skin.IsRegion(frame) or vehicleHooks[frame] then return end
+    vehicleHooks[frame] = true
+    hook("OverrideActionBar", overrideBar)
+    core.Hooks.Script(frame, "OnEvent", function(self) vehicleSkin(self) end)
+end
+
+
 function extras:OnEnable()
     hook("PossessActionBar", possessBar)
-    hook("OverrideActionBar", overrideBar)
+    attachVehicle()
+    core:RegisterEvent("ADDON_LOADED", attachVehicle, extras)
     hook("ExtraActionBarFrame", function(frame) skinButton(frame.button) end)
     hook("SpellFlyout", flyout)
     local zone = hook("ZoneAbilityFrame", zoneAbilities)
