@@ -77,12 +77,35 @@ local function border(button, harmful)
     return lines
 end
 
+-- The secure container owns playback, expiry timing and recycling. Never install scripts
+-- on AuraButton or read cooldown/aura durations to decide when to animate.
+local function registerMotion(button)
+    local motion = core.Motion
+    if not motion then return end
+    if type(button.AddAuraShownAnimation) == "function" then
+        local fade = motion.Tween(button.icon, 0, 1, 0.16)
+        if fade then button:AddAuraShownAnimation(fade) end
+    end
+    if type(button.AddPandemicRegion) ~= "function"
+        or type(button.AddPandemicActiveAnimation) ~= "function" then return end
+    local cue = button:CreateTexture(nil, "OVERLAY")
+    cue:SetAllPoints(button)
+    cue:SetTexture(media.border)
+    cue:SetVertexColor(1, 0.72, 0.2)
+    cue:Hide()
+    local pulse = motion.Pulse(cue, 0.25, 0.85, 0.4)
+    if not pulse then return end
+    button:AddPandemicRegion(cue)
+    button:AddPandemicActiveAnimation(pulse)
+end
+
 -- spec: size (px), harmful (dispel-coloured border), cancel (right-click cancels), dim (alpha).
 local function decorate(button, spec)
     button:SetSize(spec.size, spec.size)
     if spec.dim then button:SetAlpha(auras.DimAlpha) end
     button.background = background(button)
     button.icon = icon(button)
+    registerMotion(button)
     button:SetIcon(button.icon)
     button.border = border(button, spec.harmful)
     button.cooldown = cooldown(button)

@@ -3,6 +3,7 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
+    local animate = dofile("tests/group_motion_stub.lua")
     local API = { "C_UnitAuras", "C_Secrets", "BuffFrame", "DebuffFrame" }
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
@@ -22,6 +23,7 @@ return function(check)
         function value:SetFormattedText(format, ...) self.format, self.args = format, { ... } end
         function value:Show() self.shown = true end
         function value:Hide() self.shown = false end
+        animate(value)
         return value
     end
     CreateFrame = function(kind, name, parent, template)
@@ -85,7 +87,7 @@ return function(check)
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
         BuffFrame = (not missingStock) and stockFrame("BuffFrame") or nil
         DebuffFrame = (not missingStock) and stockFrame("DebuffFrame") or nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -153,6 +155,10 @@ return function(check)
             and debuff.registered.dispel[1].options.showWhenHelpful == false and debuff.cancelButtons == nil)
         check("buttons keep the Blizzard scripts and start hidden", next(button.scripts) == nil
             and next(debuff.scripts) == nil and button.shown == false and button.alpha == nil)
+        check("icon appearance uses registered native animation", registered.fade
+            and registered.fade.alpha.FromAlpha == 0 and registered.fade.alpha.ToAlpha == 1)
+        check("expiry cue is a registered native pandemic region with a pulse", registered.pandemic
+            and registered.pandemic.parent == button and registered.pulse and registered.pulse.looping == "BOUNCE")
         check("the module never reads auras itself", auraReads == 0)
         check("stock buff and debuff frames are parked with events dropped", BuffFrame.parent == RikUIHiddenFrames
             and DebuffFrame.parent == RikUIHiddenFrames and BuffFrame.unregistered == 1 and DebuffFrame.unregistered == 1)
@@ -166,6 +172,12 @@ return function(check)
         check("debug reports the containers and aura secrecy", output:find("Auras containers=2", 1, true)
             and output:find("auras.ShouldAurasBeSecret()", 1, true))
 
+        RikTestAnimationsMissing = true
+        module = load()
+        local fallback = module.Rows.buffs.container:GetAuraGroupFrame("buffs", 1)
+        check("missing animations preserve ordinary aura rendering", fallback.registered.icon and fallback.registered.cooldown
+            and not fallback.registered.fade and not fallback.registered.pulse and #env.printed == 0)
+        RikTestAnimationsMissing = nil
         module = load(nil, false, false, true)
         check("a missing container template warns once and leaves the stock frames alone",
             next(module.Rows) == nil and printedContains("Auras container") and #env.printed == 1

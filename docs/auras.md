@@ -47,6 +47,21 @@ size, other casters' debuffs after them at 22 px and half alpha, then a new
 line with your own buffs on the target and, dimmed, everyone else's. The pet
 frame carries the same two debuff groups at 22 px above it.
 
+## Motion
+
+Icons fade in over 160 ms when the native container shows them. A warm border
+pulses in the client's pandemic (refresh) window. The client owns that window,
+animation playback, refresh and reuse; RikUI never reads aura durations.
+Auras without native pandemic information retain their regular swipe and
+countdown. Other-caster dimming still applies to the entire icon and pulse.
+
+The decorator registers `AddAuraShownAnimation`, `AddPandemicRegion` and
+`AddPandemicActiveAnimation` from the pinned 69913
+[CustomAuraButton API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_AuraContainer/Blizzard_CustomAuraButton.lua).
+No scripts are installed on restricted AuraButtons. Missing animation support
+leaves normal aura rendering intact. Native behavior is accepted under the
+user's standing policy; automated checks cover registration and secrecy.
+
 ## How the pieces fit
 
 - `auras.CreateContainer(name, parent, unit, flow)` creates the container,

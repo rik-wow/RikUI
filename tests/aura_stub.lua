@@ -40,6 +40,9 @@ function stub.installButton(button)
     function button:SetCancelAuraButtons(buttons) self.cancelButtons = buttons end
     function button:SetTooltipAnchorPoint(point, x, y) self.tooltipAnchor = { point, x, y } end
     function button:SetHideTooltipInCombat(hide) self.tooltipHideInCombat = hide end
+    function button:AddAuraShownAnimation(group) self.registered.fade = group end
+    function button:AddPandemicRegion(region) self.registered.pandemic = region end
+    function button:AddPandemicActiveAnimation(group) self.registered.pulse = group end
     button.SetScript, button.HookScript = forbidden, forbidden
 end
 

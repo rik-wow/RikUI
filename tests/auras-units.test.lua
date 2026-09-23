@@ -3,6 +3,7 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
+    local animate = dofile("tests/group_motion_stub.lua")
     local API = { "C_UnitAuras", "C_Secrets" }
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
@@ -17,6 +18,7 @@ return function(check)
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         function value:SetText(text) self.text = text end
         function value:SetFormattedText(format, ...) self.format, self.args = format, { ... } end
+        animate(value)
         return value
     end
     CreateFrame = function(kind, name, parent, template)
@@ -63,7 +65,7 @@ return function(check)
         env.frames, env.printed, env.inCombat, env.timers, auraReads = {}, {}, false, {}, 0
         env.auraContainerMissing = missingContainer == true
         RikUI, RikUIDB, RikUICharDB = nil, profile and { profiles = { Default = profile } } or nil, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua", "src/modules/auras/auras-units.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -106,6 +108,8 @@ return function(check)
         check("other casters' buttons are small and dim", near(otherButton.width, 22)
             and near(otherButton.alpha, RikUI.Auras.DimAlpha) and RikUI.Auras.DimAlpha < 1
             and near(buffButton.alpha, RikUI.Auras.DimAlpha) and #buffButton.registered.dispel == 0)
+        check("dim aura motion keeps inherited alpha", otherButton.registered.fade and otherButton.registered.pulse
+            and otherButton.alpha == RikUI.Auras.DimAlpha and otherButton.registered.fade.alpha.ToAlpha == 1)
         check("unit buttons never cancel auras", ownButton.cancelButtons == nil and otherButton.cancelButtons == nil
             and buffButton.cancelButtons == nil)
         check("the module never reads auras itself", auraReads == 0)
