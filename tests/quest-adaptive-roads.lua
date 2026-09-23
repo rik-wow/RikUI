@@ -8,7 +8,7 @@ local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={CharDB={},Changed=function() end};RikUI["Secret"]={IsSecret=function() return false end}
 local modules={"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
     "path-codec","nav-attach","region-codec","terrain-packs","regions","navmesh",
-    "roads","road-patches","road-route","road-follow","road-navigate","road-guidance",
+    "roads","road-patches","road-route","road-follow","road-navigate","road-travel","road-guidance",
     "steps","step-bindings","guide-data","observed-steps","hunts","targets",
     "optimizer","area-optimizer","semantic-data","semantic-guidance","recommendations","guidance",
     "preferences","plan-state","plan-graph","plan-transitions","plan-learning","plan-costs","plan-search",
@@ -23,7 +23,10 @@ ctx.origin="live"
 local position={mapID=1426,x=tonumber(arg[6]) or .429,y=tonumber(arg[7]) or .472}
 local elapsed,requested=0,false
 local terrainCallback
-assert(loadfile(root.."/RikUIQuestRoads/index.lua"))()
+-- ROADS_ROOT: load road addons from a compiled, not yet installed, network.
+local roadsRoot=(os.getenv("ROADS_ROOT") or root):gsub("\\","/")
+local function home(name) return name:match("^RikUIQuestRoads") and roadsRoot or root end
+assert(loadfile(roadsRoot.."/RikUIQuestRoads/index.lua"))()
 local world,_,view=p.Roads.Locate(position.mapID,position.x,position.y)
 assert(world,"start position has no road network")
 GetTime=function() return elapsed end
@@ -33,11 +36,12 @@ local addonLoads,loadMS={},0
 C_AddOns={LoadAddOn=function(name)
     if addonLoads[name] then return true end
     local began=os.clock()
-    local toc=io.open(root.."/"..name.."/"..name..".toc")
+    local base=home(name)
+    local toc=io.open(base.."/"..name.."/"..name..".toc")
     if not toc then return false end
     for line in toc:lines() do
         line=line:gsub("\r",""):match("^%s*(.-)%s*$")
-        if line~="" and line:sub(1,1)~="#" then assert(loadfile(root.."/"..name.."/"..line))() end
+        if line~="" and line:sub(1,1)~="#" then assert(loadfile(base.."/"..name.."/"..line))() end
     end
     toc:close();addonLoads[name]=true
     loadMS=math.max(loadMS,(os.clock()-began)*1000)

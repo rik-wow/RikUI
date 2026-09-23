@@ -36,6 +36,39 @@ so the last stretch to an NPC, cave or building still follows real geometry.
    `RikUIQuestPaths*` and `RikUIQuestSeams*` folders out of AddOns into a
    backup directory. Nothing is deleted.
 
+## Travel links
+
+`travel_links.py` compiles client DB2 exports (TaxiNodes, TaxiPath,
+TaxiPathNode, AreaTrigger from wago.tools for the pinned build) into stops and
+links:
+
+- flight points with their faction (TaxiNodes flags: 1 Alliance, 2 Horde);
+- flights between two points of a shared faction, timed from the path length;
+- boats and zeppelins: TaxiPaths with waiting nodes that do not run between two
+  flight points. Each waiting node is a dock or zeppelin tower, named after the
+  nearest flight point; a ride goes to the next stop around the loop and costs
+  its sailing time plus half the modelled cycle as the wait;
+- the Deeprun Tram between AreaTriggers 2173 (Stormwind) and 2175 (Ironforge).
+
+`road_network.py --travel` attaches every stop to its world's nearest network
+node (flight masters within 80 yd, docks within 160) and stores walking costs
+between the stops of each world in the catalog. The index carries all stops
+and links. Speeds are estimates (flight 32 yd/s, transports 30 yd/s): client
+data has the paths but not the speeds or schedules.
+
+At runtime `quest-road-travel.lua` runs a sliced Dijkstra from the player and
+from the destination to every stop, then a small search over start, stops and
+goal. Flights count only when both points are discovered
+(`C_TaxiMap.GetTaxiNodesForMap`) and the faction matches. Guidance walks one
+leg at a time, says which link to take at each stop, and replans after a
+flight, a ride or a map change.
+
+Elevators are not linked yet. TransportAnimation gives each lift's travel
+(Undercity 96.5 yd, Thunder Bluff 61 and 71 yd, the Great Lift 129 yd), but
+their spawn positions are server data. `elevator_shafts.py` lists landings
+stacked that far apart in the bake as candidates; it is too noisy to trust on
+its own.
+
 ## Runtime
 
 `RikUIQuestRoads` (always loaded) maps each UI map to its world's network

@@ -14,7 +14,7 @@ from pathlib import Path
 OWNER = 'rikui-road-network-install-v1'
 RECEIPT = '.rikui-road-network.json'
 MANIFEST = 'road-network-receipt.json'
-ADDON = re.compile(r'RikUIQuestRoads(?:_W[0-9]+(?:_P[0-9]{3})?)?')
+ADDON = re.compile(r'RikUIQuestRoads(?:_W[0-9]+(?:_P[0-9]{3}|_N[0-9]{2})?)?')
 LEAF = re.compile(r'[A-Za-z0-9_-]+\.(?:lua|toc)')
 LEGACY = re.compile(r'RikUIQuest(?:Terrain|Paths|Seams|TerrainMap)(?:_[A-Za-z0-9_]+)?')
 LEGACY_RECEIPTS = ('.rikui-world-navigation.json', '.rikui-prepared-paths.json')

@@ -15,6 +15,7 @@ local LOAD_MS=3  -- per-frame time budget for network validation
 
 local index={byMap={},worlds={}}
 local catalogs,pages,graphs,loading={}, {}, {}, {}
+local partsLoaded={}  -- revision -> part addons loaded so far
 local stats={loads=0,maxLoadMS=0}
 
 local function hash(v) return type(v)=="string" and #v==64 and v:match("^[a-f0-9]+$") end
@@ -227,6 +228,15 @@ function roads.Prepare(identity,world)
             local ok,why=loadAddon(entry.addon)
             if not ok then return nil,why end
             if not catalogs[entry.revision] then return nil,"road-catalog-revision" end
+            return nil,"loading"
+        end
+        -- Stream pages ship in part addons; one synchronous load per call.
+        local done=partsLoaded[entry.revision] or 0
+        if schema.List(entry.parts,64) and done<#entry.parts then
+            local ok,why=loadAddon(entry.parts[done+1])
+            if not ok then return nil,why end
+            partsLoaded[entry.revision]=done+1
+            return nil,"loading"
         end
         local problem
         job,problem=beginGraph(catalogs[entry.revision])

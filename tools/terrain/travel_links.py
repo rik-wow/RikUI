@@ -156,6 +156,22 @@ def tram(triggers):
     return stops, links
 
 
+LIFT_MIN_TRAVEL = 20.0   # yd; shorter vertical animations are doors and small platforms
+
+
+def lifts(animation):
+    """Vertical-only transports (elevators): {transport id: travel yards}."""
+    keys = collections.defaultdict(list)
+    for r in animation:
+        keys[int(r['TransportID'])].append((float(r['Pos_0']), float(r['Pos_1']), float(r['Pos_2'])))
+    out = {}
+    for ident, rows in keys.items():
+        zs = [k[2] for k in rows]
+        if max(math.hypot(k[0], k[1]) for k in rows) < 1.0 and max(zs) - min(zs) >= LIFT_MIN_TRAVEL:
+            out[ident] = round(max(zs) - min(zs), 1)
+    return out
+
+
 def compile_links(taxi_nodes, taxi_paths, path_nodes, triggers):
     flight = flight_stops(taxi_nodes)
     paths = path_rows(path_nodes)
@@ -178,11 +194,13 @@ def main():
     p.add_argument('--output', required=True)
     args = p.parse_args()
     tables, sources = {}, {}
-    for name in ('TaxiNodes', 'TaxiPath', 'TaxiPathNode', 'AreaTrigger'):
+    for name in ('TaxiNodes', 'TaxiPath', 'TaxiPathNode', 'AreaTrigger', 'TransportAnimation'):
         path = pathlib.Path(args.tables) / ('%s-%s.csv' % (name, args.build))
         tables[name], sources[path.name] = read(path)
     stops, links = compile_links(tables['TaxiNodes'], tables['TaxiPath'], tables['TaxiPathNode'], tables['AreaTrigger'])
+    lift_travel = lifts(tables['TransportAnimation'])
     doc = dict(format=FORMAT, build=args.build, sources=sources, stops=stops, links=links,
+               lifts=[dict(transport=t, travel=v) for t, v in sorted(lift_travel.items())],
                estimates=dict(flightSpeed=FLIGHT_SPEED, flightOverhead=FLIGHT_OVERHEAD, transportSpeed=TRANSPORT_SPEED,
                               boardSeconds=BOARD_SECONDS, tramSeconds=TRAM_SECONDS, tramWait=TRAM_WAIT),
                nativeVerified=False)

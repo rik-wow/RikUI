@@ -375,27 +375,47 @@ def encode_streams(streams):
     return encoded, specs
 
 
+MAX_NETWORK_PART = 1024 * 1024  # bytes of stream pages per part addon; the runtime loads one per frame
+
+
+def part_addon(world, number):
+    return 'RikUIQuestRoads_W%d_N%02d' % (world, number)
+
+
 def addon_files(world, catalog, encoded):
+    """The world addon holds the catalog; stream pages go to part addons of at most
+    MAX_NETWORK_PART bytes so no single synchronous load stalls a frame for long.
+    Returns (files, part count)."""
     addon = 'RikUIQuestRoads_W%d' % world
-    files, names = {}, []
+    files, parts, size = {}, [[]], 0
     for name, pages in sorted(encoded.items()):
         for number, page in enumerate(pages, 1):
             if not page:
                 continue
-            file = 'stream-%s-%03d.lua' % (name, number); names.append(file)
-            body = 'RikUI.QuestPlanner.Roads.Page(%s,%s,%d,[[%s]])\n' % (lua(catalog['revision']), lua(name), number, page)
-            files[addon + '/' + file] = body.encode()
+            body = ('RikUI.QuestPlanner.Roads.Page(%s,%s,%d,[[%s]])\n' % (lua(catalog['revision']), lua(name), number, page)).encode()
+            if parts[-1] and size + len(body) > MAX_NETWORK_PART:
+                parts.append([]); size = 0
+            parts[-1].append(('stream-%s-%03d.lua' % (name, number), body)); size += len(body)
+    parts = [p for p in parts if p]
+    for number, rows in enumerate(parts, 1):
+        part = part_addon(world, number)
+        for file, body in rows:
+            files[part + '/' + file] = body
+        toc = ('## Interface: 16001\n## Title: RikUI Roads %d part %d\n## AllowLoadGameType: camelot\n## Dependencies: RikUI\n'
+               '## LoadOnDemand: 1\n\n' % (world, number)) + '\n'.join(file for file, _ in rows) + '\n'
+        files[part + '/' + part + '.toc'] = toc.encode()
     files[addon + '/catalog.lua'] = ('RikUI.QuestPlanner.Roads.Install(' + lua(catalog) + ')\n').encode()
     toc = ('## Interface: 16001\n## Title: RikUI Roads %d\n## AllowLoadGameType: camelot\n## Dependencies: RikUI\n'
-           '## LoadOnDemand: 1\n\ncatalog.lua\n' % world) + '\n'.join(names) + '\n'
+           '## LoadOnDemand: 1\n\ncatalog.lua\n' % world)
     files[addon + '/' + addon + '.toc'] = toc.encode()
-    return files
+    return files, len(parts)
 
 
 def index_files(worlds, source_directory, travel=None):
     """Always-loaded index: which LoadOnDemand addon serves which map views, plus
     travel stops and links (flights, transports, tram) across all worlds."""
     rows = [dict(worldMapID=w['worldMapID'], revision=w['revision'], addon='RikUIQuestRoads_W%d' % w['worldMapID'],
+                 parts=[part_addon(w['worldMapID'], n) for n in range(1, w.get('networkParts', 0) + 1)],
                  views=[dict(uiMapID=v['uiMapID'], projection=v['projection'], validUIRectangle=v['validUIRectangle'])
                         for v in views(source_directory, w['worldMapID'])]) for w in worlds]
     index = dict(format='rikui-road-index-v1', identity=graph.RUNTIME_IDENTITY, worlds=rows)
@@ -443,7 +463,7 @@ def compile_world(admitted, world, lookup, source_directory, rects=(), log=print
 
 
 def finish_world(sources, world, source_directory, input_sha, quests, builder, patcher, log=print, minimum=MIN_GROUP_NODES,
-                 travel=(), mapper=map):
+                 travel=(), mapper=map, lifts=()):
     """builder() -> (node infos, edges, polygon count); patcher(infos) -> (patches, chosen, kept).
     travel: this world's stops from travel_links.py; mapper runs their Dijkstras."""
     import road_travel
@@ -464,6 +484,8 @@ def finish_world(sources, world, source_directory, input_sha, quests, builder, p
     stops = road_travel.section(reps, edges, travel, mapper)
     log('world %d travel stops %d attached, %d missing, %d walks, %.0fs' % (
         world, len(stops['stops']), len(stops['missing']), len(stops['walks']), time.monotonic() - started))
+    candidates = road_travel.lift_candidates(reps, edges, sorted(set(lifts))) if lifts else []
+    log('world %d lift candidates %d' % (world, len(candidates)))
     started = time.monotonic()
     patches, chosen, kept = patcher(reps)
     log('world %d patches %d cells, %d quest polygons, %d kept, %.0fs' % (world, len(patches), chosen, kept, time.monotonic() - started))
@@ -479,8 +501,11 @@ def finish_world(sources, world, source_directory, input_sha, quests, builder, p
     catalog['revision'] = sha(canonical(catalog))
     patch_addons, _ = quest_pockets.patch_files(world, catalog['revision'], patches, lua, b85)
     need(len(patch_addons) == len(placeholder_files), 'patch addon layout changed with revision')
-    files = addon_files(world, catalog, encoded)
+    files, parts = addon_files(world, catalog, encoded)
+    catalog['networkParts'] = parts  # set after the revision hash: the layout follows from the content
     files.update(patch_addons)
+    if candidates:  # review data, not shipped in any addon
+        files['lift-candidates-W%d.json' % world] = canonical(dict(worldMapID=world, revision=catalog['revision'], candidates=candidates))
     return reps, edges, catalog, files
 
 
@@ -556,7 +581,7 @@ def compile_parallel(args, workers):
             patcher = lambda infos, w=world, r=world_rects: road_parallel.patches(batches[w], infos, r, pool)
             yield world, started, finish_world(sources[world], world, args.source_directory, args.expected_sha256,
                                                len(world_rects), builder, patcher, travel=travel_stops(args, world),
-                                               mapper=pool.map)
+                                               mapper=pool.map, lifts=travel_lifts(args))
 
 
 def travel_doc(args):
@@ -572,6 +597,11 @@ def travel_doc(args):
 def travel_stops(args, world):
     doc = travel_doc(args)
     return [s for s in doc['stops'] if s['world'] == world] if doc else []
+
+
+def travel_lifts(args):
+    doc = travel_doc(args)
+    return [row['travel'] for row in doc.get('lifts', ())] if doc else []
 
 
 def patch_policy():
@@ -625,6 +655,7 @@ def main():
         _, _, catalog, world_files = result
         files.update(world_files)
         report['worlds'].append(dict(worldMapID=world, revision=catalog['revision'], counts=catalog['counts'],
+                                     networkParts=catalog['networkParts'],
                                      addonBytes=sum(len(v) for v in world_files.values()),
                                      rawBytes=sum(s['bytes'] for s in catalog['streams'].values()),
                                      seconds=round(time.monotonic() - started, 1)))

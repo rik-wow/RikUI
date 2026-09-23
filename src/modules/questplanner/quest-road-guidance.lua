@@ -109,7 +109,7 @@ end
 -- Travel plan for the current destination: which leg comes next.
 local ARRIVE_YARDS=15     -- this close to a stop, the next leg is the link from it
 local JUMP_YARDS=150      -- moving this far between frames means a flight, ride or teleport
-local TRAVEL_MS=4         -- per-frame budget for travel planning
+local TRAVEL_MS=2         -- per-frame budget for travel planning; it runs beside the walking route
 
 local function planWorlds(identity,world,goalWorld)
     local travel=planner.RoadTravel
@@ -153,7 +153,12 @@ local function planTrip(identity,world,start,goalWorld,goalPoint,key)
     local began=clock and clock()
     local result
     repeat result=trip.job:Step() until result or not clock or clock()-began>=TRAVEL_MS
-    if not result then setState("calculating","Planning travel");return end
+    if not result then
+        -- Walking needs no plan within one world: guide on foot meanwhile.
+        if goalWorld==world then trip.pending={walkOnly(goalWorld)} else setState("calculating","Planning travel") end
+        return
+    end
+    trip.pending=nil
     trip.job=nil
     if result.status~="planned" then
         trip.failed=true
@@ -173,7 +178,10 @@ local function tripLeg(identity,world,start,goalWorld,goalPoint,key)
     trip.last={x=start.x,z=start.z}
     if trip.failed then return end
     if not trip.legs then planTrip(identity,world,start,goalWorld,goalPoint,key) end
-    if not trip.legs then return end
+    if not trip.legs then
+        if trip.pending then trip.detail=nil;return trip.pending[1] end
+        return
+    end
     local leg=trip.legs[trip.index]
     -- Reaching the stop at the end of a walking leg moves on to the link.
     if leg.mode=="walk" and leg.to~="goal" then

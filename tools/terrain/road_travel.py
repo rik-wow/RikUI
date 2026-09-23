@@ -7,7 +7,7 @@ further. Walking costs are network costs (road-weighted yards) from one
 stop's node to another's; the runtime adds the short straight leg from the
 node to the stop itself.
 """
-import heapq, math
+import collections, heapq, math
 
 REACH = dict(flight=80.0, dock=160.0, tram=80.0, elevator=40.0)
 
@@ -72,6 +72,57 @@ def walks(edges, attached, mapper=map):
         for j, b in enumerate(attached):
             if i != j and b['node'] in reach:
                 rows.append([i, j, round(reach[b['node']], 1)])
+    return rows
+
+
+LIFT_XZ = 40.0     # yd; lift landings sit within this of each other horizontally
+LIFT_SLACK = 3.0   # yd; landing height difference may differ from the lift travel by this much
+
+
+def pieces(edges):
+    """Connected piece index per node (edges treated as undirected)."""
+    adj = [set() for _ in edges]
+    for n, es in enumerate(edges):
+        for m, *_ in es:
+            adj[n].add(m); adj[m].add(n)
+    piece, count = [None] * len(edges), 0
+    for start in range(len(edges)):
+        if piece[start] is not None:
+            continue
+        piece[start], stack = count, [start]
+        while stack:
+            n = stack.pop()
+            for m in adj[n]:
+                if piece[m] is None:
+                    piece[m] = count; stack.append(m)
+        count += 1
+    return piece
+
+
+def lift_candidates(infos, edges, travels):
+    """Node pairs in different pieces stacked one lift travel apart.
+
+    travels: iterable of vertical lift travels in yards (TransportAnimation).
+    Returns rows {low, high, travel, yards}: candidates for review, never links.
+    """
+    piece = pieces(edges)
+    grid = collections.defaultdict(list)
+    for n, info in enumerate(infos):
+        grid[(math.floor(info[1][0] / LIFT_XZ), math.floor(info[1][2] / LIFT_XZ))].append(n)
+    rows = []
+    for (gx, gz), cell in grid.items():
+        near = [m for dx in (-1, 0, 1) for dz in (-1, 0, 1) for m in grid.get((gx + dx, gz + dz), ())]
+        for a in cell:
+            ax, ay, az = infos[a][1]
+            for b in near:
+                if piece[a] == piece[b]:
+                    continue
+                bx, by, bz = infos[b][1]
+                flat = math.hypot(bx - ax, bz - az)
+                for travel in travels:
+                    if flat <= LIFT_XZ and abs((by - ay) - travel) <= LIFT_SLACK:
+                        rows.append(dict(low=a, high=b, travel=travel, yards=round(flat, 1),
+                                         lowPoint=[round(v, 1) for v in infos[a][1]], highPoint=[round(v, 1) for v in infos[b][1]]))
     return rows
 
 

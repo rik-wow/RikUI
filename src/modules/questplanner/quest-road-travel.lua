@@ -298,6 +298,8 @@ end
 -- Worlds a plan between two worlds may pass through: both ends plus any world
 -- with a stop linked from either end's world.
 function travel.Worlds(startWorld,goalWorld)
+    -- A trip within one world uses its own stops, flights and ferries only.
+    if startWorld==goalWorld then return {startWorld} end
     local set={[startWorld]=true,[goalWorld]=true}
     for _,l in ipairs(links) do
         local a,b=stops[l.from],stops[l.to]

@@ -33,5 +33,19 @@ class Tests(unittest.TestCase):
         self.assertEqual(sorted(map(tuple, section['walks'])), [(1, 2, 160.0), (2, 1, 160.0)])
 
 
+class Lifts(unittest.TestCase):
+    def test_stacked_nodes_in_different_pieces_are_candidates(self):
+        infos = [info(0, 0), (0, (5.0, 61.0, 0.0), (0, 0), 0.0), info(300, 0)]
+        edges = [[(2, 300.0, 300.0, [])], [], [(0, 300.0, 300.0, [])]]
+        rows = rt.lift_candidates(infos, edges, [61.2])
+        self.assertEqual([(r['low'], r['high']) for r in rows], [(0, 1)])
+
+    def test_connected_or_misaligned_nodes_are_not(self):
+        infos = [info(0, 0), (0, (5.0, 61.0, 0.0), (0, 0), 0.0)]
+        joined = [[(1, 10.0, 10.0, [])], [(0, 10.0, 10.0, [])]]
+        self.assertEqual(rt.lift_candidates(infos, joined, [61.2]), [])
+        self.assertEqual(rt.lift_candidates(infos, [[], []], [80.0]), [])
+
+
 if __name__ == '__main__':
     unittest.main()
