@@ -24,6 +24,8 @@ so the final control on a page can still open every choice.
   Reverting a choice or switching back to the original profile clears it.
 - Setup and support: setup wizard, preset re-sync, undo and diagnostics.
 - Bars and layout: gryphons, stock bars, ghost icons and border colour.
+- Gameplay > Quest planner: journey style, session, rewards, advanced goals,
+  recovery and timing. The planner's Preferences button opens this page.
 
 Module settings are disabled while that module is off. Protected scale changes
 queue during combat; layout and maintenance buttons are disabled during combat.
@@ -64,7 +66,7 @@ The shared `RikUI.Scroll` helper confines navigation, pages and dropdown content
 
 `tests/options.test.lua` covers controls, profile operations, native Settings
 registration, standalone fallback, combat, long pages, narrow and wide canvases,
-collapsible navigation, keyboard scrolling, bounded dropdowns and pending reload
+collapsible navigation, keyboard scrolling, bounded dropdowns, empty-page layout and pending reload
 state across profile changes. These are automated model checks. Native behavior
 is accepted under the user's standing policy; no agent-observed game-client
 result is claimed.

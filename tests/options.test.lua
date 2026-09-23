@@ -26,6 +26,7 @@ return function(check)
         function frame:Disable() self.enabled = false end
         function frame:IsEnabled() return self.enabled end
         function frame:SetEnabled(value) self.enabled = value end
+        function frame:SetShown(value) if value then self:Show() else self:Hide() end end
         function frame:SetSize(w,h)
             if self.width == w and self.height == h then return end
             self.width,self.height=w,h
@@ -77,6 +78,17 @@ return function(check)
         -- Renderer with synthetic specs.
         local options = boot()
         check("configuration confines page content to a scrolling viewport", options.Panel().pages[1].scroll ~= nil)
+        local emptyPane=RikUI.Scroll.Create(UIParent)
+        local emptyList=options.Render(emptyPane.content,{})
+        emptyList.scroll=emptyPane
+        local resizeCalls=0
+        emptyPane.OnResize=function(width) resizeCalls=resizeCalls+1;assert(resizeCalls<5,"recursive scroll layout");options.ResizeList(emptyList,width) end
+        emptyPane:SetSize(200,100)
+        check("empty options page does not recurse during layout",resizeCalls==1 and emptyPane.range==0)
+        RikUI.Scroll.SetContentHeight(emptyPane,500);RikUI.Scroll.SetOffset(emptyPane,999)
+        check("shared scroller clamps long content",emptyPane.offset==400 and emptyPane.bar:IsShown())
+        RikUI.Scroll.SetContentHeight(emptyPane,0)
+        check("content shrink clears stale scroll and thumb",emptyPane.offset==0 and not emptyPane.bar:IsShown() and resizeCalls==1)
         local state = { flag = false, amount = 1, choice = "b", colour = { 0.1, 0.2, 0.3 }, name = "", pressed = 0, locked = true }
         local sets = {}
         local function setter(key) return function(value) state[key] = value; sets[key] = (sets[key] or 0) + 1 end end

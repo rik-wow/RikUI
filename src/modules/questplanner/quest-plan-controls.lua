@@ -1,120 +1,131 @@
--- Human-scale planner controls; one engine and identical hard feasibility across styles.
-local core,planner,media=RikUI,RikUI.QuestPlanner,RikUI.Media
-local controls={}
-planner.PlanControls=controls
-local window,fields,styles
-local function label(parent,value,x,y,width)
-    local text=parent:CreateFontString(nil,"OVERLAY");media.Font(text,"small")
-    text:SetPoint("TOPLEFT",x,y);text:SetWidth(width);text:SetJustifyH("LEFT");text:SetWordWrap(true);text:SetText(value)
-    return text
+-- Character-scoped planner preferences in the shared RikUI configuration.
+local core, planner = RikUI, RikUI.QuestPlanner
+local controls, inputs, refreshing = {}, {}, false
+planner.PlanControls = controls
+local function policy() return planner.Controller.Policy() end
+local function command(value) planner.Command(value) end
+local function report(ok, reason)
+    if not ok then core:Print(reason or "Quest preference unavailable.") end
+    return ok
 end
-local function button(parent,value,x,y,width,fn)
-    local control=CreateFrame("Button",nil,parent);control:SetSize(width,24);control:SetPoint("TOPLEFT",x,y)
-    control:SetHighlightTexture(media.highlight)
-    control.label=label(control,value,6,-4,width-12);control.label:SetHeight(18)
-    control:SetScript("OnClick",fn);return control
+local function choices(values)
+    local result = {}
+    for _, value in ipairs(values) do result[#result + 1] = { value = value, text = tostring(value) } end
+    return result
 end
-local function command(text)
-    planner.Command(text)
-    controls.Refresh()
+local function setting(kind, key, label, extra)
+    local spec = { type = kind, key = key, label = label,
+        get = function() return policy()[key] end,
+        set = function(value) return planner.Controller.Preference(key, value) end }
+    for name, value in pairs(extra or {}) do spec[name] = value end
+    return spec
 end
-local function cycle(key,choices)
-    local current=planner.Controller.Policy()[key]
-    local at=0;for index,value in ipairs(choices) do if value==current then at=index end end
-    local ok,reason=planner.Controller.Preference(key,choices[at%#choices+1])
-    if not ok then core:Print(reason) end
-    controls.Refresh()
+local function dropdown(key, label, values) return setting("dropdown", key, label, { values = values }) end
+local function checkbox(key, label) return setting("checkbox", key, label) end
+local function slider(key, label, minimum, maximum, step)
+    return setting("slider", key, label, { min = minimum, max = maximum, step = step })
 end
-local function selected(verb)
-    local row=planner.Controller.Get().selected
-    if row and row.questID and row.questID>0 then command(verb.." "..row.questID) end
+local function heading(label) return { type = "heading", label = label } end
+local function action(key, label, text, callback)
+    return { type = "button", key = key, label = label, text = text, action = callback }
 end
-local function create()
-    window=CreateFrame("Frame","RikUIQuestPlannerPreferences",UIParent)
-    window:SetSize(680,628);window:SetPoint("CENTER");window:SetClampedToScreen(true);window:SetFrameStrata("DIALOG");window:EnableMouse(true)
-    local fill=window:CreateTexture(nil,"BACKGROUND");fill:SetAllPoints();fill:SetColorTexture(.04,.05,.07,.99)
-    label(window,"Questing preferences",16,-14,480)
-    button(window,"Close",598,-8,66,function() window:Hide() end)
-    label(window,"Choose a style. Session length is advisory; change your mind at any time.",16,-44,640)
-    styles={}
-    for index,flavor in ipairs(planner.Preferences.Flavors()) do
-        local chosen=flavor
-        styles[flavor]=button(window,flavor,16+((index-1)%3)*216,-76-math.floor((index-1)/3)*30,208,function()
-            command("flavor "..chosen)
-        end)
+local function commandAction(key, label, text, value)
+    return action(key, label, text, function() command(value) end)
+end
+local function inputValue(key)
+    if inputs[key] ~= nil then return inputs[key] end
+    return key == "rewardTargetInput" and tostring(policy().rewardTarget or "") or ""
+end
+local function input(key, label)
+    return { type = "text", key = key, label = label, get = function() return inputValue(key) end,
+        set = function(value) inputs[key] = value or ""; return true end }
+end
+local function toggleGoal(field, inputKey, label)
+    local id = tonumber(inputValue(inputKey))
+    if not planner.Schema.ID(id) then core:Print("Enter a positive " .. label .. " ID."); return end
+    local active = policy()[field][id] == true
+    if report(planner.Controller.Toggle(field, id)) then
+        core:Print((active and "Removed " or "Added ") .. label .. " goal " .. id .. ".")
     end
-    fields={}
-    local rows={
-        {"sessionMinutes","Session (minutes)",{15,30,60,120,240,480}},
-        {"difficulty","Difficulty",{"easy","standard","hard"}},
-        {"group","Group content",{"solo","available"}},
-        {"travel","Travel",{"localOnly","regional","world"}},
-        {"grind","Repetition tolerance",{"low","medium","high"}},
-        {"explorationMinutes","Exploration (minutes)",{0,5,15,30,60}},
-        {"services","Optional services",{true,false}},
-        {"dungeons","Dungeons",{false,true}},
-        {"spoilers","Future story details",{false,true}},
-        {"strictSession","Strict time budget",{false,true}},
-        {"rewardFocus","Reward focus",{"xp","equipment","reputation","currency","unlocks"}},
-    }
-    for index,row in ipairs(rows) do
-        local key,title,choices=row[1],row[2],row[3]
-        fields[key]={title=title,button=button(window,title,16+((index-1)%2)*328,-150-math.floor((index-1)/2)*30,320,
-            function() cycle(key,choices) end)}
-    end
-    label(window,"Goals: quest / map ID; reward target: item / faction / spell ID (empty = any)",16,-342,620)
-    window.goal=CreateFrame("EditBox",nil,window)
-    media.Font(window.goal,"small")
-    local inputFill=window.goal:CreateTexture(nil,"BACKGROUND");inputFill:SetAllPoints();inputFill:SetColorTexture(.12,.15,.18,1)
-    window.goal:SetSize(100,24);window.goal:SetPoint("TOPLEFT",22,-370);window.goal:SetAutoFocus(false);window.goal:SetNumeric(true)
-    window.goal:SetMaxLetters(10)
-    button(window,"Toggle quest goal",132,-370,170,function() command("quest-goal "..window.goal:GetText()) end)
-    button(window,"Toggle zone goal",310,-370,170,function() command("zone-goal "..window.goal:GetText()) end)
-    button(window,"Reward target",490,-370,172,function() command("reward-target "..window.goal:GetText()) end)
-    window.goals=label(window,"",16,-402,640)
-    button(window,"Pin current",16,-438,154,function() selected("pin") end)
-    button(window,"Defer / restore",180,-438,154,function() selected("defer") end)
-    button(window,"Unavailable",344,-438,154,function() command("unavailable") end)
-    button(window,"Skip / restore",508,-438,154,function() selected("skip") end)
-    button(window,"Decline exploration",16,-472,206,function() command("decline-exploration") end)
-    button(window,"New session",238,-472,206,function() command("new-session") end)
-    button(window,"Reset learned times",460,-472,202,function() command("reset-learning") end)
-    button(window,"Start / stop waiting",16,-502,206,function() command("waiting") end)
-    button(window,"Start / stop recovery",238,-502,206,function() command("recovery") end)
-    button(window,"Retry action",460,-502,202,function() command("retry-action") end)
-    window.note=label(window,"",16,-540,640);window.note:SetHeight(70)
-    if type(UISpecialFrames)=="table" then table.insert(UISpecialFrames,"RikUIQuestPlannerPreferences") end
-    controls.Window=window
 end
+local function applyRewardTarget()
+    local value = inputValue("rewardTargetInput"):match("^%s*(.-)%s*$")
+    local id = value ~= "" and tonumber(value) or nil
+    if value ~= "" and not planner.Schema.ID(id) then
+        core:Print("Enter a positive reward target ID, or leave it empty to clear.")
+        return
+    end
+    if report(planner.Controller.Preference("rewardTarget", id)) then inputs.rewardTargetInput = nil end
+end
+local function observation()
+    local observer = planner.PlanObserver
+    return observer and observer.Status and observer.Status() or {}
+end
+local function timing(kind, label)
+    return { type = "checkbox", key = "timing." .. kind, label = label,
+        get = function() return observation().phase == kind end,
+        disabled = function() return observation().active ~= true end,
+        set = function(value)
+            if (observation().phase == kind) == value then return true end
+            return planner.Controller.Feedback(kind)
+        end }
+end
+planner.Options = { title = "Quest planner", group = "Gameplay", settings = {
+    heading("Journey"),
+    dropdown("flavor", "Questing style", choices(planner.Preferences.Flavors())),
+    dropdown("difficulty", "Difficulty", { { value = "easy", text = "Easy" },
+        { value = "standard", text = "Standard" }, { value = "hard", text = "Hard" } }),
+    dropdown("group", "Group content", { { value = "solo", text = "Solo" }, { value = "available", text = "Group available" } }),
+    dropdown("travel", "Travel distance", { { value = "localOnly", text = "Nearby only" },
+        { value = "regional", text = "Within the region" }, { value = "world", text = "Anywhere" } }),
+    dropdown("grind", "Repetition tolerance", { { value = "low", text = "Low" },
+        { value = "medium", text = "Medium" }, { value = "high", text = "High" } }),
+    slider("explorationMinutes", "Exploration allowance (minutes)", 0, 60, 5),
+    slider("readingSeconds", "Reading time per quest (seconds)", 0, 180, 5),
+    checkbox("services", "Include optional services"), checkbox("dungeons", "Include dungeons"),
+    checkbox("spoilers", "Show future story details"),
+    heading("Session"),
+    slider("sessionMinutes", "Session length (minutes)", 5, 480, 5),
+    checkbox("strictSession", "Enforce the session time budget"),
+    commandAction("newSession", "Restore quests deferred this session", "New session", "new-session"),
+    commandAction("declineExploration", "Stop optional exploration", "Decline exploration", "decline-exploration"),
+    heading("Rewards"),
+    dropdown("rewardFocus", "Reward focus", { { value = "xp", text = "Experience" },
+        { value = "equipment", text = "Equipment" }, { value = "reputation", text = "Reputation" },
+        { value = "currency", text = "Money" }, { value = "unlocks", text = "Spell unlocks" } }),
+    heading("Advanced goals"),
+    input("rewardTargetInput", "Target item, faction or spell ID (empty = any)"),
+    action("applyRewardTarget", "Apply the reward target", "Apply", applyRewardTarget),
+    input("questGoalInput", "Quest goal ID"),
+    action("toggleQuestGoal", "Add or remove this quest goal", "Toggle goal", function() toggleGoal("questGoals", "questGoalInput", "quest") end),
+    input("zoneGoalInput", "Zone goal map ID"),
+    action("toggleZoneGoal", "Add or remove this zone goal", "Toggle goal", function() toggleGoal("zoneGoals", "zoneGoalInput", "map") end),
+    heading("Recovery and timing"),
+    commandAction("unavailable", "Current action cannot be completed", "Mark unavailable", "unavailable"),
+    commandAction("retryAction", "Reconsider the current action", "Retry action", "retry-action"),
+    timing("waiting", "Currently waiting for the action"), timing("recovery", "Currently recovering between actions"),
+    commandAction("resetLearning", "Clear learned duration estimates", "Reset learned times", "reset-learning"),
+    commandAction("resetConstraints", "Clear quest, goal and area constraints", "Reset constraints", "reset"),
+} }
+
 function controls.Refresh()
-    if not window or not window:IsShown() then return end
-    local policy=planner.Controller.Policy()
-    for name,control in pairs(styles) do control.label:SetText((policy.flavor==name and "Selected: " or "")..name) end
-    for key,row in pairs(fields) do
-        local value=policy[key]
-        if type(value)=="boolean" then value=value and "on" or "off" end
-        row.button.label:SetText(row.title..": "..tostring(value))
-    end
-    local quests,zones,deferred=0,0,0
-    for _ in pairs(policy.questGoals or {}) do quests=quests+1 end
-    for _ in pairs(policy.zoneGoals or {}) do zones=zones+1 end
-    for _ in pairs(policy.defers or {}) do deferred=deferred+1 end
-    window.goals:SetText("Goals: "..quests.." quests, "..zones.." zones. Reward target: "..tostring(policy.rewardTarget or "any")..". Deferred: "..deferred..".")
-    local model=planner.Controller.Get()
-    local note=model.reason or model.detail or "Live instructions remain available while future options are evaluated."
-    for _,conflict in ipairs(model.conflicts or {}) do note=note.." "..conflict end
-    window.note:SetText(note)
-end
-function controls.Attach(parent)
-    local open=button(parent,"Preferences",250,-8,126,controls.Open)
-    parent.preferences=open
-    local defer=button(parent,"Defer current",386,-8,122,function() selected("defer") end)
-    parent.deferCurrent=defer
+    if refreshing then return end
+    local options = core.Options
+    local panel = options and options.Panel and options.Panel()
+    local page = panel and panel.pages and panel.pages[panel.current]
+    if not panel or not panel:IsShown() or not page or page.id ~= "questplanner" then return end
+    controls.Window, refreshing = panel, true
+    local ok, reason = pcall(options.Refresh)
+    refreshing = false
+    if not ok then error(reason, 0) end
 end
 function controls.Open()
     if not planner.enabled then return end
     core.Combat.Queue(function()
-        if not window then create() end
-        window:Show();controls.Refresh()
-    end,"questplanner:preferences")
+        local options = core.Options
+        if not options or not options.Open then core:Print("Quest settings are unavailable."); return end
+        if planner.View and planner.View.Window then planner.View.Window:Hide() end
+        options.Open("questplanner")
+        controls.Window = options.Panel and options.Panel()
+    end, "questplanner:preferences")
 end

@@ -157,6 +157,8 @@ src/modules/questplanner/quest-controller.lua
 src/modules/questplanner/quest-terrain.lua
 src/modules/questplanner/quest-plan-controls.lua
 src/modules/questplanner/quest-view.lua
+src/modules/questplanner/quest-window-layout.lua
+src/modules/questplanner/quest-window.lua
 src/modules/questplanner/quest-navigation.lua
 src/modules/questplanner/quest-transfer-view.lua
 src/modules/questplanner/quest-commands.lua

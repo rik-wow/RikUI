@@ -16,6 +16,9 @@ party preview, the quest planner, reporting and maintenance. The flyout stays
 closed during normal play; see [utility shell](docs/shell.md). Settings uses a
 nested sidebar with separate module and profile pages; see [options](docs/options.md).
 The same config page remains under Options > AddOns > RikUI.
+The quest planner has a current-objective card, selectable quest list and one
+action panel. Route details open on demand; Preferences opens Gameplay > Quest
+planner in settings. See [planner controls](docs/questplanner.md#planner-window).
 The bars use flat square icons,
 outlined labels and shared bundled media; hovering a button shows its
 tooltip. Gryphon end caps are off by default:

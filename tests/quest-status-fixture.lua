@@ -29,8 +29,8 @@ return function(check,p,env)
         Invalidate=function() invalidations=invalidations+1;route=nil;terrainState={status="updating",detail="Updating walking route"} end}
     p.View.Refresh()
     local summary=p.View.Window.summary
-    check("status reserves wrapped two-line height",summary.status.wordWrap==true and summary.status:GetHeight()==29
-        and summary:GetHeight()==110)
+    check("status reserves wrapped two-line height",summary.status.wordWrap==true and summary.status:GetHeight()==38
+        and summary:GetHeight()==124)
     check("approach status discloses final gap",status("modeled-approach")=="Approach estimate; final gap unverified")
     check("details show the actual uncovered position",summary.status:GetText()=="Your position is outside the walking model")
     local oldLine,lines=GameTooltip.AddLine,{}
@@ -66,15 +66,38 @@ return function(check,p,env)
     p.GetSnapshot=function() return snapshot,{state="current"} end
     p.View.Refresh()
     local win=p.View.Window
+    check("planner opens with quest browsing and hides detailed diagnostics",win.questList:IsShown()
+        and win.selection:IsShown() and not win.details:IsShown())
+    check("quest panes remain inside the window",win.questList:GetWidth()+win.selection:GetWidth()+48==win:GetWidth()
+        and win.questList:GetHeight()+194<win:GetHeight())
+    check("quest detail text is clipped independently from actions",win.selection.scroll.view.clips
+        and win.selection.scroll:GetHeight()==146 and win.selection.route:GetParent()==win.selection)
+    local selectedID=win.selection.quest.questID
+    snapshot.quests[selectedID].objectives={{text="|cffff0000A guarded objective|r",finished=false}}
+    local oldMeasure=win.selection.body.GetStringHeight
+    win.selection.body.GetStringHeight=function() return 500 end
+    p.View.Refresh()
+    check("selected objectives are sanitized before display",not win.selection.body:GetText():find("|",1,true)
+        and win.selection.body:GetText():find("A guarded objective",1,true))
+    check("long selected objectives have scrollable space",win.selection.scroll.range==362)
+    RikUI.Scroll.SetOffset(win.selection.scroll,999)
+    check("selected objective scroll clamps at its end",win.selection.scroll.offset==362)
+    win.selection.body.GetStringHeight=function() return 12 end
+    p.View.Refresh()
+    check("shorter objectives clear stale scroll",win.selection.scroll.offset==0 and win.selection.scroll.range==0)
+    win.selection.body.GetStringHeight=oldMeasure
     check("native details pane presents full interaction text",win.instructions and win.instructions:GetText():find("guard is present",1,true)
         and win.instructions.wordWrap==true)
     if win.instructionScroll then
-        win.instructionScroll.GetVerticalScrollRange=function() return 200 end
-        win.instructionScroll.GetVerticalScroll=function() return 0 end
+        p.View.ToggleDetails()
+        win.instructions.GetStringHeight=function() return 700 end
+        p.View.Refresh()
+        RikUI.Scroll.SetOffset(win.details.scroll, 0)
         local scrollValue
         win.instructionScroll.SetVerticalScroll=function(_,value) scrollValue=value end
         env.runScript(win.instructionScroll,"OnMouseWheel",-1)
-        check("details scroll remains bounded",scrollValue and scrollValue>0 and scrollValue<=200)
+        check("details scroll remains bounded",scrollValue and scrollValue>0 and scrollValue<=win.details.scroll.range)
+        p.View.ToggleDetails()
     else check("details can scroll long instructions",false) end
     p.Controller.Get,p.GetSnapshot=originalModel,originalSnapshot;p.View.Refresh()
     local retries=0

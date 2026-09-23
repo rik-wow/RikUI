@@ -38,8 +38,9 @@ return function(check)
         QuestMapFrame_OpenToQuestDetails=function(id) opened=id end
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
+        dofile("src/ui/skin.lua"); dofile("src/ui/scroll.lua")
         for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","journey-graph","actions","simulation","optimizer",
-            "context","gossip","journal","dataset","steps","step-bindings","guide-data","observed-steps","targets","recommendations","guidance","controller","nav-geometry","view","navigation","transfer-view","commands"}) do
+            "context","gossip","journal","dataset","steps","step-bindings","guide-data","observed-steps","targets","recommendations","guidance","controller","nav-geometry","view","window-layout","window","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         dofile("src/modules/questplanner/questplanner.lua")
@@ -234,6 +235,7 @@ return function(check)
         p.Command("arrow off"); env.flushTimers()
         p.Command("show")
         check("explicit window has quest rows and actual summary",p.View.Window:IsShown() and p.View.Window.rows[1].questID==10)
+        check("planner has one contextual selection pane", p.View.Window.selection ~= nil)
         dofile("tests/quest-status-fixture.lua")(check,p,env)
         do
             local function rowFor(id)
@@ -245,21 +247,24 @@ return function(check)
             check("skipping removes quest from guidance",p.Controller.Get().selected.questID==11)
             local skipped=rowFor(10)
             check("skipped quest remains available for recovery",skipped~=nil)
-            check("skipped row offers Include",skipped and skipped.skip and skipped.skip.label:GetText()=="Include")
-            if skipped and skipped.skip then env.click(skipped.skip);env.flushTimers() end
+            env.click(skipped)
+            check("selected skipped quest offers Include",p.View.Window.selection.skip.label:GetText()=="Include quest")
+            env.click(p.View.Window.selection.skip);env.flushTimers()
             check("include restores only the skipped quest",not p.Controller.Policy().skips[10])
             if p.Controller.Policy().skips[10] then p.Command("skip 10");env.flushTimers() end
             p.Command("pin 11");p.Command("avoid 1426");p.Command("avoid 999");env.flushTimers()
             local avoided=rowFor(10)
-            check("avoided quests remain visible with area recovery",avoided and avoided.area
-                and avoided.area.label:GetText()=="Allow area")
-            if avoided and avoided.area then env.click(avoided.area);env.flushTimers() end
+            env.click(avoided)
+            check("avoided quests remain visible with area recovery",p.View.Window.selection.area.label:GetText()=="Allow area")
+            env.click(p.View.Window.selection.area);env.flushTimers()
             check("allow area preserves unrelated preferences",not p.Controller.Policy().avoids[1426]
                 and p.Controller.Policy().avoids[999] and p.Controller.Policy().pins[11])
             local restoreArea=p.View.Window.restoreArea
             check("orphaned avoided maps are recoverable",restoreArea and restoreArea:IsShown()
                 and restoreArea.mapID==999)
+            p.View.ToggleDetails()
             if restoreArea then env.click(restoreArea);env.flushTimers() end
+            p.View.ToggleDetails()
             check("orphan area recovery clears only selected map",not p.Controller.Policy().avoids[999])
             p.Controller.Clear();env.flushTimers()
             p.Command("route 11");env.flushTimers()
@@ -274,8 +279,14 @@ return function(check)
             check("route command cannot bypass a skip",p.Controller.Get().selected.questID==10)
             p.Command("skip 11");env.flushTimers()
             local target=rowFor(11)
-            check("quest row provides route action",target and target.route~=nil)
-            if target and target.route then env.click(target.route);env.flushTimers() end
+            local activeBefore=p.Controller.Get().selected.questID
+            env.click(target)
+            check("browsing a quest keeps the active route",p.Controller.Get().selected.questID==activeBefore
+                and p.View.Window.selection.quest.questID==11 and target.selected:IsShown())
+            p.View.Refresh()
+            check("controller refresh preserves browsed selection",p.View.Window.selection.quest.questID==11)
+            check("selected quest provides one route action",p.View.Window.selection.route~=nil and not target.route)
+            env.click(p.View.Window.selection.route);env.flushTimers()
             check("route button selects without opening or accepting quest",p.Controller.Get().selected.questID==11)
             local without=p.GetSnapshot();without.quests[11]=nil;without.order={10};without.reportedCount=1
             p.Controller.Update(without,{state="current"},"selected quest removed")
@@ -300,11 +311,21 @@ return function(check)
                 check("first page disables previous",not win.previous:IsEnabled() and win.following:IsEnabled())
                 env.click(win.following)
                 check("last page shows ninth quest",win.rows[1].questID==109 and not win.following:IsEnabled())
+                check("page change selects a visible quest for actions",win.selection.quest.questID==109 and win.rows[1].selected:IsShown())
+                env.click(win.previous)
+                check("previous page moves action selection with visible rows",win.selection.quest.questID==101 and win.rows[1].selected:IsShown())
+                env.click(win.following)
                 rows={};p.View.Refresh()
-                check("empty list clamps page and clears stale row ids",win.page:GetText()=="1/1"
+                check("empty list clamps page and clears stale row ids",win.page:GetText()=="1 / 1"
                     and win.rows[1].questID==nil and not win.previous:IsEnabled() and not win.following:IsEnabled())
             end
             check("empty quest list explains its state",win.empty and win.empty:IsShown() and win.empty:GetText()~="")
+            check("empty list disables quest actions",not win.selection.route:IsEnabled() and not win.selection.pin:IsEnabled()
+                and not win.selection.log:IsEnabled() and win.selection.quest==nil)
+            rows={{questID=0,actionID="service:vendor",title="Visit a vendor",kind="service",destination={mapID=1426,x=.2,y=.3}}}
+            p.View.Refresh()
+            check("service row does not expose invalid quest actions",win.selection.quest.questID==0 and not win.selection.route:IsEnabled()
+                and not win.selection.log:IsEnabled() and not win.selection.pin:IsEnabled() and win.selection.area:IsEnabled())
             rows={{questID=10,title="Skipped fixture",kind="objective",skipped=true}}
             p.View.Refresh()
             check("list has eligibility filter",win.filter~=nil)
@@ -313,12 +334,14 @@ return function(check)
                 check("available filter excludes skipped quests with explanation",not win.rows[1]:IsShown()
                     and win.empty:IsShown() and win.empty:GetText():find("available",1,true))
                 env.click(win.filter)
-                check("excluded filter exposes recovery row",win.rows[1].questID==10 and win.rows[1].skip:IsShown())
+                check("excluded filter exposes recovery selection",win.rows[1].questID==10 and win.selection.quest.questID==10
+                    and win.selection.skip.label:GetText()=="Include quest")
                 env.click(win.filter)
             end
             p.Controller.Quests=list;p.View.Refresh()
         end
-        env.click(p.View.Window.summary.pin)
+        env.click(p.View.Window.rows[1])
+        env.click(p.View.Window.selection.pin)
         env.flushTimers()
         check("pin control persists bounded preference only",p.Controller.Policy().pins[10] and RikUI.CharDB.questPolicy.pins[10]
             and RikUI.CharDB.questplanner==nil)
@@ -330,7 +353,8 @@ return function(check)
             and p.View.Window.rows[1]:IsShown())
         local pausedQuest=p.View.Window.rows[1].questID
         env.click(p.View.Window.rows[1])
-        check("paused quest row still opens manual quest log",opened==pausedQuest)
+        env.click(p.View.Window.selection.log)
+        check("paused browsing retains explicit quest log action",opened==pausedQuest)
         p.Command("resume"); env.flushTimers()
         env.fire("QUEST_COMPLETE"); env.flushTimers()
         for _=1,100 do p.Controller.Step() end

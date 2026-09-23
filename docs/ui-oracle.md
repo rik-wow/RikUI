@@ -111,6 +111,7 @@ flat regions added; `font` = font objects only.
 | CommunitiesSecure dialogs, secure transfer dialog | none | none | 0 | dialogs | `interiors-social` (may be forbidden) |
 | Player choice, splash, trait frame, collections and transmog interiors, stopwatch close button | none | none | 0 | panels | `interiors-misc` |
 | RikUI configuration | `options*.lua` | own nested sidebar and bounded responsive pages | 1 | skin, scroll | delivered (`utility-shell-config`) |
+| Quest planner window | `quest-window*.lua`, `quest-plan-controls.lua` | current objective, quest browser, contextual actions, shared preferences | 1 | skin, scroll, options | delivered (`quest-planner-ui`) |
 | Minimap utility shell | `src/ui/shell*.lua` | own grouped launcher, cooldown tools and native reporting | 1 | skin, scroll, minimap | delivered (`utility-shell-config`) |
 | First-login wizard | `wizard*.lua` | own | 2 | setup, layouts | `wizard-beta-acceptance` (pages fade, controls fade on hover; no eased values to show) |
 

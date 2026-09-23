@@ -5,12 +5,14 @@ return function(check)
     local names={"RikUI","RikUIDB","RikUIQuestCorpusCatalog","C_AddOns","C_Map","C_Item","C_Container","C_QuestLog","C_Reputation","C_SpellBook",
         "GetTime","debugprofilestop","UnitGUID","UnitClass","UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax",
         "GetMoney","GetNumGroupMembers","UnitHealthMax","UnitIsAFK","UnitIsDeadOrGhost","UnitAffectingCombat","GetQuestLogRewardXP",
-        "IsPlayerSpell","GetProfessions","GetProfessionInfo","GetFactionInfoByID","NUM_BAG_SLOTS","GetInventoryItemID","CanMerchantRepair","GetRepairAllCost","GetNumTrainerServices","GetTrainerServiceInfo","GetTrainerServiceCost"}
+        "IsPlayerSpell","GetProfessions","GetProfessionInfo","GetFactionInfoByID","NUM_BAG_SLOTS","GetInventoryItemID","CanMerchantRepair","GetRepairAllCost","GetNumTrainerServices","GetTrainerServiceInfo","GetTrainerServiceCost","Settings"}
     local saved={};for _,name in ipairs(names) do saved[name]=_G[name] end
-    local ok,err=pcall(function()
+    local ok,err=xpcall(function()
         env.frames,env.inCombat={},false
         RikUI={CharDB={},Media={Font=function() end},Combat={Queue=function(fn) fn() end},
             Changed=function() end,Print=function() end}
+        assert(loadfile("src/ui/media.lua"))("RikUI",{})
+        dofile("src/ui/skin.lua");dofile("src/ui/scroll.lua")
         RikUI["Secret"]={IsSecret=function() return false end,Read=function(fn,...) return pcall(fn,...) end}
         local now,x,counts=1,.1,{[9]=2,[55]=1}
         local mapID=1426
@@ -47,7 +49,7 @@ return function(check)
         GetFactionInfoByID=function() return "Faction","description",3,-3000,0,-1000 end
         for _,name in ipairs({"schema","objectives","optimizer","area-optimizer","context","steps","step-bindings",
             "observed-steps","semantic-data","semantic-guidance","recommendations","guidance","preferences","plan-state","plan-graph",
-            "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-travel","plan-context","plan-xp","plan-observer","roads","road-travel","travel-estimate","plan-runtime","controller","plan-controls","view","commands"}) do
+            "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-travel","plan-context","plan-xp","plan-observer","roads","road-travel","travel-estimate","plan-runtime","controller","plan-controls","view","window-layout","window","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         local p=RikUI.QuestPlanner
@@ -128,31 +130,47 @@ return function(check)
         check("missing source item does not retain invalid simulated action",not model.selected.planAction,
             tostring(model.selected.planAction and model.selected.planAction.id)..":"..tostring(p.Controller.Context().inventory[55])..":"..tostring(p.Controller.Context().inventoryExact))
         counts[55]=1
-        p.Command("preferences")
-        check("real preferences window opens",p.PlanControls.Window and p.PlanControls.Window:IsShown())
-        local function clickLabel(text)
-            for _,frame in pairs(env.frames) do
-                if frame.label and frame.label.GetText and frame.label:GetText()==text then
-                    local handler=frame:GetScript("OnClick")
-                    if handler then handler(frame);return true end
-                end
-            end
-            return false
+        RikUI.Modules={questplanner=p};RikUI.Profile={modules={}}
+        RikUI.DB={profiles={Default={}}};RikUI.CharDB.profile="Default"
+        RikUI.RegisterEvent=function() end;RikUI.RegisterCommand=function() end;RikUI.HasCommand=function() return false end
+        Settings=nil
+        for _,file in ipairs({"options-widgets","options-controls","options","options-view"}) do
+            dofile("src/configuration/options/"..file..".lua")
         end
-        for _,flavor in ipairs(p.Preferences.Flavors()) do
-            local current=p.Controller.Policy().flavor
-            check("style widget click "..flavor,clickLabel((current==flavor and "Selected: " or "")..flavor))
+        p.Command("preferences")
+        check("preferences open the shared RikUI config page",p.PlanControls.Window and p.PlanControls.Window:IsShown()
+            and p.PlanControls.Window.pages[p.PlanControls.Window.current].id=="questplanner")
+        local config=p.PlanControls.Window
+        local questPage=config.pages[config.current]
+        local function setting(key)
+            for _,row in ipairs(questPage.list.rows) do if row.spec.key==key then return row end end
+        end
+        check("planner preferences stay inside a bounded scrolling page",questPage.scroll.range>0
+            and questPage.scroll.view.clips==true and questPage.group=="Gameplay")
+        for index,flavor in ipairs(p.Preferences.Flavors()) do
+            env.click(setting("flavor").widget)
+            local choice=setting("flavor").widget.list.buttons[index]
+            check("style widget offers "..flavor,choice.entry.value==flavor)
+            env.click(choice)
             update("flavor")
             for _=1,300 do p.Controller.Step() end
             check("style reaches production planner "..flavor,p.Controller.Policy().flavor==flavor and p.Controller.Get().flavor==flavor)
         end
+        p.Controller.Preference("rewardTarget",77)
+        RikUI.Options.Commit(setting("rewardTargetInput"),"invalid")
+        env.click(setting("applyRewardTarget").widget)
+        check("invalid reward target preserves saved preference",p.Controller.Policy().rewardTarget==77)
+        RikUI.Options.Commit(setting("rewardTargetInput"),"")
+        env.click(setting("applyRewardTarget").widget)
+        check("empty reward target explicitly clears preference",p.Controller.Policy().rewardTarget==nil)
         p.Command("defer 900");update("defer")
         check("defer is distinct from permanent skip",p.Controller.Policy().defers[900] and not p.Controller.Policy().skips[900])
         p.View.Open()
         local found
         for _,row in ipairs(p.View.Window.rows) do if row.questID==900 then found=row end end
-        check("deferred quest has real restore control",found and found.defer.label:GetText()=="Resume")
-        found.defer:GetScript("OnClick")(found.defer);update("restore")
+        env.click(found)
+        check("deferred quest has real restore control",p.View.Window.selection.defer.label:GetText()=="Resume quest")
+        env.click(p.View.Window.selection.defer);update("restore")
         check("defer restore widget resumes quest",not p.Controller.Policy().defers[900])
         p.Command("decline-exploration");update("decline")
         check("exploration decline persists without flavor changes",p.Controller.Policy().explorationMinutes==0
@@ -553,7 +571,7 @@ return function(check)
         check("quest help exposes switch log and replay export",table.concat(printed," "):find("plan-export",1,true)
             and table.concat(printed," "):find("switches",1,true))
         print("Adaptive normal controller, six style widgets, resource loss, completion, teleport, services, replay and persistence verified")
-    end)
+    end,debug.traceback)
     for _,name in ipairs(names) do _G[name]=saved[name] end
     restoreWidgets()
     check("adaptive live suite completes",ok,err)

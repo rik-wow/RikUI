@@ -711,10 +711,46 @@ and available height. An explicit Arrow: on/off control in the tracker enables
 or hides the optional direction guide; it is off by default and independent of
 pinning a quest or calculating terrain. `/rik quests arrow on` enables it directly.
 The guide appears near the top center of the screen when position and facing
-are readable. `/rik quests show` opens details, with eight rows per page.
+are readable. Click RikUI beside the minimap, then Quest planner to browse
+quests, with eight rows per page.
 Map markers show up to eight destinations; they do not connect points with
 invented walking lines. The optional arrow is explicitly a destination bearing
 and hides when orientation or same-map location is unavailable.
+
+## Planner window
+
+The current-objective card stays above the browser with the quest, next step,
+walking instruction and concise data-coverage status. Pause, Map, Arrow and
+destination-floor controls apply to the active route. Use automatic appears
+when an explicit manual route is selected.
+
+The left pane has eight selectable quests per page and All quests / Available /
+Excluded filters. Selecting a row only changes the local selection; it does
+not change the route or open another window. Paging and refreshed lists keep
+the selection visible. The right pane shows the selected quest's full title,
+state and scrollable objectives, followed by one set of Do now, Open quest log,
+Pin, Defer, Skip and Avoid area controls. Their labels expose the reverse
+operation when applicable. Ineligible or non-quest actions cannot invoke quest
+operations. Empty lists show an explanation and disable actions.
+
+Route details replaces the lower panes on demand. It retains full instructions,
+up-next and alternative actions, source limitations, recovery and estimated
+route evidence in a bounded scroll area. Retry route, Copy data and recovery
+of avoided areas remain available there. Back to quests restores browsing.
+The fixed 840-by-600 window scales down to fit smaller UI canvases.
+
+Preferences opens the shared RikUI settings at Gameplay > Quest planner.
+Journey, Session, Rewards, Advanced goals and Recovery and timing group the
+existing controls. All six styles retain their preset defaults. Goal changes
+report the affected ID; invalid reward targets leave saved settings intact.
+Preferences remain character-scoped.
+
+The furniture lives in `quest-window-layout.lua`, local selection/action state
+in `quest-window.lua`, and compact tracker guidance in `quest-view.lua`.
+Automated widget/controller checks cover independent browsing, explicit route
+selection, paging, empty/filtered lists, recovery, bounded long text and shared
+configuration controls. Native behavior is accepted under the user's standing
+policy; no agent-observed game-client result is claimed.
 
 Commands: `/rik quests` (status), `show`, `map`, `pin QUEST_ID`,
 `skip QUEST_ID`, `avoid MAP_ID`, `pause`, `resume`, `arrow on|off`,
@@ -739,9 +775,10 @@ Automated API/widget replays exercise actual controller, optimizer, controls,
 projection, cardinal arrow math, cancellation, changed objective bindings and
 transfer quarantine. They do not establish native visuals, performance or
 traversability. The user supplied three current 9/9 log snapshots; these do not
-establish a progress/turn-in transition. Combat and disable/reload checks were
-explicitly not run. The user requested no computer use, so native automation
-is excluded and the roadmap retains real-client acceptance as unverified.
+establish a progress/turn-in transition. Those historical observations did not include native combat or reload checks.
+The user's standing policy now accepts native/game behavior and regression
+reports; no native playtest is required for completion, and automated evidence
+does not imply an agent-observed game-client result.
 ## Locally acquired terrain guidance
 
 The offline pipeline in [tools/terrain](../tools/terrain/README.md) now extracts

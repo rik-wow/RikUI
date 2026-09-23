@@ -3,18 +3,7 @@ local core,planner,media=RikUI,RikUI.QuestPlanner,RikUI.Media
 local view={}
 planner.View=view
 local HEIGHT,WIDTH=110,240
-local inline,window
-local page,filterIndex=1,1
-local FILTERS={"All","Available","Excluded"}
-local PAGE_SIZE=8
-local function filteredQuests()
-    local result={}
-    for _,quest in ipairs(planner.Controller.Quests()) do
-        local excluded=quest.skipped or quest.deferred or quest.groupBlocked or quest.avoided or quest.failed
-        if filterIndex==1 or (filterIndex==2 and not excluded) or (filterIndex==3 and excluded) then result[#result+1]=quest end
-    end
-    return result
-end
+local inline
 local function text(parent,role)
     local label=parent:CreateFontString(nil,"OVERLAY")
     media.Font(label,role or "small")
@@ -28,10 +17,6 @@ local function button(parent,label,width,action)
     control.label:SetSize(width-8,18)
     control:SetScript("OnClick",action)
     return control
-end
-local function enabled(control,value)
-    control:SetEnabled(value)
-    control.label:SetAlpha(value and 1 or .4)
 end
 local function command(value) if planner.Command then planner.Command(value) end end
 local function selectedID()
@@ -55,13 +40,14 @@ end
 function view.RefreshInstruction(hint)
     local model=planner.Controller.Get()
     if inline and inline:IsShown() then instruction(inline,model,hint) end
+    local window=view.Window
     if window and window:IsShown() then instruction(window.summary,model,hint) end
 end
 local function destinationFloor(frame)
     local floors=planner.Terrain and planner.Terrain.Floors and planner.Terrain.Floors()
     local available=floors and #floors.choices>1
     frame.floor:SetShown(available==true)
-    frame.arrowHint:SetShown(not available)
+    frame.arrowHint:SetShown(frame.expanded or not available)
     if not available then return end
     frame.floor.selection=floors
     local choice=floors.choices[floors.selected]
@@ -76,11 +62,11 @@ local function chooseFloor(control)
 end
 local function details(frame,model)
     local title=model.selected and ((model.calculated and "Next: " or "Quest: ")..model.selected.title) or "Quest planner"
-    frame.title:SetText(title)
+    frame.title:SetText(frame.expanded and model.selected and model.selected.title or title)
     frame.detail:SetText(model.selected and model.selected.detail or model.detail)
     instruction(frame,model,planner.Navigation and planner.Navigation.Instruction and planner.Navigation.Instruction())
     frame.pause.label:SetText(planner.Controller.Policy().paused and "Resume" or "Pause")
-    frame.pin.label:SetText(model.selected and planner.Controller.Policy().pins[model.selected.questID] and "Unpin" or "Pin")
+    if frame.pin then frame.pin.label:SetText(model.selected and planner.Controller.Policy().pins[model.selected.questID] and "Unpin" or "Pin") end
     frame.arrowToggle.label:SetText(planner.Controller.Policy().arrow and "Arrow: on" or "Arrow: off")
     destinationFloor(frame)
     frame.model=model
@@ -112,7 +98,8 @@ local function tooltip(frame)
     GameTooltip:Show()
 end
 local function floorControl(frame)
-    frame.floor=button(frame,"Floor: Auto",124,chooseFloor)
+    local make=frame.expanded and view.WindowUI.Button or button
+    frame.floor=make(frame,"Floor: Auto",124,chooseFloor)
     frame.floor:SetPoint("LEFT",frame.arrowToggle,"RIGHT",4,0);frame.floor:Hide()
     frame.floor:SetScript("OnEnter",function(control)
         GameTooltip:SetOwner(control,"ANCHOR_LEFT");GameTooltip:SetText("Destination floor")
@@ -144,7 +131,7 @@ local function create(parent)
     end)
     frame.pin=button(frame,"Pin",40,function() selectedCommand("pin") end)
     local controls={frame.pause,button(frame,"Map",40,function() command("map") end),frame.pin,
-        button(frame,"Skip",40,function() selectedCommand("skip") end),button(frame,"More",44,view.Open)}
+        button(frame,"Skip",40,function() selectedCommand("skip") end),button(frame,"More",44,function() if view.Open then view.Open() end end)}
     local offset=4
     for _,control in ipairs(controls) do control:SetPoint("BOTTOMLEFT",offset,0); offset=offset+control:GetWidth() end
     frame:EnableMouse(true); frame:SetScript("OnEnter",tooltip); frame:SetScript("OnLeave",function() GameTooltip:Hide() end)
@@ -159,165 +146,10 @@ function view.RenderInline(holder,offset,limit,collapsed)
     details(inline,planner.Controller.Get()); inline:Show()
     return HEIGHT+6
 end
-local function close()
-    if window then window:Hide() end
-end
-local function scrollInstructions(delta)
-    local scroll=window.instructionScroll
-    local range=scroll:GetVerticalScrollRange() or 0
-    scroll:SetVerticalScroll(math.max(0,math.min(range,(scroll:GetVerticalScroll() or 0)-delta*30)))
-end
-local function readingPane()
-    local scroll=CreateFrame("ScrollFrame",nil,window)
-    scroll:SetPoint("TOPLEFT",12,-154);scroll:SetSize(632,132);scroll:EnableMouseWheel(true)
-    scroll:SetScript("OnMouseWheel",function(_,delta) scrollInstructions(delta) end)
-    local child=CreateFrame("Frame",nil,scroll);child:SetSize(632,132)
-    local label=text(child);label:SetPoint("TOPLEFT");label:SetWidth(628);label:SetWordWrap(true)
-    label:SetJustifyV("TOP");scroll:SetScrollChild(child)
-    window.instructionScroll,window.instructionBody,window.instructions=scroll,child,label
-    local up=button(window,"Up",28,function() scrollInstructions(3) end)
-    local down=button(window,"Down",38,function() scrollInstructions(-3) end)
-    up:SetPoint("TOPRIGHT",-12,-154);down:SetPoint("TOPRIGHT",-12,-178)
-    local heading=text(window,"label");heading:SetPoint("TOPLEFT",12,-294)
-    heading:SetText("Quest log — click a title to open it")
-end
-local function refreshDetails(model)
-    local route=planner.Terrain and planner.Terrain.Guidance()
-    local value=planner.Guidance.Details(model,planner.GetSnapshot(),route)
-    if value==window.instructions:GetText() then return end
-    window.instructions:SetText(value)
-    window.instructionBody:SetHeight(math.max(132,(window.instructions:GetStringHeight() or 0)+8))
-    window.instructionScroll:SetVerticalScroll(0)
-end
-local function createWindow()
-    window=CreateFrame("Frame","RikUIQuestPlannerWindow",UIParent)
-    window:SetSize(700,584); window:SetClampedToScreen(true); window:SetPoint("CENTER"); window:SetFrameStrata("DIALOG"); window:EnableMouse(true)
-    local fill=window:CreateTexture(nil,"BACKGROUND"); fill:SetAllPoints(); fill:SetColorTexture(.04,.05,.07,.98)
-    window.heading=text(window,"heading"); window.heading:SetPoint("TOPLEFT",12,-10); window.heading:SetText("Quest planner")
-    local exit=button(window,"Close",52,close); exit:SetPoint("TOPRIGHT",-8,-8)
-    window.summary=create(window); window.summary:SetPoint("TOPLEFT",12,-38); window.summary:SetWidth(676)
-    window.retry=button(window.summary,"Retry route",88,function() command("retry") end)
-    window.retry:SetPoint("BOTTOMRIGHT",-4,0)
-    window.automatic=button(window.summary,"Automatic choice",124,function() command("route auto") end)
-    window.automatic:SetPoint("BOTTOMRIGHT",-96,0)
-    readingPane()
-    if planner.PlanControls then planner.PlanControls.Attach(window) end
-    window.rows={}
-    for index=1,PAGE_SIZE do
-        local row=button(window,"",356,function(self)
-            if self.questID then planner.OpenQuest(self.questID) end
-        end)
-        row:SetPoint("TOPLEFT",12,-316-(index-1)*23)
-        row.label:ClearAllPoints(); row.label:SetPoint("LEFT",3,0); row.label:SetPoint("RIGHT",-3,0)
-        local pin=button(window,"Pin",52,function()
-            if row.questID then command("pin "..row.questID) end
-        end)
-        pin:SetPoint("LEFT",row,"RIGHT",0,0); row.pin=pin
-        row.skip=button(window,"Skip",60,function()
-            if row.questID then command("skip "..row.questID) end
-        end)
-        row.skip:SetPoint("LEFT",pin,"RIGHT",0,0)
-        row.area=button(window,"Avoid area",84,function()
-            if row.mapID then command("avoid "..row.mapID) end
-        end)
-        row.area:SetPoint("LEFT",row.skip,"RIGHT",0,0)
-        row.route=button(window,"Route",64,function()
-            if row.questID then command("route "..row.questID) end
-        end)
-        row.route:SetPoint("LEFT",row.area,"RIGHT",0,0)
-        row.defer=button(window,"Defer",60,function()
-            if row.questID then command("defer "..row.questID) end
-        end)
-        row.defer:SetPoint("LEFT",row.route,"RIGHT",0,0)
-        window.rows[index]=row
-    end
-    local previous=button(window,"Previous",80,function() page=math.max(1,page-1); view.Refresh() end)
-    previous:SetPoint("BOTTOMLEFT",12,46);window.previous=previous
-    local following=button(window,"Next",64,function() page=page+1; view.Refresh() end)
-    following:SetPoint("LEFT",previous,"RIGHT",6,0);window.following=following
-    window.filter=button(window,"Show: All",152,function()
-        filterIndex=filterIndex%#FILTERS+1;page=1;view.Refresh()
-    end)
-    window.filter:SetPoint("BOTTOMLEFT",174,46)
-    window.empty=text(window);window.empty:SetPoint("TOPLEFT",12,-326)
-    window.empty:SetSize(676,58);window.empty:SetWordWrap(true)
-    local reset=button(window,"Reset constraints",130,function() command("reset") end)
-    reset:SetPoint("BOTTOMRIGHT",-12,46)
-    window.page=text(window); window.page:SetPoint("BOTTOM",60,52)
-    window.arrow=button(window,"Arrow: off",92,function() command("arrow "..(planner.Controller.Policy().arrow and "off" or "on")) end)
-    window.dungeons=button(window,"Dungeons: off",110,function() command("dungeons "..(planner.Controller.Policy().dungeons and "off" or "on")) end)
-    local avoid=button(window,"Avoid area",92,function()
-        local model=planner.Controller.Get(); local point=model.selected and model.selected.destination
-        if point then command("avoid "..point.mapID) else core:Print("This quest has no observed map location.") end
-    end)
-    local export=button(window,"Copy data",92,function() command("export") end)
-    local offset=12
-    for _,control in ipairs({window.arrow,window.dungeons,avoid,export}) do
-        control:SetPoint("BOTTOMLEFT",offset,12);offset=offset+control:GetWidth()+12
-    end
-    if type(UISpecialFrames)=="table" then table.insert(UISpecialFrames,"RikUIQuestPlannerWindow") end
-    window.restoreArea=button(window,"",246,function(control)
-        if control.mapID and planner.Controller.Policy().avoids[control.mapID] then command("avoid "..control.mapID) end
-    end)
-    window.restoreArea:SetPoint("BOTTOMRIGHT",-12,12)
-    view.Window=window
-end
-local function avoidedArea(policy)
-    local ids={}
-    for id in pairs(policy.avoids) do ids[#ids+1]=id end
-    table.sort(ids)
-    local id=ids[1]
-    window.restoreArea.mapID=id
-    window.restoreArea:SetShown(id~=nil)
-    if not id then return end
-    local ok,info=planner.Context.Call(C_Map and C_Map.GetMapInfo,id)
-    local name=ok and planner.Schema.PlainTable(info) and planner.Schema.Text(info.name) and planner.Guidance.Text(info.name)
-    window.restoreArea.label:SetText("Allow "..(name or ("map "..id)))
-end
+
+view.Command,view.RefreshSummary,view.SummaryTooltip,view.AddFloorControl=command,details,tooltip,floorControl
 function view.Refresh()
     if planner.PlanControls then planner.PlanControls.Refresh() end
-    local model=planner.Controller.Get()
-    if inline then details(inline,model) end
-    if not window or not window:IsShown() then return end
-    details(window.summary,model)
-    refreshDetails(model)
-    local policy=planner.Controller.Policy()
-    window.arrow.label:SetText(policy.arrow and "Arrow: on" or "Arrow: off")
-    window.dungeons.label:SetText(policy.dungeons and "Dungeons: on" or "Dungeons: off")
-    window.automatic:SetShown(model.manual==true)
-    avoidedArea(policy)
-    local quests=filteredQuests()
-    local pages=math.max(1,math.ceil(#quests/PAGE_SIZE))
-    page=math.min(page,pages); window.page:SetText(page.."/"..pages)
-    enabled(window.previous,page>1);enabled(window.following,page<pages)
-    window.filter.label:SetText("Show: "..FILTERS[filterIndex])
-    window.empty:SetShown(#quests==0)
-    window.empty:SetText(filterIndex==2 and "No available quests. Show All to restore skipped quests or avoided areas."
-        or filterIndex==3 and "No excluded quests." or "No current quest observations. Open your quest log or wait for it to update.")
-    for index,row in ipairs(window.rows) do
-        local quest=quests[(page-1)*PAGE_SIZE+index]
-        row.questID=quest and quest.questID
-        row:SetShown(quest~=nil); row.pin:SetShown(quest~=nil); row.skip:SetShown(quest~=nil)
-        row.mapID=quest and quest.destination and quest.destination.mapID
-        row.area:SetShown(row.mapID~=nil)
-        row.route:SetShown(quest~=nil)
-        row.defer:SetShown(quest~=nil)
-        enabled(row.route,quest~=nil and row.mapID~=nil and not quest.skipped and not quest.deferred and not quest.groupBlocked and not quest.avoided and not quest.failed)
-        if quest then
-            row.area.label:SetText(quest.avoided and "Allow area" or "Avoid area")
-            row.route.label:SetText(model.selected and model.selected.questID==quest.questID and "Selected" or "Do now")
-            row.questID=quest.questID; row.label:SetText((quest.skipped and "Skipped: " or quest.deferred and "Deferred: " or quest.groupBlocked and "Group: " or quest.avoided and "Area avoided: " or quest.failed and "Failed: "
-                or quest.kind=="turnin" and "Turn in: " or "")..quest.title)
-            row.skip.label:SetText(quest.skipped and "Include" or "Skip")
-            row.defer.label:SetText(quest.deferred and "Resume" or "Defer")
-            row.pin.label:SetText(policy.pins[quest.questID] and "Unpin" or "Pin")
-        end
-    end
-end
-function view.Open()
-    if not planner.enabled then return end
-    core.Combat.Queue(function()
-        if not window then createWindow() end
-        window:Show(); view.Refresh()
-    end,"questplanner:window")
+    if inline then details(inline,planner.Controller.Get()) end
+    if view.RefreshWindow then view.RefreshWindow() end
 end

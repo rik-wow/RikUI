@@ -12,22 +12,26 @@ function scroll.SetOffset(pane, offset)
     if pane.OnScroll then pane.OnScroll() end
 end
 
+local function updateRange(pane)
+    pane.range = math.max(0, (pane.contentHeight or 1) - (pane.height or 1))
+    pane.bar:SetMinMaxValues(0, pane.range)
+    pane.bar:SetShown(pane.range > 0)
+    scroll.SetOffset(pane, pane.offset or 0)
+end
+
 function scroll.Resize(pane, width, height)
     width, height = math.max(1, width), math.max(1, height)
     pane.width, pane.height = width, height
     pane.view:SetSize(math.max(1, width - BAR_WIDTH - BAR_GAP), height)
     pane.content:SetWidth(math.max(1, width - BAR_WIDTH - BAR_GAP))
-    pane.range = math.max(0, (pane.contentHeight or 1) - height)
-    pane.bar:SetMinMaxValues(0, pane.range)
-    pane.bar:SetShown(pane.range > 0)
-    scroll.SetOffset(pane, pane.offset or 0)
+    updateRange(pane)
     if pane.OnResize then pane.OnResize(pane.content:GetWidth()) end
 end
 
 function scroll.SetContentHeight(pane, height)
     pane.contentHeight = math.max(1, height)
     pane.content:SetHeight(pane.contentHeight)
-    scroll.Resize(pane, pane.width or 1, pane.height or 1)
+    updateRange(pane)
 end
 
 function scroll.Reveal(pane, top, height)
