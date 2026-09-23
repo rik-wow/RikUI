@@ -215,13 +215,11 @@ local function readHealth(unit) return UnitHealth(unit), UnitHealthMax(unit) end
 
 local function feed(parts, unit, easing)
     local own = parts.bar
-    core.Motion.CancelHealthUpdate(own.feedback)
     local ok, reason = core.Secret.Apply(function(current, maximum)
         own:SetMinMaxValues(0, maximum)
         own:SetValue(current, easing)
     end, readHealth, unit)
     if not ok then warn("health", reason) end
-    return ok
 end
 
 function skin.Health(frame, unit)
@@ -229,16 +227,7 @@ function skin.Health(frame, unit)
     if parts then feed(parts, unit, interpolation("ExponentialEaseOut")) end
 end
 
-function skin.HealthChanged(frame, unit)
-    local parts = nameplates.Parts[frame]
-    if not parts then return end
-    core.Motion.QueueHealthUpdate(parts.bar.feedback, function(damage)
-        if not frame:IsShown() then return false end
-        return feed(parts, unit, interpolation(damage and "Immediate" or "ExponentialEaseOut"))
-    end)
-end
-
--- A combat action only selects the cue; a health event supplies its timing.
+-- Combat actions trigger cues even when health arrives in a different render pass.
 function skin.CombatFeedback(frame, unit, event)
     local parts = nameplates.Parts[frame]
     if not parts or not frame:IsShown() then return end

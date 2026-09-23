@@ -63,25 +63,35 @@ return function(check, env, module, units)
     env.fire("PLAYER_FOCUS_CHANGED")
     check("pet and focus replacement reset easing", pet.health.easing == 0 and frames.focus.health.easing == 0)
 
-    -- All five solo frames use the same typed feedback, even with opaque health.
+    -- Combat and health may arrive in different render passes, in either order.
     for _, frame in pairs(frames) do
         local effects = frame.motion
-        env.fire("UNIT_COMBAT", frame.unit, "HEAL", "", env.SECRET, env.SECRET)
+        local settles, beforeFlash = 0, nil
+        function frame.health:SetToTargetValue()
+            settles, beforeFlash = settles + 1, effects.flash.plays
+        end
         env.fire("UNIT_HEALTH", frame.unit)
         env.flushTimers()
-        check(frame.key .. " healing uses the green glow", effects.heal and effects.heal.playing
-            and effects.feedback.heal.region.color[2] > effects.feedback.heal.region.color[1])
-        local fills, flashes = frame.health.sets, effects.flash.plays
-        env.fire("UNIT_HEALTH", frame.unit)
+        local flashes = effects.flash.plays
         env.fire("UNIT_COMBAT", frame.unit, "WOUND", "", env.SECRET, env.SECRET)
-        check(frame.key .. " holds damage fill and cue for the same batch",
-            frame.health.sets == fills and effects.flash.plays == flashes)
+        check(frame.key .. " damage flashes immediately after a separate health batch",
+            effects.flash.playing and effects.flash.plays == flashes + 1)
+        check(frame.key .. " damage settles before starting its cue",
+            settles == 1 and beforeFlash == flashes)
         env.flushTimers()
-        check(frame.key .. " commits damage fill with cue",
-            frame.health.sets == fills + 1 and frame.health.easing == 0 and effects.flash.plays == flashes + 1)
-        check(frame.key .. " damage replaces healing with the red flash", effects.flash.playing
-            and effects.heal and not effects.heal.playing
-            and effects.feedback.damage.region.color[1] > effects.feedback.damage.region.color[2])
+        check(frame.key .. " timers cannot replay the damage cue", effects.flash.plays == flashes + 1)
+        env.fire("UNIT_COMBAT", frame.unit, "HEAL", "", env.SECRET, env.SECRET)
+        check(frame.key .. " healing needs no health event and stays distinct", effects.heal.playing
+            and not effects.flash.playing and settles == 1
+            and effects.feedback.heal.region.color[2] > effects.feedback.heal.region.color[1])
+        env.flushTimers()
+        env.fire("UNIT_COMBAT", frame.unit, "WOUND", "", env.SECRET, env.SECRET)
+        check(frame.key .. " combat-first damage immediately replaces healing",
+            effects.flash.playing and not effects.heal.playing and effects.flash.plays == flashes + 2)
+        env.flushTimers()
+        env.fire("UNIT_HEALTH", frame.unit)
+        env.flushTimers()
+        check(frame.key .. " subsequent health does not replay damage", effects.flash.plays == flashes + 2)
     end
     check("healing is softer and slower than damage", art.heal and art.heal.alpha.Duration > art.flash.alpha.Duration
         and art.heal.alpha.FromAlpha < art.flash.alpha.FromAlpha)
@@ -100,52 +110,23 @@ return function(check, env, module, units)
     check("replacement stops stale healing", art.heal and not art.heal.playing)
 
     env.flushTimers()
+    check("replacement has no deferred damage to replay", not art.flash.playing)
     damagePlays = art.flash.plays
-    RikUI.Motion.StopHealthFeedback(art.feedback)
-    env.fire("UNIT_HEALTH", "target")
-    env.flushTimers()
-    env.fire("UNIT_COMBAT", "target", "WOUND")
-    env.flushTimers()
-    check("late combat cannot flash after health already dropped", art.flash.plays == damagePlays)
-    env.fire("UNIT_HEALTH", "target")
-    env.flushTimers()
-    check("expired combat cannot flash on a later health update", art.flash.plays == damagePlays)
-    env.fire("UNIT_HEALTH", "target")
-    env.fire("UNIT_COMBAT", "target", "WOUND")
-    env.fire("UNIT_COMBAT", "target", "HEAL")
-    env.flushTimers()
-    check("mixed direction batch keeps eased fill without guessing", art.flash.plays == damagePlays
-        and not art.heal.playing and target.health.easing == 2)
     env.fire("UNIT_COMBAT", "target", "WOUND")
     env.fire("UNIT_MAXHEALTH", "target")
-    env.fire("UNIT_HEALTH", env.SECRET)
+    module.Refresh("target")
     env.flushTimers()
-    check("maximum and secret-token events cannot time a damage cue", art.flash.plays == damagePlays)
-    env.fire("UNIT_HEALTH", "target")
-    env.fire("UNIT_COMBAT", "target", "WOUND")
+    check("direct refresh cannot erase a reported damage cue", art.flash.plays == damagePlays + 1
+        and art.flash.playing)
     target:Hide()
+    env.flushTimers()
+    check("hide stops damage without a timer restarting it", not art.flash.playing)
     target:Show()
-    env.flushTimers()
-    check("hide invalidates queued damage", art.flash.plays == damagePlays)
-    env.fire("UNIT_HEALTH", "target")
+    local settle = target.health.SetToTargetValue
+    target.health.SetToTargetValue = false
     env.fire("UNIT_COMBAT", "target", "WOUND")
-    env.fire("PLAYER_TARGET_CHANGED")
-    env.flushTimers()
-    check("replacement invalidates queued damage", art.flash.plays == damagePlays)
-    env.fire("UNIT_HEALTH", "target")
-    env.fire("UNIT_COMBAT", "target", "WOUND")
-    units.target.error = true
-    env.flushTimers()
-    check("failed health read suppresses queued damage", art.flash.plays == damagePlays)
-    units.target.error = nil
-    env.fire("UNIT_HEALTH", "target")
-    env.flushTimers()
-    env.fire("UNIT_COMBAT", "target", "WOUND")
-    env.fire("UNIT_COMBAT", "target", "WOUND")
-    env.fire("UNIT_HEALTH", "target")
-    env.flushTimers()
-    check("combat-first duplicate hits produce one synchronized cue", art.flash.plays == damagePlays + 1
-        and target.health.easing == 0)
+    check("missing settle API does not suppress damage", art.flash.plays == damagePlays + 2)
+    target.health.SetToTargetValue = settle
 
     Enum = nil
     env.fire("UNIT_HEALTH", "target")

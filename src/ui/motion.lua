@@ -57,7 +57,7 @@ local HEALTH_FEEDBACK = {
 }
 
 function motion.HealthFeedback(owner)
-    local feedback = {}
+    local feedback = { owner = owner }
     for key, style in pairs(HEALTH_FEEDBACK) do
         local region = owner:CreateTexture(nil, "OVERLAY")
         region:SetTexture("Interface\\BUTTONS\\WHITE8X8")
@@ -70,46 +70,21 @@ function motion.HealthFeedback(owner)
     return feedback
 end
 
-function motion.CancelHealthUpdate(feedback)
-    if feedback then feedback.pending = nil end
-end
-
 function motion.StopHealthFeedback(feedback)
     if not feedback then return end
-    motion.CancelHealthUpdate(feedback)
     motion.Stop(feedback.damage.group)
     motion.Stop(feedback.heal.group)
-end
-
--- Pair notifications until the next timer pass, in either event order. Never
--- carry a combat cue forward to an unrelated health change.
-local function feedbackBatch(feedback)
-    if feedback.pending then return feedback.pending end
-    local pending = {}
-    feedback.pending = pending
-    C_Timer.After(0, function()
-        if feedback.pending ~= pending then return end
-        feedback.pending = nil
-        if not pending.update then return end
-        local key = not pending.mixed and pending.key or nil
-        local ok = pending.update(key == "damage")
-        if not ok or not key then return end
-        motion.StopHealthFeedback(feedback)
-        motion.Play(feedback[key].group)
-    end)
-    return pending
-end
-
-function motion.QueueHealthUpdate(feedback, update)
-    if not feedback then update(false); return end
-    feedbackBatch(feedback).update = update
 end
 
 function motion.PlayHealthFeedback(feedback, event)
     if not feedback or RikUI.Secret.IsSecret(event) or type(event) ~= "string" then return end
     local key = event == "WOUND" and "damage" or event == "HEAL" and "heal"
     if not key then return end
-    local pending = feedbackBatch(feedback)
-    if pending.key and pending.key ~= key then pending.mixed = true end
-    pending.key = key
+    motion.StopHealthFeedback(feedback)
+    -- Combat and health notifications need not share a render pass. Never wait
+    -- for a second event before showing a classified cue.
+    if key == "damage" and type(feedback.owner.SetToTargetValue) == "function" then
+        feedback.owner:SetToTargetValue()
+    end
+    motion.Play(feedback[key].group)
 end

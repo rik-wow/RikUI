@@ -207,10 +207,7 @@ end
 
 local function registerUnitEvents()
     core:RegisterEvent("UNIT_COMBAT", combatFeedback)
-    core:RegisterEvent("UNIT_HEALTH", function(_, unit)
-        local updater = core.Secret.IsSecret(unit) and unitframes.UpdateHealth or unitframes.HealthChanged
-        eachFrame(updater, unit)
-    end)
+    core:RegisterEvent("UNIT_HEALTH", onUnitEvent(unitframes.HealthChanged))
     core:RegisterEvent("UNIT_MAXHEALTH", onUnitEvent(unitframes.UpdateHealth))
     core:RegisterEvent("UNIT_POWER_UPDATE", onUnitEvent(unitframes.UpdatePower))
     core:RegisterEvent("UNIT_MAXPOWER", onUnitEvent(unitframes.UpdatePower))

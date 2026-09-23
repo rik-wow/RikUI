@@ -13,18 +13,17 @@ return function(check, env, module, group, units, prefix)
         and one.health.easing == 2 and art.flash.plays == 0)
     env.fire("UNIT_POWER_UPDATE", one.unit)
     check(prefix .. " power eases without flashing", one.power.easing == 2 and art.flash.plays == 0)
+    local settles = 0
+    function one.health:SetToTargetValue() settles = settles + 1 end
     env.fire("UNIT_COMBAT", one.unit, "HEAL", "", env.SECRET)
-    env.fire("UNIT_HEALTH", one.unit)
-    env.flushTimers()
     check(prefix .. " healing has its own glow", art.heal and art.heal.playing and not art.flash.playing)
-    env.fire("UNIT_COMBAT", one.unit, "WOUND", "", env.SECRET)
+    env.flushTimers()
     env.fire("UNIT_HEALTH", one.unit)
     env.flushTimers()
-    check(prefix .. " damage fill is immediate with its cue", one.health.easing == 0)
+    env.fire("UNIT_COMBAT", one.unit, "WOUND", "", env.SECRET)
+    check(prefix .. " damage settles and flashes without a paired health event", settles == 1 and art.flash.playing)
     check(prefix .. " damage cancels healing", art.flash.playing and art.heal and not art.heal.playing)
     env.fire("UNIT_COMBAT", two.unit, "HEAL", "", env.SECRET)
-    env.fire("UNIT_HEALTH", two.unit)
-    env.flushTimers()
     check(prefix .. " feedback targets only its member", art.heal and not art.heal.playing
         and two.motion.heal and two.motion.heal.playing)
     local range = two.motion.range

@@ -43,9 +43,9 @@ line. Neither script is protected, so hover works in combat.
 
 Solo, party and raid frames use `src/modules/unitframes/unitframes-motion.lua` and
 the shared `RikUI.Motion` helpers. Their first health and power fill is
-immediate; subsequent healing and unclassified updates use the client's
-`ExponentialEaseOut` interpolation. Classified damage fills immediately alongside
-its red cue. Show and target, focus, pet or target-of-target replacement
+immediate; subsequent updates use the client's `ExponentialEaseOut`
+interpolation. A damage cue settles the bar's current interpolation immediately
+before flashing. Show and target, focus, pet or target-of-target replacement
 events reset that first-fill state, so a new unit does not animate from the
 previous unit's values. A failed read clears the bar immediately, and its
 first successful recovery fill is immediate too.
@@ -57,15 +57,15 @@ a readable `UNIT_COMBAT` `WOUND` action plays a sharp red flash (0.18 seconds,
 starting opacity). Each cancels the other so rapid alternation stays distinct.
 The style is shared with custom nameplates through `RikUI.Motion`.
 
-`UNIT_HEALTH` and `UNIT_COMBAT` are paired until the next zero-delay timer
-pass, in either order. The health fill and cue are committed together; damage
-uses an immediate fill so the bar cannot finish dropping before its flash.
-An unmatched or late combat event expires without a cue. Mixed healing and
-damage in one batch update the eased fill without guessing the net direction.
-Maximum-health changes and direct refreshes cancel queued feedback.
+`UNIT_HEALTH` updates the fill synchronously. Readable `UNIT_COMBAT` actions
+start their cue synchronously too, without a timer or a matching health event.
+Damage calls `SetToTargetValue` before the flash to finish any current health
+interpolation without reading its value. Clients without that method still
+show the cue. Healing keeps normal easing. Event delivery time belongs to the
+client; health and combat notifications may arrive in different render passes.
 
 Health events carry no direction, so passive regeneration and updates without
-a paired readable combat event simply move the bar. Secret or unknown combat action
+a readable combat action simply move the bar. Secret or unknown combat action
 and unit tokens are ignored; health and combat amounts are never compared.
 These cues indicate a reported damage/heal event, not a measured net health
 delta or proof that a heal increased health. Hidden, replaced and newly
