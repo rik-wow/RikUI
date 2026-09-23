@@ -1,5 +1,7 @@
 # Social toasts
 
+Notification cards now include a gold accent rail with a 240ms child-region entrance and a dark icon shelf. Native frame entry/exit and text hierarchy remain authoritative. References below to no tween concern native frame alpha. See [banners](banners.md) for shared card behavior and user-provided native acceptance.
+
 `src/modules/toasts/toasts.lua` gives the social toasts the flat RikUI look: the Battle.net
 "friend came online" toast, the play-time alert, the shard transfer notice and
 the two voice chat prompts. Disable the `toasts` module in `/rik config` and

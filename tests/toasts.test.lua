@@ -64,8 +64,10 @@ return function(check)
         check("the strings take the typeface at Blizzard's size and keep their colour",
             bnet.TopLine.fontPath == RikUI.Media.font and bnet.TopLine.fontSize == 12 and bnet.BottomLine.fontSize == 10
             and rawget(bnet.TopLine, "textColor") == nil)
-        check("Blizzard's fade-in is the only animation: it played and the toast got no tween, point or size",
+        check("Blizzard owns frame alpha and geometry while the accent animates",
             bnet.animIn.plays == 1 and bnet.rikFade == nil and bnet.points == nil and bnet.width == nil)
+        check("social toast card has a gold accent entrance and icon shelf",
+            bnet.rikCard.enter.plays == 1 and bnet.rikCard.iconBlock.points[1][2] == bnet.IconTexture)
         local fill = bnet.rikFill
         bnet:Hide()
         bnet.Center.alpha, BNToastFrameGlowFrame.glow.texture = 1, "glow-art"

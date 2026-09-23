@@ -73,6 +73,9 @@ return function(check)
         check("the toast was not moved, resized or rescripted and got no tween of its own", loot.points == nil
             and loot.width == nil and loot:GetScript("OnShow") == nil and loot.rikFade == nil)
 
+        check("card entrance animates the accent and frames the native icon",
+            loot.rikCard.enter.plays == 1 and loot.rikCard.accent.width == 2
+            and loot.rikCard.iconBlock.points[1][2] == loot.lootItem.Icon)
         local fill = loot.rikFill
         loot:Hide()
         loot.Background.alpha, loot.glow.texture = 1, "glow-art"
@@ -80,6 +83,7 @@ return function(check)
         check("a reused toast is not filled twice but art a SetUp restored is removed again",
             loot.rikFill == fill and loot.Background.alpha == 0 and rawget(loot.glow, "texture") == nil)
 
+        check("pooled card entrance replays without replacing chrome", loot.rikCard.enter.plays == 2)
         local money = toast({ "Background", "Icon", "IconBorder" }, { Label = 12, Amount = 16 })
         AlertFrame_ShowNewAlert(money)
         check("a toast with the icon on the frame itself is handled the same way", money.Icon.coords[1] > 0

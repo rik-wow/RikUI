@@ -1,5 +1,7 @@
 # Alert toasts
 
+Notification cards now include a gold accent rail with a 240ms child-region entrance and a dark icon shelf. Native frame entry/exit and text hierarchy remain authoritative. References below to no tween concern native frame alpha. See [banners](banners.md) for shared card behavior and user-provided native acceptance.
+
 `src/modules/alerts/alerts.lua` gives Blizzard's alert toasts the flat RikUI look: the "You won"
 loot toast, money, new recipes, achievements where the client has them, and
 every other toast the alert system shows. The toasts stay Blizzard's: their

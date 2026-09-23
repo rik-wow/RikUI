@@ -1,8 +1,8 @@
 -- Flat skin for the social toasts: Battle.net friend toasts, the play-time alert, the shard transfer
 -- notice and the voice chat prompts. They are ContainedAlertFrames shown through ChatAlertFrame, so
 -- they never pass AlertFrame_ShowNewAlert and src/modules/alerts/alerts.lua does not see them. SocialToastTemplate
--- fades a toast in and out with its own animation groups; this file adds no tween, because a second
--- alpha animation would fight Blizzard's. Art is removed on every show, the rest is written once.
+-- owns the frame fades. Only the addon card accent animates independently.
+-- Art is removed on every show, the rest is written once.
 local core, skin = RikUI, RikUI.Skin
 local toasts = { Hooked = {}, Skinned = {} }
 core.Toasts = toasts
@@ -46,8 +46,8 @@ end
 -- The strings are listed before the fill exists, because GetRegions returns addon-made regions too.
 local function decorate(frame)
     typefaces(frame)
-    frame.rikFill = skin.Fill(frame)
-    frame.rikBorder = skin.Outline(frame)
+    frame.rikFill = frame.rikCard.fill
+    frame.rikBorder = frame.rikCard.edge
     local art = icon(frame)
     if not art then return end
     skin.CropIcon(art)
@@ -57,6 +57,7 @@ end
 
 local function apply(frame, name)
     removeArt(frame, name)
+    frame.rikCard = skin.NotificationCard(frame, icon(frame))
     if toasts.Skinned[name] then return end
     decorate(frame)
     toasts.Skinned[name] = true

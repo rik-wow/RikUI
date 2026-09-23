@@ -110,6 +110,40 @@ function skin.ButtonFonts(button)
     end
 end
 
+
+-- Animate addon chrome only; native frame fades, queues and clicks remain authoritative.
+local cards = setmetatable({}, { __mode = "k" })
+function skin.NotificationCard(owner, icon, inset)
+    local card = cards[owner]
+    if not card then
+        inset = inset or 0
+        card = { fill = skin.Fill(owner, skin.BACKING, inset) }
+        card.edge = skin.Outline(owner, nil, inset)
+        card.accent = owner:CreateTexture(nil, "BORDER")
+        card.accent:SetTexture(skin.FLAT)
+        card.accent:SetVertexColor(unpack(skin.GOLD))
+        card.accent:SetPoint("TOPLEFT", owner, "TOPLEFT", inset, -inset)
+        card.accent:SetPoint("BOTTOMLEFT", owner, "BOTTOMLEFT", inset, inset)
+        card.accent:SetWidth(2)
+        card.enter = card.accent:CreateAnimationGroup()
+        local alpha = card.enter:CreateAnimation("Alpha")
+        alpha:SetFromAlpha(0)
+        alpha:SetToAlpha(1)
+        alpha:SetDuration(0.24)
+        cards[owner] = card
+    end
+    if skin.IsRegion(icon) and not card.iconBlock then
+        card.iconBlock = owner:CreateTexture(nil, "BACKGROUND")
+        card.iconBlock:SetTexture(skin.FLAT)
+        card.iconBlock:SetVertexColor(0.14, 0.12, 0.08, 1)
+        card.iconBlock:SetPoint("TOPLEFT", icon, "TOPLEFT", -4, 4)
+        card.iconBlock:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 4, -4)
+    end
+    card.enter:Stop()
+    card.enter:Play()
+    return card
+end
+
 function skin.CropIcon(icon)
     if not skin.IsRegion(icon) or type(icon.SetTexCoord) ~= "function" then return end
     icon:SetTexCoord(ICON_CROP, 1 - ICON_CROP, ICON_CROP, 1 - ICON_CROP)

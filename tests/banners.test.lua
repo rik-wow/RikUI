@@ -6,7 +6,7 @@ return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
     local NAMES = { "EventToastManagerFrame", "BossBanner", "BossBanner_ConfigureLootFrame",
-        "ObjectiveTrackerTopBannerFrame" }
+        "ObjectiveTrackerTopBannerFrame", "EventToastManagerSideDisplay" }
     local BOSS_ART = { "BannerTop", "BannerMiddle", "BannerBottom", "SkullCircle", "LeftFillagree" }
     local saved = {}
     for _, name in ipairs(NAMES) do saved[name] = _G[name] end
@@ -48,6 +48,10 @@ return function(check)
     local function installClient()
         for _, name in ipairs(NAMES) do _G[name] = nil end
         installManager()
+        local side = CreateFrame("Button", "EventToastManagerSideDisplay", UIParent)
+        side.shown = false
+        art(side, { "GoldBG" })
+        side:SetScript("OnClick", function(self) self.nativeClick = true end)
         local boss = CreateFrame("Frame", "BossBanner", UIParent)
         art(boss, BOSS_ART)
         text(boss, "Title", 30)
@@ -88,6 +92,29 @@ return function(check)
         check("a second display flattens the lines again without a second icon edge",
             manager.GLine.texture == RikUI.Skin.FLAT and module.IconEdges[toast] == edges)
 
+        local side = EventToastManagerSideDisplay
+        side:Show()
+        side.lastToastFrame = makeToast(side)
+        env.runScript(side, "OnUpdate", 0.016)
+        local first = side.lastToastFrame
+        check("side history rows get card hierarchy without stealing native click",
+            first.rikCard.enter.plays == 1 and first.Title.fontSize == 26
+            and rawget(side.GoldBG, "texture") == nil)
+        env.runScript(side, "OnClick")
+        env.runScript(side, "OnUpdate", 0.016)
+        check("idle side display does not replay the card and native click survives",
+            first.rikCard.enter.plays == 1 and side.nativeClick == true)
+        side.lastToastFrame = makeToast(side)
+        env.runScript(side, "OnUpdate", 0.016)
+        check("a row acquired after native animation starts is decorated", side.lastToastFrame.rikCard ~= nil)
+        side:Hide()
+        side:Show()
+        side.lastToastFrame = first
+        env.runScript(side, "OnUpdate", 0.016)
+        check("pooled history row entrance replays on next display", first.rikCard.enter.plays == 2)
+        check("centre toast has its own accent motion without moving native content",
+            toast.rikCard.enter.plays == 2 and toast.rikCard.iconBlock.points[1][2] == toast.Icon)
+
         BossBanner:Show()
         check("the boss banner's animated art is emptied, not faded",
             rawget(BossBanner.BannerTop, "texture") == nil and rawget(BossBanner.SkullCircle, "texture") == nil
@@ -103,7 +130,7 @@ return function(check)
         check("a banner the client lacks is skipped without a message",
             module.Hooked.ObjectiveTrackerTopBannerFrame == nil and #env.printed == 0)
         SlashCmdList.RIKUI("debug")
-        check("debug reports the banners", widgets.printedContains(env, "Banners hooked=2 failed=0"))
+        check("debug reports the banners", widgets.printedContains(env, "Banners hooked=3 failed=0"))
 
         module = load()
         function BossBanner.Title:SetFont() error("font locked") end

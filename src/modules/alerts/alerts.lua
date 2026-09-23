@@ -1,7 +1,7 @@
 -- Flat skin for the alert toasts: loot won, money, recipes, achievements and the rest. Every alert
 -- subsystem ends in the global AlertFrame_ShowNewAlert, so one post-hook sees them all and the
 -- skin is driven by the keys the templates share instead of by template names. Blizzard's intro and
--- outro animations are left alone, so a toast gets no tween of its own. Fill, edge, crop and
+-- outro animations remain authoritative; the gold card accent has its own entrance. Fill, edge, crop and
 -- typeface are written once per toast; art is removed on every show, because a SetUp may restore a
 -- background and Blizzard animates the alpha of glow and shine.
 local core, skin = RikUI, RikUI.Skin
@@ -47,8 +47,8 @@ local function removeArt(frame)
 end
 
 local function decorate(frame)
-    frame.rikFill = skin.Fill(frame, skin.BACKING, INSET)
-    frame.rikBorder = skin.Outline(frame, nil, INSET)
+    frame.rikFill = frame.rikCard.fill
+    frame.rikBorder = frame.rikCard.edge
     local icon = findIcon(frame)
     if icon then
         skin.CropIcon(icon)
@@ -61,6 +61,7 @@ end
 
 local function apply(frame)
     removeArt(frame)
+    frame.rikCard = skin.NotificationCard(frame, findIcon(frame), INSET)
     if skinned[frame] then return end
     decorate(frame)
     skinned[frame] = true

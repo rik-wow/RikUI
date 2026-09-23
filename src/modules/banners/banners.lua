@@ -1,6 +1,6 @@
 -- Flat look for the centre-screen banners: the event toasts (the level-up display on 69913), the boss
--- kill banner and the objective tracker's top banner. Blizzard animates all three, so this file adds
--- no tween, point, size or script: strings take the RikUI typeface at Blizzard's size and colour,
+-- kill banner, side history and objective tracker's top banner. Native frames own their animation;
+-- addon card accents animate independently. Strings keep Blizzard's size and colour,
 -- animated art is emptied instead of faded, and the toast icon gets the bars' crop and an edge.
 local core, skin = RikUI, RikUI.Skin
 -- Weak keys: pooled toasts are Blizzard's, the edge bookkeeping must not keep one alive.
@@ -48,6 +48,7 @@ local function skinToast(manager)
     if not skin.IsRegion(toast) then return end
     typefaces(toast, TOAST_TEXT)
     toastIcon(toast)
+    toast.rikCard = skin.NotificationCard(toast, toast.Icon)
 end
 
 -- Blizzard re-applies the gold bar atlas for every toast; its grow animation and tint still apply.
@@ -65,6 +66,7 @@ end
 local function skinFrame(frame, target)
     skin.Blank(frame, target.art)
     typefaces(frame, target.text)
+    frame.rikCard = skin.NotificationCard(frame, frame.Icon)
 end
 
 local function skinRow(row, target)
@@ -131,6 +133,26 @@ local function hookFrame(target)
     core.Hooks.Function(target.rowSetup, function(row) guarded(target.name, skinRow, row, target) end)
 end
 
+-- Rows arrive during native animations. Observe the published last row without method hooks.
+local function hookSideDisplay()
+    local side = _G.EventToastManagerSideDisplay
+    if not skin.IsRegion(side) then return end
+    local previous
+    banners.Hooked.EventToastManagerSideDisplay = true
+    core.Hooks.Script(side, "OnShow", function(self) skin.Blank(self, { "GoldBG" }) end)
+    core.Hooks.Script(side, "OnHide", function() previous = nil end)
+    core.Hooks.Script(side, "OnUpdate", function(self)
+        local row = self.lastToastFrame
+        if not skin.IsRegion(row) or row == previous then return end
+        previous = row
+        guarded("EventToastManagerSideDisplay", function()
+            typefaces(row, TOAST_TEXT)
+            toastIcon(row)
+            row.rikCard = skin.NotificationCard(row, row.Icon)
+        end)
+    end)
+end
+
 local function count(set)
     local total = 0
     for _ in pairs(set) do total = total + 1 end
@@ -139,6 +161,7 @@ end
 
 function banners:OnEnable()
     hookManager()
+    hookSideDisplay()
     for _, target in ipairs(FRAMES) do hookFrame(target) end
 end
 
