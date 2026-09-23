@@ -109,13 +109,13 @@ unavailable; road mode doesn't fake them. The compact gateway runtime
 (`quest-paths`, `quest-path-graph/search/route/navigate/compose`) was removed.
 A single regional pack can still be installed and routes on its own mesh.
 
-## Measured results (build 69913)
+## Measured results (data build 69913, v11)
 
 | World | Baked polygons | Network nodes | Network data | Patch polygons | Addons |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Eastern Kingdoms (0) | 1,614,372 | 7,603 | 1.6 MB | 895,449 | 58.8 MiB |
-| Kalimdor (1) | 2,222,225 | 10,500 | 2.2 MB | 1,241,450 | 81.6 MiB |
-| Alterac Valley (30) | 100,965 | 813 | 0.1 MB | 0 | 0.1 MiB |
+| Eastern Kingdoms (0) | 3,048,191 | 21,141 | 4.5 MB | 1,448,399 | 97.5 MiB |
+| Kalimdor (1) | 3,703,985 | 26,350 | 5.1 MB | 1,831,803 | 122.7 MiB |
+| Alterac Valley (30) | 113,426 | 920 | 0.2 MB | 0 | 0.2 MiB |
 
 A full compile of all worlds takes about 1 minute 50 seconds on 32 cores
 (`road_parallel.py`): 52 seconds to validate and cache every batch, then about
@@ -128,11 +128,12 @@ With 20-yard spawn radius, 10-yard margin and 80-yard cap the patches drop to
 of each continent's walkable mesh, so patch size doesn't shrink much with the
 radius.
 
-The continent mesh is split into many pieces by water and structure
-exclusions: Eastern Kingdoms has 163,710 connected pieces and only 16,680
-edges between bake batches. Dun Morogh's Kharanos, Grizzled Den, Brewnall and
-Coldridge are one piece; many zone-to-zone crossings are not. The network
-reports no route rather than inventing a connection.
+Keeping approximable geometry (unknown ADT chunks, WMOs with unfamiliar chunks,
+water as a swim surface, lava only below its surface) joined the continents:
+the Eastern Kingdoms network is one piece of 18,445 nodes from Silverpine to
+Booty Bay, Kalimdor one of 22,108 from Orgrimmar to Thousand Needles. What
+stays apart is joined by travel links (lifts, the Darnassus portal, boats) or
+is an interior with no way in on foot.
 
 ## Installed state (2026-09-22)
 
