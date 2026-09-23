@@ -161,9 +161,10 @@ look: a cropped icon in a thin edge that follows your bar border colour. See
 [extra buttons](docs/extrabuttons.md).
 
 The cooldown HUD has visible **Cooldowns On/Off**, **Move/Done**, and **Settings**
-buttons above the action bars. Drag the four labeled groups to save their places.
-Dark framed panels, titles, blue accents, layered icons and brief fades surround
-Blizzard's cooldowns and buff timers. See [cooldown viewers](docs/cooldownviewer.md).
+buttons above the action bars. Click Move for labeled drag handles, then Done to
+hide the handles and save their places. During play, groups show just the icons
+and buff timers, with no surrounding panels or titles. See
+[cooldown viewers](docs/cooldownviewer.md).
 
 Alert toasts (loot won, money, new recipes) are flat panels with a cropped
 icon and Blizzard's text colours, on Blizzard's own timing and stacking. See

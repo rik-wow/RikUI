@@ -11,10 +11,11 @@ visible when cooldowns are off.
   before adding spells. RikUI saves each position.
 - Click **Settings** to choose tracked spells and buffs in Blizzard's window.
 
-The Essential, Utility, Tracked Buffs and Buff Timers groups have dark framed
-panels, compact titles, blue accents, subtle shadows and brief fades. Icons
-retain their action-bar-colour rims with a highlight and accent; buff bars use
-RikUI's statusbar texture and typeface.
+During gameplay, the four groups show only their icons or buff bars: no group
+panels, borders or titles. Empty groups leave no visible box. Labeled outlines
+appear only while moving and disappear on **Done**, the individual lock button,
+or combat. Icons retain their action-bar-colour rims with a highlight and accent;
+buff bars use RikUI's statusbar texture and typeface.
 
 Controls lock during combat and while native Edit Mode is open. Native
 per-group visibility rules and spell availability still apply: an enabled
@@ -47,9 +48,10 @@ are positioned too; combat-deferred changes resume when combat ends.
 
 Native Edit Mode temporarily gets its original root scale and anchors back through
 `SetScaleBase()` and `ApplySystemAnchor()`; closing it restores RikUI positions. Native layout,
-display-size and UI-scale updates also restore holders. The native root stays
-separate from its decorative panel, so hiding chrome never hides native items.
-Panels draw behind the native viewers and do not capture their clicks.
+display-size and UI-scale updates also restore holders. Holders are transparent
+anchors sized to the native content, without extra title space or a width floor.
+The shared Layout overlay supplies temporary move labels and outlines. Hiding
+that overlay never hides the native icons or bars.
 
 Only the cooldown-manager mask and decorative icon overlay are removed.
 Unrelated masks, dispel borders, range warnings, cooldown flashes, swipe effects
@@ -95,7 +97,9 @@ overlays. It covers off-state discoverability, rejected setting writes, external
 setting changes, native Settings, four empty move handles, drag persistence and
 reload, scale, unchanged scans, native manager resets, combat OnShow, combat
 locking, Edit Mode scale/anchor handoff, stale snap release, isolated root
-placement failures, missing viewers and module disablement.
+placement failures, missing viewers and module disablement. It also checks that
+visible empty viewers have no permanent decoration, move bounds fit native
+content, and Done, individual locks and combat remove all placement guides.
 
 The manifest/syntax guard and Lua runner verify source composition and the hook
 policy. These are automated model checks. Native/game-client behavior is

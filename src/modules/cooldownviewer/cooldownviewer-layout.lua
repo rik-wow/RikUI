@@ -1,6 +1,5 @@
 -- Native items retain their layout. Only viewer roots follow addon-owned, saved Layout holders.
 local core, viewer, layout = RikUI, RikUI.CooldownViewer, RikUI.Layout
-local PAD, HEADER = 8, 24
 local SPECS = {
     EssentialCooldownViewer = { "cooldownessential", "Essential cooldowns", 0, 414, 280, 50 },
     UtilityCooldownViewer = { "cooldownutility", "Utility cooldowns", 0, 500, 280, 30 },
@@ -45,14 +44,14 @@ local function anchor(entry)
     end
     local point, relative, relativePoint, x, y
     if frame:GetNumPoints() == 1 then point, relative, relativePoint, x, y = frame:GetPoint(1) end
-    if point ~= "TOPLEFT" or relative ~= holder or relativePoint ~= "TOPLEFT" or x ~= PAD or y ~= -HEADER then
+    if point ~= "TOPLEFT" or relative ~= holder or relativePoint ~= "TOPLEFT" or x ~= 0 or y ~= 0 then
         frame:ClearAllPointsBase()
-        frame:SetPointBase("TOPLEFT", holder, "TOPLEFT", PAD, -HEADER)
+        frame:SetPointBase("TOPLEFT", holder, "TOPLEFT", 0, 0)
     end
     local width, height = frame:GetSize()
     if not number(width) then width = entry.width end
     if not number(height) then height = entry.height end
-    holder:SetSize(math.max(width, 160) + PAD * 2, height + HEADER + PAD)
+    holder:SetSize(width, height)
 end
 
 local function update(entry)
@@ -90,9 +89,9 @@ function viewer.Track(name, frame)
         or type(frame.SetScaleBase) ~= "function" then return end
     local holder = CreateFrame("Frame", nil, UIParent)
     holder:SetFrameStrata("BACKGROUND")
-    holder:SetSize(spec[5] + PAD * 2, spec[6] + HEADER + PAD)
+    -- Transparent placement anchor; Layout's temporary move overlay owns all group chrome.
+    holder:SetSize(spec[5], spec[6])
     holder:Hide()
-    viewer.DecoratePanel(holder, spec[2])
     local entry = { key = spec[1], frame = frame, holder = holder, width = spec[5], height = spec[6],
         nativeScale = frame:GetScale() }
     entries[name], viewer.Holders[name] = entry, holder

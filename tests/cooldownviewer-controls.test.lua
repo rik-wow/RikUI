@@ -8,6 +8,29 @@ return function(check)
         "EventRegistry", "GetCursorPosition", "IsShiftKeyDown" }) do saved[name] = _G[name] end
     local oldWidth, oldHeight, oldScale = UIParent.GetWidth, UIParent.GetHeight, UIParent.GetEffectiveScale
     local restore, enabled, editing, reject, settings, cursor = widgets.install(), false, false, false, 0, { 600, 400 }
+    -- Record actual regions on every frame so the fixture can distinguish invisible anchors
+    -- from the permanent boxes/titles reported in the user's screenshot.
+    local createFrame = CreateFrame
+    CreateFrame = function(...)
+        local frame, regions = createFrame(...), {}
+        for _, method in ipairs({ "CreateTexture", "CreateFontString" }) do
+            local create = frame[method]
+            frame[method] = function(self, ...)
+                local region = create(self, ...)
+                regions[#regions + 1] = region
+                return region
+            end
+        end
+        frame.GetRegions = function() return unpack(regions) end
+        return frame
+    end
+    local function decorated(frame)
+        if not frame:IsShown() then return false end
+        for _, region in ipairs({ frame:GetRegions() }) do
+            if region:IsShown() and rawget(region, "alpha") ~= 0 then return true end
+        end
+        return false
+    end
     function UIParent:GetWidth() return 1920 end
     function UIParent:GetHeight() return 1080 end
     function UIParent:GetEffectiveScale() return 1 end
@@ -41,7 +64,7 @@ return function(check)
                 if not absent then
                     local frame = CreateFrame("Frame", name, UIParent)
                     native[index] = frame
-                    frame:SetSize(index == 4 and 220 or 200, 50)
+                    frame:SetSize(index == 4 and 220 or (index == 2 and 80 or 200), 50)
                     frame.shown, frame.nativeScale = enabled, 1
                     frame.itemFramePool = { EnumerateActive = function() return pairs({}) end }
                     frame.UpdateSystem = function() end
@@ -112,6 +135,10 @@ return function(check)
             not managed[native[1]] and native[1].points[1][2] == module.Holders[names[1]])
         env.click(dock.toggle)
         check("left click enables native cooldowns with truthful label", enabled and dock.toggle.label.text == "Cooldowns: On")
+        for index, name in ipairs(names) do
+            check(name .. " has no permanent box or title, even with an empty visible viewer",
+                native[index]:IsShown() and not decorated(module.Holders[name]))
+        end
         env.click(dock.toggle)
         check("toggle remains reachable when cooldowns are hidden", not enabled and dock:IsShown()
             and dock.toggle.label.text == "Cooldowns: Off")
@@ -131,10 +158,18 @@ return function(check)
         for index, key in ipairs(keys) do
             local group, holder = layout.Groups[key], module.Holders[names[index]]
             check(key .. " is movable with a visible empty placeholder", group and layout.IsUnlocked(key)
-                and holder:IsShown() and layout.Overlays[key]:IsShown())
+                and holder:IsShown() and layout.Overlays[key]:IsShown()
+                and layout.Overlays[key].label.text == group.label)
             check(key .. " anchors only the native root through base methods",
                 native[index].points[1][2] == holder and native[index]:GetParent() == UIParent)
+            check(key .. " move bounds fit content without title space or width floor",
+                holder:GetWidth() == native[index]:GetWidth() and holder:GetHeight() == native[index]:GetHeight()
+                and native[index].points[1][4] == 0 and native[index].points[1][5] == 0)
         end
+        local lastOverlay = layout.Overlays[keys[4]]
+        env.click(lastOverlay.lock)
+        check("locking one group removes its placement label and outline",
+            not lastOverlay:IsShown() and not decorated(module.Holders[names[4]]))
         local key = keys[1]
         local overlay = layout.Overlays[key]
         env.runScript(overlay, "OnMouseDown", "LeftButton")
@@ -145,6 +180,10 @@ return function(check)
         check("mouse drag persists a real position", position and position.point == "BOTTOM" and position.x ~= 0)
         env.click(dock.move)
         check("Done locks all cooldown groups", dock.move.label.text == "Move" and not layout.IsUnlocked(key))
+        for index, groupKey in ipairs(keys) do
+            check("Done removes all decoration from " .. groupKey,
+                not layout.Overlays[groupKey]:IsShown() and not decorated(module.Holders[names[index]]))
+        end
         local profile = RikUI.Profile
         module = load(profile); dock = module.Controls
         check("reload restores the saved viewer position", layout.GetPosition(key).x == position.x
@@ -186,7 +225,8 @@ return function(check)
         native[1].points = { { "CENTER", UIParent, "CENTER", 0, 0 } }
         env.click(dock.toggle); env.click(dock.move); env.click(dock.settings); env.flushTimers()
         check("combat locks movers and prevents native writes or settings clicks",
-            writes == before and settings == 1 and not RikUI.Layout.IsUnlocked(key) and not dock.toggle:IsEnabled())
+            writes == before and settings == 1 and not RikUI.Layout.IsUnlocked(key) and not dock.toggle:IsEnabled()
+                and not RikUI.Layout.Overlays[key]:IsShown() and not decorated(module.Holders[names[1]]))
         env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED"); env.flushTimers()
         check("combat end restores native anchors and usable controls",
             native[1].points[1][2] == module.Holders[names[1]] and dock.toggle:IsEnabled())

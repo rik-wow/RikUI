@@ -45,7 +45,7 @@ flat regions added; `font` = font objects only.
 | Extra, zone, flyout, possess buttons | `src/modules/extrabuttons/extrabuttons.lua` | skin | 2 | skin, bars colour | `bars-motion` |
 | Vehicle bar frame | `src/modules/extrabuttons/extrabuttons.lua` (buttons only) | skin | 0 | extrabuttons | `vehicle-bar` |
 | Proc overlay around the character | none | none | 0 | bars | `spell-activation-overlay` |
-| Cooldown viewer (4 viewers) | `src/modules/cooldownviewer/cooldownviewer*.lua` | skin with owned panels, mouse controls, saved group holders and fades | 2 | skin, motion, layout, editmode, bars colour | delivered (`cooldownviewer-controls`) |
+| Cooldown viewer (4 viewers) | `src/modules/cooldownviewer/cooldownviewer*.lua` | skin with mouse controls, transparent saved holders, temporary move guides and icon accents | 2 | skin, motion, layout, editmode, bars colour | delivered (`cooldownviewer-clean-hud`) |
 | Player, target, ToT, pet, focus frames | `src/modules/unitframes/unitframes.lua`, `src/modules/unitframes/unitframes-status.lua` | own | 1 | layout | `unitframes-motion` |
 | Party frames | `src/modules/unitframes/unitframes-party.lua` | own | 1 | unit frames | `party-raid-motion` |
 | Raid grid | `src/modules/unitframes/unitframes-raid.lua` | own | 1 | unit frames | `party-raid-motion` |

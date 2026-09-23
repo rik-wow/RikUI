@@ -1,5 +1,5 @@
 -- Owned decoration only; no pooled native fields, item animations or cooldown state.
-local core, viewer, skin, media, motion = RikUI, RikUI.CooldownViewer, RikUI.Skin, RikUI.Media, RikUI.Motion
+local viewer, skin, motion = RikUI.CooldownViewer, RikUI.Skin, RikUI.Motion
 local ACCENT, LIGHT, SHADOW = { 0.3, 0.75, 1, 0.85 }, { 1, 1, 1, 0.12 }, { 0, 0, 0, 0.65 }
 local decorated = setmetatable({}, { __mode = "k" })
 
@@ -26,18 +26,4 @@ function viewer.DecorateItem(item, owner, icon, isBar)
         viewer.Rule(item.Bar, item.Bar, LIGHT, true)
     end
     decorated[item] = { shadow = shadow, fade = fade }
-end
-
-function viewer.DecoratePanel(holder, title)
-    skin.Fill(holder, SHADOW, -2)
-    holder.fill = skin.Fill(holder, { 0.035, 0.045, 0.065, 0.88 })
-    holder.edge = skin.Outline(holder, skin.LINE)
-    viewer.Rule(holder, holder, ACCENT, true, 1)
-    holder.title = holder:CreateFontString(nil, "OVERLAY")
-    media.Font(holder.title, "small")
-    holder.title:SetTextColor(0.65, 0.82, 0.94)
-    holder.title:SetPoint("TOPLEFT", holder, "TOPLEFT", 8, -6)
-    holder.title:SetText(title)
-    holder.fade = motion.Tween(holder, 0, 1, skin.FADE_SECONDS)
-    holder:SetScript("OnShow", function() motion.Play(holder.fade) end)
 end
