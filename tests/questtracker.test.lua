@@ -10,6 +10,8 @@ return function(check)
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
+    local savedFlag = LE_FRAME_TUTORIAL_HOW_TO_SUPERTRACK
+    local savedSet, savedGet = C_CVar.SetCVarBitfield, C_CVar.GetCVarBitfield
     local function printedContains(text)
         for _, line in ipairs(env.printed) do
             if line:find(text, 1, true) then return true end
@@ -58,6 +60,13 @@ return function(check)
             [22] = { title = "A Letter Home", level = 9, objectives = { { "Deliver the letter" } } },
             [33] = { title = "The Lost Tools", level = 14, objectives = { { "Tools: 0/1" } } },
         }
+        stub.acknowledgedBeforePark = false
+        LE_FRAME_TUTORIAL_HOW_TO_SUPERTRACK = 8
+        C_CVar.GetCVarBitfield = function() return false end
+        C_CVar.SetCVarBitfield = function(name, flag, value)
+            stub.acknowledgedBeforePark = name == "closedInfoFrames" and flag == 8 and value == true
+                and ObjectiveTrackerFrame:GetParent() == UIParent
+        end
         ObjectiveTrackerFrame = CreateFrame("Frame", "ObjectiveTrackerFrame", UIParent)
         installQuestLog()
     end
@@ -69,7 +78,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/tutorials.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
             "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/questtracker/questtracker.lua", "src/modules/questtracker/questtracker-blocks.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -84,6 +93,7 @@ return function(check)
     end
     local ok, reason = pcall(function()
         local module = load()
+        check("supertrack tutorial acknowledged before parking stock tracker", stub.acknowledgedBeforePark)
         local holder, group, view = module.Holder, RikUI.Layout.Groups.questtracker, module.View
         local first, second = view.Blocks[1], view.Blocks[2]
         check("the list registers with the layout under key questtracker at the top right", holder and group
@@ -244,6 +254,8 @@ return function(check)
         check("a disabled module leaves the stock tracker untouched", module.Holder == nil
             and ObjectiveTrackerFrame.parent == UIParent and RikUI.Layout.Groups.questtracker == nil)
     end)
+    C_CVar.SetCVarBitfield, C_CVar.GetCVarBitfield = savedSet, savedGet
+    LE_FRAME_TUTORIAL_HOW_TO_SUPERTRACK = savedFlag
     restoreCreate()
     for _, name in ipairs(API) do _G[name] = saved[name] end
     env.inCombat, env.shiftDown = false, false

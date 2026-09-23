@@ -114,7 +114,9 @@ end
 -- The tracker's events stay registered, so a restore after a reload-free toggle is current.
 local function parkStock()
     local frame = _G[STOCK]
-    if isFrame(frame) then core.Hide.Frame(frame, true) end
+    if not isFrame(frame) then return end
+    core.Tutorials.Acknowledge(LE_FRAME_TUTORIAL_HOW_TO_SUPERTRACK)
+    core.Hide.Frame(frame, true)
 end
 
 local function build()

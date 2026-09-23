@@ -192,6 +192,7 @@ local roleOk, roleErr = pcall(function() dofile("tests/setup-role.test.lua")(che
 check("Role test suite completes", roleOk, roleErr)
 
 dofile("tests/hooks-policy.test.lua")(check)
+dofile("tests/tutorials.test.lua")(check)
 
 local barsOk, barsErr = pcall(function() dofile("tests/bars.test.lua")(check) end)
 check("Bar test suite completes", barsOk, barsErr)
