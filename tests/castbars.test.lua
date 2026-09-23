@@ -3,6 +3,7 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
+    local animate = dofile("tests/group_motion_stub.lua")
     local API = { "UnitCastingInfo", "UnitChannelInfo", "UnitCastingDuration", "UnitChannelDuration", "C_DurationUtil",
         "C_StringUtil", "GetTime", "PlayerCastingBarFrame", "CastingBarFrame",
         "PetCastingBarFrame" }
@@ -29,6 +30,8 @@ return function(check)
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         function value:SetText(text) self.text = text end
         function value:SetFormattedText(format, ...) self.format, self.args = format, { ... } end
+        animate(value)
+        function value:SetPoint(...) self.point = { ... } end
         return value
     end
     CreateFrame = function(kind, name, parent, template)
@@ -53,6 +56,7 @@ return function(check)
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
+        animate(frame)
         return frame
     end
     UnitCastingInfo = function(unit)
@@ -106,7 +110,7 @@ return function(check)
         PlayerCastingBarFrame = (not missingStock) and stockFrame("PlayerCastingBarFrame") or nil
         CastingBarFrame = nil
         PetCastingBarFrame = (not missingStock) and stockFrame("PetCastingBarFrame") or nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/castbars/castbars.lua", "src/modules/castbars/castbars-status.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -114,6 +118,12 @@ return function(check)
         env.inCombat = combat == true
         env.fire("PLAYER_LOGIN")
         return RikUI.CastBars
+    end
+    local function settle()
+        env.flushTimers()
+        for _, frame in pairs(RikUI.CastBars.Bars) do
+            if frame.fadeOut and frame.fadeOut.playing then frame.fadeOut:Finish() end
+        end
     end
     local function playerCast(castID, duration)
         casts.player = { name = "Frostbolt", text = "Frostbolt", texture = 135846, startMs = 100000, endMs = 102500,
@@ -130,7 +140,8 @@ return function(check)
         check("two castbars exist for the player and target", player and target and player.unit == "player"
             and target.unit == "target")
         check("castbars are plain frames with a status bar child", player.template == nil
-            and player.bar.kind == "StatusBar" and player.bar.texture == RikUI.Media.statusbar)
+            and player.bar.kind == "StatusBar" and player.bar.texture == player.bar.fill
+            and player.bar.fill.texture == RikUI.Media.statusbar)
         local groups = RikUI.Layout.Groups
         check("castbars register with the shared layout", groups.castplayer.frames[1] == player
             and groups.casttarget.frames[1] == target)
@@ -159,9 +170,16 @@ return function(check)
             and binding.last.SetEnabled[1] == true and binding.last.SetFormatter[1] == formatters[1]
             and formatters[1].last.SetMillisecondsThreshold ~= nil)
         check("casts use the cast colour", color(player.bar.color, module.Colors.cast))
+        check("cast start fades in and follows native fill geometry", player.fadeIn and player.fadeIn.playing
+            and player.spark and player.spark.point[2] == player.bar.fill)
+
         env.fire("UNIT_SPELLCAST_STOP", "player", "Cast-2", 116)
         check("a stop for a different readable cast keeps the bar", player.shown == true)
         env.fire("UNIT_SPELLCAST_STOP", "player", "Cast-1", 116)
+        check("completed cast flashes during hold", player.shown and player.flashTween.playing and not player.spark.shown)
+        env.flushTimers()
+        check("hold starts fade-out before hiding", player.shown and player.fadeOut.playing)
+        player.fadeOut:Finish()
         check("a matching stop hides the bar and disables the timer text", player.shown == false
             and binding.last.SetEnabled[1] == false and player.time.text == "")
 
@@ -170,20 +188,20 @@ return function(check)
         check("interrupted casts turn red, say so and fill", player.shown == true
             and color(player.bar.color, module.Colors.interrupted) and player.bar.text.text == "Interrupted"
             and player.bar.value == 1 and player.bar.max == 1 and #env.timers == 1)
-        env.flushTimers()
+        settle()
         check("interrupted bar hides after the hold", player.shown == false)
         env.fire("UNIT_SPELLCAST_START", "player", "Cast-1", 116)
         env.fire("UNIT_SPELLCAST_FAILED", "player", "Cast-1", 116)
         check("failed casts say Failed", player.bar.text.text == "Failed"
             and color(player.bar.color, module.Colors.interrupted))
-        env.flushTimers()
+        settle()
         env.fire("UNIT_SPELLCAST_FAILED", "player", "Cast-9", 116)
         check("a failure while idle stays hidden", player.shown == false and #env.timers == 0)
         env.fire("UNIT_SPELLCAST_START", "player", "Cast-1", 116)
         env.fire("UNIT_SPELLCAST_INTERRUPTED", "player", "Cast-1", 116)
         playerCast("Cast-3", { id = "d3" })
         env.fire("UNIT_SPELLCAST_START", "player", "Cast-3", 116)
-        env.flushTimers()
+        settle()
         check("a new cast during the interrupt hold stays visible", player.shown == true
             and player.bar.text.text == "Frostbolt" and color(player.bar.color, module.Colors.cast))
         env.fire("UNIT_SPELLCAST_STOP", "player", "Cast-3", 116)
@@ -211,9 +229,10 @@ return function(check)
         env.fire("UNIT_SPELLCAST_CHANNEL_STOP", "player", "Cast-4", 10, "Creature-0-1")
         check("a channel stopped by someone shows Interrupted", player.shown == true
             and player.bar.text.text == "Interrupted")
-        env.flushTimers()
+        settle()
         env.fire("UNIT_SPELLCAST_CHANNEL_START", "player", "Cast-4", 10)
         env.fire("UNIT_SPELLCAST_CHANNEL_STOP", "player", "Cast-4", 10, nil)
+        settle()
         check("a completed channel hides the bar", player.shown == false)
         channels.player = nil
 
@@ -229,6 +248,7 @@ return function(check)
         env.fire("UNIT_SPELLCAST_INTERRUPTIBLE", "target")
         check("interruptible event hides the shield", target.shield.active == false)
         env.fire("UNIT_SPELLCAST_STOP", "target", env.SECRET, env.SECRET)
+        settle()
         check("a stop with a secret cast id hides the target bar", target.shown == false)
         env.fire("PLAYER_TARGET_CHANGED")
         check("target change picks up an in-progress cast", target.shown == true)
@@ -242,6 +262,7 @@ return function(check)
         check("target change picks up a channel", target.shown == true
             and target.bar.timer.direction == directions.RemainingTime)
         env.fire("UNIT_SPELLCAST_CHANNEL_STOP", "target", env.SECRET, env.SECRET, env.SECRET)
+        settle()
         check("a secret interrupter ends a channel plainly", target.shown == false and #env.timers == 0)
         env.fire("PLAYER_TARGET_CHANGED")
         channels.target = nil
@@ -254,6 +275,7 @@ return function(check)
         env.fire("UNIT_SPELLCAST_START", "player", "Cast-5", 116)
         env.fire("UNIT_SPELLCAST_STOP", "player", "Cast-5", 116)
         env.fire("PLAYER_TARGET_CHANGED")
+        settle()
         check("combat casts flow to sinks without protected writes", writes == before and player.shown == false)
         env.inCombat = false
 
@@ -288,6 +310,7 @@ return function(check)
         check("fallback fill clamps once the cast time passes", near(player.bar.value, 2.5)
             and near(player.time.args[1], 0) and player.shown == true)
         env.fire("UNIT_SPELLCAST_STOP", "player", "Cast-1", 116)
+        settle()
         check("fallback stop clears the manual fill", player.shown == false and player.bar.manual == nil)
         channels.player = { name = "Blizzard", text = "Blizzard", texture = 1, startMs = 100000, endMs = 108000 }
         now = 102
@@ -335,6 +358,27 @@ return function(check)
         casts.pet = nil
         env.fire("UNIT_PET", "player")
         check("a pet change with no cast hides the pet bar", pet.shown == false and #env.printed == 0)
+
+        player = module.Bars.castplayer
+        playerCast("Old", {})
+        env.fire("UNIT_SPELLCAST_START", "player", "Old")
+        env.fire("UNIT_SPELLCAST_INTERRUPTED", "player", "Old")
+        check("interrupt flash is red", player.flash.color[1] == 1 and player.flash.color[2] == 0.15)
+        env.flushTimers()
+        check("interrupt hold enters a fade", player.fadeOut.playing)
+        playerCast("New", {})
+        env.fire("UNIT_SPELLCAST_START", "player", "New")
+        player.fadeOut:Finish()
+        check("a stale fade completion cannot hide a new cast", player.shown and player.state == "cast"
+            and player.fadeIn.playing and not player.fadeOut.playing)
+        RikTestAnimationsMissing = true
+        module = load()
+        playerCast("NoAnim", {})
+        env.fire("UNIT_SPELLCAST_START", "player", "NoAnim")
+        env.fire("UNIT_SPELLCAST_STOP", "player", "NoAnim")
+        settle()
+        check("missing animation API still finishes and hides", not module.Bars.castplayer.shown)
+        RikTestAnimationsMissing = nil
 
         module = load(nil, true)
         check("combat login defers bar creation and stock hiding", next(module.Bars) == nil

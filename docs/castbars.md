@@ -10,7 +10,10 @@ the Blizzard casting bar back.
 Each bar is a spell icon on the left, a fill with the spell name on the left
 and the remaining time on the right. Casts fill up in gold, channels drain in
 blue. An interrupted or failed cast turns red, says `Interrupted` or `Failed`
-and disappears after a short hold. The target bar also carries a shield
+and fades away after a short hold. All four bars fade in over 120 ms; a thin spark
+tracks the native fill texture. Completion flashes mint for 200 ms; failures
+and interruptions flash red and hold for 600 ms. A 180 ms fade then hides the
+bar. New casts cancel old holds and fades, while unit changes clear immediately. The target bar also carries a shield
 overlay on the icon while the cast cannot be interrupted.
 
 The bars are 220x22, sized to the large unit frames, and use the shared font
@@ -102,7 +105,8 @@ unavailable; combat-login deferral; module disablement; stock parking and
 missing stock globals.
 
 The stub cannot show native timer rendering, the text binding output or
-secret-value errors inside the real VM. Beta checklist on the Warrior:
+secret-value errors inside the real VM. Native behavior is accepted under the
+user's standing policy. The following is optional reference, not a delivery gate:
 
 1. Reload out of combat. The Blizzard casting bar should be gone. Cast a
    spell with a cast time (Hearthstone works): a gold bar with the icon, name

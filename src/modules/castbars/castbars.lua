@@ -54,7 +54,9 @@ end
 
 local function statusBar(frame)
     local bar = CreateFrame("StatusBar", nil, frame)
-    bar:SetStatusBarTexture(media.statusbar)
+    bar.fill = bar:CreateTexture(nil, "ARTWORK")
+    bar.fill:SetTexture(media.statusbar)
+    bar:SetStatusBarTexture(bar.fill)
     bar:SetPoint("TOPLEFT", frame.icon, "TOPRIGHT", EDGE, 0)
     bar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -EDGE, EDGE)
     bar.background = bar:CreateTexture(nil, "BACKGROUND")
@@ -76,11 +78,33 @@ local function decorate(frame)
     frame.time = frame.bar.time
 end
 
+local function decorateMotion(frame)
+    local motion = core.Motion
+    frame.spark = frame.bar:CreateTexture(nil, "OVERLAY")
+    frame.spark:SetColorTexture(1, 1, 1, 0.8)
+    frame.spark:SetSize(2, HEIGHT - 2 * EDGE)
+    frame.spark:SetPoint("CENTER", frame.bar.fill, "RIGHT")
+    frame.flash = frame.bar:CreateTexture(nil, "OVERLAY")
+    frame.flash:SetAllPoints(frame.bar)
+    frame.flash:SetColorTexture(1, 1, 1)
+    frame.flash:SetAlpha(0)
+    frame.flashTween = motion.Tween(frame.flash, 0.55, 0, 0.2)
+    frame.fadeIn = motion.Tween(frame, 0, 1, 0.12)
+    frame.fadeOut = motion.Tween(frame, 1, 0, 0.18)
+    if frame.fadeOut then
+        frame.fadeOut:SetScript("OnFinished", function()
+            if frame.fading then castbars.Finish(frame) end
+        end)
+    end
+    frame:HookScript("OnHide", function() castbars.ResetMotion(frame) end)
+end
+
 local function createBar(spec)
     local frame = CreateFrame("Frame", FRAME_PREFIX .. spec.unit, UIParent)
     frame.key, frame.unit = spec.key, spec.unit
     frame:SetSize(spec.width, HEIGHT)
     decorate(frame)
+    decorateMotion(frame)
     if spec.shield then frame.shield = shield(frame) end
     frame:SetScript("OnUpdate", function(self) castbars.Tick(self) end)
     frame:Hide()

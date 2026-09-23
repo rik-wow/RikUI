@@ -1,7 +1,7 @@
 -- Cast readers and their sinks. Cast times are never subtracted or compared in Lua: the
 -- fill comes from the client's duration object, or from readable numbers when no object exists.
 local core, castbars = RikUI, RikUI.CastBars
-local HOLD_SECONDS, TIME_FORMAT, MILLISECONDS_THRESHOLD = 0.6, "%.1f", 60
+local HOLD_SECONDS, FINISH_HOLD, TIME_FORMAT, MILLISECONDS_THRESHOLD = 0.6, 0.2, "%.1f", 60
 local FAILED_TEXT, INTERRUPTED_TEXT = FAILED or "Failed", INTERRUPTED or "Interrupted"
 local DIRECTION = { cast = { name = "ElapsedTime", value = 0 }, channel = { name = "RemainingTime", value = 1 } }
 local colors = {
@@ -142,6 +142,22 @@ local function tint(bar, color)
     bar:SetStatusBarColor(color.r, color.g, color.b)
 end
 
+function castbars.ResetMotion(frame)
+    frame.fading = nil
+    core.Motion.Stop(frame.fadeIn)
+    core.Motion.Stop(frame.fadeOut)
+    core.Motion.Stop(frame.flashTween)
+    frame:SetAlpha(1)
+    frame.flash:SetAlpha(0)
+    frame.spark:Hide()
+end
+
+local function fadeOut(frame)
+    core.Motion.Stop(frame.fadeIn)
+    frame.fading = true
+    if frame.fadeOut then core.Motion.Play(frame.fadeOut) else castbars.Finish(frame) end
+end
+
 local function cancelHold(frame)
     frame.hold = (frame.hold or 0) + 1
 end
@@ -150,6 +166,7 @@ function castbars.Finish(frame)
     frame.state, frame.castID = nil, nil
     cancelHold(frame)
     clearFill(frame.bar)
+    castbars.ResetMotion(frame)
     frame:Hide()
 end
 
@@ -161,6 +178,7 @@ function castbars.Begin(frame, channel, info)
     local mode = channel and "channel" or "cast"
     info = info or readInfo(frame.unit, channel)
     if not info then castbars.Finish(frame); return end
+    castbars.ResetMotion(frame)
     frame.state, frame.castID = mode, info.castID
     cancelHold(frame)
     frame.bar.text:SetText(info.text)
@@ -169,6 +187,8 @@ function castbars.Begin(frame, channel, info)
     tint(frame.bar, colors[mode])
     fill(frame.bar, frame.unit, info, mode)
     frame:Show()
+    frame.spark:Show()
+    core.Motion.Play(frame.fadeIn)
 end
 
 -- Delays and channel updates keep the state and re-read the times.
@@ -196,25 +216,29 @@ end
 local function hold(frame, label)
     frame.state, frame.castID = nil, nil
     clearFill(frame.bar)
-    tint(frame.bar, colors.interrupted)
-    frame.bar.text:SetText(label)
+    core.Motion.Stop(frame.fadeIn)
+    frame.spark:Hide()
+    if label then tint(frame.bar, colors.interrupted) end
+    if label then frame.bar.text:SetText(label) end
+    frame.flash:SetVertexColor(label and 1 or 0.65, label and 0.15 or 1, label and 0.12 or 0.8)
+    core.Motion.Play(frame.flashTween)
     frame.bar:SetMinMaxValues(0, 1)
     frame.bar:SetValue(1)
     cancelHold(frame)
     local token = frame.hold
-    C_Timer.After(HOLD_SECONDS, function()
-        if frame.hold == token then castbars.Finish(frame) end
+    C_Timer.After(label and HOLD_SECONDS or FINISH_HOLD, function()
+        if frame.hold == token then fadeOut(frame) end
     end)
 end
 
 function castbars.Stop(frame, castID)
-    if frame.state == "cast" and sameCast(frame, castID) then castbars.Finish(frame) end
+    if frame.state == "cast" and sameCast(frame, castID) then hold(frame) end
 end
 
 function castbars.StopChannel(frame, interruptedBy)
     if frame.state ~= "channel" then return end
     if readable(interruptedBy, "string") and interruptedBy ~= "" then hold(frame, INTERRUPTED_TEXT); return end
-    castbars.Finish(frame)
+    hold(frame)
 end
 
 function castbars.Fail(frame, castID)
