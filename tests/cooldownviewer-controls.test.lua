@@ -38,7 +38,7 @@ return function(check)
     IsShiftKeyDown = function() return true end
     local function load(profile, absent, combat)
         callbacks, native, managed, snapTargets = {}, {}, {}, {}
-        widgets.loadAddon(env, { "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua",
+        widgets.loadAddon(env, { "src/ui/skin.lua", "src/ui/scroll.lua", "src/ui/shell.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua",
             "src/platform/editmode.lua", "src/modules/cooldownviewer/cooldownviewer.lua",
             "src/modules/cooldownviewer/cooldownviewer-style.lua", "src/modules/cooldownviewer/cooldownviewer-layout.lua",
             "src/modules/cooldownviewer/cooldownviewer-controls.lua" }, profile, combat, function()
@@ -128,8 +128,11 @@ return function(check)
     local ok, reason = pcall(function()
         local module = load()
         local dock = module.Controls
-        check("visible Cooldowns button exists while viewers are off", dock and dock:IsShown()
+        check("cooldown controls belong to closed shell while viewers are off", dock and dock:GetParent() == RikUI.Shell.Panel.scroll.content
+            and not RikUI.Shell.Panel:IsShown() and not RikUI.Layout.Groups.cooldowncontrols
             and dock.toggle and dock.toggle.label.text == "Cooldowns: Off")
+        env.click(RikUI.Shell.Launcher)
+        check("minimap launcher reveals cooldown mouse controls", RikUI.Shell.Panel:IsShown())
         if not dock then return end
         check("hidden managed viewers are detached and positioned before combat",
             not managed[native[1]] and native[1].points[1][2] == module.Holders[names[1]])
@@ -179,7 +182,7 @@ return function(check)
         local position = RikUI.Profile.positions[key]
         check("mouse drag persists a real position", position and position.point == "BOTTOM" and position.x ~= 0)
         env.click(dock.move)
-        check("Done locks all cooldown groups", dock.move.label.text == "Move" and not layout.IsUnlocked(key))
+        check("Done locks all cooldown groups", dock.move.label.text == "Move groups" and not layout.IsUnlocked(key))
         for index, groupKey in ipairs(keys) do
             check("Done removes all decoration from " .. groupKey,
                 not layout.Overlays[groupKey]:IsShown() and not decorated(module.Holders[names[index]]))

@@ -78,6 +78,10 @@ return function(check)
         { "src/configuration/wizard/wizard-preview.lua", "src/configuration/wizard/wizard-pages.lua" },
         { "src/configuration/options/options-widgets.lua", "src/configuration/options/options-controls.lua" },
         { "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua" },
+        { "src/configuration/options/options.lua", "src/configuration/options/options-view.lua" },
+        { "src/ui/skin.lua", "src/ui/scroll.lua" },
+        { "src/ui/scroll.lua", "src/ui/shell.lua" },
+        { "src/ui/shell.lua", "src/modules/cooldownviewer/cooldownviewer-controls.lua" },
     }) do before(edge[1], edge[2]) end
 
     local owners = {

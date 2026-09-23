@@ -1,12 +1,6 @@
--- /rik config pages built from implemented modules; controls come from src/configuration/options/options-widgets.lua.
+-- Settings declarations and profile operations; layout lives in options-view.lua.
 local core, options = RikUI, RikUI.Options
-local PANEL_NAME, PANEL_TITLE = "RikUIOptionsPanel", "RikUI"
-local PAD, TITLE_HEIGHT, TAB_WIDTH, TAB_HEIGHT, TAB_GAP, CLOSE_SIZE = 16, 30, 140, 24, 4, 22
-local STANDALONE_WIDTH, STANDALONE_HEIGHT = 680, 520
 local SCALE_MIN, SCALE_MAX, SCALE_STEP = 0.25, 3, 0.05
-local BACKGROUND, TAB_TINT, SELECTED_TINT = { 0.03, 0.035, 0.045, 0.97 }, { 0.35, 0.38, 0.42, 1 }, { 1, 0.78, 0.3, 1 }
-local KEY_HINT = "Tab or arrows move, Space toggles, Left/Right adjust"
-local panel, category = nil, nil
 local state = { newName = "", deleteName = nil }
 
 local function copyTable(value)
@@ -57,22 +51,36 @@ function options.DeleteProfile(name)
     return true
 end
 
+local MODULE_TITLES = {
+    chatbubbles = "Chat bubbles", combattext = "Combat text", combopoints = "Combo points",
+    cooldownviewer = "Cooldown viewer", damagemeter = "Damage meter", extrabuttons = "Extra action buttons",
+    hudframes = "Small HUD frames", lossofcontrol = "Loss of control", micromenu = "Micro menu",
+    mirrortimers = "Breath and fatigue", questplanner = "Quest planner", questtimers = "Quest timers",
+    questtracker = "Quest tracker", screentext = "Screen messages", swingtimer = "Swing timer",
+    unitauras = "Unit auras", unitframes = "Unit frames", worldmap = "World map", xpbar = "Experience",
+}
+
 local function moduleTitle(name, module)
-    return module.title or (name:sub(1, 1):upper() .. name:sub(2))
+    return module.title or MODULE_TITLES[name] or (name:sub(1, 1):upper() .. name:sub(2))
 end
 
 local function moduleToggle(name, module)
     return { type = "checkbox", key = "module." .. name, label = moduleTitle(name, module), reload = true,
         get = function() return core.Profile.modules[name] ~= false end,
-        set = function(value) core.Profile.modules[name] = value == true end }
+        set = function(value) core.Profile.modules[name] = value == true end,
+        pending = function() return (core.Profile.modules[name] ~= false) ~= (module.enabled ~= false) end }
 end
 
 local function action(key, label, text, callback)
-    return { type = "button", key = key, label = label, text = text, action = callback }
+    return { type = "button", key = key, label = label, text = text, action = callback,
+        disabled = function() return InCombatLockdown() end }
 end
 
 local function moveFrames()
-    run("move")
+    if InCombatLockdown() then return end
+    if core.Layout.IsMoving() then core.Layout.LockAll() else core.Layout.UnlockAll() end
+    if core.Shell then core.Shell.Refresh() end
+    if options.Panel() then options.Panel():Hide() end
     local moving = core.Layout.IsMoving and core.Layout.IsMoving()
     if moving and SettingsPanel and type(HideUIPanel) == "function" then HideUIPanel(SettingsPanel) end
 end
@@ -86,20 +94,31 @@ local function layoutSpecs(specs)
         set = function(value) return core.Layout.SetScale(value) end }
     if core.Layout.PresetOption then specs[#specs + 1] = core.Layout.PresetOption() end
     specs[#specs + 1] = action("move", "Frame positions", "Move frames", moveFrames)
-    specs[#specs + 1] = action("reset", "Default positions", "Reset positions", function() run("move reset") end)
+    specs[#specs + 1] = action("reset", "Default positions", "Reset positions", function() core.Layout.Reset() end)
 end
 
 local function generalSpecs()
-    local specs = { { type = "heading", label = "Modules" } }
-    for _, name in ipairs(sortedKeys(core.Modules)) do specs[#specs + 1] = moduleToggle(name, core.Modules[name]) end
+    local specs = {}
     layoutSpecs(specs)
-    specs[#specs + 1] = { type = "heading", label = "Setup" }
-    if core:HasCommand("resync") then
-        specs[#specs + 1] = action("resync", "Preset spell slots", "Re-sync", function() run("resync") end)
-    end
-    if core:HasCommand("setup") then
-        specs[#specs + 1] = action("wizard", "First-login wizard", "Re-run wizard", function() run("setup") end)
-    end
+    return specs
+end
+
+local function moduleSpecs()
+    local specs = { { type = "heading", label = "Enabled modules" } }
+    for _, name in ipairs(sortedKeys(core.Modules)) do specs[#specs + 1] = moduleToggle(name, core.Modules[name]) end
+    return specs
+end
+
+local function setupSpecs()
+    local specs = { { type = "heading", label = "Setup" } }
+    if core:HasCommand("setup") then specs[#specs + 1] = action("wizard", "Configure your character", "Open wizard", function() run("setup") end) end
+    if core:HasCommand("resync") then specs[#specs + 1] = action("resync", "Refresh preset spell slots", "Re-sync", function() core.Setup.Resync() end) end
+    specs[#specs + 1] = { type = "button", key = "undo", label = "Last setup change", text = "Undo",
+        disabled = function() return InCombatLockdown() or not core.CharDB.undo end,
+        action = function() core.Setup.Undo() end }
+    specs[#specs + 1] = { type = "heading", label = "Support" }
+    specs[#specs + 1] = action("debug", "Interface diagnostics", "Show in chat", function() core:Debug() end)
+    if core.Store then specs[#specs + 1] = action("storage", "Saved data status", "Show in chat", function() run("store") end) end
     return specs
 end
 
@@ -119,7 +138,9 @@ local function modulePages(pages)
         if type(declared) == "table" and type(declared.settings) == "table" then
             local specs = {}
             for index, spec in ipairs(declared.settings) do specs[index] = moduleSpec(module, spec) end
-            pages[#pages + 1] = { title = declared.title or moduleTitle(name, module), specs = specs }
+            local gameplay = name == "worldmap" or name == "experience" or name == "questplanner" or name == "loot"
+            pages[#pages + 1] = { id = name, group = (declared.group == "System" or declared.group == "Gameplay" or declared.group == "Interface") and declared.group or (gameplay and "Gameplay" or "Interface"),
+                title = declared.title or moduleTitle(name, module), specs = specs }
         end
     end
 end
@@ -175,112 +196,14 @@ local function profileSpecs()
 end
 
 function options.Pages()
-    local pages = { { title = "General", specs = generalSpecs() } }
+    local pages = { { id = "general", group = "Interface", title = "General",
+        description = "Your layout and everyday preferences.", specs = generalSpecs() } }
     modulePages(pages)
-    pages[#pages + 1] = { title = "Profiles", specs = profileSpecs() }
+    pages[#pages + 1] = { id = "modules", group = "System", title = "Modules",
+        description = "Choose which parts of RikUI to load. Apply changes with Reload UI.", specs = moduleSpecs() }
+    pages[#pages + 1] = { id = "profiles", group = "System", title = "Profiles",
+        description = "Switch profiles or create a separate setup.", specs = profileSpecs() }
+    pages[#pages + 1] = { id = "setup", group = "System", title = "Setup and support",
+        description = "Character setup, recovery and diagnostics.", specs = setupSpecs() }
     return pages
 end
-
-function options.Refresh()
-    if not panel then return end
-    for _, page in ipairs(panel.pages) do options.RefreshList(page.list) end
-end
-
-function options.ShowPage(index)
-    for position, page in ipairs(panel.pages) do
-        if position == index then page.frame:Show() else page.frame:Hide() end
-        if position == index then page.tab.selected:Show() else page.tab.selected:Hide() end
-    end
-    panel.current = index
-    options.SetFocus(panel, nil)
-    options.RefreshList(panel.pages[index].list)
-end
-
-local function createTab(index, title)
-    local tab = CreateFrame("Button", nil, panel)
-    tab:SetSize(TAB_WIDTH, TAB_HEIGHT)
-    tab:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD + (index - 1) * (TAB_WIDTH + TAB_GAP), -(PAD + TITLE_HEIGHT))
-    options.Border(tab, TAB_TINT)
-    tab.selected = options.Flat(tab, "ARTWORK", SELECTED_TINT)
-    tab.selected:SetAlpha(0.25)
-    tab:SetHighlightTexture(core.Media.highlight, "ADD")
-    tab.text = options.Text(tab, "label", title)
-    tab.text:SetPoint("CENTER", tab, "CENTER", 0, 0)
-    tab:SetScript("OnClick", function() options.ShowPage(index) end)
-    return tab
-end
-
-local function createPage(index, page)
-    local frame = CreateFrame("Frame", nil, panel)
-    frame:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -(PAD + TITLE_HEIGHT + TAB_HEIGHT + PAD))
-    frame:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -PAD, PAD)
-    frame:Hide()
-    return { title = page.title, frame = frame, list = options.Render(frame, page.specs), tab = createTab(index, page.title) }
-end
-
-local function createClose()
-    local close = CreateFrame("Button", nil, panel)
-    close:SetSize(CLOSE_SIZE, CLOSE_SIZE)
-    close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -PAD, -PAD)
-    options.Border(close, TAB_TINT)
-    close:SetHighlightTexture(core.Media.highlight, "ADD")
-    close.text = options.Text(close, "label", "X")
-    close.text:SetPoint("CENTER", close, "CENTER", 0, 0)
-    close:SetScript("OnClick", function() panel:Hide() end)
-    close:Hide()
-    return close
-end
-
-local function createPanel()
-    panel = CreateFrame("Frame", PANEL_NAME, UIParent)
-    panel:Hide()
-    options.Flat(panel, "BACKGROUND", BACKGROUND)
-    panel.title = options.Text(panel, "heading", PANEL_TITLE)
-    panel.title:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -PAD)
-    panel.hint = options.Text(panel, "small", KEY_HINT)
-    panel.hint:SetPoint("LEFT", panel.title, "RIGHT", PAD, 0)
-    panel.close = createClose()
-    panel.pages = {}
-    for index, page in ipairs(options.Pages()) do panel.pages[index] = createPage(index, page) end
-    options.EnableKeyboard(panel, function()
-        local page = panel.pages[panel.current]
-        return page and page.list.rows or {}
-    end)
-    panel.OnRefresh = function() options.Refresh() end
-    options.ShowPage(1)
-    return panel
-end
-
-function options.Panel() return panel end
-
-local function register()
-    if panel then return end
-    createPanel()
-    if not (Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory) then return end
-    category = Settings.RegisterCanvasLayoutCategory(panel, PANEL_TITLE)
-    Settings.RegisterAddOnCategory(category)
-end
-
-local function openStandalone()
-    panel:SetParent(UIParent)
-    panel:SetSize(STANDALONE_WIDTH, STANDALONE_HEIGHT)
-    panel:ClearAllPoints()
-    panel:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-    panel:SetFrameStrata("DIALOG")
-    panel.close:Show()
-    options.Refresh()
-    panel:Show()
-end
-
-function options.Open()
-    if not core.Profile then core:Print("Still loading."); return end
-    register()
-    if category and Settings.OpenToCategory then
-        Settings.OpenToCategory(category:GetID())
-        return
-    end
-    openStandalone()
-end
-
-core:RegisterEvent("PLAYER_LOGIN", register)
-core:RegisterCommand("config", function() options.Open() end, "Open the options panel: /rik config")

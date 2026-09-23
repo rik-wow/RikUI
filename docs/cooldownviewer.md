@@ -1,15 +1,18 @@
 # Cooldown viewer
 
-The **Cooldowns: On/Off**, **Move/Done**, and **Settings** buttons sit together
-above the action bars near the lower centre of the screen. The controls remain
-visible when cooldowns are off.
+Click **RikUI** beside the minimap to open the shared [utility shell](shell.md).
+Its Tools section contains **Cooldowns: On/Off**, **Move groups/Done**, and
+**Tracked spells**. There is no permanent cooldown toolbar on the HUD.
+The launcher stays available when cooldowns are off.
 
 - Click **Cooldowns: Off** to turn the native cooldown displays on; click
   **Cooldowns: On** to turn them off. The label reflects the actual setting.
-- Click **Move**, drag any of the four labeled group handles, then click
+- Click **Move groups**, drag any of the four labeled group handles, then click
   **Done**. Empty or hidden groups get a placeholder so you can arrange them
   before adding spells. RikUI saves each position.
-- Click **Settings** to choose tracked spells and buffs in Blizzard's window.
+- Click **Tracked spells** to choose spells and buffs in Blizzard's window.
+- Close the flyout to clear the HUD. While moving, the minimap launcher reads
+  **Done** and can finish placement without reopening the flyout.
 
 During gameplay, the four groups show only their icons or buff bars: no group
 panels, borders or titles. Empty groups leave no visible box. Labeled outlines

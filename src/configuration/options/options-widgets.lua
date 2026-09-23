@@ -3,8 +3,8 @@
 local core, media = RikUI, RikUI.Media
 local options = { Types = {}, Metrics = { controlWidth = 180, controlHeight = 22, textInset = 6 } }
 core.Options = options
-local ROW_HEIGHT, ROW_GAP, LABEL_WIDTH, DISABLED_ALPHA = 26, 6, 240, 0.4
-local RELOAD_TAG = " |cffffd100(needs /reload)|r"
+local ROW_HEIGHT, ROW_GAP, LABEL_WIDTH, DISABLED_ALPHA = 38, 4, 240, 0.4
+local STACK_WIDTH, STACK_HEIGHT, CONTROL_GAP = 390, 62, 18
 local BACKGROUND, BORDER_TINT, FOCUS_TINT = { 0.055, 0.065, 0.08, 0.95 }, { 0.35, 0.38, 0.42, 1 }, { 0.5, 0.8, 1, 0.6 }
 local MOVE_KEYS, ADJUST_KEYS = { TAB = 1, DOWN = 1, UP = -1 }, { LEFT = -1, RIGHT = 1 }
 local ACTIVATE_KEYS = { SPACE = true, ENTER = true }
@@ -22,11 +22,7 @@ function options.Flat(frame, layer, color)
 end
 
 function options.Border(frame, tint)
-    local edge = frame:CreateTexture(nil, "BORDER")
-    edge:SetAllPoints()
-    edge:SetTexture(media.border)
-    edge:SetVertexColor(tint[1], tint[2], tint[3], tint[4])
-    return edge
+    return core.Skin.Outline(frame, tint)
 end
 
 function options.Text(parent, role, text)
@@ -39,7 +35,7 @@ end
 function options.WidgetFrame(row, kind)
     local widget = CreateFrame(kind or "Button", nil, row)
     widget:SetSize(metrics.controlWidth, metrics.controlHeight)
-    widget:SetPoint("LEFT", row, "LEFT", LABEL_WIDTH, 0)
+    widget:SetPoint("RIGHT", row, "RIGHT", 0, 0)
     widget.background = options.Flat(widget, "BACKGROUND", BACKGROUND)
     widget.border = options.Border(widget, BORDER_TINT)
     return widget
@@ -47,7 +43,7 @@ end
 
 function options.Commit(row, value)
     local spec = row.spec
-    if not row.enabled then return end
+    if not row.enabled or (spec.disabled and spec.disabled()) then return end
     local function apply()
         local ok, reason = spec.set(value)
         if ok == nil and reason then core:Print(reason) end
@@ -60,12 +56,12 @@ function options.Commit(row, value)
         return
     end
     apply()
-    if spec.reload then core:Print(spec.label .. " takes effect after /reload.") end
+    if options.Refresh then options.Refresh() end
 end
 
 function options.Activate(row)
     local kind = types[row.spec.type]
-    if row.enabled and kind.activate then kind.activate(row) end
+    if row.enabled and not (row.spec.disabled and row.spec.disabled()) and kind.activate then kind.activate(row) end
 end
 
 function options.CreateRow(parent, spec, list)
@@ -80,7 +76,10 @@ function options.CreateRow(parent, spec, list)
     row.focus:SetVertexColor(FOCUS_TINT[1], FOCUS_TINT[2], FOCUS_TINT[3], FOCUS_TINT[4])
     row.focus:Hide()
     local role = spec.type == "heading" and "heading" or "label"
-    row.label = options.Text(row, role, spec.label .. (spec.reload and RELOAD_TAG or ""))
+    row.label = options.Text(row, role, spec.label)
+    row.label:SetJustifyH("LEFT")
+    row.label:SetWordWrap(true)
+    if spec.get then row.initial = spec.get() end
     row.label:SetPoint("LEFT", row, "LEFT", metrics.textInset, 0)
     if kind.create then row.widget = kind.create(row) end
     return row
@@ -89,6 +88,7 @@ end
 function options.RefreshRow(row)
     local spec = row.spec
     if spec.get then row.value = spec.get() end
+    row.pending = spec.reload and (spec.pending and spec.pending() or (not spec.pending and row.value ~= row.initial)) or false
     local enabled = not (spec.disabled and spec.disabled())
     row.enabled = enabled
     row:SetAlpha(enabled and 1 or DISABLED_ALPHA)
@@ -102,15 +102,41 @@ function options.RefreshList(list)
     for _, row in ipairs(list.rows) do options.RefreshRow(row) end
 end
 
-function options.Render(parent, specs)
-    local list, y = { rows = {}, height = 0 }, 0
-    for index, spec in ipairs(specs) do
-        local row = options.CreateRow(parent, spec, list)
-        row:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -y)
-        y = y + ROW_HEIGHT + ROW_GAP
-        list.rows[index] = row
+local function placeRow(row, width, y)
+    local kind = row.spec.type
+    local narrow = kind == "checkbox" and metrics.controlHeight or (kind == "colour" and metrics.controlHeight * 2)
+    local stacked = width < STACK_WIDTH and row.widget ~= nil and not narrow
+    local height = stacked and STACK_HEIGHT or ROW_HEIGHT
+    row.top, row.height = y, height
+    row:SetSize(width, height)
+    row:ClearAllPoints(); row:SetPoint("TOPLEFT", row.list.parent, "TOPLEFT", 0, -y)
+    row.label:ClearAllPoints()
+    row.label:SetPoint(stacked and "TOPLEFT" or "LEFT", row, stacked and "TOPLEFT" or "LEFT", 6, stacked and -4 or 0)
+    local controlWidth = math.min(narrow or metrics.controlWidth, width - 12)
+    row.label:SetWidth(math.max(1, row.widget and not stacked and width - controlWidth - CONTROL_GAP or width - 12))
+    row.label:SetHeight(stacked and 24 or 32)
+    if row.widget then
+        local widget = row.widget
+        local reserved = kind == "slider" and 44 or 0
+        widget:ClearAllPoints()
+        widget:SetWidth(narrow or math.max(1, controlWidth - reserved))
+        widget:SetPoint(stacked and "BOTTOMRIGHT" or "RIGHT", row, stacked and "BOTTOMRIGHT" or "RIGHT", -reserved, stacked and 4 or 0)
     end
+    return y + height + ROW_GAP
+end
+
+function options.ResizeList(list, width)
+    local y = 0
+    list.width = math.max(1, width)
+    for _, row in ipairs(list.rows) do y = placeRow(row, list.width, y) end
     list.height = y
+    if list.scroll and list.scroll.contentHeight ~= y then core.Scroll.SetContentHeight(list.scroll, y) end
+end
+
+function options.Render(parent, specs)
+    local list = { rows = {}, height = 0, parent = parent }
+    for index, spec in ipairs(specs) do list.rows[index] = options.CreateRow(parent, spec, list) end
+    options.ResizeList(list, parent:GetWidth() or LABEL_WIDTH + metrics.controlWidth)
     options.RefreshList(list)
     return list
 end
@@ -118,7 +144,10 @@ end
 function options.SetFocus(panel, row)
     if panel.focused then panel.focused.focus:Hide() end
     panel.focused = row
-    if row then row.focus:Show() end
+    if row then
+        row.focus:Show()
+        if row.list.scroll then core.Scroll.Reveal(row.list.scroll, row.top, row.height) end
+    end
 end
 
 local function moveFocus(panel, rows, delta)

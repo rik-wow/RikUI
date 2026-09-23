@@ -3,7 +3,8 @@ local core, media, options = RikUI, RikUI.Media, RikUI.Options
 local types, metrics, setShown = options.Types, options.Metrics, options.SetShown
 local THUMB_WIDTH, MAX_LETTERS, SWATCH_INSET, LIST_GAP, LIST_LEVEL = 12, 32, 2, 2, 10
 local BACKGROUND, BORDER_TINT, ACTIVE_TINT = { 0.055, 0.065, 0.08, 0.95 }, { 0.35, 0.38, 0.42, 1 }, { 1, 0.78, 0.3, 1 }
-local DROPDOWN_ICON, DROPDOWN_ICON_SIZE = "chevron-down", 10
+local DROPDOWN_ICON, DROPDOWN_ICON_SIZE, MAX_VISIBLE = "chevron-down", 10, 6
+local activeDropdown
 
 types.heading = { refresh = function() end }
 
@@ -68,17 +69,22 @@ local function valueText(spec, value)
     return value == nil and "" or tostring(value)
 end
 
+function options.CloseDropdown()
+    if activeDropdown then activeDropdown:Hide(); activeDropdown.dismiss:Hide(); activeDropdown = nil end
+end
+
 local function closeList(row)
-    if row.widget.list then row.widget.list:Hide() end
+    if row.widget.list and activeDropdown == row.widget.list then options.CloseDropdown() end
 end
 
 local function listButton(row, list, index)
-    local button = CreateFrame("Button", nil, list)
-    button:SetSize(metrics.controlWidth, metrics.controlHeight)
-    button:SetPoint("TOPLEFT", list, "TOPLEFT", 0, -(index - 1) * metrics.controlHeight)
+    local button = CreateFrame("Button", nil, list.scroll.content)
+    button:SetSize(metrics.controlWidth - 14, metrics.controlHeight)
+    button:SetPoint("TOPLEFT", 0, -(index - 1) * metrics.controlHeight)
     button:SetHighlightTexture(media.highlight, "ADD")
     button.text = options.Text(button, "label")
-    button.text:SetPoint("LEFT", button, "LEFT", metrics.textInset, 0)
+    button.text:SetPoint("LEFT", metrics.textInset, 0); button.text:SetPoint("RIGHT", -metrics.textInset, 0)
+    button.text:SetJustifyH("LEFT"); button.text:SetWordWrap(false)
     button:SetScript("OnClick", function()
         closeList(row)
         options.Commit(row, button.entry.value)
@@ -86,22 +92,38 @@ local function listButton(row, list, index)
     return button
 end
 
-local function createList(widget)
-    local list = CreateFrame("Frame", nil, widget)
-    local level = widget:GetFrameLevel()
-    if level then list:SetFrameLevel(level + LIST_LEVEL) end
-    list:SetPoint("TOPLEFT", widget, "BOTTOMLEFT", 0, -LIST_GAP)
+local function createList(row)
+    local host = row.list.popupHost or UIParent
+    local dismiss = CreateFrame("Button", nil, host)
+    dismiss:SetAllPoints(host); dismiss:SetFrameLevel((host:GetFrameLevel() or 1) + LIST_LEVEL)
+    dismiss:SetScript("OnClick", options.CloseDropdown); dismiss:Hide()
+    local list = CreateFrame("Frame", nil, dismiss)
+    list.dismiss = dismiss
     list:SetWidth(metrics.controlWidth)
-    options.Flat(list, "BACKGROUND", BACKGROUND)
-    options.Border(list, BORDER_TINT)
+    list:SetClampedToScreen(true)
+    options.Flat(list, "BACKGROUND", BACKGROUND); options.Border(list, BORDER_TINT)
+    list.scroll = core.Scroll.Create(list)
+    list.scroll:SetAllPoints()
     list.buttons = {}
     list:Hide()
     return list
 end
 
+local function placeList(row, list, height)
+    local widget, host = row.widget, row.list.popupHost or UIParent
+    list:ClearAllPoints()
+    local bottom, hostBottom = widget:GetBottom(), host:GetBottom()
+    local above = type(bottom) == "number" and type(hostBottom) == "number" and bottom - height < hostBottom + 12
+    list:SetPoint(above and "BOTTOMRIGHT" or "TOPRIGHT", widget, above and "TOPRIGHT" or "BOTTOMRIGHT", 0, above and LIST_GAP or -LIST_GAP)
+    list:SetHeight(height)
+    list.scroll:SetSize(metrics.controlWidth, height)
+end
+
 local function openList(row)
+    if not row.enabled then return end
+    options.CloseDropdown()
     local widget = row.widget
-    widget.list = widget.list or createList(widget)
+    widget.list = widget.list or createList(row)
     local list, values = widget.list, dropdownValues(row.spec)
     for index, entry in ipairs(values) do
         local button = list.buttons[index] or listButton(row, list, index)
@@ -111,8 +133,11 @@ local function openList(row)
         button:Show()
     end
     for index = #values + 1, #list.buttons do list.buttons[index]:Hide() end
-    list:SetHeight(math.max(1, #values) * metrics.controlHeight)
-    list:Show()
+    placeList(row, list, math.max(1, math.min(MAX_VISIBLE, #values)) * metrics.controlHeight)
+    core.Scroll.SetContentHeight(list.scroll, math.max(1, #values) * metrics.controlHeight)
+    core.Scroll.SetOffset(list.scroll, 0)
+    activeDropdown = list
+    list.dismiss:Show(); list:Show()
 end
 
 local function toggleList(row)
@@ -126,6 +151,8 @@ types.dropdown = {
         widget:SetHighlightTexture(media.highlight, "ADD")
         widget.text = options.Text(widget, "label")
         widget.text:SetPoint("LEFT", widget, "LEFT", metrics.textInset, 0)
+        widget.text:SetPoint("RIGHT", widget, "RIGHT", -24, 0)
+        widget.text:SetJustifyH("LEFT"); widget.text:SetWordWrap(false)
         widget.arrow = media.Icon(widget, DROPDOWN_ICON, DROPDOWN_ICON_SIZE, "OVERLAY")
         widget.arrow:SetPoint("RIGHT", widget, "RIGHT", -metrics.textInset, 0)
         widget:SetScript("OnClick", function() toggleList(row) end)
@@ -210,7 +237,8 @@ types.button = {
         local widget = options.WidgetFrame(row)
         widget:SetHighlightTexture(media.highlight, "ADD")
         widget.text = options.Text(widget, "label", row.spec.text or row.spec.label)
-        widget.text:SetPoint("CENTER", widget, "CENTER", 0, 0)
+        widget.text:SetPoint("LEFT", 6, 0); widget.text:SetPoint("RIGHT", -6, 0)
+        widget.text:SetJustifyH("CENTER"); widget.text:SetWordWrap(false)
         widget:SetScript("OnClick", function() options.Activate(row) end)
         return widget
     end,

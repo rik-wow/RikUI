@@ -25,6 +25,19 @@ return function(check)
         function frame:Enable() self.enabled = true end
         function frame:Disable() self.enabled = false end
         function frame:IsEnabled() return self.enabled end
+        function frame:SetEnabled(value) self.enabled = value end
+        function frame:SetSize(w,h)
+            if self.width == w and self.height == h then return end
+            self.width,self.height=w,h
+            env.runScript(self, "OnSizeChanged", w, h)
+        end
+        function frame:SetWidth(w) self.width=w end
+        function frame:SetHeight(h) self.height=h end
+        function frame:GetWidth() return self.width end
+        function frame:GetHeight() return self.height end
+        function frame:SetClipsChildren(value) self.clips=value end
+        function frame:SetScrollChild(child) self.scrollChild=child end
+        function frame:SetVerticalScroll(value) self.scrollOffset=value end
         function frame:SetPropagateKeyboardInput(value) self.propagate = value end
         function frame:EnableKeyboard(value) self.keyboard = value end
         function frame:SetParent(parent) self.parent = parent end
@@ -40,8 +53,8 @@ return function(check)
     end
     CreateFrame = function(...) return instrument(originalCreate(...)) end
     local FILES = { "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/setup/setup-snapshot.lua",
-        "src/setup/setup-undo.lua", "src/setup/setup-levelup.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/configuration/options/options-widgets.lua",
-        "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua" }
+        "src/setup/setup-undo.lua", "src/setup/setup-levelup.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/ui/scroll.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/configuration/options/options-widgets.lua",
+        "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua", "src/configuration/options/options-view.lua" }
     local function boot(db, character, prepare)
         env.frames, env.printed, env.inCombat, env.shiftDown = {}, {}, false, false
         env.settings = { registered = {}, opened = {} }
@@ -63,6 +76,7 @@ return function(check)
     local ok, reason = pcall(function()
         -- Renderer with synthetic specs.
         local options = boot()
+        check("configuration confines page content to a scrolling viewport", options.Panel().pages[1].scroll ~= nil)
         local state = { flag = false, amount = 1, choice = "b", colour = { 0.1, 0.2, 0.3 }, name = "", pressed = 0, locked = true }
         local sets = {}
         local function setter(key) return function(value) state[key] = value; sets[key] = (sets[key] or 0) + 1 end end
@@ -85,8 +99,7 @@ return function(check)
         check("renderer creates one row per spec in order", #list.rows == #specs and list.rows[2].spec.key == "flag")
         check("heading rows have no control and rows use the shared font", list.rows[1].widget == nil
             and list.rows[1].label.fontPath == RikUI.Media.font and list.rows[2].label.fontPath == RikUI.Media.font)
-        check("reload-required settings are labelled", list.rows[2].label:GetText():find("reload", 1, true)
-            and not list.rows[3].label:GetText():find("reload", 1, true))
+        check("reload text does not clutter every row", list.rows[2].label:GetText() == "Flag" and not list.rows[2].pending)
         check("rows stack with coherent spacing", list.rows[2].point[5] < list.rows[1].point[5]
             and list.rows[3].point[5] - list.rows[2].point[5] == list.rows[2].point[5] - list.rows[1].point[5])
         local flag, amount, choice, colour, name, pressRow = rowByKey(list, "flag"), rowByKey(list, "amount"),
@@ -94,7 +107,7 @@ return function(check)
         check("checkbox reflects false before any click", flag.widget.mark.shown == false)
         env.click(flag.widget)
         check("checkbox click sets true and shows the mark", state.flag == true and flag.widget.mark.shown == true
-            and contains("Flag takes effect after /reload"))
+            and flag.pending)
         env.click(flag.widget)
         check("checkbox toggles back", state.flag == false and flag.widget.mark.shown == false)
         check("slider carries bounds, step and shared media", amount.widget.low == 0 and amount.widget.high == 2
@@ -198,31 +211,35 @@ return function(check)
         local panelFrame = options.Panel()
         local titles = {}
         for index, page in ipairs(panelFrame.pages) do titles[index] = page.title end
-        check("pages are General, module pages and Profiles", table.concat(titles, ",") == "General,Alpha things,Profiles")
+        check("nested pages separate modules and maintenance", table.concat(titles, ",") == "General,Alpha things,Modules,Profiles,Setup and support")
         local general = pageByTitle(options, "General").list
-        check("General lists only registered modules as reload toggles", rowByKey(general, "module.alpha")
-            and rowByKey(general, "module.zeta") and not rowByKey(general, "module.bars")
-            and rowByKey(general, "module.alpha").spec.reload == true)
+        local modules = pageByTitle(options, "Modules").list
+        local setup = pageByTitle(options, "Setup and support").list
+        check("Modules lists registered modules without filling General", rowByKey(modules, "module.alpha")
+            and rowByKey(modules, "module.zeta") and not rowByKey(modules, "module.bars")
+            and not rowByKey(general, "module.alpha") and rowByKey(modules, "module.alpha").spec.reload == true)
         check("General has the scale slider and layout actions", rowByKey(general, "scale") and rowByKey(general, "move")
-            and rowByKey(general, "reset") and rowByKey(general, "resync") and not rowByKey(general, "wizard"))
-        env.click(rowByKey(general, "module.zeta").widget)
-        check("module toggle persists to the profile", RikUI.Profile.modules.zeta == false and contains("/reload"))
+            and rowByKey(general, "reset") and not rowByKey(general, "resync") and not rowByKey(general, "wizard"))
+        env.click(rowByKey(modules, "module.zeta").widget)
+        check("module toggle persists with one actionable reload notice", RikUI.Profile.modules.zeta == false and panelFrame.reload.shown)
+        env.click(rowByKey(modules, "module.zeta").widget)
+        check("reverting module change clears reload notice", not panelFrame.reload.shown)
         env.runScript(rowByKey(general, "scale").widget, "OnValueChanged", 0.8)
         check("scale slider persists through Layout", RikUI.Profile.scale == 0.8)
         env.click(rowByKey(general, "move").widget)
-        check("Move frames uses the existing command", RikUI.Layout.IsMoving())
+        check("Move frames uses the existing layout editor", RikUI.Layout.IsMoving())
         env.click(rowByKey(general, "reset").widget)
-        check("Reset positions uses the existing command", contains("Frame positions reset"))
-        env.click(rowByKey(general, "resync").widget)
+        check("Reset positions clears stored positions", next(RikUI.Profile.positions) == nil)
+        env.click(rowByKey(setup, "resync").widget)
         check("Re-sync uses the existing command", contains("Resync: no applied preset"))
         local alpha = pageByTitle(options, "Alpha things").list
         env.click(rowByKey(alpha, "shiny").widget)
         check("module page renders and commits module-declared settings", settingsHit == 1
             and rowByKey(alpha, "shiny").widget.mark.shown == true)
-        check("tabs are readable and the first page starts selected", panelFrame.pages[1].tab.text:GetText() == "General"
+        check("sidebar entries are readable and the first page starts selected", panelFrame.pages[1].tab.text:GetText() == "General"
             and panelFrame.pages[1].frame.shown and not panelFrame.pages[2].frame.shown)
         env.click(panelFrame.pages[2].tab)
-        check("tab click switches the visible page", panelFrame.pages[2].frame.shown and not panelFrame.pages[1].frame.shown
+        check("sidebar click switches the visible page", panelFrame.pages[2].frame.shown and not panelFrame.pages[1].frame.shown
             and panelFrame.current == 2)
 
         options = boot({ profiles = { Default = { modules = { alpha = false } } } }, nil, function(core)
@@ -233,8 +250,8 @@ return function(check)
         end)
         local disabledPage = pageByTitle(options, "Alpha things").list
         check("settings of a disabled module are shown disabled", rowByKey(disabledPage, "shiny").enabled == false)
-        general = pageByTitle(options, "General").list
-        env.click(rowByKey(general, "wizard").widget)
+        setup = pageByTitle(options, "Setup and support").list
+        env.click(rowByKey(setup, "wizard").widget)
         check("Re-run wizard appears only when its command exists", settingsHit == 11)
 
         Settings = nil
@@ -246,6 +263,70 @@ return function(check)
         env.click(standalone.close)
         check("standalone close hides the panel", not standalone.shown)
         Settings = originalSettings
+
+        -- Long pages and narrow native Settings canvases remain fully reachable.
+        local picked = 1
+        options = boot(nil, nil, function(core)
+            for index = 1, 40 do core:RegisterModule("extra" .. index, { OnEnable = function() end }) end
+            local specs = {}
+            for index = 1, 30 do
+                specs[#specs + 1] = { type = "checkbox", label = "A longer option label " .. index,
+                    get = function() return true end, set = function() end }
+            end
+            local values = {}
+            for index = 1, 20 do values[index] = { value = index, text = "Choice " .. index } end
+            specs[#specs + 1] = { type = "dropdown", key = "last", label = "Last choice", values = values,
+                get = function() return picked end, set = function(value) picked = value end }
+            core:RegisterModule("long", { Options = { title = "Long page", settings = specs } })
+        end)
+        local config, long = options.Panel(), pageByTitle(options, "Long page")
+        options.Resize(540, 400)
+        options.Open("long")
+        check("sidebar groups contain indented page entries", config.groups.Interface and config.groups.System
+            and long.tab.parent == config.nav.content and long.tab.point[2] == 10)
+        check("long module page clips content and exposes a scroll range", long.scroll.view.clips
+            and long.scroll.view.scrollChild == long.scroll.content and long.scroll.range > 0)
+        local last = rowByKey(long.list, "last")
+        check("narrow canvas stacks bounded labels and controls", last.height > 40 and last.label.width <= last.width
+            and last.widget.point[1] == "BOTTOMRIGHT" and last.widget.width <= last.width)
+        options.SetFocus(config, last)
+        check("keyboard focus reveals last row", long.scroll.offset > 0
+            and last.top + last.height <= long.scroll.offset + long.scroll.height)
+        env.click(last.widget)
+        local popup = last.widget.list
+        check("dropdown uses unclipped canvas host with bounded scrolling", popup.parent.parent == config
+            and popup.height == 6 * options.Metrics.controlHeight and popup.scroll.range > 0)
+        env.runScript(popup.scroll.view, "OnMouseWheel", -100)
+        env.click(popup.buttons[20])
+        check("last dropdown entry remains selectable", picked == 20 and not popup.shown)
+        env.click(last.widget)
+        env.runScript(long.scroll.view, "OnMouseWheel", 1)
+        check("scrolling content dismisses detached dropdown", not popup.shown)
+        env.click(config.groups.Interface)
+        check("collapsing a navigation group hides its children", not long.tab.shown)
+        options.Open("long")
+        check("direct page entry expands its parent group", long.tab.shown and not config.groups.Interface.collapsed)
+        options.Resize(1000, 3000)
+        check("resizing to a wide canvas clears scroll and restores aligned rows", long.scroll.offset == 0
+            and last.height < 40 and last.widget.point[1] == "RIGHT")
+        options.Resize(540, 400)
+        local modulePage = pageByTitle(options, "Modules")
+        local firstModule = rowByKey(modulePage.list, "module.extra1")
+        env.click(firstModule.widget)
+        check("module changes show reload once outside scrolling content", config.reload.shown
+            and config.reload.parent == config and firstModule.label:GetText() == "Extra1")
+        env.click(firstModule.widget)
+        check("reverting long-page module setting clears reload", not config.reload.shown)
+        RikUI.DB.profiles.Off = { modules = { extra1 = false } }
+        RikUI:SetProfile("Off"); options.Refresh()
+        check("profile switch recomputes reload against loaded modules", config.reload.shown)
+        RikUI:SetProfile("Default"); options.Refresh()
+        check("switching back clears reload state", not config.reload.shown)
+        env.inCombat = true; env.fire("PLAYER_REGEN_DISABLED")
+        local generalPage = pageByTitle(options, "General")
+        check("layout actions are disabled in combat", not rowByKey(generalPage.list, "move").enabled
+            and not rowByKey(generalPage.list, "reset").enabled)
+        env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
 
         -- Profiles.
         options = boot({ profiles = { Default = { scale = 0.9, positions = { main = { x = 5 } } } } })
@@ -304,8 +385,8 @@ return function(check)
         env.settings = { registered = {}, opened = {} }
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = { modules = { bars = false } } } }, nil
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua",
-            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-stock.lua", "src/configuration/options/options-widgets.lua",
-            "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua" }) do
+            "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/ui/scroll.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-stock.lua", "src/configuration/options/options-widgets.lua",
+            "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua", "src/configuration/options/options-view.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")

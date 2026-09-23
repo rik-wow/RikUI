@@ -11,9 +11,11 @@ module contracts and verification commands.
 **Fully exit and restart the client after adding or updating media files.**
 A UI reload alone may not discover new font or texture assets.
 
-Use `/rik help` for available commands. `/rik config` opens the options panel
-(also under Options > AddOns > RikUI) with module toggles, scale, bar
-appearance and profiles; see [options](docs/options.md).
+Click **RikUI** beside the minimap for settings, layout tools, setup, cooldowns,
+party preview, the quest planner, reporting and maintenance. The flyout stays
+closed during normal play; see [utility shell](docs/shell.md). Settings uses a
+nested sidebar with separate module and profile pages; see [options](docs/options.md).
+The same config page remains under Options > AddOns > RikUI.
 The bars use flat square icons,
 outlined labels and shared bundled media; hovering a button shows its
 tooltip. Gryphon end caps are off by default:
@@ -160,8 +162,8 @@ The extra action button, zone ability buttons and spell flyout get the bar
 look: a cropped icon in a thin edge that follows your bar border colour. See
 [extra buttons](docs/extrabuttons.md).
 
-The cooldown HUD has visible **Cooldowns On/Off**, **Move/Done**, and **Settings**
-buttons above the action bars. Click Move for labeled drag handles, then Done to
+The minimap shell contains **Cooldowns On/Off**, **Move groups**, and **Tracked spells**.
+Click Move groups for labeled drag handles, then Done to
 hide the handles and save their places. During play, groups show just the icons
 and buff timers, with no surrounding panels or titles. See
 [cooldown viewers](docs/cooldownviewer.md).

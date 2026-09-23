@@ -1,5 +1,5 @@
--- Visible mouse controls stay on the HUD even when Blizzard's cooldown viewers are off.
-local core, viewer, skin, media, layout = RikUI, RikUI.CooldownViewer, RikUI.Skin, RikUI.Media, RikUI.Layout
+-- Cooldown tools live inside the shared utility flyout; native viewers stay on the HUD.
+local core, viewer, skin, media = RikUI, RikUI.CooldownViewer, RikUI.Skin, RikUI.Media
 local CVAR, HEIGHT = "cooldownViewerEnabled", 28
 local ACCENT = { 0.3, 0.75, 1, 1 }
 local notice = ""
@@ -54,7 +54,7 @@ function viewer.RefreshControls()
     local setter = type(C_CVar) == "table" and type(C_CVar.SetCVar) == "function"
     dock.toggle.label:SetText(state == nil and "Cooldowns: N/A" or (state and "Cooldowns: On" or "Cooldowns: Off"))
     dock.toggle.label:SetTextColor(unpack(state and ACCENT or { 0.8, 0.83, 0.88 }))
-    dock.move.label:SetText(viewer.Moving() and "Done" or "Move")
+    dock.move.label:SetText(viewer.Moving() and "Done" or "Move groups")
     dock.toggle:SetEnabled(usable and state ~= nil and setter)
     dock.move:SetEnabled(usable)
     dock.settings:SetEnabled(usable and type(ShowUIPanel) == "function" and CooldownViewerSettings ~= nil)
@@ -75,28 +75,35 @@ end
 
 local function settings()
     if type(ShowUIPanel) ~= "function" or not CooldownViewerSettings then return end
+    core.Shell.Close()
     local ok = pcall(ShowUIPanel, CooldownViewerSettings)
     if not ok then notice = "Cooldown settings are unavailable" end
 end
 
-function viewer.CreateControls()
-    if viewer.Controls then return end
-    local dock = CreateFrame("Frame", nil, UIParent)
+local function buildControls(parent)
+    local dock = CreateFrame("Frame", nil, parent)
     viewer.Controls = dock
     dock:SetSize(280, HEIGHT)
-    dock:SetFrameStrata("HIGH")
-    skin.Fill(dock, { 0, 0, 0, 0.7 }, -3)
-    dock.toggle = button(dock, 134, 0, "Cooldowns", "Show or hide cooldowns", toggle)
-    dock.move = button(dock, 60, 138, "Move", "Move cooldown groups; click Done to save", function()
+    dock.toggle = button(dock, 278, 0, "Cooldowns", "Show or hide cooldowns", toggle)
+    dock.move = button(dock, 134, 0, "Move groups", "Move cooldown groups; click Done to save", function()
         viewer.SetMoving(not viewer.Moving())
+        core.Shell.Refresh()
     end)
-    dock.settings = button(dock, 78, 202, "Settings", "Choose tracked spells and buffs", settings)
+    dock.settings = button(dock, 140, 138, "Tracked spells", "Choose tracked spells and buffs", settings)
     dock.message = dock:CreateFontString(nil, "OVERLAY")
     media.Font(dock.message, "small")
     dock.message:SetTextColor(1, 0.82, 0)
-    dock.message:SetPoint("TOP", dock, "BOTTOM", 0, -4)
-    layout.Register(dock, "cooldowncontrols", { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 378 },
-        { label = "Cooldown controls", owner = viewer })
+    dock.move:ClearAllPoints(); dock.move:SetPoint("TOPLEFT", 0, -34)
+    dock.settings:ClearAllPoints(); dock.settings:SetPoint("TOPLEFT", 138, -34)
+    dock.message:SetPoint("TOPLEFT", 0, -66); dock.message:SetWidth(278); dock.message:SetHeight(28)
+    viewer.RefreshControls()
+    return dock
+end
+
+function viewer.CreateControls()
+    if core.Shell.Entries.cooldowns then return end
+    core.Shell.Register("cooldowns", { group = "Tools", order = 10, height = 96,
+        build = buildControls, refresh = viewer.RefreshControls })
     core:RegisterEvent("CVAR_UPDATE", function(_, name)
         if type(issecretvalue) == "function" and issecretvalue(name) then return end
         if type(name) == "string" and name:lower() == CVAR:lower() then notice = ""; viewer.RefreshControls() end

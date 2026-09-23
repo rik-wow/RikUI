@@ -169,6 +169,9 @@ src/modules/popups/popups.lua
 src/modules/popups/popups-skin.lua
 src/modules/screentext/screentext.lua
 src/ui/skin.lua
+src/ui/scroll.lua
+src/ui/shell.lua
+src/ui/shell-tools.lua
 src/layout/layout-unlock.lua
 src/layout/layout-drag.lua
 src/layout/layout-resize.lua
@@ -208,4 +211,5 @@ src/configuration/wizard/wizard-pages.lua
 src/configuration/options/options-widgets.lua
 src/configuration/options/options-controls.lua
 src/configuration/options/options.lua
+src/configuration/options/options-view.lua
 src/configuration/options/importexport.lua

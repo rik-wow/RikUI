@@ -110,7 +110,8 @@ flat regions added; `font` = font objects only.
 | Calendar day buttons, achievement rows | none (chrome only) | none | 0 | panels-last | `interiors-social` |
 | CommunitiesSecure dialogs, secure transfer dialog | none | none | 0 | dialogs | `interiors-social` (may be forbidden) |
 | Player choice, splash, trait frame, collections and transmog interiors, stopwatch close button | none | none | 0 | panels | `interiors-misc` |
-| `/rik config` panel | `options*.lua` | own | 1 | controls design | `options-polish` |
+| RikUI configuration | `options*.lua` | own nested sidebar and bounded responsive pages | 1 | skin, scroll | delivered (`utility-shell-config`) |
+| Minimap utility shell | `src/ui/shell*.lua` | own grouped launcher, cooldown tools and native reporting | 1 | skin, scroll, minimap | delivered (`utility-shell-config`) |
 | First-login wizard | `wizard*.lua` | own | 2 | setup, layouts | `wizard-beta-acceptance` (pages fade, controls fade on hover; no eased values to show) |
 
 ## Counts
