@@ -128,7 +128,7 @@ return function(check)
         core = boot(nil, nil)
         check("on a login where saved variables did not load, the settings come back from the store",
             core.Profile.positions.chat ~= nil and core.Profile.positions.chat.x == 219 and core.Profile.scale == 0.9
-            and core.CharDB.wizardDone == true and printed("restored"))
+            and core.CharDB.wizardDone == true and core.Store.Status().restored.character and not printed("restored"))
         check("the chat history is not kept in the store: it is large and only a convenience", core.CharDB.chatHistory == nil)
 
         core = boot({ version = 1, profiles = { Default = { scale = 1.2 } }, community = {} }, { profile = "Default" })
@@ -141,6 +141,18 @@ return function(check)
         core.Store.Flush()
         check("flush serializes each database only once", encodes == 2)
         core.Store.Encode = encode
+        local originalDB=core.DB
+        core.DB=nil;core.Store.Flush()
+        check("early flush cannot replace a valid account backup",core.Store.Load("account").profiles~=nil)
+        core.DB=originalDB
+        core.DB.blockedActions={{stack=string.rep("x",30000)}}
+        core.DB.planSwitches={{detail=string.rep("y",30000)}}
+        core.Store.Flush()
+        local backup=core.Store.Load("account")
+        check("diagnostic growth cannot crowd out reload settings",backup and backup.profiles
+            and not backup.blockedActions and not backup.planSwitches
+            and #core.DB.blockedActions[1].stack==30000)
+        core.DB.blockedActions=nil;core.DB.planSwitches=nil
         core.Profile.scale = 1.1
         check("a ticker is started after login", #tickers == 1)
         tickers[1]()

@@ -1,5 +1,5 @@
 return function(check)
-    local savedRik,savedAPI,savedLegacy,savedTemplate=RikUI,C_CombatLog,CombatLogGetCurrentEventInfo,COMBATLOG_XPGAIN_FIRSTPERSON
+    local savedRik,savedAPI,savedLegacy,savedTemplate,savedEvents=RikUI,C_CombatLog,CombatLogGetCurrentEventInfo,COMBATLOG_XPGAIN_FIRSTPERSON,C_EventUtils
     local ok,err=pcall(function()
         RikUI={};RikUI["Secret"]={IsSecret=function() return false end}
         dofile("src/modules/questplanner/quest-schema.lua")
@@ -29,6 +29,20 @@ return function(check)
         COMBATLOG_XPGAIN_FIRSTPERSON=formats.COMBATLOG_XPGAIN_FIRSTPERSON
         local event
         C_CombatLog={GetCurrentEventInfo=function() return unpack(event,1,16) end,IsCombatLogRestricted=function() return false end}
+        C_EventUtils=nil
+        check("legacy combat reader supports native event subscription",x.CanObserveCombat())
+        C_CombatLog.IsCombatLogRestricted=function() return true end
+        check("restricted combat log is rejected before registration",not x.CanObserveCombat())
+        C_CombatLog.IsCombatLogRestricted=function() error("restricted API unavailable") end
+        check("unknown combat restrictions fail closed",not x.CanObserveCombat())
+        C_CombatLog.IsCombatLogRestricted=function() return false end
+        C_EventUtils={IsEventValid=function() return true end,IsCallbackEvent=function() return true end}
+        check("callback-only combat event is not registered as a frame event",not x.CanObserveCombat())
+        C_EventUtils.IsCallbackEvent=function() return false end
+        check("ordinary permitted combat event remains enabled",x.CanObserveCombat())
+        C_EventUtils.IsEventValid=function() return false end
+        check("removed combat event is not probed through RegisterEvent",not x.CanObserveCombat())
+        C_EventUtils=nil
         local identity={product="forever",build="test",locale="enUS"}
         local context={key="test:kill:123",npcID=123,playerGUID="Player-1",petGUID="Pet-1"}
         local A,B="Creature-0-1-1-1-123-AAAA","Creature-0-1-1-1-123-BBBB"
@@ -70,6 +84,6 @@ return function(check)
         x.OnEvent("PLAYER_ENTERING_WORLD",1)
         check("XP world change clears pending evidence",x.Status().deaths==0 and x.Status().messages==0)
     end)
-    RikUI,C_CombatLog,CombatLogGetCurrentEventInfo,COMBATLOG_XPGAIN_FIRSTPERSON=savedRik,savedAPI,savedLegacy,savedTemplate
+    RikUI,C_CombatLog,CombatLogGetCurrentEventInfo,COMBATLOG_XPGAIN_FIRSTPERSON,C_EventUtils=savedRik,savedAPI,savedLegacy,savedTemplate,savedEvents
     check("confirmed combat XP suite completes",ok,err)
 end

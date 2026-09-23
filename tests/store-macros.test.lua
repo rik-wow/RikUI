@@ -118,7 +118,7 @@ return function(check)
         check("after a client restart, with no saved variables and no CVars, the settings come back from the macros",
             core.Profile.positions.chat ~= nil and core.Profile.positions.chat.x == 219 and core.Profile.chat.size.width == 500
             and core.Profile.modules.bags == false and core.Modules ~= nil and core.CharDB.wizardDone == true
-            and core.CharDB.applied.role == "dps" and printed("restored from RikUI's macros"))
+            and core.CharDB.applied.role == "dps" and core.Store.MacroStatus().restored and not printed("restored from RikUI's macros"))
         check("defaults are whole again around what was restored", core.Profile.chat.fontSize == 14 and core.Profile.scale == 1
             and core.CharDB.profile == "Default")
         check("the undo snapshot and the chat history are not kept across a restart", core.CharDB.undo == nil
@@ -205,6 +205,42 @@ return function(check)
             and core.Profile.positions.player == nil)
         UIParent.GetWidth, UIParent.GetHeight = savedWidth, savedHeight
         files = { "src/core/core.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }
+
+        -- Large learned data must never crowd out user settings or another character.
+        macros={};character="Peepee Jameson";core=restart()
+        local identity="forever:test:enUS:Player-test"
+        local learned={version=1,identity=identity,models={big={values={1},mean=1,samples=1,context=string.rep("x",4000)}},
+            order={"big"},recent={},completed={101,102},visits={},failures={},places={}}
+        core.CharDB.questPlanMemory=learned
+        core.CharDB.questPolicy={flavor="Explorer",skips={[96408]=true},arrow=false}
+        core.Profile.scale=.93
+        tick()
+        check("large learning fits a restart backup without dropping settings",count(macros)>0
+            and core.Store.MacroStatus().learningReduced==1 and not printed("too large")
+            and core.CharDB.questPlanMemory==learned and #learned.models.big.context==4000)
+        check("reload store retains full learning",core.Store.Load(core.Store.CharacterKey()).questPlanMemory.models.big.context==learned.models.big.context)
+        core=restart()
+        check("restart preserves exact quest preferences and completion history",core.Profile.scale==.93
+            and core.CharDB.questPolicy.flavor=="Explorer" and core.CharDB.questPolicy.skips[96408]
+            and core.CharDB.questPolicy.arrow==false and core.CharDB.questPlanMemory.completed[2]==102
+            and #core.CharDB.questPlanMemory.order==0 and type(core.CharDB.questPlanMemory.recent)=="table")
+        character="Fat Franky";core=restart()
+        core.CharDB.questPolicy={flavor="Challenge",pins={[7]=true}}
+        core.CharDB.questPlanMemory=learned
+        tick();character="Peepee Jameson";core=restart()
+        check("saving another large learner preserves the first character",core.CharDB.questPolicy.skips[96408]
+            and core.CharDB.questPlanMemory.completed[1]==101)
+        local before=writes;local previous=macros["RikUI data 1"]
+        core.Profile.largeUserSetting=string.rep("u",4000)
+        tick()
+        check("settings-only overflow leaves previous backup intact",writes==before and macros["RikUI data 1"]==previous
+            and printed("too large"))
+        core.Profile.largeUserSetting=nil;core.Profile.scale=.92;tick()
+        check("macro save recovers after oversized setting removed",writes>before)
+        core.CharDB.questPlanMemory={version=1,identity=identity,models={},order={},recent={},completed={103}}
+        tick();core=restart()
+        check("small learning preserves its empty schema tables",core.CharDB.questPlanMemory
+            and type(core.CharDB.questPlanMemory.order)=="table" and core.CharDB.questPlanMemory.completed[1]==103)
 
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}

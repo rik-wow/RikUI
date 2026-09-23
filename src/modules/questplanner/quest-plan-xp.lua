@@ -85,6 +85,20 @@ local function getter()
     local fn=api.GetCurrentEventInfo or CombatLogGetCurrentEventInfo
     if type(fn)=="function" then return fn end
 end
+-- Current clients may expose a restricted callback instead of a frame event.
+function xp.CanObserveCombat()
+    if not getter() then return false end
+    local api=schema.PlainTable(C_EventUtils) and C_EventUtils or {}
+    if type(api.IsEventValid)=="function" then
+        local ok,valid=planner.Context.Call(api.IsEventValid,"COMBAT_LOG_EVENT_UNFILTERED")
+        if not ok or valid~=true then return false end
+    end
+    if type(api.IsCallbackEvent)=="function" then
+        local ok,callback=planner.Context.Call(api.IsCallbackEvent,"COMBAT_LOG_EVENT_UNFILTERED")
+        if not ok or callback~=false then return false end
+    end
+    return true
+end
 function xp.Reset()
     context,patterns=nil,nil;clear();seenLines,lineOrder={},{};blockedUntil,lastNow,lastUnknown=0,nil,nil;samples,confirmed=0,0
 end

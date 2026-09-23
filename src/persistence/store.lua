@@ -142,7 +142,13 @@ end
 
 function store.Flush()
     if not store.Available() then return end
-    flushOne("account", core.DB)
+    if type(core.DB)=="table" then
+        local account={}
+        for key,value in pairs(core.DB) do
+            if key~="blockedActions" and key~="planSwitches" then account[key]=value end
+        end
+        flushOne("account", account)
+    end
     flushOne(store.CharacterKey(), core.CharDB)
 end
 
@@ -162,9 +168,6 @@ function store.Touch()
 end
 
 core:RegisterEvent("PLAYER_LOGIN", function()
-    if status.restored.account or status.restored.character then
-        core:Print("Saved variables did not load on this client; settings were restored from RikUI's own store.")
-    end
     if store.Available() and type(C_Timer) == "table" and type(C_Timer.NewTicker) == "function" then
         C_Timer.NewTicker(TICK_SECONDS, store.Flush)
     end
@@ -176,4 +179,9 @@ core:RegisterCommand("store", function()
         .. " characters=" .. status.bytes .. " restored account=" .. tostring(status.restored.account == true)
         .. " character=" .. tostring(status.restored.character == true)
         .. (status.failure and " last failure: " .. status.failure or ""))
+    if store.MacroStatus then
+        local macro=store.MacroStatus()
+        core:Print("Restart backup macros=" .. macro.used .. " restored=" .. tostring(macro.restored)
+            .. " compacted learning=" .. macro.learningReduced)
+    end
 end, "Show the state of RikUI's own settings store")

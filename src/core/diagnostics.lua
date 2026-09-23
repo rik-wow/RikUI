@@ -29,7 +29,7 @@ local function record(event, addon, func)
     if not reported[row.func] then
         reported[row.func] = true
         core:Print("Blocked call " .. row.func .. (row.combat and " in combat" or "")
-            .. " was recorded; Logs/taint.log names the code that caused it.")
+            .. " was recorded with its calling stack in RikUI diagnostics.")
     end
 end
 

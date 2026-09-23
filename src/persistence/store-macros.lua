@@ -13,7 +13,9 @@ local BODY_LIMIT, MAX_MACROS, TICK_SECONDS = 255, 12, 5
 local SKIP = { undo = true, chatHistory = true, layoutUndo = true }
 local FULL = "the account macro list is full, so settings cannot be kept across a client restart"
 local DAMAGED = "RikUI's macros are damaged (edited or partly deleted); settings were not restored from them."
-local state = { data = nil, lastText = nil, used = 0, complained = {}, restored = false }
+local state = { data = nil, lastText = nil, used = 0, complained = {}, restored = false, learningReduced = 0 }
+local MAX_TEXT = MAX_MACROS * (BODY_LIMIT - #(HEADER .. MAX_MACROS .. "/" .. MAX_MACROS .. " 4294967295 "))
+function store.MacroStatus() return { used=state.used, restored=state.restored, learningReduced=state.learningReduced } end
 
 function store.MacrosAvailable()
     return type(GetMacroInfo) == "function" and type(CreateMacro) == "function" and type(EditMacro) == "function"
@@ -170,21 +172,69 @@ local function writeText(text)
     return true
 end
 
--- Everything this tier holds: the account's settings and one entry per character that ever saved.
+-- User choices get the whole budget first. Learning remains complete in the
+-- reload/SavedVariables tiers; the small restart tier keeps what fits.
+local function characterSettings(value)
+    local settings={}
+    for key,entry in pairs(value or {}) do if key~="questPlanMemory" then settings[key]=entry end end
+    local own,reason=store.Prune(settings,core.Defaults.character)
+    if reason then error(reason,0) end
+    return own
+end
 local function snapshot()
-    local own, reason = store.Prune(core.CharDB, core.Defaults.character)
-    if reason then error(reason, 0) end
-    local characters = {}
-    for name, settings in pairs(state.data and state.data.characters or {}) do characters[name] = settings end
-    characters[store.CharacterKey()] = own
-    return { account = pruneAccount(core.DB), characters = characters }
+    local characters,memories={},{}
+    for name,settings in pairs(state.data and state.data.characters or {}) do
+        characters[name]=characterSettings(settings);memories[name]=settings.questPlanMemory
+    end
+    local name=store.CharacterKey()
+    characters[name]=characterSettings(core.CharDB);memories[name]=core.CharDB.questPlanMemory
+    return {account=pruneAccount(core.DB),characters=characters},memories
+end
+local function historyMemory(raw)
+    local completed={}
+    if type(raw.completed)=="table" then
+        for index=math.max(1,#raw.completed-63),#raw.completed do completed[#completed+1]=raw.completed[index] end
+    end
+    return {version=raw.version,identity=raw.identity,models={},order={},recent={},completed=completed,
+        visits={},failures={},places={}}
+end
+local function encodeSnapshot(data,memories)
+    local text,reason=store.Encode(data)
+    if not text then return nil,reason end
+    if #text>MAX_TEXT then return nil,"the settings are too large for the macro store" end
+    local names={};local own=store.CharacterKey()
+    for name in pairs(memories) do if name~=own then names[#names+1]=name end end
+    table.sort(names);table.insert(names,1,own)
+    state.learningReduced=0
+    for _,name in ipairs(names) do
+        local raw=memories[name]
+        if type(raw)=="table" then
+            local settings=data.characters[name] or {};data.characters[name]=settings
+            local kept=false
+            for index,choice in ipairs({raw,historyMemory(raw)}) do
+                settings.questPlanMemory=choice
+                local candidate=store.Encode(data)
+                if candidate and #candidate<=MAX_TEXT then
+                    text=candidate;kept=true
+                    if index>1 then state.learningReduced=state.learningReduced+1 end
+                    break
+                end
+            end
+            if not kept then
+                settings.questPlanMemory=nil
+                if not next(settings) then data.characters[name]=nil end
+                state.learningReduced=state.learningReduced+1
+            end
+        end
+    end
+    return text
 end
 
 function store.FlushMacros()
     if not store.MacrosAvailable() or not core.DB or InCombatLockdown() then return end
-    local built, data = pcall(snapshot)
+    local built, data, memories = pcall(snapshot)
     if not built then complain(tostring(data)); return end
-    local text, reason = store.Encode(data)
+    local text, reason = encodeSnapshot(data, memories)
     if not text then complain(reason); return end
     if text == state.lastText then return end
     local ok, failure = writeText(text)
@@ -226,10 +276,7 @@ end
 
 core:RegisterEvent("PLAYER_LOGIN", function()
     if not store.MacrosAvailable() then return end
-    if state.restored then
-        core:Print("Saved variables did not load on this client; settings were restored from RikUI's macros "
-            .. "(\"RikUI data\" in your macro list; leave them be).")
-    elseif not state.data then
+    if not state.data then
         -- Other characters' entries must survive this character's first save.
         local text = readText()
         local data = text and store.Decode(text) or nil

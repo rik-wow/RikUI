@@ -1,10 +1,11 @@
 -- Full-log observations describe this character, never the world's quest graph.
 return function(check)
     local env = require("wow_stub")
-    local names = { "RikUI", "RikUIDB", "RikUICharDB", "C_QuestLog", "GetBuildInfo", "GetLocale", "issecretvalue" }
+    local names = { "RikUI", "RikUIDB", "RikUICharDB", "C_QuestLog", "GetBuildInfo", "GetLocale", "issecretvalue", "C_CombatLog", "CombatLogGetCurrentEventInfo", "C_EventUtils" }
     local saved = {}
     for _, name in ipairs(names) do saved[name] = _G[name] end
     local reads, rows, objectives, total, secret, fail = 0, {}, {}, 0, {}, false
+    local combatRegistrations,rejectCombat=0,false
     local function load(disabled)
         env.frames, env.timers, env.printed, env.inCombat = {}, {}, {}, false
         RikUIDB, RikUICharDB = { profiles = { Default = { modules = { questplanner = not disabled } } } }, nil
@@ -25,8 +26,18 @@ return function(check)
             IsFailed = function() return false end,
         }
         dofile("tests/load_addon.lua").Core()
-        for _, name in ipairs({ "quest-schema", "quest-evidence", "quest-reader", "questplanner" }) do
+        for _, name in ipairs({ "quest-schema", "quest-evidence", "quest-reader", "quest-context", "quest-plan-xp", "questplanner" }) do
             dofile("src/modules/questplanner/" .. name .. ".lua")
+        end
+        for _,frame in pairs(env.frames) do
+            local native=frame.RegisterEvent
+            frame.RegisterEvent=function(self,event)
+                if event=="COMBAT_LOG_EVENT_UNFILTERED" then
+                    combatRegistrations=combatRegistrations+1
+                    if rejectCombat then error("forbidden native combat registration") end
+                end
+                return native(self,event)
+            end
         end
         env.fire("ADDON_LOADED", "RikUI")
         env.fire("PLAYER_LOGIN")
@@ -151,6 +162,21 @@ return function(check)
         before = reads
         env.flushTimers()
         check("disabled pending callback cannot publish", reads == before)
+        CombatLogGetCurrentEventInfo=nil
+        C_CombatLog={GetCurrentEventInfo=function() end,IsCombatLogRestricted=function() return true end}
+        C_EventUtils=nil;combatRegistrations=0;rejectCombat=true
+        planner=load()
+        check("restricted client starts planner without forbidden registration",combatRegistrations==0
+            and planner.GetSnapshot()~=nil and not table.concat(env.printed," "):find("COMBAT_LOG_EVENT_UNFILTERED",1,true),table.concat(env.printed," | "))
+        C_CombatLog.IsCombatLogRestricted=function() return false end
+        C_EventUtils={IsEventValid=function() return true end,IsCallbackEvent=function() return true end}
+        planner=load()
+        check("callback-only client starts without native combat event",combatRegistrations==0 and not table.concat(env.printed," "):find("COMBAT_LOG_EVENT_UNFILTERED",1,true),table.concat(env.printed," | "))
+        C_EventUtils.IsCallbackEvent=function() return false end
+        rejectCombat=false;planner=load()
+        check("supported native combat subscription still registers",combatRegistrations==1)
+        C_CombatLog.GetCurrentEventInfo=nil;rejectCombat=true;planner=load()
+        check("missing combat reader avoids useless native subscription",combatRegistrations==1 and not table.concat(env.printed," "):find("COMBAT_LOG_EVENT_UNFILTERED",1,true),table.concat(env.printed," | "))
     end)
     for _, name in ipairs(names) do _G[name] = saved[name] end
     if not ok then error(reason) end

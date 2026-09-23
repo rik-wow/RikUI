@@ -108,10 +108,12 @@ checks length and checksum and refuses damaged text.
 
 `src/core/lifecycle.lua` calls `Store.Restore()` before it merges defaults: `RikUIDB` and
 `RikUICharDB` are taken from the store only when they are nil, so saved
-variables that did load always win. A restore prints one line at login. The
+variables that did load always win. Successful restores are quiet; `/rik store`
+reports which fallback restored the settings. The
 account table is stored as `account`; a character's as `char<number>` made from
-its name and realm, because CVar names are ASCII. The chat history is left out
-(large, and only a convenience). Writes happen at `PLAYER_LOGOUT` and from a
+its name and realm, because CVar names are ASCII. Chat history and account
+blocked-call/plan-switch diagnostic buffers are left out of the reload backup;
+they remain in live state and normal SavedVariables. Writes happen at `PLAYER_LOGOUT` and from a
 5-second ticker that writes only when the encoded text changed. `/rik store`
 prints availability, saves, chunks, size, what was restored and the last
 failure. A client without `C_CVar.RegisterCVar` has no store and nothing else
@@ -149,6 +151,22 @@ list; and the text is letters, digits and underscore throughout, so a saved
 position is about 30 characters. One entry per character is kept under
 `characters`, and a character's first save keeps the others'.
 
+The twelve-macro budget reserves space for every character's user settings
+before adding planner learning. Full learning is included when it fits;
+otherwise a valid compact history retains up to 64 recent completed quest IDs.
+If even that does not fit, only that optional learning backup is omitted.
+Full learning remains in live state, SavedVariables and the CVar reload tier.
+This also repairs oversized learning inherited from another character's backup.
+Settings-only overflow stops before any macro write. `/rik store` reports
+macro usage and how many learning snapshots were compacted or omitted.
+
+The September 23 client settings reproduce a 2,676-byte character delta before
+account overhead. `tests/store-client-replay.lua <account.lua> <character.lua>`
+reads supplied SavedVariables in an isolated, instruction-bounded environment,
+then exercises only stub CVar/macro APIs. The corrected backup used five macros
+(1,095 body bytes), restored exact account/character settings and retained full
+reload-tier learning. It does not write the supplied files or native macros.
+
 Macros cannot be read while the addon loads, so `src/core/lifecycle.lua` asks
 `Store.RestoreLate()` at `PLAYER_LOGIN`, before any module starts, and only
 when neither saved variables nor the CVar tier had anything; it then merges
@@ -158,3 +176,20 @@ is reported once and the reload tier keeps working. `tests/store-macros.test.lua
 covers pruning, macro shape, a restart, two characters, no write without a
 change, combat, growing and shrinking, a damaged macro, a full macro list, the
 layout packing round trip, and a client without the macro API.
+
+### Restricted combat events
+
+The planner now checks for a usable combat reader, readable restriction state,
+and an ordinary valid frame event before subscribing to combat-log updates.
+Clients exposing restricted callbacks continue quest guidance without attempting
+the forbidden registration or inventing combat XP attribution. Supported legacy
+frame events still register normally. The persisted September 23 `UNKNOWN()`
+stack identifies this former registration attempt in `questplanner:OnEnable`.
+The taint file was empty; diagnostics no longer promise it contains that first call.
+
+The pinned Blizzard [combat-log definitions](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/CombatLogDocumentation.lua)
+and [event capability definitions](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/EventUtilsDocumentation.lua)
+provide the restriction/callback checks. Stub startup tests assert zero native
+combat registration attempts on restricted, callback-only and missing-reader
+clients, and successful subscription on supported clients. Native `/reload`
+verification remains separate.
