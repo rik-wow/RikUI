@@ -36,7 +36,7 @@ class Tests(unittest.TestCase):
    with patch.object(geometry.collision,'bounds',side_effect=captured):
     result=geometry.geometry(Source(),job,Index())
    self.assertTrue(any(points==model['positions'] for points in calls))
-   self.assertEqual(result['positions'],[]);self.assertEqual(result['indices'],[])
+   self.assertEqual(result['indices'],[0,1,2]);self.assertFalse([r for r in result['exclusions'] if r['reason']!='unsourced-physical-tile'])
    self.assertEqual(result['coverageGates'][0]['bounds'],[[1,0,1],[21,1,21]])
    self.assertIn('WMO-transform-outside-MODF-bounds',result['coverageGates'][0]['reasons'])
  def test_unknown_physics_is_excluded_not_fatal(self):

@@ -64,8 +64,11 @@ export function exclusionLookup(boxes,cell=64) {
     if(box.bounds?.length!==2||!box.bounds.every(p=>p.length===3&&p.every(Number.isFinite))
       ||!Number.isFinite(box.padding)||box.padding<0||box.padding>10
       ||box.bounds[0].some((v,i)=>v>box.bounds[1][i]))throw Error('exclusion-shape');
+    // belowSurface boxes (unswimmable liquid) only remove polygons that reach
+    // down into them; a bridge above the surface stays. Others are XZ-only.
+    const top=box.belowSurface===true?box.bounds[1][1]:Infinity;
     const rect=[box.bounds[0][0]-box.padding,box.bounds[0][2]-box.padding,
-      box.bounds[1][0]+box.padding,box.bounds[1][2]+box.padding];
+      box.bounds[1][0]+box.padding,box.bounds[1][2]+box.padding,top];
     for(let x=Math.floor(rect[0]/cell);x<=Math.floor(rect[2]/cell);x++)
       for(let z=Math.floor(rect[1]/cell);z<=Math.floor(rect[3]/cell);z++) {
         if(++entries>262144)throw Error('exclusion-index-budget');
@@ -73,11 +76,11 @@ export function exclusionLookup(boxes,cell=64) {
       }
   }
   return points=>{
-    const xs=points.map(p=>p[0]),zs=points.map(p=>p[2]);
+    const xs=points.map(p=>p[0]),zs=points.map(p=>p[2]),low=Math.min(...points.map(p=>p[1]));
     const a=Math.min(...xs),b=Math.min(...zs),c=Math.max(...xs),d=Math.max(...zs);
     for(let x=Math.floor(a/cell);x<=Math.floor(c/cell);x++)
       for(let z=Math.floor(b/cell);z<=Math.floor(d/cell);z++)
-        for(const r of buckets.get(x+':'+z)??[])if(c>=r[0]&&a<=r[2]&&d>=r[1]&&b<=r[3])return true;
+        for(const r of buckets.get(x+':'+z)??[])if(c>=r[0]&&a<=r[2]&&d>=r[1]&&b<=r[3]&&low<=r[4])return true;
     return false;
   };
 }

@@ -12,6 +12,8 @@ const raw=fs.readFileSync(input);if(raw.length>256*1024*1024)throw Error('geomet
 const g=JSON.parse(raw),j=g.job;
 if(g.format!=='rikui-world-geometry-v1'||j?.format!=='rikui-world-bake-job-v1'||g.worldMapID!==j.worldMapID||g.nativeVerified!==false)throw Error('geometry-identity');
 if(g.positions.length>4500000||g.indices.length>9000000||g.positions.length%3||g.indices.length%3||!g.positions.every(Number.isFinite)||!g.indices.every(v=>Number.isInteger(v)&&v>=0&&v<g.positions.length/3))throw Error('geometry-arrays');
+// Polygon IDs pack the index in 12 bits (road_network.polygon_id, world_stitch).
+const POLYS_PER_TILE=4096;
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
 const round=x=>Math.round(x*10000)/10000;
 const lattice={origin:[0,0,0],cell:.25,heightCell:.1,recastTileSize:64,batchTiles:8,border:1.25};
@@ -33,7 +35,7 @@ let removed=0,degenerate=0;
 try{
  for(let ti=0;ti<nav.getMaxTiles();ti++){
   const tile=nav.getTile(ti),h=tile.header();if(!h)continue;
-  if(h.polyCount()>1024||h.layer()!==0)throw Error('world tile polygon/layer bound');
+  if(h.polyCount()>POLYS_PER_TILE||h.layer()!==0)throw Error('world tile polygon/layer bound');
   const gx=b[0]/64+h.x(),gz=b[1]/64+h.y(),base=nav.getPolyRefBase(tile)>>>0;
   const own=gx*64>=o[0]&&gx*64<o[2]&&gz*64>=o[1]&&gz*64<o[3];
   for(let pi=0;pi<h.polyCount();pi++){
@@ -73,7 +75,7 @@ try{
   if(row.owned)owned.push(exported);else witnesses.push(exported);
  }
  owned.sort((a,b)=>a.key.localeCompare(b.key,'en'));witnesses.sort((a,b)=>a.key.localeCompare(b.key,'en'));
- if(owned.length>65536||all.length>102400)throw Error('batch polygon bound');
+ if(owned.length>262144||all.length>409600)throw Error('batch polygon bound');
  const targetKeys=new Set(owned.flatMap(p=>p.portals.map(e=>e.to))),neededWitnesses=witnesses.filter(p=>targetKeys.has(p.key));
  fs.mkdirSync(outdir);
  const files=[];
@@ -81,7 +83,7 @@ try{
  write('polygons.json',{format:'rikui-world-owned-polygons-v1',worldMapID:j.worldMapID,jobID:j.id,polygons:owned});
  write('boundary-witnesses.json',{format:'rikui-world-boundary-witnesses-v1',worldMapID:j.worldMapID,jobID:j.id,polygons:neededWitnesses});
  write('manifest.json',{format:'rikui-world-nav-batch-v1',identity:g.identity,worldMapID:j.worldMapID,job:j,
-  geometrySHA256:sha(raw),source:g.source,coverageGates:g.coverageGates,exclusions:g.exclusions,
+  geometrySHA256:sha(raw),source:g.source,coverageGates:g.coverageGates,exclusions:g.exclusions,liquids:g.liquids??[],
   generator:{package:'recast-navigation',version:'0.43.1',config,origin,wrapperSHA256:sha(fs.readFileSync(new URL(import.meta.url))),boundedWrapperSHA256:sha(fs.readFileSync(new URL('./world_tiled.mjs',import.meta.url))),filterSHA256:sha(fs.readFileSync(new URL('./mesh_filter.mjs',import.meta.url))),heightAudit:result.heightAudit,preRasterExclusionAudit:preRaster.audit},
   statistics:{ownedPolygons:owned.length,boundaryWitnesses:neededWitnesses.length,directedEdges:owned.reduce((n,p)=>n+p.portals.length,0),removedPolygons:removed,degeneratePolygons:degenerate,stepLinksRemoved:stepAudit.removedDirectedLinks},
   files:[...files],seamAdmission:'pending-neighbor-owned-geometry-and-reciprocal-portal-validation',nativeVerified:false,agentProfileCalibrated:false,

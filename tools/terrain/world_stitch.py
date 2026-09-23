@@ -4,10 +4,11 @@ Missing neighbour batches remain pending; no proximity stitching exists here.
 import argparse,copy,json,math,pathlib,re
 from world_source import canonical,sha,need
 KEY=re.compile(r'w(\d+):r(-?\d+):(-?\d+):(\d+):p(\d+)\Z')
+POLYS_PER_TILE=4096  # bake_world_batch.mjs cap; polygon IDs pack the index in 12 bits
 def key(value):
  m=KEY.fullmatch(value);need(m is not None,'invalid world polygon key');return tuple(map(int,m.groups()))
 def owner(value):
- world,x,z,layer,poly=key(value);need(layer==0 and poly<1024,'unsupported polygon layer/index');return (world,x//8,z//8)
+ world,x,z,layer,poly=key(value);need(layer==0 and poly<POLYS_PER_TILE,'unsupported polygon layer/index');return (world,x//8,z//8)
 def signature(poly):return tuple(sorted(tuple(v) for v in poly['points']))
 def distance_boundary(point,points):
  best=(math.inf,None)

@@ -1,24 +1,26 @@
 """Bounded physical terrain/collision stage for world_source jobs.
 Uses existing strict decoders. Unsupported unbounded M2 evidence fails this job;
-WMO unknowns retain the complete audited placement footprint as exclusions.
+WMO unknowns keep their parsed collision and are audited as approximations.
 """
 import collections, json, math, pathlib, struct
 import terrain_probe as t
 import collision_probe as collision
 import wmo_probe as wmo
 import world_empty_placements as empty
+import world_liquid as liquid
 import world_placements as placement_extents
 import west_profile as west
 from world_source import need, canonical, rect_intersects, tile_rect, expand, sha
 MAX_POSITIONS=4_500_000
 MAX_INDICES=9_000_000
 MAX_PLACEMENTS=16384
+ANTIPORTAL_GROUP=0x4000000
 
 def xz(box):return [box[0][0],box[0][2],box[1][0],box[1][2]]
 def intersect(box,rect):return rect_intersects(xz(box),rect)
 def geometry(source,job,placement_index):
  expected=source.job(job['worldMapID'],*job['batchGrid']);need(job==expected,'job differs from source')
- source.used={};positions=[];indices=[];excluded=[];gates=[];tile_audit=[];placements={};stats=collections.Counter()
+ source.used={};liquids=[];positions=[];indices=[];excluded=[];gates=[];tile_audit=[];placements={};stats=collections.Counter()
  rect=job['inputXZ'];world=job['worldMapID'];models={};roots={};groups={};asset_bounds={}
  def add(vertices,triangles):
   if not triangles:return
@@ -44,11 +46,15 @@ def geometry(source,job,placement_index):
   unusual=sorted(set(inventory)-{'MVER','MHDR','MCIN','MFBO','MH2O','MCNK'})
   unknown_subs=sorted({tag for r in rows for tag in r['subchunks']}-{'MCVT','MCNR','MCCV','MCSE','MCLQ','MCLV'})
   unknown_objects=sorted(set(objtags)-{'MVER','MMDX','MMID','MWMO','MWID','MDDF','MODF','MCNK'})
+  # Heights come from MCVT and holes from the MCNK header, both decoded above.
+  # Unknown texture/blend chunks (MPTX, MBMH, MLMB...) are audited, not carved.
   if unusual or unknown_subs or unknown_objects:
-   r=tile_rect(*tile['tile']);exclude([[r[0],-100000,r[1]],[r[2],100000,r[3]]],'unsupported-ADT-geometry',tile=tile['tile'],rootChunks=unusual,subchunks=unknown_subs,objectChunks=unknown_objects)
+   gates.append(dict(worldMapID=world,tile=tile['tile'],reason='unknown-ADT-chunks-tolerated',rootChunks=unusual,subchunks=unknown_subs,objectChunks=unknown_objects));stats['toleratedUnknownADTChunkTiles']+=1
   selected=[r for r in rows if rect_intersects([r['position'][1]-t.CHUNK,r['position'][0]-t.CHUNK,r['position'][1],r['position'][0]],rect)]
   vertices,triangles,holes=t.mesh(selected);add(vertices,triangles);stats['holeTrianglesRemoved']+=holes
-  for row in west.liquid_exclusions(raw,rows,tile['tile']):
+  vertices,triangles,unswimmable,areas=liquid.liquid(raw,rows,tile['tile'],{(r['x'],r['y']) for r in selected});add(vertices,triangles);stats['liquidSurfaceTriangles']+=len(triangles)//3
+  liquids.extend(dict(a,worldMapID=world) for a in areas if intersect(a['bounds'],rect))
+  for row in unswimmable:
    if intersect(row['bounds'],rect):excluded.append(dict(row,worldMapID=world))
   for placement in placed:
    key=(placement['kind'],placement['uniqueID'])
@@ -101,7 +107,10 @@ def geometry(source,job,placement_index):
    gkey=(gid,root['flags'])
    if gkey not in groups:groups[gkey]=wmo.group(source.asset(gid,'WMOGroup'),root['flags'])
    group=groups[gkey];need(all(i<len(root['doodads']) for i in group['doodadReferences']),'WMO doodad ref range')
-   reasons.extend(group['unsupported']);wadd(collision.transformed(group,placement),group['indices'])
+   reasons.extend(group['unsupported'])
+   # Antiportal groups are occluders, not collision.
+   if group.get('flags',0)&ANTIPORTAL_GROUP:stats['skippedAntiportalGroups']+=1;continue
+   wadd(collision.transformed(group,placement),group['indices'])
   for index in selected:
    dd=root['doodads'][index]
    need(not wmo.unsupported_doodad_flags(dd['flags']),'unbounded-WMO-doodad-flags:'+str(ident))
@@ -116,21 +125,23 @@ def geometry(source,job,placement_index):
    actual=collision.bounds(all_world)
    if max(max(box[0][i]-actual[0][i],actual[1][i]-box[1][i]) for i in range(3))>.1:reasons.append('WMO-transform-outside-MODF-bounds')
    box=[[min(box[0][i],actual[0][i]) for i in range(3)],[max(box[1][i],actual[1][i]) for i in range(3)]]
+  # Parsed collision triangles are kept even when a chunk or flag is not
+  # understood; carving the footprint cut whole cities and passes out of the
+  # walk graph. The reasons stay in the audit as an approximation.
   if reasons:
-   reasons=sorted(set(reasons));exclude(box,'unsupported-WMO-footprint',fileDataID=ident,placementID=uid,reasons=reasons)
-   gates.append(dict(worldMapID=world,placementID=uid,fileDataID=ident,reasons=reasons,bounds=box));stats['excludedWMOInstances']+=1
-  else:add(local_vertices,local_indices);stats['wmoInstances']+=1
+   gates.append(dict(worldMapID=world,placementID=uid,fileDataID=ident,reason='approximated-WMO',reasons=sorted(set(reasons)),bounds=box));stats['approximatedWMOInstances']+=1
+  add(local_vertices,local_indices);stats['wmoInstances']+=1
  # Fully holed or fully excluded source can correctly yield no surfaces. Keep
  # source/exclusion evidence and emit zero polygons rather than inventing a floor.
  need(bool(positions)==bool(indices),'inconsistent empty world geometry')
  minimum=min(positions[1::3],default=0);maximum=max(positions[1::3],default=0);owned=job['ownedXZ']
  return dict(format='rikui-world-geometry-v1',identity={k:v for k,v in source_identity().items() if k not in ('buildConfig','cdnConfig')},
   worldMapID=world,job=job,coordinateSystem='Y-up; X=game world Y; Z=game world X',
-  regionBounds=[[owned[0],minimum,owned[1]],[owned[2],maximum,owned[3]]],positions=positions,indices=indices,exclusions=excluded,
+  regionBounds=[[owned[0],minimum,owned[1]],[owned[2],maximum,owned[3]]],positions=positions,indices=indices,exclusions=excluded,liquids=liquids,
   source=dict(parserSHA256=sha(pathlib.Path(__file__).read_bytes()),jobSHA256=sha(canonical(job)),placementIndexSHA256=placement_index.sha256,assets=[source.used[k] for k in sorted(source.used)],tileAudit=tile_audit),
   coverageGates=gates,statistics=dict(stats,vertices=len(positions)//3,triangles=len(indices)//3,placements=len(placements)),
   status='derived-static-model-with-explicit-exclusions',nativeVerified=False,agentProfileCalibrated=False,
-  limitations=['Unknown static features keep explicit exclusions or fail only their batch.','Source completeness does not establish native walkability.','Dynamic state, swimming, transport and phase transitions are not modeled.'])
+  limitations=['Unknown ADT chunks and WMO chunks/flags are approximated by their parsed collision; unknown M2 physics keeps an explicit exclusion.','Swimming is modeled as a liquid surface; currents and breath are not.','Source completeness does not establish native walkability.','Dynamic state, transport and phase transitions are not modeled.'])
 
 def source_identity():
  from world_source import IDENTITY

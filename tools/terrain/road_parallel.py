@@ -50,8 +50,12 @@ def _compact(args):
     batch = stitch.load(record['directory'], record['manifestSHA256'])
     ns = batch['namespace']
     lookup = roads.RoadLookup(road_dir, ns[0])
+    liquids = batch['manifest'].get('liquids', [])
+    water = net.WaterLookup(liquids)
     rows = []
     for key, row in sorted(batch['polygons'].items(), key=lambda kv: stitch.key(kv[0])):
+        if water.submerged(*row['center']):
+            continue  # lake and sea floor; routes swim on the surface above
         portals = []
         for edge in row['portals']:
             left, right = edge['left'], edge['right']
@@ -65,9 +69,9 @@ def _compact(args):
         samples = [row['center']] + row['points']
         road = sum(lookup.fraction(p[0], p[2]) for p in samples) / len(samples)
         rows.append((net.polygon_id(key), tuple(map(float, row['center'])), [tuple(map(float, p)) for p in row['points']],
-                     road, portals, net.cell_of(key)))
+                     road, portals, net.cell_of(key), water.at(*row['center'])))
     temp = pathlib.Path(str(path) + '.part')
-    temp.write_bytes(pickle.dumps(rows, protocol=pickle.HIGHEST_PROTOCOL))
+    temp.write_bytes(pickle.dumps(dict(rows=rows, liquids=liquids), protocol=pickle.HIGHEST_PROTOCOL))
     temp.replace(path)
     return len(rows)
 
@@ -122,21 +126,25 @@ def prepare(input_path, expected, road_dir, cache_root, pool):
 class Compact(net.Polygons):
     """Polygons built from cached rows instead of full batch dicts."""
     def __init__(self):  # pylint: disable=super-init-not-called
-        self.center, self.cell, self.road, self.edges, self.points, self.gid = [], [], [], [], [], []
+        self.center, self.cell, self.road, self.edges, self.points, self.gid, self.water = [], [], [], [], [], [], []
         self.kept = set()
         self.by_cell = collections.defaultdict(list)
 
 
 def load_region(files, lo, hi):
     """Cached polygons whose cell column lies in [lo, hi), ordered by polygon ID."""
-    rows = []
+    rows, liquids = [], []
     for path in files:
-        rows.extend(r for r in pickle.loads(pathlib.Path(path).read_bytes()) if lo <= r[5][0] < hi)
+        cached = pickle.loads(pathlib.Path(path).read_bytes())
+        rows.extend(r for r in cached['rows'] if lo <= r[5][0] < hi)
+        liquids.extend(cached['liquids'])
     rows.sort(key=lambda r: r[0])
     part = Compact()
+    part.liquids = liquids
     local = {r[0]: i for i, r in enumerate(rows)}
-    for i, (gid, center, points, road, portals, cell) in enumerate(rows):
+    for i, (gid, center, points, road, portals, cell, water) in enumerate(rows):
         part.gid.append(gid); part.center.append(center); part.points.append(points); part.road.append(road)
+        part.water.append(water)
         part.cell.append(cell); part.by_cell[cell].append(i)
         part.edges.append([(local[t], l, r) for t, l, r in portals if t in local])
     return part
@@ -162,9 +170,9 @@ def _nodes(args):
     core_lo, core_hi, files, road_dir, world = args
     part = load_region(files, core_lo - 1, core_hi + 1)
     lookup = roads.RoadLookup(road_dir, world)
+    water = net.WaterLookup(part.liquids)
     pieces = net.components(part)
     reps = [net.representative(part, p) for p in pieces]
-    node_of = {r: n for n, r in enumerate(reps)}
     node_cells = collections.defaultdict(list)
     for n, r in enumerate(reps):
         node_cells[part.cell[r]].append(n)
@@ -182,11 +190,9 @@ def _nodes(args):
                 if m == n or target not in dist:
                     continue
                 steps = net.corridor(parent, target)
-                if any(node_of.get(s[1]) is not None and s[1] != target for s in steps):
-                    continue
                 gates = [net.oriented(part, p, t, l, r) for p, t, l, r in steps]
                 points = net.simplify(net.funnel(part.center[rep], part.center[target], gates))
-                length, cost = net.weighted_length(points, lookup)
+                length, cost = net.weighted_length(points, lookup, water)
                 found.append((part.gid[target], cost, length, points[1:-1]))
         info = (part.gid[rep], part.center[rep], part.cell[rep], part.road[rep])
         out.append((part.cell[rep], part.gid[min(pieces[n])], info, found))

@@ -33,7 +33,7 @@ local function metadata(raw)
     return value
 end
 function mesh.ValidateMetadata(raw) return metadata(raw) end
-local MAX_WIRE_ID=2147483647 -- Preserve the previous generic-copy numeric ceiling.
+local MAX_WIRE_ID=4294967295 -- Road patch polygon IDs are u32 (12-bit tile index).
 local POLYGON_FIELDS={id=true,points=true,portals=true}
 local PORTAL_FIELDS={to=true,left=true,right=true}
 local function fields(raw,allowed)

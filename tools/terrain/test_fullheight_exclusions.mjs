@@ -21,3 +21,15 @@ assert.deepEqual(filter(Array.from(on),[0,1,2],[full]).indices,[]);
 const out=Array.from(on);out[0]=Math.fround(10+.0001);
 assert.deepEqual(filter(out,[0,1,2],[full]).indices,[0,1,2]);
 console.log('full-height pre-raster exclusions: 12 assertions passed');
+// Unswimmable-liquid boxes remove polygons reaching below their surface only.
+{
+  const {exclusionLookup}=await import('./mesh_filter.mjs');
+  const lava=exclusionLookup([{bounds:[[0,-100000,0],[4,5.5,4]],padding:.5,belowSurface:true,reason:'unswimmable-liquid'}]);
+  const bridge=[[0,9,0],[4,9,0],[4,9,4]],bed=[[0,2,0],[4,2,0],[4,2,4]],bank=[[3,5,0],[8,6,0],[8,6,4]];
+  if(lava(bridge))throw Error('bridge above lava was removed');
+  if(!lava(bed))throw Error('lava bed was kept');
+  if(!lava(bank))throw Error('bank polygon dipping to the surface was kept');
+  const wall=exclusionLookup([{bounds:[[0,0,0],[4,1,4]],padding:.5,reason:'unknown-physics-extent'}]);
+  if(!wall(bridge))throw Error('XZ-only exclusions must ignore height');
+  console.log('below-surface exclusions: 4 assertions passed');
+}

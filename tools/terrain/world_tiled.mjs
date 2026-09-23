@@ -20,6 +20,27 @@ export function canonicalTriangles(positions,indices,selected){
  }
  return {positions:verts,indices:tris};
 }
+// Recast span heights are 13 bits, so one tile holds at most MAX_SPAN_VOXELS
+// of height. A taller tile (a tower over a deep pit, sky geometry over terrain)
+// keeps the window holding the most vertices; the rasterizer clips the rest.
+const MAX_SPAN_VOXELS=8190;
+export function heightWindow(positions,yOrigin,ch){
+ const ys=[];for(let i=1;i<positions.length;i+=3)ys.push(positions[i]);
+ ys.sort((a,b)=>a-b);
+ const lo=ys[0],hi=ys[ys.length-1];
+ const voxel=(y,round)=>round((y-yOrigin)/ch);
+ const full={lo,hi,v0:voxel(lo,Math.floor)-1,v1:voxel(hi,Math.ceil)+1};
+ if(full.v1-full.v0<=MAX_SPAN_VOXELS)return full;
+ const reach=(MAX_SPAN_VOXELS-3)*ch;
+ let best=0,bestCount=0;
+ for(let a=0,b=0;a<ys.length;a++){
+  while(b<ys.length&&ys[b]-ys[a]<=reach)b++;
+  if(b-a>bestCount){bestCount=b-a;best=a;}
+ }
+ const wlo=ys[best],whi=ys[best+bestCount-1];
+ return {lo:wlo,hi:whi,v0:voxel(wlo,Math.floor)-1,v1:voxel(whi,Math.ceil)+1,
+  clipped:{geometryMinY:lo,geometryMaxY:hi,keptVertices:bestCount,totalVertices:ys.length}};
+}
 export function generateBoundedTiled(positions,indices,config={}){
  const audit={method:'canonical-tile-local-Y-common-ch-lattice',maxSpanVoxels:0,maxGeometrySpan:0,maxOverlappingChunks:0,builtTiles:0,emptyGeometryTiles:0,emptyWalkableTiles:0,tiles:[]};
  let nav,params,rc,gridSize,context,retained=false;
@@ -49,10 +70,11 @@ export function generateBoundedTiled(positions,indices,config={}){
   for(let z=0;z<height;z++)for(let x=0;x<width;x++){
    const list=selected[z*width+x],row={x,z,inputTriangles:list.length};
    if(!list.length){audit.emptyGeometryTiles++;audit.tiles.push({...row,emptyGeometry:true});continue;}
-   const local=canonicalTriangles(points,indices,list);let lo=Infinity,hi=-Infinity;
-   for(let i=1;i<local.positions.length;i+=3){lo=Math.min(lo,local.positions[i]);hi=Math.max(hi,local.positions[i]);}
-   const v0=Math.floor((lo-bbMin[1])/ch)-1,v1=Math.ceil((hi-bbMin[1])/ch)+1,span=v1-v0;
-   if(!Number.isSafeInteger(span)||span>8190)throw Error('world tile height span');
+   const local=canonicalTriangles(points,indices,list);
+   const window=heightWindow(local.positions,bbMin[1],ch);
+   if(window.clipped){row.clippedHeight=window.clipped;audit.clippedTiles=(audit.clippedTiles??0)+1;}
+   const {lo,hi,v0,v1}=window,span=v1-v0;
+   if(!Number.isSafeInteger(span)||span>MAX_SPAN_VOXELS)throw Error('world tile height span');
    const minY=bbMin[1]+v0*ch,maxY=bbMin[1]+v1*ch;
    Object.assign(row,{geometryMinY:lo,geometryMaxY:hi,minY,maxY,spanVoxels:span});
    let vertices,triangles,chunks,ids;

@@ -27,6 +27,42 @@ MIN_GROUP_NODES = 16  # smaller disconnected node groups are dropped as unusable
 MAX_POINT_OFFSET = 32767
 SIMPLIFY_YARDS = 1.5  # polyline corners closer than this to the straight line are dropped
 REDUNDANT_SLACK = 1.02  # an edge is redundant if a two-hop path costs at most 2% more
+SWIM_COST = 1.5  # swimming (about 4.7 yd/s) against running (7 yd/s)
+SURFACE_TOLERANCE = 0.6  # yards below a liquid's lowest level that still count as its surface
+SUBMERGED_DEPTH = 2.0  # polygons this far below a swim surface are lake/sea floor; routes swim above them
+
+
+class WaterLookup:
+    """Swim-surface boxes from bake manifests. A point is swimming when it lies in a
+    box's XZ rectangle at or above the liquid's lowest level, and submerged when
+    it lies well below it."""
+    CELL = 64.0
+
+    def __init__(self, boxes):
+        self.buckets = collections.defaultdict(list)
+        for box in boxes:
+            (x0, y0, z0), (x1, _, z1) = box['bounds']
+            for bx in range(math.floor(x0 / self.CELL), math.floor(x1 / self.CELL) + 1):
+                for bz in range(math.floor(z0 / self.CELL), math.floor(z1 / self.CELL) + 1):
+                    self.buckets[(bx, bz)].append((x0, z0, x1, z1, y0))
+
+    def _levels(self, x, z):
+        for x0, z0, x1, z1, level in self.buckets.get((math.floor(x / self.CELL), math.floor(z / self.CELL)), ()):
+            if x0 <= x <= x1 and z0 <= z <= z1:
+                yield level
+
+    def at(self, x, y, z):
+        return any(y >= level - SURFACE_TOLERANCE for level in self._levels(x, z))
+
+    def submerged(self, x, y, z):
+        return any(y < level - SUBMERGED_DEPTH for level in self._levels(x, z))
+
+
+NO_WATER = WaterLookup(())
+
+
+def terrain_factor(road, swimming):
+    return SWIM_COST if swimming else 1 - ROAD_BONUS * road
 
 
 def cell_of(key):
@@ -37,21 +73,25 @@ def cell_of(key):
 def polygon_id(key):
     """Stable 1-based polygon ID from its bake key (64-yd grid cell and index)."""
     _, gx, gz, layer, poly = stitch.key(key)
-    need(layer == 0 and poly < 1024 and -512 <= gx < 512 and -512 <= gz < 512, 'polygon key range')
-    return ((gx + 512) * 1024 + (gz + 512)) * 1024 + poly + 1
+    need(layer == 0 and poly < stitch.POLYS_PER_TILE and -512 <= gx < 512 and -512 <= gz < 512, 'polygon key range')
+    value = ((gx + 512) * 1024 + (gz + 512)) * stitch.POLYS_PER_TILE + poly + 1
+    need(value < 1 << 32, 'polygon ID exceeds 32 bits')  # patch records store IDs as u32
+    return value
 
 
 class Polygons:
     """Compact owned-polygon graph for one world."""
     def __init__(self, batches, world, lookup):
-        rows = {k: p for b in batches for k, p in b['polygons'].items()}
+        water = WaterLookup([box for b in batches for box in b['manifest'].get('liquids', ())])
+        rows = {k: p for b in batches for k, p in b['polygons'].items() if not water.submerged(*p['center'])}
         self.keys = sorted(rows, key=stitch.key)
         index = {k: i for i, k in enumerate(self.keys)}
-        self.center, self.cell, self.road, self.edges, self.points, self.gid = [], [], [], [], [], []
+        self.center, self.cell, self.road, self.edges, self.points, self.gid, self.water = [], [], [], [], [], [], []
         self.kept = set()
         for key in self.keys:
             row = rows[key]
             self.center.append(tuple(float(v) for v in row['center']))
+            self.water.append(water.at(*row['center']))
             self.points.append([tuple(map(float, p)) for p in row['points']])
             self.cell.append(cell_of(key))
             self.gid.append(polygon_id(key))
@@ -67,7 +107,7 @@ class Polygons:
         mid = tuple((a + b) / 2 for a, b in zip(left, right))
         length = math.dist(self.center[i], mid) + math.dist(mid, self.center[j])
         road = (self.road[i] + self.road[j]) / 2
-        return length * (1 - ROAD_BONUS * road)
+        return length * terrain_factor(road, self.water[i] and self.water[j])
 
 
 def components(polys):
@@ -205,20 +245,19 @@ def prune_redundant(edges, slack=REDUNDANT_SLACK):
     return pruned
 
 
-def weighted_length(points, lookup):
+def weighted_length(points, lookup, water=NO_WATER):
     length = cost = 0.0
     for a, b in zip(points, points[1:]):
         segment = math.dist(a, b)
         samples = [tuple(a[k] + (b[k] - a[k]) * q for k in range(3)) for q in (.25, .5, .75)]
-        road = sum(lookup.fraction(p[0], p[2]) for p in samples) / 3
-        length += segment; cost += segment * (1 - ROAD_BONUS * road)
+        factor = sum(terrain_factor(lookup.fraction(p[0], p[2]), water.at(*p)) for p in samples) / 3
+        length += segment; cost += segment * factor
     return length, cost
 
 
-def build(polys, lookup, log=print):
+def build(polys, lookup, log=print, water=NO_WATER):
     pieces = components(polys)
     reps = [representative(polys, piece) for piece in pieces]
-    node_of = {r: n for n, r in enumerate(reps)}
     node_cells = collections.defaultdict(list)
     for n, r in enumerate(reps):
         node_cells[polys.cell[r]].append(n)
@@ -233,12 +272,13 @@ def build(polys, lookup, log=print):
                 target = reps[m]
                 if m == n or target not in dist:
                     continue
+                # A path through another node's polygon is kept: going via that
+                # node bends the route, and prune_redundant drops the direct
+                # edge only when the bend costs almost nothing.
                 steps = corridor(parent, target)
-                if any(node_of.get(s[1]) is not None and s[1] != target for s in steps):
-                    continue  # passes through another node; that pair of edges covers it
                 gates = [oriented(polys, p, t, l, r) for p, t, l, r in steps]
                 points = simplify(funnel(polys.center[rep], polys.center[target], gates))
-                length, cost = weighted_length(points, lookup)
+                length, cost = weighted_length(points, lookup, water)
                 edges[n].append((m, cost, length, points[1:-1]))
         if n % 20000 == 0 and n:
             log('nodes %d/%d %.0fs' % (n, len(reps), time.monotonic() - started))
@@ -382,9 +422,10 @@ def compile_world(admitted, world, lookup, source_directory, rects=(), log=print
     if not batches:
         return None  # every baked batch of this world is empty or failed
     polys = Polygons(batches, world, lookup)
+    water = WaterLookup([box for b in batches for box in b['manifest'].get('liquids', ())])
     sources = [dict(namespace=list(b['namespace']), manifestSHA256=b['sha256']) for b in batches]
     def builder():
-        reps, edges = build(polys, lookup, log)
+        reps, edges = build(polys, lookup, log, water)
         return node_info(polys, reps), edges, len(polys.keys)
     def patcher(infos):
         if not rects:

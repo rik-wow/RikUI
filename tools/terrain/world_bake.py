@@ -9,7 +9,7 @@ from world_source import Source,canonical,sha,need
 import world_placements
 from world_geometry import geometry
 HERE=pathlib.Path(__file__).resolve().parent
-TOOLS=('world_empty_placements.py','world_source.py','world_placements.py','world_geometry.py','world_bake.py','world_stitch.py','world_tiled.mjs','bake_world_batch.mjs','terrain_probe.py','world_projection.py','collision_probe.py','wmo_probe.py','west_profile.py','m2_physics_extent.py','m2-274-world-profiles.json','mesh_filter.mjs')
+TOOLS=('world_empty_placements.py','world_source.py','world_placements.py','world_geometry.py','world_liquid.py','liquid-kinds-69913.json','world_bake.py','world_stitch.py','world_tiled.mjs','bake_world_batch.mjs','terrain_probe.py','world_projection.py','collision_probe.py','wmo_probe.py','west_profile.py','m2_physics_extent.py','m2-274-world-profiles.json','mesh_filter.mjs')
 
 def atomic(path,value):
  temp=path.with_name(path.name+'.next')

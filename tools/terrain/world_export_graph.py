@@ -54,12 +54,19 @@ def validate_receipt(record,batch):
  for generator,tool in [('wrapperSHA256','bake_world_batch.mjs'),('boundedWrapperSHA256','world_tiled.mjs'),('filterSHA256','mesh_filter.mjs')]:
   need(batch['manifest']['generator'][generator]==r['input']['tools'][tool],'generator/receipt tool mismatch')
  need(geometry['source']['parserSHA256']==r['input']['tools']['world_geometry.py'],'geometry parser/receipt mismatch')
- rectangles=[]
+ rectangles=[];surfaces=[]
  for row in geometry['exclusions']:
   b=row['bounds'];pad=row['padding'];need(len(b)==2 and len(b[0])==len(b[1])==3 and .5<=pad<=10,'exclusion shape')
-  rectangles.append([b[0][0]-pad,b[0][2]-pad,b[1][0]+pad,b[1][2]+pad])
- query=compiler.exclusion_index(rectangles)
- for row in batch['polygons'].values():need(not any(compiler.carve_aabb(row['points'],box) for box in query(row['points'])),'world polygon touches recorded exclusion')
+  # Unswimmable liquid only excludes up to its surface (mesh_filter.mjs), so
+  # a polygon wholly above it (a bridge) is valid.
+  (surfaces if row.get('belowSurface') is True else rectangles).append(([b[0][0]-pad,b[0][2]-pad,b[1][0]+pad,b[1][2]+pad],b[1][1]))
+ query=compiler.exclusion_index([rect for rect,_ in rectangles])
+ below=compiler.exclusion_index([rect for rect,_ in surfaces]);tops={}
+ for rect,top in surfaces:tops[tuple(rect)]=max(top,tops.get(tuple(rect),top))
+ for row in batch['polygons'].values():
+  need(not any(compiler.carve_aabb(row['points'],box) for box in query(row['points'])),'world polygon touches recorded exclusion')
+  low=min(p[1] for p in row['points'])
+  need(not any(compiler.carve_aabb(row['points'],box) and low<=tops[tuple(box)] for box in below(row['points'])),'world polygon reaches below an unswimmable liquid surface')
  return r
 
 def load_input(path,expected,source_directory=None):

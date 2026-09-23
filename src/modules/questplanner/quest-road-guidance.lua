@@ -10,6 +10,9 @@ local REPLAN_SECONDS=1.5
 local state={status="unavailable",detail="Road network is not installed"}
 local active,request,follower,requestKey,routeKey,display,lastReplan=false,nil,nil,nil,nil,nil,0
 local lastTarget -- {key,row}: kept while the planner briefly has no selection
+local failure    -- last failed plan: {key,status,detail,x,z,retryAt}; not retried until something changes
+local RETRY_YARDS=40       -- moving this far retries a failed destination
+local RETRY_TRANSIENT=2    -- seconds before retrying a deferred (combat/loading) plan
 local stats={plans=0,published=0,replans=0}
 
 local function setState(status,detail)
@@ -22,6 +25,7 @@ local function clear()
     if request then request:Cancel() end
     request,follower,requestKey,routeKey,display,lastTarget=nil,nil,nil,nil,nil,nil
 end
+local function now() return GetTime and GetTime() or 0 end
 
 function guidance.Active() return active end
 function guidance.Status() return schema.Clone(state) end
@@ -32,7 +36,7 @@ function guidance.Stats() return schema.Clone(stats) end
 -- and only replaced when the destination itself changes (see Step).
 function guidance.Invalidate() end
 -- Explicit retry: drop everything and plan again.
-function guidance.Reset() clear() end
+function guidance.Reset() clear();failure=nil end
 
 local function isMarker(target)
     return target.scope=="current-map-quest-poi" or target.scope=="semantic-objective-area"
@@ -80,8 +84,18 @@ local function begin(graph,view,start,goal,row,live,key)
     setState("calculating","Calculating road route")
 end
 
-local function publish(result,view,key)
-    if result.status~="modeled" then setState(result.status,result.detail);return end
+local function publish(result,view,key,start)
+    if result.status~="modeled" then
+        local detail=result.detail
+        -- A walking path exists in the world; this is a gap in the baked model.
+        if result.status=="no-known-path" then
+            detail="The terrain model has a gap between here and the destination; retrying after you move"
+        end
+        local transient=result.status=="loading" or result.status=="cancelled"
+        failure={key=key,status=result.status,detail=detail,x=start.x,z=start.z,retryAt=transient and now()+RETRY_TRANSIENT or nil}
+        setState(result.status,detail);return
+    end
+    failure=nil
     local handle,why=planner.RoadFollow.Begin(result,function(point) return planner.Roads.Unproject(view,point) end)
     if not handle then setState("invalid",why);return end
     handle.route.meshOnly=result.meshOnly
@@ -128,11 +142,15 @@ function guidance.Step()
     if request and requestKey~=key then request:Cancel();request=nil end
     if not request then
         follower,display=nil,nil
+        if failure and failure.key==key and (failure.retryAt and now()<failure.retryAt
+            or not failure.retryAt and (start.x-failure.x)^2+(start.z-failure.z)^2<RETRY_YARDS^2) then
+            setState(failure.status,failure.detail);return true
+        end
         begin(graph,view,start,{x=goalPoint.x,z=goalPoint.z,height=row.destination.terrainHeight},row,live,key)
         return true
     end
     local result=searchSlice()
-    if result then request=nil;publish(result,view,key) end
+    if result then request=nil;publish(result,view,key,{x=start.x,z=start.z}) end
     return true
 end
 
