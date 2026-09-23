@@ -7,8 +7,12 @@ local MAX_WORK,MAX_ACTIONS,MAX_DEPTH,WIDTH=48000,128,64,16
 local function copyList(values)
     local result={};for _,value in ipairs(values or {}) do result[#result+1]=value end;return result
 end
+local function firstVisible(actions)
+    for _,action in ipairs(actions) do if action.kind~="complete" then return action end end
+end
 local function features(node,initial,policy)
     local state=node.state
+    local first=firstVisible(node.actions)
     local scale=initial.xpMax and math.max(100,initial.xpMax) or 1000
     local progress=(state.xpGained or 0)/scale
     local minutes=math.max(1,(state.elapsed or 0)/60) -- One-minute evaluation floor prevents instant-reward rate spikes.
@@ -48,7 +52,7 @@ local function features(node,initial,policy)
         breadcrumbs=math.min(3,breadcrumbs),discoveries=math.min(3,discoveries),goals=goals,pressure=pressure/math.max(1,pressureExposures),
         challenge=challenge/math.max(1,work),finished=state.finished or 0,work=work,
         conditional=state.conditional==true,unknownXP=state.unknownXP or 0,repetition=math.min(6,repetition),
-        optionalInterest=math.min(3,state.optionalInterest or 0),rewardValue=math.max(-8,math.min(8,rewardValue)),pinned=node.actions[1] and policy.pins[node.actions[1].questID] or false}
+        optionalInterest=math.min(3,state.optionalInterest or 0),rewardValue=math.max(-8,math.min(8,rewardValue)),pinned=first and policy.pins[first.questID] or false}
 end
 function search.Score(node,initial,policy)
     local f=features(node,initial,policy)
@@ -126,7 +130,7 @@ function search.Begin(graph,initial,policy,environment)
         local nextNode={state=state,actions=copyList(node.actions),costs=copyList(node.costs)}
         nextNode.actions[#nextNode.actions+1]=action;nextNode.costs[#nextNode.costs+1]=cost
         nextNode.score,nextNode.features=search.Score(nextNode,initial,policy)
-        nextNode.first=nextNode.actions[1].id
+        nextNode.first=(firstVisible(nextNode.actions) or nextNode.actions[1]).id
         nextNode.key=(node.key or "").."|"..action.id
         metrics.transitions=metrics.transitions+1
         return nextNode
@@ -360,7 +364,7 @@ function search.Begin(graph,initial,policy,environment)
         best=best or relaxed
         local alternatives={}
         for _,node in ipairs(rows) do
-            if node~=best and #alternatives<3 then alternatives[#alternatives+1]={action=node.actions[1],score=node.score,
+            if node~=best and #alternatives<3 then alternatives[#alternatives+1]={action=firstVisible(node.actions) or node.actions[1],score=node.score,
                 seconds=node.state.elapsed,xp=node.state.xpGained,conditional=node.state.conditional,overrun=node.overrun} end
         end
         local output={status=status,metrics=schema.Clone(metrics),limited=limited,revision=graph.revision,generation=initial.generation,

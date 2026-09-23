@@ -174,6 +174,9 @@ return function(check)
             and p.PlanSearch.Score(rateNode,state(),ratePolicy)<slow)
         ratePolicy.pins[1]=true
         check("explicit pin remains dominant",p.PlanSearch.Score(rateNode,state(),ratePolicy)>1000000)
+        rateNode.actions={{kind="complete",questID=1},{kind="turnin",questID=2}}
+        rateNode.costs={{pressure=0},{pressure=0}}
+        check("internal milestone cannot give another quest the pin bonus",p.PlanSearch.Score(rateNode,state(),ratePolicy)<1000000)
         local flavorPlans={
             Efficient={xp=1000,types={"kill"},pressure=.5},
             Balanced={xp=980,types={"kill","talk","explore"},pressure=.5},

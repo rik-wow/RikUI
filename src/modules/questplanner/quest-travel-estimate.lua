@@ -148,7 +148,8 @@ function estimate.Open(raw)
     local graph=buildGraph(src,model)
     local memo,count={},0
     local function query(from,to)
-        if from and to and from.mapID==to.mapID and from.x==to.x and from.y==to.y and from.floor==to.floor then
+        if from and to and schema.ID(from.mapID) and schema.Number(from.x,0,1) and schema.Number(from.y,0,1)
+            and from.mapID==to.mapID and from.x==to.x and from.y==to.y and from.floor==to.floor then
             return {seconds=0,lower=0,upper=0,status="unverified"}
         end
         local a,pa,ka=locate(src,from);local b,pb,kb=locate(src,to)

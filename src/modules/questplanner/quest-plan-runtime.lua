@@ -239,7 +239,8 @@ end
 -- five percentage points of a level/hour, with a stronger arrival commitment.
 function runtime.SelectResult(result,policy,prior)
     if not prior or not prior.actionID then return result,false,"no-incumbent" end
-    local first=result.actions and result.actions[1]
+    local first
+    for _,action in ipairs(result.actions or {}) do if action.kind~="complete" then first=action;break end end
     if first and first.id==prior.actionID then return result,false end
     if result.previousStatus=="completed" or result.previousStatus=="invalid" then
         return result,false,result.previousStatus
@@ -372,7 +373,7 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
     if prior and prior.actionID and model.actionID~=prior.actionID then
         model.change="Plan updated for "..policy.flavor.." and current quest state"
     end
-    model.score=result.score;model.estimate={seconds=result.seconds,upper=result.upperSeconds,xp=result.xp,
+    model.score=result.score or (raw.decisionKind=="continuity" and prior and prior.score);model.estimate={seconds=result.seconds,upper=result.upperSeconds,xp=result.xp,
         unknownXP=result.unknownXP,unknownCombatXP=result.unknownCombatXP,conditional=result.conditional,efficiencyCost=result.efficiencyCost,
         stoppingPoint=result.stoppingPoint}
     model.assumptions=result.assumptions;model.excluded=result.excluded

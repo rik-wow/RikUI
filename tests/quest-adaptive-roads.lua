@@ -12,7 +12,7 @@ local modules={"schema","objectives","transfer","nav-geometry","nav-funnel","nav
     "steps","step-bindings","guide-data","observed-steps","hunts","targets",
     "optimizer","area-optimizer","semantic-data","semantic-guidance","recommendations","guidance",
     "preferences","plan-state","plan-graph","plan-transitions","plan-learning","plan-costs","plan-search",
-    "bag-scan","plan-services","plan-rewards","plan-travel","plan-context","plan-runtime","controller","terrain"}
+    "bag-scan","plan-services","plan-rewards","plan-travel","plan-context","travel-estimate","plan-runtime","controller","terrain"}
 for _,name in ipairs(modules) do dofile("src/modules/questplanner/quest-"..name..".lua") end
 local p=RikUI.QuestPlanner
 local file=assert(io.open(assert(arg[2]),"rb"));local wire=file:read(131073);file:close()
@@ -107,6 +107,19 @@ if churn then
     os.exit(0)
 end
 assert(p.Controller.Peek().adaptive,"ordinary controller did not use adaptive planner")
+if not p.Controller.Peek().selected or p.Controller.Peek().selected.questID~=questID then
+    local evidence=p.PlanRuntime.ReplaySearch()
+    print("PIN DIAGNOSTIC",questID,"pin",tostring(p.Controller.Policy().pins[questID]),
+        "active",tostring(evidence and evidence.state.active[questID]),"completed",tostring(evidence and evidence.state.completed[questID]))
+    for _,action in ipairs(evidence and evidence.graph.actions or {}) do
+        if action.questID==questID then
+            local valid,reason=p.PlanTransitions.Check(action,evidence.state,evidence.constraints)
+            print("PIN ACTION",action.id,tostring(valid),tostring(reason),tostring(evidence.excluded[action.id]))
+        end
+    end
+end
+assert(p.Controller.Peek().selected and p.Controller.Peek().selected.questID==questID,
+    "explicit quest pin lost before walk: "..tostring(p.Controller.Peek().actionID))
 local decision=assert(p.PlanRuntime.Replay(),"current displayed decision has no evidence")
 local packet=assert(p.Transfer.EncodePlan(decision))
 local replay=p.PlanRuntime.RerunReplay(assert(p.Transfer.DecodePlan(packet)),{searchRevision=p.PlanSearch.REVISION,
@@ -145,5 +158,6 @@ print(string.format("ROADS WALK %s quest%d: walked %.1f yd in %d ticks; arrived 
     flavor,p.Controller.Peek().selected and p.Controller.Peek().selected.questID or 0,walked,ticks,tostring(arrived),
     after.plans-before.plans,after.published-before.published,after.replans-before.replans))
 assert(arrived,"walk did not reach the end of the road route")
+assert(p.Controller.Peek().selected.questID==questID,"explicit quest pin lost during walk")
 assert(after.replans==before.replans,"walking along the route triggered off-route replans")
 print("ROADS_ADAPTIVE_OK")
