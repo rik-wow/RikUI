@@ -43,7 +43,9 @@ local function currentIdentity(expected)
     if localeStatus.state~="observed" or not text(locale,4) or not locale:match("^[a-z][a-z][A-Z][A-Z]$") then
         return nil,"locale unavailable"
     end
-    local identity={product="forever",build=version.."."..build,locale=locale}
+    local full=version.."."..build
+    if planner.Builds then full=planner.Builds.DataBuild(full) end
+    local identity={product="forever",build=full,locale=locale}
     if expected.product~=identity.product or expected.build~=identity.build or expected.locale~=identity.locale then
         return nil,"gossip identity mismatch"
     end

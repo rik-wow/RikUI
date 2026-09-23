@@ -121,9 +121,12 @@ function extras:OnEnable()
     hook("ExtraActionBarFrame", function(frame) skinButton(frame.button) end)
     hook("SpellFlyout", flyout)
     local zone = hook("ZoneAbilityFrame", zoneAbilities)
-    -- The pool hands out buttons on every update, which can come after the frame's show.
-    if zone and type(zone.UpdateDisplayedZoneAbilities) == "function" then
-        hooksecurefunc(zone, "UpdateDisplayedZoneAbilities", zoneAbilities)
+    -- The pool hands out buttons on every update, which can come after the frame's show. The frame's
+    -- methods are not hooked (on 1.60.1.69977 that left UpdateDisplayedZoneAbilities nil for
+    -- Blizzard's updater); the container's show and spell changes re-skin instead.
+    if zone and skin.IsRegion(zone.SpellButtonContainer) then
+        zone.SpellButtonContainer:HookScript("OnShow", function() zoneAbilities(zone) end)
+        core:RegisterEvent("SPELLS_CHANGED", function() if zone:IsShown() then zoneAbilities(zone) end end, extras)
     end
 end
 

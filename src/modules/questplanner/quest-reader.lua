@@ -20,7 +20,9 @@ local function identity()
     if not localized or not schema.Text(locale) or not locale:match("^[a-z][a-z][A-Z][A-Z]$") then
         return nil, "client locale unavailable"
     end
-    return { product = "forever", build = version .. "." .. build, locale = locale }
+    local full, builds = version .. "." .. build, planner.Builds
+    if builds then builds.Observe(full); full = builds.DataBuild(full) end
+    return { product = "forever", build = full, locale = locale }
 end
 
 local function counts(api)

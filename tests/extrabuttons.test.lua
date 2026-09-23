@@ -83,9 +83,8 @@ return function(check)
             zone.Style.alpha == 0 and first.normal.alpha == 0 and first.Icon.coords[1] > 0
             and module.Edges[first][1].color[1] == 0.9)
         local second = button(zone.SpellButtonContainer, "Icon")
-        zone:UpdateDisplayedZoneAbilities()
-        check("a button the pool hands out later is skinned after Blizzard's update", zone.updates == 1
-            and module.Edges[second] ~= nil)
+        env.runScript(zone.SpellButtonContainer, "OnShow")
+        check("a button the pool hands out later is skinned when its container shows", module.Edges[second] ~= nil)
 
         local flyout = SpellFlyout
         local spell = button(flyout, "icon")

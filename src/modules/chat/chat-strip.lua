@@ -79,12 +79,15 @@ local function selectedWindow()
     return _G[MAIN]
 end
 
+local onHeader
+
 local function switch(entry, frame)
     local ok, box = pcall(ChatFrameUtil.OpenChat, nil, frame)
     if not ok or not chat.IsFrame(box) then return chat.Warn("strip", ok and "no edit box" or box) end
     box:SetChatType(entry.key)
     if entry.target then box:SetChannelTarget(entry.target) end
     box:UpdateHeader()
+    onHeader(box)
 end
 
 local function onClick(button)
@@ -160,18 +163,23 @@ local function paint(box, animate)
     chat.PaintEditBox(box, { info.r, info.g, info.b }, key, animate)
 end
 
-local function onHeader(box)
+function onHeader(box)
     activeBox = box
     paint(box, true)
     markActive()
 end
 
+-- The edit box's methods are not hooked: on 1.60.1.69977 hooking UpdateHeader on the box left it
+-- nil for Blizzard's own callers. Script hooks see every channel change a player can make: the
+-- box shows or gains focus when chat opens, and its text changes when a slash command switches.
 local function hookBox(frame)
     local box = frame.editBox
-    if hooked[box] or not chat.IsFrame(box) or type(box.UpdateHeader) ~= "function" then return end
+    if hooked[box] or not chat.IsFrame(box) or type(box.HookScript) ~= "function" then return end
     hooked[box] = true
     chat.DressEditBox(box)
-    hooksecurefunc(box, "UpdateHeader", onHeader)
+    for _, script in ipairs({ "OnShow", "OnEditFocusGained", "OnTextChanged" }) do
+        box:HookScript(script, function(self) onHeader(self) end)
+    end
     paint(box, false)
 end
 

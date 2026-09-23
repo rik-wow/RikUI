@@ -86,6 +86,7 @@ src/modules/mirrortimers/mirrortimers.lua
 src/modules/swingtimer/swingtimer.lua
 src/modules/durability/durability.lua
 src/modules/questplanner/quest-schema.lua
+src/modules/questplanner/quest-builds.lua
 src/modules/questplanner/quest-terrain-packs.lua
 src/modules/questplanner/quest-objectives.lua
 src/modules/questplanner/quest-evidence.lua
