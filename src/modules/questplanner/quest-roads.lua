@@ -35,23 +35,28 @@ function roads.InstallIndex(raw)
     local value=schema.CopyLimited(raw,COPY_NODES,COPY_BYTES,COPY_DEPTH)
     if not value or value.format~=INDEX_FORMAT or not schema.Identity(value.identity)
         or not schema.List(value.worlds,64) then return nil,"invalid road index" end
+    local nextIndex={byMap={},worlds={}}
     for _,world in ipairs(value.worlds) do
         if not schema.Integer(world.worldMapID,0,100000) or not hash(world.revision)
             or type(world.addon)~="string" or not schema.List(world.views,256) then return nil,"invalid road index world" end
         world.identity=value.identity
-        index.worlds[world.worldMapID]=world
+        nextIndex.worlds[world.worldMapID]=world
         for _,view in ipairs(world.views) do
             if not validView(view) then return nil,"invalid road view" end
-            local list=index.byMap[view.uiMapID] or {};index.byMap[view.uiMapID]=list
+            local list=nextIndex.byMap[view.uiMapID] or {};nextIndex.byMap[view.uiMapID]=list
             list[#list+1]={world=world.worldMapID,view=view}
         end
     end
-    if value.travel~=nil and planner.RoadTravel then
-        local ok,why=planner.RoadTravel.Install(value.travel)
+    if planner.RoadTravel then
+        local ok,why=planner.RoadTravel.Install(value.travel or {stops={},links={}})
         if not ok then return nil,why end
     end
+    index=nextIndex
     return true
 end
+
+-- Read-only source handle: replacement changes identity, catalog/page loads do not.
+function roads.EstimateIndex() return index end
 
 function roads.Install(raw)
     local value=schema.CopyLimited(raw,COPY_NODES,COPY_BYTES,COPY_DEPTH)
@@ -72,9 +77,9 @@ end
 
 -- Map position -> world and navigation point. Views covering the same map
 -- (continent maps) are disambiguated by their valid UI rectangle.
-function roads.Locate(mapID,x,y)
+function roads.Locate(mapID,x,y,source)
     if not schema.ID(mapID) or not schema.Number(x,0,1) or not schema.Number(y,0,1) then return nil end
-    for _,row in ipairs(index.byMap[mapID] or {}) do
+    for _,row in ipairs((source or index).byMap[mapID] or {}) do
         local r,p=row.view.validUIRectangle,row.view.projection
         if x>=r[1] and x<=r[3] and y>=r[2] and y<=r[4] then
             return row.world,{x=p.originY-x*p.width,z=p.originX-y*p.height},row.view

@@ -114,12 +114,17 @@ function runtime.Begin(snapshot,status,ctx,records,observed,policy)
     if frame and frame.position and frame.width and frame.height then
         environment.mapSizes[frame.position.mapID]={frame.width,frame.height}
     end
+    if planner.TravelEstimate then
+        environment.travelModel=planner.TravelEstimate.Capture(state,environment.mapSizes)
+        environment.travel=assert(planner.TravelEstimate.Open(environment.travelModel))
+    end
+    local replayEnvironment={mapSizes=environment.mapSizes,previousID=previousID,travelModel=environment.travelModel}
     -- Strategic costs never publish a walking route. The terrain follower owns continuous navigation.
     local function annotate(result)
         if not result then return end
         result.adaptive=true;result.stateKey=planner.PlanState.Key(state)
         result.replayGraph=graph and {version=graph.version,status=graph.status,identity=graph.identity,revision=graph.revision,coverage=graph.coverage,actions=graph.actions}
-        result.replayState=state;result.replayEnvironment=environment;result.replayLearning=replayLearning;result.candidateIDs={}
+        result.replayState=state;result.replayEnvironment=replayEnvironment;result.replayLearning=replayLearning;result.candidateIDs={}
         for _,action in ipairs(graph and graph.actions or {}) do result.candidateIDs[#result.candidateIDs+1]=action.id end
         return result
     end
@@ -381,7 +386,13 @@ local function searchBoundary(t,graph)
     local target=t.searchWork
     if not schema.Integer(target,0,48000) or (t.searchStatus~="ready" and t.searchStatus~="refining")
         or not schema.PlainTable(t.metrics) or t.metrics.work~=target then return nil,"invalid_search_boundary" end
-    local job=planner.PlanSearch.Begin(graph,t.state,t.constraints,t.environment)
+    local environment=schema.Clone(t.environment)
+    if environment.travelModel then
+        if not planner.TravelEstimate then return nil,"source_mismatch" end
+        local why;environment.travel,why=planner.TravelEstimate.Open(environment.travelModel)
+        if not environment.travel then return nil,why end
+    end
+    local job=planner.PlanSearch.Begin(graph,t.state,t.constraints,environment)
     if not job then return nil,"search_construction_failed" end
     local result
     for _=1,target do

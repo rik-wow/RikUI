@@ -47,7 +47,7 @@ return function(check)
         GetFactionInfoByID=function() return "Faction","description",3,-3000,0,-1000 end
         for _,name in ipairs({"schema","objectives","optimizer","area-optimizer","context","steps","step-bindings",
             "observed-steps","semantic-data","semantic-guidance","recommendations","guidance","preferences","plan-state","plan-graph",
-            "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-travel","plan-context","plan-xp","plan-observer","plan-runtime","controller","plan-controls","view","commands"}) do
+            "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-travel","plan-context","plan-xp","plan-observer","roads","road-travel","travel-estimate","plan-runtime","controller","plan-controls","view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         local p=RikUI.QuestPlanner
@@ -183,7 +183,10 @@ return function(check)
         check("R20 imported production trace exactly reexecutes",rerun.status=="match",rerun.reason or rerun.phase)
         check("R20 repeat deterministic and live learning unchanged",same(rerun,p.PlanRuntime.RerunReplay(replay,source))
             and same(liveLearning,p.PlanLearning.Export()) and replay.state.fresh==false)
-        local wrong=p.Schema.Clone(replay);wrong.source.corpusRevision="stale"
+        check("R20 travel model is captured without function",replay.environment.travelModel and replay.environment.travel==nil)
+        local wrong=p.Schema.Clone(replay);wrong.environment.travelModel.indexRevision="changed"
+        check("R20 changed travel index rejects replay",p.PlanRuntime.RerunReplay(wrong,source).reason=="source_mismatch")
+        wrong=p.Schema.Clone(replay);wrong.source.corpusRevision="stale"
         check("R20 stale source rejected",p.PlanRuntime.RerunReplay(wrong,source).reason=="source_mismatch")
         wrong=p.Schema.Clone(replay);wrong.searchActions={}
         local mismatch=p.PlanRuntime.RerunReplay(wrong,source)

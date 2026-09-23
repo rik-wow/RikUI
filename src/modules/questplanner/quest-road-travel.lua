@@ -48,6 +48,8 @@ function travel.Install(raw)
 end
 
 function travel.Stop(id) return stops[id] end
+-- Validated immutable handles for strategic estimation; replaced on Install.
+function travel.EstimateSource() return stops,links end
 function travel.OnEvent(event)
     if event=="TAXIMAP_OPENED" or event=="TAXIMAP_CLOSED" or event=="PLAYER_ENTERING_WORLD" then knownAt=nil end
 end
@@ -89,6 +91,8 @@ local function usable(link,faction,flights)
     for _,side in ipairs(link.factions or {}) do if side==faction then return true end end
     return false
 end
+
+travel.Usable=usable
 
 -- Min-heap of {cost,key}.
 local function push(heap,cost,key)
