@@ -2,7 +2,7 @@
 local unitframes, motion = RikUI.UnitFrames, RikUI.Motion
 local effects = {}
 unitframes.Motion = effects
-local FADE_SECONDS, FLASH_SECONDS, FLASH_ALPHA = 0.15, 0.25, 0.5
+local FADE_SECONDS = 0.15
 local PULSE_SECONDS, PULSE_LOW = 0.6, 0.35
 
 function effects.Reset(frame, keepFade)
@@ -14,7 +14,7 @@ function effects.Reset(frame, keepFade)
         motion.Stop(art.range)
         art.rangeTarget = nil
     end
-    motion.Stop(art.flash)
+    motion.StopHealthFeedback(art.feedback)
     for _, pulse in ipairs(art.pulses) do motion.Stop(pulse) end
     art.threatActive = false
 end
@@ -34,8 +34,9 @@ function effects.Threat(frame, active)
     end
 end
 
-function effects.HealthChanged(frame, filled, succeeded)
-    if frame.motion and filled and succeeded and frame:IsShown() then motion.Play(frame.motion.flash) end
+function effects.CombatFeedback(frame, event)
+    if not frame.motion or not frame.health.motionFilled or not frame:IsShown() then return end
+    motion.PlayHealthFeedback(frame.motion.feedback, event)
 end
 
 local function onShow(frame)
@@ -83,11 +84,8 @@ function effects.Attach(frame, updateStatus)
     frame.motion = art
     frame.health.motionEnabled, frame.power.motionEnabled = true, true
     art.fade = motion.Tween(frame.presence or frame, 0, 1, FADE_SECONDS)
-    local flash = frame.health:CreateTexture(nil, "OVERLAY")
-    flash:SetAllPoints(frame.health)
-    flash:SetColorTexture(1, 1, 1, 1)
-    flash:SetAlpha(0)
-    art.flash = motion.Tween(flash, FLASH_ALPHA, 0, FLASH_SECONDS)
+    art.feedback = motion.HealthFeedback(frame.health)
+    art.flash, art.heal = art.feedback.damage.group, art.feedback.heal.group
     for _, line in ipairs(frame.threat) do
         local pulse = motion.Pulse(line, 1, PULSE_LOW, PULSE_SECONDS)
         if pulse then art.pulses[#art.pulses + 1] = pulse end

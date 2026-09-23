@@ -14,7 +14,7 @@ local AURA_GROUP, AURA_FILTER = "owndebuffs", "HARMFUL|PLAYER"
 local FLOW = { anchor = "BOTTOMLEFT", horizontal = "Right", vertical = "Up", lineSize = AURA_LINE }
 local OUTLINE = { { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" }, { "TOPLEFT", "BOTTOMLEFT" },
     { "TOPRIGHT", "BOTTOMRIGHT" } }
-local UNIT_EVENTS = { UNIT_HEALTH = "Damaged", UNIT_MAXHEALTH = "Health", UNIT_FACTION = "Color",
+local UNIT_EVENTS = { UNIT_HEALTH = "Health", UNIT_COMBAT = "CombatFeedback", UNIT_MAXHEALTH = "Health", UNIT_FACTION = "Color",
     UNIT_NAME_UPDATE = "Color", UNIT_CLASSIFICATION_CHANGED = "Marker" }
 local containerCount, containerUnavailable = 0, false
 nameplates.Flat = FLAT
@@ -170,6 +170,7 @@ function nameplates.Removed(_, unit)
     if core.Secret.IsSecret(unit) then return end
     local frame = nameplates.Active[unit]
     nameplates.Active[unit] = nil
+    if frame then nameplates.Skin.StopFeedback(frame) end
     local container = frame and nameplates.Containers[frame]
     if container then container:Hide() end
 end
@@ -181,10 +182,10 @@ function nameplates.LeftCombat()
     end
 end
 
-local function unitEvent(event, unit)
+local function unitEvent(event, unit, action)
     if core.Secret.IsSecret(unit) or type(unit) ~= "string" then return end
     local frame = nameplates.Active[unit]
-    if frame then nameplates.Skin[UNIT_EVENTS[event]](frame, unit) end
+    if frame then nameplates.Skin[UNIT_EVENTS[event]](frame, unit, action) end
 end
 
 function nameplates:OnEnable()

@@ -49,11 +49,20 @@ events reset that first-fill state, so a new unit does not animate from the
 previous unit's values. A failed read clears the bar immediately, and its
 first successful recovery fill is immediate too.
 
-A visible frame fades in over 0.15 seconds. A successful `UNIT_HEALTH`
-update after the first fill plays a white flash over 0.25 seconds. This is an
-event cue, not a comparison: healing and damage both flash, and a repeated
-health event can flash even if its value did not change. Maximum-health
-events, power changes and the ToT's periodic refresh do not flash.
+A visible frame fades in over 0.15 seconds. Damage and healing have distinct
+feedback on player, target, target-of-target, pet, focus, party and raid frames:
+a readable `UNIT_COMBAT` `WOUND` action plays a sharp red flash (0.18 seconds,
+0.5 starting opacity); `HEAL` plays a softer green glow (0.4 seconds, 0.28
+starting opacity). Each cancels the other so rapid alternation stays distinct.
+The style is shared with custom nameplates through `RikUI.Motion`.
+
+`UNIT_HEALTH` only updates the eased fill. It carries no direction, so it
+never implies damage. Passive regeneration and any update without a readable
+classified combat event simply move the bar. Secret or unknown combat action
+and unit tokens are ignored; health and combat amounts are never compared.
+These cues indicate a reported damage/heal event, not a measured net health
+delta or proof that a heal increased health. Hidden, replaced and newly
+initialized frames cannot retain an old cue.
 
 The readable threat border pulses between full and 0.35 opacity every 0.6
 seconds. Repeated threat refreshes keep the running pulse. Secret, absent or
@@ -249,12 +258,12 @@ line per operation.
 
 `tests/unitframes.test.lua` and its `unitframes_motion_checks.lua` fixture
 exercise immediate first fills, eased updates, unchanged secret-value sinks,
-event-only flashes, hide/show cleanup, replacement/show event ordering,
+classified healing/damage cues, hide/show cleanup, replacement/show event ordering,
 reader failures and recovery, threat pulse transitions and missing APIs.
 Existing secure click, tooltip, layout, event filtering, combat-update,
 combat-login, disabled-module and stock-parking checks remain in place.
 Party/raid fixtures share `group_motion_checks.lua` and a deterministic animation
-double. They cover immediate/eased fills, flashes, range tween reuse and secret
+double. They cover immediate/eased fills, separate heal/damage cues, range tween reuse and secret
 fallback, departure/rejoin races, roster removal before secure hide, combat
 callbacks and missing-animation fallbacks. Architecture checks enforce the
 helper's manifest dependencies.

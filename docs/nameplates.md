@@ -41,7 +41,10 @@ plates exist is still up to the `nameplateShowEnemies` and
 
 - Health eases to its new value (`ExponentialEaseOut`). A pooled plate's first
   fill is immediate so it does not sweep from the previous unit's health.
-- A health change flashes the bar white for a quarter of a second.
+- Readable `UNIT_COMBAT` damage (`WOUND`) gives a short red flash (0.18s);
+  healing (`HEAL`) gives a softer green glow (0.4s). Each cancels the other.
+  The shared style matches every RikUI unit frame. Unclassified health updates,
+  including passive regeneration, only move the bar.
 - A plate fades in over 0.15s when it appears.
 - The arrows fade in when you select a plate and the accent line pulses while
   it stays selected. The plate's growth and the dimming of the others are
@@ -58,7 +61,10 @@ combat is not dependable. Nothing here reads or compares either.
   `UnitHealth` and `UnitHealthMax` go straight into `SetMinMaxValues` and
   `SetValue(value, easing)`, the same reader-to-sink route the RikUI unit
   frames use. Blizzard's fill texture is faded to alpha zero. The flash is
-  triggered by the `UNIT_HEALTH` event, never by a value.
+  selected by a readable `UNIT_COMBAT` action, never by comparing health or
+  combat amounts. `UNIT_HEALTH` alone cannot identify damage or healing. Secret
+  combat action/unit tokens and unknown actions produce no guessed cue. A heal
+  cue means a reported heal event, not a measured net increase.
 - Percent text. It is Blizzard's own health text, which already works with
   secret values. The module switches it on with the `CurrentHealthPercent`
   bit of `nameplateInfoDisplay` and moves the font strings onto the own bar.
@@ -155,8 +161,8 @@ originals saved; the own bar, faded fill, 14px height and pixel backing;
 secret health reaching the bar with an immediate first fill; bar colour; the
 name centred in a plaque as wide as the bar and level box that follows the
 name's shown state; the centred percent texts; the elite marker, a classification change and
-a secret classification; the fade-in; the level box; eased health with a flash
-on `UNIT_HEALTH` and none on `UNIT_MAXHEALTH`; other and secret tokens
+a secret classification; the fade-in; the level box; eased health without an ambiguous flash;
+separate green healing/red damage cues, cancellation and pooled cleanup; other and secret tokens
 ignored; arrows, accent line and pulse following `selectedBorder` without
 restarting on a repeat; their anchors; the blanked flare and the threat line
 following `aggroHighlight`; the flat cast bar with its fill untouched; the

@@ -166,7 +166,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes, profile.modules.auras, profile.modules.unitauras = false, false, false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua", "src/modules/nameplates/nameplates.lua",
             "src/modules/nameplates/nameplates-skin.lua", "src/modules/nameplates/nameplates-target.lua" }) do
             assert(loadfile(file))("RikUI", {})
@@ -230,13 +230,26 @@ return function(check)
             and level.playerLevelDiffText.points[1][2] == parts.levelBox)
 
         env.fire("UNIT_HEALTH", "nameplate1")
-        check("a health event eases the bar and flashes it", own.easing == Enum.StatusBarInterpolation.ExponentialEaseOut
-            and own.flashAnim.plays == 1 and own.flash.alpha == 0)
+        check("a health event eases without guessing damage", own.easing == Enum.StatusBarInterpolation.ExponentialEaseOut
+            and own.flashAnim.plays == 0 and own.flash.alpha == 0)
         env.fire("UNIT_MAXHEALTH", "nameplate1")
-        check("a maximum health event refills without a flash", own.flashAnim.plays == 1)
+        check("a maximum health event refills without a flash", own.flashAnim.plays == 0)
         env.fire("UNIT_HEALTH", "nameplate9")
         env.fire("UNIT_HEALTH", env.SECRET)
-        check("health events for other or secret tokens are ignored", own.flashAnim.plays == 1 and #env.printed == 0)
+        check("health events for other or secret tokens are ignored", own.flashAnim.plays == 0 and #env.printed == 0)
+        env.fire("UNIT_COMBAT", "nameplate1", "HEAL", "", env.SECRET)
+        check("nameplate healing uses a separate green glow", own.feedback and own.feedback.heal.group.playing
+            and own.feedback.heal.region.color[2] > own.feedback.heal.region.color[1])
+        env.fire("UNIT_COMBAT", "nameplate1", "WOUND", "", env.SECRET)
+        check("nameplate damage cancels healing and flashes red", own.flashAnim.playing and own.feedback
+            and not own.feedback.heal.group.playing
+            and own.feedback.damage.region.color[1] > own.feedback.damage.region.color[2])
+        local damagePlays = own.flashAnim.plays
+        env.fire("UNIT_COMBAT", env.SECRET, "WOUND")
+        env.fire("UNIT_COMBAT", "nameplate1", env.SECRET)
+        env.fire("UNIT_COMBAT", "nameplate9", "WOUND")
+        env.fire("UNIT_COMBAT", "nameplate1", "DODGE")
+        check("unclassified nameplate combat never guesses direction", own.flashAnim.plays == damagePlays)
         stub.classification = "rare"
         env.fire("UNIT_CLASSIFICATION_CHANGED", "nameplate1")
         check("a classification change updates the marker", own.marker.rikIcon == "diamond")
@@ -297,6 +310,8 @@ return function(check)
         check("and hidden again when Blizzard's aura display update shows it", stockList:IsShown() == false)
         local hooks, updates = #env.hooks, container.updates
         env.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
+        check("removed plate stops both feedback cues", own.feedback and not own.feedback.damage.group.playing
+            and not own.feedback.heal.group.playing)
         check("a removed plate hides its container", container:IsShown() == false and module.Active.nameplate1 == nil)
         stub.plates.nameplate7, stub.plates.nameplate1 = first, nil
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate7")

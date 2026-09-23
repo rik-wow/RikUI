@@ -13,11 +13,11 @@ nameplates.Skin = skin
 local isRegion, font, flat = nameplates.IsRegion, nameplates.Font, nameplates.Flat
 local BAR_HEIGHT, LEVEL_GAP, MARKER_GAP = 14, 2, 16
 local PLAQUE_HEIGHT, PLAQUE_PAD_X = 13, 4
-local BACKING, LINE, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1, 1 }
+local BACKING, LINE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }
 local LEVEL_ART = { "playerLevelDiffIcon", "selectedBorder" }
 local CAST_ART = { "Border", "BorderShield" }
 local ICON_CROP = 0.08
-local FADE_SECONDS, FLASH_SECONDS, FLASH_ALPHA = 0.15, 0.25, 0.5
+local FADE_SECONDS = 0.15
 -- Camelot switches Blizzard's classification art off; these icons take its place: a gold star for an
 -- elite, a red skull for a world boss, a silver diamond for a rare and a silver star for a rare elite.
 local MARKERS = { elite = { "star", { 1, 0.82, 0 } }, worldboss = { "skull", { 1, 0.3, 0.2 } },
@@ -59,10 +59,8 @@ local function createOverlay(bar)
     local own = CreateFrame("StatusBar", nil, bar)
     own:SetAllPoints(bar)
     own:SetStatusBarTexture(media.statusbar)
-    own.flash = nameplates.Block(own, "OVERLAY", WHITE)
-    own.flash:SetAllPoints(own)
-    own.flash:SetAlpha(0)
-    own.flashAnim = tween(own.flash, FLASH_ALPHA, 0, FLASH_SECONDS)
+    own.feedback = core.Motion.HealthFeedback(own)
+    own.flash, own.flashAnim = own.feedback.damage.region, own.feedback.damage.group
     own.marker = core.Media.Icon(own, "star", MARKER_SIZE, "OVERLAY")
     own.marker:SetPoint("RIGHT", own, "LEFT", -MARKER_GAP, 0)
     own.marker:Hide()
@@ -229,12 +227,16 @@ function skin.Health(frame, unit)
     if parts then feed(parts, unit, interpolation("ExponentialEaseOut")) end
 end
 
--- UNIT_HEALTH is the trigger; the value itself is never looked at.
-function skin.Damaged(frame, unit)
+-- Health fills are independent of the readable combat action that selects a cue.
+function skin.CombatFeedback(frame, unit, event)
     local parts = nameplates.Parts[frame]
-    if not parts then return end
-    feed(parts, unit, interpolation("ExponentialEaseOut"))
-    play(parts.bar.flashAnim)
+    if not parts or not frame:IsShown() then return end
+    core.Motion.PlayHealthFeedback(parts.bar.feedback, event)
+end
+
+function skin.StopFeedback(frame)
+    local parts = nameplates.Parts[frame]
+    if parts then core.Motion.StopHealthFeedback(parts.bar.feedback) end
 end
 
 function skin.Color(frame, unit)
@@ -261,6 +263,7 @@ end
 function skin.SetUnit(frame, unit)
     local parts = nameplates.Parts[frame]
     if not parts then return end
+    skin.StopFeedback(frame)
     feed(parts, unit, interpolation("Immediate"))
     skin.Color(frame, unit)
     skin.Marker(frame, unit)

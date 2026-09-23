@@ -8,10 +8,17 @@ return function(check, env, module, group, units, prefix)
         and one.presence.template == nil and one.presentation.owner == one.presence
         and one.health.owner == one.presentation and one.presence.mouseEnabled == false)
     env.fire("UNIT_HEALTH", one.unit)
-    check(prefix .. " secret fill eases and flashes", one.health.value == env.SECRET
-        and one.health.easing == 2 and art.flash.plays == 1)
+    check(prefix .. " secret fill eases without a guessed damage cue", one.health.value == env.SECRET
+        and one.health.easing == 2 and art.flash.plays == 0)
     env.fire("UNIT_POWER_UPDATE", one.unit)
-    check(prefix .. " power eases without flashing", one.power.easing == 2 and art.flash.plays == 1)
+    check(prefix .. " power eases without flashing", one.power.easing == 2 and art.flash.plays == 0)
+    env.fire("UNIT_COMBAT", one.unit, "HEAL", "", env.SECRET)
+    check(prefix .. " healing has its own glow", art.heal and art.heal.playing and not art.flash.playing)
+    env.fire("UNIT_COMBAT", one.unit, "WOUND", "", env.SECRET)
+    check(prefix .. " damage cancels healing", art.flash.playing and art.heal and not art.heal.playing)
+    env.fire("UNIT_COMBAT", two.unit, "HEAL", "", env.SECRET)
+    check(prefix .. " feedback targets only its member", art.heal and not art.heal.playing
+        and two.motion.heal and two.motion.heal.playing)
     local range = two.motion.range
     check(prefix .. " initial range target is direct", two.presentation.alpha == group.FadeAlpha)
     units[two.unit].inRange = true

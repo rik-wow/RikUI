@@ -49,3 +49,36 @@ function motion.Play(group)
     group:Stop()
     group:Play()
 end
+
+-- Typed combat feedback never inspects a health value or combat amount.
+local HEALTH_FEEDBACK = {
+    damage = { color = { 1, 0.18, 0.12 }, alpha = 0.5, seconds = 0.18 },
+    heal = { color = { 0.2, 1, 0.45 }, alpha = 0.28, seconds = 0.4 },
+}
+
+function motion.HealthFeedback(owner)
+    local feedback = {}
+    for key, style in pairs(HEALTH_FEEDBACK) do
+        local region = owner:CreateTexture(nil, "OVERLAY")
+        region:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+        region:SetVertexColor(unpack(style.color))
+        region:SetAllPoints(owner)
+        region:SetAlpha(0)
+        feedback[key] = { region = region, group = motion.Tween(region, style.alpha, 0, style.seconds) }
+    end
+    return feedback
+end
+
+function motion.StopHealthFeedback(feedback)
+    if not feedback then return end
+    motion.Stop(feedback.damage.group)
+    motion.Stop(feedback.heal.group)
+end
+
+function motion.PlayHealthFeedback(feedback, event)
+    if not feedback or RikUI.Secret.IsSecret(event) or type(event) ~= "string" then return end
+    local key = event == "WOUND" and "damage" or event == "HEAL" and "heal"
+    if not key then return end
+    motion.StopHealthFeedback(feedback)
+    motion.Play(feedback[key].group)
+end

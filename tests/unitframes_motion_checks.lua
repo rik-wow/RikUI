@@ -11,13 +11,13 @@ return function(check, env, module, units)
     module.UpdateThreat(target)
     check("repeated threat refresh does not restart pulse", pulse.plays == 1)
     env.fire("UNIT_HEALTH", "target")
-    check("health event eases secret values untouched and flashes", target.health.value == env.SECRET
-        and target.health.easing == 2 and art.flash.plays == 1)
+    check("health event eases secret values without guessing damage", target.health.value == env.SECRET
+        and target.health.easing == 2 and art.flash.plays == 0)
     env.fire("UNIT_POWER_UPDATE", "target")
-    check("power update eases without a health flash", target.power.easing == 2 and art.flash.plays == 1)
+    check("power update eases without a health flash", target.power.easing == 2 and art.flash.plays == 0)
     env.fire("UNIT_MAXHEALTH", "target")
     module.Refresh("target")
-    check("maximum and full refresh do not flash", art.flash.plays == 1)
+    check("maximum and full refresh do not flash", art.flash.plays == 0)
     env.fire("PLAYER_TARGET_CHANGED")
     check("new target starts immediately without carrying its old flash", target.health.easing == 0
         and target.power.easing == 0 and not art.flash.playing and tot.health.easing == 0)
@@ -48,7 +48,7 @@ return function(check, env, module, units)
     units.target.threat = 3
     module.UpdateThreat(target)
     env.fire("UNIT_HEALTH", env.SECRET)
-    check("secret event token safely refreshes and flashes all initialized frames", art.flash.plays == flashCount + 1)
+    check("secret health token refreshes without inventing feedback", art.flash.plays == flashCount)
     env.fire("UNIT_TARGET", "target")
     check("ToT replacement resets easing", tot.health.easing == 0)
     local totFlashes = tot.motion.flash.plays
@@ -57,6 +57,34 @@ return function(check, env, module, units)
     env.fire("UNIT_PET", "player")
     env.fire("PLAYER_FOCUS_CHANGED")
     check("pet and focus replacement reset easing", pet.health.easing == 0 and frames.focus.health.easing == 0)
+
+    -- All five solo frames use the same typed feedback, even with opaque health.
+    for _, frame in pairs(frames) do
+        local effects = frame.motion
+        env.fire("UNIT_COMBAT", frame.unit, "HEAL", "", env.SECRET, env.SECRET)
+        check(frame.key .. " healing uses the green glow", effects.heal and effects.heal.playing
+            and effects.feedback.heal.region.color[2] > effects.feedback.heal.region.color[1])
+        env.fire("UNIT_COMBAT", frame.unit, "WOUND", "", env.SECRET, env.SECRET)
+        check(frame.key .. " damage replaces healing with the red flash", effects.flash.playing
+            and effects.heal and not effects.heal.playing
+            and effects.feedback.damage.region.color[1] > effects.feedback.damage.region.color[2])
+    end
+    check("healing is softer and slower than damage", art.heal and art.heal.alpha.Duration > art.flash.alpha.Duration
+        and art.heal.alpha.FromAlpha < art.flash.alpha.FromAlpha)
+    local damagePlays, healPlays = art.flash.plays, art.heal and art.heal.plays
+    env.fire("UNIT_COMBAT", env.SECRET, "WOUND")
+    env.fire("UNIT_COMBAT", "target", env.SECRET)
+    env.fire("UNIT_COMBAT", "target", "BLOCK")
+    check("unknown combat feedback is never broadcast or guessed", art.flash.plays == damagePlays
+        and art.heal and art.heal.plays == healPlays)
+    target:Hide()
+    env.fire("UNIT_COMBAT", "target", "HEAL")
+    check("hidden frames cannot start either cue", not art.flash.playing and art.heal and not art.heal.playing)
+    target:Show()
+    env.fire("UNIT_COMBAT", "target", "HEAL")
+    env.fire("PLAYER_TARGET_CHANGED")
+    check("replacement stops stale healing", art.heal and not art.heal.playing)
+
     Enum = nil
     env.fire("UNIT_HEALTH", "target")
     check("missing interpolation enum preserves direct fills", target.health.easing == nil and target.health.value == env.SECRET)

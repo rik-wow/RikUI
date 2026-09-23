@@ -375,6 +375,8 @@ return function(check)
         animationsMissing = true
         module = load(nil, false, true)
         env.fire("UNIT_HEALTH", "target")
+        env.fire("UNIT_COMBAT", "target", "HEAL", "", env.SECRET)
+        env.fire("UNIT_COMBAT", "target", "WOUND", "", env.SECRET)
         check("missing animations preserve working unit sinks", module.Frames.target.health.value == env.SECRET)
         check("missing stock globals are tolerated", module.Frames.player ~= nil and #env.printed == 0)
     end)

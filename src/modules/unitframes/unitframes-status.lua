@@ -55,11 +55,9 @@ function unitframes.UpdateHealth(frame)
     return feed(frame.health, "health", readHealth, frame.unit)
 end
 
--- The event is the change signal; health is never compared with its previous value.
+-- Health updates carry no direction: classified combat events own visual feedback.
 function unitframes.HealthChanged(frame)
-    local filled = frame.health.motionFilled
-    local succeeded = unitframes.UpdateHealth(frame)
-    if frame.motion then unitframes.Motion.HealthChanged(frame, filled, succeeded) end
+    return unitframes.UpdateHealth(frame)
 end
 
 function unitframes.UpdatePower(frame)
