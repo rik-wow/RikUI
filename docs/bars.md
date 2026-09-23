@@ -1,5 +1,14 @@
 # Overlay action bars
 
+Buttons now have a 120 ms hover entrance, a brief press flash and a mint
+cooldown-completion flash driven by the cooldown widget's own done callback.
+Mouse feedback covers action, stance and pet buttons; native action-key feedback
+also triggers the press tween. New page icons fade in over 160 ms. Native
+visibility hides old secure pages immediately, so transitions never keep an
+outgoing action clickable. Stance changes also fade the stance icons.
+All animation work changes addon-created regions, with no cooldown-value reads.
+Hidden buttons stop their effects. Native behavior is accepted by user policy.
+
 `RikUI.Bars` owns five 12-button bars and hides the corresponding stock action
 bars, bag/menu buttons and XP/reputation bars once their overlays are ready.
 Manual paging adds five main-position overlays for selected pages 2–6.

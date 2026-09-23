@@ -2,6 +2,7 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Recording widgets test cosmetic contracts; they do not emulate client protection.
 return function(check)
     local env = require("wow_stub")
+    local animate = dofile("tests/group_motion_stub.lua")
     local names = { "CreateFrame", "C_ActionBar", "GetActionTexture", "GetBindingKey",
         "ActionButtonDown", "ActionButtonUp", "MultiActionButtonDown", "MultiActionButtonUp",
         "GetActionButtonForID", "ActionButton1", "MultiBarBottomLeft", "GetActionCooldown" }
@@ -23,6 +24,7 @@ return function(check)
         function r:SetHeight(value) self.height = value end
         function r:SetWidth(value) self.width = value end
         function r:SetFormattedText(fmt, v) self.format, self.value = fmt, v end
+        animate(r)
         return r
     end
     CreateFrame = function(kind, name, parent, template)
@@ -100,7 +102,7 @@ return function(check)
     local ok, reason = pcall(function()
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/character/bindings.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/character/bindings.lua",
             "data/bonus-pages.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-ghosts.lua", "src/modules/bars/bars-paging.lua", "src/modules/bars/bars-state.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -126,6 +128,17 @@ return function(check)
                     and button.border[1].parent == button.stateOverlay)
             end
         end
+        check("buttons have cosmetic hover and page fades", first.motion and first.motion.hoverIn and first.motion.entry)
+        env.inCombat = true
+        env.runScript(first, "OnEnter")
+        check("hover animation starts without protected writes", first.motion.hoverIn.playing)
+        env.runScript(first, "OnMouseDown", "LeftButton")
+        check("mouse press animates feedback", first.motion.press.playing)
+        env.runScript(first.cooldown, "OnCooldownDone")
+        check("native cooldown completion animates feedback", first.motion.done.playing)
+        env.runScript(first, "OnHide")
+        check("hidden buttons stop feedback", not first.motion.press.playing and not first.motion.done.playing)
+        env.inCombat = false
         actions[1].current = env.SECRET
         env.inCombat = true
         env.fire("ACTIONBAR_UPDATE_STATE")

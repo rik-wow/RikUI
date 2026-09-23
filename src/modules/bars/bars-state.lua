@@ -112,6 +112,8 @@ function bars.CreateButtonState(button, bar, index)
     button.pressedFlash:SetColorTexture(1, 1, 1, 0.45)
     button.pressedFlash:SetAlpha(0)
     bars.SkinButtonState(button)
+    bars.AttachCooldownMotion(button, button.cooldown)
+    bars.AttachCooldownMotion(button, button.chargeCooldown)
     button:HookScript("OnHide", function() button.pressedFlash:SetAlpha(0) end)
     if not rangeSlots[button.action] then
         local ok, reason = pcall(reader("EnableActionRangeCheck"), button.action, true)
@@ -153,6 +155,7 @@ local function press(command, native)
         if button.bindingCommand == command and button.stateOccupied and button:IsVisible()
             and button:GetEffectiveAlpha() > 0 then
             button.pressedFlash:SetAlpha(1)
+            bars.PlayButtonMotion(button, "press")
             table.insert(pressed[command], button)
         end
     end, action)

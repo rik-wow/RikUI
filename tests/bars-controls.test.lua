@@ -2,6 +2,7 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local originalCreate, originalDriver = CreateFrame, RegisterStateDriver
+    local animate = dofile("tests/group_motion_stub.lua")
     local saved = {}
     for _, name in ipairs({ "GetNumShapeshiftForms", "GetShapeshiftFormInfo", "GetPetActionInfo", "GetBindingKey" }) do
         saved[name] = _G[name]
@@ -25,6 +26,7 @@ return function(check)
         function value:SetShown(shown) self.shown = shown end
         function value:SetAlphaFromBoolean(active, yes, no) self.active, self.yes, self.no = active, yes, no end
         function value:SetVertexColor(...) self.color = { ... } end
+        animate(value)
         return value
     end
     CreateFrame = function(kind, name, parent, template)
@@ -82,7 +84,7 @@ return function(check)
     local function loadBars(combat)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/character/bindings.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/character/bindings.lua",
             "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-controls.lua", "src/modules/bars/bars-stock.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -107,6 +109,9 @@ return function(check)
             and not stance.buttons[2]:IsShown())
         check("stance casts exact reported spell ID", stance.buttons[1]:GetAttribute("type1") == "spell"
             and stance.buttons[1]:GetAttribute("spell") == 2457)
+        check("stance and pet rows share cosmetic motion", stance.buttons[1].motion and pet.buttons[1].motion)
+        env.runScript(pet.buttons[1], "OnMouseDown")
+        check("pet mouse feedback animates", pet.buttons[1].motion.press.playing)
         check("stance active highlight is rendered", stance.buttons[1].active.active == true)
         env.runScript(stance.buttons[1], "OnEnter")
         check("hovering a stance button shows its form tooltip", GameTooltip.shapeshift == 1

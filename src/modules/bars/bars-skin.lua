@@ -35,6 +35,54 @@ local function borderEdge(button, first, second, horizontal)
     return edge
 end
 
+local function motionRegion(button, color)
+    local region = button:CreateTexture(nil, "OVERLAY")
+    region:SetAllPoints(button)
+    region:SetTexture(media.highlight)
+    region:SetVertexColor(unpack(color))
+    region:SetAlpha(0)
+    return region
+end
+
+local function decorateMotion(button)
+    local motion = core.Motion
+    if not motion then return end
+    local hover = motionRegion(button, { 0.5, 0.75, 1 })
+    local flash = motionRegion(button, { 1, 1, 1 })
+    local ready = motionRegion(button, { 0.4, 1, 0.7 })
+    local fx = {
+        hover = hover, flash = flash, ready = ready,
+        hoverIn = motion.Tween(hover, 0, 0.3, 0.12),
+        hoverOut = motion.Tween(hover, 0.3, 0, 0.16),
+        press = motion.Tween(flash, 0.5, 0, 0.18),
+        done = motion.Tween(ready, 0.5, 0, 0.3),
+        entry = motion.Tween(button.icon, 0, 1, 0.16),
+    }
+    button.motion = fx
+    if fx.hoverIn then fx.hoverIn:SetScript("OnFinished", function() hover:SetAlpha(0.3) end) end
+    button:HookScript("OnEnter", function() motion.Stop(fx.hoverOut); motion.Play(fx.hoverIn) end)
+    button:HookScript("OnLeave", function()
+        motion.Stop(fx.hoverIn); hover:SetAlpha(0); motion.Play(fx.hoverOut)
+    end)
+    button:HookScript("OnMouseDown", function() motion.Play(fx.press) end)
+    button:HookScript("OnShow", function() motion.Play(fx.entry) end)
+    button:HookScript("OnHide", function()
+        for _, key in ipairs({ "hoverIn", "hoverOut", "press", "done", "entry" }) do motion.Stop(fx[key]) end
+        hover:SetAlpha(0)
+    end)
+end
+
+function bars.PlayButtonMotion(button, key)
+    if button.motion then core.Motion.Play(button.motion[key]) end
+end
+
+function bars.AttachCooldownMotion(button, cooldown)
+    if not button.motion then return end
+    cooldown:HookScript("OnCooldownDone", function()
+        if button.stateOccupied and button:IsVisible() then bars.PlayButtonMotion(button, "done") end
+    end)
+end
+
 function bars.DecorateButton(button)
     button:ClearNormalTexture()
     button.empty = button:CreateTexture(nil, "BACKGROUND")
@@ -57,6 +105,7 @@ function bars.DecorateButton(button)
     media.Font(button.count, "count")
     button:SetHighlightTexture(media.highlight, "ADD")
     button:SetPushedTexture(media.highlight, "ADD")
+    decorateMotion(button)
 end
 
 function bars.CreateActiveTexture(parent)

@@ -164,7 +164,12 @@ function bars.EnableControls()
     core:RegisterEvent("UPDATE_SHAPESHIFT_FORMS", queueForms)
     core:RegisterEvent("SPELLS_CHANGED", queueForms)
     for _, event in ipairs({ "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_USABLE" }) do
-        core:RegisterEvent(event, refreshStances)
+        core:RegisterEvent(event, function()
+            refreshStances()
+            if event == "UPDATE_SHAPESHIFT_FORM" and bars.ControlFrames.stance then
+                for _, button in ipairs(bars.ControlFrames.stance.buttons) do bars.PlayButtonMotion(button, "entry") end
+            end
+        end)
     end
     for _, event in ipairs({ "PET_BAR_UPDATE", "PET_UI_UPDATE", "PET_BAR_UPDATE_USABLE",
         "PLAYER_CONTROL_GAINED", "PLAYER_CONTROL_LOST" }) do core:RegisterEvent(event, refreshPets) end
