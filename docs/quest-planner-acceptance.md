@@ -1,6 +1,43 @@
 # Adaptive planner acceptance and evidence
 
-## Current integration evidence (2026-09-22 11:42 UTC)
+## Delivery accepted by the user (2026-09-23)
+
+The user explicitly accepted the delivered `quest-adaptive-acceptance` chunk
+with its disclosed native playtest limitations and directed completion of this
+same chunk. Native UI, gameplay, quest interactions, traversal, client timing,
+full reload behavior and engagement measurements are deferred evidence, not
+conditions that prevent this accepted delivery from closing. This decision does
+not assert that those checks were performed or that all modeled routes are
+walkable in the client.
+
+The original acceptance condition was: "Verify changed local installation and
+acquire available native UI/gameplay/performance/engagement evidence; retain exact
+externally unavailable evidence and inherited tasks, never claim complete
+acceptance while missing." The user's acceptance supersedes that closure
+condition for this chunk. The requirement and scenario tables below retain the
+actual evidence boundary: their native checks remain unperformed.
+
+The existing implementation includes the adaptive state/graph/search/control
+pipeline, six flavors, source coverage and fallback, stable walking guidance,
+recorded decision replay and persistence. Subsequent route, map and startup fixes
+are included in the current source. The prior integrated verification at
+`be44539` passed 12,468 checks in both LuaJIT and PUC Lua 5.1. Historical corpus,
+held-out, installed-route and soak measurements below remain historical evidence;
+they are not new playtest results. Later stability evidence is recorded in
+[planner stability verification](planner-stability-verification.md).
+
+The closeout review records fresh manifest/all-Lua compilation, the integrated
+LuaJIT and PUC Lua 5.1 suites, the installed addon junction and staged whitespace
+on native task `quest-adaptive-acceptance-closeout-review`. No formatter or custom
+gates are configured; lint is a configured no-op. Native Magistr owns the actual
+check outcomes and chunk completion receipt.
+
+Inherited `terrain-coverage` and `quest-natural-journeys` task histories and their
+missing observations are preserved. Their separate roadmap records are not
+completed by this acceptance decision. The dated sections below are historical
+implementation milestones, not the current delivery status.
+
+## Historical integration evidence (2026-09-22 11:42 UTC)
 
 The integrated Lua suite passes **11,292 checks** and all TOC sources compile. `PathCompose`, `TerrainPacks`, `Regions`, `Paths` and ordinary `Terrain.Start/Step` now compose validated physical packs through exact directed seam witnesses. The forced-split host route crosses three pack boundaries without replanning; only two detailed endpoint regions load. Missing seam points, mismatched source/world/geometry/cost, absent reverse links, cancellation and bounded-work failures are covered.
 
@@ -231,4 +268,4 @@ No full-world data, road classification or measured memory reduction is claimed.
 
 The corpus has locations, methods and raw source relationships, but no guaranteed world-wide navigation or native interaction truth. Future objective counts, missing drop rates, vendor prices, exact capabilities and missing rewards still require source/live support and explicit unknowns. Available Forever XP and NPC drop support tables are now compiled with provenance. SavedVariables are declared but this beta's cross-reload behavior must be verified. Native new/changed chains, lift availability/timing, movement and engagement acceptance cannot be inferred from host tests.
 
-This ledger will be updated as implementation and evidence land. No requirement or scenario is fully accepted merely because its mechanism exists.
+These remain evidence gaps after the user's 2026-09-23 delivery acceptance. A mechanism, host test or acceptance decision does not establish a native observation.
