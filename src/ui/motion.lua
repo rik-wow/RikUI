@@ -66,19 +66,50 @@ function motion.HealthFeedback(owner)
         region:SetAlpha(0)
         feedback[key] = { region = region, group = motion.Tween(region, style.alpha, 0, style.seconds) }
     end
+    owner:HookScript("OnHide", function() motion.StopHealthFeedback(feedback) end)
     return feedback
+end
+
+function motion.CancelHealthUpdate(feedback)
+    if feedback then feedback.pending = nil end
 end
 
 function motion.StopHealthFeedback(feedback)
     if not feedback then return end
+    motion.CancelHealthUpdate(feedback)
     motion.Stop(feedback.damage.group)
     motion.Stop(feedback.heal.group)
+end
+
+-- Pair notifications until the next timer pass, in either event order. Never
+-- carry a combat cue forward to an unrelated health change.
+local function feedbackBatch(feedback)
+    if feedback.pending then return feedback.pending end
+    local pending = {}
+    feedback.pending = pending
+    C_Timer.After(0, function()
+        if feedback.pending ~= pending then return end
+        feedback.pending = nil
+        if not pending.update then return end
+        local key = not pending.mixed and pending.key or nil
+        local ok = pending.update(key == "damage")
+        if not ok or not key then return end
+        motion.StopHealthFeedback(feedback)
+        motion.Play(feedback[key].group)
+    end)
+    return pending
+end
+
+function motion.QueueHealthUpdate(feedback, update)
+    if not feedback then update(false); return end
+    feedbackBatch(feedback).update = update
 end
 
 function motion.PlayHealthFeedback(feedback, event)
     if not feedback or RikUI.Secret.IsSecret(event) or type(event) ~= "string" then return end
     local key = event == "WOUND" and "damage" or event == "HEAL" and "heal"
     if not key then return end
-    motion.StopHealthFeedback(feedback)
-    motion.Play(feedback[key].group)
+    local pending = feedbackBatch(feedback)
+    if pending.key and pending.key ~= key then pending.mixed = true end
+    pending.key = key
 end

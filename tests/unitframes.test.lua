@@ -264,6 +264,7 @@ return function(check)
             and target.power.sets == targetSets + 1 and player.power.sets == playerSets)
         units.target.health, units.target.healthMax = 20, 50
         env.fire("UNIT_HEALTH", "target")
+        env.flushTimers()
         check("health events refresh the matching unit", target.health.value == 20 and target.health.max == 50
             and target.health.text.args[1] == 20 and target.health.text.args[2] == 50)
         units.player.level = 13
@@ -281,6 +282,7 @@ return function(check)
         units.player.health = 55
         units.target.threat = 2
         env.fire("UNIT_HEALTH", "player")
+        env.flushTimers()
         env.fire("UNIT_THREAT_SITUATION_UPDATE", "target")
         env.fire("PLAYER_TARGET_CHANGED")
         check("combat updates flow to sinks without protected writes", player.health.value == 55
@@ -339,12 +341,15 @@ return function(check)
         check("pet events refresh the pet frame", pet.name.text == "Wolf" and pet.health.value == 3
             and color(pet.health.color, FACTION_BAR_COLORS[5]))
         env.fire("UNIT_HEALTH", env.SECRET)
+        env.flushTimers()
         check("a secret event unit refreshes every frame without error", target.health.value == 20)
 
         units.target.error = true
         env.printed = {}
         env.fire("UNIT_HEALTH", "target")
+        env.flushTimers()
         env.fire("UNIT_HEALTH", "target")
+        env.flushTimers()
         check("reader failures are reported once and contained", printedContains("Unit frames health")
             and #env.printed == 1)
         units.target.error = nil
@@ -375,6 +380,7 @@ return function(check)
         animationsMissing = true
         module = load(nil, false, true)
         env.fire("UNIT_HEALTH", "target")
+        env.flushTimers()
         env.fire("UNIT_COMBAT", "target", "HEAL", "", env.SECRET)
         env.fire("UNIT_COMBAT", "target", "WOUND", "", env.SECRET)
         check("missing animations preserve working unit sinks", module.Frames.target.health.value == env.SECRET)

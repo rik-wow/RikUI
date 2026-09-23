@@ -230,21 +230,34 @@ return function(check)
             and level.playerLevelDiffText.points[1][2] == parts.levelBox)
 
         env.fire("UNIT_HEALTH", "nameplate1")
+        env.flushTimers()
         check("a health event eases without guessing damage", own.easing == Enum.StatusBarInterpolation.ExponentialEaseOut
             and own.flashAnim.plays == 0 and own.flash.alpha == 0)
         env.fire("UNIT_MAXHEALTH", "nameplate1")
         check("a maximum health event refills without a flash", own.flashAnim.plays == 0)
         env.fire("UNIT_HEALTH", "nameplate9")
+        env.flushTimers()
         env.fire("UNIT_HEALTH", env.SECRET)
+        env.flushTimers()
         check("health events for other or secret tokens are ignored", own.flashAnim.plays == 0 and #env.printed == 0)
         env.fire("UNIT_COMBAT", "nameplate1", "HEAL", "", env.SECRET)
+        env.fire("UNIT_HEALTH", "nameplate1")
+        env.flushTimers()
         check("nameplate healing uses a separate green glow", own.feedback and own.feedback.heal.group.playing
             and own.feedback.heal.region.color[2] > own.feedback.heal.region.color[1])
         env.fire("UNIT_COMBAT", "nameplate1", "WOUND", "", env.SECRET)
+        env.fire("UNIT_HEALTH", "nameplate1")
+        env.flushTimers()
         check("nameplate damage cancels healing and flashes red", own.flashAnim.playing and own.feedback
             and not own.feedback.heal.group.playing
             and own.feedback.damage.region.color[1] > own.feedback.damage.region.color[2])
+        check("nameplate damage fill is immediate with its cue", own.easing == Enum.StatusBarInterpolation.Immediate)
         local damagePlays = own.flashAnim.plays
+        env.fire("UNIT_HEALTH", "nameplate1")
+        env.flushTimers()
+        env.fire("UNIT_COMBAT", "nameplate1", "WOUND")
+        env.flushTimers()
+        check("nameplate drops late damage cues", own.flashAnim.plays == damagePlays)
         env.fire("UNIT_COMBAT", env.SECRET, "WOUND")
         env.fire("UNIT_COMBAT", "nameplate1", env.SECRET)
         env.fire("UNIT_COMBAT", "nameplate9", "WOUND")
@@ -309,6 +322,8 @@ return function(check)
         stockList:SetShown(true)
         check("and hidden again when Blizzard's aura display update shows it", stockList:IsShown() == false)
         local hooks, updates = #env.hooks, container.updates
+        env.fire("UNIT_HEALTH", "nameplate1")
+        env.fire("UNIT_COMBAT", "nameplate1", "WOUND")
         env.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
         check("removed plate stops both feedback cues", own.feedback and not own.feedback.damage.group.playing
             and not own.feedback.heal.group.playing)
@@ -317,6 +332,7 @@ return function(check)
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
         frame:UpdateAnchors() -- OnUnitSet's UpdateShowOnlyName, after RikUI saw the event
         env.flushTimers()
+        check("pooled plate never replays the previous unit's pending damage", own.flashAnim.plays == damagePlays)
         check("an added plate is laid out again a frame later", frame.HealthBarsContainer.height == 14)
         check("a pooled frame is reused without new hooks or parts and fades in again", #env.hooks == hooks
             and module.Parts[frame] == parts and container.unit == "nameplate7" and container.updates == updates + 1

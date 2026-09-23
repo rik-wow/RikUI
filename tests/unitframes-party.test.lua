@@ -230,6 +230,7 @@ return function(check)
         local oneSets = one.health.sets
         units.party2.health = 60
         env.fire("UNIT_HEALTH", "party2")
+        env.flushTimers()
         check("unit events refresh only the matching member", two.health.value == 60 and one.health.sets == oneSets)
         units.party3 = { health = 5, healthMax = 9, power = 1, powerMax = 2, powerToken = "MANA", name = "Latecomer",
             level = 10, class = "PRIEST", leader = false, role = "NONE", inRange = true, checked = true }
@@ -244,6 +245,7 @@ return function(check)
         env.inCombat = true
         units.party2.health, units.party2.inRange = 10, true
         env.fire("UNIT_HEALTH", "party2")
+        env.flushTimers()
         env.fire("GROUP_ROSTER_UPDATE")
         env.runScript(holder, "OnUpdate", 0.6)
         check("combat updates flow to sinks without protected writes", two.health.value == 10 and two.presentation.alpha == 1

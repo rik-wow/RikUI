@@ -11,6 +11,7 @@ return function(check, env, module, units)
     module.UpdateThreat(target)
     check("repeated threat refresh does not restart pulse", pulse.plays == 1)
     env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
     check("health event eases secret values without guessing damage", target.health.value == env.SECRET
         and target.health.easing == 2 and art.flash.plays == 0)
     env.fire("UNIT_POWER_UPDATE", "target")
@@ -24,6 +25,7 @@ return function(check, env, module, units)
     target:Hide()
     check("hide stops every motion", not art.fade.playing and not art.flash.playing and not pulse.playing)
     env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
     module.UpdateThreat(target)
     check("hidden updates cannot restart flash or threat", not art.flash.playing and not pulse.playing)
     target:Show()
@@ -34,10 +36,12 @@ return function(check, env, module, units)
     local flashCount = art.flash.plays
     units.target.error = true
     env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
     check("failed read clears immediately without flashing", target.health.value == 0
         and target.health.easing == 0 and art.flash.plays == flashCount)
     units.target.error = nil
     env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
     check("first fill after reader recovery is immediate", target.health.easing == 0 and art.flash.plays == flashCount)
     units.target.threat = env.SECRET
     module.UpdateThreat(target)
@@ -48,6 +52,7 @@ return function(check, env, module, units)
     units.target.threat = 3
     module.UpdateThreat(target)
     env.fire("UNIT_HEALTH", env.SECRET)
+    env.flushTimers()
     check("secret health token refreshes without inventing feedback", art.flash.plays == flashCount)
     env.fire("UNIT_TARGET", "target")
     check("ToT replacement resets easing", tot.health.easing == 0)
@@ -62,9 +67,18 @@ return function(check, env, module, units)
     for _, frame in pairs(frames) do
         local effects = frame.motion
         env.fire("UNIT_COMBAT", frame.unit, "HEAL", "", env.SECRET, env.SECRET)
+        env.fire("UNIT_HEALTH", frame.unit)
+        env.flushTimers()
         check(frame.key .. " healing uses the green glow", effects.heal and effects.heal.playing
             and effects.feedback.heal.region.color[2] > effects.feedback.heal.region.color[1])
+        local fills, flashes = frame.health.sets, effects.flash.plays
+        env.fire("UNIT_HEALTH", frame.unit)
         env.fire("UNIT_COMBAT", frame.unit, "WOUND", "", env.SECRET, env.SECRET)
+        check(frame.key .. " holds damage fill and cue for the same batch",
+            frame.health.sets == fills and effects.flash.plays == flashes)
+        env.flushTimers()
+        check(frame.key .. " commits damage fill with cue",
+            frame.health.sets == fills + 1 and frame.health.easing == 0 and effects.flash.plays == flashes + 1)
         check(frame.key .. " damage replaces healing with the red flash", effects.flash.playing
             and effects.heal and not effects.heal.playing
             and effects.feedback.damage.region.color[1] > effects.feedback.damage.region.color[2])
@@ -85,8 +99,57 @@ return function(check, env, module, units)
     env.fire("PLAYER_TARGET_CHANGED")
     check("replacement stops stale healing", art.heal and not art.heal.playing)
 
+    env.flushTimers()
+    damagePlays = art.flash.plays
+    RikUI.Motion.StopHealthFeedback(art.feedback)
+    env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    env.flushTimers()
+    check("late combat cannot flash after health already dropped", art.flash.plays == damagePlays)
+    env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
+    check("expired combat cannot flash on a later health update", art.flash.plays == damagePlays)
+    env.fire("UNIT_HEALTH", "target")
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    env.fire("UNIT_COMBAT", "target", "HEAL")
+    env.flushTimers()
+    check("mixed direction batch keeps eased fill without guessing", art.flash.plays == damagePlays
+        and not art.heal.playing and target.health.easing == 2)
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    env.fire("UNIT_MAXHEALTH", "target")
+    env.fire("UNIT_HEALTH", env.SECRET)
+    env.flushTimers()
+    check("maximum and secret-token events cannot time a damage cue", art.flash.plays == damagePlays)
+    env.fire("UNIT_HEALTH", "target")
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    target:Hide()
+    target:Show()
+    env.flushTimers()
+    check("hide invalidates queued damage", art.flash.plays == damagePlays)
+    env.fire("UNIT_HEALTH", "target")
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    env.fire("PLAYER_TARGET_CHANGED")
+    env.flushTimers()
+    check("replacement invalidates queued damage", art.flash.plays == damagePlays)
+    env.fire("UNIT_HEALTH", "target")
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    units.target.error = true
+    env.flushTimers()
+    check("failed health read suppresses queued damage", art.flash.plays == damagePlays)
+    units.target.error = nil
+    env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    env.fire("UNIT_COMBAT", "target", "WOUND")
+    env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
+    check("combat-first duplicate hits produce one synchronized cue", art.flash.plays == damagePlays + 1
+        and target.health.easing == 0)
+
     Enum = nil
     env.fire("UNIT_HEALTH", "target")
+    env.flushTimers()
     check("missing interpolation enum preserves direct fills", target.health.easing == nil and target.health.value == env.SECRET)
     Enum = { StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 2 } }
 end

@@ -226,6 +226,7 @@ return function(check)
         local oneSets = one.health.sets
         units.raid2.health = 60
         env.fire("UNIT_HEALTH", "raid2")
+        env.flushTimers()
         check("unit events refresh only the matching raid member", two.health.value == 60
             and one.health.sets == oneSets)
         units.raid3 = { health = 5, healthMax = 9, power = 1, powerMax = 2, powerToken = "MANA",
@@ -241,6 +242,7 @@ return function(check)
         env.inCombat = true
         units.raid2.health, units.raid2.inRange = 10, true
         env.fire("UNIT_HEALTH", "raid2")
+        env.flushTimers()
         env.fire("GROUP_ROSTER_UPDATE")
         env.runScript(holder, "OnUpdate", 0.6)
         check("combat raid updates flow to sinks without protected writes", two.health.value == 10

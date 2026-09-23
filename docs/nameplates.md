@@ -39,12 +39,16 @@ plates exist is still up to the `nameplateShowEnemies` and
 
 ## Animations
 
-- Health eases to its new value (`ExponentialEaseOut`). A pooled plate's first
-  fill is immediate so it does not sweep from the previous unit's health.
+- Healing and unclassified health ease to their new value (`ExponentialEaseOut`).
+  Damage fills immediately with its red cue. A pooled plate's first fill is
+  immediate so it does not sweep from the previous unit's health.
 - Readable `UNIT_COMBAT` damage (`WOUND`) gives a short red flash (0.18s);
   healing (`HEAL`) gives a softer green glow (0.4s). Each cancels the other.
   The shared style matches every RikUI unit frame. Unclassified health updates,
-  including passive regeneration, only move the bar.
+  including passive regeneration, only move the bar. Health and combat events
+  are batched until the next zero-delay timer pass; fill and cue then happen
+  together. Late or unmatched combat cues expire. Mixed directions use an
+  eased fill only, and removal/reuse cancels pending work.
 - A plate fades in over 0.15s when it appears.
 - The arrows fade in when you select a plate and the accent line pulses while
   it stays selected. The plate's growth and the dimming of the others are
@@ -182,7 +186,7 @@ units in combat, and whether the hooks taint plate layout. Beta checklist:
 1. Fully restart the client (two new TOC entries). Target a mob: chunky bar
    with the percent centred, the name in its plaque on top, level box flush right, arrows and a pulsing line,
    the plate a little larger and the others dimmer.
-2. Hit the mob: the bar should ease down and flash. Let it hit you: a red line
+2. Hit the mob: paired damage should drop the bar and flash together. Let it hit you: a red line
    should appear over its bar.
 3. Find an elite or a rare and check the marker. Watch a caster: the cast bar
    should be flat with the spell name in the RikUI font.

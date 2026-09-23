@@ -24,9 +24,10 @@ end
 local function readHealth(unit) return UnitHealth(unit), UnitHealthMax(unit) end
 local function readPower(unit) return UnitPower(unit), UnitPowerMax(unit) end
 
-local function fill(bar, current, maximum)
+local function fill(bar, current, maximum, immediate)
     bar:SetMinMaxValues(0, maximum)
-    local easing = bar.motionEnabled and unitframes.Motion.Interpolation(bar) or nil
+    local easing = immediate and core.Motion.Interpolation("Immediate")
+        or (bar.motionEnabled and unitframes.Motion.Interpolation(bar) or nil)
     bar:SetValue(current, easing)
     if bar.motionEnabled then bar.motionFilled = true end
     if bar.text then bar.text:SetFormattedText(VALUE_FORMAT, current, maximum) end
@@ -40,8 +41,8 @@ local function clear(bar)
     if bar.text then bar.text:SetText("") end
 end
 
-local function feed(bar, operation, reader, unit)
-    local ok, reason = core.Secret.Apply(function(current, maximum) fill(bar, current, maximum) end, reader, unit)
+local function feed(bar, operation, reader, unit, immediate)
+    local ok, reason = core.Secret.Apply(function(current, maximum) fill(bar, current, maximum, immediate) end, reader, unit)
     if not ok then clear(bar); warnOnce(operation, reason) end
     return ok
 end
@@ -50,14 +51,20 @@ local function tint(bar, color)
     bar:SetStatusBarColor(color.r, color.g, color.b)
 end
 
-function unitframes.UpdateHealth(frame)
+function unitframes.UpdateHealth(frame, immediate)
     if departing(frame) then return end
-    return feed(frame.health, "health", readHealth, frame.unit)
+    if frame.motion then core.Motion.CancelHealthUpdate(frame.motion.feedback) end
+    return feed(frame.health, "health", readHealth, frame.unit, immediate)
 end
 
--- Health updates carry no direction: classified combat events own visual feedback.
+-- Only a successful health event can pair with classified combat feedback.
 function unitframes.HealthChanged(frame)
-    return unitframes.UpdateHealth(frame)
+    if not frame.motion then return unitframes.UpdateHealth(frame) end
+    local filled = frame.health.motionFilled
+    core.Motion.QueueHealthUpdate(frame.motion.feedback, function(damage)
+        if not frame:IsShown() then return false end
+        return unitframes.UpdateHealth(frame, damage) and filled
+    end)
 end
 
 function unitframes.UpdatePower(frame)

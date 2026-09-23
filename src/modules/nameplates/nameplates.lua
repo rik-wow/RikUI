@@ -14,7 +14,7 @@ local AURA_GROUP, AURA_FILTER = "owndebuffs", "HARMFUL|PLAYER"
 local FLOW = { anchor = "BOTTOMLEFT", horizontal = "Right", vertical = "Up", lineSize = AURA_LINE }
 local OUTLINE = { { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" }, { "TOPLEFT", "BOTTOMLEFT" },
     { "TOPRIGHT", "BOTTOMRIGHT" } }
-local UNIT_EVENTS = { UNIT_HEALTH = "Health", UNIT_COMBAT = "CombatFeedback", UNIT_MAXHEALTH = "Health", UNIT_FACTION = "Color",
+local UNIT_EVENTS = { UNIT_HEALTH = "HealthChanged", UNIT_COMBAT = "CombatFeedback", UNIT_MAXHEALTH = "Health", UNIT_FACTION = "Color",
     UNIT_NAME_UPDATE = "Color", UNIT_CLASSIFICATION_CHANGED = "Marker" }
 local containerCount, containerUnavailable = 0, false
 nameplates.Flat = FLAT
