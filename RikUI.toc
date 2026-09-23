@@ -177,6 +177,7 @@ src/modules/controls/controls.lua
 src/modules/dialogs/dialogs.lua
 src/modules/lossofcontrol/lossofcontrol.lua
 src/modules/extrabuttons/extrabuttons.lua
+src/modules/cooldownviewer/cooldownviewer.lua
 src/modules/toasts/toasts.lua
 src/modules/banners/banners.lua
 src/modules/damagemeter/damagemeter.lua

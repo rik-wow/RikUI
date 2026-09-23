@@ -45,7 +45,7 @@ flat regions added; `font` = font objects only.
 | Extra, zone, flyout, possess buttons | `src/modules/extrabuttons/extrabuttons.lua` | skin | 2 | skin, bars colour | `bars-motion` |
 | Vehicle bar frame | `src/modules/extrabuttons/extrabuttons.lua` (buttons only) | skin | 0 | extrabuttons | `vehicle-bar` |
 | Proc overlay around the character | none | none | 0 | bars | `spell-activation-overlay` |
-| Cooldown viewer (4 viewers) | none | none | 0 | extrabuttons | `cooldownviewer` |
+| Cooldown viewer (4 viewers) | `src/modules/cooldownviewer/cooldownviewer.lua` | skin | 1 | skin, bars colour | delivered (`cooldownviewer`) |
 | Player, target, ToT, pet, focus frames | `src/modules/unitframes/unitframes.lua`, `src/modules/unitframes/unitframes-status.lua` | own | 1 | layout | `unitframes-motion` |
 | Party frames | `src/modules/unitframes/unitframes-party.lua` | own | 1 | unit frames | `party-raid-motion` |
 | Raid grid | `src/modules/unitframes/unitframes-raid.lua` | own | 1 | unit frames | `party-raid-motion` |
