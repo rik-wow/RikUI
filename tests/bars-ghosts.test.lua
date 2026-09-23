@@ -100,6 +100,14 @@ return function(check)
         local battle = bars.Create("battle", 73, { positionKey = "main" })
         check("bonus page uses its own resolved entries", battle.buttons[8].ghost.levelText:GetText() == "Lv 12"
             and bars.Frames.main.buttons[8].ghost.levelText:GetText() == "Lv 38")
+        local defensive = bars.Create("defensive", 85, { positionKey = "main" })
+        local berserker = bars.Create("berserker", 97, { positionKey = "main" })
+        check("Defensive previews Taunt and Revenge", defensive.buttons[6].ghost.entry.spell == "Taunt"
+            and defensive.buttons[7].ghost.entry.spell == "Revenge")
+        check("Berserker previews Intercept and Pummel", berserker.buttons[6].ghost.entry.spell == "Intercept"
+            and berserker.buttons[8].ghost.entry.spell == "Pummel")
+        check("stance macro preview retains stance-aware Shield Block",
+            berserker.buttons[10].ghost.entry.macro == "Shield Block")
         local page = bars.Create("page6", 61, { positionKey = "main" })
         check("manual overlay follows absolute slots", page.buttons[1].ghost.levelText:GetText()
             == bars.Frames.bar2.buttons[1].ghost.levelText:GetText())

@@ -741,5 +741,48 @@ return function(check)
         and settings.nameplateShowFriendlyPlayers == "old" and settings.nameplateShowFriendlyNpcs == "old"
         and settings.floatingCombatTextCombatDamage_v2 == "old" and settings.floatingCombatTextCombatHealing_v2 == "old")
 
+    -- Every displayed stance page must expose the actions placed by the real preset writer.
+    for _, role in ipairs({ "dps", "tank" }) do
+        setup = fresh()
+        assert(loadfile("data/bonus-pages.lua"))("RikUI", {})
+        for name, spell in pairs(core.SpellData) do known[name] = spell.ranks[1] end
+        keys.F12, core.Profile.positions.main = "JUMP", { x = 777 }
+        local applied = setup.Apply("WARRIOR", role,
+            { macros = true, bars = true, binds = false, cvars = false, layout = false })
+        local preset = assert(setup.Resolve("WARRIOR", role))
+        check(role .. " stance preset applies successfully", applied.status == "applied")
+        check(role .. " has all three display mappings", #core.Data.BonusPages.WARRIOR == 3)
+        for _, page in ipairs(core.Data.BonusPages.WARRIOR) do
+            for index = 1, 12 do
+                local entry, slot = preset.bars[page.name][index], page.firstAction + index - 1
+                local action = actions[slot]
+                local matches = action and ((entry.spell and action.kind == "spell" and action.id == known[entry.spell])
+                    or (entry.item and action.kind == "item" and action.id == items[entry.item])
+                    or (entry.macro and action.kind == "macro" and macroData[action.id]
+                        and macroData[action.id].name == entry.macro
+                        and macroData[action.id].body == preset.macros[entry.macro].body))
+                check(role .. " " .. page.name .. " displayed slot " .. index .. " matches Apply",
+                    setup.SlotToAction(page.name, index) == slot and matches)
+            end
+        end
+        check(role .. " Battle offers Charge and Overpower", actions[78].id == known.Charge
+            and actions[79].id == known.Overpower)
+        check(role .. " Defensive offers Taunt and Revenge", actions[90].id == known.Taunt
+            and actions[91].id == known.Revenge)
+        check(role .. " Berserker offers Intercept and Pummel", actions[102].id == known.Intercept
+            and actions[104].id == known.Pummel)
+        -- Learning/resync fills empty stance actions without replacing a player's custom slot.
+        local custom = { kind = "item", id = 99999 }
+        actions[92] = custom
+        for _, slot in ipairs({ 78, 90, 102, 77, 89, 101 }) do actions[slot] = nil end
+        local synced = setup.Resync()
+        check(role .. " Resync fills each stance's spell and macro slots", synced.status == "complete"
+            and actions[78].id == known.Charge and actions[90].id == known.Taunt
+            and actions[102].id == known.Intercept
+            and actions[77].kind == "macro" and actions[89].kind == "macro" and actions[101].kind == "macro")
+        check(role .. " Resync preserves custom actions and setup preserves keys/layout",
+            actions[92] == custom and keys.F12 == "JUMP" and core.Profile.positions.main.x == 777)
+    end
+
     for _, name in ipairs(globals) do _G[name] = savedGlobals[name] end
 end

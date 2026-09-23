@@ -3,11 +3,12 @@
 `RikUI.Bars` owns five 12-button bars and hides the corresponding stock action
 bars, bag/menu buttons and XP/reputation bars once their overlays are ready.
 Manual paging adds five main-position overlays for selected pages 2–6.
-Stance paging adds the probe-backed Warrior Battle overlay (slots 73–84),
-a known-form row and a ten-slot pet row. Later stance and other-class bonus
-offsets have no recorded probe evidence yet; those mappings and native
-acceptance are deferred follow-up. Base slots 1–12 are used on selected
-page 1 outside the recorded bonus condition.
+Stance paging adds Warrior Battle (73–84), Defensive (85–96) and Berserker
+(97–108) overlays, a known-form row and a ten-slot pet row. Each main overlay
+shows the actions already stored in its stance slots, including the preset's
+stance-specific spells and macros. Other-class bonus mappings and broader native
+acceptance remain deferred. Base slots 1–12 are used on selected page 1 outside
+the supported bonus conditions.
 
 | Bar | Fixed slots | Native binding prefix | Default anchor (x, y) |
 |---|---|---|---|
@@ -213,8 +214,8 @@ show no label. Cosmetic posthooks on `ActionButtonDown/Up` and
 `MultiActionButtonDown/Up` flash only a visible overlay matching the native
 button's current slot and binding command. Releases and page/binding changes
 clear the previous flash. No hook executes an action or changes a secure
-attribute. A manually selected page without an overlay will not falsely flash
-the fixed base row; implementing those pages remains `bars-manual-pages`.
+attribute. Manual and stance pages flash only when their absolute slot matches
+the native button's current slot.
 
 These slot-based APIs apply to action overlays. Stance/pet companion controls
 retain their existing active/autocast indicators and separate native API paths.
@@ -261,12 +262,24 @@ Reviewed against Forever 1.60.1 build 69913:
 
 ## Stance paging and companion rows
 
-`data/bonus-pages.lua` contains per-class records of the bonus offset and first
-native action slot observed by RikProbe. Only Warrior Battle (offset 1, slot 73)
-has raw beta evidence. No Defensive, Berserker, Druid, Rogue or Priest mapping
-is inferred from form index or copied from another client. Missing mappings
-are tracked as backlog `bars-stance-beta-coverage`; the current base row is not
-a correct substitute for an unrecorded bonus page.
+`data/bonus-pages.lua` records the bonus offset and first native action slot.
+Warrior Battle, Defensive and Berserker use offsets 1, 2 and 3. These values
+come from the extracted `SpellShapeshiftForm.BonusActionBar` client records
+for Forever builds 69913 and 69977, not the player's learned-form indices.
+The first slot is `(6 + offset - 1) * 12 + 1`, following the native six
+normal pages of twelve buttons. Battle additionally has live RikProbe evidence.
+
+The preset already writes all three stance pages through Apply and maintains
+learned actions through Resync. Battle keeps Charge/Overpower, Defensive gets
+Taunt/Revenge, and Berserker gets Intercept/Pummel, with the existing stance-aware
+macros. The display fix exposes those slots without reapplying the preset or
+replacing custom actions, bindings or saved layout. Empty assigned slots use
+their own stance's ghost previews.
+
+Druid, Rogue and Priest mappings remain unimplemented; `bars-stance-beta-coverage`
+retains their mapping and native acceptance work. Defensive and Berserker
+mappings are source-verified; live switching, click/key agreement and combat
+protection have not been independently observed for these new overlays.
 
 `src/modules/bars/bars-paging.lua` creates fixed overlays and registers only visibility drivers.
 Its `[bar:1,bonusbar:N]` conditions respect the native controller's rule that
@@ -279,6 +292,8 @@ extra overlay and restores the base row, reporting that paging is unavailable.
 |---|---|---|
 | 1, outside recorded bonus condition | main | 1–12 |
 | 1, Battle bonus offset 1 | battle | 73–84 |
+| 1, Defensive bonus offset 2 | defensive | 85–96 |
+| 1, Berserker bonus offset 3 | berserker | 97–108 |
 | 2 | page2 | 13–24 |
 | 3 | page3 | 25–36 |
 | 4 | page4 | 37–48 |
@@ -319,8 +334,9 @@ The controls preserve SecureActionButtonTemplate's click handler and both click
 edges. No native frame is adopted and stock stance/pet suppression remains the
 later hiding chunk.
 
-Automated tests cover the recorded mapping, modeled visibility exclusivity,
-partial driver cleanup, combat login, shared layout, known/removed forms,
+Automated tests cover all three Warrior mappings, modeled visibility exclusivity,
+all twelve slots, real DPS/tank Apply and Resync, stance ghost previews, native
+keypress feedback, partial driver cleanup, combat login, shared layout, known/removed forms,
 fourth-form clicks, current pet tuple/token handling, autocast and secret flags.
 These tests do not execute the protected client renderer. Native multi-stance
 transitions, click/key agreement, pet lifecycle and taint acceptance remain
@@ -428,6 +444,12 @@ Repeatable Warrior beta regression checks:
    update positions immediately.
 
 ## Source evidence for stance/pet work
+
+Warrior stance mappings were checked on 2026-09-23 against Blizzard's extracted
+client records: [SpellShapeshiftForm, build 69913](https://wago.tools/db2/SpellShapeshiftForm/csv?build=1.60.1.69913)
+and [build 69977](https://wago.tools/db2/SpellShapeshiftForm/csv?build=1.60.1.69977).
+Both give Battle (form ID 17) BonusActionBar 1, Defensive (18) 2, and Berserker
+(19) 3. This is client-data evidence, distinct from live beta acceptance.
 
 Reviewed 2026-09-18 against the exact Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
 

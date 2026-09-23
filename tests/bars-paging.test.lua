@@ -82,7 +82,7 @@ return function(check)
         local overlays = mainOverlays(bars)
         for page = 1, 6 do
             local firstAction = (page - 1) * 12 + 1
-            if page == 1 and offset == 1 then firstAction = 73 end
+            if page == 1 and offset >= 1 and offset <= 3 then firstAction = (6 + offset - 1) * 12 + 1 end
             local shown, active = 0, nil
             for _, bar in ipairs(overlays) do
                 if visible(drivers[bar], offset, page) then shown, active = shown + 1, bar end
@@ -107,6 +107,22 @@ return function(check)
             and battle.point[5] == 59 and battle.scale == 0.75)
         check("Battle receives only native visibility condition", drivers[battle] == "[bar:1,bonusbar:1] show; hide")
         check("base hides for the observed bonus page", not visible(drivers[main], 1, 1))
+        for _, expected in ipairs({
+            { name = "defensive", offset = 2, first = 85 },
+            { name = "berserker", offset = 3, first = 97 },
+        }) do
+            local overlay = bars.Frames[expected.name]
+            check(expected.name .. " creates the client-data-backed overlay", overlay ~= nil)
+            if overlay then
+                check(expected.name .. " maps all fixed stance slots", overlay.firstAction == expected.first
+                    and overlay.buttons[1]:GetAttribute("action") == expected.first
+                    and overlay.buttons[12]:GetAttribute("action") == expected.first + 11)
+                check(expected.name .. " shares saved main layout", overlay.point[4] == 31
+                    and overlay.point[5] == 59 and overlay.scale == 0.75)
+                check(expected.name .. " receives only native visibility condition",
+                    drivers[overlay] == "[bar:1,bonusbar:" .. expected.offset .. "] show; hide")
+            end
+        end
         for page = 2, 6 do
             local overlay = bars.Frames["page" .. page]
             check("manual page " .. page .. " creates fixed overlay", overlay ~= nil)
@@ -118,7 +134,7 @@ return function(check)
         for _, combat in ipairs({ false, true }) do
             env.inCombat = combat
             local before = writes
-            for _, offset in ipairs({ 0, 1 }) do verifyPages(bars, offset, combat) end
+            for _, offset in ipairs({ 0, 1, 2, 3 }) do verifyPages(bars, offset, combat) end
             env.fire("ACTIONBAR_PAGE_CHANGED")
             env.fire("UPDATE_BONUS_ACTIONBAR")
             check("page and stance events never rewrite protected attributes", writes == before)
@@ -151,7 +167,7 @@ return function(check)
         env.fire("PLAYER_REGEN_ENABLED")
         check("combat queue completes overlays before driver installation", bars.Frames.battle
             and drivers[bars.Frames.battle] == "[bar:1,bonusbar:1] show; hide")
-        verifyPages(bars, 1, false)
+        for _, offset in ipairs({ 1, 2, 3 }) do verifyPages(bars, offset, false) end
         bars = loadBars(false, true)
         check("disabled bars register no paging drivers", next(drivers) == nil and next(bars.Frames) == nil)
         failRegistration = true

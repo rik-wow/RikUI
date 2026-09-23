@@ -169,6 +169,29 @@ return function(check)
         bars.Frames.main:Show()
         ActionButtonUp(1)
         check("release after page change clears previous flash", bonus.buttons[1].pressedFlash.alpha == 0)
+        bars.Frames.main:Hide()
+        for _, page in ipairs({ { "battle", 73 }, { "defensive", 85 }, { "berserker", 97 } }) do
+            local overlay = assert(bars.Frames[page[1]], page[1] .. " overlay missing")
+            local button = overlay.buttons[1]
+            actions[page[2]] = { usable = true, range = true, cooldown = {}, count = "2" }
+            env.fire("ACTIONBAR_SLOT_CHANGED", page[2])
+            overlay:Show() -- The native visibility driver's result is modeled here.
+            native.action = page[2]
+            check(page[1] .. " shows its own action state and main binding",
+                button:GetAttribute("action") == native.action and button.hotkey.text == "1"
+                and button.cooldown.duration == actions[native.action].cooldown and button.count.text == "2")
+            env.inCombat = true
+            ActionButtonDown(1)
+            check(page[1] .. " native key flashes the visible clicked slot in combat",
+                button.pressedFlash.alpha == 1 and first.pressedFlash.alpha == 0)
+            env.fire("UPDATE_BONUS_ACTIONBAR")
+            check(page[1] .. " transition clears the old key flash", button.pressedFlash.alpha == 0)
+            ActionButtonUp(1)
+            env.inCombat = false
+            overlay:Hide()
+        end
+        native.action = 1
+        bars.Frames.main:Show()
         MultiActionButtonDown("MultiBarBottomLeft", 1)
         check("side bar native hook flashes correct fixed slot", bars.Frames.bar2.buttons[1].pressedFlash.alpha == 1)
         MultiActionButtonUp("MultiBarBottomLeft", 1)
