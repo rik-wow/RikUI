@@ -81,6 +81,7 @@ runStep = function(context, index)
         context.charDB.applied = setup.CopyState(context.snapshot.applied)
         context.charDB.undo = nil
         context.result.status, active = "undone", nil
+        setup.RefreshBars()
         core:Print("Undo complete.")
         return
     end

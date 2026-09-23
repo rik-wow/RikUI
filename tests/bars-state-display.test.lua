@@ -101,7 +101,7 @@ return function(check)
         env.frames, env.printed, env.inCombat = {}, {}, false
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/character/bindings.lua",
-            "data/bonus-pages.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-paging.lua", "src/modules/bars/bars-state.lua" }) do
+            "data/bonus-pages.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/modules/bars/bars.lua", "src/modules/bars/bars-skin.lua", "src/modules/bars/bars-ghosts.lua", "src/modules/bars/bars-paging.lua", "src/modules/bars/bars-state.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         RikUI.Bars.UpdateStockVisibility = function() end
@@ -113,6 +113,7 @@ return function(check)
         local bars, first = RikUI.Bars, RikUI.Bars.Frames.main.buttons[1]
         for name, bar in pairs(bars.Frames) do
             for _, button in ipairs(bar.buttons) do
+                check(name .. " keeps ghost below hotkeys and feedback", button.ghost:GetFrameLevel() < button.stateOverlay:GetFrameLevel())
                 check(name .. " uses flat media and trimmed icons", button.normalSet and button.normalTexture == nil
                     and button.highlightTexture == RikUI.Media.highlight and button.pushedTexture == RikUI.Media.highlight
                     and button.icon.coords[1] == 0.07 and button.icon.coords[2] == 0.93)

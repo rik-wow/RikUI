@@ -40,7 +40,7 @@ flat regions added; `font` = font objects only.
 | Surface | Files | How | Tier | Depends on | Next chunk |
 | --- | --- | --- | --- | --- | --- |
 | Nameplates | `nameplates*.lua` | overlay | 3 | auras, motion | `nameplates-beta-acceptance` |
-| Action bars 1-5 | `bars*.lua` | own | 2 | layout, setup | `bars-motion`, then `bars-ghost-slots` |
+| Action bars 1-5 | `bars*.lua` | own | 2 | layout, setup | `bars-motion` (empty-slot preset previews implemented) |
 | Stance and pet rows | `src/modules/bars/bars-controls.lua` | own | 1 | bars | `bars-motion` |
 | Extra, zone, flyout, possess buttons | `src/modules/extrabuttons/extrabuttons.lua` | skin | 2 | skin, bars colour | `bars-motion` |
 | Vehicle bar frame | `src/modules/extrabuttons/extrabuttons.lua` (buttons only) | skin | 0 | extrabuttons | `vehicle-bar` |

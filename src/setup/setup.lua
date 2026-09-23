@@ -25,6 +25,13 @@ function setup.StateKeys(values)
     return keys
 end
 
+-- Cosmetic refreshes must never change the outcome of an action transaction.
+function setup.RefreshBars()
+    if not core.Bars or not core.Bars.Refresh then return end
+    local ok = pcall(core.Bars.Refresh)
+    if not ok then core:Print("Setup bar display could not refresh; use /reload to refresh it.") end
+end
+
 local copy = setup.CopyState
 
 function setup.SlotToAction(page, index)

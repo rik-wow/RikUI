@@ -48,6 +48,7 @@ src/setup/setup-talents.lua
 src/setup/setup-role.lua
 src/modules/bars/bars.lua
 src/modules/bars/bars-skin.lua
+src/modules/bars/bars-ghosts.lua
 src/modules/bars/bars-state.lua
 src/modules/bars/bars-paging.lua
 src/modules/bars/bars-controls.lua

@@ -24,6 +24,8 @@ return function(check)
         if not path:match("^src/core/") then before(lifecycle, path) end
     end
     for _, edge in ipairs({
+        { "src/setup/setup.lua", "src/modules/bars/bars-ghosts.lua" },
+        { "src/modules/bars/bars.lua", "src/modules/bars/bars-ghosts.lua" },
         { "src/modules/questplanner/quest-schema.lua", "src/modules/questplanner/quest-evidence.lua" },
         { "src/modules/questplanner/quest-schema.lua", "src/modules/questplanner/quest-reader.lua" },
         { "src/modules/questplanner/quest-reader.lua", "src/modules/questplanner/questplanner.lua" },

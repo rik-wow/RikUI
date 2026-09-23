@@ -1,7 +1,7 @@
 -- Typed persisted defaults. Unit values and client secrets never pass through here.
 local core, runtime = RikUI, RikUI.Runtime
 local DEFAULT_PROFILE = "Default"
-local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = false,
+local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = false, ghosts = true,
     tooltip = { hideInCombat = false },
     chat = { fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,

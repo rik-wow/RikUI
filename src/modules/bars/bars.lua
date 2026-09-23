@@ -35,6 +35,7 @@ local function updateCount(button)
 end
 
 local function updateButton(button)
+    if bars.RefreshGhost then bars.RefreshGhost(button) end
     local reader = C_ActionBar and C_ActionBar.GetActionTexture or GetActionTexture
     local ok, texture = core.Secret.Read(reader, button.action)
     if not ok then report("icon", texture); return end
@@ -103,10 +104,15 @@ local function configureFade(bar)
     bar:SetAlpha(bar:IsMouseOver() and 1 or 0)
 end
 
+local function refreshAppearance(bar)
+    bars.UpdateGryphons(bar)
+    if bars.RefreshGhosts then bars.RefreshGhosts(bar) end
+end
+
 local function position(bar)
     local key = bar.positionKey or bar.key
     core.Layout.Register(bar, key, setup.DefaultPositions[key] or setup.DefaultPositions.main,
-        { onApply = bars.UpdateGryphons })
+        { onApply = refreshAppearance })
 end
 
 -- Companion factories share the layout and appearance contract.
@@ -142,7 +148,10 @@ function bars.AttachTooltip(button, label, setter)
     button:HookScript("OnLeave", function() GameTooltip:Hide() end)
 end
 
-local function actionTooltip(button) return GameTooltip:SetAction(button.action) end
+local function actionTooltip(button)
+    if bars.ShowGhostTooltip and bars.ShowGhostTooltip(button) then return end
+    return GameTooltip:SetAction(button.action)
+end
 
 local function createButton(bar, index, opts)
     local button = CreateFrame("Button", bar:GetName() .. "Button" .. index, bar, "SecureActionButtonTemplate")
@@ -159,6 +168,7 @@ local function createButton(bar, index, opts)
     button:SetPoint("TOPLEFT", bar, "TOPLEFT", opts.vertical and 0 or offset, opts.vertical and -offset or 0)
     bars.DecorateButton(button)
     if bars.CreateButtonState then bars.CreateButtonState(button, bar, index) end
+    if bars.CreateGhost then bars.CreateGhost(button) end
     button:SetScript("OnDragStart", function(self) drag(self, false) end)
     button:SetScript("OnReceiveDrag", function(self) drag(self, true) end)
     updateButton(button)
@@ -237,7 +247,7 @@ function bars:OnEnable()
         bars.Refresh(); bars.ApplyLayout(); refreshFades(); bars.UpdateStockVisibility()
     end)
     for _, event in ipairs({ "UPDATE_BINDINGS", "SPELL_UPDATE_CHARGES", "UPDATE_INVENTORY_ALERTS",
-        "BAG_UPDATE_DELAYED", "SPELL_UPDATE_ICON" }) do
+        "BAG_UPDATE_DELAYED", "SPELL_UPDATE_ICON", "GET_ITEM_INFO_RECEIVED" }) do
         core:RegisterEvent(event, function() bars.Refresh() end)
     end
     core:RegisterEvent("PLAYER_REGEN_DISABLED", refreshFades)

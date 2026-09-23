@@ -27,6 +27,45 @@ All creation, attribute, position and scale writes run through the core combat
 queue. Invalid saved
 position fields or scale fall back to defaults without rewriting saved data.
 
+## Empty-slot preset previews
+
+Empty slots in the character's applied preset now show a 35%-opacity icon and a
+small `Lv N` label where the preset supplies an acquisition level. Hovering names
+the spell, macro or item and identifies it as a preset preview. Levels describe
+the preset; learning may still require a trainer, quest or talent.
+
+Previews follow the applied role and each absolute action slot, including stance
+overrides and manual pages. An occupied slot always hides its preview, even when
+the action's texture is unavailable. Unassigned slots and characters without an
+applied preset stay empty. Clearing an action restores its preview; Apply, Undo,
+profile changes and late item data refresh it automatically.
+
+Use **Preset ghost icons** in `/rik config` under **Bars and layout**, or
+`/rik ghosts off` / `/rik ghosts on`. The profile preference is saved
+through the existing settings transport. Successful toggles produce no chat line.
+Previews never place an action, capture clicks, alter bindings or change layouts.
+
+The implementation uses plain mouse-transparent child frames below hotkeys and
+press feedback. Refreshing in combat changes only cosmetic regions. It requires
+an explicit readable `HasAction(slot) == false`; unavailable or opaque occupancy
+suppresses the preview. Spell icons fall back to the local catalogue, and unknown
+item icons use a question mark until data is available. Macro labels use the
+lowest acquisition level among their alternative spells, matching setup's
+placement rule.
+
+API contracts checked against the project's pinned client source:
+[spell textures](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua),
+[item icons](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua),
+and [action occupancy](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ActionBarFrameDocumentation.lua).
+
+Recording-renderer regressions exercise visibility, role/stance/manual slots,
+combat write guards, hover refresh, icon failure and recovery, Apply/Undo,
+profile switching and persistence. Native pixel layout and client protection
+remain unverified in this session: desktop control is unavailable.
+After `/reload`, inspect an empty applied slot, hover it, fill/clear it, change to
+the available Battle page, and toggle ghosts in and out of combat. Confirm the
+label stays clear of the keybind and the checkbox survives another reload.
+
 ## Module API
 
 - `Bars.Create(name, firstAction, layoutOpts)` creates or returns a bar.
