@@ -21,6 +21,7 @@ return function(check)
         end })
     end
     local function region(value)
+        function value:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         capitalOnly(value)
         function value:SetTexture(texture) self.texture = texture end
         function value:SetVertexColor(...) self.color = { ... } end
@@ -41,6 +42,7 @@ return function(check)
         if template == TEMPLATE and stub.templateMissing then error("CreateFrame: Unknown frame template") end
         if template == "BagSearchBoxTemplate" and stub.searchTemplateMissing then error("CreateFrame: Unknown frame template") end
         local frame = originalCreate(kind, name, parent, template)
+        function frame:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         capitalOnly(frame)
         function frame:SetParent(value)
             assert(not InCombatLockdown(), "frame reparented in combat")
@@ -143,6 +145,8 @@ return function(check)
         ToggleAllBags()
         check("the bag key opens one frame with every slot of every bag", holder:IsShown() and shownButtons() == 22
             and button(0, 16) ~= nil and button(1, 6) ~= nil and button(2, 1) == nil)
+        check("bag opening fades and slides without changing its saved anchor", holder.rikEntry.plays == 1
+            and holder.rikEntry.animation.kind == "Translation" and holder.rikEntry.animation.offset[2] == 6)
         local cloth, stone, blade, empty = button(0, 1), button(0, 2), button(1, 3), button(0, 3)
         check("buttons come from the Blizzard item template", cloth.kind == "ItemButton" and cloth.template == TEMPLATE)
         check("the slot is the button ID and the bag is the parent's ID", cloth:GetID() == 1 and cloth.parent:GetID() == 0
@@ -154,6 +158,14 @@ return function(check)
             and stone.rikIcon.texture == 134414 and stone.rikCount.text == ""
             and cloth.rikCount.fontPath == media.font)
         check("empty slots show no icon or count", empty.rikIcon.texture == nil and empty.rikCount.text == "")
+        check("initial inventory does not flash every slot", cloth.rikFlash == nil)
+        stub.items["0:1"].stackCount = 6
+        module.UpdateButton(cloth)
+        check("changed item stacks flash once", cloth.rikFlash.plays == 1)
+        module.UpdateButton(cloth)
+        check("unchanged refresh does not replay the flash", cloth.rikFlash.plays == 1)
+        stub.items["0:1"].stackCount = 5
+        module.UpdateButton(cloth)
         check("uncommon and better items get a quality-coloured border", color(blade.rikBorder[1].color, { 0.12, 1, 0 })
             and color(blade.rikBorder[4].color, { 0.12, 1, 0 }))
         check("common items and empty slots keep the neutral border", color(cloth.rikBorder[1].color, { 0.25, 0.28, 0.32 })

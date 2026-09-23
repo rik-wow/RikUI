@@ -1,5 +1,7 @@
 # Loot
 
+The loot list fades and slides upward over 180ms; new or updated rows flash gold and have a soft hover wash. Native roll frames gain a fade entrance. Loot closing remains immediate, cancelling animation without postponing CloseLoot or slot updates. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
+
 `src/modules/loot/loot.lua` replaces Blizzard's loot window with a compact flat list and
 `src/modules/loot/loot-rolls.lua` gives the group roll frames the same skin. The stock
 `LootFrame` is parked through the [shared hide helper](../SDD.md). Disable the

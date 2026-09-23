@@ -17,6 +17,7 @@ function motion.Tween(owner, from, to, seconds, delay)
     alpha:SetFromAlpha(from)
     alpha:SetToAlpha(to)
     alpha:SetDuration(seconds)
+    group.rikAlpha = alpha
     if delay and type(alpha.SetStartDelay) == "function" then alpha:SetStartDelay(delay) end
     return group
 end
@@ -48,6 +49,72 @@ function motion.Play(group)
     if not group then return end
     group:Stop()
     group:Play()
+end
+
+
+local ENTRY_SECONDS, HOVER_SECONDS, FLASH_SECONDS = 0.18, 0.1, 0.45
+local SLIDE_DISTANCE, HOVER_ALPHA = 6, 0.12
+
+-- Cosmetic transforms reset when the group ends; layout anchors are never moved.
+function motion.BindEntrance(owner, slide)
+    local existing = owner.rikEntry
+    if type(existing) == "table" or type(existing) == "userdata" then return end
+    local group = motion.Tween(owner, 0, 1, ENTRY_SECONDS)
+    if not group then return end
+    if slide then
+        local shift = group:CreateAnimation("Translation")
+        shift:SetOffset(0, -SLIDE_DISTANCE)
+        shift:SetDuration(0)
+        shift:SetOrder(1)
+        local rise = group:CreateAnimation("Translation")
+        rise:SetOffset(0, SLIDE_DISTANCE)
+        rise:SetDuration(ENTRY_SECONDS)
+        rise:SetOrder(2)
+        -- Alpha and rise start after the instantaneous initial offset.
+        group.rikAlpha:SetOrder(2)
+    end
+    owner.rikEntry = group
+    owner:HookScript("OnShow", function() motion.Play(group) end)
+    owner:HookScript("OnHide", function() motion.Stop(group) end)
+end
+
+local function effectRegion(owner)
+    local region = owner:CreateTexture(nil, "OVERLAY")
+    region:SetAllPoints(owner)
+    region:SetTexture("Interface\\BUTTONS\\WHITE8X8")
+    region:SetVertexColor(1, 0.82, 0)
+    region:SetAlpha(0)
+    return region
+end
+
+function motion.BindHover(owner)
+    if owner.rikHover then return end
+    local value = { region = effectRegion(owner) }
+    value.enter = motion.Tween(value.region, 0, HOVER_ALPHA, HOVER_SECONDS)
+    value.leave = motion.Tween(value.region, HOVER_ALPHA, 0, HOVER_SECONDS)
+    owner.rikHover = value
+    owner:HookScript("OnEnter", function()
+        motion.Stop(value.leave)
+        value.region:SetAlpha(HOVER_ALPHA)
+        motion.Play(value.enter)
+    end)
+    owner:HookScript("OnLeave", function()
+        motion.Stop(value.enter)
+        value.region:SetAlpha(0)
+        motion.Play(value.leave)
+    end)
+    owner:HookScript("OnHide", function()
+        motion.Stop(value.enter); motion.Stop(value.leave); value.region:SetAlpha(0)
+    end)
+end
+
+function motion.Flash(owner)
+    if not owner.rikFlash then
+        local region = effectRegion(owner)
+        owner.rikFlash = motion.Tween(region, 0.32, 0, FLASH_SECONDS)
+        owner:HookScript("OnHide", function() motion.Stop(owner.rikFlash) end)
+    end
+    motion.Play(owner.rikFlash)
 end
 
 -- Native fill geometry selects loss/gain regions without inspecting secret values.

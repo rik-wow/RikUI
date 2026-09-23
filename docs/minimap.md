@@ -1,5 +1,7 @@
 # Minimap
 
+Visible minimap controls gain a 100ms gold hover wash. Changed public zone names fade in over 200ms; repeated zone events do not restart it. Native tracking, queue and ping actions remain intact. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
+
 `src/modules/minimap/minimap.lua` keeps Blizzard's `Minimap` (the client draws the map, blips,
 pings and tracking) and moves it into a RikUI holder: a square with a
 one-pixel border, the zone name above it and the local time and your

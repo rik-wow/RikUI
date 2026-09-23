@@ -130,9 +130,24 @@ local function dim(button)
     button:SetAlpha(button.rikDimmed and DIM_ALPHA or FULL_ALPHA)
 end
 
+local function itemFeedback(button, info)
+    local identity = info and info.hyperlink
+    local count = info and info.stackCount
+    if not plain(identity, "string") or not plain(count, "number") then
+        button.rikItemIdentity, button.rikItemCount = nil, nil
+        return
+    end
+    if button.rikObserved and (button.rikItemIdentity ~= identity or button.rikItemCount ~= count) then
+        core.Motion.Flash(button)
+    end
+    button.rikItemIdentity, button.rikItemCount = identity, count
+end
+
 function bags.UpdateButton(button)
     local bag, slot = button:GetParent():GetID(), button:GetID()
     local info = readInfo(bag, slot)
+    itemFeedback(button, info)
+    button.rikObserved = true
     local icon, count = info and info.iconFileID, info and info.stackCount
     if core.Secret.IsSecret(icon) then icon = nil end
     button.rikIcon:SetTexture(icon)

@@ -72,6 +72,7 @@ local function createRow()
     row:SetScript("OnClick", onClick)
     row:SetScript("OnEnter", onEnter)
     row:SetScript("OnLeave", onLeave)
+    core.Motion.BindHover(row)
     loot.Rows[#loot.Rows + 1] = row
     return row
 end
@@ -88,6 +89,12 @@ local function fillRow(row, slot)
     local ok, texture, name, quantity, currencyID, quality = pcall(GetLootSlotInfo, slot)
     if not ok then warn("slot", texture) return false end
     if texture == nil and name == nil then return false end
+    local publicQuantity = readable(quantity, "number") and quantity or nil
+    if readable(name, "string") and (row.rikItemName ~= name or row.rikQuantity ~= publicQuantity) then
+        core.Motion.Flash(row)
+    end
+    row.rikItemName = readable(name, "string") and name or nil
+    row.rikQuantity = readable(quantity, "number") and quantity or nil
     row.slot, row.currency = slot, currencyID ~= nil
     row.icon:SetTexture(not core.Secret.IsSecret(texture) and texture or nil)
     -- Coin text arrives as one line per denomination.
@@ -171,6 +178,7 @@ local function createHolder()
     -- At the cursor the list places itself and stands over other frames for a moment, like a tooltip;
     -- at its layout position it is a group like any other and gives way when it grows.
     layout.Register(holder, KEY, DEFAULTS, { label = "Loot list", floating = loot.AtCursor })
+    core.Motion.BindEntrance(holder, true)
     loot.Holder = holder
 end
 

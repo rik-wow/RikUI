@@ -1,5 +1,7 @@
 # Micro menu and bags
 
+Micro and bag-strip buttons gain a 100ms gold hover transition on addon-owned textures. Secure click attributes and native tooltip behavior remain intact. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
+
 `src/modules/micromenu/micromenu.lua` replaces the bottom-right cluster with one flat row of 22px
 buttons: a button for every micro button the client shows, then the backpack,
 the four bag slots and the keyring. The Blizzard `MicroMenu` and `BagsBar` are

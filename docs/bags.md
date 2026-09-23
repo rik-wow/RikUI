@@ -1,5 +1,7 @@
 # Bags
 
+The bag panel fades and slides upward by six pixels over 180ms when opened. Item identity or stack changes flash gold for 450ms; the initial inventory scan stays quiet. Hide cancels the entrance immediately. Secure item IDs, click handlers and drag behavior remain native. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
+
 `src/modules/bags/bags.lua` and `src/modules/bags/bags-items.lua` replace the five Blizzard bag windows with one
 frame that shows every slot of the backpack and the four bags. The bank stays
 Blizzard's. Disable the `bags` module in `/rik config` and reload to get the

@@ -1,5 +1,7 @@
 # Tooltips
 
+Tooltips fade in over 180ms and cancel the entrance immediately when hidden. Existing native fade-out, ownership, data processing and GUID health watches remain intact. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
+
 `src/modules/tooltip/tooltip.lua` and `src/modules/tooltip/tooltip-data.lua` restyle the Blizzard tooltips instead of
 replacing them: the client keeps building every line, RikUI moves the tooltip,
 flattens the backdrop, swaps the font, colours the unit name and adds the two

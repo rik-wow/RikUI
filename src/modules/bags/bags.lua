@@ -209,6 +209,7 @@ local function createHolder()
     holder:Hide()
     holder:SetScript("OnShow", onShow)
     holder:SetScript("OnHide", onHide)
+    core.Motion.BindEntrance(holder, true)
     bags.Resize()
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, HOLDER_NAME) end
     -- A window you open over the screen and close again, like a tooltip: it neither blocks other frames

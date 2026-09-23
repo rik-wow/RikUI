@@ -48,6 +48,7 @@ local function decorate(button, offset)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(button)
     highlight:SetTexture(media.highlight)
+    core.Motion.BindHover(button)
 end
 
 local function text(button, role, point)

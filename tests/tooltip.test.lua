@@ -39,7 +39,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/tooltip/tooltip.lua", "src/modules/tooltip/tooltip-data.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -75,6 +75,12 @@ return function(check)
             and GameTooltipText.fontSize == media.sizes.label and GameTooltipHeaderText.fontPath == media.font
             and GameTooltipTextSmall.fontSize == media.sizes.small)
 
+        tip:Hide()
+        tip:Show()
+        check("tooltips fade on show", tip.rikEntry.plays == 1)
+        tip:Hide()
+        check("tooltip hiding cancels entry without delaying native hide", not tip.rikEntry:IsPlaying()
+            and not tip:IsShown())
         local bar = tip.StatusBar
         stub.setLines(tip, { "Boar", "Level 5 Beast" })
         stub.process("Unit", tip, { guid = "Creature-0-1" })

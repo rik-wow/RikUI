@@ -30,6 +30,7 @@ local function skinRoll(frame)
     if isRegion(frame.Name) then
         frame.Name:SetFont(media.font, media.sizes.label, "OUTLINE")
     end
+    core.Motion.BindEntrance(frame)
     loot.SkinnedRolls[#loot.SkinnedRolls + 1] = frame
 end
 

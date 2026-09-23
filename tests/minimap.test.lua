@@ -13,6 +13,7 @@ return function(check)
         assert(not InCombatLockdown(), "frame reparented in combat")
     end
     local function region(value)
+        function value:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         local methods = getmetatable(value).__index
         setmetatable(value, { __index = function(t, key)
             if key:match("^[A-Z]") then return methods(t, key) end
@@ -26,6 +27,7 @@ return function(check)
     end
     CreateFrame = function(kind, name, parent, template)
         local frame = originalCreate(kind, name, parent, template)
+        function frame:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         local methods = getmetatable(frame).__index
         setmetatable(frame, { __index = function(t, key)
             if key:match("^[A-Z]") then return methods(t, key) end
@@ -64,7 +66,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/platform/editmode.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/minimap/minimap.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -172,6 +174,13 @@ return function(check)
         check("the clock follows the 12-hour setting", holder.clock.text:match("^%d+:%d%d [AP]M$") ~= nil)
         C_CVar.GetCVar = savedGetCVar
 
+        local zonePlays = holder.rikZoneFade.plays
+        module.UpdateZone()
+        check("unchanged zone events do not replay the text fade", holder.rikZoneFade.plays == zonePlays)
+        env.runScript(QueueStatusButton, "OnEnter")
+        check("minimap controls tween only their hover region", QueueStatusButton.rikHover.enter.plays == 1)
+        env.runScript(QueueStatusButton, "OnLeave")
+        check("minimap hover exits smoothly", QueueStatusButton.rikHover.leave.plays == 1)
         check("the mouse wheel is enabled on the map", map.wheel == true)
         env.runScript(map, "OnMouseWheel", 1)
         check("wheel up zooms in", map.zoom == 1)

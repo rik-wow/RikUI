@@ -13,6 +13,7 @@ return function(check)
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
     local function region(value)
+        function value:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         function value:SetTexture(texture) self.texture = texture end
         function value:SetVertexColor(...) self.color = { ... } end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
@@ -20,6 +21,7 @@ return function(check)
     end
     CreateFrame = function(kind, name, parent, template)
         local frame = originalCreate(kind, name, parent, template)
+        function frame:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         local methods = getmetatable(frame).__index
         setmetatable(frame, { __index = function(t, key)
             if key:match("^[A-Z]") then return methods(t, key) end
@@ -79,7 +81,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/micromenu/micromenu.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -135,6 +137,11 @@ return function(check)
         env.inCombat = false
         check("bag clicks route to the client's toggles, in combat too", stub.backpack == 1
             and stub.toggled[1] == 2 and stub.toggled[2] == -2)
+        env.runScript(first, "OnEnter")
+        check("secure micro button hover animates only its cosmetic region", first.rikHover.enter.plays == 1
+            and first.attributes.clickbutton == CharacterMicroButton)
+        env.runScript(first, "OnLeave")
+        check("micro hover fades away", first.rikHover.leave.plays == 1)
         env.runScript(first, "OnEnter")
         check("hovering a strip button shows the stock button's tooltip text", GameTooltip.owner == first
             and GameTooltip.text == "CharacterMicroButton tip")

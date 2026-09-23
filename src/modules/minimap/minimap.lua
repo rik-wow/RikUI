@@ -121,6 +121,10 @@ function minimap.UpdateZone()
     if not ok then warn("zone", name); name, pvpType = nil, nil end
     if core.Secret.IsSecret(name) or type(name) ~= "string" then name = "" end
     if core.Secret.IsSecret(pvpType) then pvpType = nil end
+    if holder.rikZoneName ~= name then
+        holder.rikZoneName = name
+        core.Motion.Play(holder.rikZoneFade)
+    end
     holder.zone:SetText(name)
     holder.zone:SetTextColor(unpack(PVP_COLORS[pvpType] or NEUTRAL))
 end
@@ -131,6 +135,7 @@ local function createHolder()
     holder.rikBorder = ui.Edges(holder, EDGE, "BORDER")
     for _, line in ipairs(holder.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     holder.zone = label("label", "BOTTOM", "TOP", TEXT_GAP)
+    holder.rikZoneFade = core.Motion.Tween(holder.zone, 0, 1, 0.2)
     holder.clock = label("small", "TOPLEFT", "BOTTOMLEFT", -TEXT_GAP)
     holder.coords = label("small", "TOPRIGHT", "BOTTOMRIGHT", -TEXT_GAP)
     holder.elapsed = 0
@@ -169,6 +174,7 @@ local function keep(entry)
         local button = frame.Button
         if isFrame(button) then button:EnableMouse(false) end
     end
+    if not entry.silent then core.Motion.BindHover(isFrame(frame.Button) and frame.Button or frame) end
     minimap.Adopted[#minimap.Adopted + 1] = frame
 end
 

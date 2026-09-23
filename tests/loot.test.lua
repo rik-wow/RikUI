@@ -11,6 +11,7 @@ return function(check)
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
     local function region(value)
+        function value:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         function value:SetTexture(texture) self.texture = texture end
         function value:SetVertexColor(...) self.color = { ... } end
         function value:SetTextColor(...) self.color = { ... } end
@@ -20,6 +21,7 @@ return function(check)
     end
     CreateFrame = function(kind, name, parent, template)
         local frame = originalCreate(kind, name, parent, template)
+        function frame:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         local methods = getmetatable(frame).__index
         setmetatable(frame, { __index = function(t, key)
             if key:match("^[A-Z]") then return methods(t, key) end
@@ -93,7 +95,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/loot/loot.lua", "src/modules/loot/loot-rolls.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -120,6 +122,11 @@ return function(check)
 
         env.fire("LOOT_OPENED", false)
         check("opening loot shows one row per slot", holder:IsShown() and shownRows(module) == 3)
+        check("loot entrance fades and slides", holder.rikEntry.plays == 1
+            and holder.rikEntry.animation.kind == "Translation")
+        GroupLootFrame1:Hide()
+        GroupLootFrame1:Show()
+        check("native roll frames gain entry motion without replacing their scripts", GroupLootFrame1.rikEntry.plays == 1)
         check("the list opens at the cursor by default", holder.point[1] == "TOPLEFT" and holder.point[3] == "BOTTOMLEFT"
             and holder.point[4] < 500 and holder.point[5] > 400)
         RikUI.Layout.Apply()
@@ -148,11 +155,17 @@ return function(check)
         stub.slots[2][3] = 5
         env.fire("LOOT_SLOT_CHANGED", 2)
         check("a changed slot refreshes its row", cloth.count.text == "5")
+        check("loot item updates flash without altering slot clicks", cloth.rikFlash.plays == 2)
+        stub.slots[2][3] = env.SECRET
+        env.fire("LOOT_SLOT_CHANGED", 2)
+        check("secret quantity is not compared for animation", cloth.count.text == "")
+        stub.slots[2][3] = 5
         stub.slots[2][2] = env.SECRET
         env.fire("LOOT_SLOT_CHANGED", 2)
         check("a secret item name clears the text without printing", cloth.name.text == "" and #env.printed == 0)
 
         env.fire("LOOT_CLOSED")
+        check("closing loot immediately cancels its entrance", not holder.rikEntry:IsPlaying())
         check("closing loot hides the list", holder:IsShown() == false)
         local closed = stub.closed
         env.fire("LOOT_OPENED", false)

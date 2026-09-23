@@ -69,6 +69,7 @@ local function skin(frame)
     frame.rikBackground:SetColorTexture(unpack(BACKGROUND))
     frame.rikBorder = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
+    core.Motion.BindEntrance(frame)
     tooltip.Skinned[frame] = true
     tooltip.HideBackdrop(frame)
 end
