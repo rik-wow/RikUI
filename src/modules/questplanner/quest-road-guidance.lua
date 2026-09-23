@@ -109,6 +109,7 @@ end
 -- Travel plan for the current destination: which leg comes next.
 local ARRIVE_YARDS=15     -- this close to a stop, the next leg is the link from it
 local JUMP_YARDS=150      -- moving this far between frames means a flight, ride or teleport
+local LEAVE_YARDS=25      -- walking this far from a lift or portal stop means the link was taken
 local TRAVEL_MS=2         -- per-frame budget for travel planning; it runs beside the walking route
 
 local function planWorlds(identity,world,goalWorld)
@@ -145,9 +146,10 @@ local function planTrip(identity,world,start,goalWorld,goalPoint,key)
     if not trip.job then
         local graphs,why=planWorlds(identity,world,goalWorld)
         if not graphs then setState("loading","Loading travel networks");return end
-        local job,problem=travel.Begin(graphs,{world=world,x=start.x,z=start.z},{world=goalWorld,x=goalPoint.x,z=goalPoint.z})
+        local origin=trip.origin
+        local job,problem=travel.Begin(graphs,{world=world,x=start.x,z=start.z,stop=origin},{world=goalWorld,x=goalPoint.x,z=goalPoint.z})
         if not job then setState("no-known-path",problem);trip={key=key,world=world,failed=true,at=start};return end
-        trip={key=key,world=world,job=job,at=start}
+        trip={key=key,world=world,job=job,at=start,origin=origin}
     end
     local clock=type(debugprofilestop)=="function" and debugprofilestop
     local began=clock and clock()
@@ -173,7 +175,17 @@ local function tripLeg(identity,world,start,goalWorld,goalPoint,key)
     local moved=trip.failed and trip.at and (start.x-trip.at.x)^2+(start.z-trip.at.z)^2>=RETRY_YARDS^2
     if trip.key~=key or jumped or moved then
         if trip.job and trip.job.Cancel then trip.job:Cancel() end
-        trip={key=key,world=world}
+        -- A flight, boat or tram lands at its destination stop.
+        local current=jumped and trip.legs and trip.legs[trip.index]
+        trip={key=key,world=world,origin=current and current.mode~="walk" and current.to or nil}
+    end
+    -- A lift or portal barely moves the player sideways: leaving its stop means it was taken.
+    local current=trip.legs and trip.legs[trip.index]
+    if current and current.mode~="walk" and current.link and (current.link.vehicle=="lift" or current.link.vehicle=="portal") then
+        local from=planner.RoadTravel.Stop(current.from)
+        if from and (start.x-from.point[1])^2+(start.z-from.point[3])^2>LEAVE_YARDS^2 then
+            trip={key=key,world=world,origin=current.to}
+        end
     end
     trip.last={x=start.x,z=start.z}
     if trip.failed then return end

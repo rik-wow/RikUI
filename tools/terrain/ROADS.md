@@ -63,11 +63,27 @@ goal. Flights count only when both points are discovered
 leg at a time, says which link to take at each stop, and replans after a
 flight, a ride or a map change.
 
-Elevators are not linked yet. TransportAnimation gives each lift's travel
-(Undercity 96.5 yd, Thunder Bluff 61 and 71 yd, the Great Lift 129 yd), but
-their spawn positions are server data. `elevator_shafts.py` lists landings
-stacked that far apart in the bake as candidates; it is too noisy to trust on
-its own.
+Lifts and portals come from AzerothCore's world database
+(`azerothcore_travel.py`: gameobject spawns, gameobject_template, areatrigger_teleport),
+because the client has each lift's animation (TransportAnimation) but not
+where it stands. Each lift spawn gets a bottom and a top stop at the spawn
+height plus the animation's lowest and highest offset: Undercity (3),
+Thunder Bluff (4 cars), the Great Lift, Gnomeregan and the Searing Gorge
+scaffold. Lift and portal stops attach by a height-weighted distance so a
+landing never joins the floor above or below it. Named portals only: the
+Rut'theran and Darnassus pair and the Stormwind Wizard Sanctum (whose tower
+interior has no network nodes, so it stays unattached). The same data gives
+boat and zeppelin speeds (30 yd/s). Guidance treats walking 25 yd away from a
+lift or portal stop as having taken it and replans from the link's far stop.
+
+## Client patches
+
+`verify_build.py` extracts every file of the world acquisition profile from a
+new client build with the pinned TACTTool and compares SHA-256s. For
+1.60.1.69977 all 15,697 terrain sources and every DB2 table the pipeline
+reads were identical to 1.60.1.69913, so `quest-builds.lua` maps 69977 to the
+69913 data build instead of rebuilding. A patch that changes sources needs a
+rebake of what they feed.
 
 ## Runtime
 

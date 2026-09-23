@@ -9,25 +9,33 @@ node to the stop itself.
 """
 import collections, heapq, math
 
-REACH = dict(flight=80.0, dock=160.0, tram=80.0, elevator=40.0)
+REACH = dict(flight=130.0, dock=160.0, tram=80.0, elevator=150.0, portal=150.0)
+LEVEL_KINDS = ('elevator', 'portal')  # stacked landings: only nodes near the stop's own height count
+LEVEL_YARDS = 25.0   # a node is one sample per cell piece, often a floor above or below the landing
+LEVEL_WEIGHT = 3.0   # a yard of height counts as this many yards sideways when picking a landing's node
 
 
 def attach(infos, stops):
     """Returns (attached, missing): attached rows {id, node, yards}; missing rows {id, nearestYards}."""
-    points = [(info[1][0], info[1][2]) for info in infos]
+    points = [(info[1][0], info[1][1], info[1][2]) for info in infos]
     attached, missing = [], []
     for stop in stops:
-        x, _, z = stop['point']
-        best, node = math.inf, None
-        for n, (px, pz) in enumerate(points):
-            d = (px - x) ** 2 + (pz - z) ** 2
-            if d < best:
-                best, node = d, n
-        yards = math.sqrt(best)
+        x, y, z = stop['point']
+        level = stop['kind'] in LEVEL_KINDS
+        best, node, near, closest = math.inf, None, math.inf, math.inf
+        for n, (px, py, pz) in enumerate(points):
+            if level and abs(py - y) > LEVEL_YARDS:
+                continue
+            flat = (px - x) ** 2 + (pz - z) ** 2
+            closest = min(closest, flat)
+            score = (math.sqrt(flat) + LEVEL_WEIGHT * abs(py - y)) ** 2 if level else flat
+            if flat <= REACH[stop['kind']] ** 2 and score < best:
+                best, node, near = score, n, flat
+        yards = math.sqrt(near) if node is not None else math.inf
         if node is not None and yards <= REACH[stop['kind']]:
             attached.append(dict(id=stop['id'], node=node, yards=round(yards, 1)))
         else:
-            missing.append(dict(id=stop['id'], nearestYards=None if node is None else round(yards, 1)))
+            missing.append(dict(id=stop['id'], nearestYards=None if closest == math.inf else round(math.sqrt(closest), 1)))
     return attached, missing
 
 

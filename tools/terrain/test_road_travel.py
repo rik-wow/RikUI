@@ -33,6 +33,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(sorted(map(tuple, section['walks'])), [(1, 2, 160.0), (2, 1, 160.0)])
 
 
+class Levels(unittest.TestCase):
+    def test_lift_ends_join_nodes_at_their_own_height(self):
+        infos = [info(0, 0), (0, (5.0, 60.0, 0.0), (0, 0), 0.0)]
+        bottom = dict(id='lift:1:0:bottom', kind='elevator', point=[3.0, 1.0, 0.0])
+        top = dict(id='lift:1:0:top', kind='elevator', point=[3.0, 59.0, 0.0])
+        attached, _ = rt.attach(infos, [bottom, top])
+        self.assertEqual([a['node'] for a in attached], [0, 1])
+
+
 class Lifts(unittest.TestCase):
     def test_stacked_nodes_in_different_pieces_are_candidates(self):
         infos = [info(0, 0), (0, (5.0, 61.0, 0.0), (0, 0), 0.0), info(300, 0)]

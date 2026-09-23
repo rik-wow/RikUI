@@ -17,7 +17,7 @@ local SLICE_MS=2               -- and at most this long, when the client clock i
 local KNOWN_REFRESH=30         -- seconds between discovered-flight reads
 local CONTINENT_MAPS={1415,1414}  -- Eastern Kingdoms, Kalimdor
 local MODES={flight=true,transport=true}
-local KINDS={flight=true,dock=true,tram=true,elevator=true}
+local KINDS={flight=true,dock=true,tram=true,elevator=true,portal=true}
 
 local stops,links,byWorld={}, {}, {}
 local known,knownAt={},nil
@@ -237,11 +237,16 @@ local function describe(leg)
     if leg.mode=="flight" then return "Fly to "..to.name:gsub(",.*$","") end
     if leg.mode=="transport" then
         if leg.link.vehicle=="tram" then return "Ride the Deeprun Tram to "..to.name end
+        if leg.link.vehicle=="lift" then
+            return "Take the "..to.name:gsub(" %(%a+%)$","").." "..(leg.link.direction or "up")
+        end
+        if leg.link.vehicle=="portal" then return "Step through "..stops[leg.from].name end
         return "Take the "..(leg.link.vehicle=="zeppelin" and "zeppelin" or "boat").." to "..to.name
     end
     if leg.to=="goal" then return "Walk to the destination" end
     if to.kind=="flight" then return "Walk to the flight master at "..to.name:gsub(",.*$","") end
     if to.kind=="tram" then return "Walk to the Deeprun Tram in "..to.name:gsub(",.*$","") end
+    if to.kind=="elevator" then return "Walk to the "..to.name:gsub(" %(%a+%)$","") end
     return "Walk to "..to.name
 end
 
@@ -258,6 +263,11 @@ function travel.Begin(graphs,start,goal)
         return set
     end
     local startEnds,goalEnds=endNodes(sg,start),endNodes(gg,goal)
+    -- After a lift or portal the player is at that link's destination stop: start
+    -- there, on the right level, instead of at whichever stacked floor is nearest.
+    if start.stop then
+        for _,row in ipairs(startStops) do if row.id==start.stop then startEnds={{row.node,row.yards}} end end
+    end
     if #startEnds==0 then return nil,"start is off the road network" end
     if #goalEnds==0 then return nil,"destination is off the road network" end
     local sameWorld=start.world==goal.world

@@ -62,6 +62,25 @@ class Tests(unittest.TestCase):
         tram = sorted((l['from'], l['to']) for l in self.links if l['id'].startswith('tram:'))
         self.assertEqual(tram, [('tram:2173', 'tram:2175'), ('tram:2175', 'tram:2173')])
 
+    def test_lifts_and_portals_come_from_server_spawns(self):
+        animation = [dict(TransportID='20655', Pos_0='0', Pos_1='0', Pos_2=z, TimeIndex=t)
+                     for z, t in (('0', '0'), ('-55.5', '8000'), ('41', '16667'))]
+        triggers = TRIGGERS + [dict(ID='542', ContinentID='1', Pos_0='8799', Pos_1='970', Pos_2='30')]
+        server = dict(lifts=[dict(entry=20655, map=0, x=1544.0, y=241.0, z=14.7)],
+                      teleports=[dict(trigger=542, name='x', map=1, x=9945.0, y=2617.0, z=1316.0),
+                                 dict(trigger=943, name='Leap of Faith', map=1, x=0.0, y=0.0, z=0.0)])
+        stops, links = tl.compile_links(NODES, PATHS, PATH_NODES, triggers, animation, server)
+        by_id = {s['id']: s for s in stops}
+        bottom, top = by_id['lift:20655:0:bottom'], by_id['lift:20655:0:top']
+        self.assertAlmostEqual(bottom['point'][1], 14.7 - 55.5, places=3)
+        self.assertAlmostEqual(top['point'][1], 14.7 + 41, places=3)
+        self.assertEqual(bottom['name'], 'Undercity lift (bottom)')
+        ups = [l for l in links if l.get('vehicle') == 'lift']
+        self.assertEqual(sorted(l['direction'] for l in ups), ['down', 'up'])
+        portals = [l for l in links if l.get('vehicle') == 'portal']
+        self.assertEqual([l['id'] for l in portals], ['portal:542'])  # quest teleports are left out
+        self.assertEqual(by_id['portal:542:out']['name'], 'Darnassus')
+
     def test_missing_tram_trigger_drops_the_tram(self):
         stops, links = tl.compile_links(NODES, PATHS, PATH_NODES, TRIGGERS[:1])
         self.assertFalse([s for s in stops if s['kind'] == 'tram'])

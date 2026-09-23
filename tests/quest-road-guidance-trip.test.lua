@@ -18,11 +18,21 @@ return function(check)
    return {Step=function()return {status='no-known-path'} end,Cancel=function()end}
   end}
   local dock={id='dock:1:0',kind='dock',name='Menethil Harbor dock',world=0,point={600,0,500}}
+  local lift={id='lift:1:0:bottom',kind='elevator',name='Undercity lift (bottom)',world=0,point={600,0,500}}
+  local byID={[dock.id]=dock,[lift.id]=lift}
+  local useLift,starts=false,{}
   p.RoadTravel={
    Count=function()return 3,1 end,
    Worlds=function()return {0,1} end,
-   Begin=function()
-    plans=plans+1
+   Stop=function(id)return byID[id] end,
+   Begin=function(_,start)
+    plans=plans+1;starts[#starts+1]=start
+    if useLift then
+     return {Step=function()return {status='planned',seconds=100,legs={
+      {mode='walk',to=lift.id,stop=lift,text='Walk to the Undercity lift'},
+      {mode='transport',from=lift.id,to='lift:1:0:top',link={vehicle='lift',direction='up'},text='Take the Undercity lift up'},
+      {mode='walk',to='goal',text='Walk to the destination'}}} end}
+    end
     return {Step=function()return {status='planned',seconds=300,legs={
      {mode='walk',to='dock:1:0',stop=dock,text='Walk to Menethil Harbor dock'},
      {mode='transport',from='dock:1:0',to='dock:1:1',text='Take the boat to Auberdine dock'},
@@ -45,6 +55,16 @@ return function(check)
   position={mapID=1439,x=.2,y=.2}     -- after the ride: another world, far away
   g.Step()
   check('trip guidance replans after the ride',plans==2,plans)
+  check('trip guidance starts the new plan at the landing stop of the ride',starts[2] and starts[2].stop=='dock:1:1',starts[2] and starts[2].stop)
+  -- A lift: arriving shows the lift; walking off it replans from the top landing.
+  useLift=true;g.Reset();position={mapID=1426,x=.5,y=.5};row.destination={mapID=1426,x=.9,y=.9,scope='npc'}
+  for _=1,2 do g.Step() end
+  position={mapID=1426,x=.603,y=.5};g.Step()
+  check('trip guidance shows the lift at its stop',g.Status().detail=='Take the Undercity lift up',g.Status().detail)
+  local before=plans
+  position={mapID=1426,x=.64,y=.5};g.Step()
+  check('walking off the lift replans from the top landing',plans==before+1 and starts[#starts].stop=='lift:1:0:top',
+   starts[#starts] and starts[#starts].stop)
  end)
  RikUI,GetTime=saved,savedTime
  check('quest road guidance trip suite runs',ok,why)

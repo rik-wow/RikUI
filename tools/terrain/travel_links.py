@@ -16,7 +16,7 @@ import argparse, collections, csv, hashlib, json, math, pathlib
 FORMAT = 'rikui-travel-links-v1'
 FLIGHT_SPEED = 32.0      # yd/s, estimate
 FLIGHT_OVERHEAD = 8.0    # s to talk to the flight master, mount and dismount
-TRANSPORT_SPEED = 30.0   # yd/s, estimate for boats and zeppelins
+TRANSPORT_SPEED = 30.0   # yd/s; AzerothCore gameobject_template Data1 for every classic boat and zeppelin
 BOARD_SECONDS = 10.0     # s to walk up the gangplank and off again
 TELEPORT_FLAG = 0x1      # TaxiPathNode flag: the transport changes map here
 ZEPPELIN_HEIGHT = 20.0   # yd; zeppelin towers berth high, boats at sea level
@@ -157,6 +157,73 @@ def tram(triggers):
 
 
 LIFT_MIN_TRAVEL = 20.0   # yd; shorter vertical animations are doors and small platforms
+LIFT_RIDE_SHARE = 1 / 3  # share of a lift's animation cycle spent moving one way; estimate
+PORTAL_SECONDS = 5.0     # s to step through a portal and load in
+CONTINENTS = (0, 1)      # lifts and portals are linked on the continents only
+LIFT_NAMES = {20649: 'Undercity lift', 20652: 'Undercity lift', 20655: 'Undercity lift',
+              4170: 'Thunder Bluff lift', 4171: 'Thunder Bluff lift', 47296: 'Thunder Bluff lift', 47297: 'Thunder Bluff lift',
+              11898: 'Great Lift', 11899: 'Great Lift', 80023: 'Gnomeregan lift',
+              149045: 'Searing Gorge lift', 149046: 'Searing Gorge lift'}
+PORTAL_NAMES = {527: "portal to Rut'theran Village", 542: 'portal to Darnassus',
+                702: 'portal up the Wizard Sanctum', 704: 'portal down the Wizard Sanctum'}
+
+
+def lift_offsets(animation):
+    """{transport id: (lowest z offset, highest z offset, cycle seconds)} for vertical lifts."""
+    keys = collections.defaultdict(list)
+    for r in animation:
+        keys[int(r['TransportID'])].append((float(r['Pos_0']), float(r['Pos_1']), float(r['Pos_2']), int(r['TimeIndex'])))
+    out = {}
+    for ident, rows in keys.items():
+        zs = [k[2] for k in rows]
+        if max(math.hypot(k[0], k[1]) for k in rows) < 1.0 and max(zs) - min(zs) >= LIFT_MIN_TRAVEL:
+            out[ident] = (min(zs), max(zs), max(k[3] for k in rows) / 1000.0)
+    return out
+
+
+def lift_links(server, animation, flights):
+    """Bottom and top stops for each lift spawn, linked both ways (AzerothCore spawns)."""
+    offsets = lift_offsets(animation)
+    stops, links = [], []
+    for n, spawn in enumerate(server.get('lifts', ())):
+        if spawn['map'] not in CONTINENTS or spawn['entry'] not in offsets:
+            continue
+        low, high, cycle = offsets[spawn['entry']]
+        ends = []
+        for level, dz in (('bottom', low), ('top', high)):
+            stop = dict(id='lift:%d:%d:%s' % (spawn['entry'], n, level), kind='elevator', world=spawn['map'],
+                        point=bake(spawn['x'], spawn['y'], spawn['z'] + dz), level=level)
+            ends.append(stop)
+        place = LIFT_NAMES.get(spawn['entry'], 'Lift')
+        for stop in ends:
+            stop['name'] = '%s (%s)' % (place, stop['level'])
+        stops.extend(ends)
+        ride = round((high - low) and cycle * LIFT_RIDE_SHARE, 1)
+        for a, b, way in ((ends[0], ends[1], 'up'), (ends[1], ends[0], 'down')):
+            links.append(dict(id='lift:%d:%d:%s' % (spawn['entry'], n, way), mode='transport', **{'from': a['id'], 'to': b['id']},
+                              seconds=ride, wait=round(cycle / 2, 1), transport='lift:%d' % spawn['entry'], vehicle='lift',
+                              direction=way, period=round(cycle, 1)))
+    return stops, links
+
+
+def portal_links(server, triggers):
+    """One-way portals whose trigger (client AreaTrigger) and destination share a continent."""
+    by_id = {int(r['ID']): r for r in triggers}
+    stops, links = [], []
+    for t in server.get('teleports', ()):
+        row = by_id.get(t['trigger'])
+        # Only portals a player walks through; quest and scripted teleports are left out.
+        if row is None or int(row['ContinentID']) != t['map'] or t['map'] not in CONTINENTS or t['trigger'] not in PORTAL_NAMES:
+            continue
+        name = PORTAL_NAMES[t['trigger']]
+        entry = dict(id='portal:%d' % t['trigger'], kind='portal', world=t['map'], name='the ' + name,
+                     point=bake(float(row['Pos_0']), float(row['Pos_1']), float(row['Pos_2'])))
+        exit_ = dict(id='portal:%d:out' % t['trigger'], kind='portal', world=t['map'], name=name.replace('portal to ', '').replace('portal ', 'the far side of the portal '),
+                     point=bake(t['x'], t['y'], t['z']))
+        stops.extend([entry, exit_])
+        links.append(dict(id='portal:%d' % t['trigger'], mode='transport', **{'from': entry['id'], 'to': exit_['id']},
+                          seconds=PORTAL_SECONDS, wait=0.0, transport='portal:%d' % t['trigger'], vehicle='portal', period=0.0))
+    return stops, links
 
 
 def lifts(animation):
@@ -172,7 +239,7 @@ def lifts(animation):
     return out
 
 
-def compile_links(taxi_nodes, taxi_paths, path_nodes, triggers):
+def compile_links(taxi_nodes, taxi_paths, path_nodes, triggers, animation=(), server=None):
     flight = flight_stops(taxi_nodes)
     paths = path_rows(path_nodes)
     stops = list(flight.values())
@@ -183,6 +250,9 @@ def compile_links(taxi_nodes, taxi_paths, path_nodes, triggers):
         stops.extend(docks); links.extend(rides)
     tram_stops, tram_links = tram(triggers)
     stops.extend(tram_stops); links.extend(tram_links)
+    if server:
+        for more_stops, more_links in (lift_links(server, animation, list(flight.values())), portal_links(server, triggers)):
+            stops.extend(more_stops); links.extend(more_links)
     stops.sort(key=lambda s: s['id']); links.sort(key=lambda l: l['id'])
     return stops, links
 
@@ -192,12 +262,17 @@ def main():
     p.add_argument('--tables', required=True, help='directory with <Table>-<build>.csv exports')
     p.add_argument('--build', default='1.60.1.69913')
     p.add_argument('--output', required=True)
+    p.add_argument('--server', help='azerothcore_travel.py output: lift spawns and portal destinations')
     args = p.parse_args()
     tables, sources = {}, {}
     for name in ('TaxiNodes', 'TaxiPath', 'TaxiPathNode', 'AreaTrigger', 'TransportAnimation'):
         path = pathlib.Path(args.tables) / ('%s-%s.csv' % (name, args.build))
         tables[name], sources[path.name] = read(path)
-    stops, links = compile_links(tables['TaxiNodes'], tables['TaxiPath'], tables['TaxiPathNode'], tables['AreaTrigger'])
+    server = json.loads(pathlib.Path(args.server).read_text()) if args.server else None
+    if server:
+        sources[pathlib.Path(args.server).name] = server['sha256']
+    stops, links = compile_links(tables['TaxiNodes'], tables['TaxiPath'], tables['TaxiPathNode'], tables['AreaTrigger'],
+                                 tables['TransportAnimation'], server)
     lift_travel = lifts(tables['TransportAnimation'])
     doc = dict(format=FORMAT, build=args.build, sources=sources, stops=stops, links=links,
                lifts=[dict(transport=t, travel=v) for t, v in sorted(lift_travel.items())],
