@@ -41,7 +41,7 @@ line. Neither script is protected, so hover works in combat.
 
 ## Motion
 
-The five solo frames use `src/modules/unitframes/unitframes-motion.lua` and
+Solo, party and raid frames use `src/modules/unitframes/unitframes-motion.lua` and
 the shared `RikUI.Motion` helpers. Their first health and power fill is
 immediate; subsequent updates use the client's `ExponentialEaseOut`
 interpolation. Show and target, focus, pet or target-of-target replacement
@@ -64,8 +64,24 @@ All values still travel directly from readers to sinks. Only local
 presentation flags select interpolation; no health/power arithmetic,
 comparison, GUID tracking or status-bar readback is added. Missing animation
 groups or interpolation enums leave working static frames. Secure visibility,
-attributes and positioning retain their existing owners. Party and raid
-frames retain their current presentation and range fading.
+attributes and positioning retain their existing owners.
+
+Party and raid frames also fade out over 0.15 seconds when their secure
+button hides. Their bars, text and borders live on a noninteractive sibling
+under the group holder. The button disappears immediately, so departed
+members cannot be clicked while their last presentation fades. Hidden member
+events cannot overwrite that presentation. Rejoining cancels the departure,
+refreshes values immediately and starts a new appearance fade. Roster refreshes
+reset first-fill state for occupied slots without comparing GUIDs; readable
+absent units retain their last bars until the secure driver hides the button.
+Missing animation groups use immediate show/hide instead.
+
+Presence and range use separate visual parents, so fading in does not erase
+the out-of-range dim. Readable range changes tween over 0.15 seconds; unchanged
+polls leave the running tween alone. The initial range and the first readable
+range after a secret result apply immediately. Secret results cancel the range
+tween and go directly to the presentation frame's boolean alpha sink; no alpha
+is read back or used in arithmetic.
 
 ## Layout
 
@@ -129,7 +145,7 @@ Range is polled every 0.5 seconds with `UnitInRange` inside `pcall`
 readable result fades the frame to 0.45 alpha only when the range was checked
 and the member is out of range. The pinned documentation marks the returns as
 secret-capable; a secret result goes into
-`Frame:SetAlphaFromBoolean(inRange, 1, 0.45)`, which accepts secrets from
+the visual `Frame:SetAlphaFromBoolean(inRange, 1, 0.45)`, which accepts secrets from
 addon code. In that case the `checkedRange` flag cannot be honoured. A failing
 read leaves the frame opaque and prints one `Unit frames range` line.
 
@@ -237,8 +253,11 @@ event-only flashes, hide/show cleanup, replacement/show event ordering,
 reader failures and recovery, threat pulse transitions and missing APIs.
 Existing secure click, tooltip, layout, event filtering, combat-update,
 combat-login, disabled-module and stock-parking checks remain in place.
-Party/raid fixtures load the motion helper too and verify their existing
-behavior; architecture checks enforce the helper's manifest dependencies.
+Party/raid fixtures share `group_motion_checks.lua` and a deterministic animation
+double. They cover immediate/eased fills, flashes, range tween reuse and secret
+fallback, departure/rejoin races, roster removal before secure hide, combat
+callbacks and missing-animation fallbacks. Architecture checks enforce the
+helper's manifest dependencies.
 
 Native/game-client behavior is accepted under the user's standing policy.
 Automated results cover the Lua fixture and source contracts; they are not

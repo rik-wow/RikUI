@@ -23,7 +23,10 @@ end
 
 function party.UpdateRange(frame)
     -- Solo test mode previews the fade on the last frame; the player is never out of range.
-    if party.Testing then frame:SetAlpha(frame == party.Frames[MEMBERS] and party.FadeAlpha or 1); return end
+    if party.Testing then
+        unitframes.Motion.Range(frame, frame == party.Frames[MEMBERS] and party.FadeAlpha or 1)
+        return
+    end
     unitframes.FadeByRange(frame, party.FadeAlpha)
 end
 
@@ -48,6 +51,7 @@ local function updateRole(frame)
 end
 
 function party.UpdateStatus(frame)
+    if not frame:IsShown() then return end
     updateLeader(frame)
     updateRole(frame)
     party.UpdateRange(frame)
@@ -58,7 +62,7 @@ local function eachMember(callback)
 end
 
 local function refresh()
-    eachMember(unitframes.Update)
+    eachMember(unitframes.Motion.RefreshMember)
     eachMember(party.UpdateStatus)
 end
 
@@ -91,11 +95,12 @@ end
 local function createMember(index)
     local unit = "party" .. index
     local frame = unitframes.Build({ key = unit, unit = unit, size = SIZE, threat = { unit },
-        visibility = VISIBILITY:format(unit) }, party.Holder)
+        visibility = VISIBILITY:format(unit), groupMotion = true }, party.Holder)
     frame:SetPoint("TOPLEFT", party.Holder, "TOPLEFT", 0, -(index - 1) * (SIZE.height + SPACING))
     -- The health text would crowd a small frame; the bar alone carries health.
     frame.health.text:Hide()
     decorate(frame)
+    unitframes.Motion.Attach(frame, party.UpdateStatus)
     party.Frames[index] = frame
 end
 
@@ -116,6 +121,7 @@ local function create()
 end
 
 local function retarget(frame, unit, driver)
+    unitframes.Motion.Reset(frame, true)
     frame.unit, frame.threatArgs = unit, { unit }
     frame:SetAttribute("unit", unit)
     local ok, reason = pcall(RegisterStateDriver, frame, "visibility", driver)

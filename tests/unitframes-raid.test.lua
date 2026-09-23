@@ -2,9 +2,12 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 -- Fixed raid1-40 grid. Native rendering, clicks, state drivers and stock parking need a beta check.
 return function(check)
     local env = require("wow_stub")
+    local animate = dofile("tests/group_motion_stub.lua")
+    local savedEnum = Enum
+    Enum = { StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 2 } }
     local originalCreate, originalDriver = CreateFrame, RegisterStateDriver
     local API = { "UnitHealth", "UnitHealthMax", "UnitPower", "UnitPowerMax", "UnitPowerType", "UnitClass",
-        "UnitReaction", "UnitIsPlayer", "UnitLevel", "UnitName", "UnitThreatSituation", "GetThreatStatusColor",
+        "UnitReaction", "UnitExists", "UnitIsPlayer", "UnitLevel", "UnitName", "UnitThreatSituation", "GetThreatStatusColor",
         "UnitIsConnected", "UnitIsTapDenied", "UnitIsGroupLeader", "UnitGroupRolesAssigned", "UnitInRange",
         "CompactRaidFrameContainer", "CompactRaidFrameManager", "RAID_CLASS_COLORS", "FACTION_BAR_COLORS",
         "PowerBarColor" }
@@ -30,6 +33,7 @@ return function(check)
     end
     local function region(value)
         capitalOnly(value)
+        animate(value)
         alphaSinks(value)
         function value:SetText(text) self.text = text end
         function value:SetFormattedText(format, ...) self.format, self.args = format, { ... } end
@@ -42,13 +46,20 @@ return function(check)
         if template then protected(); templates[template] = true end
         local frame = originalCreate(kind, name, parent, template)
         capitalOnly(frame)
+        animate(frame)
+        function frame:EnableMouse(enabled) self.mouseEnabled = enabled end
+        function frame:GetAlpha() error("do not read secret range alpha") end
+        function frame:GetValue() error("do not read unit values") end
         alphaSinks(frame)
+        local show, hide = frame.Show, frame.Hide
+        function frame:Show() if template then protected() end; show(self) end
+        function frame:Hide() if template then protected() end; hide(self) end
         frame.sets, frame.label, frame.owner = 0, name, parent
         function frame:SetAttribute(key, value) protected(); self.attributes[key] = value end
         function frame:SetSize(w, h) protected(); self.width, self.height = w, h end
         function frame:SetPoint(...) protected(); self.point = { ... } end
         function frame:SetMinMaxValues(min, max) self.min, self.max = min, max end
-        function frame:SetValue(value) self.value, self.sets = value, self.sets + 1 end
+        function frame:SetValue(value, easing) self.value, self.easing, self.sets = value, easing, self.sets + 1 end
         function frame:SetStatusBarColor(...) self.color = { ... } end
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
@@ -65,6 +76,7 @@ return function(check)
         if not record then return nil end
         return record[key]
     end
+    UnitExists = function(unit) return units[unit] ~= nil end
     UnitHealth = function(unit) return field(unit, "health") end
     UnitHealthMax = function(unit) return field(unit, "healthMax") end
     UnitPower = function(unit) return field(unit, "power") end
@@ -140,8 +152,7 @@ return function(check)
         assert(raid, "src/modules/unitframes/unitframes-raid.lua did not register UnitFrames.Raid")
         local holder, frames = raid.Holder, raid.Frames
         local one, two, five, six, last = frames[1], frames[2], frames[5], frames[6], frames[40]
-        check("group frames do not opt into solo motion", module.Frames.player.motion ~= nil
-            and one.motion == nil and one.health.motionEnabled == nil and one.power.motionEnabled == nil)
+        dofile("tests/group_motion_checks.lua")(check, env, module, raid, units, "raid")
         check("forty fixed secure unit buttons exist for raid1-40", #frames == 40 and one and last
             and one.template == "SecureUnitButtonTemplate" and last.unit == "raid40"
             and one.label == "RikUIUnit_raid1" and last:GetAttribute("unit") == "raid40")
@@ -173,24 +184,24 @@ return function(check)
         check("raid names use the shared font and the small frame drops level and health text",
             one.name.text == "Healbot" and one.name.fontPath == RikUI.Media.font
             and one.level.shown == false and one.health.text.shown == false)
-        check("in-range raid members are opaque and out-of-range members fade", one.alpha == 1
-            and two.alpha == raid.FadeAlpha and raid.FadeAlpha > 0 and raid.FadeAlpha < 1)
+        check("in-range raid members are opaque and out-of-range members fade", one.presentation.alpha == 1
+            and two.presentation.alpha == raid.FadeAlpha and raid.FadeAlpha > 0 and raid.FadeAlpha < 1)
 
         units.raid2.inRange, units.raid2.checked = env.SECRET, env.SECRET
         env.printed = {}
         env.runScript(holder, "OnUpdate", 0.6)
-        check("a secret raid range result goes to the boolean alpha sink uncompared", two.fromBoolean
-            and two.fromBoolean[1] == env.SECRET and two.fromBoolean[3] == raid.FadeAlpha and #env.printed == 0)
+        check("a secret raid range result goes to the boolean alpha sink uncompared", two.presentation.fromBoolean
+            and two.presentation.fromBoolean[1] == env.SECRET and two.presentation.fromBoolean[3] == raid.FadeAlpha and #env.printed == 0)
         units.raid2.rangeError = true
         env.runScript(holder, "OnUpdate", 0.6)
         env.runScript(holder, "OnUpdate", 0.6)
-        check("a failing raid range read is reported once and leaves the frame opaque", two.alpha == 1
+        check("a failing raid range read is reported once and leaves the frame opaque", two.presentation.alpha == 1
             and printedContains("Unit frames range") and #env.printed == 1)
         units.raid2.rangeError, units.raid2.inRange, units.raid2.checked = nil, false, true
         env.runScript(holder, "OnUpdate", 0.2)
-        check("the raid range poll waits for its interval", two.alpha == 1)
+        check("the raid range poll waits for its interval", two.presentation.alpha == 1)
         env.runScript(holder, "OnUpdate", 0.4)
-        check("the raid range poll fades once the interval passes", two.alpha == raid.FadeAlpha)
+        check("the raid range poll fades once the interval passes", two.presentation.alpha == raid.FadeAlpha)
 
 
         local readRange, rangeReads, visibility = UnitInRange, 0, {}
@@ -233,7 +244,7 @@ return function(check)
         env.fire("GROUP_ROSTER_UPDATE")
         env.runScript(holder, "OnUpdate", 0.6)
         check("combat raid updates flow to sinks without protected writes", two.health.value == 10
-            and two.alpha == 1 and writes == before)
+            and two.presentation.alpha == 1 and writes == before)
         env.inCombat = false
 
         check("the stock raid container is parked with events dropped",
@@ -252,9 +263,21 @@ return function(check)
         module = load({ modules = { unitframes = false } })
         check("disabled module builds no raid grid and leaves the stock container", #module.Raid.Frames == 0
             and CompactRaidFrameContainer.parent == UIParent)
+        _G.RikTestAnimationsMissing = true
+        module = load()
+        local plain = module.Raid.Frames[1]
+        check("raid missing animation APIs preserve static fills", plain.health.value == env.SECRET
+            and plain.motion.fade == nil and plain.motion.range == nil)
+        plain:Hide()
+        check("raid fallback leave hides art immediately", not plain.presence:IsShown())
+        plain:Show()
+        check("raid fallback rejoin restores art", plain.presence:IsShown() and plain.health.easing == 0)
+        _G.RikTestAnimationsMissing = nil
         module = load(nil, false, true)
         check("missing stock raid globals are tolerated", #module.Raid.Frames == 40 and #env.printed == 0)
     end)
+    _G.RikTestAnimationsMissing = nil
+    Enum = savedEnum
     CreateFrame, RegisterStateDriver = originalCreate, originalDriver
     for _, name in ipairs(API) do _G[name] = saved[name] end
     env.inCombat = false

@@ -25,7 +25,7 @@ local function eachMember(callback)
 end
 
 local function refresh()
-    eachMember(unitframes.Update)
+    eachMember(unitframes.Motion.RefreshMember)
     eachMember(raid.UpdateRange)
 end
 
@@ -46,13 +46,14 @@ end
 local function createMember(index)
     local unit = "raid" .. index
     local frame = unitframes.Build({ key = unit, unit = unit, size = SIZE, threat = { unit },
-        visibility = VISIBILITY:format(unit) }, raid.Holder)
+        visibility = VISIBILITY:format(unit), groupMotion = true }, raid.Holder)
     local column, row = math.floor((index - 1) / ROWS), (index - 1) % ROWS
     frame:SetPoint("TOPLEFT", raid.Holder, "TOPLEFT", column * (SIZE.width + SPACING),
         -row * (SIZE.height + SPACING))
     -- A slot this small has room for the name only; the bar carries health.
     frame.health.text:Hide()
     frame.level:Hide()
+    unitframes.Motion.Attach(frame, raid.UpdateRange)
     raid.Frames[index] = frame
 end
 

@@ -17,6 +17,10 @@ local function readable(value, kind)
     return not core.Secret.IsSecret(value) and type(value) == kind
 end
 
+local function departing(frame)
+    return frame.presentation and not frame:IsShown()
+end
+
 local function readHealth(unit) return UnitHealth(unit), UnitHealthMax(unit) end
 local function readPower(unit) return UnitPower(unit), UnitPowerMax(unit) end
 
@@ -47,6 +51,7 @@ local function tint(bar, color)
 end
 
 function unitframes.UpdateHealth(frame)
+    if departing(frame) then return end
     return feed(frame.health, "health", readHealth, frame.unit)
 end
 
@@ -58,6 +63,7 @@ function unitframes.HealthChanged(frame)
 end
 
 function unitframes.UpdatePower(frame)
+    if departing(frame) then return end
     tint(frame.power, unitframes.PowerColor(frame.unit))
     feed(frame.power, "power", readPower, frame.unit)
 end
@@ -79,6 +85,7 @@ local function updateLevel(frame)
 end
 
 function unitframes.UpdateIdentity(frame)
+    if departing(frame) then return end
     updateName(frame)
     updateLevel(frame)
     tint(frame.health, unitframes.HealthColor(frame.unit))
@@ -93,6 +100,7 @@ end
 
 -- Inert when threat is secret: the border simply stays hidden.
 function unitframes.UpdateThreat(frame)
+    if departing(frame) then return end
     local ok, status = core.Secret.Read(UnitThreatSituation, unpack(frame.threatArgs))
     if not ok then warnOnce("threat", status); status = nil end
     local r, g, b = threatColor(status)
@@ -114,15 +122,16 @@ end
 
 local function applyRange(frame, fadeAlpha, inRange, checked)
     if core.Secret.IsSecret(inRange) or core.Secret.IsSecret(checked) then
-        unitframes.AlphaFromBoolean(frame, inRange, 1, fadeAlpha)
+        unitframes.Motion.SecretRange(frame, inRange, fadeAlpha)
     else
         -- An unchecked range says nothing about distance, so the member stays opaque.
-        frame:SetAlpha((checked ~= true or inRange == true) and 1 or fadeAlpha)
+        unitframes.Motion.Range(frame, (checked ~= true or inRange == true) and 1 or fadeAlpha)
     end
 end
 
 -- Shared by the party and raid frames. A failed read leaves the member opaque.
 function unitframes.FadeByRange(frame, fadeAlpha)
+    if departing(frame) then return end
     if type(frame.IsVisible) == "function" then
         local ok, visible = pcall(frame.IsVisible, frame)
         if ok and not core.Secret.IsSecret(visible) and visible == false then return end
@@ -130,7 +139,7 @@ function unitframes.FadeByRange(frame, fadeAlpha)
     local ok, reason = core.Secret.Apply(function(inRange, checked) applyRange(frame, fadeAlpha, inRange, checked) end,
         UnitInRange, frame.unit)
     if ok then return end
-    frame:SetAlpha(1)
+    unitframes.Motion.Range(frame, 1)
     warnOnce("range", reason)
 end
 

@@ -61,17 +61,18 @@ local function statusBar(frame, height, withText, role)
 end
 
 local function decorate(frame, size)
-    frame.background = frame:CreateTexture(nil, "BACKGROUND")
-    frame.background:SetAllPoints()
+    local owner = frame.presentation or frame
+    frame.background = owner:CreateTexture(nil, "BACKGROUND")
+    frame.background:SetAllPoints(owner)
     frame.background:SetColorTexture(unpack(BACKGROUND))
-    frame.border = edges(frame, EDGE, "BORDER")
+    frame.border = edges(owner, EDGE, "BORDER")
     for _, line in ipairs(frame.border) do line:SetVertexColor(unpack(BORDER)) end
-    frame.threat = edges(frame, THREAT_EDGE, "OVERLAY")
+    frame.threat = edges(owner, THREAT_EDGE, "OVERLAY")
     for _, line in ipairs(frame.threat) do line:Hide() end
-    frame.health = statusBar(frame, size.health, true, size.font)
+    frame.health = statusBar(owner, size.health, true, size.font)
     frame.health:SetPoint("TOPLEFT", frame, "TOPLEFT", EDGE, -EDGE)
     frame.health:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -EDGE, -EDGE)
-    frame.power = statusBar(frame, size.power, size.powerText, "small")
+    frame.power = statusBar(owner, size.power, size.powerText, "small")
     frame.power:SetPoint("TOPLEFT", frame.health, "BOTTOMLEFT", 0, -EDGE)
     frame.power:SetPoint("TOPRIGHT", frame.health, "BOTTOMRIGHT", 0, -EDGE)
     frame.name = text(frame.health, size.font, "LEFT", TEXT_INSET)
@@ -128,6 +129,7 @@ local function build(spec, parent)
     local frame = CreateFrame("Button", FRAME_PREFIX .. spec.key, parent or UIParent, "SecureUnitButtonTemplate")
     frame.key, frame.unit, frame.threatArgs = spec.key, spec.unit, spec.threat
     frame:SetSize(spec.size.width, spec.size.height)
+    if spec.groupMotion then unitframes.Motion.CreatePresentation(frame, parent) end
     decorate(frame, spec.size)
     secure(frame, spec.unit)
     hover(frame)
