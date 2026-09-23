@@ -96,8 +96,8 @@ return function(check)
             end
             visit({},0,0);return best,states
         end
-        local function run(g,initial,preferences)
-            local job=assert(p.PlanSearch.Begin(g,initial,preferences))
+        local function run(g,initial,preferences,environment)
+            local job=assert(p.PlanSearch.Begin(g,initial,preferences,environment))
             local result
             for _=1,1000 do result=job:Step(64);if result then break end end
             check("search terminates within budget",result and result.status=="ready" and result.metrics.work<=48000,result and result.reason)
@@ -239,6 +239,50 @@ return function(check)
         check("known whole-stack turnin releases actual slot",after.bagFree==1 and after.stackRoom[7]==nil)
         s=state();s.live[1]={};s.active[1]=true;s.progress[1]={a=0};s.objectivesComplete[1]=false
         check("zero counters cannot contradict live incomplete flag",p.PlanTransitions.Check({id="t",questID=1,kind="turnin"},s,policy)==false)
+        -- More than 96 feasible first decisions cannot prune the committed one.
+        local crowded={status="ready",actions={},byQuest={},coverage={}}
+        s=state();s.logCapacity=128;s.logCount=110
+        for id=1,110 do
+            local a={id="crowd:"..id,kind="turnin",questID=id,cost={seconds=10,authority="authored"},
+                reward={level=10,baseXP=id==1 and 1 or 100}}
+            crowded.actions[#crowded.actions+1]=a;crowded.byQuest[id]={a}
+            s.active[id]=true;s.objectivesComplete[id]=true
+        end
+        local committedPolicy=p.Preferences.Normalize({flavor="Efficient",readingSeconds=0,strictSession=true})
+        committedPolicy.maxSeconds=20
+        local env={previousID="crowd:1",incumbent={"missing","crowd:1","crowd:2"}}
+        result=run(crowded,s,committedPolicy,env)
+        check("prior sequence seeds before ordinary expansion",result.metrics.seeded==2)
+        check("incumbent survives 96 first-step pruning",result.commitment and result.commitment.actions[1].id=="crowd:1"
+            and #result.commitment.actions==2 and result.previousStatus=="feasible")
+        s.active[1]=nil;s.completed[1]=true
+        result=run(crowded,s,committedPolicy,env)
+        check("completed incumbent steps are skipped and explained",result.previousStatus=="completed"
+            and not result.commitment and result.metrics.seeded==1)
+        dofile("src/modules/questplanner/quest-plan-runtime.lua")
+        local prior={actionID="old",flavor="Efficient",selected={questID=1}}
+        local proposed={actions={{id="new",questID=2}},score=1.249,previousStatus="feasible",
+            commitment={actions={{id="old",questID=1}},score=1,features={efficiency=0}}}
+        local picked,retained,reason=p.PlanRuntime.SelectResult(proposed,committedPolicy,prior)
+        check("commitment retains below 25 percent despite baseline envelope",retained and picked.actions[1].id=="old")
+        proposed.score=1.25
+        picked,retained,reason=p.PlanRuntime.SelectResult(proposed,committedPolicy,prior)
+        check("25 percent real rate gain permits switch",not retained and reason=="better" and picked.actions[1].id=="new")
+        prior.nearDestination=true;proposed.score=1.499
+        check("near destination requires 50 percent gain",select(2,p.PlanRuntime.SelectResult(proposed,committedPolicy,prior))==true)
+        proposed.score=1.5
+        check("50 percent gain permits near destination switch",select(3,p.PlanRuntime.SelectResult(proposed,committedPolicy,prior))=="better")
+        prior.nearDestination=false;proposed.commitment.score=.01;proposed.score=.04
+        check("tiny relative improvement also needs absolute margin",select(2,p.PlanRuntime.SelectResult(proposed,committedPolicy,prior))==true)
+        proposed.score=.061
+        check("absolute margin is measured in level fraction per hour",select(3,p.PlanRuntime.SelectResult(proposed,committedPolicy,prior))=="better")
+        proposed.score=0;committedPolicy.pins[2]=true
+        check("explicit new pin overrides commitment",select(3,p.PlanRuntime.SelectResult(proposed,committedPolicy,prior))=="pinned")
+        committedPolicy.pins[2]=nil
+        for _,status in ipairs({"invalid","completed"}) do
+            proposed.previousStatus=status
+            check(status.." prior releases commitment",select(3,p.PlanRuntime.SelectResult(proposed,committedPolicy,prior))==status)
+        end
         print("Adaptive exact oracle: delayed "..oracle.." XP; branch110 XP; long18-quest continuation1000 XP")
     end)
     RikUI=saved

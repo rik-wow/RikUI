@@ -2,7 +2,7 @@
 return function(check)
     local env=require("wow_stub")
     local restoreWidgets=require("widget_stub").install()
-    local names={"RikUI","RikUIQuestCorpusCatalog","C_AddOns","C_Map","C_Item","C_Container","C_QuestLog","C_Reputation","C_SpellBook",
+    local names={"RikUI","RikUIDB","RikUIQuestCorpusCatalog","C_AddOns","C_Map","C_Item","C_Container","C_QuestLog","C_Reputation","C_SpellBook",
         "GetTime","debugprofilestop","UnitGUID","UnitClass","UnitRace","UnitFactionGroup","UnitLevel","UnitXP","UnitXPMax",
         "GetMoney","GetNumGroupMembers","UnitHealthMax","UnitIsAFK","UnitIsDeadOrGhost","UnitAffectingCombat","GetQuestLogRewardXP",
         "IsPlayerSpell","GetProfessions","GetProfessionInfo","GetFactionInfoByID","NUM_BAG_SLOTS","GetInventoryItemID","CanMerchantRepair","GetRepairAllCost","GetNumTrainerServices","GetTrainerServiceInfo","GetTrainerServiceCost"}
@@ -457,6 +457,27 @@ return function(check)
             check("S19 bounded state after churn "..cycle,bounded and #learned.order>0)
         end
 
+        RikUIDB={planSwitches={}}
+        local logCtx={observedAt=123,position={mapID=1426,x=.5,y=.6}}
+        local old={actionID="a",score=1,selected={title="Old quest"}}
+        local new={actionID="b",score=2,incumbentScore=1.5,switchReason="better",selected={title="New quest"}}
+        p.PlanRuntime.RecordSwitch(old,new,logCtx)
+        local switches=p.PlanRuntime.Switches()
+        check("published switch keeps cause, repriced scores and position",#switches==1 and switches[1].reason=="better"
+            and switches[1].from.actionID=="a" and switches[1].to.title=="New quest"
+            and switches[1].fromScore==1.5 and switches[1].toScore==2 and switches[1].position.mapID==1426)
+        p.PlanRuntime.RecordSwitch(new,new,logCtx)
+        check("repeated publication does not create a switch",#p.PlanRuntime.Switches()==1)
+        for i=1,60 do new.actionID="b"..i;p.PlanRuntime.RecordSwitch(old,new,logCtx) end
+        check("switch log retains only last 50 entries",#p.PlanRuntime.Switches()==50 and p.PlanRuntime.Switches()[1].to.actionID=="b11")
+        switches=p.PlanRuntime.Switches();switches[1].reason="changed"
+        check("switch log reader cannot mutate saved data",p.PlanRuntime.Switches()[1].reason=="better")
+        local printed={};RikUI.Print=function(_,message) printed[#printed+1]=message end
+        p.Command("switches")
+        check("switch command prints last ten with reasons",#printed==10 and printed[1]:find("b51",1,true) and printed[10]:find("better",1,true))
+        printed={};p.Command("help")
+        check("quest help exposes switch log and replay export",table.concat(printed," "):find("plan-export",1,true)
+            and table.concat(printed," "):find("switches",1,true))
         print("Adaptive normal controller, six style widgets, resource loss, completion, teleport, services, replay and persistence verified")
     end)
     for _,name in ipairs(names) do _G[name]=saved[name] end

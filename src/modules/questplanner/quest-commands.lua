@@ -100,6 +100,17 @@ function planner.Command(arguments)
     elseif verb=="decline-exploration" then ok,reason=controller.Preference("explorationMinutes",0)
     elseif verb=="new-session" then
         ok,reason=controller.Preference("defers",{})
+    elseif verb=="switches" then
+        local rows=planner.PlanRuntime and planner.PlanRuntime.Switches() or {}
+        if #rows==0 then core:Print("No plan switches recorded.") end
+        local function label(row) return row and ((row.title or row.actionID).." ["..row.actionID.."]") or "none" end
+        local function score(value) return type(value)=="number" and string.format("%.3f",value) or "?" end
+        for i=math.max(1,#rows-9),#rows do
+            local row=rows[i]
+            core:Print(string.format("%.0f: %s -> %s; %s (%s -> %s)",row.time or 0,
+                label(row.from),label(row.to),row.reason or "unknown",score(row.fromScore),score(row.toScore)))
+        end
+        return
     elseif verb=="plan" then
         local model=controller.Get()
         core:Print((model.flavor or "Balanced")..": "..(model.reason or model.detail or "Reading quest state"))
@@ -130,7 +141,7 @@ function planner.Command(arguments)
         if value~="on" and value~="off" then reason="Use on or off."
         else ok,reason=controller.Set(verb,value=="on") end
     else
-        core:Print("/rik quests preferences | flavor <name> | session <minutes> | plan | defer <questID> | unavailable")
+        core:Print("/rik quests preferences | flavor <name> | session <minutes> | plan | plan-export | switches | defer <questID> | unavailable")
         core:Print("/rik quests show | map | pause | resume | pin <questID> | skip <questID> | avoid <mapID>")
         core:Print("/rik quests arrow on|off | floor auto|<number> | dungeons on|off | export | inspect | retry | route <questID>|auto | reset | status")
         return

@@ -33,6 +33,12 @@ function guidance.Active() return active end
 function guidance.Status() return schema.Clone(state) end
 function guidance.PeekGuidance() return display end
 function guidance.Stats() return schema.Clone(stats) end
+-- A short approach to a transport stop is not arrival at the quest destination.
+function guidance.NearDestination(actionID)
+    local leg=trip.legs and trip.legs[trip.index] or trip.pending and trip.pending[1]
+    return active and lastTarget and lastTarget.actionID==actionID and leg and leg.to=="goal"
+        and display and not display.offRoute and schema.Number(display.meters,0,250) or false
+end
 -- Quest-state events invalidate the planner often, sometimes several times a
 -- second. A road plan takes about a second, so the request and route are kept
 -- and only replaced when the destination itself changes (see Step).

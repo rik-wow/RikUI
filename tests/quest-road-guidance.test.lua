@@ -36,6 +36,14 @@ return function(check)
   status='loading';g.Reset();for _=1,5 do g.Step() end
   local first=begins;clock=clock+3;for _=1,3 do g.Step() end
   check('road guidance retries a transient failure after its wait',begins==first+1,begins-first)
+  local meters=249
+  row.actionID='current';status='modeled'
+  p.RoadFollow={Begin=function() return {route={},follow=function() return {meters=meters,status='modeled'} end} end}
+  g.Reset();for _=1,4 do g.Step() end
+  check('short active quest approach raises commitment',g.NearDestination('current')==true)
+  check('road approach cannot protect another action',g.NearDestination('other')==false)
+  meters=251;g.Step()
+  check('long road approach keeps normal commitment',g.NearDestination('current')==false)
  end)
  RikUI,GetTime=saved,savedTime
  check('quest road guidance suite runs',ok,why)

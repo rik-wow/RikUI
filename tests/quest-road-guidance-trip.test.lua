@@ -65,6 +65,11 @@ return function(check)
   position={mapID=1426,x=.64,y=.5};g.Step()
   check('walking off the lift replans from the top landing',plans==before+1 and starts[#starts].stop=='lift:1:0:top',
    starts[#starts] and starts[#starts].stop)
+  row.actionID='current'
+  p.RoadNavigate.Begin=function() return {Step=function() return {status='modeled'} end,Cancel=function() end} end
+  p.RoadFollow={Begin=function() return {route={},follow=function() return {meters=10,status='modeled'} end} end}
+  g.Reset();position={mapID=1426,x=.5,y=.5};for _=1,4 do g.Step() end
+  check('short approach to transport stop is not quest arrival',g.NearDestination('current')==false)
  end)
  RikUI,GetTime=saved,savedTime
  check('quest road guidance trip suite runs',ok,why)

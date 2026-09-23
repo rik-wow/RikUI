@@ -65,6 +65,15 @@ function search.Score(node,initial,policy)
     local utility=value/scale*60/f.minutes/pressure/repetition
     return utility+(f.pinned and 1000000 or 0),f
 end
+local function completed(action,state)
+    if not action then return false end
+    local id=action.questID
+    return (state.applied or {})[action.id]==true or (id>0 and state.completed[id]==true)
+        or action.kind=="pickup" and state.active[id]==true
+        or action.kind=="objective" and (state.objectivesComplete[id]==true
+            or ((state.progress or {})[id] or {})[action.objectiveKey]==0)
+        or action.kind=="complete" and state.objectivesComplete[id]==true
+end
 local REASONS={
     Balanced="Reliable progress with local continuity and variety",
     Efficient="Best supported XP efficiency within the same constraints",
@@ -80,6 +89,14 @@ function search.Begin(graph,initial,policy,environment)
     local metrics={work=0,transitions=0,macros=0,depth=0,retained=0}
     local exclusions,excludedCount={},0
     local bestByFirst={}
+    local byID={};for _,action in ipairs(graph.actions) do byID[action.id]=action end
+    local previous=byID[environment.previousID]
+    local previousStatus
+    if environment.previousID then
+        if completed(previous or environment.previousAction,initial) then previousStatus="completed"
+        elseif previous and planner.PlanTransitions.Check(previous,initial,policy)==true then previousStatus="feasible"
+        else previousStatus="invalid" end
+    end
     local baseline=0
     local root={state=planner.PlanTransitions.Fork(initial),actions={},costs={}}
     local function pause()
@@ -134,9 +151,9 @@ function search.Begin(graph,initial,policy,environment)
         local count,worst=0,nil
         for first,value in pairs(bestByFirst) do
             count=count+1
-            if not worst or better(bestByFirst[worst],value) then worst=first end
+            if first~=environment.previousID and (not worst or better(bestByFirst[worst],value)) then worst=first end
         end
-        if count>96 then bestByFirst[worst]=nil end
+        if count>96 and worst then bestByFirst[worst]=nil end
     end
     local finishQuest,ensure
     local function chooseAction(node,actions,predicate)
@@ -254,6 +271,22 @@ function search.Begin(graph,initial,policy,environment)
     local co=coroutine.create(function()
         -- Primitive first actions yield a useful incumbent before deeper continuations.
         local beam={}
+        -- Reprice the prior rollout before ordinary expansion. Protect every feasible
+        -- prefix so cancellation or the 96-first-step cap cannot erase its comparison.
+        local seeded,seen=root,{}
+        local function seed(action)
+            if not action or seen[action.id] then return end
+            seen[action.id]=true
+            local node=extend(seeded,action)
+            if node then seeded=node;retain(node) end
+        end
+        if previousStatus=="feasible" then seed(previous) end
+        for i,id in ipairs(environment.incumbent or {}) do
+            if i>MAX_ACTIONS then break end
+            seed(byID[id])
+        end
+        metrics.seeded=#seeded.actions
+        if #seeded.actions>0 then beam[#beam+1]=seeded end
         for _,action in ipairs(graph.actions) do
             local node=extend(root,action)
             if node then retain(node);beam[#beam+1]=node end
@@ -332,7 +365,7 @@ function search.Begin(graph,initial,policy,environment)
         end
         local output={status=status,metrics=schema.Clone(metrics),limited=limited,revision=graph.revision,generation=initial.generation,
             alternatives=alternatives,excluded=schema.Clone(exclusions),coverage=graph.coverage,flavor=policy.flavor,
-            reason=REASONS[policy.flavor],baselineEfficiency=baseline,detourAllowance=policy.detour}
+            reason=REASONS[policy.flavor],baselineEfficiency=baseline,detourAllowance=policy.detour,previousStatus=previousStatus}
         local commitment=environment.previousID and bestByFirst[environment.previousID]
         if commitment then
             output.commitment={actions=commitment.actions,costs=commitment.costs,score=commitment.score,features=commitment.features,

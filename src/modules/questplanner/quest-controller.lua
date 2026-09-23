@@ -18,6 +18,7 @@ local function publish(value)
     if not value.adaptive and planner.PlanRuntime then planner.PlanRuntime.ClearReplay() end
     if journeyState and journeyState.boundModel~=value then planner.JourneyLive.Detach(journeyState) end
     if journeyState and value.selected and journeyState.base.questID~=value.selected.questID then journeyState=nil end
+    if value.adaptive and planner.PlanRuntime then planner.PlanRuntime.RecordSwitch(view,value,context) end
     view=value; stats.published=stats.published+1
     notify()
 end

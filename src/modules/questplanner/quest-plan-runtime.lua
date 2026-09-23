@@ -93,6 +93,38 @@ end
 function runtime.ReplaySearch()
     return schema.CopyDiagnostic(lastSearchTrace)
 end
+local SWITCH_REASONS={invalid=true,completed=true,better=true,pinned=true,["no-incumbent"]=true}
+function runtime.Switches()
+    local rows=type(RikUIDB)=="table" and RikUIDB.planSwitches
+    local out={}
+    if type(rows)=="table" then
+        for i=math.max(1,#rows-49),#rows do
+            local row=schema.CopyLimited(rows[i],128,4096,5)
+            if row then out[#out+1]=row end
+        end
+    end
+    return out
+end
+local function switchIdentity(model)
+    if not model or not model.actionID then return nil end
+    local title=model.selected and model.selected.title
+    return {actionID=model.actionID,title=schema.Text(title) and title:sub(1,160) or model.actionID}
+end
+-- Called only by the controller's publication boundary, not speculative Result
+-- projections or diagnostic replays.
+function runtime.RecordSwitch(prior,model,ctx)
+    if (prior and prior.actionID)==model.actionID then return end
+    local reason=model.switchReason
+    if not SWITCH_REASONS[reason] then reason=prior and prior.actionID and "invalid" or "no-incumbent" end
+    local rows=runtime.Switches()
+    local position=ctx and ctx.position
+    rows[#rows+1]={time=ctx and ctx.observedAt or 0,from=switchIdentity(prior),to=switchIdentity(model),
+        fromScore=model.incumbentScore or prior and prior.score,toScore=model.score,reason=reason,
+        position=position and {mapID=position.mapID,x=position.x,y=position.y}}
+    while #rows>50 do table.remove(rows,1) end
+    if type(RikUIDB)~="table" then RikUIDB={} end
+    RikUIDB.planSwitches=rows
+end
 function runtime.ClearReplay() lastTrace=nil end
 function runtime.Status()
     return {restored=restored,persistence=core.CharDB and "SavedVariables with configured persistence fallback" or "session-only",
@@ -109,7 +141,10 @@ function runtime.Begin(snapshot,status,ctx,records,observed,policy)
     local searchJob,graph,cancelled,steps,lastPreview
     steps=0
     local frame=planner.Context.Frame and planner.Context.Frame()
-    local environment={mapSizes={},previousID=previousID}
+    local previousAction=prior and prior.selected and prior.selected.planAction
+    local environment={mapSizes={},previousID=previousID,incumbent=schema.Clone(prior and prior.actionIDs or {}),
+        previousAction=previousAction and {id=previousAction.id,questID=previousAction.questID,
+            kind=previousAction.kind,objectiveKey=previousAction.objectiveKey}}
     local replayLearning=planner.PlanLearning.Export()
     if frame and frame.position and frame.width and frame.height then
         environment.mapSizes[frame.position.mapID]={frame.width,frame.height}
@@ -118,7 +153,8 @@ function runtime.Begin(snapshot,status,ctx,records,observed,policy)
         environment.travelModel=planner.TravelEstimate.Capture(state,environment.mapSizes)
         environment.travel=assert(planner.TravelEstimate.Open(environment.travelModel))
     end
-    local replayEnvironment={mapSizes=environment.mapSizes,previousID=previousID,travelModel=environment.travelModel}
+    local replayEnvironment={mapSizes=environment.mapSizes,previousID=previousID,travelModel=environment.travelModel,
+        incumbent=environment.incumbent,previousAction=environment.previousAction}
     -- Strategic costs never publish a walking route. The terrain follower owns continuous navigation.
     local function annotate(result)
         if not result then return end
@@ -199,20 +235,27 @@ local function replayIDs(actions)
     for _,action in ipairs(actions or {}) do out[#out+1]=action.id end
     return out
 end
+-- Scores are fractions of a level per hour. Require both relative gain and
+-- five percentage points of a level/hour, with a stronger arrival commitment.
 function runtime.SelectResult(result,policy,prior)
-    local commitment=result.commitment
-    local retained=false
-    if prior and commitment and commitment.score and result.score and prior.flavor==policy.flavor
-        and result.score-commitment.score<math.max(1,math.abs(commitment.score)*.15)
-        and (not result.baselineEfficiency or result.baselineEfficiency==0 or commitment.features.efficiency>=result.baselineEfficiency/(1+policy.detour))
-        and not (policy.pins[result.actions and result.actions[1] and result.actions[1].questID]
-            and not policy.pins[prior.selected and prior.selected.questID]) then
-        local copy={};for key,value in pairs(result) do copy[key]=value end
-        for key,value in pairs(commitment) do copy[key]=value end
-        copy.reason="Continue the current feasible action";copy.efficiencyCost=nil
-        result=copy;retained=true
+    if not prior or not prior.actionID then return result,false,"no-incumbent" end
+    local first=result.actions and result.actions[1]
+    if first and first.id==prior.actionID then return result,false end
+    if result.previousStatus=="completed" or result.previousStatus=="invalid" then
+        return result,false,result.previousStatus
     end
-    return result,retained
+    if first and policy.pins[first.questID] and not policy.pins[prior.selected and prior.selected.questID] then
+        return result,false,"pinned"
+    end
+    local commitment=result.commitment
+    if not commitment or not commitment.score or not result.score then return result,false,"no-incumbent" end
+    local margin=prior.nearDestination and .5 or .25
+    local gain=result.score-commitment.score
+    if gain>=.05 and gain>=math.abs(commitment.score)*margin then return result,false,"better" end
+    local copy={};for key,value in pairs(result) do copy[key]=value end
+    for key,value in pairs(commitment) do copy[key]=value end
+    copy.reason="Continue the current feasible action";copy.efficiencyCost=nil
+    return copy,true
 end
 local function selectedIdentity(row)
     return row and {questID=row.questID,kind=row.kind,actionID=row.actionID} or nil
@@ -236,11 +279,11 @@ end
 local UNAVAILABLE="This interaction is still unavailable. Choose another quest, or use Retry action when it becomes available."
 -- Pure final choice; no publication, attribution, learning or live API reads.
 function runtime.ProjectDecision(result,policy,prior,state,inputs)
-    local retained
-    result,retained=runtime.SelectResult(result,policy,prior)
+    local retained,switchReason
+    result,retained,switchReason=runtime.SelectResult(result,policy,prior)
     local fallback,conflict=planner.Guidance.Fallback(inputs.observed,inputs,policy)
     local display={status=conflict and "constraint-conflict" or "observed",selected=selectedIdentity(fallback)}
-    local decision={mode=fallback and "fallback" or "none",displayed=display}
+    local decision={mode=fallback and "fallback" or "none",displayed=display,switchReason=switchReason}
     local first
     for index,action in ipairs(result.actions or {}) do
         if action.kind~="complete" then first=action;decision.firstIndex=index;break end
@@ -281,9 +324,11 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
     local raw=result
     local inputs=decisionInputs(observed,ctx,policy,lastAction)
     if not inputs then error("Displayed decision inputs exceed their bounded schema") end
-    local replayPrior=prior and {flavor=prior.flavor,actionID=prior.actionID,selected=prior.selected and {questID=prior.selected.questID}}
+    local replayPrior=prior and {flavor=prior.flavor,actionID=prior.actionID,selected=prior.selected and {questID=prior.selected.questID},
+        nearDestination=prior.actionID and planner.RoadGuidance and planner.RoadGuidance.NearDestination
+            and planner.RoadGuidance.NearDestination(prior.actionID)==true or false}
     local retained,decision
-    result,retained,decision=runtime.ProjectDecision(result,policy,prior,state,inputs)
+    result,retained,decision=runtime.ProjectDecision(result,policy,replayPrior,state,inputs)
     local model=planner.Guidance.Result({actions={},status="insufficient-data"},observed,ctx,nil,result.reason,policy)
     model.adaptive=true;model.flavor=policy.flavor;model.sessionMinutes=policy.sessionMinutes
     model.planStatus=result.status;model.refining=result.status=="refining";model.reason=result.reason
@@ -318,7 +363,12 @@ function runtime.Result(result,observed,ctx,policy,prior,state)
             model.alternatives[#model.alternatives+1]=row
         end
     end
-    model.retained=retained
+    model.retained=retained;model.switchReason=decision.switchReason
+    model.incumbentScore=raw.commitment and raw.commitment.score
+    model.actionIDs=replayIDs(result.actions)
+    if raw.decisionKind=="continuity" and prior and prior.actionID==model.actionID then
+        model.actionIDs=schema.Clone(prior.actionIDs or model.actionIDs)
+    end
     if prior and prior.actionID and model.actionID~=prior.actionID then
         model.change="Plan updated for "..policy.flavor.." and current quest state"
     end
