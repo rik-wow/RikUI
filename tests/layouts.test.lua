@@ -72,6 +72,9 @@ return function(check)
 
         local player, bar = layouts.Rect("centered", "player", SCREENS[1]), layouts.Rect("centered", "main", SCREENS[1])
         local target = layouts.Rect("centered", "target", SCREENS[1])
+        local swing = layouts.Rect("centered", "swingtimer", SCREENS[1])
+        check("Centered weapon timers leave the upward target aura column clear",swing.right<target.left
+            and swing.top-swing.bottom==76)
         check("Centered: player and target are flush with the ends of the bar stack", near(player.left, bar.left)
             and near(target.right, bar.right) and near(player.bottom, target.bottom))
         local tracker, timers = layouts.Rect("centered", "questtracker", SCREENS[1]), layouts.Rect("centered", "questtimers", SCREENS[1])

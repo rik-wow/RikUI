@@ -91,6 +91,7 @@ src/modules/xpbar/xpbar.lua
 src/modules/xpbar/xpbar-details.lua
 src/modules/mirrortimers/mirrortimers.lua
 src/modules/swingtimer/swingtimer.lua
+src/modules/swingtimer/swingtimer-kiting.lua
 src/modules/durability/durability.lua
 src/modules/questplanner/quest-schema.lua
 src/modules/questplanner/quest-builds.lua

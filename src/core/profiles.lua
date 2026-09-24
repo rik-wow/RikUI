@@ -10,6 +10,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = f
     barFade = { bar3 = true },
     questtracker = { collapsed = false, collapseInCombat = false, hideCompleted = false, readyFirst = false },
     minimap = { serverTime = false, coordinates = true },
+    swingtimer = { kiting = true, stopLead = 0.6 },
     worldmap = { fog = true },
     xpbar = { compact = false, text = true, animations = true, ticks = true } }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }

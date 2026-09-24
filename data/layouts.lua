@@ -28,7 +28,7 @@ layouts.Sizes = {
     castpet = { width = SMALL_WIDTH, height = CAST_HEIGHT }, buffs = { width = 268, height = 132 },
     debuffs = { width = 268, height = 64 }, minimap = { width = 200, height = 200 },
     micromenu = { width = 118, height = 22 }, durability = { width = 132, height = 18 },
-    mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 31 },
+    mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 76 },
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
     questtracker = { width = 240, height = 120 }, questtimers = { width = 220, height = 38 },
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
@@ -110,6 +110,7 @@ local UNIT_ROW = CAST_ROW + CAST_HEIGHT + GAP
 local ABOVE_UNITS = UNIT_ROW + UNIT_HEIGHT + GAP
 local UNIT_X = BAR_LEFT + UNIT_WIDTH / 2
 local OUTSIDE = BAR_LEFT - GAP
+layouts.LegacySwingCentered = bottom(0, ABOVE_UNITS + layouts.Sizes.combopoints.height + GAP)
 local FOCUS_ROW = UNIT_ROW + SMALL_HEIGHT + GAP
 
 layouts.centered = layout("Centered", "Unit frames above the action bars in the middle of the screen, the way ElvUI "
@@ -121,7 +122,7 @@ layouts.centered = layout("Centered", "Unit frames above the action bars in the 
     focus = bottomRightOfCentre(OUTSIDE, FOCUS_ROW),
     castfocus = bottomRightOfCentre(OUTSIDE, FOCUS_ROW + FOCUS_HEIGHT + GAP),
     totems = bottomLeftOfCentre(BAR_LEFT, ABOVE_UNITS), combopoints = bottom(0, ABOVE_UNITS),
-    swingtimer = bottom(0, ABOVE_UNITS + layouts.Sizes.combopoints.height + GAP),
+    swingtimer = bottom(UNIT_X, ABOVE_UNITS + layouts.Sizes.totems.height + GAP),
 })
 
 -- Classic: Blizzard's corners. Player and target top left, the player's cast bar over the bars.
@@ -141,7 +142,7 @@ layouts.classic = layout("Classic", "Blizzard's arrangement: player and target i
     party = topLeft(MARGIN, GROUP_Y), raid = topLeft(MARGIN, GROUP_Y),
     castplayer = bottom(0, CAST_ROW), swingtimer = bottom(0, CLASS_ROW),
     combopoints = bottom(0, CLASS_ROW + layouts.Sizes.swingtimer.height + GAP),
-    totems = bottom(0, CLASS_ROW + layouts.Sizes.swingtimer.height + layouts.Sizes.combopoints.height + 2 * GAP),
+    totems = bottom(-100, CLASS_ROW + layouts.Sizes.swingtimer.height + layouts.Sizes.combopoints.height + 2 * GAP),
 })
 
 -- HUD: player and target either side of the character, the cast bar and class widgets between them.
@@ -157,7 +158,7 @@ layouts.hud = layout("HUD", "Player and target close beside your character with 
     player = bottom(-HUD_X, HUD_Y), target = bottom(HUD_X, HUD_Y),
     swingtimer = bottom(0, HUD_SWING), castplayer = bottom(0, HUD_CAST),
     combopoints = bottom(0, HUD_CAST + CAST_HEIGHT + 2 * GAP),
-    totems = bottom(0, HUD_CAST + CAST_HEIGHT + layouts.Sizes.combopoints.height + 3 * GAP),
+    totems = bottom(-100, HUD_CAST + CAST_HEIGHT + layouts.Sizes.combopoints.height + 3 * GAP),
     casttarget = bottom(HUD_X, HUD_UNDER), tot = bottomLeftOfCentre(HUD_SPREAD, HUD_UNDER - GAP - SMALL_HEIGHT),
     petframe = bottomRightOfCentre(BAR_LEFT - GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
     castpet = bottomRightOfCentre(BAR_LEFT - SMALL_WIDTH - 2 * GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
