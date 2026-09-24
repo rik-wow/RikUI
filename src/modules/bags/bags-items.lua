@@ -67,6 +67,7 @@ local function decorate(button)
     button.rikDim:SetAllPoints()
     button.rikDim:SetColorTexture(unpack(DIM_OVERLAY))
     button.rikDim:SetShown(false)
+    bags.CreateNewItem(button)
     button:SetHighlightTexture(media.highlight, "ADD")
 end
 
@@ -195,6 +196,7 @@ function bags.UpdateButton(button)
     for _, line in ipairs(button.rikBorder) do line:SetVertexColor(r, g, b, 1) end
     button.rikName, button.rikFilled = itemName(info), info ~= nil
     button.rikFiltered = info ~= nil and plain(info.isFiltered, "boolean") and info.isFiltered
+    bags.UpdateNewItem(button)
     classify(button, info, bag, slot)
     updateCooldown(button, bag, slot)
     dim(button)

@@ -148,6 +148,10 @@ replacement, rejected drops, dragging, combat refusal, missing APIs and bag-size
 Native behavior is accepted under the user's standing policy; the stub does not claim
 client rendering or taint verification.
 
+Newly acquired items carry a small gold **N**. Hovering acknowledges the item
+through Blizzard's new-item API. Empty slots and unavailable or secret new-item
+data never show a marker. Native item clicks and tooltips remain unchanged.
+
 ## Available space
 
 The footer shows general free slots separately from specialized bag space.

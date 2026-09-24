@@ -127,7 +127,7 @@ return function(check)
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         local selected = {}
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
-            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua", "src/modules/bags/bags-equipped.lua" }) do selected[file] = true end
+            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua", "src/modules/bags/bags-equipped.lua", "src/modules/bags/bags-feedback.lua" }) do selected[file] = true end
         -- Use the client manifest order, including Skin loading after the bag module.
         for line in io.lines("RikUI.toc") do
             local file = line:match("^%s*(.-)%s*$")
@@ -219,6 +219,20 @@ return function(check)
         typeSearch("")
         check("an empty search drops the match count", holder.title.text == "Bags 3/22")
 
+        local oldNew, marked = C_NewItems, true
+        C_NewItems = { IsNewItem = function(bag, slot) return marked and bag == 0 and slot == 1 end,
+            RemoveNewItem = function(bag, slot) if bag == 0 and slot == 1 then marked = false end end }
+        module.Refresh()
+        check("new loot has a compact marker", cloth.rikNew.visible and not stone.rikNew.visible)
+        env.runScript(cloth, "OnEnter")
+        check("hover acknowledges native new-item status", not marked and not cloth.rikNew.visible)
+        C_NewItems.IsNewItem = function() return env.SECRET end
+        module.Refresh()
+        check("secret new-item status hides the badge", not cloth.rikNew.visible)
+        C_NewItems = nil
+        module.Refresh()
+        check("missing new-item API is optional", not cloth.rikNew.visible)
+        C_NewItems = oldNew
         local oldFree = C_Container.GetContainerNumFreeSlots
         C_Container.GetContainerNumFreeSlots = function(bag) return bag == 0 and 2 or 4, bag == 0 and 0 or 1 end
         module.Refresh()
