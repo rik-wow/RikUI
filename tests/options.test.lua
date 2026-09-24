@@ -650,6 +650,23 @@ return function(check)
                     and not rowByKey(rows, "exportSavedProfile").enabled)
             end
         end
+        do
+            local manage = boot({ community = { Unused = {} } }, nil, function(core)
+                dofile("src/setup/preset-library.lua")
+            end)
+            local rows = pageByTitle(manage, "Setup and support").list
+            local selected, remove = rowByKey(rows, "importedPreset"), rowByKey(rows, "removePreset")
+            check("imported preset cleanup controls exist", selected ~= nil and remove ~= nil)
+            if selected and remove then
+                manage.Commit(selected, "Unused")
+                env.click(remove.widget)
+                check("preset deletion requires named confirmation", RikUI.DB.community.Unused ~= nil
+                    and remove.confirmText:GetText():find("Unused", 1, true))
+                env.click(remove.widget)
+                check("confirmed deletion removes only the import", RikUI.DB.community.Unused == nil
+                    and RikUI.CharDB.profile == "Default")
+            end
+        end
         -- Profiles.
         options = boot({ profiles = { Default = { scale = 0.9, positions = { main = { x = 5 } } } } })
         local profiles = pageByTitle(options, "Profiles").list

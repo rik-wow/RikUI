@@ -53,6 +53,37 @@ function library.Add(name, preset)
     return ok, reason
 end
 
+function library.ImportedEntries()
+    local entries = {}
+    for name in pairs(core.DB and core.DB.community or {}) do
+        if library.ValidName(name) then entries[#entries + 1] = { value = name, text = name } end
+    end
+    table.sort(entries, function(a, b) return a.value < b.value end)
+    return entries
+end
+
+function library.RemovalIssue(name)
+    if not core.DB then return "Still loading." end
+    if not library.ValidName(name) or core.DB.community[name] == nil then return "Choose an imported preset." end
+    if core.CommunityPresets[name] ~= nil then return "Bundled presets cannot be removed." end
+    if InCombatLockdown() then return "Remove presets after combat." end
+    if (setup.IsApplying and setup.IsApplying()) or (setup.IsUndoing and setup.IsUndoing()) then
+        return "Finish the pending Setup operation first."
+    end
+    local applied = core.CharDB and core.CharDB.applied
+    if type(applied) == "table" and applied.presetName == name then
+        return "Apply another preset before removing this character's current source."
+    end
+end
+
+function library.Remove(name)
+    local issue = library.RemovalIssue(name)
+    if issue then return nil, issue end
+    core.DB.community[name] = nil
+    core:Changed()
+    return true
+end
+
 local function names()
     local seen, result = {}, {}
     for _, sources in ipairs({ core.CommunityPresets, core.DB and core.DB.community or {} }) do

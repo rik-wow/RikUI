@@ -254,6 +254,27 @@ local function moduleSpecs()
     return specs
 end
 
+local function importedPresetSpecs(specs)
+    local library = core.PresetLibrary
+    if not library or not library.ImportedEntries then return end
+    specs[#specs + 1] = { type = "heading", label = "Imported presets" }
+    specs[#specs + 1] = { type = "dropdown", key = "importedPreset", label = "Preset to remove",
+        values = library.ImportedEntries, get = function() return state.importedPreset end,
+        set = function(value) state.importedPreset = value end }
+    specs[#specs + 1] = { type = "button", key = "removePreset", label = "Remove imported preset", text = "Remove",
+        description = "Account-wide. Other characters may use it; keep an export before removing. Existing bars stay unchanged.",
+        getDescription = function() return library.RemovalIssue(state.importedPreset)
+            or "Account-wide. Other characters may use it; keep an export before removing. Existing bars stay unchanged." end,
+        disabled = function() return library.RemovalIssue(state.importedPreset) ~= nil end,
+        confirm = function() return state.importedPreset and ("Remove imported preset " .. state.importedPreset .. " from this account?") end,
+        action = function()
+            local ok, reason = library.Remove(state.importedPreset)
+            if not ok then return nil, reason end
+            state.importedPreset = nil
+            return true
+        end }
+end
+
 local function setupSpecs()
     local specs = { { type = "heading", label = "Setup" },
         { type = "checkbox", key = "autoPlacement", label = "Automatically update preset spell slots",
@@ -269,6 +290,7 @@ local function setupSpecs()
         specs[#specs + 1] = action("export", "Share character preset", "Export", core.Sharing.OpenExport)
         specs[#specs + 1] = action("import", "Add a shared preset", "Import", core.Sharing.OpenImport)
     end
+    importedPresetSpecs(specs)
     specs[#specs + 1] = { type = "heading", label = "Support" }
     specs[#specs + 1] = action("debug", "Interface diagnostics", "Show in chat", function() core:Debug() end)
     specs[#specs + 1] = action("errors", "Recent interface errors", "Show errors", function() run("errors") end)

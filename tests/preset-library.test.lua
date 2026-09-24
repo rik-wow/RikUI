@@ -62,5 +62,32 @@ return function(check)
         check("diagnostics include malformed bundle", #library.ValidateAll() > 0)
         check("invalid bundle excluded", #library.Entries("WARRIOR") == 2)
     end
+    check("imported presets support removal", type(library.Remove) == "function")
+    if library.Remove then
+        local saves = 0
+        RikUI.Store = { Touch = function() saves = saves + 1 end }
+        RikUI.DB.community.Unused = { malformed = true }
+        check("malformed imported definition can be removed", library.Remove("Unused") == true
+            and RikUI.DB.community.Unused == nil and saves == 1)
+        check("bundled definition cannot be removed", not library.Remove("Example")
+            and RikUI.CommunityPresets.Example ~= nil)
+        RikUI.DB.community["My bars"] = {}
+        check("current applied source cannot be removed", not library.Remove("My bars")
+            and RikUI.DB.community["My bars"] ~= nil)
+        RikUI.DB.community.Unused = {}
+        env.inCombat = true
+        check("combat prevents preset removal", not library.Remove("Unused") and saves == 1)
+        env.inCombat = false
+        local applying = setup.IsApplying
+        setup.IsApplying = function() return true end
+        check("pending Setup prevents preset removal", not library.Remove("Unused") and saves == 1)
+        setup.IsApplying = applying
+        local entries = library.ImportedEntries()
+        local found = false
+        for _, entry in ipairs(entries) do if entry.value == "Unused" then found = true end end
+        check("import management includes invalid definitions for cleanup", found)
+        check("invalid and missing preset removal is harmless", not library.Remove("|bad")
+            and not library.Remove("Missing") and saves == 1)
+    end
     RikUI = previous
 end

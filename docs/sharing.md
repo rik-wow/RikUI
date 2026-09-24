@@ -1,5 +1,7 @@
 # Portable settings and presets
 
+**Setup and support > Imported presets** removes an unused import after a confirmation naming it. Bundled presets and this character's last-applied source are protected; finish Setup and leave combat first. Removal frees backup space and leaves existing bars untouched. Imports are account-wide: other characters can still refer to a removed source, so keep a portable export or choose another preset for them. Missing sources continue to fail explicitly rather than silently applying a different preset.
+
 Imported preset definitions now participate in the restart macro backup, including empty slot tables and exact macro text. The existing twelve-macro limit still applies: if all user settings and presets cannot fit, RikUI reports a backup failure and leaves the previous backup untouched. Keep portable exports for large libraries. No preset is applied by recovery.
 
 UI profile exports include the low-space-only capacity setting, its threshold, and durability percentage visibility. Tests cover every defaulted portable preference so additions cannot silently disappear from backups. Invalid thresholds and flag types reject an import before creating a profile.
