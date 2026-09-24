@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Paladin — 2026-09-24
+
+Priorities: Hammer of Justice, Blessing of Protection, Blessing of Freedom, Lay on Hands, Divine Shield, Divine Protection, Holy Shield, Holy Shock, Repentance, Divine Favor, Exorcism, Holy Strike.
+
+[Current player feedback](https://us.forums.blizzard.com/en/wow/t/paladin-feedback-1-20-beta/2355823): Paladin feedback requests smoother utility blessings and more useful Protection/Holy Strike gameplay.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/paladin) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+Defensive/utility spell cooldowns are distinct from Forbearance, blessing duration and seal state. No inferred lockout, missing buff or tuning change. Native acceptance supplied by user.
+
 ### Hunter — 2026-09-24
 
 Priorities: Feign Death, Disengage, Deterrence, Scatter Shot, Concussive Shot, Freezing Trap, Frost Trap, Summon Hawk, Rapid Fire, Bestial Wrath, Intimidation, Tranquilizing Shot.
