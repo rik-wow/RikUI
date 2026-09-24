@@ -2,10 +2,11 @@
 
 Quest areas (NPC/object spawns, spawn clusters, objective bounds) from the
 compiled Forever corpus become rectangles in navigation coordinates. Baked
-polygons whose centers fall inside them are kept, grouped by road-network cell
-(one patch per 128-yard cell), plus the polygons connecting each patch to its
-cell's network nodes so the runtime can join mesh and network. Everything else
-of the detailed mesh is dropped. Patches are modeled geometry, not verified.
+polygons select connected pieces inside each road-network cell (one patch per
+128-yard cell). Those pieces are retained in full, including their gateway
+nodes, plus one ring of pieces joined by existing portals, so open crossings
+and nearby approaches remain connected. Other cells and disconnected pieces
+outside the quest areas are dropped. Patches are modeled geometry, not verified.
 """
 import collections, heapq, json, math, struct
 import road_network as net
@@ -82,25 +83,24 @@ def select(polys, rects):
 
 
 def connect_to_nodes(polys, chosen, reps):
-    """Add, per patch cell, the in-cell polygons joining each chosen piece to a node."""
-    cells = collections.defaultdict(set)
-    for i in chosen:
-        cells[polys.cell[i]].add(i)
-    rep_cells = collections.defaultdict(list)
-    for r in reps:
-        rep_cells[polys.cell[r]].append(r)
-    added = set()
-    for cell, members in cells.items():
-        for rep in rep_cells.get(cell, ()):
-            dist, parent = net.confined_dijkstra(polys, rep, {cell})
-            if not any(m in dist for m in members):
-                continue
-            added.add(rep)
-            nearest = min((m for m in members if m in dist), key=lambda m: dist[m])
-            for step in net.corridor(parent, nearest):
-                added.add(step[0])
-        # Reverse direction: paths from the piece back to the node, for exits.
-    return chosen | added
+    """Keep each quest area's complete in-cell connected piece, including its gateway.
+
+    Keeping only a thin path to a node leaves artificial holes through otherwise
+    walkable ground (including frozen lakes). The existing portals still decide
+    where movement is possible; one connected approach ring is included.
+    """
+    pieces = net.components(polys)
+    owner = {i: n for n, piece in enumerate(pieces) for i in piece}
+    touched = {owner[i] for i in chosen}
+    kept = set(touched)
+    # Include one connected approach cell so arriving just outside a quest's
+    # cell does not force a road detour. Do not expand recursively.
+    for i, edges in enumerate(polys.edges):
+        for j, _, _ in edges:
+            a, b = owner[i], owner[j]
+            if a in touched: kept.add(b)
+            if b in touched: kept.add(a)
+    return {i for n in kept for i in pieces[n]}
 
 
 PATCH_UNITS = 1024.0  # vertex units per yard; well inside the loader's .002 yd tolerances

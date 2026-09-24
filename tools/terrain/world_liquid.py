@@ -72,11 +72,22 @@ def _upward(vertices, a, b, c):
     return (a, b, c) if e1[1] * e2[0] - e1[0] * e2[1] > 0 else (a, c, b)
 
 
+def _swim_area(vertices, corners, kind, areas):
+    """Only occupied subcells carry swimming cost; merge equal-height row neighbours."""
+    points = [vertices[i * 3:i * 3 + 3] for i in corners]
+    low = [min(p[k] for p in points) for k in range(3)]
+    high = [max(p[k] for p in points) for k in range(3)]
+    previous = areas[-1] if areas else None
+    if previous and previous['type'] == kind:
+        a, b = previous['bounds']
+        if a[0] == high[0] and a[1:] == low[1:] and b[1:] == high[1:]:
+            a[0] = low[0]
+            return
+    areas.append(dict(bounds=[low, high], type=kind))
+
+
 def _surface(data, record, instance, vertices, triangles, areas):
     x, y, _ = record['position']
-    x0, z0 = y - (instance['x'] + instance['width']) * t.UNIT, x - (instance['y'] + instance['height']) * t.UNIT
-    areas.append(dict(bounds=[[x0, instance['min'], z0], [y - instance['x'] * t.UNIT, instance['max'], x - instance['y'] * t.UNIT]],
-                      type=instance['type']))
     heights = _heights(data, instance)
     width, height = instance['width'], instance['height']
     base = len(vertices) // 3
@@ -93,6 +104,7 @@ def _surface(data, record, instance, vertices, triangles, areas):
             b, c, d = a + 1, a + width + 1, a + width + 2
             triangles.extend(_upward(vertices, a, b, c))
             triangles.extend(_upward(vertices, b, d, c))
+            _swim_area(vertices, (a, b, c, d), instance['type'], areas)
 
 
 def _blocked(data, record, instance, tile):
@@ -123,7 +135,7 @@ def _blocked(data, record, instance, tile):
 def liquid(raw, records, tile, keep=None):
     """Returns (vertices, triangles, exclusions, areas) for one root ADT's MH2O.
 
-    areas: one {bounds, type} box per swim surface, so later stages can tell
+    areas: {bounds, type} boxes over occupied subcells with local heights, so later stages can tell
     swimming from walking.
 
     keep: optional set of (x, y) chunk indices to emit; others are skipped.

@@ -179,7 +179,13 @@ end
 local function tripLeg(identity,world,start,goalWorld,goalPoint,key)
     local jumped=trip.last and (trip.world~=world or (start.x-trip.last.x)^2+(start.z-trip.last.z)^2>JUMP_YARDS^2)
     local moved=trip.failed and trip.at and (start.x-trip.at.x)^2+(start.z-trip.at.z)^2>=RETRY_YARDS^2
-    if trip.key~=key or jumped or moved then
+    local travel=planner.RoadTravel
+    local unavailable=trip.legs and travel and travel.Available and not travel.Available(trip.legs,trip.index)
+    if unavailable then
+        if request then request:Cancel() end
+        request,follower,display,requestKey,routeKey,legDetail=nil,nil,nil,nil,nil,nil
+    end
+    if trip.key~=key or jumped or moved or unavailable then
         if trip.job and trip.job.Cancel then trip.job:Cancel() end
         -- A flight, boat or tram lands at its destination stop.
         local current=jumped and trip.legs and trip.legs[trip.index]

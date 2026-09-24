@@ -28,34 +28,33 @@ MAX_POINT_OFFSET = 32767
 SIMPLIFY_YARDS = 1.5  # polyline corners closer than this to the straight line are dropped
 REDUNDANT_SLACK = 1.02  # an edge is redundant if a two-hop path costs at most 2% more
 SWIM_COST = 1.5  # swimming (about 4.7 yd/s) against running (7 yd/s)
-SURFACE_TOLERANCE = 0.6  # yards below a liquid's lowest level that still count as its surface
+SURFACE_TOLERANCE = 0.6  # bake-height tolerance around a liquid's local surface range
 SUBMERGED_DEPTH = 2.0  # polygons this far below a swim surface are lake/sea floor; routes swim above them
 
 
 class WaterLookup:
-    """Swim-surface boxes from bake manifests. A point is swimming when it lies in a
-    box's XZ rectangle at or above the liquid's lowest level, and submerged when
-    it lies well below it."""
+    """Liquid footprints with bounded surface heights, not infinite water columns.
+    Dry geometry above the surface keeps its walking cost; deep floors are omitted."""
     CELL = 64.0
 
     def __init__(self, boxes):
         self.buckets = collections.defaultdict(list)
         for box in boxes:
-            (x0, y0, z0), (x1, _, z1) = box['bounds']
+            (x0, y0, z0), (x1, y1, z1) = box['bounds']
             for bx in range(math.floor(x0 / self.CELL), math.floor(x1 / self.CELL) + 1):
                 for bz in range(math.floor(z0 / self.CELL), math.floor(z1 / self.CELL) + 1):
-                    self.buckets[(bx, bz)].append((x0, z0, x1, z1, y0))
+                    self.buckets[(bx, bz)].append((x0, z0, x1, z1, y0, y1))
 
     def _levels(self, x, z):
-        for x0, z0, x1, z1, level in self.buckets.get((math.floor(x / self.CELL), math.floor(z / self.CELL)), ()):
+        for x0, z0, x1, z1, low, high in self.buckets.get((math.floor(x / self.CELL), math.floor(z / self.CELL)), ()):
             if x0 <= x <= x1 and z0 <= z <= z1:
-                yield level
+                yield low, high
 
     def at(self, x, y, z):
-        return any(y >= level - SURFACE_TOLERANCE for level in self._levels(x, z))
+        return any(low - SURFACE_TOLERANCE <= y <= high + SURFACE_TOLERANCE for low, high in self._levels(x, z))
 
     def submerged(self, x, y, z):
-        return any(y < level - SUBMERGED_DEPTH for level in self._levels(x, z))
+        return any(y < low - SUBMERGED_DEPTH for low, _ in self._levels(x, z))
 
 
 NO_WATER = WaterLookup(())

@@ -28,13 +28,26 @@ so the last stretch to an NPC, cave or building still follows real geometry.
      graph, string-pulled through the portals and simplified to 1.5 yards;
      road terrain costs 0.6x, so routes follow roads;
    - redundant edges and node groups under 16 nodes are dropped;
-   - quest patches: polygons within 48 yards of a corpus spawn, or objective
-     bounds plus 24 yards, grouped by 128-yard cell, plus the in-cell path to
-     that cell's network node.
+   - quest patches: select polygons within 48 yards of a corpus spawn or
+     objective bounds plus 24 yards, then retain their complete connected
+     pieces inside each 128-yard cell and one ring of pieces connected by
+     existing portals. This keeps open crossings and nearby approaches available
+     instead of leaving thin routes to network nodes.
 4. **Install.** `install_roads.py install` swaps the addons in with an
    ownership receipt; `retire` moves the legacy `RikUIQuestTerrain*`,
    `RikUIQuestPaths*` and `RikUIQuestSeams*` folders out of AddOns into a
    backup directory. Nothing is deleted.
+
+## Water and open crossings
+
+Swimming costs apply only within occupied liquid subcells and their local
+surface-height range, allowing 0.6 yards for bake rounding. Dry terrain above
+water keeps walking cost; empty liquid-mask cells do not remove lake-floor
+polygons or add swim penalties. Actual submerged surfaces remain excluded.
+
+Quest patches retain existing connected geometry throughout each selected
+cell. They preserve obstacle boundaries and directed portals while allowing
+short routes across open ground, including solid frozen lakes.
 
 ## Travel links
 
@@ -59,7 +72,10 @@ data has the paths but not the speeds or schedules.
 At runtime `quest-road-travel.lua` runs a sliced Dijkstra from the player and
 from the destination to every stop, then a small search over start, stops and
 goal. Flights count only when both points are discovered
-(`C_TaxiMap.GetTaxiNodesForMap`) and the faction matches. Guidance walks one
+(`C_TaxiMap.GetTaxiNodesForMap`) and the faction matches. Unknown or conflicting
+discovery observations cannot unlock flights. Taxi status events refresh the
+cache immediately; remaining flight legs are rechecked while approaching a
+flight master and discarded if either endpoint becomes unavailable. Guidance walks one
 leg at a time, says which link to take at each stop, and replans after a
 flight, a ride or a map change.
 
@@ -121,7 +137,9 @@ A full compile of all worlds takes about 1 minute 50 seconds on 32 cores
 (`road_parallel.py`): 52 seconds to validate and cache every batch, then about
 13 seconds of network search and 7 seconds of patches per continent. The
 cache in `road-network-cache/` beside the output is keyed by the input hash,
-so a rerun with different patch radii skips the load.
+bake-tool hashes, routing compiler hashes and raster directory. Cost-model
+changes cannot reuse stale swimming classifications. A rerun with different
+patch radii can still skip the load.
 
 With 20-yard spawn radius, 10-yard margin and 80-yard cap the patches drop to
 569k polygons (40.2 MB) and 709k (50.4 MB). Quest areas cover more than half
@@ -134,6 +152,33 @@ the Eastern Kingdoms network is one piece of 18,445 nodes from Silverpine to
 Booty Bay, Kalimdor one of 22,108 from Orgrimmar to Thousand Needles. What
 stays apart is joined by travel links (lifts, the Darnassus portal, boats) or
 is an interior with no way in on foot.
+
+## Installed rebuild (2026-09-23)
+
+All 2,290 batches across worlds 0, 1, 30, 489, 529, 2991 and 2997 were rebaked
+with occupied-subcell liquid bounds. The resulting pack contains 278 addons
+and 12,428 files (271,420,081 bytes). Eastern Kingdoms retains 1,704,013 patch
+polygons; Kalimdor retains 2,192,933. Compiler and runtime bounds remain in place.
+The external output is `D:/RikUI-local/road-network-liquid-fix-20260923-v2`,
+receipt SHA-256 `9d75d2baf27473b84d8ed98195625b057bdf141775569784f92c74f7d7d80beb`.
+The installer verified all 12,428 installed files and retained the old packs at
+`Interface/.rikui-road-stage-j5wpkysq/previous`. A full client restart is needed
+to discover the changed LoadOnDemand addon set.
+
+A host replay from Dun Morogh 54.1,44.8 to 56.6,44.2 now uses a 125-yard
+mesh-only crossing instead of the previous 180-yard network detour. This
+probes the screenshot location, not a captured exact quest-giver coordinate.
+The nearby 53.1,44.8 approach also has a direct route. Points 53.0,44.8 and
+53.5,44.8 have no polygon in the source bake itself; their coverage limits
+remain explicit. No unrestricted straight-line shortcut was substituted.
+
+All seven generated graphs pass ten sampled A*/Dijkstra comparisons each,
+including genuinely disconnected node groups. The archived quest 315 replay
+matches its decision and arrives after 559.5 yards without route swaps or
+replans. On the installed pack, the first route appears at frame 112; the
+largest callback is 24 ms and largest addon load is 17 ms on this host.
+Native acceptance follows the user's standing policy; these are host checks
+and do not claim agent-observed game traversal.
 
 ## Installed state (2026-09-22)
 

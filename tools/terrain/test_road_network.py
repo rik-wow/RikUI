@@ -23,6 +23,21 @@ class Tests(unittest.TestCase):
         self.assertFalse(POND.at(50, 2, 50))     # pond floor: walking, not swimming
         self.assertFalse(POND.at(150, 10, 50))   # outside the liquid rectangle
 
+    def test_solid_crossing_above_water_has_walking_cost(self):
+        points = [(10, 12, 50), (90, 12, 50)]
+        self.assertFalse(POND.at(50, 12, 50))
+        _, cost = net.weighted_length(points, NoRoad(), POND)
+        self.assertAlmostEqual(cost, 80)
+        _, road = net.weighted_length(points, AllRoad(), POND)
+        self.assertAlmostEqual(road, 80 * (1 - net.ROAD_BONUS))
+
+    def test_liquid_height_range_has_both_lower_and_upper_bounds(self):
+        slope = net.WaterLookup([dict(bounds=[[0, 10, 0], [100, 12, 100]])])
+        self.assertTrue(slope.at(50, 12.5, 50))
+        self.assertFalse(slope.at(50, 13, 50))
+        self.assertFalse(slope.at(50, 9, 50))
+        self.assertTrue(slope.submerged(50, 7, 50))
+
     def test_deep_floor_is_submerged(self):
         self.assertTrue(POND.submerged(50, 2, 50))
         self.assertFalse(POND.submerged(50, 9, 50))

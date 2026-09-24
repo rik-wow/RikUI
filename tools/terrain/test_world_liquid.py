@@ -59,9 +59,20 @@ class Tests(unittest.TestCase):
         self.assertEqual(sorted(set(v[1::3])), [1.0, 1.5, 2.0])
         self.assertAlmostEqual(max(v[0::3]), 2000.0 - t.CHUNK - 3 * t.UNIT)
         (lo, hi), = [a['bounds'] for a in areas]
-        self.assertAlmostEqual(hi[0], max(v[0::3])); self.assertAlmostEqual(lo[0], min(v[0::3]))
+        self.assertAlmostEqual(hi[0], max(v[0::3])); self.assertAlmostEqual(lo[0], max(v[0::3]) - t.UNIT)
         self.assertAlmostEqual(hi[2], max(v[2::3])); self.assertAlmostEqual(lo[2], min(v[2::3]))
-        self.assertEqual((lo[1], hi[1]), (1.0, 2.0))
+        self.assertEqual((lo[1], hi[1]), (1.0, 1.5))
+
+    def test_water_cost_mask_preserves_holes_and_empty_instances(self):
+        import road_network
+        _, _, _, areas = run(mh2o({0: [(1, 2, 5., 5., 0, 0, 3, 1, bytes([0b101]), None)]}))
+        water = road_network.WaterLookup(areas)
+        self.assertTrue(water.at(2000 - .5 * t.UNIT, 5, 1000 - .5 * t.UNIT))
+        self.assertFalse(water.at(2000 - 1.5 * t.UNIT, 5, 1000 - .5 * t.UNIT))
+        self.assertFalse(water.submerged(2000 - 1.5 * t.UNIT, 0, 1000 - .5 * t.UNIT))
+        self.assertTrue(water.at(2000 - 2.5 * t.UNIT, 5, 1000 - .5 * t.UNIT))
+        _, tris, _, areas = run(mh2o({0: [(1, 2, 5., 5., 0, 0, 3, 1, bytes([0]), None)]}))
+        self.assertEqual((tris, areas), ([], []))
 
     def test_modern_water_ids_are_swimmable(self):
         for kind in (1250, 1288, 1325):  # PBR ocean, river, lake

@@ -17,7 +17,7 @@ import road_network as net
 import road_textures as roads
 import world_export_graph as graph
 import world_stitch as stitch
-from world_source import need
+from world_source import need, sha, canonical
 
 STRIPE_CELLS = 2       # core network-cell columns per stripe task
 CELLS_PER_BATCH = 4    # a 512-yard bake batch spans four 128-yard cells
@@ -81,7 +81,13 @@ def prepare(input_path, expected, road_dir, cache_root, pool):
     raw = graph.read(input_path, expected, 8 * 1024 * 1024)
     doc = json.loads(raw)
     need(doc.get('format') == 'rikui-world-export-input-v1' and doc.get('identity') == graph.RUNTIME_IDENTITY, 'world export identity')
-    cache = pathlib.Path(cache_root) / ('input-' + expected[:16])
+    # Cached rows include swim/road classifications and decoder validation.
+    # Rebuild them when their producing code or raster source changes.
+    import world_bake
+    model = dict(bake=world_bake.hashes(), roadDirectory=str(pathlib.Path(road_dir).resolve()),
+                 compilers={name: sha(pathlib.Path(__file__).with_name(name).read_bytes())
+                            for name in ('road_parallel.py', 'road_network.py', 'road_textures.py')})
+    cache = pathlib.Path(cache_root) / ('input-' + expected[:16] + '-model-' + sha(canonical(model))[:16])
     by_ns = {}
     for record in doc['batches']:
         manifest = json.loads(pathlib.Path(record['directory'], 'manifest.json').read_bytes())
@@ -150,14 +156,14 @@ def load_region(files, lo, hi):
     return part
 
 
-def stripe_tasks(batches):
+def stripe_tasks(batches, halo=1):
     """(core_lo, core_hi, cache files covering core plus halo) per stripe of cell columns."""
     columns = sorted({bx for bx, _ in batches})
     lo_cell, hi_cell = columns[0] * CELLS_PER_BATCH, (columns[-1] + 1) * CELLS_PER_BATCH
     tasks = []
     for a in range(lo_cell, hi_cell, STRIPE_CELLS):
         b = min(a + STRIPE_CELLS, hi_cell)
-        first, last = (a - 1) // CELLS_PER_BATCH, b // CELLS_PER_BATCH
+        first, last = (a - halo) // CELLS_PER_BATCH, (b + halo - 1) // CELLS_PER_BATCH
         files = [path for (bx, _), path in sorted(batches.items()) if first <= bx <= last]
         if files:
             tasks.append((a, b, files))
@@ -219,14 +225,19 @@ def _patches(args):
     import quest_pockets as qp
     core_lo, core_hi, files, rep_ids, rects, policy = args
     qp.SPAWN_RADIUS, qp.CLUSTER_MARGIN, qp.MAX_HALF = policy
-    part = load_region(files, core_lo - 1, core_hi + 1)
+    # A neighbor's inclusion can depend on its own neighbor's quest area.
+    part = load_region(files, core_lo - 2, core_hi + 2)
     reps = [i for i, g in enumerate(part.gid) if g in rep_ids]
     chosen = qp.select(part, rects)
     kept = qp.connect_to_nodes(part, chosen, reps)
     by_cell = collections.defaultdict(set)
     for i in kept:
         by_cell[part.cell[i]].add(i)
-    out = {cell: qp.encode_cell(part, members, kept) for cell, members in by_cell.items() if core_lo <= cell[0] < core_hi}
+    out = {}
+    for cell, members in by_cell.items():
+        if core_lo <= cell[0] < core_hi:
+            need(len(members) <= qp.MAX_PATCH_POLYGONS, 'patch polygon bound')
+            out[cell] = qp.encode_cell(part, members, kept)
     core = lambda i: core_lo <= part.cell[i][0] < core_hi
     return out, sum(1 for i in chosen if core(i)), sum(1 for i in kept if core(i))
 
@@ -238,8 +249,8 @@ def patches(batches, infos, rects, pool):
     policy = (qp.SPAWN_RADIUS, qp.CLUSTER_MARGIN, qp.MAX_HALF)
     reach = qp.MAX_HALF + qp.SPAWN_RADIUS + qp.CLUSTER_MARGIN
     tasks = []
-    for a, b, files in stripe_tasks(batches):
-        x0, x1 = (a - 1) * net.CELL - reach, (b + 1) * net.CELL + reach
+    for a, b, files in stripe_tasks(batches, halo=2):
+        x0, x1 = (a - 2) * net.CELL - reach, (b + 2) * net.CELL + reach
         mine = [r for r in rects if r[2] >= x0 and r[0] <= x1]
         ids = {info[0] for info in infos if a - 1 <= info[2][0] < b + 1}
         tasks.append((a, b, files, ids, mine, policy))

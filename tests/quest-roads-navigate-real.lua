@@ -40,6 +40,21 @@ for at = 3, #arg, 4 do
     local job = assert(p.RoadNavigate.Begin(graph, view, start, goal, {speed = 7, marker = true}))
     local result = finish(job)
     local cpu = os.clock() - t0
+    if os.getenv("ROADS_DIAGNOSTICS") then
+        local loader = p.RoadPatches.Begin(graph, view, {start, goal})
+        if loader then
+            local mesh
+            repeat local value, _, done = loader:Step(128); if done then mesh=value;break end until false
+            if mesh then
+                local at, why = mesh:Locate(start)
+                local job, reason = mesh:BeginMarkerApproach(start, goal, {maxWork=262144,markerRadius=8,
+                    reachableApproach=true,commonApproach=true,uncertainVicinity=true})
+                local direct = job and finish(job)
+                io.write("DIRECT start=", tostring(at and at.id), " locate=", tostring(why),
+                    " status=", tostring(direct and direct.status or reason), " detail=", tostring(direct and direct.detail), "\n")
+            end
+        end
+    end
     local line = string.format("ROUTE %.3f,%.3f -> %.3f,%.3f status=%s", sx, sy, gx, gy, result.status)
     if result.status == "modeled" then
         local follow = assert(p.RoadFollow.Begin(result, function(pt) return p.Roads.Unproject(view, pt) end))

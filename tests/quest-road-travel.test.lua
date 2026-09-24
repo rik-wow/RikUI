@@ -54,6 +54,25 @@ return function(check)
   check('road travel flies between discovered flight points when faster',
    r.legs and #r.legs==3 and r.legs[1].to=='flight:1' and r.legs[2].mode=='flight' and r.legs[3].to=='goal',r.legs and #r.legs)
   check('road travel describes the flight',r.legs and r.legs[2].text=='Fly to East Field',r.legs and r.legs[2].text)
+  check('current discovered flight legs remain available',travel.Available(r.legs,1))
+  local priorLegs=r.legs
+  discovered={[2]=true};travel.OnEvent('TAXI_NODE_STATUS_CHANGED')
+  check('remaining flight legs reject a newly unavailable origin',not travel.Available(priorLegs,1))
+  r=plan({[0]=west},{world=0,x=0,z=0},{world=0,x=1900,z=0})
+  check('flight status changes immediately remove undiscovered origin flights',r.walkOnly)
+  discovered={[1]=true};travel.OnEvent('TAXI_NODE_STATUS_CHANGED')
+  r=plan({[0]=west},{world=0,x=0,z=0},{world=0,x=1900,z=0})
+  check('flights require the destination as well as the origin',r.walkOnly)
+  C_TaxiMap.GetTaxiNodesForMap=function(map)
+   return {{nodeID=1,isUndiscovered=false},{nodeID=2,isUndiscovered=map==1414}}
+  end
+  travel.OnEvent('TAXIMAP_CLOSED')
+  check('conflicting map discovery evidence cannot unlock a flight',not travel.Discovered()[2])
+  C_TaxiMap.GetTaxiNodesForMap=function() return {false,{nodeID=1,isUndiscovered=false},{nodeID=2}} end
+  travel.OnEvent('TAXIMAP_CLOSED')
+  local safe,known=pcall(travel.Discovered)
+  check('malformed or unknown taxi rows do not imply discovery',safe and known[1] and not known[2])
+  C_TaxiMap.GetTaxiNodesForMap=function() return {{nodeID=1,isUndiscovered=false},{nodeID=2,isUndiscovered=false}} end
   faction='Horde';travel.OnEvent('TAXIMAP_CLOSED')
   r=plan({[0]=west},{world=0,x=0,z=0},{world=0,x=1900,z=0})
   check('road travel skips flights of the other faction',r.walkOnly,r.legs and r.legs[1].mode)

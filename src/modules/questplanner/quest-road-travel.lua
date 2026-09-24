@@ -51,7 +51,8 @@ function travel.Stop(id) return stops[id] end
 -- Validated immutable handles for strategic estimation; replaced on Install.
 function travel.EstimateSource() return stops,links end
 function travel.OnEvent(event)
-    if event=="TAXIMAP_OPENED" or event=="TAXIMAP_CLOSED" or event=="PLAYER_ENTERING_WORLD" then knownAt=nil end
+    if event=="TAXIMAP_OPENED" or event=="TAXIMAP_CLOSED" or event=="TAXI_NODE_STATUS_CHANGED"
+        or event=="PLAYER_ENTERING_WORLD" or event=="PLAYER_LEAVING_WORLD" then known,knownAt={},nil end
 end
 
 local function now() return type(GetTime)=="function" and GetTime() or 0 end
@@ -60,20 +61,22 @@ local function now() return type(GetTime)=="function" and GetTime() or 0 end
 local function discovered()
     if knownAt and now()-knownAt<KNOWN_REFRESH then return known end
     local read=type(C_TaxiMap)=="table" and C_TaxiMap.GetTaxiNodesForMap
-    local found={}
+    local found,rejected={},{}
     if type(read)=="function" then
         for _,mapID in ipairs(CONTINENT_MAPS) do
             local ok,rows=pcall(read,mapID)
             if ok and type(rows)=="table" then
                 for _,row in ipairs(rows) do
-                    local undiscovered=type(row)=="table" and row.isUndiscovered
-                    if not RikUI.Secret.IsSecret(undiscovered) and undiscovered==false and schema.ID(row.nodeID) then
-                        found[row.nodeID]=true
+                    if schema.PlainTable(row) and schema.ID(row.nodeID) then
+                        local value=row.isUndiscovered
+                        if not RikUI.Secret.IsSecret(value) and value==false then found[row.nodeID]=true
+                        else rejected[row.nodeID]=true end
                     end
                 end
             end
         end
     end
+    for id in pairs(rejected) do found[id]=nil end
     known,knownAt=found,now()
     return known
 end
@@ -93,6 +96,15 @@ local function usable(link,faction,flights)
 end
 
 travel.Usable=usable
+-- Recheck the remaining flights, including while walking toward a flight master.
+function travel.Available(legs,index)
+    local faction,flights=playerFaction(),discovered()
+    for i=index or 1,#legs do
+        local leg=legs[i]
+        if leg.mode=="flight" and (not leg.link or not usable(leg.link,faction,flights)) then return false end
+    end
+    return true
+end
 
 -- Min-heap of {cost,key}.
 local function push(heap,cost,key)
@@ -259,7 +271,6 @@ Step(budget) returns nil while working, then {status, legs, seconds}. ]]
 function travel.Begin(graphs,start,goal)
     local sg,gg=graphs[start.world],graphs[goal.world]
     if not sg or not gg then return nil,"travel graph missing" end
-    local faction,flights=playerFaction(),discovered()
     local startStops,goalStops=stopNodes(sg),stopNodes(gg)
     local function wantedFor(rows,extra)
         local set={};for _,r in ipairs(rows) do set[r.node]=true end
@@ -298,7 +309,7 @@ function travel.Begin(graphs,start,goal)
         end
         local walks={}
         for world,graph in pairs(graphs) do walks[world]=walkTable(graph,stopNodes(graph)) end
-        local legs,seconds=stopSearch(fromStart,toGoal,direct,walks,faction,flights)
+        local legs,seconds=stopSearch(fromStart,toGoal,direct,walks,playerFaction(),discovered())
         if not legs then
             result={status="no-known-path",detail="No walking or travel connection is known to this destination"}
         else

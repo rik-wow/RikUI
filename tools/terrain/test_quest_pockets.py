@@ -1,5 +1,6 @@
 """Quest patch geometry: area rectangles, selection, node joins and binary encoding."""
-import struct, unittest
+import pathlib, pickle, struct, tempfile, unittest
+import road_parallel
 import quest_pockets as qp
 import road_network as net
 
@@ -15,6 +16,7 @@ class Fake:
                        [(32.0, 0.0, 0.0), (64.0, 0.0, 0.0), (64.0, 0.0, 32.0), (32.0, 0.0, 32.0)],
                        [(128.0, 0.0, 0.0), (160.0, 0.0, 0.0), (160.0, 0.0, 32.0), (128.0, 0.0, 32.0)]]
         self.cell = [(0, 0), (0, 0), (1, 0)]
+        self.by_cell = {(0, 0): [0, 1], (1, 0): [2]}
         self.road = [0.0, 0.0, 0.0]
         self.edges = [[(1, (32.0, 0.0, 32.0), (32.0, 0.0, 0.0))], [(0, (32.0, 0.0, 0.0), (32.0, 0.0, 32.0))], []]
         self.kept = set()
@@ -47,6 +49,44 @@ class Tests(unittest.TestCase):
         self.assertEqual(chosen, {0})
         kept = qp.connect_to_nodes(polys, chosen, reps=[1, 2])
         self.assertEqual(kept, {0, 1})  # node polygon 1 is joined; the other cell is untouched
+
+    def test_patch_keeps_walkable_space_beyond_the_nearest_node(self):
+        polys = Fake()
+        # Spawn and gateway both lie in polygon 0; polygon 1 is a legitimate
+        # shortcut/crossing in the same cell, not another quest target.
+        self.assertEqual(qp.connect_to_nodes(polys, {0}, reps=[0]), {0, 1})
+        # Expanding coverage never invents connectivity to an isolated surface.
+        polys.edges[0] = []; polys.edges[1] = []
+        self.assertEqual(qp.connect_to_nodes(polys, {0}, reps=[0]), {0})
+
+    def test_patch_keeps_one_connected_approach_cell(self):
+        polys = Fake()
+        gate = ((64.0, 0.0, 0.0), (64.0, 0.0, 32.0))
+        polys.edges[1].append((2, *gate))
+        # A one-way portal still requires both surfaces; its direction is kept
+        # when encoded. Coverage cannot flood through to a second ring.
+        polys.cell.append((2, 0)); polys.by_cell[(2, 0)] = [3]
+        polys.edges[2].append((3, *gate)); polys.edges.append([])
+        self.assertEqual(qp.connect_to_nodes(polys, {0}, reps=[0]), {0, 1, 2})
+
+    def test_parallel_patch_boundary_matches_serial(self):
+        rows = []
+        for cell in range(-2, 3):
+            x = cell * net.CELL
+            points = [(x, 0, 0), (x + 128, 0, 0), (x + 128, 0, 128), (x, 0, 128)]
+            edges = []
+            if cell > -2: edges.append((cell + 2, (x, 0, 0), (x, 0, 128)))
+            if cell < 2: edges.append((cell + 4, (x + 128, 0, 128), (x + 128, 0, 0)))
+            rows.append((cell + 3, (x + 64, 0, 64), points, 0, edges, (cell, 0), False))
+        rects = [[-200, 50, -180, 80], [180, 50, 200, 80]]
+        with tempfile.TemporaryDirectory() as directory:
+            path = pathlib.Path(directory) / 'batch.pkl'
+            path.write_bytes(pickle.dumps(dict(rows=rows, liquids=[])))
+            all_polys = road_parallel.load_region([path], -2, 3)
+            serial, _, _ = qp.build_patches(all_polys, [], rects)
+            parallel, _, _ = road_parallel._patches((0, 2, [path], set(), rects, (48, 24, 160)))
+        self.assertEqual(parallel, {c: p for c, p in serial.items() if 0 <= c[0] < 2})
+        self.assertEqual(parallel[(0, 0)]['portals'], 2)
 
     def test_encode_round_trip(self):
         polys = Fake()

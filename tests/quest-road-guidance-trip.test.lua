@@ -70,6 +70,22 @@ return function(check)
   p.RoadFollow={Begin=function() return {route={},follow=function() return {meters=10,status='modeled'} end} end}
   g.Reset();position={mapID=1426,x=.5,y=.5};for _=1,4 do g.Step() end
   check('short approach to transport stop is not quest arrival',g.NearDestination('current')==false)
+  local available=true
+  p.RoadTravel.Available=function() return available end
+  p.RoadTravel.Begin=function()
+   plans=plans+1
+   return {Step=function()
+    if not available then return {status='planned',legs={{mode='walk',to='goal',text='Walk to the destination'}}} end
+    return {status='planned',legs={
+     {mode='walk',to=dock.id,stop=dock,text='Walk to the flight master'},
+     {mode='flight',to='flight:2',link={},text='Fly to East Field'}}}
+   end}
+  end
+  g.Reset();for _=1,4 do g.Step() end
+  local prior=plans
+  available=false;g.Step()
+  check('active trip drops a flight when its endpoint is no longer discovered',plans==prior+1,plans)
+  check('unavailable flight detail is cleared immediately',g.Status().detail~='Walk to the flight master, then fly to East Field')
  end)
  RikUI,GetTime=saved,savedTime
  check('quest road guidance trip suite runs',ok,why)
