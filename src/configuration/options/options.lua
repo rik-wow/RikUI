@@ -96,7 +96,9 @@ local function layoutSpecs(specs)
         set = function(value) return core.Layout.SetScale(value) end }
     if core.Layout.PresetOption then specs[#specs + 1] = core.Layout.PresetOption() end
     specs[#specs + 1] = action("move", "Frame positions", "Move frames", moveFrames)
-    specs[#specs + 1] = action("reset", "Default positions", "Reset positions", function() core.Layout.Reset() end)
+    local reset = action("reset", "Default positions", "Reset positions", function() core.Layout.Reset() end)
+    reset.confirm = function() return "Reset positions for " .. core.CharDB.profile .. "?" end
+    specs[#specs + 1] = reset
 end
 
 local function generalSpecs()
@@ -192,6 +194,7 @@ local function profileSpecs()
         { type = "dropdown", key = "deleteName", label = "Profile to delete", values = function() return profileEntries(true) end,
             get = function() return state.deleteName end, set = function(value) state.deleteName = value end },
         { type = "button", key = "delete", label = "Remove the chosen profile", text = "Delete", action = deleteProfile,
+            confirm = function() return state.deleteName and ("Delete " .. state.deleteName .. "?") end,
             disabled = function()
                 return state.deleteName == nil or state.deleteName == core.CharDB.profile or not core.DB.profiles[state.deleteName]
             end },

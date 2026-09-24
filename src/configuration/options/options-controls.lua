@@ -281,6 +281,29 @@ types.text = {
     activate = function(row) row.widget:SetFocus() end,
 }
 
+local function cancelConfirmation(row)
+    row.confirming = nil
+    if row.cancel then row.cancel:Hide(); row.confirmText:Hide() end
+    row.widget.text:SetText(row.spec.text or row.spec.label)
+    options.ResizeList(row.list, row.list.width)
+end
+
+local function createConfirmation(row)
+    local cancel = CreateFrame("Button", nil, row)
+    cancel:SetSize(64, 22); cancel:SetPoint("BOTTOMRIGHT", 0, 4)
+    options.Flat(cancel, "BACKGROUND", BACKGROUND); options.Border(cancel, BORDER_TINT)
+    cancel.text = options.Text(cancel, "small", "Cancel"); cancel.text:SetPoint("CENTER")
+    core.Motion.BindHover(cancel)
+    cancel:SetScript("OnClick", function() cancelConfirmation(row) end)
+    row.cancel = cancel; cancel:Hide()
+    row.confirmText = options.Text(row, "small")
+    row.confirmText:SetPoint("BOTTOMLEFT", 6, 6)
+    row.confirmText:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -72, 6)
+    row.confirmText:SetJustifyH("LEFT"); row.confirmText:SetWordWrap(false)
+    row.confirmText:SetTextColor(1, 0.78, 0.3); row.confirmText:Hide()
+    row:HookScript("OnHide", function() if row.confirming then cancelConfirmation(row) end end)
+end
+
 types.button = {
     create = function(row)
         local widget = options.WidgetFrame(row)
@@ -289,10 +312,25 @@ types.button = {
         widget.text:SetPoint("LEFT", 6, 0); widget.text:SetPoint("RIGHT", -6, 0)
         widget.text:SetJustifyH("CENTER"); widget.text:SetWordWrap(false)
         widget:SetScript("OnClick", function() options.Activate(row) end)
+        if row.spec.confirm then createConfirmation(row) end
         return widget
     end,
-    refresh = function() end,
+    refresh = function(row)
+        if row.confirming and (not row.enabled or row.spec.confirm() ~= row.confirming) then cancelConfirmation(row) end
+    end,
     activate = function(row)
+        if row.spec.confirm then
+            local target = row.spec.confirm()
+            if not target then return end
+            if row.confirming ~= target then
+                row.confirming = target
+                row.widget.text:SetText("Confirm")
+                row.confirmText:SetText(target); row.confirmText:Show(); row.cancel:Show()
+                options.ResizeList(row.list, row.list.width)
+                return
+            end
+            cancelConfirmation(row)
+        end
         if row.spec.action then row.spec.action() end
         options.RefreshList(row.list)
     end,

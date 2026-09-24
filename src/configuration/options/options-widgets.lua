@@ -139,6 +139,8 @@ local function placeRow(row, width, y)
         row.description:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -baseHeight)
         row.description:SetHeight(descriptionHeight - 8)
     end
+    local confirmationHeight = row.confirming and 32 or 0
+    descriptionHeight = descriptionHeight + confirmationHeight
     local height = baseHeight + descriptionHeight
     row.top, row.height = y, height
     row:SetSize(width, height)
