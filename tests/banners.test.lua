@@ -1,7 +1,7 @@
 -- Fake banners with the 69913 keys: the event toast manager (DisplayToast hides the old toast, shows a
 -- pooled one as currentDisplayingToast, re-applies the gold line atlas and shows itself), the boss banner (animated art, title,
 -- loot rows) and the objective tracker's top banner. The suite checks the typeface, the emptied
--- art, the flat lines and that the module adds no tween, point or size.
+-- art, bounded card geometry and untouched native text geometry and animations.
 return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
@@ -26,6 +26,8 @@ return function(check)
     end
     local function makeToast(parent)
         local toast = CreateFrame("Frame", nil, parent)
+        toast:SetSize(230, 88)
+        toast:SetFrameLevel(5)
         text(toast, "Title", 26)
         text(toast, "SubTitle", 14)
         art(toast, { "Icon", "IconBorder" })
@@ -33,9 +35,18 @@ return function(check)
     end
     local function installManager()
         local manager = CreateFrame("Frame", "EventToastManagerFrame", UIParent)
+        manager:SetSize(418, 112)
         art(manager, { "GLine", "GLine2", "BlackBG" })
         manager.pooled = makeToast(manager)
-        function manager:SetupGLineAtlas() self.GLine.texture, self.GLine2.texture = "gold-bar", "gold-bar" end
+        function manager:SetupGLineAtlas()
+            self.GLine.texture, self.GLine2.texture = "gold-bar", "gold-bar"
+            self.GLine:SetVertexColor(1, 0.8, 0)
+            self.GLine2:SetVertexColor(1, 0.8, 0)
+            self.GLine:Show()
+            self.GLine2:Show()
+            self.BlackBG:SetTexture("stock-art")
+            self.BlackBG:SetAlpha(0.6)
+        end
         function manager:DisplayToast()
             if self.currentDisplayingToast then self.currentDisplayingToast:Hide() end
             self.currentDisplayingToast = self.pooled
@@ -81,16 +92,28 @@ return function(check)
         check("its icon is cropped, loses the ring and is framed one pixel outside",
             toast.Icon.coords[1] > 0 and toast.IconBorder.alpha == 0
             and module.IconEdges[toast][1].points[1][2] == toast.Icon and module.IconEdges[toast][1].points[1][4] == -1)
-        check("the two gold bars become flat one-pixel lines and the shadow stays",
-            manager.GLine.texture == RikUI.Skin.FLAT and manager.GLine2.texture == RikUI.Skin.FLAT
-            and manager.GLine.height == 1 and manager.BlackBG.texture == "stock-art")
+        check("stretched native lines are invisible and the soft shadow stays",
+            manager.GLine.alpha == 0 and manager.GLine2.alpha == 0 and manager.BlackBG.texture == "stock-art")
         check("the toast got no tween, point, size or script", toast.rikFade == nil and toast.points == nil
-            and toast.width == nil and toast:GetScript("OnShow") == nil)
+            and toast.width == 230 and toast.height == 88 and toast:GetScript("OnShow") == nil)
+        local host = toast.rikCardHost
+        check("main toast card surrounds the manager, below native text and outside layout measurement", host ~= nil
+            and host.parent == toast and host.ignoreInLayout == true and host:GetFrameLevel() < toast:GetFrameLevel()
+            and host.points[1][2] == manager and host.points[2][2] == manager
+            and host.points[1][4] == -8 and host.points[2][4] == 8)
+        manager:SetupGLineAtlas()
+        check("late atlas resets and animated Show cannot revive decoration", manager.GLine.alpha == 0
+            and manager.GLine2.alpha == 0 and manager.BlackBG.texture == "stock-art")
+        manager:SetSize(418, 144)
+        check("card anchors follow native height changes without resizing the toast", host.points[2][2] == manager
+            and toast.height == 88 and host.ignoreInLayout == true)
         local edges = module.IconEdges[toast]
         manager:DisplayToast()
         env.flushTimers()
-        check("a second display flattens the lines again without a second icon edge",
-            manager.GLine.texture == RikUI.Skin.FLAT and module.IconEdges[toast] == edges)
+        check("a second display suppresses lines without a second icon edge",
+            manager.GLine.alpha == 0 and manager.GLine2.alpha == 0 and module.IconEdges[toast] == edges)
+
+        check("pooled toast reuses its card host", toast.rikCardHost == host)
 
         local side = EventToastManagerSideDisplay
         side:Show()
@@ -99,7 +122,7 @@ return function(check)
         local first = side.lastToastFrame
         check("side history rows get card hierarchy without stealing native click",
             first.rikCard.enter.plays == 1 and first.Title.fontSize == 26
-            and rawget(side.GoldBG, "texture") == nil)
+            and rawget(side.GoldBG, "texture") == nil and first.rikCardHost == nil)
         env.runScript(side, "OnClick")
         env.runScript(side, "OnUpdate", 0.016)
         check("idle side display does not replay the card and native click survives",

@@ -9,7 +9,7 @@ core.Banners = banners
 
 local MANAGER, MANAGER_DISPLAY = "EventToastManagerFrame", "DisplayToast"
 local TOAST_TEXT = { "Title", "SubTitle", "Description", "InstructionalText", "RarityValue" }
-local LINE_KEYS, LINE_HEIGHT, ICON_EDGE_INSET = { "GLine", "GLine2" }, 1, -1
+local LINE_KEYS, ICON_EDGE_INSET, CARD_PADDING = { "GLine", "GLine2" }, -1, 8
 -- Every piece below has its alpha driven by the banner's own animation groups.
 local FRAMES = {
     -- Loot rows are made while the banner plays; rowSetup is the global that fills one.
@@ -43,24 +43,34 @@ local function toastIcon(toast)
     banners.IconEdges[toast] = skin.Outline(toast, nil, ICON_EDGE_INSET, icon)
 end
 
+-- Normal title/subtitle toasts resize tightly around text. Their manager supplies the full
+-- banner envelope. The host inherits pooled visibility/fades but cannot enlarge native layout.
+local function cardHost(toast, manager)
+    if not toast.rikCardHost then
+        local host = CreateFrame("Frame", nil, toast)
+        host.ignoreInLayout = true
+        host:EnableMouse(false)
+        host:SetPoint("TOPLEFT", manager, "TOPLEFT", -CARD_PADDING, CARD_PADDING)
+        host:SetPoint("BOTTOMRIGHT", manager, "BOTTOMRIGHT", CARD_PADDING, -CARD_PADDING)
+        toast.rikCardHost = host
+    end
+    toast.rikCardHost:SetFrameLevel(math.max(0, toast:GetFrameLevel() - 1))
+    return toast.rikCardHost
+end
+
 local function skinToast(manager)
     local toast = manager.currentDisplayingToast
     if not skin.IsRegion(toast) then return end
     typefaces(toast, TOAST_TEXT)
     toastIcon(toast)
-    toast.rikCard = skin.NotificationCard(toast, toast.Icon)
+    toast.rikCard = skin.NotificationCard(cardHost(toast, manager), toast.Icon)
 end
 
--- Blizzard re-applies the gold bar atlas for every toast; its grow animation and tint still apply.
-local function flattenLines(manager)
-    for _, key in ipairs(LINE_KEYS) do
-        local line = manager[key]
-        if skin.IsRegion(line) and type(line.SetTexture) == "function" then
-            line:SetTexture(skin.FLAT)
-            line:SetVertexColor(unpack(skin.GOLD))
-            line:SetHeight(LINE_HEIGHT)
-        end
-    end
+-- Native setup reassigns line atlases, RGB tint and animated scale/visibility. It does not
+-- reset their alpha, so suppression survives the grow animation without changing its timing.
+local function suppressLines(manager)
+    skin.Blank(manager, LINE_KEYS)
+    skin.Strip(manager, LINE_KEYS)
 end
 
 local function skinFrame(frame, target)
@@ -93,7 +103,7 @@ local watchedToasts, skinPending = setmetatable({}, { __mode = "k" }), false
 
 local function skinManager(manager)
     skinToast(manager)
-    flattenLines(manager)
+    suppressLines(manager)
 end
 
 local scheduleSkin
