@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Warlock — 2026-09-24
+
+Priorities: Death Coil, Howl of Terror, Shadow Ward, Amplify Curse, Fel Domination, Shadowburn, Conflagrate, Bane of Doom, Bane of Havoc, Inferno, Ritual of Doom, Soul Fire.
+
+[Current player feedback](https://www.reddit.com/r/classicwow/comments/1widqqd/i_tested_warlock_for_10_hours_in_wow_forever/): Current Warlock experiences discuss leveling flow and control; broader [addon feedback](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/) requests class tracking.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/warlock) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+Only learned player spell cooldowns. Soulstone/Healthstone item-use timers, pet cooldowns, Nightfall and other proc auras are excluded. Native acceptance supplied by user.
+
 ### Mage — 2026-09-24
 
 Priorities: Counterspell, Blink, Ice Block, Ice Barrier, Frost Nova, Cone of Cold, Evocation, Presence of Mind, Arcane Power, Combustion, Cold Snap, Fire Blast.

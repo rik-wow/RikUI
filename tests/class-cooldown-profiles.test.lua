@@ -23,6 +23,7 @@ return function(check)
         { class = "DRUID", ids = { 5211, 8983, 1238122, 29166, 20484, 20748 }, excluded = 5176 },
         { class = "PRIEST", ids = { 17, 10901, 402174, 1316995, 1309595, 1309636 }, excluded = 585 },
         { class = "MAGE", ids = { 2139, 1953, 11958, 12472, 11426, 13033 }, excluded = 133 },
+        { class = "WARLOCK", ids = { 6789, 17926, 18708, 1293817, 18932, 1225228 }, excluded = 686 },
         -- Add independently sourced class fixtures here.
     }
     local function item(id) return { spellID = id, itemType = 71 } end
