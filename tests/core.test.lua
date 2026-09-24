@@ -20,6 +20,26 @@ return function(check)
         return core
     end
 
+    do
+        local repaired = ready(loadCore({ profiles = { Default = { scale = 100, textScale = -1, font = "missing",
+            tooltip = { scale = 0 }, bags = { columns = 11.5, capacityThreshold = 99 },
+            castbars = { height = -4, widthScale = 9 }, unitframes = { healthText = "unknown" },
+            futurePreference = "keep" } } }))
+        check("unsafe restored global sizes use defaults", repaired.Profile.scale == 1 and repaired.Profile.textScale == 1)
+        check("unsafe restored feature dimensions use defaults", repaired.Profile.tooltip.scale == 1
+            and repaired.Profile.bags.columns == 10 and repaired.Profile.bags.capacityThreshold == 4
+            and repaired.Profile.castbars.height == 22 and repaired.Profile.castbars.widthScale == 1)
+        check("unknown enum choices use defaults but future keys survive", repaired.Profile.font == "bundled"
+            and repaired.Profile.unitframes.healthText == "both" and repaired.Profile.futurePreference == "keep")
+        repaired.DB.profiles.Boundary = { scale = 0.25, textScale = 1.3, tooltip = { scale = 1.5 },
+            bags = { columns = 16, capacityThreshold = 0 }, font = "game", unitframes = { healthText = "hidden" } }
+        repaired:SetProfile("Boundary")
+        check("legal settings limits survive profile selection", repaired.Profile.scale == 0.25 and repaired.Profile.textScale == 1.3
+            and repaired.Profile.tooltip.scale == 1.5 and repaired.Profile.bags.columns == 16
+            and repaired.Profile.bags.capacityThreshold == 0 and repaired.Profile.font == "game"
+            and repaired.Profile.unitframes.healthText == "hidden")
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

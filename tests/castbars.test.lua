@@ -396,7 +396,7 @@ return function(check)
         timeOption.set(true)
         check("timer option updates running casts immediately", player.time.shown == true and player.shown)
         module = load({ castbars = { widthScale = -10, height = math.huge } })
-        check("invalid castbar dimensions stay bounded", module.Bars.castplayer.width == 165
+        check("invalid restored castbar dimensions use profile defaults", module.Bars.castplayer.width == 220
             and module.Bars.castplayer.height == 22)
         module = load(nil, true)
         check("combat login defers bar creation and stock hiding", next(module.Bars) == nil

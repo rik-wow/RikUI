@@ -1,5 +1,7 @@
 # RikUI settings
 
+Restored profiles now repair unsupported frame/text/tooltip scales, bag columns and capacity thresholds, castbar dimensions, nameplate emphasis, font choices and unit text modes to their defaults before features load. Valid limit values and unknown extension fields survive. This guards malformed data; it does not claim to fix the client's SavedVariables bug. [Settings-loss reports reviewed 2026-09-24](https://us.forums.blizzard.com/en/wow/t/can-we-get-a-response-about-addon-settings-not-saving/2359436).
+
 **Reset frame** restores only the selected frame after confirmation. Both it and **Reset positions** keep the prior arrangement for **Undo layout change**, including the previous chat size. Scale and unrelated position keys are preserved. Recovery uses the same saved one-step history as layout presets; a later preset/reset replaces that history.
 
 General now offers a **Frame to position** picker and Left/Right/Up/Down buttons. Each click moves one screen unit using the same collision and screen bounds as dragging, including at non-default scales. The controls work through existing keyboard navigation and refuse movement during combat or while a frame positions itself. This does not add native controller focus.
