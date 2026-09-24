@@ -34,6 +34,7 @@ local function navigationLayout()
         for _, page in ipairs(panel.pages) do
             if page.group == group then
                 shown(page.tab, not header.collapsed and not page.filtered)
+                page.tab.top = y
                 page.tab:ClearAllPoints(); page.tab:SetPoint("TOPLEFT", 10, -y)
                 if not header.collapsed and not page.filtered then y = y + NAV_ROW end
             end
@@ -54,6 +55,7 @@ function options.ShowPage(index)
     panel.current = index
     panel.groups[selected.group].collapsed = false
     navigationLayout()
+    scroll.Reveal(panel.nav, selected.tab.top, NAV_ROW)
     panel.title:SetText(selected.title)
     panel.hint:SetText(selected.description or "Customize this part of your interface.")
     options.SetFocus(panel, nil)
@@ -185,6 +187,14 @@ local function createFurniture()
     panel.close:SetPoint("TOPRIGHT", -PAD, -12); panel.close:Hide()
 end
 
+local function movePage(delta)
+    for distance = 1, #panel.pages do
+        local index = ((panel.current - 1 + delta * distance) % #panel.pages) + 1
+        if not panel.pages[index].filtered then options.ShowPage(index); return true end
+    end
+    return false
+end
+
 local function createSearch()
     local box = CreateFrame("EditBox", nil, panel)
     box:SetAutoFocus(false); box:SetMaxLetters(100)
@@ -218,6 +228,7 @@ local function register()
     panel.pages = {}
     for index, page in ipairs(options.Pages()) do panel.pages[index] = createPage(index, page) end
     createSearch()
+    panel.MovePage = movePage
     options.EnableKeyboard(panel, function() return panel.pages[panel.current].list.rows end)
     panel.OnRefresh = options.Refresh
     panel:SetScript("OnSizeChanged", function(_, width, height) options.Resize(width, height) end)

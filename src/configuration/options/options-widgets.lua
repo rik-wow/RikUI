@@ -236,12 +236,28 @@ function options.TabFromText(row)
     end
 end
 
+local function focusEdge(panel, last)
+    local target
+    for _, row in ipairs(panel.GetRows()) do
+        if row.widget and row.enabled and not row.filtered then
+            target = row
+            if not last then break end
+        end
+    end
+    options.SetFocus(panel, target)
+    return target ~= nil
+end
+
 local function handleKey(panel, key)
     if panel.search and panel.search:HasFocus() then return false end
     for _, candidate in ipairs(panel.GetRows()) do
         if candidate.spec.type == "text" and candidate.widget:HasFocus() then return false end
     end
     if options.DropdownKey and options.DropdownKey(key) then return true end
+    if key == "HOME" or key == "END" then return focusEdge(panel, key == "END") end
+    if (key == "PAGEUP" or key == "PAGEDOWN") and panel.MovePage then
+        return panel.MovePage(key == "PAGEUP" and -1 or 1)
+    end
     if MOVE_KEYS[key] then
         local delta = MOVE_KEYS[key]
         if key == "TAB" and IsShiftKeyDown() then delta = -1 end
