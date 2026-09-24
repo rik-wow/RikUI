@@ -109,10 +109,12 @@ end
 local function pruneAccount(db)
     local result = { profiles = {} }
     for name, profile in pairs(db.profiles or {}) do
+        if type(profile) ~= "table" then error("invalid stored profile", 0) end
         local pruned, reason = store.Prune(profile, core.Defaults.profile)
         if reason then error(reason, 0) end
         if pruned then packPositions(pruned) end
-        result.profiles[name] = pruned
+        -- A profile name is a choice even when all its settings match defaults.
+        result.profiles[name] = pruned or {}
     end
     if next(result.profiles) == nil then result.profiles = nil end
     return next(result) ~= nil and result or nil

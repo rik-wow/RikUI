@@ -246,6 +246,23 @@ return function(check)
         check("small learning preserves its empty schema tables",core.CharDB.questPlanMemory
             and type(core.CharDB.questPlanMemory.order)=="table" and core.CharDB.questPlanMemory.completed[1]==103)
 
+        macros = {}; core = restart()
+        core.DB.profiles.Empty = {}
+        core.DB.profiles.DefaultsOnly = { scale = 1, modules = { bags = true } }
+        core.DB.profiles.Custom = { scale = 0.8 }
+        core.Store.FlushMacros()
+        core = restart()
+        check("restart retains inactive empty and default-only profile identities",
+            type(core.DB.profiles.Empty) == "table" and type(core.DB.profiles.DefaultsOnly) == "table")
+        check("restored profiles receive independent defaults", core.DB.profiles.Empty
+            and core.DB.profiles.Empty.scale == 1 and core.DB.profiles.Empty ~= core.DB.profiles.DefaultsOnly
+            and core.DB.profiles.Custom.scale == 0.8)
+        core.DB.profiles.Invalid = false
+        local beforeInvalid = writes
+        core.Store.FlushMacros()
+        check("malformed profile does not silently become a default profile",
+            writes == beforeInvalid and core.Store.MacroStatus().failure ~= nil)
+
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
