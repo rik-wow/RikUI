@@ -248,6 +248,22 @@ return function(check)
         IsShiftKeyDown = function() return shifted end
         env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
         check("automatic repair is opt-in", repairs == 0)
+        env.fire("MERCHANT_SHOW")
+        check("manual repair button available without automatic spending", holder.repair and holder.repair:IsShown())
+        env.click(holder.repair)
+        check("manual repair click spends once", repairs == 1)
+        env.inCombat = true
+        module.Repair()
+        check("manual repair refuses combat", repairs == 1)
+        env.inCombat = false
+        cost = stub.money + 1
+        module.Repair()
+        check("manual repair refuses insufficient funds", repairs == 1)
+        env.fire("MERCHANT_CLOSED")
+        cost = 50
+        module.Repair()
+        check("manual repair refuses closed merchant", repairs == 1 and not holder.repair:IsShown())
+        repairs = 0
         RikUI.Profile.bags.autoRepair = true
         env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
         check("opening merchant repairs once", repairs == 1)

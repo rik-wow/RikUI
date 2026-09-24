@@ -20,6 +20,7 @@ local function junkCount()
 end
 
 function bags.RefreshMerchant()
+    bags.RefreshRepair()
     local button = bags.Holder and bags.Holder.junk
     if not button then return end
     button:SetShown(merchantOpen)
@@ -36,18 +37,41 @@ function bags.SellJunk()
     bags.RefreshMerchant()
 end
 
-local function repair()
-    if InCombatLockdown() or (type(IsShiftKeyDown) == "function" and IsShiftKeyDown()) then return end
+local function repairState()
+    if not merchantOpen or InCombatLockdown() then return nil end
     for _, name in ipairs({ "CanMerchantRepair", "GetRepairAllCost", "GetMoney", "RepairAllItems" }) do
-        if type(_G[name]) ~= "function" then return bags.Warn("repair", name .. " unavailable") end
+        if type(_G[name]) ~= "function" then return nil end
     end
     local canRepair = CanMerchantRepair()
-    if core.Secret.IsSecret(canRepair) or canRepair ~= true then return end
-    local cost = GetRepairAllCost()
+    if core.Secret.IsSecret(canRepair) or canRepair ~= true then return nil end
+    local cost, needed = GetRepairAllCost()
     local money = GetMoney()
-    if not amount(cost) or not amount(money) or cost == 0 then return end
+    if core.Secret.IsSecret(needed) or needed ~= true or not amount(cost) or not amount(money) then return nil end
+    return cost, money
+end
+
+function bags.RefreshRepair()
+    local button = bags.Holder and bags.Holder.repair
+    if not button then return end
+    local ok, cost, money = pcall(repairState)
+    button:SetShown(merchantOpen)
+    button:SetEnabled(ok and cost ~= nil and cost > 0 and cost <= money)
+    button.label:SetText(ok and cost and cost > money and "Can't afford" or "Repair all")
+end
+
+function bags.Repair()
+    local ok, cost, money = pcall(repairState)
+    if not ok then bags.Warn("repair", cost); return end
+    if not cost or cost == 0 then return end
     if cost > money then core:Print("Not enough money to repair your gear."); return end
-    RepairAllItems(false)
+    local repaired, reason = pcall(RepairAllItems, false)
+    if not repaired then bags.Warn("repair", reason) end
+    bags.RefreshRepair()
+end
+
+local function repair()
+    if type(IsShiftKeyDown) == "function" and IsShiftKeyDown() then return end
+    bags.Repair()
 end
 
 local function onMerchantShow()
@@ -62,7 +86,7 @@ end
 function bags.EnableMerchant()
     core:RegisterEvent("MERCHANT_SHOW", onMerchantShow)
     core:RegisterEvent("MERCHANT_CLOSED", function() merchantOpen = false; bags.RefreshMerchant() end)
-    for _, event in ipairs({ "MERCHANT_UPDATE", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }) do
+    for _, event in ipairs({ "MERCHANT_UPDATE", "PLAYER_MONEY", "UPDATE_INVENTORY_DURABILITY", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }) do
         core:RegisterEvent(event, bags.RefreshMerchant)
     end
     bags.RefreshMerchant()

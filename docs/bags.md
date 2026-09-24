@@ -1,5 +1,9 @@
 # Bags
 
+At merchants, **Repair all** sits beside **Sell junk**. It uses personal funds only when repairs are needed and affordable, and disables itself during combat or when the client cannot provide readable repair information. Auto repair remains opt-in; Shift skips only the automatic action.
+
+Research reviewed 2026-09-24: [September 23 vendor-action requests](https://us.forums.blizzard.com/en/wow/t/wow-forever-controller-feedback-bug-tracking/2358921), [exact-build merchant repair availability and cost](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/MerchantFrame.lua). Native controller focus/bindings are not changed.
+
 The bag panel fades and slides upward by six pixels over 180ms when opened. Item identity or stack changes flash gold for 450ms; the initial inventory scan stays quiet. Hide cancels the entrance immediately. Secure item IDs, click handlers and drag behavior remain native. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
 
 `src/modules/bags/bags.lua` and `src/modules/bags/bags-items.lua` replace the five Blizzard bag windows with one
