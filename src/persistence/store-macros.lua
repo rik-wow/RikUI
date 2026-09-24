@@ -97,11 +97,22 @@ end
 local function unpackPositions(profile)
     local packed, layout = profile.layoutPacked, core.Layout
     profile.layoutPacked = nil
-    if type(packed) ~= "table" or not (layout and layout.PresetPositions) then return end
+    if packed == nil then return end
+    if type(packed) ~= "table" or type(packed.base) ~= "string"
+        or (packed.moved ~= nil and type(packed.moved) ~= "table")
+        or not (layout and layout.PresetPositions) then error("invalid packed layout", 0) end
     local positions = layout.PresetPositions(packed.base)
-    if not positions then return end
+    if type(positions) ~= "table" then error("unknown packed layout", 0) end
+    local anchors = { TOP=true, BOTTOM=true, LEFT=true, RIGHT=true, CENTER=true,
+        TOPLEFT=true, TOPRIGHT=true, BOTTOMLEFT=true, BOTTOMRIGHT=true }
     for key, place in pairs(packed.moved or {}) do
-        if place == false then positions[key] = nil else positions[key] = place end
+        if type(key) ~= "string" then error("invalid packed position key", 0) end
+        if place == false then positions[key] = nil
+        elseif type(place) == "table" and anchors[place.point] and anchors[place.relativePoint]
+            and type(place.x) == "number" and place.x == place.x and math.abs(place.x) < math.huge
+            and type(place.y) == "number" and place.y == place.y and math.abs(place.y) < math.huge then
+            positions[key] = place
+        else error("invalid packed position", 0) end
     end
     profile.positions = positions
 end
@@ -155,6 +166,34 @@ local function readText()
     if checksum(text) ~= tonumber(sum) then return nil, true end
     state.used = total
     return text, true
+end
+
+local function validateSnapshot(data)
+    if type(data) ~= "table" then error(DAMAGED, 0) end
+    for _, key in ipairs({ "account", "characters" }) do
+        if data[key] ~= nil and type(data[key]) ~= "table" then error(DAMAGED, 0) end
+    end
+    local account = data.account or {}
+    for _, key in ipairs({ "profiles", "community" }) do
+        if account[key] ~= nil and type(account[key]) ~= "table" then error(DAMAGED, 0) end
+    end
+    for _, profile in pairs(account.profiles or {}) do
+        if type(profile) ~= "table" then error(DAMAGED, 0) end
+        unpackPositions(profile)
+    end
+    for _, character in pairs(data.characters or {}) do
+        if type(character) ~= "table" then error(DAMAGED, 0) end
+    end
+end
+
+local function readSnapshot()
+    local ok, text, present = pcall(readText)
+    if not ok then complain("restart backup could not be read"); return end
+    if not text then if present then complain(DAMAGED) end; return end
+    local data = store.Decode(text)
+    local valid = pcall(validateSnapshot, data)
+    if not valid then complain(DAMAGED); return end
+    return data, text
 end
 
 local function writeMacro(name, text)
@@ -269,16 +308,11 @@ function store.RestoreLate()
     local accountMissing = not (status.loadedAccount or status.restored.account)
     local characterMissing = not (status.loadedCharacter or status.restored.character)
     if not store.MacrosAvailable() or not (accountMissing or characterMissing) then return false end
-    local text, present = readText()
-    local data = text and store.Decode(text) or nil
-    if type(data) ~= "table" then
-        if present then complain(DAMAGED) end
-        return false
-    end
+    local data, text = readSnapshot()
+    if not data then return false end
     state.data, state.lastText = data, text
     if accountMissing and type(data.account) == "table" then
         overlay(RikUIDB, data.account)
-        for _, profile in pairs(RikUIDB.profiles or {}) do unpackPositions(profile) end
     end
     local own = type(data.characters) == "table" and data.characters[store.CharacterKey()] or nil
     if characterMissing and type(own) == "table" then overlay(RikUICharDB, own) end
@@ -290,9 +324,8 @@ core:RegisterEvent("PLAYER_LOGIN", function()
     if not store.MacrosAvailable() then return end
     if not state.data then
         -- Other characters' entries must survive this character's first save.
-        local text = readText()
-        local data = text and store.Decode(text) or nil
-        if type(data) == "table" then state.data = data end
+        local data = readSnapshot()
+        if data then state.data = data end
     end
     if type(C_Timer) == "table" and type(C_Timer.NewTicker) == "function" then C_Timer.NewTicker(TICK_SECONDS, store.FlushMacros) end
 end)

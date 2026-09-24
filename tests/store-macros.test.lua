@@ -337,6 +337,36 @@ return function(check)
         core.Store.FlushMacros()
         check("preset backup recovers without changing definitions", core.Store.MacroStatus().failure == nil)
 
+        local function brokenSnapshot(data)
+            local text = core.Store.Encode(data)
+            local a, b = 1, 0
+            for i = 1, #text do a = (a + text:byte(i)) % 65521; b = (b + a) % 65521 end
+            macros = { ["RikUI data 1"] = "#rikui 1/1 " .. (b * 65536 + a) .. " " .. text }
+            return restart()
+        end
+        local malformed = {
+            { account = { profiles = false } },
+            { account = { profiles = { Default = false } } },
+            { account = { profiles = { Default = { scale = 0.4,
+                layoutPacked = { base = "classic", moved = false } } } } },
+            { account = { profiles = { Default = { scale = 0.4 } } }, characters = false },
+            { account = { community = false } },
+            { characters = { broken = false } },
+        }
+        for index, data in ipairs(malformed) do
+            core = brokenSnapshot(data)
+            check("malformed restart snapshot is rejected before overlay " .. index, core.Profile.scale == 1
+                and core.Runtime.loggedIn and not core.Store.MacroStatus().restored
+                and core.Store.MacroStatus().failure ~= nil and not printed("Settings RestoreLate:"))
+        end
+        macros = {}; core = restart()
+        local macroReader = GetMacroInfo
+        GetMacroInfo = function() error("read unavailable") end
+        local safeRead, restored = pcall(core.Store.RestoreLate)
+        check("macro read exceptions become explicit recovery failures", safeRead and not restored
+            and core.Store.MacroStatus().failure ~= nil)
+        GetMacroInfo = macroReader
+
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil

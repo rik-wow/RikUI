@@ -1,5 +1,7 @@
 # Core module contract
 
+Restart recovery validates the decoded account/profile/library and character containers before adopting a snapshot. Packed layouts expand in detached data first; malformed geometry or an unavailable layout base rejects the backup without partially applying it. Read exceptions become backup diagnostics while normal UI startup continues. Valid older snapshots remain supported.
+
 Restart backup writes are read back before being marked successful. Missing or truncated macro bodies keep **Restart backup needs attention** visible and remain retryable without another settings change. This confirms the API readback, not disk durability; multiple macro writes are still not atomic. The existing APIs were checked against the [69913 macro UI source](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_MacroUI/Blizzard_MacroUI.lua) on 2026-09-24.
 
 Recovery selects account and character sources independently: loaded SavedVariables, then valid CVar tables, then restart macros. A recovered account no longer blocks missing character preferences (or the reverse), and a loaded side is never overwritten by the older macro copy.
@@ -122,7 +124,7 @@ so a client that truncates a value is noticed at once. `Store.Load(name)`
 checks length and checksum and refuses damaged text.
 
 `src/core/lifecycle.lua` calls `Store.Restore()` before it merges defaults: `RikUIDB` and
-`RikUICharDB` are taken from the store only when they are nil, so saved
+`RikUICharDB` are taken from the store only when no usable table loaded, so saved
 variables that did load always win. Successful restores are quiet; `/rik store`
 reports which fallback restored the settings. The
 account table is stored as `account`; a character's as `char<number>` made from
@@ -184,7 +186,7 @@ reload-tier learning. It does not write the supplied files or native macros.
 
 Macros cannot be read while the addon loads, so `src/core/lifecycle.lua` asks
 `Store.RestoreLate()` at `PLAYER_LOGIN`, before any module starts, and only
-when neither saved variables nor the CVar tier had anything; it then merges
+for each account or character side missing from SavedVariables and CVars; it then merges
 defaults and binds the profile again. Writes come from the same five-second
 change-only ticker and from `PLAYER_LOGOUT`, never in combat. A full macro list
 is reported once and the reload tier keeps working. `tests/store-macros.test.lua`
