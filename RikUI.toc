@@ -176,6 +176,7 @@ src/modules/panels/interiors.lua
 src/modules/panels/interiors-character.lua
 src/modules/panels/interiors-spells.lua
 src/modules/panels/interiors-quests.lua
+src/modules/panels/interiors-commerce.lua
 src/modules/personalresource/personalresource.lua
 src/ui/scroll.lua
 src/ui/shell.lua

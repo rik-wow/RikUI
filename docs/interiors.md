@@ -1,5 +1,19 @@
 # Window interiors
 
+## Merchant, bank, mail and trade
+
+Item slots and content rows share the character icon/quality treatment and gold
+hover wash. Classic global Name/Sender/Subject region suffixes are recognized
+alongside modern parent keys. Money text uses the UI font without changing
+amounts; bank locks, trade warnings, quest-item markers and selection stay native.
+Merchant/mail/trade global updates and events refresh recycled content.
+
+Source: pinned Camelot BankFrame.xml, Mainline MerchantFrame.xml/TradeFrame.xml
+and [MailFrame.xml](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_MailFrame/MailFrame.xml).
+The commerce fixture discovers each root, exercises click preservation and
+repeat refresh, and checks money and disabled overlays.
+
+
 ## Quest and map content
 
 Quest, gossip and detail parchment is replaced with dark surfaces; dark neutral
