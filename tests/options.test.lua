@@ -323,6 +323,11 @@ return function(check)
         SlashCmdList.RIKUI("config")
         check("/rik config opens the Settings category", env.settings.opened[1] == registered:GetID())
         local panelFrame = options.Panel()
+        RikUI.Store = { BackupIssue = function() return "Reload backup needs attention" end }
+        options.Refresh()
+        check("settings footer surfaces backup problems", panelFrame.status:GetText():find("Reload backup needs attention", 1, true) ~= nil)
+        RikUI.Store = nil
+        options.Refresh()
         local titles = {}
         for index, page in ipairs(panelFrame.pages) do titles[index] = page.title end
         check("nested pages separate modules and maintenance", table.concat(titles, ",") == "General,Alpha things,Modules,Profiles,Setup and support")

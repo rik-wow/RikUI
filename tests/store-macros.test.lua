@@ -177,7 +177,11 @@ return function(check)
         end
         check("a full macro list is reported once and the reload store still works", complaints == 1
             and cvars.rikuiStore_account ~= nil)
+        check("macro failure remains visible", core.Store.MacroStatus().failure ~= nil
+            and core.Store.BackupIssue() == "Restart backup needs attention")
         full = false
+        core.Store.FlushMacros()
+        check("macro retry clears failure", core.Store.MacroStatus().failure == nil)
 
         -- A whole layout is thirty-five positions. It is kept as the preset it started from plus the
         -- frames that were moved, which is what it almost always is.

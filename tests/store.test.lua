@@ -181,6 +181,19 @@ return function(check)
         SlashCmdList.RIKUI("store")
         check("/rik store reports the store's state", printed("Store available=true") and printed("chunks="))
 
+        local write = C_CVar.SetCVar
+        C_CVar.SetCVar = function(name, value)
+            if name:find("rikuiStore_account", 1, true) == 1 then return false end
+            return write(name, value)
+        end
+        core.Profile.scale = 0.95
+        core.CharDB.autoPlacement = not core.CharDB.autoPlacement
+        core.Store.Flush()
+        check("character success does not mask account failure", core.Store.Status().failure ~= nil
+            and core.Store.BackupIssue() == "Reload backup needs attention")
+        C_CVar.SetCVar = write
+        core.Store.Flush()
+        check("successful retry clears backup issue", core.Store.Status().failure == nil and core.Store.BackupIssue() == nil)
         bare = true
         core = boot()
         check("a client without RegisterCVar has no store and nothing breaks", core.Store.Available() == false

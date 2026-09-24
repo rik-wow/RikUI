@@ -12,7 +12,7 @@ store.Encode, store.Decode = core.Codec.Encode, core.Codec.Decode
 
 local PREFIX, VERSION, CHUNK, MAX_CHUNKS, TICK_SECONDS, TOUCH_SECONDS = "rikuiStore_", "v2", 180, 120, 5, 0.2
 local status = { saves = 0, chunks = 0, bytes = 0, restored = {}, failure = nil }
-local lastText = {}
+local lastText, failures = {}, {}
 
 function store.Available()
     return type(C_CVar) == "table" and type(C_CVar.RegisterCVar) == "function" and type(C_CVar.GetCVar) == "function"
@@ -127,17 +127,25 @@ end
 
 function store.Status() return status end
 
+function store.BackupIssue()
+    if not store.Available() then return "Reload backup unavailable" end
+    if status.failure then return "Reload backup needs attention" end
+    if store.MacroStatus and store.MacroStatus().failure then return "Restart backup needs attention" end
+    return nil
+end
+
 local function flushOne(name, value)
     if type(value) ~= "table" then return end
     local text, reason = store.Encode(value)
-    if text and lastText[name] == text then return end
+    if text and lastText[name] == text and not failures[name] then return end
     local ok = false
     if text then ok, reason = saveText(name, text) end
-    if ok then lastText[name], status.failure = text, nil
-    elseif status.failure ~= reason then
-        status.failure = reason
-        core:Print("Settings store: " .. tostring(reason))
+    if ok then lastText[name], failures[name] = text, nil
+    else
+        if failures[name] ~= reason then core:Print("Settings store: " .. name .. ": " .. tostring(reason)) end
+        failures[name] = reason
     end
+    status.failure = failures.account or failures[store.CharacterKey()]
 end
 
 function store.Flush()
@@ -182,6 +190,7 @@ core:RegisterCommand("store", function()
     if store.MacroStatus then
         local macro=store.MacroStatus()
         core:Print("Restart backup macros=" .. macro.used .. " restored=" .. tostring(macro.restored)
-            .. " compacted learning=" .. macro.learningReduced)
+            .. " compacted learning=" .. macro.learningReduced
+            .. (macro.failure and " last failure: " .. macro.failure or ""))
     end
 end, "Show the state of RikUI's own settings store")

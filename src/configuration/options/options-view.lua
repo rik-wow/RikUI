@@ -30,6 +30,8 @@ function options.Refresh()
     local profile = core.CharDB and core.CharDB.profile or "Default"
     local message = pending > 0 and (pending .. (pending == 1 and " change needs reload" or " changes need reload"))
         or "Changes save automatically"
+    local issue = core.Store and core.Store.BackupIssue and core.Store.BackupIssue()
+    if issue then message = issue .. (pending > 0 and " | Reload needed" or "") end
     panel.status:SetText(profile .. " | " .. message)
     shown(panel.reload, pending > 0)
     local combat = InCombatLockdown()

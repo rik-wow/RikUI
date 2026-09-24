@@ -15,7 +15,7 @@ local FULL = "the account macro list is full, so settings cannot be kept across 
 local DAMAGED = "RikUI's macros are damaged (edited or partly deleted); settings were not restored from them."
 local state = { data = nil, lastText = nil, used = 0, complained = {}, restored = false, learningReduced = 0 }
 local MAX_TEXT = MAX_MACROS * (BODY_LIMIT - #(HEADER .. MAX_MACROS .. "/" .. MAX_MACROS .. " 4294967295 "))
-function store.MacroStatus() return { used=state.used, restored=state.restored, learningReduced=state.learningReduced } end
+function store.MacroStatus() return { used=state.used, restored=state.restored, learningReduced=state.learningReduced, failure=state.failure } end
 
 function store.MacrosAvailable()
     return type(GetMacroInfo) == "function" and type(CreateMacro) == "function" and type(EditMacro) == "function"
@@ -23,6 +23,7 @@ function store.MacrosAvailable()
 end
 
 local function complain(message)
+    state.failure = message
     if state.complained[message] then return end
     state.complained[message] = true
     core:Print("Settings store: " .. message)
@@ -236,9 +237,9 @@ function store.FlushMacros()
     if not built then complain(tostring(data)); return end
     local text, reason = encodeSnapshot(data, memories)
     if not text then complain(reason); return end
-    if text == state.lastText then return end
+    if text == state.lastText and not state.failure then return end
     local ok, failure = writeText(text)
-    if ok then state.lastText, state.data = text, data else complain(failure) end
+    if ok then state.lastText, state.data, state.failure = text, data, nil else complain(failure) end
 end
 
 local function overlay(target, source)

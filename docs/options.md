@@ -1,5 +1,9 @@
 # RikUI settings
 
+The footer surfaces reload/restart backup failures when settings refresh. **Setup and support > Retry settings backups > Save now** retries both tiers out of combat and prints details. An account failure is no longer cleared by a successful character save. Macro failures remain visible until a successful retry; a reverted setting still retries an earlier failed write.
+
+Research reviewed 2026-09-24: [Forever players report settings resets](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/). Reports motivate recovery visibility; they do not establish current client-wide persistence behavior. Backup status reflects observed API writes, not a guarantee of disk durability. User native acceptance applies.
+
 Click **RikUI** beside the minimap, then **Settings**. The same panel remains
 available under the game's Options > AddOns > RikUI. If the Settings API is
 unavailable it opens as a standalone window.
