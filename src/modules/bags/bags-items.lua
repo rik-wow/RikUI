@@ -142,9 +142,16 @@ end
 local function updateCooldown(button, bag, slot)
     local widget = button.Cooldown
     if type(widget) ~= "table" and type(widget) ~= "userdata" then return end
+    if not button.rikFilled then widget:Clear(); return end
     local ok, start, duration, enable = pcall(C_Container.GetContainerItemCooldown, bag, slot)
-    if not ok or not plain(start, "number") or not plain(duration, "number") then return end
-    if duration > 0 and enable ~= 0 then widget:SetCooldown(start, duration) else widget:Clear() end
+    if not ok or not plain(start, "number") or not plain(duration, "number")
+        or not plain(enable, "number") or enable ~= 1
+        or start ~= start or start < 0 or start == math.huge
+        or duration ~= duration or duration <= 0 or duration == math.huge then
+        widget:Clear()
+        return
+    end
+    widget:SetCooldown(start, duration)
 end
 
 -- Blizzard's own bag search marks each item record isFiltered; clients without it match on the name.

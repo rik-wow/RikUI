@@ -404,6 +404,34 @@ return function(check)
         stub.cooldowns["0:2"] = nil
         env.fire("BAG_UPDATE_COOLDOWN")
         check("a finished cooldown is cleared", rawget(stone.Cooldown, "duration") == nil)
+        do
+            local reader = C_Container.GetContainerItemCooldown
+            local failures = {
+                function() error("cooldown unavailable") end,
+                function() return env.SECRET, 10, 1 end,
+                function() return 1, math.huge, 1 end,
+                function() return 0/0, 10, 1 end,
+                function() return -1, 10, 1 end,
+                function() return 1, 10, env.SECRET end,
+                function() return 1, 10, nil end,
+                function() return 1, 10, 0 end,
+            }
+            for index, failing in ipairs(failures) do
+                stone.Cooldown:SetCooldown(100, 3600)
+                C_Container.GetContainerItemCooldown = failing
+                local refreshed = pcall(module.UpdateButton, stone)
+                check("unavailable cooldown clears stale swipe " .. index, refreshed and rawget(stone.Cooldown, "duration") == nil)
+            end
+            C_Container.GetContainerItemCooldown = function() return 200, 90, 1 end
+            module.UpdateButton(stone)
+            check("cooldown recovers on readable data", stone.Cooldown.start == 200 and stone.Cooldown.duration == 90)
+            local item = stub.items["0:2"]
+            stub.items["0:2"] = nil
+            module.UpdateButton(stone)
+            check("empty item never retains a cooldown", rawget(stone.Cooldown, "duration") == nil)
+            stub.items["0:2"] = item
+            C_Container.GetContainerItemCooldown = reader
+        end
         stub.money = 99
         env.fire("PLAYER_MONEY")
         check("PLAYER_MONEY rewrites the money line without empty units",

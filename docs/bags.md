@@ -128,7 +128,7 @@ first time a slot is shown and hidden, not destroyed, when a bag shrinks.
 Every `C_Container` read runs under `pcall`. A failing item read prints one
 `Bags items` line. A secret item record draws an empty slot, a secret count
 or quality falls back to no count and the neutral border, and a secret
-cooldown leaves the swipe as it was. Nothing secret is compared or printed.
+cooldown clears the swipe until readable data returns. Empty slots, failed reads, disabled cooldowns and invalid timing also clear stale swipes. Nothing secret is compared or printed.
 
 ## Diagnostics
 
