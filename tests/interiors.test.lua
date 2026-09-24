@@ -85,7 +85,7 @@ return function(check)
         forbidden.Label = forbidden:CreateFontString()
         service.Walk(root, "character")
         service.Walk(root, "character")
-        check("forbidden frames reported once", service.State(forbidden) == nil and #env.printed == 1)
+        check("forbidden frames skipped quietly", service.State(forbidden) == nil and #env.printed == 0)
         RikUI.Panels = { enabled = false }
         local stock = frame("ItemButton")
         stock.icon = stock:CreateTexture()

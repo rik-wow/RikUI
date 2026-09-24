@@ -125,10 +125,18 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
+        local selected = {}
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
-            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua", "src/modules/bags/bags-equipped.lua" }) do
-            assert(loadfile(file))("RikUI", {})
+            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua", "src/modules/bags/bags-equipped.lua" }) do selected[file] = true end
+        -- Use the client manifest order, including Skin loading after the bag module.
+        for line in io.lines("RikUI.toc") do
+            local file = line:match("^%s*(.-)%s*$")
+            if selected[file] then
+                assert(loadfile(file))("RikUI", {})
+                selected[file] = nil
+            end
         end
+        assert(next(selected) == nil, "bag test dependency missing from TOC")
         env.fire("ADDON_LOADED", "RikUI")
         env.inCombat = combat == true
         env.fire("PLAYER_LOGIN")

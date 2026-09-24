@@ -9,6 +9,7 @@ local media = {
 }
 RikUI.Media = media
 local warned = false
+local FALLBACK_FONT = "Fonts\\FRIZQT__.TTF"
 local ICONS = root .. "icons\\"
 
 -- RikUI's icons are white 32x32 textures with the shape in the alpha channel, built from the SVG
@@ -40,10 +41,18 @@ function media.Icon(parent, name, size, layer)
 end
 
 function media.Font(region, role)
-    local loaded = region:SetFont(media.font, media.sizes[role], "OUTLINE")
-    if loaded == false and not warned then
-        warned = true
-        RikUI:Print("Media font could not load. Fully exit and restart WoW after installing new media.")
+    local size = media.sizes[role]
+    local loaded = region:SetFont(media.font, size, "OUTLINE")
+    if loaded == false then
+        local fallback = type(STANDARD_TEXT_FONT) == "string" and STANDARD_TEXT_FONT or FALLBACK_FONT
+        local recovered = region:SetFont(fallback, size, "OUTLINE") ~= false
+        -- Share a working path with callers that use Media.font directly.
+        if recovered then media.font = fallback end
+        if not warned then
+            warned = true
+            RikUI:Print(recovered and "Media font unavailable; using the game font."
+                or "Media font and game-font fallback could not load.")
+        end
     end
     region:SetTextColor(1, 1, 1, 1)
     region:SetShadowColor(0, 0, 0, 1)

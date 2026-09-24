@@ -37,8 +37,8 @@ return function(check)
         function locked:IsForbidden() return true end
         function locked:GetChildren() error("must not traverse forbidden frame") end
         RikUI.Interiors.Walk(locked, "social"); RikUI.Interiors.Walk(locked, "social")
-        check("forbidden community surfaces reported once", #env.printed == 1
-            and widgets.printedContains(env, "forbidden") and RikUI.Interiors.State(locked) == nil)
+        check("forbidden community surfaces skipped quietly", #env.printed == 0
+            and RikUI.Interiors.State(locked) == nil)
         -- Reproduce the native FriendsList_Update hook and deferred event refresh.
         local service, visibleReads, forbiddenReads = RikUI.Interiors, 0, 0
         FriendsFrame = frame()
@@ -66,6 +66,8 @@ return function(check)
         env.fire("FRIENDLIST_UPDATE"); env.flushTimers()
         check("social hook and queued refresh skip forbidden visibility reads", forbiddenReads == 0
             and visibleReads >= 3 and service.State(FriendsFrame) ~= nil)
+        check("all forbidden roots are skipped without forbidden-frame warnings",
+            not widgets.printedContains(env, "Interiors client limit: forbidden frame"))
         local warningCount = #env.printed
         FriendsList_Update(); service.Refresh("social")
         check("repeated refresh does not retry or repeat forbidden warnings", forbiddenReads == 0
@@ -73,6 +75,7 @@ return function(check)
         local refused = frame()
         function refused:IsShown() error("must not query refused root") end
         service.Warn(refused, "prior decoration refusal")
+        check("unexpected decoration failures remain reported", widgets.printedContains(env, "prior decoration refusal"))
         CommunitiesAddDialog = refused
         service.Refresh("social")
         check("previously refused roots skip visibility reads", service.State(refused) == nil)

@@ -1,6 +1,6 @@
 -- Equipped bag targets use the same hardware-action APIs as BaseBagSlotButtonMixin.
 -- Plain buttons keep the movable bag window unprotected and leave native inventory fields alone.
-local core, bags, media, skin = RikUI, RikUI.Bags, RikUI.Media, RikUI.Skin
+local core, bags, media = RikUI, RikUI.Bags, RikUI.Media
 local SIZE, GAP, COUNT = 30, 4, 4
 local slots = {}
 
@@ -50,6 +50,8 @@ local function tooltip(button)
 end
 
 function bags.CreateEquipped(holder)
+    -- The TOC loads Skin after this file; all services exist by module activation.
+    local skin = core.Skin
     for bag = 1, COUNT do
         local button = CreateFrame("Button", nil, holder)
         button:SetID(bag)

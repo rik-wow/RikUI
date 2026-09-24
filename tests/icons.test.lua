@@ -4,6 +4,7 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local SIZE, HEADER = 32, 18
+    local savedStandardFont = STANDARD_TEXT_FONT
     local ok, reason = pcall(function()
         env.frames, env.printed = {}, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
@@ -41,6 +42,44 @@ return function(check)
         local texture = CreateFrame("Frame", nil, UIParent):CreateTexture(nil, "ARTWORK")
         media.SetIcon(texture, "lock")
         check("SetIcon records the name on the texture", texture.rikIcon == "lock")
+        local fontFile = assert(io.open("media/font.ttf", "rb"))
+        local signature = fontFile:read(4)
+        fontFile:close()
+        check("bundled font is a TrueType asset", signature == string.char(0, 1, 0, 0))
+        local label = CreateFrame("Frame"):CreateFontString()
+        local calls, bundled = {}, media.font
+        function label:SetFont(path, size, flags)
+            calls[#calls + 1] = { path, size, flags }
+            return true
+        end
+        media.Font(label, "small")
+        check("loadable bundled font keeps its path and stays quiet", calls[1][1] == bundled
+            and calls[1][2] == media.sizes.small and media.font == bundled and #env.printed == 0)
+        STANDARD_TEXT_FONT = "Fonts\\ARIALN.TTF"
+        function label:SetFont(path, size, flags)
+            calls[#calls + 1] = { path, size, flags }
+            return path ~= bundled
+        end
+        media.Font(label, "label")
+        check("failed bundled font retries the same region with the native font", calls[2][1] == bundled
+            and calls[3][1] == STANDARD_TEXT_FONT and calls[3][2] == media.sizes.label
+            and calls[3][3] == "OUTLINE" and media.font == STANDARD_TEXT_FONT)
+        media.Font(label, "heading")
+        check("later font users share the working fallback with one message", #calls == 4
+            and calls[4][1] == STANDARD_TEXT_FONT and #env.printed == 1)
+        assert(loadfile("src/ui/media.lua"))("RikUI", {})
+        media, calls, env.printed = RikUI.Media, {}, {}
+        STANDARD_TEXT_FONT = nil
+        media.Font(label, "small")
+        check("missing native font global uses the built-in fallback", calls[2][1] == "Fonts\\FRIZQT__.TTF"
+            and media.font == "Fonts\\FRIZQT__.TTF")
+        assert(loadfile("src/ui/media.lua"))("RikUI", {})
+        media, env.printed = RikUI.Media, {}
+        function label:SetFont() return false end
+        media.Font(label, "small"); media.Font(label, "small")
+        check("failed fallback is reported without advertising a working font", media.font == bundled
+            and #env.printed == 1 and env.printed[1]:find("fallback could not load", 1, true))
     end)
+    STANDARD_TEXT_FONT = savedStandardFont
     check("icons suite completes", ok, reason)
 end

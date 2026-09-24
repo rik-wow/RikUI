@@ -23,7 +23,8 @@ end
 local function allowed(frame)
     if not interiors.IsFrame(frame) or refused[frame] then return false end
     if type(frame.IsForbidden) == "function" and frame:IsForbidden() then
-        interiors.Warn(frame, "forbidden frame")
+        -- Forbidden frames are an expected client boundary, not a skin failure.
+        refused[frame] = true
         return false
     end
     return true
