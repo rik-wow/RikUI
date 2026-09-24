@@ -9,6 +9,10 @@ function scroll.SetOffset(pane, offset)
     pane.updating = true
     pane.bar:SetValue(pane.offset)
     pane.updating = false
+    if pane.moreAbove then
+        pane.moreAbove:SetShown(pane.offset > 0)
+        pane.moreBelow:SetShown(pane.offset < (pane.range or 0))
+    end
     if pane.OnScroll then pane.OnScroll() end
 end
 
@@ -16,6 +20,10 @@ local function updateRange(pane)
     pane.range = math.max(0, (pane.contentHeight or 1) - (pane.height or 1))
     pane.bar:SetMinMaxValues(0, pane.range)
     pane.bar:SetShown(pane.range > 0)
+    local height = pane.height or 1
+    pane.thumbHeight = math.min(height, math.max(THUMB_HEIGHT, height * height / math.max(height, pane.contentHeight or 1)))
+    local thumb = pane.bar:GetThumbTexture()
+    if thumb then thumb:SetHeight(pane.thumbHeight) end
     scroll.SetOffset(pane, pane.offset or 0)
 end
 
@@ -36,7 +44,7 @@ end
 
 function scroll.Reveal(pane, top, height)
     local offset = pane.offset or 0
-    if top < offset then scroll.SetOffset(pane, top)
+    if top < offset or height > pane.height then scroll.SetOffset(pane, top)
     elseif top + height > offset + pane.height then scroll.SetOffset(pane, top + height - pane.height) end
 end
 
@@ -57,6 +65,15 @@ local function createBar(pane)
     return bar
 end
 
+local function overflowCue(pane, edge)
+    local cue = pane.view:CreateTexture(nil, "OVERLAY")
+    cue:SetColorTexture(0.35, 0.65, 0.8, 0.65)
+    cue:SetPoint(edge .. "LEFT", pane.view, edge .. "LEFT")
+    cue:SetPoint(edge .. "RIGHT", pane.view, edge .. "RIGHT")
+    cue:SetHeight(2); cue:Hide()
+    return cue
+end
+
 function scroll.Create(parent)
     local pane = CreateFrame("Frame", nil, parent)
     pane.view = CreateFrame("ScrollFrame", nil, pane)
@@ -66,6 +83,7 @@ function scroll.Create(parent)
     pane.content:SetSize(1, 1)
     pane.view:SetScrollChild(pane.content)
     pane.bar = createBar(pane)
+    pane.moreAbove, pane.moreBelow = overflowCue(pane, "TOP"), overflowCue(pane, "BOTTOM")
     pane:EnableMouseWheel(true)
     pane.view:EnableMouseWheel(true)
     local wheel = function(_, delta) scroll.SetOffset(pane, (pane.offset or 0) - delta * WHEEL_STEP) end

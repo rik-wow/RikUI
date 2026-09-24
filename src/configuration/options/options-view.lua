@@ -87,7 +87,7 @@ local function filterPage(page, query)
         row.filtered = not (whole or matches(row.spec.label, query) or matches(row.spec.description, query))
         if not row.filtered then count = count + 1 end
     end
-    page.filtered = count == 0
+    page.filtered = not whole and count == 0
     options.ResizeList(page.list, page.list.width)
     return not page.filtered
 end
@@ -213,7 +213,7 @@ end
 
 local function createSearch()
     local box = CreateFrame("EditBox", nil, panel)
-    box:SetAutoFocus(false); box:SetMaxLetters(100)
+    box:SetAutoFocus(false); box:SetMaxLetters(100); box:SetText("")
     box:SetPoint("TOPLEFT", PAD, -60); box:SetPoint("TOPRIGHT", -54, -60); box:SetHeight(24)
     box:SetTextInsets(8, 8, 0, 0); core.Media.Font(box, "label")
     options.Flat(box, "BACKGROUND", { 0.07, 0.09, 0.12, 1 })
@@ -232,7 +232,6 @@ local function createSearch()
     panel.clearSearch:SetPoint("TOPRIGHT", -PAD, -60); panel.clearSearch:Hide()
     panel.empty = options.Text(panel, "label", "No settings match. Try a shorter search.")
     panel.empty:SetPoint("CENTER"); panel.empty:Hide()
-    box:SetText("")
 end
 
 local function register()

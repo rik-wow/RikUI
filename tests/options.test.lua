@@ -45,6 +45,10 @@ return function(check)
         function frame:SetParent(parent) self.parent = parent end
         function frame:GetParent() return self.parent end
         function frame:SetPoint(...) self.point = { ... } end
+        function frame:SetText(value)
+            self.text = value
+            if self.kind == "EditBox" then env.runScript(self, "OnTextChanged", false) end
+        end
         function frame:SetFocus() self.focused = true end
         function frame:ClearFocus() self.focused = false end
         function frame:HasFocus() return self.focused == true end
@@ -88,8 +92,19 @@ return function(check)
         check("empty options page does not recurse during layout",resizeCalls==1 and emptyPane.range==0)
         RikUI.Scroll.SetContentHeight(emptyPane,500);RikUI.Scroll.SetOffset(emptyPane,999)
         check("shared scroller clamps long content",emptyPane.offset==400 and emptyPane.bar:IsShown())
+        check("scroll thumb reflects viewport fraction", emptyPane.thumbHeight == 28
+            and emptyPane.moreAbove:IsShown() and not emptyPane.moreBelow:IsShown())
+        RikUI.Scroll.SetContentHeight(emptyPane,200)
+        check("scroll thumb grows as content shortens", emptyPane.thumbHeight == 50)
+        RikUI.Scroll.SetOffset(emptyPane,0)
+        check("scroll cues identify content below", not emptyPane.moreAbove:IsShown() and emptyPane.moreBelow:IsShown())
         RikUI.Scroll.SetContentHeight(emptyPane,0)
-        check("content shrink clears stale scroll and thumb",emptyPane.offset==0 and not emptyPane.bar:IsShown() and resizeCalls==1)
+        check("content shrink clears stale scroll and thumb",emptyPane.offset==0 and not emptyPane.bar:IsShown() and resizeCalls==1
+            and not emptyPane.moreAbove:IsShown() and not emptyPane.moreBelow:IsShown())
+        RikUI.Scroll.SetContentHeight(emptyPane,500)
+        RikUI.Scroll.Reveal(emptyPane,40,200)
+        check("oversized rows reveal their beginning",emptyPane.offset==40)
+        RikUI.Scroll.SetContentHeight(emptyPane,0)
         local state = { flag = false, amount = 1, choice = "b", colour = { 0.1, 0.2, 0.3 }, name = "", pressed = 0, locked = true }
         local sets = {}
         local function setter(key) return function(value) state[key] = value; sets[key] = (sets[key] or 0) + 1 end end
@@ -410,6 +425,8 @@ return function(check)
             and not rowByKey(generalPage.list, "reset").enabled)
         env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
 
+        config.search:SetText("last choice")
+        check("typing search applies filter and exposes clear action", config.query == "last choice" and config.clearSearch:IsShown())
         options.Search("last choice")
         check("search finds settings across pages", config.current == 2 and last:IsShown()
             and not long.list.rows[1]:IsShown())
