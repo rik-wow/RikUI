@@ -1,5 +1,12 @@
 # Tooltips
 
+**Tooltips follow the cursor** uses Blizzard's cursor anchor. Turn it off to
+return to the movable fixed tooltip position; the default is fixed.
+
+**Show item ownership counts** adds carried/equipped and client-reported bank
+quantities for the current character. It does not track alts or an account bank.
+Unavailable or secret counts are omitted, and the option can be turned off.
+
 Tooltips fade in over 180ms and cancel the entrance immediately when hidden. Existing native fade-out, ownership, data processing and GUID health watches remain intact. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
 
 `src/modules/tooltip/tooltip.lua` and `src/modules/tooltip/tooltip-data.lua` restyle the Blizzard tooltips instead of

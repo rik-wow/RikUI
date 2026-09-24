@@ -49,8 +49,12 @@ local function createAnchor()
 end
 
 -- Post-hook: Blizzard has already set the owner and its own corner anchor.
-local function anchorTooltip(frame)
+local function anchorTooltip(frame, owner)
     if not tooltip.enabled or not tooltip.Anchor then return end
+    if core.Profile.tooltip.followCursor == true then
+        frame:SetOwner(owner or UIParent, "ANCHOR_CURSOR")
+        return
+    end
     frame:ClearAllPoints()
     frame:SetPoint("BOTTOMRIGHT", tooltip.Anchor, "BOTTOMRIGHT", 0, 0)
 end
@@ -129,5 +133,10 @@ table.insert(tooltip.Options.settings, { type = "checkbox", key = "ownedCounts",
     description = "Current character only: carried/equipped items and bank items reported by the client.",
     get = function() return core.Profile.tooltip.ownedCounts ~= false end,
     set = function(value) core.Profile.tooltip.ownedCounts = value == true end })
+
+table.insert(tooltip.Options.settings, { type = "checkbox", key = "followCursor", label = "Tooltips follow the cursor",
+    description = "Use the native cursor anchor instead of your movable fixed tooltip position.",
+    get = function() return core.Profile.tooltip.followCursor == true end,
+    set = function(value) core.Profile.tooltip.followCursor = value == true end })
 
 core:RegisterModule("tooltip", tooltip)

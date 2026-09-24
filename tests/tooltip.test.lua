@@ -61,6 +61,18 @@ return function(check)
         GameTooltip_SetDefaultAnchor(ItemRefTooltip, UIParent)
         check("other tooltips asking for the default anchor follow too", anchoredTo(ItemRefTooltip, anchor))
 
+        local cursorSetting
+        for _, setting in ipairs(module.Options.settings) do
+            if setting.key == "followCursor" then cursorSetting = setting end
+        end
+        check("cursor tooltips expose an option", cursorSetting ~= nil)
+        cursorSetting.set(true)
+        GameTooltip_SetDefaultAnchor(tip, UIParent)
+        check("cursor tooltip uses native tracking and preserves owner", tip.anchorType == "ANCHOR_CURSOR" and tip.owner == UIParent)
+        cursorSetting.set(false)
+        GameTooltip_SetDefaultAnchor(tip, UIParent)
+        check("fixed tooltip anchor returns after disabling cursor mode", tip.anchorType == "ANCHOR_NONE" and anchoredTo(tip, anchor))
+
         local background, border = rawget(tip, "rikBackground"), rawget(tip, "rikBorder")
         check("the tooltip gets a flat background and four edge lines", background and background.allPoints
             and background.layer == "BACKGROUND" and color(background.color, { 0.055, 0.065, 0.08 })
