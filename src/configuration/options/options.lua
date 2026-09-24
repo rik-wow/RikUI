@@ -148,6 +148,33 @@ local function moveFrames()
     if moving and SettingsPanel and type(HideUIPanel) == "function" then HideUIPanel(SettingsPanel) end
 end
 
+local function frameChoices()
+    local entries = {}
+    for key, group in pairs(core.Layout.Groups) do
+        entries[#entries + 1] = { value = key, text = group.label or key }
+    end
+    table.sort(entries, function(a, b)
+        if a.text == b.text then return a.value < b.value end
+        return a.text < b.text
+    end)
+    return entries
+end
+
+local function precisionSpecs(specs)
+    specs[#specs + 1] = { type = "dropdown", key = "layoutFrame", label = "Frame to position",
+        values = frameChoices, get = function() return state.layoutFrame end,
+        set = function(value) state.layoutFrame = value end }
+    for _, direction in ipairs({ { "Left", -1, 0 }, { "Right", 1, 0 }, { "Up", 0, 1 }, { "Down", 0, -1 } }) do
+        local label, dx, dy = unpack(direction)
+        local spec = action("nudge" .. label, "Move frame " .. label:lower(), label, function()
+            return core.Layout.Nudge(state.layoutFrame, dx, dy)
+        end)
+        spec.description = "Move one screen unit. Stops at other frames and screen edges."
+        spec.disabled = function() return InCombatLockdown() or not core.Layout.Groups[state.layoutFrame] end
+        specs[#specs + 1] = spec
+    end
+end
+
 local function layoutSpecs(specs)
     if not core.Layout then return end
     specs[#specs + 1] = { type = "heading", label = "Layout" }
@@ -158,6 +185,7 @@ local function layoutSpecs(specs)
         get = function() return core.Layout.GetScale() end,
         set = function(value) return core.Layout.SetScale(value) end }
     if core.Layout.PresetOption then specs[#specs + 1] = core.Layout.PresetOption() end
+    precisionSpecs(specs)
     specs[#specs + 1] = action("move", "Frame positions", "Move frames", moveFrames)
     local reset = action("reset", "Default positions", "Reset positions", function() core.Layout.Reset() end)
     reset.confirm = function() return "Reset positions for " .. core.CharDB.profile .. "?" end

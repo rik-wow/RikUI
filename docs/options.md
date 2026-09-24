@@ -1,5 +1,9 @@
 # RikUI settings
 
+General now offers a **Frame to position** picker and Left/Right/Up/Down buttons. Each click moves one screen unit using the same collision and screen bounds as dragging, including at non-default scales. The controls work through existing keyboard navigation and refuse movement during combat or while a frame positions itself. This does not add native controller focus.
+
+Research reviewed 2026-09-24: [Forever interface-editing feedback](https://www.reddit.com/r/wow/comments/1wkyhmn/wow_forever_summary_feedback/). Player requests motivate these controls; their behavior is verified against RikUI’s layout engine.
+
 Protected settings changed during combat keep only the latest value per control. Deferred edits are cancelled if their profile changes or the control becomes unavailable before combat ends.
 
 The shared dropdown renderer accepts both dynamic `values/text` and module-declared `choices/label` entries. This fixes empty quest-size, font and native combat-direction menus. Selection is tested through the rendered popup, including the zero-valued native-size choice.

@@ -91,6 +91,30 @@ function layout.SaveCenter(key, frame, profile)
     return layout.SaveRect(key, rect, profile, scale)
 end
 
+-- Deltas are UIParent units so one step has the same visible size at any frame scale.
+function layout.Nudge(key, dx, dy)
+    if InCombatLockdown() then return nil, "Cannot move frames in combat." end
+    if not core.Profile then return nil, "Still loading." end
+    local group = layout.Groups[key]
+    if not group then return nil, "Choose a registered frame." end
+    for _, value in ipairs({ dx, dy }) do
+        if type(value) ~= "number" or value ~= value or math.abs(value) > 10000 then
+            return nil, "Invalid movement."
+        end
+    end
+    if dx == nil or dy == nil then return nil, "Invalid movement." end
+    if type(group.floating) == "function" and layout.Floats(group) then
+        return nil, "This frame currently positions itself."
+    end
+    local rect, screen = layout.Rect(key), layout.Screen()
+    if not rect or not screen then return nil, "Frame geometry is unavailable." end
+    if layout.StopMoving then layout.StopMoving() end
+    local resolved = geometry.Resolve(rect, geometry.Move(rect, dx, dy), layout.Obstacles(key), screen)
+    if not layout.SaveRect(key, resolved, core.Profile) then return nil, "Could not save position." end
+    layout.Apply()
+    return true
+end
+
 -- How much further a growing group may grow, in its frame's own units; nil for a group that does not.
 function layout.Available(key)
     local group, screen = layout.Groups[key], layout.Screen()

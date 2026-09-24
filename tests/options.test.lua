@@ -714,6 +714,45 @@ return function(check)
             and RikUI.Profile == recovery and RikUI.DB.profiles["Recovery 3"] == nil)
         RikUI.Setup.IsApplying = isApplying
 
+        do
+            options = boot()
+            local oldWidth, oldHeight = UIParent.GetWidth, UIParent.GetHeight
+            UIParent.GetWidth, UIParent.GetHeight = function() return 1365 end, function() return 768 end
+            local frame = CreateFrame("Frame", nil, UIParent)
+            frame:SetSize(100, 30)
+            RikUI.Layout.Register(frame, "precision", { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 }, { label = "Precision frame" })
+            options.Refresh()
+            local controls = pageByTitle(options, "General").list
+            local picker = rowByKey(controls, "layoutFrame")
+            check("precision frame picker is available", picker ~= nil)
+            if picker then
+                options.Commit(picker, "precision")
+                local before = RikUI.Layout.Rect("precision")
+                env.click(rowByKey(controls, "nudgeRight").widget)
+                check("settings move selected frame by one screen unit", RikUI.Layout.Rect("precision").left == before.left + 1)
+                env.inCombat = true
+                local saved = RikUI.Profile.positions.precision
+                check("precision edits refuse combat", not RikUI.Layout.Nudge("precision", 1, 0) and RikUI.Profile.positions.precision == saved)
+                env.inCombat = false
+                check("precision edits reject invalid deltas and groups", not RikUI.Layout.Nudge("missing", 1, 0)
+                    and not RikUI.Layout.Nudge("precision", 0/0, 0))
+                RikUI.Layout.SetScale(0.5)
+                before = RikUI.Layout.Rect("precision")
+                RikUI.Layout.Nudge("precision", 1, 0)
+                check("nudge distance does not shrink with frame scale", RikUI.Layout.Rect("precision").left == before.left + 1)
+                RikUI.Layout.Nudge("precision", 10000, 0)
+                check("nudge stops at the screen edge", RikUI.Layout.Rect("precision").right <= 1365)
+                local obstacle = CreateFrame("Frame", nil, UIParent)
+                obstacle:SetSize(100, 30)
+                RikUI.Layout.Register(obstacle, "obstacle", { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 })
+                RikUI.Layout.Nudge("precision", -10000, 0)
+                check("nudge does not cross another frame", not RikUI.Geometry.Overlaps(RikUI.Layout.Rect("precision"), RikUI.Layout.Rect("obstacle")))
+                RikUI.Layout.Groups.precision.floating = function() return true end
+                check("self-positioned frames refuse nudges", not RikUI.Layout.Nudge("precision", 1, 0))
+            end
+            UIParent.GetWidth, UIParent.GetHeight = oldWidth, oldHeight
+        end
+
         -- Real bars module declares appearance options.
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }
