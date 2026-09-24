@@ -84,6 +84,8 @@ function interiors.Item(frame)
             if skin.IsRegion(region) then region:SetAlpha(0) end
         end
     end
+    local state = states[frame]
+    if not state.edge then state.edge = skin.Outline(frame, nil, 0, icon, "OVERLAY") end
     interiors.Labels(frame)
     interiors.Quality(frame)
 end
@@ -165,7 +167,35 @@ function interiors.Discover()
     end
 end
 
+local refreshers = {}
+function interiors.Refresh(family)
+    for name, kind in pairs(interiors.Roots) do
+        local frame = _G[name]
+        if kind == family and interiors.IsFrame(frame) and frame:IsShown() then interiors.Walk(frame, family) end
+    end
+end
+
+function interiors.RegisterRefresh(family, events, globals, extra)
+    refreshers[#refreshers + 1] = function()
+        local pending = false
+        local function refresh()
+            pending = false
+            interiors.Refresh(family)
+            if enabled() and extra then extra() end
+        end
+        local function queue()
+            if pending or not enabled() then return end
+            pending = true
+            if C_Timer and type(C_Timer.After) == "function" then C_Timer.After(0, refresh) else refresh() end
+        end
+        for _, event in ipairs(events or {}) do core:RegisterEvent(event, queue) end
+        for _, name in ipairs(globals or {}) do core.Hooks.Function(name, refresh) end
+        queue()
+    end
+end
+
 function interiors.Enable()
+    for _, start in ipairs(refreshers) do start() end
     interiors.Discover()
     core:RegisterEvent("ADDON_LOADED", interiors.Discover)
     core.Hooks.Function("SetItemButtonQuality", function(frame)

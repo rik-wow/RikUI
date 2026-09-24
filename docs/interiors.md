@@ -1,5 +1,23 @@
 # Window interiors
 
+## Quest and map content
+
+Quest, gossip and detail parchment is replaced with dark surfaces; dark neutral
+prose becomes pale text while requirement/status colours remain native. Refresh
+events are deferred and coalesced; QuestInfo_Display and quest-list global
+post-hooks cover text rebuilt while the window stays open. Reward icons reuse
+the quality-strip decorator.
+
+The map pass targets the side toggle and recognized coordinate, bounty, action
+and threat overlays in the native overlay registry. The large threat holder is
+never backed: only its small eye is decorated. Map canvas, pins, positions,
+tracking, zoom and native click handlers are unchanged.
+
+Source: [WorldMap overlay registry](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMap.lua)
+and Mainline QuestInfo.lua/GossipFrame.xml at the same pinned revision.
+The quest fixture checks prose refresh, semantic colours and canvas exclusion.
+
+
 ## Spellbook and talents
 
 The spellbook page textures and talent backdrop become dark surfaces. Nested
