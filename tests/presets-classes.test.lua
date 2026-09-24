@@ -51,6 +51,60 @@ return function(check)
     check("Rogue poison recipes retain distinct rank families", RikUI.Spells.Entry("Instant Poison II", "ROGUE")
         and RikUI.Spells.Entry("Instant Poison", "ROGUE"))
 
+
+    local priest = assert(RikUI.Presets.PRIEST, "Priest preset missing")
+    local healing = assert(RikUI.Setup.Resolve("PRIEST", "heal"))
+    local shadow = assert(RikUI.Setup.Resolve("PRIEST", "shadow"))
+    check("Priest healer and shadow rotations differ", healing.bars.main[1].macro == "Lesser Heal"
+        and shadow.bars.main[1].spell == "Mind Flay")
+    check("Shadow retains mouseover healing and has no fabricated bonus page",
+        shadow.bars.bar2[10].macro == "Flash Heal" and shadow.bars.shadow == nil
+        and RikUI.Data.BonusPages.PRIEST == nil)
+    check("Priest heals prefer living mouseover then target then self",
+        priest.macros["Flash Heal"].body == "#showtooltip Flash Heal\n/cast [@mouseover,help,nodead][help,nodead][@player] Flash Heal")
+
+
+    local savedTalents, savedTraits = C_ClassTalents, C_Traits
+    assert(loadfile("src/setup/setup-talents.lua"))()
+    local points = { 0, 0, 0 }
+    C_ClassTalents = { GetActiveConfigID = function() return 1 end }
+    C_Traits = {
+        ConfigHasStagedChanges = function() return false end,
+        GetConfigInfo = function() return { treeIDs = { 1 } } end,
+        GetGroupDisplayInfoByTreeID = function() return {
+            { groupID = 1, displayName = "First" }, { groupID = 2, displayName = "Second" },
+            { groupID = 3, displayName = "Third" } } end,
+        GetGroupCurrencyInfo = function()
+            local groups = {}
+            for i = 1, 3 do groups[i] = { traitNodeGroupID = i, currencyInfos = { { spent = points[i] } } } end
+            return groups
+        end,
+    }
+    for tree, expected in ipairs({ "heal", "heal", "shadow" }) do
+        points = { 0, 0, 0 }; points[tree] = 10
+        check("Priest ten-point tree " .. tree .. " chooses " .. expected,
+            RikUI.Setup.GuessRole("PRIEST") == expected)
+    end
+    C_ClassTalents, C_Traits = savedTalents, savedTraits
+
+    local savedBook, savedEnum = C_SpellBook, Enum
+    Enum = { SpellBookSpellBank = { Player = 1 }, SpellBookItemType = { Spell = 1 } }
+    local learned = {}
+    C_SpellBook = {
+        GetNumSpellBookSkillLines = function() return 1 end,
+        GetSpellBookSkillLineInfo = function() return { itemIndexOffset = 0, numSpellBookItems = #learned } end,
+        GetSpellBookItemInfo = function(i) return { spellID = learned[i], itemType = 1 } end,
+    }
+    for _, sample in ipairs({ { "HUNTER", "Arcane Shot" }, { "MAGE", "Frostbolt" }, { "PRIEST", "Renew" } }) do
+        UnitClass = function() return sample[1], sample[1] end
+        local ranks = RikUI.Spells.Entry(sample[2]).ranks
+        learned = { ranks[1], ranks[#ranks] }
+        check(sample[1] .. " resolver selects highest learned rank", RikUI.Spells.HighestKnownRank(sample[2]) == ranks[#ranks])
+        learned = { ranks[1] }
+        check(sample[1] .. " unlearning does not leave a stale high rank", RikUI.Spells.HighestKnownRank(sample[2]) == ranks[1])
+    end
+    UnitClass, C_SpellBook, Enum = oldClass, savedBook, savedEnum
+
     for class, current in pairs(RikUI.Presets) do
         check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)
         for _, role in ipairs(current.roleOrder) do

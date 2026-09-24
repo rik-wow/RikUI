@@ -46,3 +46,9 @@ Stealth replaces five main slots with openers, Sap and Pick Pocket, while retain
 
 Rogue HTML SHA-256: `6e8f091cfe6d69064632e3915d3f2e5ca323d9460090754686ad098c718ef3e8`.
 
+## Priest layout
+
+Discipline/Holy and Shadow layouts preserve quick healing access. Targeted friendly healing uses living mouseover, living target, then self in both roles; resurrection and group/hostile-capable spells retain native targeting. All 57 published families include race-specific spells, which only become actions when learned. Shadowform has BonusActionBar zero in the exact-build form table, so role selection changes the main layout instead of inventing a protected page.
+
+Priest HTML SHA-256: `a7c824429943f178f17dba3f20d1903ff8f77764507719cdec5ed02eb7201ab6`.
+

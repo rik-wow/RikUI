@@ -741,8 +741,10 @@ fix them by launch, nothing here breaks either.
   bindings stay available. No per-class binding override or second undo path is needed.
 - Druids have up to six forms. `Ctrl-Q/E/R` covers three. Travel and aquatic
   can stay click-only, but Moonkin players will want a key.
-- Do we want `[@mouseover]` on *every* heal, or only the healer roles? Leaning
-  every heal, since a Paladin DPS still Flash-of-Lights the tank.
+- Healing decision (2026-09-23): every targeted friendly heal uses
+  `[@mouseover,help,nodead][help,nodead][@player]` in every role. Resurrection,
+  ground/party heals and hostile-capable abilities keep their own targeting.
+  Macros cast learned ranks by name and never pick a target automatically.
 - How aggressive is level-up placement when the player has rearranged things?
   Current answer: never overwrite a slot that holds a different spell. Might
   need a "re-sync" button.

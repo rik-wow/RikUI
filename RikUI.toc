@@ -25,12 +25,14 @@ data/spells.lua
 data/spells-hunter.lua
 data/spells-mage.lua
 data/spells-rogue.lua
+data/spells-priest.lua
 data/cvars.lua
 data/bonus-pages.lua
 presets/warrior.lua
 presets/hunter.lua
 presets/mage.lua
 presets/rogue.lua
+presets/priest.lua
 src/setup/setup.lua
 src/setup/setup-actions.lua
 src/setup/setup-apply.lua
