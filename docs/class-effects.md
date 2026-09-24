@@ -52,3 +52,11 @@ Player: Righteous Fury, Seal of Righteousness, Seal of Fury, Seal of Command, Se
 
 [Current feedback](https://us.forums.blizzard.com/en/wow/t/paladin-feedback-1-20-beta/2355823) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/paladin) supplies the direct-aura families through the existing 69913 catalogue. No inferred missing-seal or missing-Righteous-Fury warning. Judgement outcomes, Forbearance and indirect seal/talent procs are excluded. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Shaman — 2026-09-23
+
+Track shields and temporary buffs, both native weapon imbues, your shocks and Riptide/utility on allies.
+
+Player: Lightning Shield, Water Shield, Ghost Wolf, Water Breathing, Water Walking, Nature's Swiftness, Rage of the Farseer, Riptide. Target harmful: Flame Shock, Frost Shock. Target helpful: Riptide, Water Breathing, Water Walking.
+
+[Current feedback](https://us.forums.blizzard.com/en/wow/t/use-weapon-imbues-as-design-space-in-forever/2357167) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/shaman) supplies the direct-aura families through the existing 69913 catalogue. Totem-applied effects, Maelstrom/Flurry and downstream Stormstrike or weapon proc auras remain unknown. Native enchant slots do not infer enchant identity. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
