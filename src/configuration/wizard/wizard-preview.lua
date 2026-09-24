@@ -17,7 +17,7 @@ local KIND_OF = {
     player = "units", target = "units", focus = "units", tot = "units", petframe = "units", party = "units", raid = "units",
     castplayer = "casts", casttarget = "casts", castfocus = "casts", castpet = "casts", swingtimer = "casts",
     mirrortimers = "casts",
-    buffs = "hud", debuffs = "hud", classbuffs = "hud", classeffects = "hud", minimap = "hud", combopoints = "hud", totems = "hud", druidmana = "hud", durability = "hud",
+    buffs = "hud", debuffs = "hud", classcooldowns = "hud", classbuffs = "hud", classeffects = "hud", minimap = "hud", combopoints = "hud", totems = "hud", druidmana = "hud", durability = "hud",
 }
 -- Left out of the picture: windows that float over the screen, and the raid grid, which takes the
 -- party's place only in a raid.
