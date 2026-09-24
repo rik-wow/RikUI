@@ -333,5 +333,6 @@ types.button = {
         end
         if row.spec.action then row.spec.action() end
         options.RefreshList(row.list)
+        if options.Refresh then options.Refresh() end
     end,
 }

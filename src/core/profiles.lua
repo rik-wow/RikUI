@@ -61,6 +61,10 @@ function core:Changed()
     if self.Store and self.Store.Touch then runtime.Invoke("Save changed settings", self.Store.Touch) end
 end
 
+function core:ProfileNeedsReload()
+    return runtime.loadedProfile ~= nil and runtime.loadedProfile ~= self.Profile
+end
+
 -- Module activation flags still take effect on reload, not during a profile switch.
 function core:SetProfile(name)
     if not runtime.initialized then return nil, "Still loading." end

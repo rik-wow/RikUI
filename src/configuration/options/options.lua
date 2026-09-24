@@ -251,7 +251,10 @@ end
 local function profileSpecs()
     return {
         { type = "heading", label = "Profiles" },
-        { type = "dropdown", key = "profile", label = "Active profile", values = function() return profileEntries(false) end,
+        { type = "dropdown", key = "profile", label = "Active profile", reload = true,
+            description = "Positions apply immediately. Reload UI after switching to apply every feature preference.",
+            pending = function() return core:ProfileNeedsReload() end,
+            values = function() return profileEntries(false) end,
             get = function() return core.CharDB.profile end, set = selectProfile },
         { type = "heading", label = "New profile" },
         { type = "text", key = "newName", label = "Name",

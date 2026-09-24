@@ -19,6 +19,7 @@ local function login()
     -- Macros are readable at login; bind again after even a partially failed restore.
     restore("RestoreLate")
     runtime.BindProfile()
+    runtime.loadedProfile = core.Profile
     runtime.loggedIn = true
     runtime.StartModules()
 end

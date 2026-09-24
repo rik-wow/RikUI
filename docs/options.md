@@ -1,5 +1,9 @@
 # RikUI settings
 
+Switching profiles now reliably requests **Reload UI**, including copied profiles whose module toggles happen to match. Positions apply immediately; reload applies all feature preferences. Returning to the profile loaded at login clears that profile-switch notice. Other changed settings can still require reload. The baseline is captured after backup recovery, and a rejected switch leaves it unchanged.
+
+This closes a code-observed activation gap while addressing the dated settings-reliability feedback below; it does not claim that community reports were caused by this gap.
+
 Modules now explains the actual running state, including disabled dependencies and activation failures. Failed or blocked modules have their feature controls disabled; their enable toggles remain available. Status descriptions refresh when the panel does, and dependency messages name the required feature. Detailed errors stay in Setup and support diagnostics.
 
 Research reviewed 2026-09-24: [Forever players ask for individual classic components](https://www.reddit.com/r/wowforever/comments/1wkd32q/classic_ui_for_wow_forever/). This motivated clearer module choices; status itself comes from RikUI's actual lifecycle records.
