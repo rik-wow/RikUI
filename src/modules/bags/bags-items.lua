@@ -230,6 +230,7 @@ function bags.Refresh()
         index, used = nextIndex, used + filled
     end
     bags.RefreshEquipped()
+    bags.UpdateCapacity()
     bags.Total, bags.Used = index, used
     bags.Resize()
 end

@@ -219,6 +219,17 @@ return function(check)
         typeSearch("")
         check("an empty search drops the match count", holder.title.text == "Bags 3/22")
 
+        local oldFree = C_Container.GetContainerNumFreeSlots
+        C_Container.GetContainerNumFreeSlots = function(bag) return bag == 0 and 2 or 4, bag == 0 and 0 or 1 end
+        module.Refresh()
+        check("capacity separates general from specialized slots", holder.capacity.text == "2 free (+16 special)")
+        C_Container.GetContainerNumFreeSlots = function() return 0, 0 end
+        env.fire("BAG_UPDATE_DELAYED")
+        check("full bags display an explicit warning", holder.capacity.text == "Bags full")
+        C_Container.GetContainerNumFreeSlots = function() return env.SECRET, 0 end
+        module.Refresh()
+        check("unreadable capacity is not called free space", holder.capacity.text == "Space unavailable")
+        C_Container.GetContainerNumFreeSlots = oldFree
         local oldInstant = C_Item.GetItemInfoInstant
         C_Item.GetItemInfoInstant = function(link)
             local class = link:find("Linen", 1, true) and 7 or (link:find("Hearth", 1, true) and 0 or 2)

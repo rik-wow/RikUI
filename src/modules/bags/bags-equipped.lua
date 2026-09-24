@@ -49,6 +49,39 @@ local function tooltip(button)
     GameTooltip:Show()
 end
 
+local LOW_SPACE = 4
+
+local function freeCapacity()
+    if type(C_Container.GetContainerNumFreeSlots) ~= "function" then return nil end
+    local general, special = 0, 0
+    for bag = 0, COUNT do
+        local free, family = C_Container.GetContainerNumFreeSlots(bag)
+        if not plainNumber(free) or free < 0 or free ~= math.floor(free) then return nil end
+        if free > 0 then
+            if not plainNumber(family) then return nil end
+            if family == 0 then general = general + free else special = special + free end
+        end
+    end
+    return general, special
+end
+
+function bags.UpdateCapacity()
+    local label = bags.Holder and bags.Holder.capacity
+    if not label then return end
+    local ok, general, special = pcall(freeCapacity)
+    if not ok or general == nil then
+        label:SetText("Space unavailable")
+        label:SetTextColor(0.65, 0.7, 0.78)
+        return
+    end
+    local text = general == 0 and special == 0 and "Bags full" or (general .. " free")
+    if special > 0 then text = text .. " (+" .. special .. " special)" end
+    label:SetText(text)
+    if general == 0 then label:SetTextColor(1, 0.3, 0.3)
+    elseif general <= LOW_SPACE then label:SetTextColor(1, 0.75, 0.2)
+    else label:SetTextColor(0.65, 0.85, 0.7) end
+end
+
 function bags.CreateEquipped(holder)
     -- The TOC loads Skin after this file; all services exist by module activation.
     local skin = core.Skin

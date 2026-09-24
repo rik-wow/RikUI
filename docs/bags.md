@@ -148,6 +148,13 @@ replacement, rejected drops, dragging, combat refusal, missing APIs and bag-size
 Native behavior is accepted under the user's standing policy; the stub does not claim
 client rendering or taint verification.
 
+## Available space
+
+The footer shows general free slots separately from specialized bag space.
+Four or fewer general slots turn amber; no general room turns red. A completely
+full inventory reads "Bags full". Missing or unreadable capacity reads "Space
+unavailable". Counts refresh with bag changes and when the window opens.
+
 ## Quick filters
 
 All, Junk, Quest, Gear and Use buttons narrow the inventory without moving slots.
