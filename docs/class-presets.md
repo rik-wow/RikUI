@@ -55,6 +55,12 @@ Protection keeps Holy Strike before Hammer of the Righteous and a learned Seal o
 
 Rechecked [class feedback](https://us.forums.blizzard.com/en/wow/t/paladin-feedback-1-20-beta/2355823) and the [published spellbook](https://foreverchanges.pro/spellbook/paladin). Community discussion motivates accessible leveling keys; the catalogue remains pinned to verified build 1.60.1.69913, without newly inferred spell IDs, ranks or acquisition levels. Preset version 3. Learned-spell, resolved-page and regression checks cover selection; native acceptance is supplied by the user.
 
+### Shaman leveling attacks and shield progression — 2026-09-23
+
+Enhancement keeps a learned Lightning Bolt primary until Stormstrike; later Elemental casts also retain Lightning Bolt. Restoration's shield key uses Lightning Shield until Water Shield is learned. Totem choice, interrupt keys and targeted healing remain explicit, with no invented tank role.
+
+Rechecked [class feedback](https://eu.forums.blizzard.com/en/wow/t/feedback-shaman-talent-tree-elemental-restoration/630172) and the [published spellbook](https://foreverchanges.pro/spellbook/shaman). Community discussion motivates accessible leveling keys; the catalogue remains pinned to verified build 1.60.1.69913, without newly inferred spell IDs, ranks or acquisition levels. Preset version 3. Learned-spell, resolved-page and regression checks cover selection; native acceptance is supplied by the user.
+
 ## Source boundaries
 
 Spell families and rank order come from the author-published [ForeverChanges spellbooks](https://foreverchanges.pro/spellbook/hunter). Their embedded data explicitly identifies **1.60.1.69913**, despite the site's header advertising 69977. IDs and names for all eight new classes (1,446 unique IDs) were cross-checked with Blizzard's extracted [SpellName](https://wago.tools/db2/SpellName/csv?build=1.60.1.69913) and [SpellMisc](https://wago.tools/db2/SpellMisc/csv?build=1.60.1.69913) records: no mismatches or missing records. Numeric icons come from SpellMisc, keyed by SpellID and default difficulty. Internal DB2 spell levels do not establish acquisition: unknown talent levels stay nil. Multiple unranked IDs in one family are retained and only a learned player spellbook entry can become an action.

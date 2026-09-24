@@ -1,7 +1,7 @@
 -- Element-grouped totems: normal click/key first spell; Alt or right click second.
 RikUI.Presets.SHAMAN = {
     ["class"] = "SHAMAN",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = {
         "ele",
         "enh",
@@ -46,7 +46,7 @@ RikUI.Presets.SHAMAN = {
                 ["level"] = 20,
             },
             [5] = {
-                ["spell"] = "Chain Lightning",
+                ["spell"] = "Chain Lightning", fallback = "Lightning Bolt",
                 ["level"] = 32,
             },
             [6] = {
@@ -68,7 +68,7 @@ RikUI.Presets.SHAMAN = {
                 ["macro"] = "Healing Wave",
             },
             [11] = {
-                ["spell"] = "Lava Burst",
+                ["spell"] = "Lava Burst", fallback = "Lightning Bolt",
                 ["level"] = 40,
             },
             [12] = {
@@ -90,7 +90,7 @@ RikUI.Presets.SHAMAN = {
                 ["macro"] = "Riptide",
             },
             [5] = {
-                ["spell"] = "Water Shield",
+                ["spell"] = "Water Shield", fallback = "Lightning Shield",
             },
             [6] = {
                 ["spell"] = "Totemic Recall",
@@ -249,7 +249,7 @@ RikUI.Presets.SHAMAN = {
                 ["macro"] = "Cure Disease",
             },
             [10] = {
-                ["spell"] = "Stormstrike",
+                ["spell"] = "Stormstrike", fallback = "Lightning Bolt",
             },
         },
     },
@@ -339,7 +339,7 @@ RikUI.Presets.SHAMAN = {
         ["enh"] = {
             ["main"] = {
                 [1] = {
-                    ["spell"] = "Stormstrike",
+                    ["spell"] = "Stormstrike", fallback = "Lightning Bolt",
                 },
                 [2] = {
                     ["spell"] = "Earth Shock",
@@ -376,7 +376,7 @@ RikUI.Presets.SHAMAN = {
                     ["macro"] = "Cure Disease",
                 },
                 [7] = {
-                    ["spell"] = "Water Shield",
+                    ["spell"] = "Water Shield", fallback = "Lightning Shield",
                 },
             },
         },

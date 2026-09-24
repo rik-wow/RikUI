@@ -520,6 +520,12 @@ return function(check)
         { "tank", "main", 3, "Seal of Fury", "Seal of Righteousness" },
         { "dps", "main", 11, "Seal of Command", "Seal of Righteousness" },
     })
+    levelingChecks(check, "SHAMAN", {
+        { "enh", "main", 1, "Stormstrike", "Lightning Bolt" },
+        { "ele", "main", 5, "Chain Lightning", "Lightning Bolt" },
+        { "ele", "main", 11, "Lava Burst", "Lightning Bolt" },
+        { "heal", "main", 7, "Water Shield", "Lightning Shield" },
+    })
     fallbackChecks(check)
 end
 
