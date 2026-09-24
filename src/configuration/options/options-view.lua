@@ -77,7 +77,7 @@ local function createPage(index, spec)
     local pane = scroll.Create(frame)
     pane:SetAllPoints()
     local list = options.Render(pane.content, spec.specs)
-    list.scroll, list.popupHost = pane, panel
+    list.scroll, list.popupHost, list.keyboardPanel = pane, panel, panel
     pane.OnResize = function(width) options.ResizeList(list, width) end
     pane.OnScroll = function() if options.CloseDropdown then options.CloseDropdown() end end
     local page = { id = spec.id, title = spec.title, group = spec.group, description = spec.description,

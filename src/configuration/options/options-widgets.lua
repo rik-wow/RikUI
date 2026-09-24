@@ -177,12 +177,17 @@ function options.EditFocus(row, active)
 end
 
 function options.SetFocus(panel, row)
+    if panel.focused and panel.focused ~= row and panel.focused.spec.type == "text" then
+        panel.focused.widget:ClearFocus()
+        panel.focused.editFocused = false
+    end
     if panel.focused then
         panel.focused.keyboardFocused = false
         focusEffect(panel.focused, panel.focused.editFocused == true)
     end
     panel.focused = row
     if row then
+        row.list.keyboardPanel = panel
         row.keyboardFocused = true
         focusEffect(row, true)
         if row.list.scroll then core.Scroll.Reveal(row.list.scroll, row.top, row.height) end
@@ -204,7 +209,20 @@ local function moveFocus(panel, rows, delta)
     options.SetFocus(panel, candidates[index])
 end
 
+function options.TabFromText(row)
+    local panel = row.list.keyboardPanel
+    row.widget:ClearFocus()
+    options.EditFocus(row, false)
+    if panel then
+        options.SetFocus(panel, row)
+        moveFocus(panel, panel.GetRows(), IsShiftKeyDown() and -1 or 1)
+    end
+end
+
 local function handleKey(panel, key)
+    for _, candidate in ipairs(panel.GetRows()) do
+        if candidate.spec.type == "text" and candidate.widget:HasFocus() then return false end
+    end
     if options.DropdownKey and options.DropdownKey(key) then return true end
     if MOVE_KEYS[key] then
         local delta = MOVE_KEYS[key]
@@ -226,7 +244,11 @@ end
 
 -- Propagation writes are protected in combat, so combat keystrokes pass through untouched.
 function options.EnableKeyboard(panel, getRows)
-    panel.GetRows = getRows
+    panel.GetRows = function()
+        local rows = getRows()
+        for _, row in ipairs(rows) do row.list.keyboardPanel = panel end
+        return rows
+    end
     panel:EnableKeyboard(true)
     panel:SetPropagateKeyboardInput(true)
     panel:SetScript("OnKeyDown", function(self, key)

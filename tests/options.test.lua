@@ -223,6 +223,17 @@ return function(check)
         env.runScript(panel, "OnHide")
         check("hiding clears focus and restores propagation", panel.focused == nil and panel.propagate == true)
 
+        options.SetFocus(panel, name)
+        name.widget:SetFocus()
+        press(panel, "LEFT")
+        check("text caret keys propagate while editing", panel.propagate and panel.focused == name)
+        options.SetFocus(panel, flag)
+        check("moving keyboard focus releases the old text editor", not name.widget:HasFocus())
+        name.widget:SetFocus()
+        options.SetFocus(panel, name)
+        env.runScript(name.widget, "OnTabPressed")
+        check("text tab moves to the next enabled control", panel.focused == pressRow and not name.widget:HasFocus())
+
         -- Pages from implemented modules and registration.
         local settingsHit = 0
         options = boot(nil, nil, function(core)

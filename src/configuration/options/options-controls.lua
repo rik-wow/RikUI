@@ -262,6 +262,8 @@ types.text = {
         box:SetScript("OnTextChanged", function(self, userInput)
             if userInput and not row.refreshing then options.Commit(row, self:GetText()) end
         end)
+        box:SetScript("OnTabPressed", function() options.TabFromText(row) end)
+        box:HookScript("OnHide", function(self) self:ClearFocus() end)
         box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
         box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
         return box
