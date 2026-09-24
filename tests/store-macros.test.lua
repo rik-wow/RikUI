@@ -316,6 +316,27 @@ return function(check)
         check("unchanged settings retry truncated edits and survive restart", core.Profile.scale == 0.7
             and core.Store.MacroStatus().failure == nil)
 
+        macros = {}; core = restart()
+        core.DB.community.Travel = { class = "WARRIOR", version = 1,
+            roles = { travel = { slots = {}, macros = { test = "#showtooltip\n/say Ready" } } } }
+        core.Store.FlushMacros()
+        core = restart()
+        local imported = core.DB.community.Travel
+        check("restart retains imported preset definitions", imported and imported.roles.travel.macros.test
+            == "#showtooltip\n/say Ready" and type(imported.roles.travel.slots) == "table")
+        local previous, before = macros["RikUI data 1"], writes
+        core.DB.community.TooLarge = { body = string.rep("x", 4000) }
+        core.Store.FlushMacros()
+        check("oversized imported presets preserve previous restart backup", writes == before
+            and macros["RikUI data 1"] == previous and core.Store.MacroStatus().failure ~= nil)
+        core.DB.community.TooLarge = nil
+        core.DB.community.Cycle = core.DB.community
+        core.Store.FlushMacros()
+        check("cyclic preset library cannot partially write", writes == before)
+        core.DB.community.Cycle = nil
+        core.Store.FlushMacros()
+        check("preset backup recovers without changing definitions", core.Store.MacroStatus().failure == nil)
+
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil

@@ -1,5 +1,7 @@
 # Portable settings and presets
 
+Imported preset definitions now participate in the restart macro backup, including empty slot tables and exact macro text. The existing twelve-macro limit still applies: if all user settings and presets cannot fit, RikUI reports a backup failure and leaves the previous backup untouched. Keep portable exports for large libraries. No preset is applied by recovery.
+
 UI profile exports include the low-space-only capacity setting, its threshold, and durability percentage visibility. Tests cover every defaulted portable preference so additions cannot silently disappear from backups. Invalid thresholds and flag types reject an import before creating a profile.
 
 Research reviewed 2026-09-24:

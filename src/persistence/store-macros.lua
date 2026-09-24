@@ -117,6 +117,8 @@ local function pruneAccount(db)
         result.profiles[name] = pruned or {}
     end
     if next(result.profiles) == nil then result.profiles = nil end
+    -- Preset definitions are user data; empty slot tables and exact macro text matter.
+    if type(db.community) == "table" and next(db.community) then result.community = db.community end
     return next(result) ~= nil and result or nil
 end
 
