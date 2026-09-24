@@ -10,6 +10,8 @@ zone button, the day/night indicator and the instance difficulty flag are
 parked through the [shared hide helper](../SDD.md). Disable the `minimap`
 module in `/rik config` and reload to get the stock cluster back.
 
+In `/rik config` → Gameplay → Minimap, **Show server time** switches the clock from local time to realm time, marked `ST`. Both modes respect Blizzard's 12/24-hour preference. Missing, secret, or invalid server time shows `--:-- ST`; it never substitutes local time.
+
 ## What you see
 
 A 198x198 square map at the top right with RikUI's flat border. The zone name

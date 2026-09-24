@@ -174,6 +174,28 @@ return function(check)
         check("the clock follows the 12-hour setting", holder.clock.text:match("^%d+:%d%d [AP]M$") ~= nil)
         C_CVar.GetCVar = savedGetCVar
 
+        local oldGameTime = GetGameTime
+        GetGameTime = function() return 0, 5 end
+        module.Options.settings[1].set(true)
+        tick(holder)
+        check("server midnight respects 24-hour format", holder.clock.text == "00:05 ST")
+        C_CVar.GetCVar = function() return "0" end
+        tick(holder)
+        check("server midnight respects 12-hour format", holder.clock.text == "12:05 AM ST")
+        GetGameTime = function() return 12, 0 end
+        tick(holder)
+        check("server noon is PM", holder.clock.text == "12:00 PM ST")
+        GetGameTime = function() return env.SECRET, 0 end
+        tick(holder)
+        check("secret server time stays unavailable", holder.clock.text == "--:-- ST")
+        GetGameTime = nil
+        tick(holder)
+        check("missing server clock never pretends to be local", holder.clock.text == "--:-- ST")
+        module.Options.settings[1].set(false)
+        tick(holder)
+        check("local clock remains selectable", holder.clock.text:match("^%d+:%d%d [AP]M$") ~= nil)
+        GetGameTime, C_CVar.GetCVar = oldGameTime, savedGetCVar
+
         local zonePlays = holder.rikZoneFade.plays
         module.UpdateZone()
         check("unchanged zone events do not replay the text fade", holder.rikZoneFade.plays == zonePlays)

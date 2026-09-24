@@ -3,7 +3,7 @@
 -- the mail, queue and tracking frames move into the holder so they stay reachable. Every parent
 -- and anchor write on a Blizzard frame runs through the combat queue.
 local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
-local minimap = { Parked = {}, Adopted = {} }
+local minimap = { Parked = {}, Adopted = {}, Options = { title = "Minimap", settings = {} } }
 core.Minimap = minimap
 
 local HOLDER_NAME, KEY = "RikUIMinimap", "minimap"
@@ -76,7 +76,20 @@ local function militaryTime()
     return not ok or value ~= "0"
 end
 
+local function validTimePart(value, maximum)
+    return not core.Secret.IsSecret(value) and type(value) == "number"
+        and value >= 0 and value <= maximum and value == math.floor(value)
+end
+
 local function clockText()
+    if core.Profile.minimap.serverTime then
+        if type(GetGameTime) ~= "function" then return "--:-- ST" end
+        local ok, hour, minute = pcall(GetGameTime)
+        if not ok or not validTimePart(hour, 23) or not validTimePart(minute, 59) then return "--:-- ST" end
+        if militaryTime() then return string.format("%02d:%02d ST", hour, minute) end
+        local civilHour = hour % 12
+        return string.format("%d:%02d %s ST", civilHour == 0 and 12 or civilHour, minute, hour < 12 and "AM" or "PM")
+    end
     if militaryTime() then return date(MILITARY_FORMAT) end
     return (date(CIVIL_FORMAT):gsub("^0", ""))
 end
@@ -249,5 +262,10 @@ function minimap:Debug(sample)
     sample("GetBestMapForUnit(player)", function() return C_Map.GetBestMapForUnit("player") end)
     sample("GetZonePVPInfo()", readZone)
 end
+
+table.insert(minimap.Options.settings, { type = "checkbox", key = "serverTime", label = "Show server time",
+    description = "Use realm time, marked ST. Both clocks follow your 12/24-hour setting.",
+    get = function() return core.Profile.minimap.serverTime == true end,
+    set = function(value) core.Profile.minimap.serverTime = value == true end })
 
 core:RegisterModule("minimap", minimap)
