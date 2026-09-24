@@ -1,7 +1,7 @@
 -- Player, target, focus and pet castbars. Cast values only reach sinks (src/modules/castbars/castbars-status.lua); this
 -- file owns frames, layout, events and the stock casting bar.
 local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
-local castbars = { Bars = {} }
+local castbars = { Bars = {}, Options = { title = "Castbars", settings = {} } }
 core.CastBars = castbars
 
 local HEIGHT, EDGE, TEXT_INSET, ICON_CROP = 22, 1, 4, 0.08
@@ -27,10 +27,16 @@ local BACKGROUND, BORDER, SHIELD = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0
 local FRAME_PREFIX = "RikUICast_"
 local stockPending = false
 
+local function dimension(key, fallback, low, high)
+    local value = core.Profile.castbars[key]
+    if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then value = fallback end
+    return math.max(low, math.min(high, value))
+end
+
 local function icon(frame)
     local texture = frame:CreateTexture(nil, "ARTWORK")
     texture:SetPoint("TOPLEFT", frame, "TOPLEFT", EDGE, -EDGE)
-    texture:SetSize(HEIGHT - 2 * EDGE, HEIGHT - 2 * EDGE)
+    texture:SetSize(frame.castHeight - 2 * EDGE, frame.castHeight - 2 * EDGE)
     texture:SetTexCoord(ICON_CROP, 1 - ICON_CROP, ICON_CROP, 1 - ICON_CROP)
     return texture
 end
@@ -76,13 +82,14 @@ local function decorate(frame)
     frame.icon = icon(frame)
     frame.bar = statusBar(frame)
     frame.time = frame.bar.time
+    frame.time:SetShown(core.Profile.castbars.timeText ~= false)
 end
 
 local function decorateMotion(frame)
     local motion = core.Motion
     frame.spark = frame.bar:CreateTexture(nil, "OVERLAY")
     frame.spark:SetColorTexture(1, 1, 1, 0.8)
-    frame.spark:SetSize(2, HEIGHT - 2 * EDGE)
+    frame.spark:SetSize(2, frame.castHeight - 2 * EDGE)
     frame.spark:SetPoint("CENTER", frame.bar.fill, "RIGHT")
     frame.flash = frame.bar:CreateTexture(nil, "OVERLAY")
     frame.flash:SetAllPoints(frame.bar)
@@ -102,7 +109,8 @@ end
 local function createBar(spec)
     local frame = CreateFrame("Frame", FRAME_PREFIX .. spec.unit, UIParent)
     frame.key, frame.unit = spec.key, spec.unit
-    frame:SetSize(spec.width, HEIGHT)
+    frame.castHeight = math.floor(dimension("height", HEIGHT, 16, 36) + 0.5)
+    frame:SetSize(math.floor(spec.width * dimension("widthScale", 1, 0.75, 1.5) + 0.5), frame.castHeight)
     decorate(frame)
     decorateMotion(frame)
     if spec.shield then frame.shield = shield(frame) end
@@ -199,5 +207,21 @@ function castbars:Debug(sample)
     sample("UnitCastingInfo(target)", UnitCastingInfo, "target")
     sample("UnitCastingDuration(target)", UnitCastingDuration, "target")
 end
+
+castbars.Options.settings = {
+    { type = "slider", key = "widthScale", label = "Bar width", min = 0.75, max = 1.5, step = 0.05, reload = true,
+        description = "Scale all castbar widths. Reload to apply; move bars afterward if needed.",
+        get = function() return core.Profile.castbars.widthScale end,
+        set = function(value) core.Profile.castbars.widthScale = value end },
+    { type = "slider", key = "height", label = "Bar height", min = 16, max = 36, step = 1, reload = true,
+        get = function() return core.Profile.castbars.height end,
+        set = function(value) core.Profile.castbars.height = value end },
+    { type = "checkbox", key = "timeText", label = "Show remaining cast time",
+        get = function() return core.Profile.castbars.timeText ~= false end,
+        set = function(value)
+            core.Profile.castbars.timeText = value == true
+            for _, frame in pairs(castbars.Bars) do frame.time:SetShown(value == true) end
+        end },
+}
 
 core:RegisterModule("castbars", castbars)

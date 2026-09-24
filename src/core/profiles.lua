@@ -14,6 +14,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 
     druidmana = { show = true },
     nameplates = { threatText = true, selectedScale = 1.15, otherAlpha = 0.6 },
     unitframes = { healthText = "both", powerText = "both" },
+    castbars = { widthScale = 1, height = 22, timeText = true },
     worldmap = { fog = true },
     xpbar = { compact = false, text = true, animations = true, ticks = true } }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }

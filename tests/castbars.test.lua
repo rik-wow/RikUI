@@ -20,6 +20,7 @@ return function(check)
             if key:match("^[A-Z]") then return methods(t, key) end
         end })
         function value:SetTexture(texture) self.texture = texture end
+        function value:SetSize(width, height) self.width, self.height = width, height end
         function value:SetTexCoord(...) self.coords = { ... } end
         function value:SetColorTexture(...) self.color = { ... } end
         function value:SetVertexColor(...) self.color = { ... } end
@@ -380,6 +381,23 @@ return function(check)
         check("missing animation API still finishes and hides", not module.Bars.castplayer.shown)
         RikTestAnimationsMissing = nil
 
+        module = load({ castbars = { widthScale = 1.25, height = 30, timeText = false } })
+        player, target = module.Bars.castplayer, module.Bars.casttarget
+        check("castbar dimensions scale all units", player.width == 275 and player.height == 30
+            and module.Bars.castfocus.width == 200 and module.Bars.castpet.width == 138)
+        check("castbar art follows height", player.icon.height == 28 and player.spark.height == 28)
+        playerCast("HiddenTime", {})
+        env.fire("UNIT_SPELLCAST_START", "player", "HiddenTime")
+        check("hidden timer keeps the duration-driven cast", player.time.shown == false and player.bar.timer ~= nil)
+        local timeOption
+        for _, option in ipairs(module.Options.settings) do
+            if option.key == "timeText" then timeOption = option end
+        end
+        timeOption.set(true)
+        check("timer option updates running casts immediately", player.time.shown == true and player.shown)
+        module = load({ castbars = { widthScale = -10, height = math.huge } })
+        check("invalid castbar dimensions stay bounded", module.Bars.castplayer.width == 165
+            and module.Bars.castplayer.height == 22)
         module = load(nil, true)
         check("combat login defers bar creation and stock hiding", next(module.Bars) == nil
             and PlayerCastingBarFrame.parent == UIParent)

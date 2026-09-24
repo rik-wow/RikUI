@@ -1,5 +1,12 @@
 # Castbars
 
+The Castbars options page offers width (75–150%) and height (16–36 pixels)
+for all four bars. Geometry changes require a reload; use Move afterward if
+larger bars need more room. Defaults remain 220/160/110 pixels wide and 22 high.
+The icon and fill spark follow the bar height. **Show remaining cast time**
+takes effect immediately and only hides the number; the cast fill still runs.
+
+
 `src/modules/castbars/castbars.lua` and `src/modules/castbars/castbars-status.lua` replace the Blizzard player casting
 bar with a flat bar under the player frame and add a second one under the
 target frame. Disable the `castbars` module in `/rik config` and reload to get
