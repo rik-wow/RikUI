@@ -25,6 +25,12 @@ Assassination and Subtlety retain Sinister Strike on their primary builder until
 
 Rechecked [class feedback](https://us.forums.blizzard.com/en/wow/t/rogue-feedback-and-discussion/2355615) and the [published spellbook](https://foreverchanges.pro/spellbook/rogue). Community discussion motivates accessible leveling keys; the catalogue remains pinned to verified build 1.60.1.69913, without newly inferred spell IDs, ranks or acquisition levels. Preset version 3. Learned-spell, resolved-page and regression checks cover selection; native acceptance is supplied by the user.
 
+### Warlock Destruction leveling rotation access — 2026-09-23
+
+Destruction preserves Shadow Bolt, Corruption, Bane of Agony and Drain Life until its later primary abilities are learned. These fill deliberate damage/sustain keys; they do not imply identical mechanics. Pet control and Health Funnel targeting remain explicit.
+
+Rechecked [class feedback](https://www.reddit.com/r/classicwow/comments/1widqqd/i_tested_warlock_for_10_hours_in_wow_forever/) and the [published spellbook](https://foreverchanges.pro/spellbook/warlock). Community discussion motivates accessible leveling keys; the catalogue remains pinned to verified build 1.60.1.69913, without newly inferred spell IDs, ranks or acquisition levels. Preset version 3. Learned-spell, resolved-page and regression checks cover selection; native acceptance is supplied by the user.
+
 ## Source boundaries
 
 Spell families and rank order come from the author-published [ForeverChanges spellbooks](https://foreverchanges.pro/spellbook/hunter). Their embedded data explicitly identifies **1.60.1.69913**, despite the site's header advertising 69977. IDs and names for all eight new classes (1,446 unique IDs) were cross-checked with Blizzard's extracted [SpellName](https://wago.tools/db2/SpellName/csv?build=1.60.1.69913) and [SpellMisc](https://wago.tools/db2/SpellMisc/csv?build=1.60.1.69913) records: no mismatches or missing records. Numeric icons come from SpellMisc, keyed by SpellID and default difficulty. Internal DB2 spell levels do not establish acquisition: unknown talent levels stay nil. Multiple unranked IDs in one family are retained and only a learned player spellbook entry can become an action.

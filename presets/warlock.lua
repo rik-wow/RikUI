@@ -1,7 +1,7 @@
 -- Native pet controls and role rotations; evidence: docs/class-presets.md.
 RikUI.Presets.WARLOCK = {
     ["class"] = "WARLOCK",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = {
         "affliction",
         "demonology",
@@ -206,11 +206,11 @@ RikUI.Presets.WARLOCK = {
                 ["spell"] = "Bane of Havoc",
             },
             [11] = {
-                ["spell"] = "Conflagrate",
+                ["spell"] = "Conflagrate", fallback = "Corruption",
                 ["level"] = 25,
             },
             [12] = {
-                ["spell"] = "Shadowburn",
+                ["spell"] = "Shadowburn", fallback = "Bane of Agony",
                 ["level"] = 20,
             },
         },
@@ -256,11 +256,11 @@ RikUI.Presets.WARLOCK = {
                 ["level"] = 60,
             },
             [11] = {
-                ["spell"] = "Soul Fire",
+                ["spell"] = "Soul Fire", fallback = "Drain Life",
                 ["level"] = 48,
             },
             [12] = {
-                ["spell"] = "Incinerate",
+                ["spell"] = "Incinerate", fallback = "Shadow Bolt",
                 ["level"] = 40,
             },
         },
@@ -296,11 +296,11 @@ RikUI.Presets.WARLOCK = {
         ["destruction"] = {
             ["main"] = {
                 [1] = {
-                    ["spell"] = "Incinerate",
+                    ["spell"] = "Incinerate", fallback = "Shadow Bolt",
                     ["level"] = 40,
                 },
                 [2] = {
-                    ["spell"] = "Conflagrate",
+                    ["spell"] = "Conflagrate", fallback = "Corruption",
                     ["level"] = 25,
                 },
                 [3] = {
@@ -308,11 +308,11 @@ RikUI.Presets.WARLOCK = {
                     ["level"] = 1,
                 },
                 [4] = {
-                    ["spell"] = "Shadowburn",
+                    ["spell"] = "Shadowburn", fallback = "Bane of Agony",
                     ["level"] = 20,
                 },
                 [5] = {
-                    ["spell"] = "Soul Fire",
+                    ["spell"] = "Soul Fire", fallback = "Drain Life",
                     ["level"] = 48,
                 },
             },

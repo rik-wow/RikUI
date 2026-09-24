@@ -491,6 +491,12 @@ return function(check)
         { "assassination", "main", 1, "Mutilate", "Sinister Strike" },
         { "subtlety", "main", 1, "Hemorrhage", "Sinister Strike" },
     })
+    levelingChecks(check, "WARLOCK", {
+        { "destruction", "main", 1, "Incinerate", "Shadow Bolt" },
+        { "destruction", "main", 2, "Conflagrate", "Corruption" },
+        { "destruction", "main", 4, "Shadowburn", "Bane of Agony" },
+        { "destruction", "main", 5, "Soul Fire", "Drain Life" },
+    })
     fallbackChecks(check)
 end
 
