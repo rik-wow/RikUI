@@ -1,7 +1,7 @@
 -- Friendly living mouseover, target, then self heals in every role.
 RikUI.Presets.PRIEST = {
     ["class"] = "PRIEST",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = {
         "heal",
         "shadow",
@@ -157,19 +157,19 @@ RikUI.Presets.PRIEST = {
         },
         ["bar4"] = {
             [1] = {
-                ["spell"] = "Mind Blast",
+                ["spell"] = "Mind Blast", fallback = "Smite",
                 ["level"] = 10,
             },
             [2] = {
-                ["spell"] = "Mind Flay",
+                ["spell"] = "Mind Flay", fallback = "Smite",
                 ["level"] = 20,
             },
             [3] = {
-                ["spell"] = "Shadow Word: Death",
+                ["spell"] = "Shadow Word: Death", fallback = "Mind Blast",
                 ["level"] = 32,
             },
             [4] = {
-                ["spell"] = "Devouring Plague",
+                ["spell"] = "Devouring Plague", fallback = "Shadow Word: Pain",
                 ["level"] = 20,
             },
             [5] = {
@@ -332,11 +332,11 @@ RikUI.Presets.PRIEST = {
         ["shadow"] = {
             ["main"] = {
                 [1] = {
-                    ["spell"] = "Mind Flay",
+                    ["spell"] = "Mind Flay", fallback = "Smite",
                     ["level"] = 20,
                 },
                 [2] = {
-                    ["spell"] = "Mind Blast",
+                    ["spell"] = "Mind Blast", fallback = "Smite",
                     ["level"] = 10,
                 },
                 [3] = {
@@ -344,11 +344,11 @@ RikUI.Presets.PRIEST = {
                     ["level"] = 4,
                 },
                 [4] = {
-                    ["spell"] = "Devouring Plague",
+                    ["spell"] = "Devouring Plague", fallback = "Shadow Word: Pain",
                     ["level"] = 20,
                 },
                 [5] = {
-                    ["spell"] = "Shadow Word: Death",
+                    ["spell"] = "Shadow Word: Death", fallback = "Mind Blast",
                     ["level"] = 32,
                 },
                 [6] = {

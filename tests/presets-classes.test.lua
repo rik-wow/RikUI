@@ -509,6 +509,12 @@ return function(check)
         { "beast", "main", 3, "Summon Hawk", "Arcane Shot" },
         { "survival", "main", 4, "Lacerate", "Raptor Strike" },
     })
+    levelingChecks(check, "PRIEST", {
+        { "shadow", "main", 1, "Mind Flay", "Smite" },
+        { "shadow", "main", 2, "Mind Blast", "Smite" },
+        { "shadow", "main", 4, "Devouring Plague", "Shadow Word: Pain" },
+        { "shadow", "main", 5, "Shadow Word: Death", "Mind Blast" },
+    })
     fallbackChecks(check)
 end
 
