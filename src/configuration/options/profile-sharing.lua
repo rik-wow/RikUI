@@ -22,7 +22,7 @@ local schema = {
     chat={ fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
     bags={ autoRepair=boolean, columns=number(10,16,true) },
     questtracker={ collapsed=boolean, collapseInCombat=boolean, hideCompleted=boolean, readyFirst=boolean },
-    minimap={ serverTime=boolean, coordinates=boolean },
+    minimap={ serverTime=boolean, coordinates=boolean, dayNight=boolean },
     swingtimer={ kiting=boolean, stopLead=number(0.1,1.5) },
     druidmana={ show=boolean }, worldmap={ fog=boolean },
     xpbar={ compact=boolean, text=boolean, animations=boolean, ticks=boolean },

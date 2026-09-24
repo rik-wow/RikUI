@@ -9,7 +9,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = f
     bags = { autoRepair = false, columns = 10 },
     barFade = { bar3 = true },
     questtracker = { collapsed = false, collapseInCombat = false, hideCompleted = false, readyFirst = false },
-    minimap = { serverTime = false, coordinates = true },
+    minimap = { serverTime = false, coordinates = true, dayNight = true },
     swingtimer = { kiting = true, stopLead = 0.6 },
     druidmana = { show = true },
     worldmap = { fog = true },

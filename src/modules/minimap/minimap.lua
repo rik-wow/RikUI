@@ -118,6 +118,16 @@ function minimap.UpdateCoordinates()
     holder.coords:SetText(core.Profile.minimap.coordinates~=false and coordsText() or "")
 end
 
+function minimap.UpdateDiel()
+    if not holder or not holder.diel then return end
+    holder.diel:SetText("")
+    if core.Profile.minimap.dayNight == false then return end
+    if type(C_DateAndTime) ~= "table" or type(C_DateAndTime.IsDayTime) ~= "function" then return end
+    local ok, day = pcall(C_DateAndTime.IsDayTime)
+    if not ok or core.Secret.IsSecret(day) or type(day) ~= "boolean" then return end
+    holder.diel:SetText(day and "Day" or "Night")
+end
+
 function minimap.Tick(self, elapsed)
     self.elapsed = self.elapsed + elapsed
     if self.elapsed < UPDATE_SECONDS then return end
@@ -183,9 +193,10 @@ local function createHolder()
     zoneButton()
     holder.clock = label("small", "TOPLEFT", "BOTTOMLEFT", -TEXT_GAP)
     holder.coords = label("small", "TOPRIGHT", "BOTTOMRIGHT", -TEXT_GAP)
+    holder.diel = label("small", "TOPLEFT", "BOTTOMLEFT", -(TEXT_GAP + 16))
     holder.elapsed = 0
     holder:SetScript("OnUpdate", minimap.Tick)
-    layout.Register(holder, KEY, DEFAULTS, { onApply = minimap.UpdateCoordinates })
+    layout.Register(holder, KEY, DEFAULTS, { onApply = function() minimap.UpdateCoordinates(); minimap.UpdateDiel() end })
     minimap.Holder = holder
 end
 
@@ -276,6 +287,7 @@ local function build()
     park()
     installMouse()
     minimap.UpdateZone()
+    minimap.UpdateDiel()
     if core.EditMode then core.EditMode.Guard(MinimapCluster, "minimap", reattach) end
 end
 
@@ -286,6 +298,8 @@ function minimap:OnEnable()
     end
     core.Combat.Queue(build)
     for _, event in ipairs(ZONE_EVENTS) do core:RegisterEvent(event, minimap.UpdateZone) end
+    core:RegisterEvent("DIEL_CYCLE_CHANGED", minimap.UpdateDiel)
+    core:RegisterEvent("PLAYER_ENTERING_WORLD", minimap.UpdateDiel)
 end
 
 function minimap:Debug(sample)
@@ -304,5 +318,10 @@ table.insert(minimap.Options.settings, { type = "checkbox", key = "coordinates",
     description = "Display your position below the minimap. Hidden coordinates stop position polling.",
     get = function() return core.Profile.minimap.coordinates ~= false end,
     set = function(value) core.Profile.minimap.coordinates = value == true; minimap.UpdateCoordinates() end })
+
+table.insert(minimap.Options.settings, { type = "checkbox", key = "dayNight", label = "Show day/night",
+    description = "Show the world cycle reported by the client, independently of the clock.",
+    get = function() return core.Profile.minimap.dayNight ~= false end,
+    set = function(value) core.Profile.minimap.dayNight = value == true; minimap.UpdateDiel() end })
 
 core:RegisterModule("minimap", minimap)

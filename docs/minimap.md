@@ -20,6 +20,12 @@ ping and tracking clicks intact.
 it off clears the text immediately and stops position polling; turning it on
 reads your current position immediately.
 
+**Show day/night** displays a separate Day or Night label below the clock. It follows the client's `C_DateAndTime.IsDayTime()` result at creation, world entry, profile application and `DIEL_CYCLE_CHANGED`, with no timer polling or local/server clock inference. Missing, failed, secret or non-boolean data clears the label. The preference is included in profile sharing.
+
+Decision recorded 2026-09-24: keep this optional information because [players report time-zone confusion](https://www.reddit.com/r/wowforever/comments/1wkr8jm/time_zones_at_launch/) and [ask how the world cycle works](https://www.reddit.com/r/wowforever/comments/1wilhcc/one_mega_realm_how_does_daynight_cycle_work/). These community reports do not establish the game's schedule or night-gated spawn rules. The client source's `Camelot/Diel.lua` at the pinned commit below was fetched and checked on 2026-09-24: it initializes with IsDayTime and subscribes to DIEL_CYCLE_CHANGED. RikUI retains that information using text while the round artwork stays parked.
+
+Automated fixtures cover both states, events, no polling, toggles, and degraded API values. Native acceptance is supplied by the user; historical checklists below are reference scenarios only.
+
 ## What you see
 
 A 198x198 square map at the top right with RikUI's flat border. The zone name

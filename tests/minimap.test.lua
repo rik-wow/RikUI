@@ -7,6 +7,7 @@ return function(check)
     local originalCreate = CreateFrame
     local API = { "GetMinimapZoneText", "C_PvP", "C_Map", "GetCursorPosition", "MinimapCluster", "Minimap",
         "MinimapBackdrop", "MinimapCompassTexture", "MinimapZoneText", "QueueStatusButton", "ToggleWorldMap" }
+    local savedDateAndTime = C_DateAndTime
     local saved, savedGetCVar = {}, C_CVar.GetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local function protected()
@@ -264,6 +265,38 @@ return function(check)
         module = load(nil, false, function() QueueStatusButton = nil end)
         check("an absent queue button is skipped", module.Holder ~= nil and #module.Adopted == 2)
 
+        local day, dayReads = true, 0
+        C_DateAndTime = { IsDayTime = function() dayReads = dayReads + 1; return day end }
+        module = load()
+        holder = module.Holder
+        check("day indicator exists", holder.diel ~= nil)
+        if holder.diel then
+            check("day state rendered at build", holder.diel.text == "Day")
+            day = false
+            env.fire("DIEL_CYCLE_CHANGED")
+            check("cycle event renders night", holder.diel.text == "Night")
+            local beforeDayReads = dayReads
+            tick(holder); tick(holder)
+            check("cycle indicator does not poll", dayReads == beforeDayReads)
+            module.Options.settings[3].set(false)
+            env.fire("DIEL_CYCLE_CHANGED")
+            check("disabled cycle label clears without reading", holder.diel.text == "" and dayReads == beforeDayReads)
+            module.Options.settings[3].set(true)
+            check("cycle option restores immediately", holder.diel.text == "Night")
+            day = env.SECRET
+            env.fire("DIEL_CYCLE_CHANGED")
+            check("secret cycle does not branch", holder.diel.text == "")
+            day = "day"
+            env.fire("DIEL_CYCLE_CHANGED")
+            check("invalid cycle is unavailable", holder.diel.text == "")
+            C_DateAndTime.IsDayTime = function() error("unavailable") end
+            env.fire("DIEL_CYCLE_CHANGED")
+            check("failed cycle clears stale data", holder.diel.text == "")
+            C_DateAndTime = nil
+            env.fire("DIEL_CYCLE_CHANGED")
+            check("missing cycle API stays unavailable", holder.diel.text == "")
+        end
+
         module=load({minimap={coordinates=false}})
         tick(module.Holder)
         check("coordinate preference survives profile reload",module.Holder.coords.text=="" and module.Options.settings[2].get()==false)
@@ -277,6 +310,7 @@ return function(check)
     end)
     CreateFrame = originalCreate
     C_CVar.GetCVar = savedGetCVar
+    C_DateAndTime = savedDateAndTime
     for name, value in pairs(saved) do _G[name] = value end
     env.inCombat = false
     check("minimap suite completes", ok, reason)
