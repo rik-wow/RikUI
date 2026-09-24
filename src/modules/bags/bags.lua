@@ -10,7 +10,7 @@ core.Bags = bags
 local HOLDER_NAME, SEARCH_NAME, KEY = "RikUIBags", "RikUIBagsSearch", "bags"
 -- Bottom right, above the tooltip anchor.
 local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -126, y = 350 }
-local PAD, HEADER, FOOTER, EDGE = 8, 24, 64, 1
+local PAD, HEADER, FOOTER, EDGE = 8, 68, 64, 1
 local CONTROL_HEIGHT, SEARCH_WIDTH, SORT_WIDTH, CLOSE_WIDTH, CONTROL_GAP = 18, 120, 40, 18, 4
 local BACKGROUND, FIELD, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.1, 0.11, 0.13, 1 }, { 0.25, 0.28, 0.32, 1 }
 local TITLE_FORMAT, SEARCH_HINT, SORT_LABEL, CLOSE_ICON = "Bags %d/%d", "Search", "Sort", "close"
@@ -114,6 +114,18 @@ local function createSearch()
     return box
 end
 
+local function createFilters()
+    holder.filters = {}
+    for index, entry in ipairs({ { "all", "All" }, { "junk", "Junk" }, { "quest", "Quest" },
+        { "gear", "Gear" }, { "use", "Use" } }) do
+        local key = entry[1]
+        local button = textButton(entry[2], 48, function() bags.SetFilter(key) end)
+        button:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD + (index - 1) * 52, -52)
+        holder.filters[key] = button
+    end
+    bags.SetFilter("all")
+end
+
 local function createControls()
     holder.title = holder:CreateFontString(nil, "OVERLAY")
     media.Font(holder.title, "label")
@@ -123,9 +135,10 @@ local function createControls()
     holder.close.icon:SetPoint("CENTER", holder.close, "CENTER", 0, 0)
     holder.close:SetPoint("TOPRIGHT", holder, "TOPRIGHT", -PAD, -PAD)
     holder.sort = textButton(SORT_LABEL, SORT_WIDTH, bags.Sort)
-    holder.sort:SetPoint("RIGHT", holder.close, "LEFT", -CONTROL_GAP, 0)
+    holder.sort:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD + SEARCH_WIDTH + CONTROL_GAP, -30)
     holder.search = createSearch()
-    holder.search:SetPoint("RIGHT", holder.sort, "LEFT", -CONTROL_GAP, 0)
+    holder.search:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -30)
+    createFilters()
     holder.money = holder:CreateFontString(nil, "OVERLAY")
     media.Font(holder.money, "small")
     holder.money:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", -PAD, PAD)
@@ -145,8 +158,8 @@ end
 function bags.UpdateTitle()
     if not holder then return end
     local text = TITLE_FORMAT:format(bags.Used, bags.Total)
-    local search, dimmed = bags.SearchState()
-    if search ~= "" then
+    local search, dimmed, filter = bags.SearchState()
+    if search ~= "" or filter ~= "all" then
         local found = bags.Total - dimmed
         text = text .. (found == 1 and MATCH_ONE or MATCH_MANY:format(found))
     end
@@ -192,6 +205,7 @@ end
 -- Escape and the close button hide the holder directly; Blizzard's frames have to follow.
 local function onHide()
     dragStop()
+    bags.SetFilter("all")
     holder.search:SetText("")
     searchChanged(holder.search)
     if anyStockOpen() and type(CloseAllBags) == "function" then CloseAllBags() end

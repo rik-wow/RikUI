@@ -17,7 +17,8 @@ local DIM_ALPHA, FULL_ALPHA, DIM_OVERLAY = 0.25, 1, { 0, 0, 0, 0.6 }
 local NAME_PATTERN = "%[(.-)%]"
 local COPPER_PER_SILVER, COPPER_PER_GOLD = 100, 10000
 local GOLD, SILVER, COPPER = "%d|cffffd700g|r", "%d|cffc7c7cfs|r", "%d|cffeda55fc|r"
-local bagFrames, search = {}, ""
+local bagFrames, search, filter = {}, "", "all"
+local ITEM_CONSUMABLE, ITEM_WEAPON, ITEM_ARMOR, ITEM_QUEST = 0, 2, 4, 12
 
 local function plain(value, kind)
     return not core.Secret.IsSecret(value) and type(value) == kind
@@ -125,7 +126,34 @@ local function nativeSearch()
     return type(C_Container.SetItemSearch) == "function"
 end
 
+local function categoryMatches(button)
+    if filter == "all" then return true end
+    if not button.rikFilled then return false end
+    if filter == "junk" then return button.rikQuality == 0 end
+    if filter == "quest" then return button.rikQuest or button.rikClass == ITEM_QUEST end
+    if filter == "gear" then return button.rikClass == ITEM_WEAPON or button.rikClass == ITEM_ARMOR end
+    return button.rikClass == ITEM_CONSUMABLE
+end
+
+local function classify(button, info, bag, slot)
+    local quality = info and info.quality
+    button.rikQuality = plain(quality, "number") and quality or nil
+    button.rikClass, button.rikQuest = nil, false
+    local link = info and info.hyperlink
+    if plain(link, "string") and C_Item and type(C_Item.GetItemInfoInstant) == "function" then
+        local ok, _, _, _, _, _, class = pcall(C_Item.GetItemInfoInstant, link)
+        if ok and plain(class, "number") then button.rikClass = class end
+    end
+    if info and type(C_Container.GetContainerItemQuestInfo) == "function" then
+        local ok, quest = pcall(C_Container.GetContainerItemQuestInfo, bag, slot)
+        if ok and plain(quest, "table") then
+            button.rikQuest = plain(quest.isQuestItem, "boolean") and quest.isQuestItem
+        end
+    end
+end
+
 local function matches(button)
+    if not categoryMatches(button) then return false end
     if search == "" then return true end
     if not button.rikFilled then return false end
     if nativeSearch() then return not button.rikFiltered end
@@ -167,6 +195,7 @@ function bags.UpdateButton(button)
     for _, line in ipairs(button.rikBorder) do line:SetVertexColor(r, g, b, 1) end
     button.rikName, button.rikFilled = itemName(info), info ~= nil
     button.rikFiltered = info ~= nil and plain(info.isFiltered, "boolean") and info.isFiltered
+    classify(button, info, bag, slot)
     updateCooldown(button, bag, slot)
     dim(button)
 end
@@ -223,12 +252,22 @@ function bags.SetSearch(text)
     bags.UpdateTitle()
 end
 
+function bags.SetFilter(value)
+    if value ~= "all" and value ~= "junk" and value ~= "quest" and value ~= "gear" and value ~= "use" then return end
+    filter = value
+    for key, button in pairs(bags.Holder.filters) do
+        button.label:SetTextColor(key == filter and 1 or 0.65, key == filter and 0.82 or 0.65, key == filter and 0 or 0.65)
+    end
+    eachButton(dim)
+    bags.UpdateTitle()
+end
+
 function bags.SearchState()
     local dimmed = 0
     eachButton(function(button)
         if button.rikDimmed and button:IsShown() then dimmed = dimmed + 1 end
     end)
-    return search, dimmed
+    return search, dimmed, filter
 end
 
 function bags.MoneyText(amount)

@@ -148,6 +148,14 @@ replacement, rejected drops, dragging, combat refusal, missing APIs and bag-size
 Native behavior is accepted under the user's standing policy; the stub does not claim
 client rendering or taint verification.
 
+## Quick filters
+
+All, Junk, Quest, Gear and Use buttons narrow the inventory without moving slots.
+Filters combine with the search text; the title counts the matches. Junk means
+poor quality, Gear means weapons or armor, and Use means consumables. Quest
+items use native quest metadata or the quest-item class. Unavailable metadata
+does not guess a category. All restores every slot; closing bags resets filters.
+
 ## Source evidence
 
 Reviewed against the Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):

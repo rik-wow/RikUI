@@ -197,7 +197,7 @@ return function(check)
         check("slots flow ten to a row across bags", cloth.point[2] == holder.grid and cloth.point[4] == 0
             and cloth.point[5] == 0 and button(0, 10).point[4] == 342 and button(0, 11).point[4] == 0
             and button(0, 11).point[5] == -38 and button(1, 1).point[4] == 228 and button(1, 1).point[5] == -38)
-        check("the holder fits the grid and the title counts used slots", holder.width == 394 and holder.height == 216
+        check("the holder fits the grid and the title counts used slots", holder.width == 394 and holder.height == 260
             and holder.title.text == "Bags 3/22")
         check("the money line shows gold, silver and copper", holder.money.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
             == "12g 34s 56c")
@@ -219,6 +219,34 @@ return function(check)
         typeSearch("")
         check("an empty search drops the match count", holder.title.text == "Bags 3/22")
 
+        local oldInstant = C_Item.GetItemInfoInstant
+        C_Item.GetItemInfoInstant = function(link)
+            local class = link:find("Linen", 1, true) and 7 or (link:find("Hearth", 1, true) and 0 or 2)
+            return 1, "", "", "", 1, class
+        end
+        module.Refresh()
+        env.click(holder.filters.gear)
+        check("gear filter dims non-equipment and empty slots", blade.alpha == 1 and cloth.alpha == 0.25 and empty.alpha == 0.25)
+        typeSearch("Hearth")
+        check("text search intersects quick filters", blade.alpha == 0.25 and stone.alpha == 0.25)
+        env.click(holder.filters.use)
+        check("consumable filter combines with text search", stone.alpha == 1 and blade.alpha == 0.25)
+        typeSearch("")
+        stub.items["0:1"].quality = 0
+        module.Refresh()
+        env.click(holder.filters.junk)
+        check("junk filter uses item quality", cloth.alpha == 1 and stone.alpha == 0.25)
+        stub.items["0:1"].quality = env.SECRET
+        module.Refresh()
+        check("secret quality never matches junk", cloth.alpha == 0.25)
+        stub.items["0:1"].quality = 1
+        C_Item.GetItemInfoInstant = function() return 1, "", "", "", 1, 12 end
+        module.Refresh()
+        env.click(holder.filters.quest)
+        check("quest category finds quest items", cloth.alpha == 1 and empty.alpha == 0.25)
+        C_Item.GetItemInfoInstant = oldInstant
+        env.click(holder.filters.all)
+        check("all restores every slot", blade.alpha == 1 and empty.alpha == 1)
         env.click(holder.sort)
         check("the sort button calls C_Container.SortBags", stub.sorted == 1)
         stub.items["0:1"], stub.items["0:3"] = nil, { iconFileID = 132889, stackCount = 20, quality = 1,
@@ -244,7 +272,7 @@ return function(check)
         stub.slots[1] = 4
         env.fire("BAG_UPDATE_DELAYED")
         check("a smaller bag hides its surplus buttons", shownButtons() == 20 and not button(1, 5):IsShown()
-            and holder.title.text == "Bags 3/20" and holder.height == 178)
+            and holder.title.text == "Bags 3/20" and holder.height == 222)
         stub.items["0:2"] = env.SECRET
         env.fire("BAG_UPDATE_DELAYED")
         check("a secret item record draws an empty slot without printing", stone.rikIcon.texture == nil
