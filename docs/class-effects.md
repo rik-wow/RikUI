@@ -36,3 +36,11 @@ Player: Battle Shout, Shield Block, Bloodrage, Berserker Rage, Shield Wall, Reta
 
 [Current feedback](https://www.curseforge.com/wow/addons/overpowerproc-wow-forever-beta) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/warrior) supplies the direct-aura families through the existing 69913 catalogue. Overpower and Victory Rush proc IDs remain unverified; no combat-text inference or stance automation. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Hunter — 2026-09-23
+
+Track active aspects and Rapid Fire, with your mark, stings and slowing effects on ranged or melee targets.
+
+Player: Aspect of the Monkey, Aspect of the Hawk, Aspect of the Cheetah, Aspect of the Beast, Aspect of the Pack, Aspect of the Wild, Rapid Fire. Target harmful: Hunter's Mark, Serpent Sting, Scorpid Sting, Viper Sting, Wing Clip, Concussive Shot.
+
+[Current feedback](https://www.reddit.com/r/classicwow/comments/1wonh43/melee_hunter_macros_and_addons_for_wowforever/) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/hunter) supplies the direct-aura families through the existing 69913 catalogue. Trap victim auras and pet ability effects are excluded until their separate IDs are verified; no pet-AI or Auto Shot timing claim. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
