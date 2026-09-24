@@ -654,6 +654,31 @@ return function(check)
         check("cyclic dependencies reject atomically", not RikUI:SetModuleEnabled("cycleA", true)
             and not RikUI.Profile.modules.cycleA and not RikUI.Profile.modules.cycleB)
 
+        options = boot({ profiles = { Default = { scale = 0.75, tooltip = { scale = 1.4 } }, ["Recovery 1"] = {} } })
+        local recoveryRows = pageByTitle(options, "Profiles").list
+        local resetProfile = rowByKey(recoveryRows, "resetProfile")
+        check("profile reset is exposed", resetProfile ~= nil)
+        env.click(resetProfile.widget)
+        check("profile reset requires confirmation", RikUI.Profile.scale == 0.75)
+        env.click(resetProfile.cancel)
+        check("cancel profile reset preserves settings", RikUI.Profile.scale == 0.75)
+        env.click(resetProfile.widget); env.click(resetProfile.widget)
+        check("profile reset keeps active name and defaults", RikUI.CharDB.profile == "Default"
+            and RikUI.Profile.scale == 1 and RikUI:ProfileNeedsReload())
+        local recovery = RikUI.DB.profiles["Recovery 2"]
+        check("profile reset makes independent recovery copy", recovery and recovery.scale == 0.75
+            and recovery.tooltip.scale == 1.4 and recovery.tooltip ~= RikUI.Profile.tooltip)
+        RikUI:SetProfile("Recovery 2")
+        check("recovery profile restores old preferences", RikUI.Profile.scale == 0.75)
+        env.inCombat = true
+        check("combat reset is refused", not options.ResetProfile() and RikUI.Profile == recovery)
+        env.inCombat = false
+        local isApplying = RikUI.Setup.IsApplying
+        RikUI.Setup.IsApplying = function() return true end
+        check("setup conflict leaves reset data untouched", not options.ResetProfile()
+            and RikUI.Profile == recovery and RikUI.DB.profiles["Recovery 3"] == nil)
+        RikUI.Setup.IsApplying = isApplying
+
         -- Real bars module declares appearance options.
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }

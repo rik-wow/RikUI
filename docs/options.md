@@ -92,6 +92,8 @@ receive defaults when they next load. Use `/rik profileexport` and
 `/rik profileimport` to share UI preferences under a new profile name; see
 [sharing](sharing.md). Profile creation and deletion save immediately.
 
+**Reset active UI profile** asks for confirmation, preserves an independent `Recovery N` profile, then restores UI defaults. Select that recovery profile to restore your preferences. Reload applies module and appearance changes; character setup is retained. Resets are refused during combat or pending setup operations.
+
 ## Keyboard
 
 Tab/Down and Shift-Tab/Up move between controls and scroll the focused row into

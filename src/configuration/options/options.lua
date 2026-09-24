@@ -63,6 +63,29 @@ function options.CreateProfile(name, copyFrom)
     return true
 end
 
+local function recoveryName()
+    for index = 1, MAX_PROFILE_NODES do
+        local name = "Recovery " .. index
+        if not core.DB.profiles[name] then return name end
+    end
+end
+
+function options.ResetProfile()
+    if not core.DB or not core.Profile then return nil, "Still loading." end
+    if InCombatLockdown() then return nil, "Reset profiles after combat." end
+    local name, previous = core.CharDB.profile, core.Profile
+    local backupName = recoveryName()
+    if not backupName then return nil, "Remove an unused recovery profile first." end
+    local copied, backup = pcall(copyTable, previous)
+    if not copied then return nil, backup end
+    core.DB.profiles[name] = {}
+    local ok, reason = core:SetProfile(name)
+    if not ok then core.DB.profiles[name] = previous; return nil, reason end
+    core.DB.profiles[backupName] = backup
+    core:Changed()
+    return true, backupName
+end
+
 function options.DeleteProfile(name)
     if not core.DB then return nil, "Still loading." end
     if name == core.CharDB.profile then return nil, "Switch away from the active profile before deleting it." end
@@ -268,6 +291,15 @@ local function profileSpecs()
             action = function() core.Sharing.OpenProfileExport() end },
         { type = "button", key = "profileimport", label = "Save a shared UI profile", text = "Import",
             action = function() core.Sharing.OpenProfileImport() end },
+        { type = "heading", label = "Recovery" },
+        { type = "button", key = "resetProfile", label = "Reset active UI profile", text = "Reset",
+            description = "Keep a Recovery copy, then restore UI defaults. Character setup stays unchanged. Reload to apply.",
+            disabled = function() return InCombatLockdown() end,
+            confirm = function() return "Reset " .. core.CharDB.profile .. " and keep a recovery copy?" end,
+            action = function()
+                local ok, result = options.ResetProfile()
+                core:Print(ok and ("Profile reset. Previous settings: " .. result .. ". Reload UI to apply.") or result)
+            end },
         { type = "heading", label = "Delete" },
         { type = "dropdown", key = "deleteName", label = "Profile to delete", values = function() return profileEntries(true) end,
             get = function() return state.deleteName end, set = function(value) state.deleteName = value end },
