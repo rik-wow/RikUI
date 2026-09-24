@@ -5,6 +5,7 @@ local THUMB_WIDTH, MAX_LETTERS, SWATCH_INSET, LIST_GAP, LIST_LEVEL = 12, 32, 2, 
 local BACKGROUND, BORDER_TINT, ACTIVE_TINT = { 0.055, 0.065, 0.08, 0.95 }, { 0.35, 0.38, 0.42, 1 }, { 1, 0.78, 0.3, 1 }
 local DROPDOWN_ICON, DROPDOWN_ICON_SIZE, MAX_VISIBLE = "chevron-down", 10, 6
 local activeDropdown
+local pickerSession = 0
 
 types.heading = { refresh = function() end }
 
@@ -238,9 +239,15 @@ local function openPicker(row)
         return
     end
     local r, g, b = colourParts(row.value)
+    pickerSession = pickerSession + 1
+    local session, profile, revision = pickerSession, core.Profile, core.Runtime.profileRevision
+    local function commit(value)
+        if session ~= pickerSession or core.Profile ~= profile or core.Runtime.profileRevision ~= revision then return end
+        options.Commit(row, value)
+    end
     picker:SetupColorPickerAndShow({ r = r, g = g, b = b, hasOpacity = false,
-        swatchFunc = function() options.Commit(row, { picker:GetColorRGB() }) end,
-        cancelFunc = function(previous) options.Commit(row, { previous.r, previous.g, previous.b }) end })
+        swatchFunc = function() commit({ picker:GetColorRGB() }) end,
+        cancelFunc = function(previous) commit({ previous.r, previous.g, previous.b }) end })
 end
 
 types.colour = {

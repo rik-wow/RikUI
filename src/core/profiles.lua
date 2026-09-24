@@ -74,6 +74,7 @@ function core:SetProfile(name)
     end
     if type(name) ~= "string" or type(self.DB.profiles[name]) ~= "table" then return nil, "Unknown profile." end
     if self.Layout and self.Layout.StopMoving then self.Layout.StopMoving() end
+    if self.Profile ~= self.DB.profiles[name] then runtime.profileRevision = (runtime.profileRevision or 0) + 1 end
     self.Profile = normalizeProfile(self.DB.profiles[name])
     self.DB.profiles[name] = self.Profile
     self.CharDB.profile = name

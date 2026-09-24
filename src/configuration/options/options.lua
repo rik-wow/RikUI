@@ -43,7 +43,8 @@ local function selectProfile(name)
     core.Combat.Queue(function()
         local ok, reason = core:SetProfile(name)
         if not ok then core:Print(reason) end
-    end)
+        if options.Refresh then options.Refresh() end
+    end, "options:profile")
     return nil, "Profile " .. name .. " will be selected when combat ends."
 end
 

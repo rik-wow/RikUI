@@ -82,7 +82,7 @@ Changes save automatically. Failed or refused preference changes and button acti
 
 Choose an active profile, or enter a name and click Create or Copy. Copy makes
 an independent copy of the active profile. Blank and duplicate names cannot
-be created. Profile changes queue during combat.
+be created. Profile changes queue during combat; only the final selection is applied. Color-picker previews and cancellation belong to the profile and picker session that opened them, so stale callbacks cannot change a new profile or a newer picker.
 
 Delete offers only inactive profiles. Delete and Reset positions first show
 an inline confirmation naming the target. Click Confirm to apply or Cancel
