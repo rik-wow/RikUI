@@ -487,6 +487,10 @@ return function(check)
         { "tank", "main", 2, "Shield Slam", "Heroic Strike" },
         { "tank", "defensive", 2, "Shield Slam", "Heroic Strike" },
     })
+    levelingChecks(check, "ROGUE", {
+        { "assassination", "main", 1, "Mutilate", "Sinister Strike" },
+        { "subtlety", "main", 1, "Hemorrhage", "Sinister Strike" },
+    })
     fallbackChecks(check)
 end
 

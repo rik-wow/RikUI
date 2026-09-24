@@ -1,7 +1,7 @@
 -- Native stealth page and role layout; evidence: docs/class-presets.md.
 RikUI.Presets.ROGUE = {
     ["class"] = "ROGUE",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = { "dps", "assassination", "subtlety" },
     ["roles"] = {
         dps = { label = "Combat", trees = { 2 } },
@@ -259,11 +259,11 @@ RikUI.Presets.ROGUE = {
     ["macros"] = {},
     ["roleOverrides"] = {
         assassination = {
-            main = { [1] = { spell = "Mutilate", level = 30 } },
+            main = { [1] = { spell = "Mutilate", fallback = "Sinister Strike", level = 30 } },
             bar4 = { [9] = { spell = "Sinister Strike", level = 1 } },
         },
         subtlety = {
-            main = { [1] = { spell = "Hemorrhage" } },
+            main = { [1] = { spell = "Hemorrhage", fallback = "Sinister Strike" } },
             bar4 = { [9] = { spell = "Sinister Strike", level = 1 } },
         },
     },
