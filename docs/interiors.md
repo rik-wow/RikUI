@@ -1,5 +1,15 @@
 # Window interiors
 
+Settings > Windows offers **Quest body text size**: native size, or 12–24 points.
+It targets descriptions, objective prose and reward prose, preserving buttons,
+reward numbers and status colours. Changing back restores the initial native size.
+The choice follows profiles and portable profile sharing.
+
+Research reviewed 2026-09-24: [Forever dialogue feedback](https://www.reddit.com/r/wowforever/comments/1wldl0y/retail_version_of_dialogue_ui_works_in_forever/)
+asks for more readable quest windows. [Blizzard QuestInfo source](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestInfo.lua)
+identifies the three named prose regions. Missing variants remain unchanged;
+community feedback is motivation, not confirmed client behavior.
+
 ## Special windows
 
 Player choice, splash, generic traits, collections and transmog receive flat

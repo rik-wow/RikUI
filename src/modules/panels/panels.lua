@@ -94,4 +94,20 @@ function panels:Debug()
         .. " failed=" .. count(failed))
 end
 
+local questSizes = { { value = 0, label = "Native size" } }
+for size = 12, 24, 2 do questSizes[#questSizes + 1] = { value = size, label = tostring(size) } end
+panels.Options = { title = "Windows", settings = {
+    { type = "dropdown", key = "questTextSize", label = "Quest body text size", choices = questSizes,
+        description = "Resize quest descriptions, objectives and reward prose. Other window labels keep their size.",
+        get = function() return core.Profile.panels.questTextSize end,
+        set = function(value)
+            if value ~= 0 and (type(value) ~= "number" or value < 12 or value > 24 or value % 1 ~= 0) then
+                return nil, "Choose a quest text size from 12 to 24, or native size."
+            end
+            core.Profile.panels.questTextSize = value
+            if core.Interiors then core.Interiors.Refresh("quests") end
+            return true
+        end },
+} }
+
 core:RegisterModule("panels", panels)

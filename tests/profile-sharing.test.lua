@@ -16,6 +16,7 @@ return function(check)
         RikUI.Profile.borderColor = { 0.1, 0.2, 0.3 }
         RikUI.Profile.barFade.main = false
         RikUI.Profile.font = "game"
+        RikUI.Profile.panels.questTextSize = 20
         RikUI.Profile.positions.main = { point="CENTER", relativePoint="CENTER", x=120, y=-30 }
         local text, err = sharing.ExportProfile()
         check("profile export succeeds", text ~= nil, err)
@@ -23,6 +24,7 @@ return function(check)
         check("export excludes private and transient fields", not data.chatHistory and not data.layoutUndo and not data.chat.secret)
         check("export includes appearance and anchors", data.borderColor[3] == 0.3 and data.positions.main.x == 120 and data.barFade.main == false)
         check("shared font choice round trips", data.font == "game")
+        check("quest prose size round trips", data.panels.questTextSize == 20)
         local active = RikUI.Profile
         check("import creates a separate profile", sharing.ImportProfile("Backup", text) == true
             and RikUI.DB.profiles.Backup ~= active and RikUI.Profile == active and RikUI.CharDB.profile == "Default")
@@ -31,6 +33,7 @@ return function(check)
         local mutations = {
             function(p) p.scale = 0 end,
             function(p) p.font = "unknown" end,
+            function(p) p.panels.questTextSize = 99 end,
             function(p) p.chat.fontSize = "huge" end,
             function(p) p.positions.main.point = "BAD" end,
             function(p) p.positions.main.extra = true end,

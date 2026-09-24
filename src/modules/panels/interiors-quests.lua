@@ -5,8 +5,26 @@ local MAP_SURFACES = { "SidePanelToggle", "Coordinates", "BountyBoard", "BountyB
     "ActionButton", "WorldMapActionButton", "ThreatFrame" }
 local mapHooks = setmetatable({}, { __mode = "k" })
 
+local PROSE = { QuestInfoDescriptionText = true, QuestInfoObjectivesText = true, QuestInfoRewardText = true }
+local proseSizes = setmetatable({}, { __mode = "k" })
+
+local function proseFont(region)
+    local name = type(region.GetName) == "function" and region:GetName()
+    if not PROSE[name] then return end
+    local saved = core.Profile and core.Profile.panels
+    local size = saved and saved.questTextSize or 0
+    if type(size) ~= "number" or size < 12 or size > 24 or size % 1 ~= 0 then size = 0 end
+    if not proseSizes[region] then
+        local ok, _, nativeSize = pcall(region.GetFont, region)
+        if not ok or core.Secret.IsSecret(nativeSize) or type(nativeSize) ~= "number" or nativeSize <= 0 then return end
+        proseSizes[region] = nativeSize
+    end
+    region:SetFont(core.Media.font, size == 0 and proseSizes[region] or size, "OUTLINE")
+end
+
 local function readable(region)
     if not skin.IsRegion(region) or region:GetObjectType() ~= "FontString" then return end
+    proseFont(region)
     skin.Typeface(region)
     if type(region.GetTextColor) ~= "function" then return end
     local ok, r, g, b = pcall(region.GetTextColor, region)

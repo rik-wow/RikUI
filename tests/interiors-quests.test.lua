@@ -26,6 +26,20 @@ return function(check)
         text:SetTextColor(0, 0, 0)
         RikUI.Interiors.Walk(q, "quests")
         check("rewritten quest prose becomes readable again", text.textColor[1] > 0.8)
+        text.fontSize = 14
+        function text:GetName() return "QuestInfoDescriptionText" end
+        function text:GetFont() return self.fontPath or "Native", self.fontSize or 14, "" end
+        RikUI.Profile.panels = { questTextSize = 20 }
+        RikUI.Interiors.Walk(q, "quests")
+        check("named quest prose gets selected size", text.fontSize == 20)
+        RikUI.Interiors.Walk(q, "quests")
+        check("quest prose refresh does not compound", text.fontSize == 20)
+        RikUI.Profile.panels.questTextSize = 0
+        RikUI.Interiors.Walk(q, "quests")
+        check("native quest prose size restores", text.fontSize == 14)
+        RikUI.Profile.panels.questTextSize = 100
+        RikUI.Interiors.Walk(q, "quests")
+        check("invalid quest size preserves native size", text.fontSize == 14)
         local border = frame()
         border:SetFrameLevel(100)
         border.TopDetail, border.Border, border.Shadow = border:CreateTexture(), border:CreateTexture(), border:CreateTexture()
