@@ -45,14 +45,20 @@ end
 function options.Commit(row, value)
     local spec = row.spec
     if not row.enabled or (spec.disabled and spec.disabled()) then return end
+    local profile = core.Profile
     local function apply()
+        if core.Profile ~= profile or (spec.disabled and spec.disabled()) then
+            core:Print(spec.label .. ": queued change cancelled because its target changed.")
+            options.RefreshList(row.list)
+            return
+        end
         local ok, reason = spec.set(value)
         if ok == nil and reason then core:Print(reason) end
         if core.Changed then core:Changed() end
         options.RefreshList(row.list)
     end
     if spec.protected and InCombatLockdown() then
-        core.Combat.Queue(apply)
+        core.Combat.Queue(apply, "options:" .. tostring(row))
         core:Print(spec.label .. ": queued until combat ends.")
         return
     end

@@ -280,6 +280,32 @@ return function(check)
         env.fire("PLAYER_REGEN_ENABLED")
         check("queued protected setting applies after combat", state.amount == 0.5 and amount.widget.value == 0.5)
 
+        env.inCombat = true
+        local beforeSets = sets.amount or 0
+        options.Commit(amount, 1)
+        options.Commit(amount, 2)
+        check("combat setting changes coalesce", RikUI.Combat.Pending() == 1)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("combat setting applies final value once", state.amount == 2 and sets.amount == beforeSets + 1)
+        env.inCombat = true
+        options.Commit(amount, 1)
+        RikUI.DB.profiles.Other = {}
+        env.inCombat = false
+        RikUI:SetProfile("Other")
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("stale profile setting is discarded", state.amount == 2)
+        RikUI:SetProfile("Default")
+        env.inCombat = true
+        options.Commit(amount, 1)
+        amount.spec.disabled = function() return true end
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("queued setting rechecks availability", state.amount == 2)
+        amount.spec.disabled = nil
+        options.RefreshList(list)
+        options.Commit(amount, 0.5)
+
         -- Keyboard focus over the same list.
         local panel = CreateFrame("Frame", nil, UIParent)
         options.EnableKeyboard(panel, function() return list.rows end)
