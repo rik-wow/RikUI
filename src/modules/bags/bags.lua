@@ -116,11 +116,14 @@ end
 
 local function createFilters()
     holder.filters = {}
-    for index, entry in ipairs({ { "all", "All" }, { "junk", "Junk" }, { "quest", "Quest" },
-        { "gear", "Gear" }, { "use", "Use" } }) do
+    local offset = PAD
+    for _, entry in ipairs({ { "all", "All" }, { "junk", "Junk" }, { "quest", "Quest" },
+        { "gear", "Gear" }, { "use", "Use" }, { "materials", "Materials", 64 } }) do
         local key = entry[1]
-        local button = textButton(entry[2], 48, function() bags.SetFilter(key) end)
-        button:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD + (index - 1) * 52, -52)
+        local width = entry[3] or 44
+        local button = textButton(entry[2], width, function() bags.SetFilter(key) end)
+        button:SetPoint("TOPLEFT", holder, "TOPLEFT", offset, -52)
+        offset = offset + width + CONTROL_GAP
         holder.filters[key] = button
     end
     bags.SetFilter("all")

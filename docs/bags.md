@@ -10,6 +10,8 @@ stock bags back.
 `src/modules/bags/bags-equipped.lua` is a new TOC entry. **Fully exit and restart the client after
 updating**, a `/reload` does not pick up new files.
 
+The **Materials** quick filter highlights trade goods and reagents, including cloth, ore and herbs when the client classifies them that way. It combines with text search; unreadable categories do not match. All restores the grid without moving any items.
+
 ## What you see
 
 B, the backpack key, a bag key and everything else that goes through

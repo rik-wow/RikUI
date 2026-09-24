@@ -19,6 +19,7 @@ local COPPER_PER_SILVER, COPPER_PER_GOLD = 100, 10000
 local GOLD, SILVER, COPPER = "%d|cffffd700g|r", "%d|cffc7c7cfs|r", "%d|cffeda55fc|r"
 local bagFrames, search, filter = {}, "", "all"
 local ITEM_CONSUMABLE, ITEM_WEAPON, ITEM_ARMOR, ITEM_QUEST = 0, 2, 4, 12
+local ITEM_REAGENT, ITEM_TRADE_GOODS = 5, 7
 
 local function plain(value, kind)
     return not core.Secret.IsSecret(value) and type(value) == kind
@@ -133,6 +134,7 @@ local function categoryMatches(button)
     if filter == "junk" then return button.rikQuality == 0 end
     if filter == "quest" then return button.rikQuest or button.rikClass == ITEM_QUEST end
     if filter == "gear" then return button.rikClass == ITEM_WEAPON or button.rikClass == ITEM_ARMOR end
+    if filter == "materials" then return button.rikClass == ITEM_REAGENT or button.rikClass == ITEM_TRADE_GOODS end
     return button.rikClass == ITEM_CONSUMABLE
 end
 
@@ -257,7 +259,8 @@ function bags.SetSearch(text)
 end
 
 function bags.SetFilter(value)
-    if value ~= "all" and value ~= "junk" and value ~= "quest" and value ~= "gear" and value ~= "use" then return end
+    if value ~= "all" and value ~= "junk" and value ~= "quest" and value ~= "gear" and value ~= "use"
+        and value ~= "materials" then return end
     filter = value
     for key, button in pairs(bags.Holder.filters) do
         button.label:SetTextColor(key == filter and 1 or 0.65, key == filter and 0.82 or 0.65, key == filter and 0 or 0.65)

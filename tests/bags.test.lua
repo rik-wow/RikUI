@@ -294,6 +294,12 @@ return function(check)
             return 1, "", "", "", 1, class
         end
         module.Refresh()
+        check("materials filter is available", holder.filters.materials ~= nil)
+        env.click(holder.filters.materials)
+        check("materials selects cloth and dims gear and empty slots", cloth.alpha == 1 and blade.alpha == 0.25 and empty.alpha == 0.25)
+        typeSearch("Hearth")
+        check("materials intersects text search", cloth.alpha == 0.25 and stone.alpha == 0.25)
+        typeSearch("")
         env.click(holder.filters.gear)
         check("gear filter dims non-equipment and empty slots", blade.alpha == 1 and cloth.alpha == 0.25 and empty.alpha == 0.25)
         typeSearch("Hearth")
