@@ -1,5 +1,18 @@
 # Window interiors
 
+## Auction, training, professions, guild bank and stable
+
+Service lists use the same flat rows and cropped item treatment. Recipe labels,
+trainer costs, prices and pet names keep their native status colours. Scroll-box
+initialization restyles recycled rows without adding duplicate hooks; hover
+animations stop when the row is released/hidden. Native selection art remains.
+
+Reviewed against pinned AuctionHouseItemList, ProfessionsRecipeList and
+GuildBankUI XML. Optional trainer/stable variants are detected by existing
+region keys; unsupported or absent variants are not invented. Service fixtures
+exercise late-row creation, recycling, selection preservation and hover cleanup.
+
+
 ## Merchant, bank, mail and trade
 
 Item slots and content rows share the character icon/quality treatment and gold
