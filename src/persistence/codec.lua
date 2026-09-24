@@ -47,6 +47,7 @@ local function sortedKeys(value, context)
         if context.entries > MAX_NODES then error("too many settings entries", 0) end
         local kind = type(key)
         if kind == "number" and not finite(key) then error("non-finite settings key", 0) end
+        if context.strict and kind ~= "string" and kind ~= "number" then error("unsupported settings key", 0) end
         if kind == "string" or kind == "number" then keys[#keys + 1] = key end
     end
     table.sort(keys, function(a, b)
@@ -66,11 +67,13 @@ local write
 local function writeTable(value, out, top, context, depth)
     if depth > MAX_DEPTH then error("settings nesting exceeds limit", 0) end
     if context.active[value] then error("cyclic settings table", 0) end
+    if context.strict and getmetatable(value) ~= nil then error("settings metatables are unsupported", 0) end
     context.active[value] = true
     append(out, context, "T")
     for _, key in ipairs(sortedKeys(value, context)) do
         local entry = value[key]
-        if STORABLE[type(entry)] and not (top and SKIP_KEYS[key]) then
+        if context.strict and not STORABLE[type(entry)] then error("unsupported settings value", 0) end
+        if STORABLE[type(entry)] and not (top and SKIP_KEYS[key] and not context.strict) then
             write(key, out, false, context, depth)
             write(entry, out, false, context, depth)
         end
@@ -95,8 +98,8 @@ write = function(value, out, top, context, depth)
     else error("unsupported settings value", 0) end
 end
 
-function codec.Encode(value)
-    local out, context = {}, { nodes = 0, entries = 0, bytes = 0, active = {} }
+function codec.Encode(value, strict)
+    local out, context = {}, { nodes = 0, entries = 0, bytes = 0, active = {}, strict = strict == true }
     local ok, reason = pcall(write, value, out, true, context, 0)
     if not ok then return nil, tostring(reason) end
     return table.concat(out)
@@ -155,6 +158,9 @@ read = function(text, at, context, depth)
     if tag == "k" then return readWord(text, at) end
     return readScalar(text, at, tag)
 end
+
+function RikUI.Serialize(value) return codec.Encode(value, true) end
+function RikUI.Deserialize(text) return codec.Decode(text) end
 
 function codec.Decode(text)
     if type(text) ~= "string" or text == "" or #text > MAX_TEXT or not text:match("^[%w_]+$") then
