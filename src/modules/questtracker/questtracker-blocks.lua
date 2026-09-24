@@ -18,7 +18,7 @@ local HIGHLIGHT_ALPHA = 0.5
 local MORE_HEIGHT, MORE_COLOR = 14, { 0.6, 0.65, 0.7 }
 local EXPANDED_ICON, COLLAPSED_ICON, HEADER_ICON_SIZE = "chevron-down", "chevron-right", 10
 local CLICK_HINT, SHIFT_HINT = "Click: open in the quest log", "Shift-click: stop tracking"
-local seen = {}
+local seen, hovered = {}, nil
 
 local function label(name, fallback)
     local value = _G[name]
@@ -71,7 +71,17 @@ end
 local function showHint(self)
     self.highlight:Show()
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-    GameTooltip:SetText(self.title:GetText())
+    hovered = self
+    GameTooltip:SetText(self.title:GetText(), 1, 0.82, 0, 1, true)
+    local quest = self.quest
+    if quest then
+        if quest.failed then GameTooltip:AddLine(label("FAILED", "Failed"), 0.9, 0.25, 0.2, true)
+        elseif quest.complete then GameTooltip:AddLine(label("QUEST_WATCH_QUEST_READY", "Ready to turn in"), 0.3, 0.9, 0.4, true) end
+        for _, objective in ipairs(quest.objectives) do
+            local color = objective.finished and FINISHED_COLOR or OBJECTIVE_COLOR
+            GameTooltip:AddLine(objective.text, color[1], color[2], color[3], true)
+        end
+    end
     GameTooltip:AddLine(CLICK_HINT, 1, 1, 1)
     GameTooltip:AddLine(SHIFT_HINT, 1, 1, 1)
     GameTooltip:Show()
@@ -79,7 +89,7 @@ end
 
 local function hideHint(self)
     self.highlight:Hide()
-    GameTooltip:Hide()
+    if hovered == self then hovered = nil; GameTooltip:Hide() end
 end
 
 local function createBlock(holder)
@@ -107,6 +117,7 @@ local function createBlock(holder)
     frame:SetScript("OnClick", tracker.Click)
     frame:SetScript("OnEnter", showHint)
     frame:SetScript("OnLeave", hideHint)
+    frame:SetScript("OnHide", hideHint)
     return frame
 end
 
@@ -153,10 +164,12 @@ end
 
 local function fillTitle(frame, quest)
     local color = titleColor(quest)
-    frame.questID = quest.id
+    if frame.questID ~= quest.id then hideHint(frame) end
+    frame.questID, frame.quest = quest.id, quest
     frame.title:SetText(quest.level and string.format("[%d] %s", quest.level, quest.title) or quest.title)
     frame.title:SetTextColor(unpack(color))
     frame.accent:SetVertexColor(unpack(color))
+    if hovered == frame then showHint(frame) end
 end
 
 -- Returns the texts so the next render can tell which line changed.

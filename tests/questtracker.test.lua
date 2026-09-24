@@ -179,6 +179,9 @@ return function(check)
         env.runScript(view.Blocks[1], "OnEnter")
         check("hovering a quest lights it and explains the clicks", view.Blocks[1].highlight.shown == true
             and GameTooltip.owner == view.Blocks[1] and tooltipContains("Shift-click"))
+        check("hover shows complete objective details", tooltipContains("Deliver the letter"))
+        env.runScript(view.Blocks[1], "OnHide")
+        check("hidden quest clears owned tooltip", GameTooltip.shown == false)
         env.runScript(view.Blocks[1], "OnLeave")
         check("leaving a quest clears the highlight", view.Blocks[1].highlight.shown == false)
 

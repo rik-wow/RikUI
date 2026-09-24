@@ -31,6 +31,10 @@ green once for 0.6s. Expanding the list fades every block in. A refresh that
 changes nothing replays nothing, and quests that only move up the list do not
 fade again.
 
+## Hover details
+
+Hover a quest to read its full title and every objective with wrapping text, including completed objectives. Ready and failed states appear above the objectives. The tooltip updates with quest progress and clears when the block hides or is reused.
+
 ## Clicks
 
 Click a quest to open it in the quest log (`QuestMapFrame_OpenToQuestDetails`).
