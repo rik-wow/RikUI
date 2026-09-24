@@ -361,6 +361,28 @@ return function(check)
         and RikUI.Spells.Entry("Nature's Swiftness", "DRUID").ranks[1] == 17116
         and RikUI.Spells.Entry("Nature's Swiftness", "SHAMAN").ranks[1] == 16188)
 
+    for _, role in ipairs(druid.roleOrder) do
+        local resolved = assert(RikUI.Setup.Resolve("DRUID", role))
+        check("Druid support cooldowns survive " .. role, resolved.bars.bar2[4].macro == "Innervate"
+            and resolved.bars.bar2[6].macro == "Rebirth" and resolved.bars.bar3[9].macro == "Revive")
+        check("Druid group buffs survive " .. role, resolved.bars.bar3[6].macro == "Mark of the Wild"
+            and resolved.bars.bar3[7].macro == "Thorns" and resolved.bars.bar3[8].macro == "Gift of the Wild")
+        check("Druid utility does not displace form attacks " .. role,
+            resolved.bars.cat[1].spell == "Claw" and resolved.bars.bear[1].spell == "Maul")
+    end
+    check("Restoration Innervate uses shared target rules",
+        RikUI.Setup.Resolve("DRUID", "heal").bars.main[8].macro == "Innervate")
+    for _, name in ipairs({ "Innervate", "Mark of the Wild", "Thorns", "Gift of the Wild" }) do
+        local macro = druid.macros[name]
+        check("Druid living support targets " .. name, macro and macro.spells[1] == name
+            and macro.body == "#showtooltip " .. name .. "\n/cast [@mouseover,help,nodead][help,nodead][@player] " .. name)
+    end
+    for _, name in ipairs({ "Rebirth", "Revive" }) do
+        local macro = druid.macros[name]
+        check("Druid distinct resurrection targets " .. name, macro and macro.spells[1] == name
+            and macro.body == "#showtooltip " .. name .. "\n/cast [@mouseover,help,dead][help,dead] " .. name)
+    end
+
     for class, current in pairs(RikUI.Presets) do
         check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)
         for _, role in ipairs(current.roleOrder) do

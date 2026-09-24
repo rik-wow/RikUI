@@ -1,7 +1,7 @@
 -- Named form keys and native Cat/Bear pages; evidence: docs/class-presets.md.
 RikUI.Presets.DRUID = {
     ["class"] = "DRUID",
-    ["version"] = 1,
+    ["version"] = 2,
     ["roleOrder"] = {
         "feral",
         "balance",
@@ -186,16 +186,14 @@ RikUI.Presets.DRUID = {
                 ["spell"] = "Nature's Swiftness",
             },
             [4] = {
-                ["spell"] = "Innervate",
-                ["level"] = 40,
+                ["macro"] = "Innervate",
             },
             [5] = {
                 ["spell"] = "Tranquility",
                 ["level"] = 30,
             },
             [6] = {
-                ["spell"] = "Rebirth",
-                ["level"] = 20,
+                ["macro"] = "Rebirth",
             },
             [7] = {
                 ["macro"] = "Swiftmend",
@@ -240,20 +238,16 @@ RikUI.Presets.DRUID = {
                 ["level"] = 16,
             },
             [6] = {
-                ["spell"] = "Mark of the Wild",
-                ["level"] = 1,
+                ["macro"] = "Mark of the Wild",
             },
             [7] = {
-                ["spell"] = "Thorns",
-                ["level"] = 6,
+                ["macro"] = "Thorns",
             },
             [8] = {
-                ["spell"] = "Gift of the Wild",
-                ["level"] = 50,
+                ["macro"] = "Gift of the Wild",
             },
             [9] = {
-                ["spell"] = "Revive",
-                ["level"] = 12,
+                ["macro"] = "Revive",
             },
             [10] = {
                 ["spell"] = "Teleport: Moonglade",
@@ -307,6 +301,18 @@ RikUI.Presets.DRUID = {
         ["bar5"] = {},
     },
     ["macros"] = {
+        ["Innervate"] = { icon = 136048, spells = { "Innervate" },
+            body = "#showtooltip Innervate\n/cast [@mouseover,help,nodead][help,nodead][@player] Innervate" },
+        ["Mark of the Wild"] = { icon = 136078, spells = { "Mark of the Wild" },
+            body = "#showtooltip Mark of the Wild\n/cast [@mouseover,help,nodead][help,nodead][@player] Mark of the Wild" },
+        ["Thorns"] = { icon = 136104, spells = { "Thorns" },
+            body = "#showtooltip Thorns\n/cast [@mouseover,help,nodead][help,nodead][@player] Thorns" },
+        ["Gift of the Wild"] = { icon = 136078, spells = { "Gift of the Wild" },
+            body = "#showtooltip Gift of the Wild\n/cast [@mouseover,help,nodead][help,nodead][@player] Gift of the Wild" },
+        ["Rebirth"] = { icon = 136080, spells = { "Rebirth" },
+            body = "#showtooltip Rebirth\n/cast [@mouseover,help,dead][help,dead] Rebirth" },
+        ["Revive"] = { icon = 132132, spells = { "Revive" },
+            body = "#showtooltip Revive\n/cast [@mouseover,help,dead][help,dead] Revive" },
         ["Healing Touch"] = {
             ["icon"] = 136041,
             ["body"] = "#showtooltip Healing Touch\n/cast [@mouseover,help,nodead][help,nodead][@player] Healing Touch",
@@ -409,8 +415,7 @@ RikUI.Presets.DRUID = {
                     ["macro"] = "Abolish Poison",
                 },
                 [8] = {
-                    ["spell"] = "Innervate",
-                    ["level"] = 40,
+                    ["macro"] = "Innervate",
                 },
             },
         },
