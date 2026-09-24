@@ -1,5 +1,7 @@
 # Bags
 
+The capacity HUD can show **only when space is low**, using a configurable 0–20 free-slot threshold (default 4). It counts general space; specialized slots do not hide a shortage. Unknown capacity stays visible. The existing Show capacity switch still hides the HUD completely, and bag-window capacity remains available.
+
 **Bags and vendors** exposes native sorting direction, loot insertion direction, and backpack exclusions for sorting and Sell junk. These are client preferences shared across RikUI profiles; loading RikUI never writes them. Unavailable or unreadable settings are disabled, changes wait for you to leave combat, and each write checks the client's readback. Verified against [69913 Container APIs](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua) on 2026-09-24.
 
 At merchants, **Repair all** sits beside **Sell junk**. It uses personal funds only when repairs are needed and affordable, and disables itself during combat or when the client cannot provide readable repair information. Auto repair remains opt-in; Shift skips only the automatic action.

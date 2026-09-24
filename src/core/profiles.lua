@@ -7,7 +7,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },
     panels = { questTextSize = 0 },
-    bags = { autoRepair = false, columns = 10, capacityHUD = true },
+    bags = { autoRepair = false, columns = 10, capacityHUD = true, capacityLowOnly = false, capacityThreshold = 4 },
     barFade = { bar3 = true },
     questtracker = { collapsed = false, collapseInCombat = false, hideCompleted = false, readyFirst = false },
     minimap = { serverTime = false, coordinates = true, dayNight = true },

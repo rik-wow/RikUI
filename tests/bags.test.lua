@@ -428,6 +428,27 @@ return function(check)
         C_Container.GetContainerNumFreeSlots = function() return math.huge, 0 end
         env.fire("BAG_UPDATE_DELAYED")
         check("infinite capacity is unavailable", module.CapacityHUD and module.CapacityHUD.label.text == "Space unavailable")
+        RikUI.Profile.bags.capacityLowOnly = true
+        RikUI.Profile.bags.capacityThreshold = 3
+        C_Container.GetContainerNumFreeSlots = function(bag) return bag == 0 and 4 or 0, 0 end
+        module.UpdateCapacity()
+        check("low-space HUD hides above threshold", not module.CapacityHUD:IsShown())
+        C_Container.GetContainerNumFreeSlots = function(bag) return bag == 0 and 3 or 0, 0 end
+        module.UpdateCapacity()
+        check("low-space HUD shows at threshold", module.CapacityHUD:IsShown())
+        C_Container.GetContainerNumFreeSlots = function(bag) return bag == 0 and 0 or 16, bag == 0 and 0 or 1 end
+        module.UpdateCapacity()
+        check("specialized slots cannot hide low general space", module.CapacityHUD:IsShown())
+        C_Container.GetContainerNumFreeSlots = function() return env.SECRET, 0 end
+        module.UpdateCapacity()
+        check("unknown capacity remains visible in alert mode", module.CapacityHUD:IsShown())
+        RikUI.Profile.bags.capacityThreshold = math.huge
+        check("invalid saved capacity threshold falls back", module.CapacityThreshold() == 4)
+        local threshold
+        for _, option in ipairs(module.Options.settings) do if option.key == "capacityThreshold" then threshold = option end end
+        check("capacity threshold rejects invalid input", not threshold.set(-1) and not threshold.set(0/0))
+        check("capacity threshold accepts zero", threshold.set(0) and module.CapacityThreshold() == 0)
+        RikUI.Profile.bags.capacityLowOnly, RikUI.Profile.bags.capacityThreshold = false, 4
         RikUI.Profile.bags.capacityHUD = false; module.UpdateCapacity()
         check("capacity HUD can be hidden", module.CapacityHUD and not module.CapacityHUD:IsShown())
         RikUI.Profile.bags.capacityHUD = true

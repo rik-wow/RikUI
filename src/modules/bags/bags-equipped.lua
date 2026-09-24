@@ -49,7 +49,22 @@ local function tooltip(button)
     GameTooltip:Show()
 end
 
-local LOW_SPACE = 4
+local LOW_SPACE, MAX_THRESHOLD = 4, 20
+
+function bags.CapacityThreshold()
+    local value = core.Profile.bags.capacityThreshold
+    if not plainNumber(value) or value ~= value or value < 0 or value > MAX_THRESHOLD then return LOW_SPACE end
+    return math.floor(value)
+end
+
+function bags.SetCapacityThreshold(value)
+    if not plainNumber(value) or value ~= value or value < 0 or value > MAX_THRESHOLD then
+        return nil, "Choose a free-slot threshold from 0 to 20."
+    end
+    core.Profile.bags.capacityThreshold = math.floor(value)
+    bags.UpdateCapacity()
+    return true
+end
 
 local function freeCapacity()
     if type(C_Container) ~= "table" or type(C_Container.GetContainerNumFreeSlots) ~= "function" then return nil end
@@ -76,7 +91,7 @@ local function capacityText(label, ok, general, special)
     if special > 0 then text = text .. " (+" .. special .. " special)" end
     label:SetText(text)
     if general == 0 then label:SetTextColor(1, 0.3, 0.3)
-    elseif general <= LOW_SPACE then label:SetTextColor(1, 0.75, 0.2)
+    elseif general <= bags.CapacityThreshold() then label:SetTextColor(1, 0.75, 0.2)
     else label:SetTextColor(0.65, 0.85, 0.7) end
 end
 
@@ -84,7 +99,9 @@ function bags.UpdateCapacity()
     local ok, general, special = pcall(freeCapacity)
     capacityText(bags.Holder and bags.Holder.capacity, ok, general, special)
     if bags.CapacityHUD then
-        bags.CapacityHUD:SetShown(core.Profile.bags.capacityHUD ~= false)
+        local low = not ok or general == nil or general <= bags.CapacityThreshold()
+        local visible = core.Profile.bags.capacityLowOnly ~= true or low
+        bags.CapacityHUD:SetShown(core.Profile.bags.capacityHUD ~= false and visible)
         capacityText(bags.CapacityHUD.label, ok, general, special)
     end
 end
