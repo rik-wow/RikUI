@@ -63,6 +63,7 @@ end
 function bars.RefreshButtonState(button, occupied)
     if not button.cooldown then return end
     button.stateOccupied = occupied
+    if bars.ApplyPresentation then bars.ApplyPresentation(button, occupied) end
     updateCooldown(button.cooldown, "GetActionCooldownDuration", button.action, occupied)
     updateCooldown(button.chargeCooldown, "GetActionChargeDuration", button.action, occupied)
     updateTint(button, occupied)

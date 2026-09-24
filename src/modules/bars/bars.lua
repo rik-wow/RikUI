@@ -42,7 +42,7 @@ local function updateButton(button)
     if not ok then report("icon", texture); return end
     button.icon:SetTexture(texture)
     button.icon:SetShown(texture ~= nil)
-    button.empty:SetShown(texture == nil)
+    bars.ApplyPresentation(button, texture ~= nil)
     if bars.RefreshButtonState then bars.RefreshButtonState(button, texture ~= nil) end
     if texture == nil then button.count:SetText(""); return end
     updateCount(button)
@@ -124,7 +124,7 @@ end
 local function position(bar)
     local key = bar.positionKey or bar.key
     core.Layout.Register(bar, key, setup.DefaultPositions[key] or setup.DefaultPositions.main,
-        { onApply = refreshAppearance, onUnlock = function() if refreshFades then refreshFades() end end })
+        { onApply = refreshAppearance, onUnlock = function() if refreshFades then refreshFades() end; bars.Refresh() end })
 end
 
 -- Companion factories share the layout and appearance contract.

@@ -1,5 +1,9 @@
 # Overlay action bars
 
+Bars and layout offers **Show empty action slots**, **Show action key labels**, and **Show action cooldown numbers** for the fixed action rows and their page overlays. All default on and share with profiles. Empty-slot hiding removes only the slot background/border; the secure action and drop target remain. Unlocking a row reveals its empty slots. Settings update live, including in combat, through cosmetic regions only.
+
+Research reviewed 2026-09-24: [Forever UI feedback](https://us.forums.blizzard.com/en/wow/t/classic-forever-needs-its-ui-fixed/2352794) asks to hide empty buttons and reduce clutter. This is player demand, not a new client API claim. Companion pet/form row labels retain their existing presentation.
+
 Bars and layout settings now offer a mouseover toggle for each of the five
 action rows. Enabled rows fade while idle, reveal on hover, and stay visible
 in combat or while unlocked for layout editing. Main-page overlays share the

@@ -163,6 +163,26 @@ return function(check)
         check("both click phases honor native preference", table.concat(button.clicks, ",") == "AnyDown,AnyUp")
         check("icon and count read from absolute slot", button.icon.texture == 123 and button.count.value == 4)
         check("empty slots display empty texture", main.buttons[2].empty.shown and not main.buttons[2].icon.shown)
+        RikUI.Profile.showEmptySlots = false
+        env.inCombat = true
+        bars.Refresh()
+        check("empty slot art hides while secure drop target remains", not main.buttons[2].empty.shown
+            and main.buttons[2]:GetAttribute("type") == "action" and button.icon.shown)
+        RikUI.Profile.showEmptySlots = true
+        bars.Refresh()
+        check("empty slot art returns immediately", main.buttons[2].empty.shown)
+        local sample = main.buttons[2]
+        sample.hotkey = sample:CreateFontString()
+        local hideNumbers
+        sample.cooldown = { SetHideCountdownNumbers = function(_, value) hideNumbers = value end }
+        RikUI.Profile.showHotkeys, RikUI.Profile.showCooldownNumbers = false, false
+        bars.ApplyPresentation(sample, false)
+        check("key labels and countdown numbers have independent presentation", sample.hotkey.alpha == 0 and hideNumbers == true)
+        RikUI.Profile.showHotkeys, RikUI.Profile.showCooldownNumbers = nil, nil
+        bars.ApplyPresentation(sample, false)
+        check("default labels and countdowns restore", sample.hotkey.alpha == 1 and hideNumbers == false)
+        sample.hotkey, sample.cooldown = nil, nil
+        env.inCombat = false
         check("single count is omitted", bar2.buttons[1].count:GetText() == "")
 
         GameTooltip.action, GameTooltip.shown = nil, false

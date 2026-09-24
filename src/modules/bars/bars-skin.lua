@@ -16,6 +16,19 @@ function bars.BorderColor()
     return DEFAULT_BORDER
 end
 
+function bars.ApplyPresentation(button, occupied)
+    local profile = core.Profile or {}
+    local key = button:GetParent() and (button:GetParent().positionKey or button:GetParent().key)
+    local editing = core.Layout and core.Layout.IsUnlocked and core.Layout.IsUnlocked(key)
+    local visible = occupied or profile.showEmptySlots ~= false or editing == true
+    button.empty:SetShown(not occupied and visible)
+    for _, edge in ipairs(button.border) do edge:SetShown(visible) end
+    if button.hotkey then button.hotkey:SetAlpha(profile.showHotkeys == false and 0 or 1) end
+    for _, field in ipairs({ "cooldown", "chargeCooldown" }) do
+        if button[field] then button[field]:SetHideCountdownNumbers(profile.showCooldownNumbers == false) end
+    end
+end
+
 local function tintBorder(button)
     local color = bars.BorderColor()
     for _, edge in ipairs(button.border) do edge:SetVertexColor(color[1], color[2], color[3], 1) end
@@ -152,6 +165,14 @@ core:RegisterCommand("gryphons", function(args)
     if args ~= "on" and args ~= "off" then core:Print("Usage: /rik gryphons on|off"); return end
     setGryphons(args == "on")
 end, "Show or hide main-bar gryphon end caps")
+
+for _, choice in ipairs({ { "showEmptySlots", "Show empty action slots" },
+    { "showHotkeys", "Show action key labels" }, { "showCooldownNumbers", "Show action cooldown numbers" } }) do
+    local key = choice[1]
+    table.insert(bars.Options.settings, { type = "checkbox", key = key, label = choice[2],
+        get = function() return core.Profile[key] ~= false end,
+        set = function(value) core.Profile[key] = value == true; bars.Refresh() end })
+end
 
 table.insert(bars.Options.settings, { type = "checkbox", key = "gryphons", label = "Gryphon end caps",
     get = function() return core.Profile.gryphons == true end, set = setGryphons })
