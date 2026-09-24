@@ -1,5 +1,20 @@
 # Window interiors
 
+## Spellbook and talents
+
+The spellbook page textures and talent backdrop become dark surfaces. Nested
+spell buttons use cropped icons and flat outlines; cooldowns, disabled overlays,
+rank text, search markers and native casting/dragging remain intact. Talent
+outlines copy the native rank text colour every 0.1 seconds while visible, so
+uncommitted, locked and refund/error states follow Blizzard. Dependency lines
+keep native endpoints/visibility and become thin flat strokes.
+
+Source: [Forever talent art](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_SharedTalentUI/Blizzard_TalentButtonArt.lua)
+and the SpellBookItem/SpellBookFrame XML at that revision. The spells fixture
+checks native handler preservation in combat, semantic overlays, colour refresh
+and connection geometry. Native acceptance remains user-supplied.
+
+
 The panels module now decorates the character window's equipment icons, stat
 categories, reputation, skills and currency rows. Icons use the action bars'
 crop and flat edge. The native quality border becomes a thin strip, retaining
