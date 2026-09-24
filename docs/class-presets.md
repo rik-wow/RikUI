@@ -34,3 +34,9 @@ Hunter HTML SHA-256: `35b9bef8778096a25c1f11df15116d0ec9af441678abb0ec910f9898a2
 SpellName CSV SHA-256: `ede393ee7dd2d8a7e9bacbf4f14a32a88ded7f67ba08b33d564e931a352773ab`.
 SpellMisc CSV SHA-256: `f6ed1f30f53e311b231b4ae007f8ca5f605e1ad6c960a70f3fce871fb87583bd`.
 
+## Mage layout
+
+Frost, Fire and Arcane roles share control and defensive positions. Mouse4/5 remain Blink/Counterspell. Conjuring, armor, buffs and wards use the Ctrl row; teleports and portals remain on side bars and are only placed when learned. All 60 published player families are catalogued. Forever Ice Block (11958) and Cold Snap (12472) were corroborated in SpellName; their unknown talent acquisition levels remain unknown.
+
+Mage HTML SHA-256: `31e2cf872cf35af78a8f292aa7493617b56637d90fcef4c9e251f897b474064f`.
+

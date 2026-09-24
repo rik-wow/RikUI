@@ -26,5 +26,29 @@ return function(check)
     check("lookup isolates Hunter catalogue from Warrior", RikUI.Spells.Entry("Arcane Shot") == data["Arcane Shot"]
         and RikUI.Spells.Entry("Heroic Strike") == nil)
     UnitClass = oldClass
+
+    local mage = RikUI.Presets.MAGE
+    check("Mage has Frost Fire and Arcane presets", mage and mage.roles.frost and mage.roles.fire and mage.roles.arcane)
+    assert(mage, "Mage preset missing")
+    local frost = assert(RikUI.Setup.Resolve("MAGE", "frost"))
+    local fire = assert(RikUI.Setup.Resolve("MAGE", "fire"))
+    local arcane = assert(RikUI.Setup.Resolve("MAGE", "arcane"))
+    check("Mage rotations switch without changing movement and interrupt", frost.bars.main[1].spell == "Frostbolt"
+        and fire.bars.main[1].spell == "Fireball" and arcane.bars.main[1].spell == "Arcane Missiles"
+        and frost.bars.bar2[10].spell == "Blink" and fire.bars.bar2[11].spell == "Counterspell")
+    check("Forever talent IDs are preserved rather than modern replacements",
+        RikUI.Spells.Entry("Ice Block", "MAGE").ranks[1] == 11958
+        and RikUI.Spells.Entry("Cold Snap", "MAGE").ranks[1] == 12472)
+
+    for class, current in pairs(RikUI.Presets) do
+        check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)
+        for _, role in ipairs(current.roleOrder) do
+            local page = assert(RikUI.Setup.Resolve(class, role))
+            check(class .. " " .. role .. " retains Hearthstone", page.bars.main[12].item == "Hearthstone")
+        end
+        for name, macro in pairs(current.macros) do
+            check(class .. " macro size " .. name, #name <= 16 and #macro.body <= 255 and type(macro.icon) == "number")
+        end
+    end
 end
 
