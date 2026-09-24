@@ -9,19 +9,33 @@ local function shown(frame, value) options.SetShown(frame, value) end
 function options.Panel() return panel end
 
 local function pendingReload()
+    local total = 0
     for _, page in ipairs(panel.pages) do
-        for _, row in ipairs(page.list.rows) do if row.pending then return true end end
+        local count = 0
+        for _, row in ipairs(page.list.rows) do if row.pending then count = count + 1 end end
+        page.tab.badge:SetText(tostring(count))
+        shown(page.tab.badge, count > 0)
+        page.tab.text:ClearAllPoints()
+        page.tab.text:SetPoint("LEFT", 10, 0)
+        page.tab.text:SetPoint("RIGHT", count > 0 and -24 or -4, 0)
+        total = total + count
     end
-    return false
+    return total
 end
 
 function options.Refresh()
     if not panel then return end
     for _, page in ipairs(panel.pages) do options.RefreshList(page.list) end
     local pending = pendingReload()
-    panel.status:SetText(pending and "Changes are ready to apply." or "Changes save automatically.")
-    shown(panel.reload, pending)
-    panel.reload:SetEnabled(not InCombatLockdown())
+    local profile = core.CharDB and core.CharDB.profile or "Default"
+    local message = pending > 0 and (pending .. (pending == 1 and " change needs reload" or " changes need reload"))
+        or "Changes save automatically"
+    panel.status:SetText(profile .. " | " .. message)
+    shown(panel.reload, pending > 0)
+    local combat = InCombatLockdown()
+    panel.reload:SetEnabled(not combat)
+    panel.reload:SetAlpha(combat and 0.4 or 1)
+    panel.reload.text:SetText(combat and "After combat" or "Reload UI")
 end
 
 local function navigationLayout()
@@ -101,6 +115,8 @@ local function navigationButton(index, page)
     button:SetSize(NAV_WIDTH - 24, NAV_ROW)
     button.selected = options.Flat(button, "BACKGROUND", { 0.1, 0.23, 0.3, 0.8 })
     core.Motion.BindHover(button)
+    button.badge = options.Text(button, "small")
+    button.badge:SetPoint("RIGHT", -4, 0); button.badge:SetTextColor(1, 0.78, 0.3); button.badge:Hide()
     button.text = options.Text(button, "small", page.title)
     button.text:SetPoint("LEFT", 10, 0); button.text:SetPoint("RIGHT", -4, 0)
     button.text:SetJustifyH("LEFT"); button.text:SetWordWrap(false)
