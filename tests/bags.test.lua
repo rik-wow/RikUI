@@ -221,6 +221,31 @@ return function(check)
         typeSearch("")
         check("an empty search drops the match count", holder.title.text == "Bags 3/22")
 
+        local preferenceNames = { "SortBagsRightToLeft", "InsertItemsLeftToRight",
+            "BackpackAutosortDisabled", "BackpackSellJunkDisabled" }
+        for _, preference in ipairs(preferenceNames) do
+            local nativeValue, writes = false, 0
+            C_Container["Get" .. preference] = function() return nativeValue end
+            C_Container["Set" .. preference] = function(value) nativeValue = value; writes = writes + 1 end
+            local option
+            for _, setting in ipairs(module.Options.settings) do
+                if setting.key == preference then option = setting end
+            end
+            check("native bag preference exposed " .. preference, option ~= nil)
+            check("native bag preference read does not write " .. preference, option.get() == false and writes == 0)
+            check("native bag preference applies " .. preference, option.set(true) and nativeValue == true and writes == 1)
+            env.inCombat = true
+            option.set(false)
+            check("native bag preference refuses combat " .. preference, nativeValue == true and writes == 1)
+            env.inCombat = false
+            C_Container["Set" .. preference] = function() end
+            check("native bag preference detects refusal " .. preference, not option.set(false))
+            nativeValue = env.SECRET
+            check("native bag secret preference unavailable " .. preference, option.disabled())
+            C_Container["Get" .. preference], C_Container["Set" .. preference] = nil, nil
+            check("native bag absent preference unavailable " .. preference, option.disabled())
+        end
+
         local oldMerchant, sold = C_MerchantFrame, 0
         C_MerchantFrame = { GetNumJunkItems = function() return 3 end,
             IsSellAllJunkEnabled = function() return true end,

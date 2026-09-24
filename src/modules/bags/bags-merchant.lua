@@ -92,7 +92,37 @@ function bags.EnableMerchant()
     bags.RefreshMerchant()
 end
 
+local function nativeBagValue(name)
+    local getter = C_Container and C_Container["Get" .. name]
+    if type(getter) ~= "function" then return nil end
+    local ok, value = pcall(getter)
+    if ok and not core.Secret.IsSecret(value) and type(value) == "boolean" then return value end
+end
+
+local function nativeBagOption(name, label)
+    return { type = "checkbox", key = name, label = label,
+        description = "Native client preference shared across UI profiles. Available only when supported; change after combat.",
+        get = function() return nativeBagValue(name) == true end,
+        disabled = function()
+            return InCombatLockdown() or nativeBagValue(name) == nil
+                or type(C_Container and C_Container["Set" .. name]) ~= "function"
+        end,
+        set = function(value)
+            local setter = C_Container and C_Container["Set" .. name]
+            if InCombatLockdown() or type(value) ~= "boolean" or nativeBagValue(name) == nil
+                or type(setter) ~= "function" then return nil, "Bag preference unavailable." end
+            local ok, reason = pcall(setter, value)
+            if not ok then return nil, "Bag preference could not be changed." end
+            if nativeBagValue(name) ~= value then return nil, "Client did not accept the bag preference." end
+            return true
+        end }
+end
+
 bags.Options = { title = "Bags and vendors", settings = {
+    nativeBagOption("SortBagsRightToLeft", "Sort bags from right to left"),
+    nativeBagOption("InsertItemsLeftToRight", "Place new loot from left to right"),
+    nativeBagOption("BackpackAutosortDisabled", "Exclude backpack from sorting"),
+    nativeBagOption("BackpackSellJunkDisabled", "Exclude backpack from Sell junk"),
     { type = "checkbox", key = "capacityHUD", label = "Show bag capacity on the HUD",
         description = "See free general and specialized space while bags are closed. Click the indicator to open bags.",
         get = function() return core.Profile.bags.capacityHUD ~= false end,
