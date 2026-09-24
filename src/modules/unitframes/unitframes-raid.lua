@@ -17,6 +17,10 @@ local VISIBILITY = "[@%s,exists] show; hide"
 local STOCK_FRAMES = { "CompactRaidFrameContainer" }
 
 function raid.UpdateRange(frame)
+    if raid.Testing then
+        unitframes.Motion.Range(frame, frame == raid.Frames[MEMBERS] and raid.FadeAlpha or 1)
+        return
+    end
     unitframes.FadeByRange(frame, raid.FadeAlpha)
 end
 
@@ -72,6 +76,32 @@ local function create()
     refresh()
     hideStock()
 end
+
+-- Session-only preview: secure clicks and display always point at the same unit.
+function raid.SetTest(enabled)
+    if InCombatLockdown() then return nil, "Cannot switch raid test mode in combat." end
+    if not raid.Holder then return nil, "Raid frames are not built; enable the unitframes module." end
+    raid.Testing = enabled == true
+    for index, frame in ipairs(raid.Frames) do
+        local unit = raid.Testing and "player" or ("raid" .. index)
+        unitframes.Motion.Reset(frame, true)
+        frame.unit, frame.threatArgs = unit, { unit }
+        frame:SetAttribute("unit", unit)
+        local ok, reason = pcall(RegisterStateDriver, frame, "visibility",
+            raid.Testing and "show" or VISIBILITY:format(unit))
+        if not ok then core:Print("Raid preview visibility unavailable: " .. tostring(reason)) end
+    end
+    refresh()
+    return true
+end
+
+core:RegisterCommand("raid", function(args)
+    if args:lower() ~= "test" then core:Print("Usage: /rik raid test"); return end
+    local ok, reason = raid.SetTest(not raid.Testing)
+    if not ok then core:Print(reason); return end
+    core:Print(raid.Testing and "Raid test mode on: forty frames show you. /rik raid test again to leave."
+        or "Raid test mode off.")
+end, "Preview the raid grid solo: /rik raid test")
 
 -- Called from the unitframes module's OnEnable; that module routes the unit events.
 function raid.Enable()

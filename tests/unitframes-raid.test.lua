@@ -249,6 +249,37 @@ return function(check)
             and two.presentation.alpha == 1 and writes == before)
         env.inCombat = false
 
+        env.inCombat, env.printed = true, {}
+        local previewWrites = writes
+        SlashCmdList.RIKUI("raid test")
+        check("raid test refuses combat without writes", raid.Testing ~= true and writes == previewWrites and printedContains("combat"))
+        env.inCombat = false
+        SlashCmdList.RIKUI("raid test")
+        check("raid test enables", raid.Testing == true)
+        for index, frame in ipairs(frames) do
+            check("raid preview retargets slot " .. index, frame.unit == "player" and frame:GetAttribute("unit") == "player"
+                and drivers[frame] == "show" and frame.threatArgs[1] == "player")
+        end
+        check("raid preview includes range sample", last.presentation.alpha == raid.FadeAlpha and one.presentation.alpha == 1)
+        units.player.name = "Preview player"
+        env.fire("UNIT_NAME_UPDATE", "player")
+        check("raid preview receives player events", last.name.text == "Preview player")
+        env.inCombat = true
+        previewWrites = writes
+        SlashCmdList.RIKUI("raid test")
+        check("combat cannot leave preview", raid.Testing == true and writes == previewWrites)
+        env.inCombat = false
+        SlashCmdList.RIKUI("raid test")
+        for index, frame in ipairs(frames) do
+            local unit = "raid" .. index
+            check("raid preview restores slot " .. index, frame.unit == unit and frame:GetAttribute("unit") == unit
+                and drivers[frame] == "[@" .. unit .. ",exists] show; hide" and frame.threatArgs[1] == unit)
+        end
+        check("raid test restores live data and fade", raid.Testing == false and one.name.text == "Healbot" and last.presentation.alpha == 1)
+        env.printed = {}
+        SlashCmdList.RIKUI("raid nonsense")
+        check("raid usage explains preview", printedContains("Usage: /rik raid test"))
+
         check("the stock raid container is parked with events dropped",
             CompactRaidFrameContainer.parent == RikUIHiddenFrames and CompactRaidFrameContainer.unregistered == 1)
         check("the stock raid manager stays where Blizzard put it", CompactRaidFrameManager.parent == UIParent
@@ -265,6 +296,9 @@ return function(check)
         module = load({ modules = { unitframes = false } })
         check("disabled module builds no raid grid and leaves the stock container", #module.Raid.Frames == 0
             and CompactRaidFrameContainer.parent == UIParent)
+        env.printed = {}
+        SlashCmdList.RIKUI("raid test")
+        check("unbuilt raid preview refused", module.Raid.Testing ~= true and printedContains("not built"))
         _G.RikTestAnimationsMissing = true
         module = load()
         local plain = module.Raid.Frames[1]

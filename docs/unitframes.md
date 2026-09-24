@@ -220,6 +220,10 @@ way to the grid, one slot per member, class colours, clicks, the fade, no
 Blizzard raid frames, the raid manager still opens, and leaving the raid
 brings back the party or solo state.
 
+Run `/rik raid test` out of combat to show all 40 raid slots using your player unit, then use `/rik move` to arrange the grid. The final slot previews range fading. Run the command again to restore every raid token and visibility driver; reload also leaves preview. The toggle is refused during combat or before the grid exists. Preview displays player data and is not a simulation of raid membership.
+
+Research reviewed 2026-09-24: [Forever players discussing frame previews and dragging](https://www.reddit.com/r/classicwow/comments/1wl16sa/classic_ui_now_configurable_through_edit_mode/). This is evidence of setup demand; the implementation follows the existing fixed-frame party preview and the pinned secure-button source below. Automated tests exercise all 40 retarget/restoration pairs, player events, range preview and zero protected writes on combat refusal. Native behavior is accepted by the user.
+
 ## Secret rules
 
 - `UnitHealth`, `UnitHealthMax`, `UnitPower` and `UnitPowerMax` are read
