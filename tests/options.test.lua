@@ -813,6 +813,57 @@ return function(check)
             check("profile transition invalidates destructive confirmation", RikUI.DB.profiles["Recovery 1"] == nil)
         end
 
+        do
+            local review = boot(nil, nil, function(core)
+                core:RegisterModule("review", { Options = { title = "Review feature", settings = {} } })
+            end)
+            local canvas = review.Panel()
+            local mod = pageByTitle(review, "Modules")
+            local toggle = rowByKey(mod.list, "module.review")
+            check("settings offers pending review toggle", canvas.pendingOnly ~= nil)
+            env.click(toggle.widget)
+            env.click(canvas.pendingOnly)
+            check("pending review hides unchanged rows and pages", canvas.onlyPending
+                and not toggle.filtered and pageByTitle(review, "General").filtered
+                and canvas.pages[canvas.current] == mod)
+            review.Search("no such setting")
+            check("pending search has an empty state", canvas.empty:IsShown())
+            review.Search("review")
+            check("pending search intersects row labels", not toggle.filtered and not canvas.empty:IsShown())
+            review.SetFocus(canvas, toggle)
+            env.click(toggle.widget)
+            check("reverted pending row disappears and drops keyboard focus", toggle.filtered
+                and canvas.empty:IsShown() and canvas.focused == nil and not canvas.reload:IsShown())
+            press(canvas, "SPACE")
+            check("hidden pending control cannot be activated by stale focus", RikUI.Profile.modules.review ~= false)
+            env.click(canvas.pendingOnly)
+            review.Search("")
+            check("all settings restores normal navigation", not canvas.onlyPending
+                and not pageByTitle(review, "General").filtered and not canvas.empty:IsShown())
+            env.click(toggle.widget)
+            env.click(canvas.pendingOnly)
+            review.Open("general")
+            check("direct page links clear both filters", not canvas.onlyPending and canvas.query == ""
+                and canvas.pages[canvas.current].id == "general")
+            env.click(canvas.pendingOnly)
+            RikUI.Profile.modules.review = true
+            review.Refresh()
+            check("external preference refresh removes resolved pending rows", toggle.filtered and canvas.empty:IsShown())
+            check("pending review explains an empty result", canvas.empty:GetText() == "No changes need reload.")
+            RikUI.DB.profiles.ReviewAlt = {}
+            RikUI:SetProfile("ReviewAlt"); review.Refresh()
+            local profilesPage = pageByTitle(review, "Profiles")
+            check("profile switch surfaces pending profile selector", not profilesPage.filtered
+                and not rowByKey(profilesPage.list, "profile").filtered and toggle.filtered)
+            env.inCombat = true; review.Refresh()
+            check("pending review retains combat reload restriction", not canvas.reload.enabled
+                and canvas.reload.text:GetText() == "After combat")
+            env.inCombat = false
+            RikUI:SetProfile("Default"); review.Refresh()
+            check("returning to loaded profile empties pending review", canvas.empty:IsShown() and not canvas.reload:IsShown())
+
+        end
+
         -- Real bars module declares appearance options.
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }

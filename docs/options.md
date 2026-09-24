@@ -38,8 +38,9 @@ and scale controls; individual module preferences stay on their own pages.
 Modules, Profiles, and Setup and support are separate System pages.
 
 Use **Search settings** to filter pages and controls by title, group, label or live help text. Every word must match, in any order, across those fields; for example, `bags columns`. Punctuation is treated literally.
-The clear button or Escape restores all results. Direct links to a page clear
-the filter. Unmatched searches explain that no settings match.
+The clear button or Escape clears the text search. **Needs reload** narrows the view to pending changes and combines with the search; **All settings** restores the full view. Reverting a change removes it from the pending view immediately. Direct links to a page clear both filters. Empty results explain whether there are no pending changes or no search matches.
+
+Research reviewed 2026-09-24: [players discussing individual UI choices](https://www.reddit.com/r/classicwow/comments/1wjh9dd/classic_ui_in_wow_forever/) and [modular UI prior art](https://www.curseforge.com/wow/addons/classicui-forever). Pending review is an inferred usability improvement; it uses RikUI's runtime comparisons and does not diagnose the client's persistence problem.
 
 Navigation and content scroll independently. Narrow windows stack larger
 fields below their labels; checkboxes remain compact. Sliders reserve space

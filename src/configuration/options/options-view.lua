@@ -4,6 +4,7 @@ local PAD, HEADER, FOOTER, NAV_WIDTH, GAP, NAV_ROW = 16, 94, 42, 140, 20, 28
 local WIDTH, HEIGHT = 760, 560
 local GROUPS = { "Interface", "Gameplay", "System" }
 local panel, category
+local applySearch
 local function shown(frame, value) options.SetShown(frame, value) end
 
 function options.Panel() return panel end
@@ -38,6 +39,7 @@ function options.Refresh()
     panel.reload:SetEnabled(not combat)
     panel.reload:SetAlpha(combat and 0.4 or 1)
     panel.reload.text:SetText(combat and "After combat" or "Reload UI")
+    if applySearch then applySearch() end
 end
 
 local function navigationLayout()
@@ -60,7 +62,7 @@ local function navigationLayout()
     scroll.SetContentHeight(panel.nav, y)
 end
 
-function options.ShowPage(index)
+function options.ShowPage(index, skipRefresh)
     local selected = panel and panel.pages[index]
     if not selected or selected.filtered then return end
     if options.CloseDropdown then options.CloseDropdown() end
@@ -75,7 +77,7 @@ function options.ShowPage(index)
     panel.title:SetText(selected.title)
     panel.hint:SetText(selected.description or "Customize this part of your interface.")
     options.SetFocus(panel, nil)
-    options.Refresh()
+    if not skipRefresh then options.Refresh() end
 end
 
 local function matches(text, query)
@@ -93,30 +95,42 @@ local function filterPage(page, query)
         local description = row.spec.getDescription and row.spec.getDescription() or row.spec.description
         local searchable = table.concat({ page.title or "", page.group or "",
             row.spec.label or "", description or "" }, " ")
-        row.filtered = not (whole or matches(searchable, query))
+        row.filtered = (panel.onlyPending and not row.pending) or not (whole or matches(searchable, query))
         if not row.filtered then count = count + 1 end
     end
-    page.filtered = not whole and count == 0
+    page.filtered = count == 0 and (panel.onlyPending or not whole)
     options.ResizeList(page.list, page.list.width)
     return not page.filtered
 end
 
-function options.Search(text)
-    if not panel then return end
-    local query = (text or ""):lower():match("^%s*(.-)%s*$")
-    panel.query = query
-    options.CloseDropdown(); options.SetFocus(panel, nil)
-    local first
+applySearch = function()
+    local query, first = panel.query or "", nil
     for index, page in ipairs(panel.pages) do
         if filterPage(page, query) then first = first or index end
     end
+    if panel.focused and panel.focused.filtered then options.SetFocus(panel, nil) end
+    panel.empty:SetText(panel.onlyPending and (query == "" and "No changes need reload."
+        or "No pending changes match this search.") or "No settings match. Try a shorter search.")
     shown(panel.empty, not first)
-    if first then options.ShowPage(not panel.pages[panel.current or first].filtered and (panel.current or first) or first)
+    if first then
+        local current = panel.pages[panel.current or first]
+        local target = current.filtered and first or (panel.current or first)
+        if panel.current ~= target or not panel.pages[target].frame:IsShown() then
+            options.ShowPage(target, true)
+        end
     else
         for _, page in ipairs(panel.pages) do page.frame:Hide(); page.tab.selected:Hide() end
-        navigationLayout()
     end
+    navigationLayout()
     shown(panel.clearSearch, query ~= "")
+    panel.pendingOnly.text:SetText(panel.onlyPending and "All settings" or "Needs reload")
+end
+
+function options.Search(text)
+    if not panel then return end
+    panel.query = (text or ""):lower():match("^%s*(.-)%s*$")
+    options.CloseDropdown(); options.SetFocus(panel, nil)
+    options.Refresh()
 end
 
 local function navigationButton(index, page)
@@ -223,7 +237,7 @@ end
 local function createSearch()
     local box = CreateFrame("EditBox", nil, panel)
     box:SetAutoFocus(false); box:SetMaxLetters(100); box:SetText("")
-    box:SetPoint("TOPLEFT", PAD, -60); box:SetPoint("TOPRIGHT", -54, -60); box:SetHeight(24)
+    box:SetPoint("TOPLEFT", PAD, -60); box:SetPoint("TOPRIGHT", -184, -60); box:SetHeight(24)
     box:SetTextInsets(8, 8, 0, 0); core.Media.Font(box, "label")
     options.Flat(box, "BACKGROUND", { 0.07, 0.09, 0.12, 1 })
     options.Border(box, { 0.25, 0.4, 0.5, 1 })
@@ -238,7 +252,12 @@ local function createSearch()
     box:HookScript("OnHide", function(self) self:ClearFocus() end)
     panel.search = box
     panel.clearSearch = footerButton("X", 24, function() box:SetText(""); options.Search("") end)
-    panel.clearSearch:SetPoint("TOPRIGHT", -PAD, -60); panel.clearSearch:Hide()
+    panel.clearSearch:SetPoint("TOPRIGHT", -146, -60); panel.clearSearch:Hide()
+    panel.pendingOnly = footerButton("Needs reload", 122, function()
+        panel.onlyPending = not panel.onlyPending
+        options.Search(panel.query)
+    end)
+    panel.pendingOnly:SetPoint("TOPRIGHT", -PAD, -60)
     panel.empty = options.Text(panel, "label", "No settings match. Try a shorter search.")
     panel.empty:SetPoint("CENTER"); panel.empty:Hide()
 end
@@ -277,6 +296,7 @@ function options.Open(id)
         panel.close:Show(); panel:Show()
     end
     if id then
+        panel.onlyPending = false
         panel.search:SetText(""); options.Search("")
         for index, page in ipairs(panel.pages) do if page.id == id then options.ShowPage(index); break end end
     end
