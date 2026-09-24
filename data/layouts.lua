@@ -30,6 +30,7 @@ layouts.Sizes = {
     micromenu = { width = 118, height = 22 }, durability = { width = 132, height = 18 },
     mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 76 },
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
+    druidmana = { width = 121, height = 18 },
     questtracker = { width = 240, height = 120 }, questtimers = { width = 220, height = 38 },
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
     bags = { width = 394, height = 360 }, chat = { width = 344, height = 214 },
@@ -122,6 +123,7 @@ layouts.centered = layout("Centered", "Unit frames above the action bars in the 
     focus = bottomRightOfCentre(OUTSIDE, FOCUS_ROW),
     castfocus = bottomRightOfCentre(OUTSIDE, FOCUS_ROW + FOCUS_HEIGHT + GAP),
     totems = bottomLeftOfCentre(BAR_LEFT, ABOVE_UNITS), combopoints = bottom(0, ABOVE_UNITS),
+    druidmana = bottomRightOfCentre(-BAR_LEFT, ABOVE_UNITS),
     swingtimer = bottom(UNIT_X, ABOVE_UNITS + layouts.Sizes.totems.height + GAP),
 })
 
@@ -143,6 +145,7 @@ layouts.classic = layout("Classic", "Blizzard's arrangement: player and target i
     castplayer = bottom(0, CAST_ROW), swingtimer = bottom(0, CLASS_ROW),
     combopoints = bottom(0, CLASS_ROW + layouts.Sizes.swingtimer.height + GAP),
     totems = bottom(-100, CLASS_ROW + layouts.Sizes.swingtimer.height + layouts.Sizes.combopoints.height + 2 * GAP),
+    druidmana = bottomRightOfCentre(-layouts.Sizes.swingtimer.width / 2 - GAP, CLASS_ROW),
 })
 
 -- HUD: player and target either side of the character, the cast bar and class widgets between them.
@@ -159,6 +162,7 @@ layouts.hud = layout("HUD", "Player and target close beside your character with 
     swingtimer = bottom(0, HUD_SWING), castplayer = bottom(0, HUD_CAST),
     combopoints = bottom(0, HUD_CAST + CAST_HEIGHT + 2 * GAP),
     totems = bottom(-100, HUD_CAST + CAST_HEIGHT + layouts.Sizes.combopoints.height + 3 * GAP),
+    druidmana = bottomRightOfCentre(-layouts.Sizes.swingtimer.width / 2 - GAP, HUD_SWING),
     casttarget = bottom(HUD_X, HUD_UNDER), tot = bottomLeftOfCentre(HUD_SPREAD, HUD_UNDER - GAP - SMALL_HEIGHT),
     petframe = bottomRightOfCentre(BAR_LEFT - GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
     castpet = bottomRightOfCentre(BAR_LEFT - SMALL_WIDTH - 2 * GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
@@ -187,6 +191,7 @@ layouts.healer = layout("Healer", "Party and raid frames over the action bars, w
     petframe = bottomLeftOfCentre(GRID_LEFT, ROW_C), castpet = bottomLeftOfCentre(GRID_LEFT, ROW_D),
     focus = bottomLeftOfCentre(SECOND_X, ROW_C), castfocus = bottomLeftOfCentre(SECOND_X, ROW_D),
     totems = bottomLeftOfCentre(GRID_LEFT, ROW_E),
+    druidmana = bottomLeftOfCentre(THIRD_X, ROW_A + SMALL_HEIGHT + GAP),
     combopoints = bottomLeftOfCentre(GRID_LEFT + layouts.Sizes.totems.width + GAP, ROW_E),
     swingtimer = bottomLeftOfCentre(SECOND_X, ROW_E),
     loot = at("TOPLEFT", "LEFT", MARGIN, 100),

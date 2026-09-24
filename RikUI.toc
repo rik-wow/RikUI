@@ -203,6 +203,7 @@ src/modules/panels/interiors-services.lua
 src/modules/panels/interiors-social.lua
 src/modules/panels/interiors-misc.lua
 src/modules/personalresource/personalresource.lua
+src/modules/personalresource/druid-mana.lua
 src/ui/scroll.lua
 src/ui/shell.lua
 src/ui/shell-tools.lua

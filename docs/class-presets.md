@@ -86,3 +86,9 @@ Ctrl-1..5 are stable named form shortcuts: Bear/Dire Bear, Cat, Moonkin, Travel,
 
 Druid HTML SHA-256: `a33db4422c77b102b65b301ae57173cf3aa9bd52cd338d66a3d0ddbdbf31ffce`.
 
+## Druid mana in forms
+
+A movable blue mana strip accompanies Cat energy and Bear rage; caster form hides it. Toggle **Interface → Druid mana → Show mana in Cat and Bear** in `/rik config`. Its position participates in all four layouts and Move frames. It uses explicit player Mana and refreshes on resource/form events, with no polling. If mana is restricted, raw values go to supported StatusBar sinks and the text becomes “Mana”; failed reads clear the display instead of leaving old numbers.
+
+This answers the [September 20 player request](https://us.forums.blizzard.com/en/wow/t/druid-mana-bar-in-bearcat-form/2355852); the [DruidForeverManaBar author's September 22 release](https://www.curseforge.com/wow/addons/druidforevermanabar) is additional demand/prior art, not API proof. Rechecked September 23. The pinned [Unit APIs](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua) document explicit power types and possible secrecy; [StatusBar sinks](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleStatusBarAPIDocumentation.lua) accept opaque values. The native [secondary power mapping](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_UnitFrame/Mainline/AlternatePowerBar.lua) lacks Druid Energy/Rage to Mana, so this is a separate addon strip.
+
