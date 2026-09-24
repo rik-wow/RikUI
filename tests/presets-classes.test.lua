@@ -1,3 +1,32 @@
+-- Exercise each declared role/page against actual class catalogue IDs and the spellbook reader.
+local function levelingChecks(check, class, cases)
+    local oldClass, oldBook, oldEnum = UnitClass, C_SpellBook, Enum
+    local known = {}
+    UnitClass = function() return class, class end
+    Enum = { SpellBookSpellBank = { Player = 1 }, SpellBookItemType = { Spell = 1 } }
+    C_SpellBook = {
+        GetNumSpellBookSkillLines = function() return 1 end,
+        GetSpellBookSkillLineInfo = function() return { itemIndexOffset = 0, numSpellBookItems = #known } end,
+        GetSpellBookItemInfo = function(index) return { itemType = 1, spellID = known[index] } end,
+    }
+    for _, case in ipairs(cases) do
+        local role, page, slot, primary, fallback = unpack(case)
+        local resolved = assert(RikUI.Setup.Resolve(class, role))
+        local entry = resolved.bars[page][slot]
+        local label = class .. " " .. role .. " " .. page .. "/" .. slot
+        check(label .. " keeps the intended primary and starter", entry.spell == primary and entry.fallback == fallback)
+        local first, second = RikUI.Spells.Entry(primary, class), RikUI.Spells.Entry(fallback, class)
+        known = {}
+        check(label .. " grants neither spell by level", RikUI.Setup.KnownSpell(entry, class) == nil)
+        known = { second.ranks[1], second.ranks[#second.ranks] }
+        check(label .. " selects highest learned starter rank", RikUI.Setup.KnownSpell(entry, class) == second.ranks[#second.ranks])
+        known[#known + 1], known[#known + 2] = first.ranks[1], first.ranks[#first.ranks]
+        check(label .. " promotes highest learned primary rank", RikUI.Setup.KnownSpell(entry, class) == first.ranks[#first.ranks])
+        check(label .. " keeps resolution declarative", entry.spell == primary)
+    end
+    UnitClass, C_SpellBook, Enum = oldClass, oldBook, oldEnum
+end
+
 -- Learned fallback selection, validation, placement and preview.
 local function fallbackChecks(check)
     require("wow_stub")
@@ -449,6 +478,15 @@ return function(check)
             check(class .. " macro size " .. name, #name <= 16 and #macro.body <= 255 and type(macro.icon) == "number")
         end
     end
+    levelingChecks(check, "WARRIOR", {
+        { "dps", "main", 2, "Mortal Strike", "Rend" },
+        { "dps", "battle", 2, "Mortal Strike", "Rend" },
+        { "dps", "defensive", 2, "Mortal Strike", "Rend" },
+        { "fury", "main", 1, "Bloodthirst", "Heroic Strike" },
+        { "fury", "berserker", 1, "Bloodthirst", "Heroic Strike" },
+        { "tank", "main", 2, "Shield Slam", "Heroic Strike" },
+        { "tank", "defensive", 2, "Shield Slam", "Heroic Strike" },
+    })
     fallbackChecks(check)
 end
 

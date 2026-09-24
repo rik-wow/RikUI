@@ -2,7 +2,7 @@
 -- Sources, sparse page composition and acquisition caveats: docs/presets.md.
 RikUI.Presets.WARRIOR = {
     class = "WARRIOR",
-    version = 2,
+    version = 3,
     roleOrder = { "dps", "fury", "tank" },
     roles = {
         dps = { label = "Arms", trees = { 1 } },
@@ -62,9 +62,9 @@ RikUI.Presets.WARRIOR = {
             { spell = "Battle Stance", level = 1 },
             { spell = "Defensive Stance", level = 10 },
             { spell = "Berserker Stance", level = 30 },
-            { spell = "Mortal Strike", level = 40 },
-            { spell = "Bloodthirst", level = 40 },
-            { spell = "Shield Slam", level = 40 },
+            { spell = "Mortal Strike", fallback = "Rend", level = 40 },
+            { spell = "Bloodthirst", fallback = "Heroic Strike", level = 40 },
+            { spell = "Shield Slam", fallback = "Heroic Strike", level = 40 },
         },
         -- Mounts, professions, food and racials depend on the character.
         bar4 = {},
@@ -97,17 +97,17 @@ RikUI.Presets.WARRIOR = {
     },
     roleOverrides = {
         dps = {
-            main = { [2] = { spell = "Mortal Strike", level = 40 } },
+            main = { [2] = { spell = "Mortal Strike", fallback = "Rend", level = 40 } },
             bar5 = { [11] = { spell = "Rend", level = 4 } },
         },
         fury = {
-            main = { [1] = { spell = "Bloodthirst", level = 40 } },
+            main = { [1] = { spell = "Bloodthirst", fallback = "Heroic Strike", level = 40 } },
             bar5 = { [11] = { spell = "Heroic Strike", level = 1 } },
         },
         tank = {
             main = {
                 [1] = { spell = "Sunder Armor", level = 10 },
-                [2] = { spell = "Shield Slam", level = 40 },
+                [2] = { spell = "Shield Slam", fallback = "Heroic Strike", level = 40 },
                 [6] = { spell = "Taunt", level = 10 },
                 [7] = { spell = "Revenge", level = 14 },
                 [8] = { spell = "Shield Bash", level = 12 },

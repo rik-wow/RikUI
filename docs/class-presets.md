@@ -13,6 +13,12 @@ Checked 2026-09-23. All nine classes have ready-to-apply role presets. Eight new
 
 The setup role page previews every resolved action page, including stance/form/stealth overlays, racial utility and displaced extra-page actions. Hover a slot for its name, proposed key and learned status. Unlearned talents remain dim even at maximum level, and missing acquisition levels are explicitly unknown. Mouse-key help names the selected class's actual actions and shows the keyboard fallback.
 
+### Warrior leveling attacks across all stances — 2026-09-23
+
+Arms keeps Rend until Mortal Strike; Fury keeps Heroic Strike until Bloodthirst; Protection keeps Heroic Strike until Shield Slam. Stance overrides keep their distinct attacks. No claim about rage tuning or talent availability.
+
+Rechecked [class feedback](https://www.reddit.com/r/classicwow/comments/1wl4exp/forever_warrior/) and the [published spellbook](https://foreverchanges.pro/spellbook/warrior). Community discussion motivates accessible leveling keys; the catalogue remains pinned to verified build 1.60.1.69913, without newly inferred spell IDs, ranks or acquisition levels. Preset version 3. Learned-spell, resolved-page and regression checks cover selection; native acceptance is supplied by the user.
+
 ## Source boundaries
 
 Spell families and rank order come from the author-published [ForeverChanges spellbooks](https://foreverchanges.pro/spellbook/hunter). Their embedded data explicitly identifies **1.60.1.69913**, despite the site's header advertising 69977. IDs and names for all eight new classes (1,446 unique IDs) were cross-checked with Blizzard's extracted [SpellName](https://wago.tools/db2/SpellName/csv?build=1.60.1.69913) and [SpellMisc](https://wago.tools/db2/SpellMisc/csv?build=1.60.1.69913) records: no mismatches or missing records. Numeric icons come from SpellMisc, keyed by SpellID and default difficulty. Internal DB2 spell levels do not establish acquisition: unknown talent levels stay nil. Multiple unranked IDs in one family are retained and only a learned player spellbook entry can become an action.
