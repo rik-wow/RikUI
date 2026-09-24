@@ -288,6 +288,17 @@ local function eachButton(visit)
     end
 end
 
+function bags.RefreshLock(_, bag, slot)
+    if not bags.Holder or not bags.Holder:IsShown() then return end
+    if not plain(bag, "number") or bag ~= bag or bag < 0 or bag > 4 or bag % 1 ~= 0
+        or not plain(slot, "number") or slot ~= slot or slot < 1 or slot > MAX_BAG_SLOTS or slot % 1 ~= 0 then return end
+    local frame = bagFrames[bag]
+    local button = frame and frame.buttons[slot]
+    if not button or not button:IsShown() then return end
+    local info = readInfo(bag, slot)
+    button.rikIcon:SetDesaturated(info ~= nil and plain(info.isLocked, "boolean") and info.isLocked)
+end
+
 function bags.RefreshItemData(_, itemID, success)
     if not bags.Holder or not bags.Holder:IsShown() then return end
     if not plain(success, "boolean") or not success or not plain(itemID, "number")

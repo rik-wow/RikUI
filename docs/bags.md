@@ -1,5 +1,7 @@
 # Bags
 
+Lock changes now read and shade only the affected visible inventory slot, instead of rebuilding all bags. Equipment-only events, unsupported slots and closed inventory do no work. Unreadable lock state clears stale shading. Full inventory changes still refresh the grid. This reduces measured API calls in automated tests; it is not a measured FPS claim. The event's optional slot payload is verified in the [69913 Container API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua).
+
 Items with readable IDs refresh when their delayed item data arrives: icons, names and filter counts update in the open bag window. Only matching visible slots are reread; hidden bags and failed/unrelated completion events do no work. No item is moved or used. Event payloads and container IDs were checked against the [69913 item API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua) on 2026-09-24. Slots with unavailable IDs still refresh on ordinary bag updates.
 
 Cooldown-only events refresh the visible cooldown widgets without rereading item information, reclassifying items or rebuilding the grid. Hidden inventory performs no cooldown queries. Inventory changes still use the complete refresh path. Automated API-call counts verify the reduced work; no native FPS improvement is claimed.

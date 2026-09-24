@@ -20,7 +20,7 @@ local SEARCH_TEMPLATE, SEARCH_ART = "BagSearchBoxTemplate", { "Left", "Middle", 
 local STOCK_PREFIX, STOCK_COMBINED, MAX_STOCK = "ContainerFrame", "ContainerFrameCombinedBags", 16
 local TOGGLES = { "OpenAllBags", "CloseAllBags", "ToggleAllBags", "OpenBackpack", "CloseBackpack", "ToggleBackpack",
     "OpenBag", "CloseBag", "ToggleBag" }
-local REFRESH_EVENTS = { "BAG_UPDATE_DELAYED", "ITEM_LOCK_CHANGED", "INVENTORY_SEARCH_UPDATE" }
+local REFRESH_EVENTS = { "BAG_UPDATE_DELAYED", "INVENTORY_SEARCH_UPDATE" }
 local holder, warnings = nil, {}
 
 function bags.Warn(operation, reason)
@@ -307,6 +307,7 @@ function bags:OnEnable()
     end
     for _, event in ipairs(REFRESH_EVENTS) do core:RegisterEvent(event, refreshIfOpen) end
     core:RegisterEvent("BAG_UPDATE_COOLDOWN", bags.RefreshCooldowns)
+    core:RegisterEvent("ITEM_LOCK_CHANGED", bags.RefreshLock)
     core:RegisterEvent("GET_ITEM_INFO_RECEIVED", bags.RefreshItemData)
     core:RegisterEvent("ITEM_DATA_LOAD_RESULT", bags.RefreshItemData)
     for _, event in ipairs({ "CURSOR_CHANGED", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }) do

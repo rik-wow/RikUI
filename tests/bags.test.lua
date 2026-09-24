@@ -470,8 +470,25 @@ return function(check)
         check("BAG_UPDATE_DELAYED redraws the grid", cloth.rikIcon.texture == nil and empty.rikIcon.texture == 132889
             and empty.rikCount.text == "20")
         stub.items["0:3"].isLocked = true
+        local lockReads, lockCooldowns = stub.infoReads, cooldownReads
         env.fire("ITEM_LOCK_CHANGED", 0, 3)
+        check("lock changes read only their slot and skip cooldowns", stub.infoReads == lockReads + 1
+            and cooldownReads == lockCooldowns)
+        lockReads = stub.infoReads
+        env.fire("ITEM_LOCK_CHANGED", 20)
+        env.fire("ITEM_LOCK_CHANGED", -1, 3)
+        env.fire("ITEM_LOCK_CHANGED", env.SECRET, 3)
+        env.fire("ITEM_LOCK_CHANGED", 0, env.SECRET)
+        env.fire("ITEM_LOCK_CHANGED", 0, 0/0)
+        env.fire("ITEM_LOCK_CHANGED", 0, 999)
+        check("noninventory or unreadable lock events do no item reads", stub.infoReads == lockReads)
         check("a locked item is desaturated", empty.rikIcon.desaturated == true and stone.rikIcon.desaturated == false)
+        stub.items["0:3"].isLocked = env.SECRET
+        env.fire("ITEM_LOCK_CHANGED", 0, 3)
+        check("unreadable lock clears stale shading", empty.rikIcon.desaturated == false)
+        stub.items["0:3"].isLocked = false
+        env.fire("ITEM_LOCK_CHANGED", 0, 3)
+        check("unlock updates its slot", empty.rikIcon.desaturated == false)
         stub.cooldowns["0:2"] = { 100, 3600 }
         env.fire("BAG_UPDATE_COOLDOWN")
         check("an item on cooldown drives the template's cooldown frame", stone.Cooldown.start == 100
