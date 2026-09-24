@@ -58,3 +58,9 @@ Affliction, Demonology and Destruction share Fear, Life Tap, drains and pet cont
 
 Warlock HTML SHA-256: `3db22eb5db4c3c448fcb399f8677055b8c2c677240776b75364e3f21272c945b`.
 
+## Shaman layout
+
+Elemental, Enhancement and Restoration have separate rotations and common emergency controls. Earth Shock stays on Mouse5 and Ghost Wolf on Mouse4. Four Ctrl-row macros group Earth/Fire/Water/Air: keyboard or normal click casts the first listed spell; right click casts the second. They never cast multiple totems automatically. Direct totem alternatives remain on the side rows. Targeted friendly heals follow Priest's mouseover rule. All 56 source families include Forever Fire Nova, Calls, Recall and Projection.
+
+Shaman HTML SHA-256: `3a2b09ccc5ea49f96622eec592a2086e77f2bc3b39b37c0cbcb2e1cc30dc560a`.
+

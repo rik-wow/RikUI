@@ -85,6 +85,14 @@ return function(check)
         check("Priest ten-point tree " .. tree .. " chooses " .. expected,
             RikUI.Setup.GuessRole("PRIEST") == expected)
     end
+
+    for tree, expected in ipairs({ "ele", "enh", "heal" }) do
+        if RikUI.Presets.SHAMAN then
+            points = { 0, 0, 0 }; points[tree] = 10
+            check("Shaman ten-point tree " .. tree .. " chooses " .. expected,
+                RikUI.Setup.GuessRole("SHAMAN") == expected)
+        end
+    end
     C_ClassTalents, C_Traits = savedTalents, savedTraits
 
     local savedBook, savedEnum = C_SpellBook, Enum
@@ -115,6 +123,18 @@ return function(check)
     check("Warlock pet commands follow Hunter key decision",
         warlock.bars.bar2[10].macro == "Pet Attack" and warlock.bars.bar2[11].macro == "Pet Follow"
         and warlock.macros["Pet Attack"].body == RikUI.Presets.HUNTER.macros["Pet Attack"].body)
+
+
+    local shaman = assert(RikUI.Presets.SHAMAN, "Shaman preset missing")
+    local enhancement = assert(RikUI.Setup.Resolve("SHAMAN", "enh"))
+    local elemental = assert(RikUI.Setup.Resolve("SHAMAN", "ele"))
+    local restoration = assert(RikUI.Setup.Resolve("SHAMAN", "heal"))
+    check("Shaman roles have separate rotations", enhancement.bars.main[1].spell == "Stormstrike"
+        and elemental.bars.main[1].spell == "Lightning Bolt" and restoration.bars.main[1].macro == "Healing Wave")
+    check("Shaman interrupt and totem utility remain reachable", elemental.bars.bar2[11].spell == "Earth Shock"
+        and shaman.bars.bar3[1].macro == "Earth Totems" and shaman.macros["Air Totems"].spells[1] == "Grounding Totem")
+    check("Forever Fire Nova is not a fabricated Fire Nova Totem family",
+        RikUI.Spells.Entry("Fire Nova", "SHAMAN") and not RikUI.Spells.Entry("Fire Nova Totem", "SHAMAN"))
 
     for class, current in pairs(RikUI.Presets) do
         check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)
