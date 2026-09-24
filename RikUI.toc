@@ -201,6 +201,7 @@ src/modules/toasts/toasts.lua
 src/modules/banners/banners.lua
 src/modules/damagemeter/damagemeter.lua
 src/modules/menus/menus.lua
+src/modules/menus/menus-rows.lua
 src/modules/chatbubbles/chatbubbles.lua
 src/modules/totems/totems.lua
 src/modules/alerts/alerts.lua

@@ -39,6 +39,12 @@ local function createBacking()
     backing.rikFill = skin.Fill(backing, skin.BACKING)
     backing.rikBorder = skin.Outline(backing)
     backing.rikFade = motion.Tween(backing, 0, 1, skin.FADE_SECONDS)
+    backing:SetScript("OnUpdate", function(self, elapsed)
+        self.elapsed = (self.elapsed or 0) + elapsed
+        if self.elapsed < 0.1 then return end
+        self.elapsed = 0
+        if self.menu and menus.StyleRows then menus.StyleRows(self.menu) end
+    end)
     return backing
 end
 
@@ -56,7 +62,9 @@ local function apply(menu)
     fadeBackground(menu:GetRegions())
     local backing = table.remove(pool) or createBacking()
     menus.Active[menu] = backing
+    backing.menu, backing.elapsed = menu, 0
     place(backing, menu)
+    if menus.StyleRows then menus.StyleRows(menu) end
     backing:Show()
     motion.Play(backing.rikFade)
     counts.shown = counts.shown + 1
@@ -72,6 +80,8 @@ local function onHide(_, menu)
     local backing = menu and menus.Active[menu]
     if not backing then return end
     menus.Active[menu] = nil
+    backing.menu = nil
+    motion.Stop(backing.rikFade)
     backing:Hide()
     backing:ClearAllPoints()
     pool[#pool + 1] = backing
