@@ -60,3 +60,11 @@ Player: Lightning Shield, Water Shield, Ghost Wolf, Water Breathing, Water Walki
 
 [Current feedback](https://us.forums.blizzard.com/en/wow/t/use-weapon-imbues-as-design-space-in-forever/2357167) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/shaman) supplies the direct-aura families through the existing 69913 catalogue. Totem-applied effects, Maelstrom/Flurry and downstream Stormstrike or weapon proc auras remain unknown. Native enchant slots do not infer enchant identity. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Druid — 2026-09-23
+
+Track defensive and form-combat buffs, your bleeds and Balance effects, and your HoTs on friendly targets across all roles.
+
+Player: Mark of the Wild, Gift of the Wild, Thorns, Barkskin, Enrage, Tiger's Fury, Dash, Nature's Grasp, Innervate, Berserk. Target harmful: Moonfire, Entangling Roots, Faerie Fire, Rip, Rake, Lacerate. Target helpful: Rejuvenation, Regrowth, Wild Growth, Innervate.
+
+[Current feedback](https://us.forums.blizzard.com/en/wow/t/feral-druid-feedback-so-far/2356947) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/druid) supplies the direct-aura families through the existing 69913 catalogue. Nature's Grasp self buff is distinct from its triggered root. Clearcasting, separate Pounce bleed and Feral Charge effects remain excluded. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
