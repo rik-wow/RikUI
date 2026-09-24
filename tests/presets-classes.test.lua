@@ -81,6 +81,16 @@ return function(check)
             return groups
         end,
     }
+    for tree, expected in ipairs({ "dps", "fury", "tank" }) do
+        points = { 0, 0, 0 }; points[tree] = 10
+        check("Warrior tree selects " .. expected, RikUI.Setup.GuessRole("WARRIOR") == expected)
+    end
+    local fury = RikUI.Setup.Resolve("WARRIOR", "fury")
+    check("Fury promotes Bloodthirst through stance pages", fury and fury.bars.main[1].spell == "Bloodthirst"
+        and fury.bars.berserker[1].spell == "Bloodthirst" and fury.bars.bar5[11].spell == "Heroic Strike")
+    check("Arms and tank promote talent strikes", RikUI.Setup.Resolve("WARRIOR", "dps").bars.main[2].spell == "Mortal Strike"
+        and RikUI.Setup.Resolve("WARRIOR", "tank").bars.defensive[2].spell == "Shield Slam")
+
     for tree, expected in ipairs({ "assassination", "dps", "subtlety" }) do
         points = { 0, 0, 0 }; points[tree] = 10
         check("Rogue tree selects " .. expected, RikUI.Setup.GuessRole("ROGUE") == expected)

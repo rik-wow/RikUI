@@ -89,10 +89,10 @@ return function(check)
     check("returns actual points and tree labels", trees and trees[3].points == 10
         and trees[3].name == "Protection")
     points = { 6, 6, 10 }
-    check("combined DPS trees outweigh one larger tree", setup.GuessRole("WARRIOR") == "dps")
-    points = { 5, 5, 10 }
+    check("separate damage trees no longer outweigh larger Protection tree", setup.GuessRole("WARRIOR") == "tank")
+    points = { 10, 5, 10 }
     check("ties use explicit order", setup.GuessRole("WARRIOR") == "dps")
-    RikUI.Presets.WARRIOR.roleOrder = { "tank", "dps" }
+    RikUI.Presets.WARRIOR.roleOrder = { "tank", "dps", "fury" }
     check("tie follows changed first role", setup.GuessRole("WARRIOR") == "tank")
     points = { 1, 1, 0 }
     check("under threshold uses declared first role", setup.GuessRole("WARRIOR") == "tank")

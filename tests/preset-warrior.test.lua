@@ -30,7 +30,8 @@ return function(check)
     end
     check("Warrior preset contains only serializable values", isData(preset))
     check("DPS and Protection roles identify the correct talent trees",
-        preset.roles.dps.label == "Arms / Fury" and table.concat(preset.roles.dps.trees, ",") == "1,2"
+        preset.roles.dps.label == "Arms" and table.concat(preset.roles.dps.trees, ",") == "1"
+        and preset.roles.fury and table.concat(preset.roles.fury.trees, ",") == "2"
         and preset.roles.tank.label == "Protection" and table.concat(preset.roles.tank.trees, ",") == "3")
     local main = preset.bars.main
     local expected = { "Heroic Strike", "Rend", "Thunder Clap", "Hamstring", "Execute",

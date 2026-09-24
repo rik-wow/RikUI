@@ -166,7 +166,7 @@ return function(check)
     check("Setup promotes preset key and retains the old main-bar alias", primary == "Q" and secondary == "6")
     check("Apply finishes and records versioned character identity", result.status == "applied"
         and RikUICharDB.applied.class == "WARRIOR" and RikUICharDB.applied.role == "dps"
-        and RikUICharDB.applied.at == 123456 and RikUICharDB.applied.presetVersion == 1)
+        and RikUICharDB.applied.at == 123456 and RikUICharDB.applied.presetVersion == core.Presets.WARRIOR.version)
     check("highest known spell placed on base and stance pages", actions[1].id == 284 and actions[73].id == 284)
     check("unknown designated spell is cleared and unspecified side slot preserved", actions[8] == nil and actions[25].id == 42)
     check("bag item and usable macro placed", actions[12].id == 6948 and actions[70] and actions[70].kind == "macro")

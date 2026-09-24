@@ -42,8 +42,8 @@ return function(check)
             and welcome.body.text:find("Nothing is applied until the last page", 1, true) ~= nil)
 
         local role = page("role")
-        check("the role page offers the preset's roles in order and preselects one", #role.cards == 2
-            and role.cards[1].label.text == "Arms / Fury" and role.cards[2].label.text == "Protection"
+        check("the role page offers the preset's roles in order and preselects one", #role.cards == 3
+            and role.cards[1].label.text == "Arms" and role.cards[2].label.text == "Fury" and role.cards[3].label.text == "Protection"
             and wizard.State.role == "dps" and role.cards[1].isChosen == true and role.cards[2].isChosen == false)
         local heroic = RikUI.SpellData["Heroic Strike"].icon
         check("it previews the main bar that role gets, with its keys", role.bar.slots[1].icon.texture == heroic
@@ -60,8 +60,8 @@ return function(check)
         end
         check("a macro is dim until the character can learn a spell it casts", execute ~= nil
             and execute.icon.texture ~= nil and execute.icon.alpha ~= 1)
-        env.click(role.cards[2])
-        check("choosing Protection changes the state and the preview", wizard.State.role == "tank" and role.cards[2].isChosen == true
+        env.click(role.cards[3])
+        check("choosing Protection changes the state and the preview", wizard.State.role == "tank" and role.cards[3].isChosen == true
             and role.cards[1].isChosen == false and role.bar.slots[1].icon.texture == RikUI.SpellData["Sunder Armor"].icon)
 
         local keysPage = page("keys")

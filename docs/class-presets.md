@@ -106,3 +106,7 @@ Checked 2026-09-23 against the [published exact-build spellbook](https://forever
 
 Checked 2026-09-23: [Rogue player discussion](https://us.forums.blizzard.com/en/wow/t/rogues-in-forever/2349386) informs support for different playstyles; [author-published spellbook](https://foreverchanges.pro/spellbook/rogue) and existing 69913 catalogue establish the spell families. Combat keeps saved `dps`; Assassination promotes Mutilate and Subtlety promotes Hemorrhage. Sinister Strike stays on the side row, including before those talents are learned. Stealth openers, Kick, Sprint and poison access stay fixed. No talent availability or damage ranking is inferred from level alone.
 
+## Warrior talent layouts
+
+Checked 2026-09-23. [Warrior interface feedback](https://www.reddit.com/r/classicwow/comments/1wl4exp/forever_warrior/) motivates separate talent layouts. The [published spellbook](https://foreverchanges.pro/spellbook/warrior) confirms the existing catalogue's Mortal Strike, Bloodthirst and Shield Slam families. Arms keeps `dps`, Protection keeps `tank`, and Fury gains its own role. Primary pages expose the relevant strike; displaced Rend/Heroic Strike remain on side rows. Existing stance-specific controls remain. Six other talent-only families still need an ID/icon audit and are not guessed into this change.
+

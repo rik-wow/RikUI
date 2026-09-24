@@ -2,10 +2,11 @@
 -- Sources, sparse page composition and acquisition caveats: docs/presets.md.
 RikUI.Presets.WARRIOR = {
     class = "WARRIOR",
-    version = 1,
-    roleOrder = { "dps", "tank" },
+    version = 2,
+    roleOrder = { "dps", "fury", "tank" },
     roles = {
-        dps = { label = "Arms / Fury", trees = { 1, 2 } },
+        dps = { label = "Arms", trees = { 1 } },
+        fury = { label = "Fury", trees = { 2 } },
         tank = { label = "Protection", trees = { 3 } },
     },
     bars = {
@@ -95,13 +96,23 @@ RikUI.Presets.WARRIOR = {
         },
     },
     roleOverrides = {
+        dps = {
+            main = { [2] = { spell = "Mortal Strike", level = 40 } },
+            bar5 = { [11] = { spell = "Rend", level = 4 } },
+        },
+        fury = {
+            main = { [1] = { spell = "Bloodthirst", level = 40 } },
+            bar5 = { [11] = { spell = "Heroic Strike", level = 1 } },
+        },
         tank = {
             main = {
                 [1] = { spell = "Sunder Armor", level = 10 },
+                [2] = { spell = "Shield Slam", level = 40 },
                 [6] = { spell = "Taunt", level = 10 },
                 [7] = { spell = "Revenge", level = 14 },
                 [8] = { spell = "Shield Bash", level = 12 },
             },
+            bar5 = { [11] = { spell = "Rend", level = 4 }, [12] = { spell = "Heroic Strike", level = 1 } },
             -- Keep tank stance pages usable when leaving Defensive.
             battle = {
                 [6] = { spell = "Charge", level = 4 },
