@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Hunter — 2026-09-24
+
+Priorities: Feign Death, Disengage, Deterrence, Scatter Shot, Concussive Shot, Freezing Trap, Frost Trap, Summon Hawk, Rapid Fire, Bestial Wrath, Intimidation, Tranquilizing Shot.
+
+[Current player feedback](https://us.forums.blizzard.com/en/wow/t/cdm-broken/2354115): Hunters report empty native cooldown-manager spell lists; current [pet-control feedback](https://us.forums.blizzard.com/en/wow/t/ranged-pulling-pet-ai-changes-assistdefensive-auto-engage-boar-charge-micromanagement/2355253) also asks for less micromanagement.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/hunter) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+Player-cast trap and pet-command cooldowns only. Trap victim auras, pet ability cooldowns and pet AI behavior are not inferred. Native acceptance supplied by user.
+
 ### Rogue — 2026-09-24
 
 Priorities: Kick, Kidney Shot, Blind, Evasion, Sprint, Vanish, Gouge, Cold Blood, Blade Flurry, Adrenaline Rush, Preparation, Premeditation.

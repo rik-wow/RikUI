@@ -17,6 +17,7 @@ return function(check)
     local cases = {
         { class = "WARRIOR", ids = { 72, 1671, 1672, 871, 6552, 6554 }, excluded = 78 },
         { class = "ROGUE", ids = { 1766, 1769, 2983, 11305, 14185 }, excluded = 1752 },
+        { class = "HUNTER", ids = { 5384, 3045, 1293241, 1293527 }, excluded = 75 },
         -- Add independently sourced class fixtures here.
     }
     local function item(id) return { spellID = id, itemType = 71 } end
