@@ -21,3 +21,7 @@ The user authorizes automatic application of Workbench writes within the request
 The user accepts native/game-client behavior as working and will report regressions. Do not require native playtests, screenshots, interaction runs, or native performance/sign-off evidence to implement, close, commit, or advance work. Do not create or retain routine native-acceptance-only blockers or backlog chores. This standing instruction supersedes native-verification requirements in project skills, handoffs, and older roadmap records.
 
 Continue meaningful automated checks and code review for changed behavior. Record the user's acceptance as acceptance; do not invent agent-observed native test results. Preserve explicit unknown source data and supported-coverage limits without treating them as requests for the user to perform testing.
+
+## Class research policy
+
+Always research current online WoW Forever player feedback and class-specific requests before planning or implementing class work. Record dated source links and separate community requests from confirmed client behavior. Verify spell IDs, ranks, form pages and APIs against current primary sources or exact-build client data; preserve unknown coverage explicitly.

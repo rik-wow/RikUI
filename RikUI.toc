@@ -22,9 +22,11 @@ src/ui/media.lua
 src/ui/primitives.lua
 src/ui/unit-colors.lua
 data/spells.lua
+data/spells-hunter.lua
 data/cvars.lua
 data/bonus-pages.lua
 presets/warrior.lua
+presets/hunter.lua
 src/setup/setup.lua
 src/setup/setup-actions.lua
 src/setup/setup-apply.lua

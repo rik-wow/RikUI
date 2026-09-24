@@ -40,7 +40,7 @@ end
 local function macroLevel(macro)
     local lowest
     for _, name in ipairs(macro.spells or {}) do
-        local data = core.SpellData[name]
+        local data = core.Spells.Entry(name)
         if data and data.level and (not lowest or data.level < lowest) then lowest = data.level end
     end
     return lowest
@@ -48,7 +48,7 @@ end
 
 local function entryArt(entry)
     if entry.spell then
-        local data = core.SpellData[entry.spell]
+        local data = core.Spells.Entry(entry.spell)
         local id = data and data.ranks and data.ranks[1]
         local icon = read(C_Spell and C_Spell.GetSpellTexture, "spell icon", id or entry.spell)
         return icon or (data and data.icon) or UNKNOWN_ICON, entry.level

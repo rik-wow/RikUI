@@ -182,6 +182,8 @@ check("Binding test suite completes", bindingsOk, bindingsErr)
 local presetOk, presetErr = pcall(function() dofile("tests/preset-warrior.test.lua")(check) end)
 check("Warrior preset test suite completes", presetOk, presetErr)
 
+dofile("tests/presets-classes.test.lua")(check)
+
 local setupOk, setupErr = pcall(function() dofile("tests/setup.test.lua")(check) end)
 check("Setup test suite completes", setupOk, setupErr)
 

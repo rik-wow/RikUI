@@ -87,27 +87,27 @@ local function actionKind(slot)
     if count == 1 then return kind end
 end
 
-local function spellIssue(slot)
-    local entry = core.SpellData and core.SpellData[slot.spell]
+local function spellIssue(slot, data)
+    local entry = data[slot.spell]
     if not entry then return "unresolved spell: " .. slot.spell end
     if slot.level ~= entry.level then
-        return slot.spell .. " level must be " .. entry.level
+        return slot.spell .. " level must be " .. tostring(entry.level)
     end
 end
 
-local function slotIssue(slot, macros)
+local function slotIssue(slot, macros, data)
     if type(slot) ~= "table" then return "slot must be a table" end
     local kind = actionKind(slot)
     if not kind then return "slot must contain exactly one action" end
     local name = slot[kind]
     if type(name) ~= "string" or name == "" then return kind .. " must be a nonempty name" end
-    if kind == "spell" then return spellIssue(slot) end
+    if kind == "spell" then return spellIssue(slot, data) end
     if kind == "macro" and type(macros[name]) ~= "table" then
         return "unresolved macro: " .. name
     end
 end
 
-local function checkPage(slots, macros, path, issues)
+local function checkPage(slots, macros, path, issues, data)
     if type(slots) ~= "table" then
         issues[#issues + 1] = path .. ": page must be a table"
         return
@@ -117,53 +117,54 @@ local function checkPage(slots, macros, path, issues)
         if type(index) ~= "number" or index % 1 ~= 0 or index < 1 or index > SLOTS_PER_PAGE then
             issues[#issues + 1] = location .. ": slot index must be 1.." .. SLOTS_PER_PAGE
         else
-            local reason = slotIssue(slot, macros)
+            local reason = slotIssue(slot, macros, data)
             if reason then issues[#issues + 1] = location .. ": " .. reason end
         end
     end
 end
 
-local function macroIssue(macro)
+local function macroIssue(macro, data)
     if type(macro) ~= "table" or macro.spells == nil then return end
     if type(macro.spells) ~= "table" then return "spells must be a list of spell names" end
     for _, spell in ipairs(macro.spells) do
-        if not (core.SpellData and core.SpellData[spell]) then return "unresolved spell: " .. tostring(spell) end
+        if not data[spell] then return "unresolved spell: " .. tostring(spell) end
     end
 end
 
-local function checkMacros(macros, issues)
+local function checkMacros(macros, issues, data)
     for name, macro in pairs(macros) do
-        local reason = macroIssue(macro)
+        local reason = macroIssue(macro, data)
         if reason then issues[#issues + 1] = "macros." .. tostring(name) .. ": " .. reason end
     end
 end
 
-local function checkPages(pages, macros, path, issues)
+local function checkPages(pages, macros, path, issues, data)
     if type(pages) ~= "table" then
         issues[#issues + 1] = path .. ": pages must be a table"
         return
     end
     for page, slots in pairs(pages) do
         if not PAGE_STARTS[page] then issues[#issues + 1] = path .. ": unknown page " .. tostring(page) end
-        checkPage(slots, macros, path .. "." .. tostring(page), issues)
+        checkPage(slots, macros, path .. "." .. tostring(page), issues, data)
     end
 end
 
 function setup.ValidatePreset(preset)
     if type(preset) ~= "table" then return { "preset must be a table" } end
     local issues, macros = {}, preset.macros
+    local data = core.Spells and core.Spells.Catalog(preset.class) or core.SpellData or {}
     if type(macros) ~= "table" then
         issues[#issues + 1] = "macros must be a table"
         macros = {}
     end
-    checkMacros(macros, issues)
-    checkPages(preset.bars, macros, "bars", issues)
+    checkMacros(macros, issues, data)
+    checkPages(preset.bars, macros, "bars", issues, data)
     if preset.roleOverrides ~= nil then
         if type(preset.roleOverrides) ~= "table" then
             issues[#issues + 1] = "roleOverrides must be a table"
         else
             for role, pages in pairs(preset.roleOverrides) do
-                checkPages(pages, macros, "roleOverrides." .. tostring(role), issues)
+                checkPages(pages, macros, "roleOverrides." .. tostring(role), issues, data)
             end
         end
     end

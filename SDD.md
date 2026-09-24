@@ -735,9 +735,10 @@ fix them by launch, nothing here breaks either.
 
 ## Open questions
 
-- Pet bar keys. Hunters and warlocks press pet attack constantly. `Shift-G` is a
-  stretch. Might steal `Mouse4` for pet attack on pet classes and shift the
-  preset's Mouse4 ability to Q.
+- Pet key decision (2026-09-23): Hunter and Warlock presets put a Pet Attack macro
+  on bar2 slot 10 (Mouse4), and Pet Follow / Passive on slot 11 (Mouse5).
+  The existing no-mouse fallback gives them Shift-G / Ctrl-G. Native pet-row
+  bindings stay available. No per-class binding override or second undo path is needed.
 - Druids have up to six forms. `Ctrl-Q/E/R` covers three. Travel and aquatic
   can stay click-only, but Moonkin players will want a key.
 - Do we want `[@mouseover]` on *every* heal, or only the healer roles? Leaning

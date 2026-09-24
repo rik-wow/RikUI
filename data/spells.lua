@@ -44,9 +44,26 @@ core.SpellData = {
     ["Whirlwind"] = { ranks = { 1680 }, icon = 132369, level = 36 },
 }
 
-local function entryFor(name)
-    if type(name) == "string" then return core.SpellData[name] end
+
+core.SpellCatalogs = { WARRIOR = core.SpellData }
+
+function spells.RegisterClass(class, data)
+    core.SpellCatalogs[class] = data
 end
+
+function spells.Catalog(class)
+    if class == nil and type(UnitClass) == "function" then
+        local _, token = UnitClass("player")
+        class = token
+    end
+    return core.SpellCatalogs[class or "WARRIOR"] or {}
+end
+
+function spells.Entry(name, class)
+    if type(name) == "string" then return spells.Catalog(class)[name] end
+end
+
+local function entryFor(name) return spells.Entry(name) end
 
 local function scanLine(line, ranksByID, known)
     if line.offSpecID then return end

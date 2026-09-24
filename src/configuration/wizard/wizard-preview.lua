@@ -78,7 +78,7 @@ end
 local function macroLevel(macro)
     local lowest
     for _, name in ipairs(macro.spells or {}) do
-        local data = core.SpellData[name]
+        local data = core.Spells.Entry(name)
         if data and data.level and (not lowest or data.level < lowest) then lowest = data.level end
     end
     return lowest
@@ -87,7 +87,7 @@ end
 local function entryArt(entry, preset)
     if type(entry) ~= "table" then return nil, nil end
     if entry.spell then
-        local data = core.SpellData[entry.spell]
+        local data = core.Spells.Entry(entry.spell)
         return data and data.icon or nil, entry.level or (data and data.level)
     end
     local macro = entry.macro and preset.macros and preset.macros[entry.macro]

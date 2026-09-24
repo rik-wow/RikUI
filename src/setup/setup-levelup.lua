@@ -20,14 +20,14 @@ local function busy()
 end
 
 local function rankOf(name, id)
-    local entry = core.SpellData[name]
+    local entry = core.Spells.Entry(name)
     for rank, spellID in ipairs(entry and entry.ranks or {}) do
         if spellID == id then return rank end
     end
 end
 
 local function spellName(id)
-    for name in pairs(core.SpellData) do
+    for name in pairs(core.Spells.Catalog()) do
         if rankOf(name, id) then return name end
     end
 end
