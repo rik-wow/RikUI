@@ -279,6 +279,33 @@ return function(check)
         and protection.bars.main[1].spell == "Hammer of the Righteous" and retribution.bars.main[1].spell == "Holy Strike")
     check("Paladin Righteous Fury and shared healing remain accessible", protection.bars.bar3[8].spell == "Righteous Fury"
         and retribution.bars.bar2[10].macro == "Flash of Light")
+    for _, role in ipairs(paladin.roleOrder) do
+        local resolved = assert(RikUI.Setup.Resolve("PALADIN", role))
+        check("Paladin defensive support survives " .. role, resolved.bars.bar2[6].macro == "Protection"
+            and resolved.bars.bar2[7].macro == "Freedom" and resolved.bars.bar2[8].macro == "Sacrifice"
+            and resolved.bars.bar3[9].macro == "Redemption")
+        check("Paladin dual-use talents survive " .. role, resolved.bars.bar2[12].macro == "Holy Shock"
+            and resolved.bars.bar4[5].macro == "Light's Vigil")
+    end
+    check("Holy role keeps paired talents on main bar", holy.bars.main[3].macro == "Holy Shock"
+        and holy.bars.main[7].macro == "Light's Vigil")
+    for _, name in ipairs({ "Holy Shock", "Light's Vigil" }) do
+        local macro = paladin.macros[name]
+        check("Paladin retains offensive target fallback " .. name, macro
+            and macro.body == "#showtooltip " .. name .. "\n/cast [@mouseover,help,nodead][exists,nodead][@player] " .. name
+            and macro.spells[1] == name)
+    end
+    for _, name in ipairs({ "Protection", "Freedom" }) do
+        local spell = "Blessing of " .. name
+        local macro = paladin.macros[name]
+        check("Paladin emergency blessing target " .. name, macro and macro.spells[1] == spell
+            and macro.body == "#showtooltip " .. spell .. "\n/cast [@mouseover,help,nodead][help,nodead][@player] " .. spell)
+    end
+    check("Sacrifice needs an explicit ally", paladin.macros.Sacrifice
+        and paladin.macros.Sacrifice.body == "#showtooltip Blessing of Sacrifice\n/cast [@mouseover,help,nodead][help,nodead] Blessing of Sacrifice")
+    check("Redemption only targets dead allies", paladin.macros.Redemption
+        and paladin.macros.Redemption.body == "#showtooltip Redemption\n/cast [@mouseover,help,dead][help,dead] Redemption")
+
     local oldRace = UnitRace
     UnitRace = function() return "Undead", "Scourge", 5 end
     local undead = assert(RikUI.Setup.Resolve("PALADIN", "tank"))

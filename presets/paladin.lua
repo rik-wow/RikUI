@@ -1,7 +1,7 @@
 -- Three roles share utility and targeted mouseover healing.
 RikUI.Presets.PALADIN = {
     ["class"] = "PALADIN",
-    ["version"] = 1,
+    ["version"] = 2,
     ["roleOrder"] = {
         "dps",
         "tank",
@@ -94,16 +94,13 @@ RikUI.Presets.PALADIN = {
                 ["level"] = 40,
             },
             [6] = {
-                ["spell"] = "Blessing of Protection",
-                ["level"] = 10,
+                ["macro"] = "Protection",
             },
             [7] = {
-                ["spell"] = "Blessing of Freedom",
-                ["level"] = 18,
+                ["macro"] = "Freedom",
             },
             [8] = {
-                ["spell"] = "Blessing of Sacrifice",
-                ["level"] = 46,
+                ["macro"] = "Sacrifice",
             },
             [9] = {
                 ["spell"] = "Repentance",
@@ -116,8 +113,7 @@ RikUI.Presets.PALADIN = {
                 ["level"] = 8,
             },
             [12] = {
-                ["spell"] = "Holy Shock",
-                ["level"] = 30,
+                ["macro"] = "Holy Shock",
             },
         },
         ["bar3"] = {
@@ -154,8 +150,7 @@ RikUI.Presets.PALADIN = {
                 ["level"] = 16,
             },
             [9] = {
-                ["spell"] = "Redemption",
-                ["level"] = 12,
+                ["macro"] = "Redemption",
             },
             [10] = {
                 ["macro"] = "Cleanse",
@@ -187,8 +182,7 @@ RikUI.Presets.PALADIN = {
                 ["level"] = 40,
             },
             [5] = {
-                ["spell"] = "Light's Vigil",
-                ["level"] = 40,
+                ["macro"] = "Light's Vigil",
             },
             [6] = {
                 ["spell"] = "Voice of Truth",
@@ -264,6 +258,18 @@ RikUI.Presets.PALADIN = {
         },
     },
     ["macros"] = {
+        ["Holy Shock"] = { icon = 135972, spells = { "Holy Shock" },
+            body = "#showtooltip Holy Shock\n/cast [@mouseover,help,nodead][exists,nodead][@player] Holy Shock" },
+        ["Light's Vigil"] = { icon = 236256, spells = { "Light's Vigil" },
+            body = "#showtooltip Light's Vigil\n/cast [@mouseover,help,nodead][exists,nodead][@player] Light's Vigil" },
+        ["Protection"] = { icon = 135964, spells = { "Blessing of Protection" },
+            body = "#showtooltip Blessing of Protection\n/cast [@mouseover,help,nodead][help,nodead][@player] Blessing of Protection" },
+        ["Freedom"] = { icon = 135968, spells = { "Blessing of Freedom" },
+            body = "#showtooltip Blessing of Freedom\n/cast [@mouseover,help,nodead][help,nodead][@player] Blessing of Freedom" },
+        ["Sacrifice"] = { icon = 135966, spells = { "Blessing of Sacrifice" },
+            body = "#showtooltip Blessing of Sacrifice\n/cast [@mouseover,help,nodead][help,nodead] Blessing of Sacrifice" },
+        ["Redemption"] = { icon = 135955, spells = { "Redemption" },
+            body = "#showtooltip Redemption\n/cast [@mouseover,help,dead][help,dead] Redemption" },
         ["Holy Light"] = {
             ["icon"] = 135920,
             ["body"] = "#showtooltip Holy Light\n/cast [@mouseover,help,nodead][help,nodead][@player] Holy Light",
@@ -330,8 +336,7 @@ RikUI.Presets.PALADIN = {
                     ["macro"] = "Flash of Light",
                 },
                 [3] = {
-                    ["spell"] = "Holy Shock",
-                    ["level"] = 30,
+                    ["macro"] = "Holy Shock",
                 },
                 [4] = {
                     ["macro"] = "Cleanse",
@@ -340,8 +345,7 @@ RikUI.Presets.PALADIN = {
                     ["macro"] = "Lay on Hands",
                 },
                 [7] = {
-                    ["spell"] = "Light's Vigil",
-                    ["level"] = 40,
+                    ["macro"] = "Light's Vigil",
                 },
             },
         },

@@ -130,3 +130,9 @@ All three roles now use living hostile mouseover, then current hostile target, f
 
 Grouped totem macros now accept Alt while activating their assigned action, as well as right-click, for their second spell. Normal activation keeps the first spell. Both choices are deliberate; an unlearned alternative is not granted or automatically replaced. Ancestral Spirit targets dead friendly mouseover/current target; Water Breathing and Water Walking use living friendly mouseover, target, then self in every role. Existing recall/projection and interrupt controls remain. Version 2, role-composition checks, macro size checks and user-supplied native acceptance cover this update.
 
+### Paladin emergency and dual-use utility — 2026-09-23
+
+[September 20 feedback](https://us.forums.blizzard.com/en/wow/t/paladin-feedback-1-20-beta/2355823) asks for smoother utility; [September 19 feedback](https://eu.forums.blizzard.com/en/wow/t/ret-paladin-still-bad/630021) specifically discusses Protection, Freedom and Sacrifice. These are community requests, not evidence that blessing replacement rules changed. The [author's Paladin spellbook](https://foreverchanges.pro/spellbook/paladin), sourced to 1.60.1.69913, describes both friendly and hostile uses of Holy Shock and Light's Vigil.
+
+Those two talents now share friendly living mouseover, then living current target (including enemies), then self targeting. They remain separate deliberate casts. Protection and Freedom use friendly mouseover, target, self; Sacrifice requires a friendly mouseover or target with no self fallback. Redemption requires a dead friendly target. Version 2 updates every role and Holy's main-bar overrides while retaining learned-spell gates and native blessing rules. No automatic seal twisting or blessing restoration is introduced. Automated role/macro checks pass; native acceptance is supplied by the user.
+
