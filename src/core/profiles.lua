@@ -1,6 +1,7 @@
 -- Typed persisted defaults. Unit values and client secrets never pass through here.
 local core, runtime = RikUI, RikUI.Runtime
 local DEFAULT_PROFILE = "Default"
+local MAX_PROFILE_NAME = 64
 local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 1, font = "bundled", reducedMotion = false, gryphons = false, ghosts = true,
     tooltip = { hideInCombat = false, ownedCounts = true, followCursor = false, scale = 1 },
     chat = { fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
@@ -71,12 +72,26 @@ local function normalizeProfile(profile)
     return profile
 end
 
+function core:IsProfileName(name)
+    return type(name) == "string" and #name > 0 and #name <= MAX_PROFILE_NAME
+        and name:match("^%S") ~= nil and name:match("%S$") ~= nil and not name:find("[%c|]")
+end
+
+function core:GetProfileNames()
+    local names = {}
+    for name, profile in pairs(self.DB and self.DB.profiles or {}) do
+        if self:IsProfileName(name) and type(profile) == "table" then names[#names + 1] = name end
+    end
+    table.sort(names)
+    return names
+end
+
 function runtime.BindProfile()
     RikUIDB = mergeDefaults(RikUIDB, ACCOUNT_DEFAULTS)
     RikUICharDB = mergeDefaults(RikUICharDB, CHARACTER_DEFAULTS)
-    if RikUICharDB.profile == "" then RikUICharDB.profile = DEFAULT_PROFILE end
+    if not core:IsProfileName(RikUICharDB.profile) then RikUICharDB.profile = DEFAULT_PROFILE end
     for name, profile in pairs(RikUIDB.profiles) do
-        RikUIDB.profiles[name] = normalizeProfile(profile)
+        if core:IsProfileName(name) then RikUIDB.profiles[name] = normalizeProfile(profile) end
     end
     local name = RikUICharDB.profile
     RikUIDB.profiles[name] = normalizeProfile(RikUIDB.profiles[name])
@@ -100,7 +115,7 @@ function core:SetProfile(name)
     if self.Setup and (self.Setup.IsApplying() or (self.Setup.IsUndoing and self.Setup.IsUndoing())) then
         return nil, "Finish the pending Setup operation before switching profiles."
     end
-    if type(name) ~= "string" or type(self.DB.profiles[name]) ~= "table" then return nil, "Unknown profile." end
+    if not self:IsProfileName(name) or type(self.DB.profiles[name]) ~= "table" then return nil, "Unknown profile." end
     if self.Layout and self.Layout.StopMoving then self.Layout.StopMoving() end
     if self.Profile ~= self.DB.profiles[name] then runtime.profileRevision = (runtime.profileRevision or 0) + 1 end
     self.Profile = normalizeProfile(self.DB.profiles[name])

@@ -3,7 +3,7 @@ local core, options = RikUI, RikUI.Options
 local SCALE_MIN, SCALE_MAX, SCALE_STEP = 0.25, 3, 0.05
 local state = { newName = "", deleteName = nil }
 
-local MAX_PROFILE_NODES, MAX_PROFILE_DEPTH, MAX_NAME = 8192, 32, 64
+local MAX_PROFILE_NODES, MAX_PROFILE_DEPTH = 8192, 32
 local function copyTable(value, state, depth)
     state, depth = state or { nodes = 0, seen = {} }, depth or 0
     state.nodes = state.nodes + 1
@@ -59,7 +59,7 @@ function options.CreateProfile(name, copyFrom)
     if type(name) ~= "string" then return nil, "Enter a profile name." end
     name = trim(name)
     if name == "" then return nil, "Enter a profile name." end
-    if #name > MAX_NAME or name:find("[%c|]") then return nil, "Use a name of 1..64 characters without markup." end
+    if not core:IsProfileName(name) then return nil, "Use a name of 1..64 characters without markup." end
     if core.DB.profiles[name] then return nil, "Profile already exists: " .. name end
     local source = copyFrom and core.DB.profiles[copyFrom]
     if copyFrom and type(source) ~= "table" then return nil, "Unknown source profile." end
@@ -310,7 +310,7 @@ end
 
 local function profileEntries(excludeActive)
     local entries = {}
-    for _, name in ipairs(sortedKeys(core.DB.profiles)) do
+    for _, name in ipairs(core:GetProfileNames()) do
         if not excludeActive or name ~= core.CharDB.profile then
             entries[#entries + 1] = { value = name, text = name }
         end

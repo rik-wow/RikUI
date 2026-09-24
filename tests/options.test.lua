@@ -619,6 +619,12 @@ return function(check)
             env.click(copyRow.widget)
             check("layout copy routes confirmed action", copied == "Source")
         end
+        do
+            local safeOptions = boot({profiles={Default={},[5]={},[" bad"]={},["Good"]={}}})
+            local safeRows = pageByTitle(safeOptions,"Profiles").list
+            local choices = rowByKey(safeRows,"profile").spec.values()
+            check("malformed restored profile keys do not break pickers", #choices == 2 and choices[2].value == "Good")
+        end
         -- Profiles.
         options = boot({ profiles = { Default = { scale = 0.9, positions = { main = { x = 5 } } } } })
         local profiles = pageByTitle(options, "Profiles").list

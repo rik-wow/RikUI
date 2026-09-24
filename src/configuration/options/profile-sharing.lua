@@ -70,8 +70,7 @@ end
 function sharing.ImportProfile(name, text)
     if InCombatLockdown() then return nil, "Cannot import a profile in combat." end
     if not core.DB then return nil, "Still loading." end
-    if type(name) ~= "string" or #name == 0 or #name > 64 or not name:match("^%S")
-        or not name:match("%S$") or name:find("[%c|]") then return nil, "Use a new name of 1..64 characters without markup." end
+    if not core:IsProfileName(name) then return nil, "Use a new name of 1..64 characters without markup." end
     if core.DB.profiles[name] ~= nil then return nil, "Profile already exists: " .. name end
     local value, reason = sharing.Decode(text, "profile")
     if not value then return nil, reason end

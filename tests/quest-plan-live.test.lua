@@ -132,6 +132,7 @@ return function(check)
         counts[55]=1
         RikUI.Modules={questplanner=p};RikUI.Profile={modules={}}
         RikUI.DB={profiles={Default={}}};RikUI.CharDB.profile="Default"
+        RikUI.GetProfileNames=function() return {"Default"} end
         RikUI.RegisterEvent=function() end;RikUI.RegisterCommand=function() end;RikUI.HasCommand=function() return false end
         Settings=nil
         for _,file in ipairs({"options-widgets","options-controls","options","options-view"}) do

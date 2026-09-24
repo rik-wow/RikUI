@@ -60,6 +60,17 @@ return function(check)
         check("error detail memory is bounded", #journalCore:GetErrors()[2].detail == 512)
     end
 
+    do
+        local invalid = {kept=true}
+        local namesCore = ready(loadCore({profiles={Default={},[1]=invalid,["|bad"]={},["Alt"]={},["équipe"]={}}},
+            {profile="|bad"}))
+        check("invalid restored profile selection falls back", namesCore.CharDB.profile == "Default")
+        check("invalid profile records are preserved", namesCore.DB.profiles[1] == invalid and invalid.kept == true)
+        local names = namesCore:GetProfileNames()
+        check("profile names exclude invalid keys and retain unicode", #names == 3 and names[1] == "Alt" and names[3] == "équipe")
+        check("invalid direct profile selection refused", not namesCore:SetProfile("|bad"))
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

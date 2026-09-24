@@ -1,5 +1,7 @@
 # RikUI settings
 
+Profile names use one rule for creation, import, restore and selection: 1–64 bytes, no control characters or markup, and no leading/trailing whitespace. Unicode names remain supported. Invalid stored names are omitted from pickers without deleting their records; an invalid active name falls back to Default.
+
 Profiles > **Reuse layout** copies positions and chat size from another profile after a named confirmation. Other preferences, frame scale and character setup stay with the destination. **General > Undo layout change** restores the prior arrangement. Copying is unavailable in combat or during Setup; invalid source geometry is rejected. The destination screen bounds and collision rules still apply.
 
 Modules now warns **After reload: needs …** when an enabled feature has a disabled direct or indirect requirement in the saved choices. Restoring the provider clears the warning. Disabling a feature still changes only that feature. This helps mix UI components without discovering a missing dependency only after reload. [Modular UI prior art reviewed 2026-09-24](https://www.curseforge.com/wow/addons/fcui-foreverclassicui).
