@@ -1,5 +1,7 @@
 # Bags
 
+Cooldown-only events refresh the visible cooldown widgets without rereading item information, reclassifying items or rebuilding the grid. Hidden inventory performs no cooldown queries. Inventory changes still use the complete refresh path. Automated API-call counts verify the reduced work; no native FPS improvement is claimed.
+
 Hover the money line for session income, spending and net balance changes. Click it to reset. Transfers, trades, repairs and purchases all count; this is observed cash flow, not farming profit. Missing balance reads mark the totals partial and do not invent changes across the gap. Counters reset on reload and are never saved.
 
 If a bag-size read fails or is invalid, the inventory keeps its last complete grid until a valid refresh arrives. A readable zero still removes an unequipped bag. This is a guarded display snapshot; item actions remain owned by the client.

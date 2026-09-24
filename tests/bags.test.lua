@@ -147,6 +147,13 @@ return function(check)
     local ok, reason = pcall(function()
         local module = load()
         local media, holder = RikUI.Media, module.Holder
+        local cooldownReads, cooldownAPI = 0, C_Container.GetContainerItemCooldown
+        C_Container.GetContainerItemCooldown = function(...)
+            cooldownReads = cooldownReads + 1
+            return cooldownAPI(...)
+        end
+        env.fire("BAG_UPDATE_COOLDOWN")
+        check("hidden bags skip cooldown reads", cooldownReads == 0)
         local group = RikUI.Layout.Groups.bags
         check("the holder registers with the layout under key bags with bottom-right defaults", holder and group
             and group.frames[1] == holder and group.defaults.point == "BOTTOMRIGHT"
@@ -183,6 +190,9 @@ return function(check)
         C_Container.GetContainerNumSlots = originalSlots
         module.Refresh()
         local cloth, stone, blade, empty = button(0, 1), button(0, 2), button(1, 3), button(0, 3)
+        local itemReadsBefore, cooldownBefore = stub.infoReads, cooldownReads
+        env.fire("BAG_UPDATE_COOLDOWN")
+        check("cooldown event skips item and layout work", stub.infoReads == itemReadsBefore and cooldownReads > cooldownBefore)
         check("buttons come from the Blizzard item template", cloth.kind == "ItemButton" and cloth.template == TEMPLATE)
         check("default store glow is blank for occupied and empty slots", cloth.BattlepayItemTexture.texture == nil
             and empty.BattlepayItemTexture.texture == nil and cloth.NewItemTexture.texture == nil)

@@ -286,6 +286,13 @@ local function eachButton(visit)
     end
 end
 
+function bags.RefreshCooldowns()
+    if not bags.Holder or not bags.Holder:IsShown() then return end
+    eachButton(function(button)
+        if button:IsShown() then updateCooldown(button, button:GetParent():GetID(), button:GetID()) end
+    end)
+end
+
 -- The client answers SetItemSearch with INVENTORY_SEARCH_UPDATE, which redraws the open grid.
 function bags.SetSearch(text)
     if not plain(text, "string") then text = "" end
