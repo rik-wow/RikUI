@@ -1,5 +1,9 @@
 # XP and reputation bar
 
+The XP tooltip includes observed session XP. After one minute with gains, it adds XP/hour and an approximate time to level at that pace, including idle time. **Experience > Reset session** clears this session and rebases the snapshot; reloading also starts over. Secret or failed reads leave an explicit gap and suppress the rate until reset. These are estimates, not predicted rewards.
+
+Research reviewed 2026-09-24: [Forever leveling feedback](https://www.reddit.com/r/wowforever/comments/1wn45ic/wow_forever_the_good_the_concerns/) and [ForeverXP author feature description](https://www.curseforge.com/wow/addons/foreverxp). This implementation uses RikUI's existing readable gain detector.
+
 The XP bar now has a detailed presentation: an 18px experience row with a level,
 percent and remaining-XP label, plus a 12px watched-reputation row. Both use the
 RikUI font, flat borders and optional 10% tick marks. Purple is XP, blue is rested

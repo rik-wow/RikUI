@@ -3,22 +3,32 @@ local core, xpbar, media, motion = RikUI, RikUI.XPBar, RikUI.Media, RikUI.Motion
 local details = {}
 xpbar.Details = details
 local last, latestGain
+local sessionStart, sessionGain, sessionIncomplete = nil, 0, false
+local RATE_MIN_SECONDS, SECONDS_PER_HOUR = 60, 3600
 local function settings() return core.Profile.xpbar end
 local function number(value)
     return not core.Secret.IsSecret(value) and type(value) == "number"
         and value == value and value > -math.huge and value < math.huge
 end
+local function clock()
+    local ok, value = pcall(GetTime)
+    if ok and number(value) and value >= 0 then return value end
+end
+local function startSession()
+    if sessionStart == nil then sessionStart = clock() end
+end
 local function snapshot()
     local current, maximum, level = UnitXP("player"), UnitXPMax("player"), UnitLevel("player")
     if not number(current) or current < 0 or not number(maximum) or maximum <= 0
-        or not number(level) or level < 1 then return end
+        or current > maximum or not number(level) or level < 1 then return end
     return { current = current, maximum = maximum, level = level }
 end
 function details.Height(key) return settings().compact and 8 or key == "xp" and 18 or 12 end
 function details.Animated() return settings().animations end
 function details.Gain()
     local ok, value = pcall(snapshot)
-    if not ok or not value then last = nil; return false end
+    if not ok or not value then last = nil; sessionIncomplete = true; return false end
+    startSession()
     local gain = 0
     if last and value.level == last.level and value.maximum == last.maximum then
         gain = value.current - last.current
@@ -28,6 +38,7 @@ function details.Gain()
     last = value
     if gain <= 0 then return false end
     latestGain = gain
+    sessionGain = sessionGain + gain
     return true
 end
 local function label(parent, role)
@@ -82,6 +93,7 @@ local function repText(faction)
         (faction.currentStanding - faction.currentReactionThreshold) / total * 100)
 end
 function details.Refresh(faction)
+    startSession()
     if not last then local ok, value = pcall(snapshot); if ok then last = value end end
     for key, row in pairs(xpbar.Rows) do
         if row.caption then
@@ -92,6 +104,25 @@ function details.Refresh(faction)
         end
     end
 end
+function details.ResetSession()
+    sessionStart, sessionGain, sessionIncomplete, latestGain = clock(), 0, false, nil
+    local ok, value = pcall(snapshot)
+    last = ok and value or nil
+    xpbar.Refresh()
+end
+
+local function sessionTooltip(lines, remaining)
+    lines[#lines + 1] = string.format("Session: %d XP observed", sessionGain)
+    if sessionIncomplete then lines[#lines + 1] = "Session has unreadable gaps; rate unavailable."; return end
+    local now = clock()
+    if not now or not sessionStart or now - sessionStart < RATE_MIN_SECONDS or sessionGain <= 0 then return end
+    local elapsed = now - sessionStart
+    local rate = sessionGain / elapsed * SECONDS_PER_HOUR
+    if not number(rate) or rate <= 0 then return end
+    lines[#lines + 1] = string.format("%.0f XP/hour (includes idle time)", rate)
+    lines[#lines + 1] = string.format("About %d minutes to level at this pace", math.ceil(remaining / rate * 60))
+end
+
 function details.Tooltip(lines)
     local value = snapshot()
     if not value then return end
@@ -101,6 +132,7 @@ function details.Tooltip(lines)
         lines[#lines + 1] = string.format("Last gain: %d XP", latestGain)
         lines[#lines + 1] = string.format("About %d similar gains to level", math.ceil(remaining / latestGain))
     end
+    sessionTooltip(lines, remaining)
     lines[#lines + 1] = "Right-click: compact / detailed"
 end
 function details.LevelUp()
@@ -117,7 +149,10 @@ function xpbar.SetOption(key, value)
     core:Changed()
     xpbar.Refresh()
 end
-xpbar.Options = { title = "Experience", settings = {} }
+xpbar.Options = { title = "Experience", settings = {
+    { type = "button", key = "resetSession", label = "Session XP statistics", text = "Reset session",
+        description = "Start a new session total and pace estimate. Includes idle time; nothing is saved.", action = details.ResetSession },
+} }
 for _, spec in ipairs({ { "compact", "Compact bars" }, { "text", "Show progress labels" },
     { "animations", "Animate gains and level ups" }, { "ticks", "Show 10% progress ticks" } }) do
     local key, title = unpack(spec)

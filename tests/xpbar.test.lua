@@ -5,7 +5,7 @@ return function(check)
     local env = require("wow_stub")
     local originalCreate = CreateFrame
     local API = { "UnitXP", "UnitXPMax", "GetXPExhaustion", "GameRulesUtil", "IsXPUserDisabled", "C_Reputation",
-        "StatusTrackingBarManager", "UnitLevel" }
+        "StatusTrackingBarManager", "UnitLevel", "GetTime" }
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
@@ -76,6 +76,8 @@ return function(check)
     end
     local function parked(frame) return frame.parent == RikUIHiddenFrames and RikUI.Hide.IsHidden(frame) end
     local function installClient()
+        stub.now = 0
+        GetTime = function() return stub.now end
         stub.xp, stub.xpMax, stub.rested, stub.capped, stub.disabled = 300, 1000, 200, false, false
         stub.faction, stub.xpError = nil, nil
         StatusTrackingBarManager = CreateFrame("Frame", "StatusTrackingBarManager", UIParent)
@@ -171,6 +173,22 @@ return function(check)
         hover(xp)
         check("the experience tooltip names the rested amount", tooltipContains("Rested") and tooltipContains("200"))
 
+        stub.now = 120
+        hover(xp)
+        check("XP tooltip shows observed session total and hourly pace", tooltipContains("Session: 170 XP")
+            and tooltipContains("5100 XP/hour") and tooltipContains("About 7 minutes"))
+        local resetSession
+        for _, option in ipairs(module.Options.settings) do if option.key == "resetSession" then resetSession = option end end
+        check("XP session reset is available", resetSession ~= nil)
+        if resetSession then
+            resetSession.action()
+            hover(xp)
+            check("reset removes old gains without changing XP", tooltipContains("Session: 0 XP")
+                and not tooltipContains("XP/hour") and stub.xp == 450)
+            stub.now = -1
+            hover(xp)
+            check("clock rollback never produces invalid rate", not tooltipContains("XP/hour"))
+        end
         stub.xp = env.SECRET
         env.fire("PLAYER_XP_UPDATE", "player")
         check("a secret experience value reaches the sink and drops the rested segment silently",
@@ -184,6 +202,13 @@ return function(check)
         check("a failing experience read is reported once and contained", printedContains("XP bar experience")
             and #env.printed == 1)
         stub.xpError, env.printed = nil, {}
+        stub.now = 300
+        hover(xp)
+        check("unreadable XP gaps suppress session rate", tooltipContains("unreadable gaps") and not tooltipContains("XP/hour"))
+        GetTime = function() error("clock unavailable") end
+        hover(xp)
+        check("missing clock does not abort XP tooltip", tooltipContains("Session:"))
+        GetTime = function() return stub.now end
 
         stub.faction = HONORED
         env.fire("UPDATE_FACTION")
