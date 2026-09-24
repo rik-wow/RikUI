@@ -145,6 +145,38 @@ return function(check)
         return RikUI.Bags
     end
     local ok, reason = pcall(function()
+        do
+            local module = load()
+            local originalSearch = C_Container.SetItemSearch
+            C_Container.SetItemSearch = nil
+            local item = stub.items["0:1"]
+            local link, icon = item.hyperlink, item.iconFileID
+            item.itemID, item.hyperlink, item.iconFileID = 2589, nil, nil
+            OpenAllBags()
+            module.SetSearch("linen")
+            check("uncached item has no guessed search match", button(0, 1).rikDimmed)
+            item.hyperlink, item.iconFileID = link, icon
+            local reads = stub.infoReads
+            env.fire("ITEM_DATA_LOAD_RESULT", 2589, false)
+            env.fire("ITEM_DATA_LOAD_RESULT", 777, true)
+            env.fire("ITEM_DATA_LOAD_RESULT", env.SECRET, true)
+            env.fire("ITEM_DATA_LOAD_RESULT", 2589, env.SECRET)
+            check("irrelevant or unreadable cache events do not read inventory", stub.infoReads == reads)
+            env.fire("ITEM_DATA_LOAD_RESULT", 2589, true)
+            check("late item data recovers the icon and search match", button(0, 1).rikIcon.texture == icon
+                and not button(0, 1).rikDimmed and module.Holder.title:GetText():find("1 match", 1, true))
+            check("late item data only reads matching visible slots", stub.infoReads == reads + 1)
+            stub.items["0:3"] = { itemID = 2589, stackCount = 2, hyperlink = link, iconFileID = icon }
+            module.Refresh()
+            reads = stub.infoReads
+            env.fire("GET_ITEM_INFO_RECEIVED", 2589, true)
+            check("all visible copies of a cached item refresh", stub.infoReads == reads + 2)
+            CloseAllBags()
+            reads = stub.infoReads
+            env.fire("GET_ITEM_INFO_RECEIVED", 2589, true)
+            check("closed inventory ignores item cache events", stub.infoReads == reads)
+            C_Container.SetItemSearch = originalSearch
+        end
         local module = load()
         local media, holder = RikUI.Media, module.Holder
         local cooldownReads, cooldownAPI = 0, C_Container.GetContainerItemCooldown

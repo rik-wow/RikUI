@@ -307,6 +307,8 @@ function bags:OnEnable()
     end
     for _, event in ipairs(REFRESH_EVENTS) do core:RegisterEvent(event, refreshIfOpen) end
     core:RegisterEvent("BAG_UPDATE_COOLDOWN", bags.RefreshCooldowns)
+    core:RegisterEvent("GET_ITEM_INFO_RECEIVED", bags.RefreshItemData)
+    core:RegisterEvent("ITEM_DATA_LOAD_RESULT", bags.RefreshItemData)
     for _, event in ipairs({ "CURSOR_CHANGED", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }) do
         core:RegisterEvent(event, bags.RefreshSort)
     end

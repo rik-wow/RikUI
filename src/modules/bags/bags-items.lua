@@ -229,6 +229,8 @@ function bags.UpdateButton(button)
     button.rikCount:SetText(plain(count, "number") and count > 1 and tostring(count) or "")
     local r, g, b = borderColor(info and info.quality)
     for _, line in ipairs(button.rikBorder) do line:SetVertexColor(r, g, b, 1) end
+    local itemID = info and info.itemID
+    button.rikItemID = plain(itemID, "number") and itemID or nil
     button.rikName, button.rikFilled = itemName(info), info ~= nil
     button.rikFiltered = nil
     if info and plain(info.isFiltered, "boolean") then button.rikFiltered = info.isFiltered end
@@ -284,6 +286,22 @@ local function eachButton(visit)
     for _, frame in pairs(bagFrames) do
         for _, button in ipairs(frame.buttons) do visit(button) end
     end
+end
+
+function bags.RefreshItemData(_, itemID, success)
+    if not bags.Holder or not bags.Holder:IsShown() then return end
+    if not plain(success, "boolean") or not success or not plain(itemID, "number")
+        or itemID ~= itemID or itemID <= 0 or itemID == math.huge or itemID % 1 ~= 0 then return end
+    local changed = false
+    eachButton(function(button)
+        if button:IsShown() and button.rikItemID == itemID then
+            local filled = button.rikFilled
+            bags.UpdateButton(button)
+            bags.Used = bags.Used + (button.rikFilled and 1 or 0) - (filled and 1 or 0)
+            changed = true
+        end
+    end)
+    if changed then bags.UpdateTitle() end
 end
 
 function bags.RefreshCooldowns()
