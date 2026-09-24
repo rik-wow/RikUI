@@ -41,7 +41,14 @@ The TOC loads explicit core services, shared UI services, data and feature files
   work for after combat. A key coalesces pending calls at the original position.
   `Cancel(key)` cancels a keyed job and `Pending()` reports live queued jobs.
   Errors are isolated; combat resumption pauses draining. Newly queued work
-  during a drain joins its tail. Capture arguments in the closure.
+  during a drain joins its tail. Each pass visits at most 100 queue entries,
+  then continues through a one-shot OnUpdate callback. A continuation rechecks
+  combat before executing anything; cancellation can remove the final pending
+  job and its continuation. Nested jobs from an immediately executed callback
+  join the same bounded pass, avoiding recursive queue calls. The immediate
+  callback still returns its success flag and first result. This bounds queue
+  scheduling work per pass, not the runtime of an individual callback or client
+  FPS. Capture arguments in the closure.
 - `RikUI:Changed()` schedules a save after configuration mutation.
   `Print(message)` prefixes a chat line. `Data` and `Presets` hold catalogues.
 - `RikUI.Hide.Frame(frame, keepEvents)` parks Blizzard frames under the hidden

@@ -136,6 +136,64 @@ return function(check)
     check("coalescing retains FIFO position", table.concat(calls, ",") == "latest,other" and core.Combat.Pending() == 0)
     check("completed work is not cancellable", not core.Combat.Cancel("layout"))
 
+    do
+        local function tick()
+            for _, frame in ipairs(env.frames) do env.runScript(frame, "OnUpdate", 0.016) end
+        end
+        core = fresh()
+        local ran, order, owner, owned = 0, {}, {}, true
+        local repeatWork
+        repeatWork=function()
+            ran=ran+1
+            owned=owned and core.Runtime.owner==owner
+            if ran<150 then core.Combat.Queue(repeatWork) end
+        end
+        env.inCombat=true
+        core.Runtime.owner=owner;core.Combat.Queue(repeatWork);core.Runtime.owner=nil
+        env.inCombat=false;env.fire("PLAYER_REGEN_ENABLED")
+        check("self-requeued combat work yields a bounded batch",ran==100 and core.Combat.Pending()==1)
+        core.Combat.Queue(function() order[#order+1]="obsolete" end,"replace")
+        core.Combat.Queue(function() order[#order+1]="latest" end,"replace")
+        core.Combat.Queue(function() order[#order+1]="cancelled" end,"cancel")
+        core.Combat.Cancel("cancel")
+        core.Combat.Queue(function() error("continuation fault") end)
+        core.Combat.Queue(function() order[#order+1]="survived" end)
+        check("new work cannot bypass a scheduled continuation",ran==100 and #order==0)
+        env.inCombat=true;tick()
+        check("combat pauses the pending continuation",ran==100 and #order==0)
+        env.inCombat=false;env.fire("PLAYER_REGEN_ENABLED")
+        check("resumed batches preserve FIFO coalescing cancellation and errors",ran==150
+            and table.concat(order,",")=="latest,survived" and core.Combat.Pending()==0
+            and reported("continuation fault") and owned and core.Runtime.owner==nil)
+        tick()
+        check("completed continuation does not replay",ran==150 and #order==2)
+
+        core=fresh();ran=0
+        local ok,value=core.Combat.Queue(function()
+            core.Combat.Queue(repeatWork)
+            return "result"
+        end)
+        check("immediate work retains results and bounds nested work",ok and value=="result"
+            and ran==99 and core.Combat.Pending()==1)
+        tick()
+        check("nested immediate work resumes next frame",ran==150 and core.Combat.Pending()==0)
+        tick()
+        check("completed immediate batch does not replay",ran==150 and core.Combat.Pending()==0)
+        ok=core.Combat.Queue(function() error("immediate fault") end)
+        check("immediate failure preserves its false result",not ok and reported("immediate fault"))
+        ran=0
+        local keyedRepeat
+        keyedRepeat=function()
+            ran=ran+1
+            if ran<150 then core.Combat.Queue(keyedRepeat,"last") end
+        end
+        core.Combat.Queue(keyedRepeat,"last")
+        check("cancelling final scheduled job empties queue",ran==100
+            and core.Combat.Cancel("last") and core.Combat.Pending()==0)
+        tick()
+        check("cancelled continuation never fires its callback",ran==100)
+    end
+
 
     core, calls = ready(fresh()), {}
     core:RegisterModule("lateconsumer", { OnEnable = function() calls[#calls + 1] = "consumer" end },
