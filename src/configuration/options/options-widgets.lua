@@ -112,6 +112,13 @@ end
 function options.RefreshRow(row)
     local spec = row.spec
     if spec.get then row.value = spec.get() end
+    if row.description and spec.getDescription then
+        local description = spec.getDescription()
+        if row.description:GetText() ~= description then
+            row.description:SetText(description)
+            row.list.descriptionChanged = true
+        end
+    end
     row.pending = spec.reload and (spec.pending and spec.pending() or (not spec.pending and row.value ~= row.initial)) or false
     local enabled = not (spec.disabled and spec.disabled())
     row.enabled = enabled
@@ -124,6 +131,10 @@ end
 
 function options.RefreshList(list)
     for _, row in ipairs(list.rows) do options.RefreshRow(row) end
+    if list.descriptionChanged and list.width then
+        list.descriptionChanged = nil
+        options.ResizeList(list, list.width)
+    end
 end
 
 local function placeRow(row, width, y)

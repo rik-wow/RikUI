@@ -1,5 +1,9 @@
 # RikUI settings
 
+Modules now explains the actual running state, including disabled dependencies and activation failures. Failed or blocked modules have their feature controls disabled; their enable toggles remain available. Status descriptions refresh when the panel does, and dependency messages name the required feature. Detailed errors stay in Setup and support diagnostics.
+
+Research reviewed 2026-09-24: [Forever players ask for individual classic components](https://www.reddit.com/r/wowforever/comments/1wkd32q/classic_ui_for_wow_forever/). This motivated clearer module choices; status itself comes from RikUI's actual lifecycle records.
+
 The footer surfaces reload/restart backup failures when settings refresh. **Setup and support > Retry settings backups > Save now** retries both tiers out of combat and prints details. An account failure is no longer cleared by a successful character save. Macro failures remain visible until a successful retry; a reverted setting still retries an earlier failed write.
 
 Research reviewed 2026-09-24: [Forever players report settings resets](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/). Reports motivate recovery visibility; they do not establish current client-wide persistence behavior. Backup status reflects observed API writes, not a guarantee of disk durability. User native acceptance applies.

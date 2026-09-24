@@ -86,8 +86,25 @@ local function moduleTitle(name, module)
     return module.title or MODULE_TITLES[name] or (name:sub(1, 1):upper() .. name:sub(2))
 end
 
+function options.ModuleStatus(name)
+    local state, reason = core:GetModuleState(name)
+    if state == "enabled" then return "Running. Toggle changes apply after Reload UI." end
+    if state == "disabled" then return "Disabled. Enable and reload to use this feature." end
+    if state == "blocked" then
+        local dependency = type(reason) == "string" and reason:match("^dependency unavailable: (.+)$")
+        if dependency then
+            local module = core.Modules[dependency]
+            return "Needs " .. (module and moduleTitle(dependency, module) or dependency) .. ". Enable the required module and reload."
+        end
+        return "Could not start because of a module dependency. See Setup and support diagnostics."
+    end
+    if state == "failed" then return "Could not start. See Setup and support diagnostics for the error." end
+    return "Waiting to start."
+end
+
 local function moduleToggle(name, module)
     return { type = "checkbox", key = "module." .. name, label = moduleTitle(name, module), reload = true,
+        description = "", getDescription = function() return options.ModuleStatus(name) end,
         get = function() return core.Profile.modules[name] ~= false end,
         set = function(value) core.Profile.modules[name] = value == true end,
         pending = function() return (core.Profile.modules[name] ~= false) ~= (module.enabled ~= false) end }
@@ -178,11 +195,13 @@ local function setupSpecs()
     return specs
 end
 
-local function moduleSpec(module, spec)
+local function moduleSpec(name, module, spec)
     local wrapped = {}
     for key, value in pairs(spec) do wrapped[key] = value end
     wrapped.disabled = function()
-        return module.enabled == false or (spec.disabled and spec.disabled()) or false
+        local state = core:GetModuleState(name)
+        return module.enabled == false or state == "failed" or state == "blocked"
+            or (spec.disabled and spec.disabled()) or false
     end
     return wrapped
 end
@@ -193,7 +212,7 @@ local function modulePages(pages)
         local declared = module.Options
         if type(declared) == "table" and type(declared.settings) == "table" then
             local specs = {}
-            for index, spec in ipairs(declared.settings) do specs[index] = moduleSpec(module, spec) end
+            for index, spec in ipairs(declared.settings) do specs[index] = moduleSpec(name, module, spec) end
             local gameplay = name == "worldmap" or name == "experience" or name == "questplanner" or name == "loot"
             pages[#pages + 1] = { id = name, group = (declared.group == "System" or declared.group == "Gameplay" or declared.group == "Interface") and declared.group or (gameplay and "Gameplay" or "Interface"),
                 title = declared.title or moduleTitle(name, module), specs = specs }

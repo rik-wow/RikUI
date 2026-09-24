@@ -122,6 +122,20 @@ return function(check)
             and RikUI.DB.profiles.TooBig == nil)
         RikUI.DB.profiles.Huge = nil
         RikUI.Store = nil
+        options = boot(nil, nil, function(core)
+            core:RegisterModule("broken", { OnEnable = function() error("fixture failure") end,
+                Options = { title = "Broken", settings = {
+                    { type = "checkbox", key = "setting", label = "Setting", get = function() return true end, set = function() end }
+                } } })
+            core:RegisterModule("dependent", {}, { dependencies = { "broken" } })
+        end)
+        local brokenPage = pageByTitle(options, "Broken")
+        check("failed module controls cannot be used", rowByKey(brokenPage.list, "setting").enabled == false)
+        check("module status names unavailable dependency", options.ModuleStatus("dependent"):find("Needs Broken", 1, true) ~= nil)
+        local brokenRow = rowByKey(pageByTitle(options, "Modules").list, "module.broken")
+        check("failed status is visible beside usable module toggle", brokenRow.enabled
+            and brokenRow.description:GetText():find("Could not start", 1, true) ~= nil)
+
         -- Renderer with synthetic specs.
 
         check("configuration confines page content to a scrolling viewport", options.Panel().pages[1].scroll ~= nil)
@@ -393,6 +407,7 @@ return function(check)
             } } })
             core:RegisterCommand("setup", function() settingsHit = settingsHit + 10 end, "Wizard")
         end)
+        check("disabled module explanation uses runtime state", options.ModuleStatus("alpha"):find("Disabled", 1, true) ~= nil)
         local disabledPage = pageByTitle(options, "Alpha things").list
         check("settings of a disabled module are shown disabled", rowByKey(disabledPage, "shiny").enabled == false)
         setup = pageByTitle(options, "Setup and support").list
