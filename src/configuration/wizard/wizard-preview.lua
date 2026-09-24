@@ -1,5 +1,5 @@
 -- Small pictures for the wizard: a whole-screen layout drawn from its rectangles (the same arithmetic
--- src/layout/layout-audit.lua checks, so the picture is the layout), and the main bar a role would get.
+-- src/layout/layout-audit.lua checks, so the picture is the layout), and every action page a role would get.
 local core, skin = RikUI, RikUI.Skin
 local controls, layouts = core.WizardControls, core.Layouts
 local preview = {}
@@ -61,6 +61,10 @@ local function slotFrame(parent, index)
     skin.CropIcon(slot.icon)
     slot.key = controls.Text(slot, "small", "", controls.MUTED)
     slot.key:SetPoint("TOP", slot, "BOTTOM", 0, -3)
+    slot:EnableMouse(true)
+    slot:SetScript("OnEnter", function(self)
+        if parent.onInspect then parent.onInspect(self.description or "Empty slot") end
+    end)
     return slot
 end
 
@@ -73,38 +77,70 @@ function preview.Bar(parent)
     return bar
 end
 
--- Setup leaves a macro's slot empty until the character knows one of the spells it lists, so the
--- macro comes at the lowest of their levels. A macro that lists none is placed at once.
-local function macroLevel(macro)
-    local lowest
-    for _, name in ipairs(macro.spells or {}) do
-        local data = core.Spells.Entry(name)
+local PAGE_LABELS = { main = "Main bar", battle = "Battle stance", defensive = "Defensive stance",
+    berserker = "Berserker stance", stealth = "Stealth", cat = "Cat form", bear = "Bear form",
+    bar2 = "Shift / mouse", bar3 = "Ctrl utility", bar4 = "Extra bar 4", bar5 = "Extra bar 5", extra = "Page 2 utility" }
+local PREFIXES = { bar2 = "MULTIACTIONBAR1BUTTON", bar3 = "MULTIACTIONBAR2BUTTON",
+    bar4 = "MULTIACTIONBAR3BUTTON", bar5 = "MULTIACTIONBAR4BUTTON", extra = false }
+
+function preview.Pages(preset)
+    local result = {}
+    for _, key in ipairs(core.Setup.PageOrder) do
+        if preset and preset.bars[key] then result[#result + 1] = { key = key, label = PAGE_LABELS[key] or key } end
+    end
+    return result
+end
+
+function preview.Name(entry)
+    if not entry then return "Empty slot" end
+    return entry.spell or entry.macro or (entry.item == 6948 and "Hearthstone") or "Item"
+end
+
+local function spellReadiness(names, class, level)
+    local lowest, failure
+    for _, name in ipairs(names) do
+        local id, reason = core.Spells.HighestKnownRank(name, class)
+        if id then return true, "Learned" end
+        failure = failure or reason
+        local data = core.Spells.Entry(name, class)
         if data and data.level and (not lowest or data.level < lowest) then lowest = data.level end
     end
-    return lowest
+    if failure then return false, "Spellbook unavailable" end
+    if lowest and level and lowest > level then return false, "Not learned · level " .. lowest end
+    return false, lowest and "Not learned" or "Not learned · acquisition level unknown"
 end
 
-local function entryArt(entry, preset)
-    if type(entry) ~= "table" then return nil, nil end
+function preview.Details(entry, preset, level)
+    if not entry then return nil, "Empty slot", false end
+    local icon, names
     if entry.spell then
-        local data = core.Spells.Entry(entry.spell)
-        return data and data.icon or nil, entry.level or (data and data.level)
+        local data = core.Spells.Entry(entry.spell, preset.class)
+        icon, names = data and data.icon, { entry.spell }
+    elseif entry.macro then
+        local macro = preset.macros[entry.macro]
+        icon, names = macro and macro.icon, macro and macro.spells or {}
+    elseif entry.item then
+        return entry.item == 6948 and 134414 or 134400, preview.Name(entry) .. " · Item", true
     end
-    local macro = entry.macro and preset.macros and preset.macros[entry.macro]
-    if not macro then return nil, nil end
-    return macro.icon, macroLevel(macro)
+    local ready, status = true, "Macro"
+    if names and #names > 0 then ready, status = spellReadiness(names, preset.class, level) end
+    return icon, preview.Name(entry) .. " · " .. status, ready
 end
 
--- A slot whose spell the character's level does not allow yet is drawn dim, the way a ghost slot is.
-function preview.FillBar(bar, preset, level)
+function preview.FillBar(bar, preset, level, pageKey, opts)
+    pageKey = pageKey or "main"
+    local prefix = PREFIXES[pageKey]
+    if prefix == nil then prefix = "ACTIONBUTTON" end
+    local keys = core.Bindings.Preview(opts) or {}
     for index, slot in ipairs(bar.slots) do
-        local entry = preset and preset.bars.main and preset.bars.main[index] or nil
-        local icon, needed = entryArt(entry, preset)
+        local entry = preset and preset.bars[pageKey] and preset.bars[pageKey][index] or nil
+        local icon, description, ready = preview.Details(entry, preset, level)
+        local key = prefix and keys[prefix .. index] or ""
         slot.icon:SetTexture(icon)
-        slot.icon:SetAlpha(needed and level and needed > level and DIM_ALPHA or 1)
+        slot.icon:SetAlpha(ready and 1 or DIM_ALPHA)
         slot.entry = entry
-        local key = core.Bindings.Scheme["ACTIONBUTTON" .. index]
         slot.key:SetText(key or "")
+        slot.description = description .. (key and key ~= "" and " · " .. key or "")
     end
 end
 

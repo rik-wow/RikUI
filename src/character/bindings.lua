@@ -60,6 +60,9 @@ local function resolveOptions(opts)
     return resolved
 end
 
+-- A copy of the exact proposed key assignments, shared with the setup preview.
+function bindings.Preview(opts) return resolveOptions(opts) end
+
 local function captureCommand(snapshot, command)
     local ok, keys = pcall(function() return { GetBindingKey(command) } end)
     if not ok then return nil, "GetBindingKey failed for " .. command end

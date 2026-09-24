@@ -50,7 +50,17 @@ end
 local function paintRole(page, state)
     for _, card in ipairs(page.cards) do card:SetChosen(card.role == state.role) end
     page.bar:SetShown(state.role ~= nil)
-    if state.role then preview.FillBar(page.bar, resolved(state), UnitLevel("player")) end
+    local known = state.role and resolved(state)
+    local choices = preview.Pages(known)
+    page.previewIndex = math.min(page.previewIndex or 1, math.max(1, #choices))
+    local choice = choices[page.previewIndex]
+    page.barTitle:SetText(choice and (choice.label .. " · " .. page.previewIndex .. " / " .. #choices) or "")
+    page.previous:SetDisabled(not choice or page.previewIndex == 1)
+    page.following:SetDisabled(not choice or page.previewIndex == #choices)
+    page.previous:SetShown(choice ~= nil)
+    page.following:SetShown(choice ~= nil)
+    page.detail:SetText(choice and "Hover an ability for its name, key and learning status. Dim slots are not learned yet." or "")
+    preview.FillBar(page.bar, known, UnitLevel("player"), choice and choice.key, { mouse45 = state.mouse45 })
 end
 
 local function roleCard(page, state, role, index)
@@ -73,11 +83,21 @@ wizard.AddPage({ key = "role", title = "Your role", build = function(page, state
         .. "bars stay as they are. Keybinds, settings and the layout are still set up.")
     page.cards = {}
     for index, role in ipairs(known and known.roleOrder or {}) do page.cards[index] = roleCard(page, state, role, index) end
-    page.barTitle = paragraph(page, "small", known and "Your main bar. Dim abilities come later as you level; RikUI places "
-        .. "them when you learn them." or "")
+    page.barTitle = paragraph(page, "small", "")
     page.barTitle:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", 0, -(32 + math.ceil(#page.cards / 3) * 68))
     page.bar = preview.Bar(page)
     page.bar:SetPoint("TOPLEFT", page.barTitle, "BOTTOMLEFT", 0, -12)
+    page.previous = controls.Button(page, "Previous bar", function()
+        page.previewIndex = page.previewIndex - 1; paintRole(page, state)
+    end)
+    page.previous:SetPoint("TOPLEFT", page.bar, "BOTTOMLEFT", 0, -30)
+    page.following = controls.Button(page, "Next bar", function()
+        page.previewIndex = page.previewIndex + 1; paintRole(page, state)
+    end)
+    page.following:SetPoint("LEFT", page.previous, "RIGHT", 8, 0)
+    page.detail = paragraph(page, "small", "", page.previous, 12)
+    page.detail:SetHeight(38)
+    page.bar.onInspect = function(description) page.detail:SetText(description) end
 end, refresh = function(page, state)
     if state.role == nil then state.role = guessedRole(state) end
     paintRole(page, state)
@@ -114,6 +134,10 @@ end
 local function paintKeys(page, state)
     for _, cap in ipairs(page.mouse) do cap:SetActive(state.mouse45) end
     for _, cap in ipairs(page.strafe) do cap:SetActive(state.strafe) end
+    local known = resolved(state)
+    local row = known and known.bars.bar2 or {}
+    page.mouseCheck.label:SetText("Mouse 4/5: " .. preview.Name(row[10]) .. " / " .. preview.Name(row[11]))
+    page.fallback:SetText("Off: Shift-G / Ctrl-G instead. Ctrl-G's utility slot and the first pet key then have no assigned key.")
     page.mouseCheck:Refresh()
     page.strafeCheck:Refresh()
 end
@@ -128,12 +152,13 @@ wizard.AddPage({ key = "keys", title = "Keybinds", build = function(page, state)
     local extras = 50 + #TIERS * (CAP_HEIGHT + TIER_GAP) + 16
     page.mouse = capRow(page, { "M4", "M5" }, extras, 130)
     page.strafe = capRow(page, { "A", "D" }, extras, 130 + 3 * (CAP_WIDTH + CAP_GAP))
-    page.mouseCheck = controls.Check(page, 520, "I have Mouse 4/5 (off moves Charge and the interrupt to Shift-G and Ctrl-G)",
+    page.mouseCheck = controls.Check(page, 760, "",
         function() return state.mouse45 end, function(value) state.mouse45 = value; paintKeys(page, state) end)
     page.mouseCheck:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -extras - CAP_HEIGHT - 24)
     page.strafeCheck = controls.Check(page, 520, "Also rebind A/D to strafe instead of turn",
         function() return state.strafe end, function(value) state.strafe = value; paintKeys(page, state) end)
-    page.strafeCheck:SetPoint("TOPLEFT", page.mouseCheck, "BOTTOMLEFT", 0, -6)
+    page.fallback = paragraph(page, "small", "", page.mouseCheck, 6)
+    page.strafeCheck:SetPoint("TOPLEFT", page.fallback, "BOTTOMLEFT", 0, -10)
 end, refresh = paintKeys })
 
 -- 4. Layout

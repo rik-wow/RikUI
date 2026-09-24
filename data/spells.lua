@@ -57,14 +57,14 @@ function spells.Catalog(class)
         local _, token = UnitClass("player")
         class = token
     end
-    return core.SpellCatalogs[class or "WARRIOR"] or {}
+    return (class and core.SpellCatalogs[class]) or {}
 end
 
 function spells.Entry(name, class)
     if type(name) == "string" then return spells.Catalog(class)[name] end
 end
 
-local function entryFor(name) return spells.Entry(name) end
+local function entryFor(name, class) return spells.Entry(name, class) end
 
 local function scanLine(line, ranksByID, known)
     if line.offSpecID then return end
@@ -111,8 +111,8 @@ local function highestRank(entry, known)
     end
 end
 
-function spells.HighestKnownRank(name)
-    local entry = entryFor(name)
+function spells.HighestKnownRank(name, class)
+    local entry = entryFor(name, class)
     if not entry then return nil end
     local known, reason = knownRanks(entry)
     if not known then return nil, reason end

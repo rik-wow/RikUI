@@ -1,6 +1,8 @@
 # Class presets and current research
 
-Checked 2026-09-23. Hunter now has a complete player-spell catalogue and a ready-to-apply preset. Other class additions follow in separate commits.
+Checked 2026-09-23. All nine classes have ready-to-apply role presets. Eight new player-spell catalogues join the existing Warrior catalogue; this is coverage of the published sources below, not a claim that every unpublished beta ability is known.
+
+The setup role page previews every resolved action page, including stance/form/stealth overlays, racial utility and displaced extra-page actions. Hover a slot for its name, proposed key and learned status. Unlearned talents remain dim even at maximum level, and missing acquisition levels are explicitly unknown. Mouse-key help names the selected class's actual actions and shows the keyboard fallback.
 
 ## Source boundaries
 

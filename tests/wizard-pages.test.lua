@@ -1,12 +1,12 @@
 -- The wizard's six pages against the real preset, bindings scheme, settings catalogue and layouts.
 -- setup.Apply is faked; what the pages write into the state is what is checked. How the pages look
--- needs a beta check.
+-- is exercised with widget geometry; native acceptance is supplied by the user.
 return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
     local restore = widgets.install()
     local savedClass, savedLevel = UnitClass, UnitLevel
-    local FILES = { "data/spells.lua", "data/cvars.lua", "presets/warrior.lua", "src/character/bindings.lua", "src/setup/setup-talents.lua",
+    local FILES = { "data/spells.lua", "data/spells-hunter.lua", "data/spells-mage.lua", "data/spells-rogue.lua", "data/spells-priest.lua", "data/spells-warlock.lua", "data/spells-shaman.lua", "data/spells-paladin.lua", "data/spells-druid.lua", "data/cvars.lua", "presets/warrior.lua", "presets/hunter.lua", "presets/mage.lua", "presets/rogue.lua", "presets/priest.lua", "presets/warlock.lua", "presets/shaman.lua", "presets/paladin.lua", "presets/druid.lua", "src/character/bindings.lua", "src/setup/setup-talents.lua",
         "data/layouts.lua", "src/layout/layout-audit.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/layout/layout-presets.lua",
         "src/configuration/wizard/wizard-controls.lua", "src/configuration/wizard/wizard.lua", "src/configuration/wizard/wizard-preview.lua", "src/configuration/wizard/wizard-pages.lua" }
     local wizard, applied
@@ -121,13 +121,62 @@ return function(check)
         check("Apply carries all of it to setup", applied[1].role == "tank" and applied[1].opts.macros == false
             and applied[1].opts.layoutPreset == "classic" and applied[1].opts.strafe == true and applied[1].opts.mouse45 == false)
 
-        load("Priest")
+        load("Evoker")
         local none = page("role")
         check("a class without a preset gets an explanation instead of roles", #none.cards == 0 and wizard.State.role == nil
-            and none.note.text:find("no preset for Priest yet", 1, true) ~= nil and not none.bar:IsShown())
+            and none.note.text:find("no preset for Evoker yet", 1, true) ~= nil and not none.bar:IsShown())
         local priest = page("summary").body.text
         check("and its summary says bars and macros have nothing to do", priest:find("Bars: no preset", 1, true) ~= nil, priest)
         check("no page printed anything", #env.printed == 0, env.printed[1])
+        for _, class in ipairs({ "Hunter", "Mage", "Rogue", "Priest", "Warlock", "Shaman", "Paladin", "Druid" }) do
+            load(class, 60)
+            local classRole = page("role")
+            local expected = RikUI.WizardPreview.Pages(RikUI.Setup.Resolve(class:upper(), wizard.State.role))
+            for index, choice in ipairs(expected) do
+                check(class .. " preview visits " .. choice.key, classRole.barTitle.text:find(choice.label, 1, true) ~= nil)
+                if index < #expected then env.click(classRole.following) end
+            end
+            check(class .. " preview stops at last page", classRole.following.disabled == true)
+            for index = #expected, 2, -1 do env.click(classRole.previous) end
+            check(class .. " preview returns to main", classRole.previous.disabled == true
+                and classRole.barTitle.text:find("Main bar", 1, true) ~= nil)
+        end
+        load("Druid", 60)
+        local druid = page("role")
+        check("four Druid roles wrap to a second row", #druid.cards == 4 and druid.cards[4].point[4] == 0
+            and druid.cards[4].point[5] < druid.cards[1].point[5] and druid.barTitle.point[5] < druid.cards[4].point[5] - 56)
+        env.click(druid.following)
+        check("Druid preview exposes Cat actions and base keys", druid.barTitle.text:find("Cat form", 1, true)
+            and druid.bar.slots[1].key.text == "1")
+        env.runScript(druid.bar.slots[1], "OnEnter")
+        check("hover gives action name and learning status", druid.detail.text:find(druid.bar.slots[1].entry.spell, 1, true)
+            and druid.detail.text:find("Spellbook unavailable", 1, true))
+        load("Mage", 60)
+        local mage = page("role")
+        local mageKeys = page("keys")
+        check("mouse help names Mage actions", mageKeys.mouseCheck.label.text:find("Blink", 1, true)
+            and mageKeys.mouseCheck.label.text:find("Counterspell", 1, true)
+            and not mageKeys.mouseCheck.label.text:find("Charge", 1, true))
+        env.click(mageKeys.mouseCheck)
+        mage = page("role")
+        env.click(mage.following)
+        check("preview uses proposed keyboard fallback", mage.bar.slots[10].key.text == "SHIFT-G"
+            and mage.bar.slots[11].key.text == "CTRL-G")
+        env.click(mage.following)
+        check("displaced Ctrl-G utility is visibly unbound", mage.bar.slots[8].key.text == "")
+        local preview, savedKnown = RikUI.WizardPreview, RikUI.Spells.HighestKnownRank
+        local current = RikUI.Setup.Resolve("MAGE", "frost")
+        RikUI.Spells.HighestKnownRank = function() return nil end
+        local _, description, ready = preview.Details({ spell = "Ice Block" }, current, 60)
+        check("unlearned talent at max level stays dim with unknown acquisition", not ready
+            and description:find("acquisition level unknown", 1, true))
+        RikUI.Spells.HighestKnownRank = function(name, class) if name == "Ice Block" and class == "MAGE" then return 11958 end end
+        _, description, ready = preview.Details({ spell = "Ice Block" }, current, 60)
+        check("learned status checks the selected class catalogue", ready and description:find("Learned", 1, true))
+        RikUI.Spells.HighestKnownRank = savedKnown
+        UnitClass = nil
+        check("unavailable class never falls back to Warrior spells", next(RikUI.Spells.Catalog()) == nil)
+
     end)
     UnitClass, UnitLevel = savedClass, savedLevel
     restore()
