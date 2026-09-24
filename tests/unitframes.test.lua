@@ -173,6 +173,18 @@ return function(check)
             and player:GetAttribute("*type2") == "togglemenu" and target:GetAttribute("unit") == "target"
             and tot:GetAttribute("unit") == "targettarget" and pet:GetAttribute("unit") == "pet"
             and table.concat(player.clicks, ",") == "AnyUp")
+        RikUI.Profile.unitframes = { healthText = "current", powerText = "hidden" }
+        module.Refresh()
+        check("current-only health forwards secret without arithmetic", player.health.text.format == "%d"
+            and player.health.text.args[1] == env.SECRET)
+        check("hidden power clears text but retains live fill", player.power.text.text == "" and player.power.value == env.SECRET)
+        RikUI.Profile.unitframes.healthText = "hidden"
+        module.Refresh()
+        check("hidden health clears prior text", player.health.text.text == "")
+        RikUI.Profile.unitframes = { healthText = "both", powerText = "both" }
+        module.Refresh()
+        check("restoring text mode repopulates current and max", player.health.text.format == "%d / %d"
+            and player.health.text.args[2] == 100)
         local groups = RikUI.Layout.Groups
         check("frames register with the shared layout", groups.player and groups.player.frames[1] == player
             and groups.target.frames[1] == target and groups.tot.frames[1] == tot and groups.petframe.frames[1] == pet)

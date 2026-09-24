@@ -24,13 +24,22 @@ end
 local function readHealth(unit) return UnitHealth(unit), UnitHealthMax(unit) end
 local function readPower(unit) return UnitPower(unit), UnitPowerMax(unit) end
 
+local function valueText(bar, current, maximum)
+    if not bar.text then return end
+    local settings = core.Profile and core.Profile.unitframes or {}
+    local mode = settings[bar.textKind or "healthText"]
+    if mode == "hidden" then bar.text:SetText("")
+    elseif mode == "current" then bar.text:SetFormattedText("%d", current)
+    else bar.text:SetFormattedText(VALUE_FORMAT, current, maximum) end
+end
+
 local function fill(bar, current, maximum, feedback, animate)
     bar:SetMinMaxValues(0, maximum)
     local easing = bar.motionEnabled and unitframes.Motion.Interpolation(bar) or nil
     bar:SetValue(current, easing)
     if feedback then core.Motion.UpdateHealthFeedback(feedback, current, maximum, animate) end
     if bar.motionEnabled then bar.motionFilled = true end
-    if bar.text then bar.text:SetFormattedText(VALUE_FORMAT, current, maximum) end
+    valueText(bar, current, maximum)
 end
 
 local function clear(bar, feedback)

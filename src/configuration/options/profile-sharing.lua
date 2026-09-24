@@ -5,6 +5,7 @@ local function number(low, high, whole)
         return type(value) == "number" and value >= low and value <= high and (not whole or value % 1 == 0)
     end
 end
+local function textMode(value) return value == "both" or value == "current" or value == "hidden" end
 local function boolean(value) return type(value) == "boolean" end
 local function identifier(value)
     return type(value) == "string" and #value <= 64 and value:match("^[%w_.-]+$") ~= nil
@@ -25,6 +26,7 @@ local schema = {
     minimap={ serverTime=boolean, coordinates=boolean, dayNight=boolean },
     swingtimer={ kiting=boolean, stopLead=number(0.1,1.5) },
     druidmana={ show=boolean }, worldmap={ fog=boolean }, nameplates={ threatText=boolean },
+    unitframes={ healthText=textMode, powerText=textMode },
     xpbar={ compact=boolean, text=boolean, animations=boolean, ticks=boolean },
 }
 for _, key in ipairs({ "timestamps", "locked", "panel", "classColors", "shortTags", "mentions", "collapseRepeats",

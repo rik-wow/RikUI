@@ -73,6 +73,7 @@ local function decorate(frame, size)
     frame.health:SetPoint("TOPLEFT", frame, "TOPLEFT", EDGE, -EDGE)
     frame.health:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -EDGE, -EDGE)
     frame.power = statusBar(owner, size.power, size.powerText, "small")
+    frame.health.textKind, frame.power.textKind = "healthText", "powerText"
     frame.power:SetPoint("TOPLEFT", frame.health, "BOTTOMLEFT", 0, -EDGE)
     frame.power:SetPoint("TOPRIGHT", frame.health, "BOTTOMRIGHT", 0, -EDGE)
     frame.name = text(frame.health, size.font, "LEFT", TEXT_INSET)
@@ -257,5 +258,16 @@ function unitframes:Debug(sample)
     sample("UnitReaction(target)", UnitReaction, "target", "player")
     sample("UnitThreatSituation(player)", UnitThreatSituation, "player")
 end
+
+local function textOption(key, label)
+    return { type = "dropdown", key = key, label = label,
+        values = { { value = "both", text = "Current / maximum" },
+            { value = "current", text = "Current only" }, { value = "hidden", text = "Hidden" } },
+        get = function() return core.Profile.unitframes[key] end,
+        set = function(value) core.Profile.unitframes[key] = value; unitframes.Refresh() end }
+end
+unitframes.Options = { title = "Unit frames", settings = {
+    textOption("healthText", "Health text"), textOption("powerText", "Power text"),
+} }
 
 core:RegisterModule("unitframes", unitframes)
