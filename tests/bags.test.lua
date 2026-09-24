@@ -166,6 +166,22 @@ return function(check)
             and button(0, 16) ~= nil and button(1, 6) ~= nil and button(2, 1) == nil)
         check("bag opening fades and slides without changing its saved anchor", holder.rikEntry.plays == 1
             and holder.rikEntry.animation.kind == "Translation" and holder.rikEntry.animation.offset[2] == 6)
+        local originalSlots = C_Container.GetContainerNumSlots
+        C_Container.GetContainerNumSlots = function(bag)
+            if bag == 1 then error("inventory unavailable") end
+            return originalSlots(bag)
+        end
+        module.Refresh()
+        check("failed size read preserves the complete bag grid", shownButtons() == 22 and module.Total == 22)
+        for _, invalid in ipairs({ -1, 1.5, 0/0, math.huge, 201, "unknown" }) do
+            C_Container.GetContainerNumSlots = function(bag) return bag == 1 and invalid or originalSlots(bag) end
+            module.Refresh()
+            check("invalid size preserves the complete bag grid", shownButtons() == 22 and module.Total == 22)
+        end
+        check("unavailable size is reported once", #env.printed == 1)
+        env.printed = {}
+        C_Container.GetContainerNumSlots = originalSlots
+        module.Refresh()
         local cloth, stone, blade, empty = button(0, 1), button(0, 2), button(1, 3), button(0, 3)
         check("buttons come from the Blizzard item template", cloth.kind == "ItemButton" and cloth.template == TEMPLATE)
         check("default store glow is blank for occupied and empty slots", cloth.BattlepayItemTexture.texture == nil

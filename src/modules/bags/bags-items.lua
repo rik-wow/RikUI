@@ -8,6 +8,7 @@ local core, media, ui = RikUI, RikUI.Media, RikUI.UI
 local bags = core.Bags
 
 local BAG_IDS = { 0, 1, 2, 3, 4 }
+local MAX_BAG_SLOTS = 200 -- defensive allocation limit, not a client capacity claim
 local BUTTON_TYPE, TEMPLATE, NAME_FORMAT = "ItemButton", "ContainerFrameItemButtonTemplate", "RikUIBag%dSlot%d"
 local SLOT, GAP, DEFAULT_COLUMNS, EDGE, COUNT_INSET = 36, 2, 10, 1, 2
 local MIN_COLUMNS, MAX_COLUMNS, columns = 10, 16, DEFAULT_COLUMNS
@@ -239,14 +240,15 @@ end
 
 local function slotCount(bag)
     local ok, slots = pcall(C_Container.GetContainerNumSlots, bag)
-    if not ok or not plain(slots, "number") then return 0 end
+    if not ok or not plain(slots, "number") or slots ~= slots or slots < 0
+        or slots > MAX_BAG_SLOTS or slots % 1 ~= 0 then return nil end
     return slots
 end
 
 -- Returns the next grid index and how many of this bag's slots hold an item; nil when no button
 -- could be created.
-local function refreshBag(frame, index)
-    local slots, used = slotCount(frame:GetID()), 0
+local function refreshBag(frame, index, slots)
+    local used = 0
     for slot = 1, slots do
         local button = frame.buttons[slot] or createButton(frame, slot)
         if not button then return nil end
@@ -260,9 +262,14 @@ local function refreshBag(frame, index)
 end
 
 function bags.Refresh()
+    local sizes = {}
+    for _, bag in ipairs(BAG_IDS) do
+        sizes[bag] = slotCount(bag)
+        if sizes[bag] == nil then bags.Warn("sizes", "Inventory size unavailable; keeping the last layout."); return end
+    end
     local index, used = 0, 0
     for _, bag in ipairs(BAG_IDS) do
-        local nextIndex, filled = refreshBag(bagFrame(bag), index)
+        local nextIndex, filled = refreshBag(bagFrame(bag), index, sizes[bag])
         if not nextIndex then return end
         index, used = nextIndex, used + filled
     end
