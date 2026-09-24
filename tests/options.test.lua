@@ -161,6 +161,18 @@ return function(check)
         RikUI.Scroll.Reveal(emptyPane,40,200)
         check("oversized rows reveal their beginning",emptyPane.offset==40)
         RikUI.Scroll.SetContentHeight(emptyPane,0)
+        local selectedSize = 0
+        local sizeList = options.Render(CreateFrame("Frame", nil, UIParent), {
+            { type = "dropdown", key = "prose", label = "Quest body text size",
+                choices = { { value = 0, label = "Native size" }, { value = 18, label = "18" } },
+                get = function() return selectedSize end, set = function(value) selectedSize = value end }
+        })
+        local sizeRow = sizeList.rows[1]
+        check("declared choices render readable labels including zero", sizeRow.widget.text:GetText() == "Native size")
+        env.click(sizeRow.widget)
+        check("declared choices populate the actual menu", #sizeRow.widget.list.buttons == 2)
+        env.click(sizeRow.widget.list.buttons[2])
+        check("declared choice selection saves its value", selectedSize == 18 and sizeRow.widget.text:GetText() == "18")
         local state = { flag = false, amount = 1, choice = "b", colour = { 0.1, 0.2, 0.3 }, name = "", pressed = 0, locked = true }
         local sets = {}
         local function setter(key) return function(value) state[key] = value; sets[key] = (sets[key] or 0) + 1 end end

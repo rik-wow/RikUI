@@ -1,5 +1,9 @@
 # Combat text
 
+Combat text settings now expose native categories for outgoing damage/healing, resource gains, aura messages, combat entry/exit, avoided attacks, low health/mana warnings and reputation. Each is available only if the current client returns a supported boolean CVar value. No toggle changes at startup. Explicit changes wait until combat ends, coalesce, and verify readback; they are client-wide preferences, not profile exports.
+
+Research reviewed 2026-09-24: [players request combat-text customization](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/). Primary current sources: [Blizzard scrolling category definitions](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_CombatText/Shared/CombatTextConstants.lua) and [client CVar inventory](https://github.com/Ketho/BlizzardInterfaceResources/blob/live/Resources/CVars.lua). The [Forever combat-text implementation](https://github.com/merthanmerter/DogsScrollingCombatTextForever) also documents the native outgoing-damage CVar. The pinned Forever page could not be fetched in this review; current source plus runtime detection determines availability, not an assumption of identical build coverage. RikUI leaves attribution, amounts, fonts' animation sizes and spell icons with the existing renderer. User native acceptance applies.
+
 `src/modules/combattext/combattext.lua` puts floating combat text in the RikUI font: the scrolling
 text for your own damage taken, heals and gains, and the damage numbers over
 enemies. The Combat text options page also exposes the client's scrolling
@@ -66,7 +70,7 @@ how the outline looks on crits scaled with `SetTextHeight`. Native behavior is a
 The native controls follow the pinned [CombatOverrides.lua](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_SettingsDefinitions_Frame/Mainline/CombatOverrides.lua):
 `enableFloatingCombatText`, `floatingCombatTextFloatMode_v2` values 1/2/3, and
 the `classicStyleWorldText == 0` condition. Actual CVar availability is checked
-at runtime; no outgoing damage/healing filters or arbitrary numeric sizes are inferred.
+at runtime. The category extension above adds runtime-gated outgoing damage/healing controls; arbitrary numeric sizes are not inferred.
 
 Research on 2026-09-24: [Forever players requesting combat-text customization](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/).
 This request is community feedback; the source and runtime checks determine supported controls.

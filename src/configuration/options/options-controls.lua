@@ -63,7 +63,14 @@ types.slider = {
 local function dropdownValues(spec)
     local values = spec.values
     if type(values) == "function" then values = values() end
-    return values or {}
+    if values then return values end
+    local choices = spec.choices
+    if type(choices) == "function" then choices = choices() end
+    local entries = {}
+    for index, choice in ipairs(choices or {}) do
+        entries[index] = { value = choice.value, text = choice.text or choice.label or tostring(choice.value) }
+    end
+    return entries
 end
 
 local function valueText(spec, value)

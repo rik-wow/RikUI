@@ -59,7 +59,7 @@ return function(check)
         local module = load()
         check("combat text startup leaves client preferences alone", writes == 0)
         local settings = module.Options and module.Options.settings
-        check("native combat text controls exist", settings and #settings == 2)
+        check("native combat text controls exist", settings and #settings == 10)
         if settings then
             local enabled, flow = settings[1], settings[2]
             enabled.set(true)
@@ -83,6 +83,29 @@ return function(check)
             C_CVar.SetCVar = function() error("rejected native write") end
             local safe = pcall(enabled.set, false)
             check("native write failure is contained", safe and values.enableFloatingCombatText == "1")
+        end
+
+        C_CVar.SetCVar = function(name, value) writes = writes + 1; values[name] = value; return true end
+        local category = settings[3]
+        check("missing category is disabled", category.disabled())
+        values[category.key] = "unexpected"
+        check("unknown category representation is disabled", category.disabled())
+        values[category.key] = "1"
+        check("runtime-supported category is available", not category.disabled() and category.get())
+        local before = writes
+        env.inCombat = true
+        category.set(false); category.set(true); category.set(false)
+        check("category requests do not write in combat", writes == before)
+        env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
+        check("category requests coalesce and preserve native value", writes == before + 1 and values[category.key] == "0")
+        before = writes
+        category.set("false")
+        check("invalid category toggle does not write", writes == before)
+        for index = 4, #settings do
+            local setting = settings[index]
+            values[setting.key] = "0"
+            setting.set(true)
+            check("category writes its own native setting", values[setting.key] == "1")
         end
 
         load({ modules = { combattext = false } })

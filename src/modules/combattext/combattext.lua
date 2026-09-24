@@ -69,6 +69,35 @@ combattext.Options.settings = {
         end },
 }
 
+-- Native CVars remain client-wide. Unknown build coverage is disabled at runtime.
+local CATEGORIES = {
+    { "floatingCombatTextCombatDamage_v2", "Damage dealt above enemies" },
+    { "floatingCombatTextCombatHealing_v2", "Healing done above targets" },
+    { "floatingCombatTextEnergyGains_v2", "Resource gains" },
+    { "floatingCombatTextAuras_v2", "Buff and debuff messages" },
+    { "floatingCombatTextCombatState_v2", "Entering and leaving combat" },
+    { "floatingCombatTextDodgeParryMiss_v2", "Dodges, parries and misses" },
+    { "floatingCombatTextLowManaHealth_v2", "Low health and mana warnings" },
+    { "floatingCombatTextRepChanges_v2", "Reputation changes" },
+}
+for _, category in ipairs(CATEGORIES) do
+    local name = category[1]
+    local function supported()
+        local value = readCVar(name)
+        return available(name) and (value == "0" or value == "1")
+    end
+    table.insert(combattext.Options.settings, {
+        type = "checkbox", key = name, label = category[2],
+        description = "Native client setting, shared across profiles. Unsupported controls are disabled.",
+        get = function() return readCVar(name) == "1" end,
+        disabled = function() return not supported() end,
+        set = function(value)
+            if type(value) ~= "boolean" or not supported() then return end
+            setNative(name, value and "1" or "0")
+        end,
+    })
+end
+
 local function setDamageFont(_, loadedAddon)
     if loadedAddon ~= addonName or not combattext.enabled then return end
     DAMAGE_TEXT_FONT = media.font

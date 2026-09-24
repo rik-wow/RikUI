@@ -1,5 +1,7 @@
 # RikUI settings
 
+The shared dropdown renderer accepts both dynamic `values/text` and module-declared `choices/label` entries. This fixes empty quest-size, font and native combat-direction menus. Selection is tested through the rendered popup, including the zero-valued native-size choice.
+
 Switching profiles now reliably requests **Reload UI**, including copied profiles whose module toggles happen to match. Positions apply immediately; reload applies all feature preferences. Returning to the profile loaded at login clears that profile-switch notice. Other changed settings can still require reload. The baseline is captured after backup recovery, and a rejected switch leaves it unchanged.
 
 This closes a code-observed activation gap while addressing the dated settings-reliability feedback below; it does not claim that community reports were caused by this gap.
