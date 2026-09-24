@@ -79,14 +79,21 @@ function options.ShowPage(index)
 end
 
 local function matches(text, query)
-    return tostring(text or ""):lower():find(query, 1, true) ~= nil
+    local haystack = tostring(text or ""):lower()
+    for word in query:gmatch("%S+") do
+        if not haystack:find(word, 1, true) then return false end
+    end
+    return true
 end
 
 local function filterPage(page, query)
     local whole = query == "" or matches(page.title, query)
     local count = 0
     for _, row in ipairs(page.list.rows) do
-        row.filtered = not (whole or matches(row.spec.label, query) or matches(row.spec.description, query))
+        local description = row.spec.getDescription and row.spec.getDescription() or row.spec.description
+        local searchable = table.concat({ page.title or "", page.group or "",
+            row.spec.label or "", description or "" }, " ")
+        row.filtered = not (whole or matches(searchable, query))
         if not row.filtered then count = count + 1 end
     end
     page.filtered = not whole and count == 0

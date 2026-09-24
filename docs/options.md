@@ -25,7 +25,7 @@ The nested sidebar groups pages under **Interface**, **Gameplay**, and
 and scale controls; individual module preferences stay on their own pages.
 Modules, Profiles, and Setup and support are separate System pages.
 
-Use **Search settings** to filter pages and controls by title, label or help text.
+Use **Search settings** to filter pages and controls by title, group, label or live help text. Every word must match, in any order, across those fields; for example, `bags columns`. Punctuation is treated literally.
 The clear button or Escape restores all results. Direct links to a page clear
 the filter. Unmatched searches explain that no settings match.
 
