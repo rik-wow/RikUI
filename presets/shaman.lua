@@ -1,7 +1,7 @@
--- Element-grouped totems: normal click/key first spell, right click second.
+-- Element-grouped totems: normal click/key first spell; Alt or right click second.
 RikUI.Presets.SHAMAN = {
     ["class"] = "SHAMAN",
-    ["version"] = 1,
+    ["version"] = 2,
     ["roleOrder"] = {
         "ele",
         "enh",
@@ -162,8 +162,7 @@ RikUI.Presets.SHAMAN = {
                 ["level"] = 20,
             },
             [12] = {
-                ["spell"] = "Ancestral Spirit",
-                ["level"] = 12,
+                ["macro"] = "Ancestral Spirit",
             },
         },
         ["bar4"] = {
@@ -230,12 +229,10 @@ RikUI.Presets.SHAMAN = {
                 ["level"] = 34,
             },
             [4] = {
-                ["spell"] = "Water Breathing",
-                ["level"] = 22,
+                ["macro"] = "Water Breathing",
             },
             [5] = {
-                ["spell"] = "Water Walking",
-                ["level"] = 28,
+                ["macro"] = "Water Walking",
             },
             [6] = {
                 ["spell"] = "Far Sight",
@@ -257,6 +254,12 @@ RikUI.Presets.SHAMAN = {
         },
     },
     ["macros"] = {
+        ["Ancestral Spirit"] = { icon = 136077, spells = { "Ancestral Spirit" },
+            body = "#showtooltip Ancestral Spirit\n/cast [@mouseover,help,dead][help,dead] Ancestral Spirit" },
+        ["Water Breathing"] = { icon = 136148, spells = { "Water Breathing" },
+            body = "#showtooltip Water Breathing\n/cast [@mouseover,help,nodead][help,nodead][@player] Water Breathing" },
+        ["Water Walking"] = { icon = 135863, spells = { "Water Walking" },
+            body = "#showtooltip Water Walking\n/cast [@mouseover,help,nodead][help,nodead][@player] Water Walking" },
         ["Healing Wave"] = {
             ["icon"] = 136052,
             ["body"] = "#showtooltip Healing Wave\n/cast [@mouseover,help,nodead][help,nodead][@player] Healing Wave",
@@ -301,7 +304,7 @@ RikUI.Presets.SHAMAN = {
         },
         ["Earth Totems"] = {
             ["icon"] = 136102,
-            ["body"] = "#showtooltip\n/cast [btn:2] Tremor Totem; Earthbind Totem",
+            ["body"] = "#showtooltip\n/cast [mod:alt][btn:2] Tremor Totem; Earthbind Totem",
             ["spells"] = {
                 "Earthbind Totem",
                 "Tremor Totem",
@@ -309,7 +312,7 @@ RikUI.Presets.SHAMAN = {
         },
         ["Fire Totems"] = {
             ["icon"] = 135825,
-            ["body"] = "#showtooltip\n/cast [btn:2] Magma Totem; Searing Totem",
+            ["body"] = "#showtooltip\n/cast [mod:alt][btn:2] Magma Totem; Searing Totem",
             ["spells"] = {
                 "Searing Totem",
                 "Magma Totem",
@@ -317,7 +320,7 @@ RikUI.Presets.SHAMAN = {
         },
         ["Water Totems"] = {
             ["icon"] = 135127,
-            ["body"] = "#showtooltip\n/cast [btn:2] Mana Spring Totem; Healing Stream Totem",
+            ["body"] = "#showtooltip\n/cast [mod:alt][btn:2] Mana Spring Totem; Healing Stream Totem",
             ["spells"] = {
                 "Healing Stream Totem",
                 "Mana Spring Totem",
@@ -325,7 +328,7 @@ RikUI.Presets.SHAMAN = {
         },
         ["Air Totems"] = {
             ["icon"] = 136039,
-            ["body"] = "#showtooltip\n/cast [btn:2] Windfury Totem; Grounding Totem",
+            ["body"] = "#showtooltip\n/cast [mod:alt][btn:2] Windfury Totem; Grounding Totem",
             ["spells"] = {
                 "Grounding Totem",
                 "Windfury Totem",

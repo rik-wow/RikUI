@@ -252,6 +252,25 @@ return function(check)
         RikUI.Spells.Entry("Fire Nova", "SHAMAN") and not RikUI.Spells.Entry("Fire Nova Totem", "SHAMAN"))
 
 
+    for _, name in ipairs({ "Earth Totems", "Fire Totems", "Water Totems", "Air Totems" }) do
+        local macro = shaman.macros[name]
+        check("Shaman totem alternative works on keyboard " .. name,
+            macro.body == "#showtooltip\n/cast [mod:alt][btn:2] " .. macro.spells[2] .. "; " .. macro.spells[1])
+    end
+    for _, role in ipairs(shaman.roleOrder) do
+        local resolved = assert(RikUI.Setup.Resolve("SHAMAN", role))
+        check("Shaman group utility survives " .. role, resolved.bars.bar3[12].macro == "Ancestral Spirit"
+            and resolved.bars.bar5[4].macro == "Water Breathing" and resolved.bars.bar5[5].macro == "Water Walking")
+    end
+    check("Shaman resurrection only targets fallen allies", shaman.macros["Ancestral Spirit"]
+        and shaman.macros["Ancestral Spirit"].body == "#showtooltip Ancestral Spirit\n/cast [@mouseover,help,dead][help,dead] Ancestral Spirit")
+    for _, name in ipairs({ "Water Breathing", "Water Walking" }) do
+        local macro = shaman.macros[name]
+        check("Shaman water utility uses friendly targets " .. name, macro
+            and macro.body == "#showtooltip " .. name .. "\n/cast [@mouseover,help,nodead][help,nodead][@player] " .. name
+            and macro.spells[1] == name)
+    end
+
     local paladin = assert(RikUI.Presets.PALADIN, "Paladin preset missing")
     local holy = assert(RikUI.Setup.Resolve("PALADIN", "heal"))
     local protection = assert(RikUI.Setup.Resolve("PALADIN", "tank"))

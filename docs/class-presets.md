@@ -124,3 +124,9 @@ Checked 2026-09-23 against [Mage utility feedback](https://us.forums.blizzard.co
 
 All three roles now use living hostile mouseover, then current hostile target, for Fear and Banish. Health Funnel explicitly addresses the living pet without changing the selected enemy. Existing pet attack/follow keys, damage rotations and learned-spell gates remain. Pet-family abilities, soulstone item ranks and unresolved scaling are outside this change. Version 2 marks the preset update. Automated role-composition and macro-contract checks cover these changes; native acceptance is supplied by the user.
 
+### Shaman utility access — 2026-09-23
+
+[September 20 community discussion](https://www.reddit.com/r/wowforever/comments/1wl5tog/with_all_of_the_changes_and_adjustments_how_is/) values situational totems; [class feedback](https://eu.forums.blizzard.com/en/wow/t/feedback-shaman-talent-tree-elemental-restoration/630172) asks for more active decisions. Those requests motivate access improvements, without claiming the requested talents exist. The [author's spellbook](https://foreverchanges.pro/spellbook/shaman) explicitly sources build 1.60.1.69913; existing verified names/ranks/icons are retained.
+
+Grouped totem macros now accept Alt while activating their assigned action, as well as right-click, for their second spell. Normal activation keeps the first spell. Both choices are deliberate; an unlearned alternative is not granted or automatically replaced. Ancestral Spirit targets dead friendly mouseover/current target; Water Breathing and Water Walking use living friendly mouseover, target, then self in every role. Existing recall/projection and interrupt controls remain. Version 2, role-composition checks, macro size checks and user-supplied native acceptance cover this update.
+
