@@ -1,5 +1,7 @@
 # RikUI settings
 
+Modules now warns **After reload: needs …** when an enabled feature has a disabled direct or indirect requirement in the saved choices. Restoring the provider clears the warning. Disabling a feature still changes only that feature. This helps mix UI components without discovering a missing dependency only after reload. [Modular UI prior art reviewed 2026-09-24](https://www.curseforge.com/wow/addons/fcui-foreverclassicui).
+
 Queued settings and destructive confirmations expire after a profile transition, including switching away and back. A queued profile selection also expires if its destination was deleted and recreated under the same name. Re-select or confirm again to act on the current profile.
 
 Restored profiles now repair unsupported frame/text/tooltip scales, bag columns and capacity thresholds, castbar dimensions, nameplate emphasis, font choices and unit text modes to their defaults before features load. Valid limit values and unknown extension fields survive. This guards malformed data; it does not claim to fix the client's SavedVariables bug. [Settings-loss reports reviewed 2026-09-24](https://us.forums.blizzard.com/en/wow/t/can-we-get-a-response-about-addon-settings-not-saving/2359436).

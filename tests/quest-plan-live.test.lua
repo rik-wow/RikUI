@@ -10,7 +10,7 @@ return function(check)
     local ok,err=xpcall(function()
         env.frames,env.inCombat={},false
         RikUI={CharDB={},Media={Font=function() end},Combat={Queue=function(fn) fn() end},
-            Changed=function() end,Print=function() end,GetModuleState=function() return "enabled" end,ProfileNeedsReload=function() return false end}
+            Changed=function() end,Print=function() end,GetModuleState=function() return "enabled" end,GetModuleRequirements=function() return {} end,ProfileNeedsReload=function() return false end}
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
         dofile("src/ui/motion.lua");dofile("src/ui/skin.lua");dofile("src/ui/scroll.lua")
         RikUI["Secret"]={IsSecret=function() return false end,Read=function(fn,...) return pcall(fn,...) end}

@@ -116,7 +116,22 @@ local function moduleTitle(name, module)
     return module.title or MODULE_TITLES[name] or (name:sub(1, 1):upper() .. name:sub(2))
 end
 
+local function pendingDependency(name)
+    if not core.Profile or core.Profile.modules[name] == false then return end
+    local requirements, reason = core:GetModuleRequirements(name)
+    if not requirements then return "After reload: " .. reason end
+    local disabled = {}
+    for _, dependency in ipairs(requirements) do
+        if core.Profile.modules[dependency] == false then
+            disabled[#disabled + 1] = moduleTitle(dependency, core.Modules[dependency])
+        end
+    end
+    if #disabled > 0 then return "After reload: needs " .. table.concat(disabled, ", ") .. ". Enable the required modules." end
+end
+
 function options.ModuleStatus(name)
+    local pending = pendingDependency(name)
+    if pending then return pending end
     local state, reason = core:GetModuleState(name)
     if state == "enabled" then return "Running. Toggle changes apply after Reload UI." end
     if state == "disabled" then return "Disabled. Enable and reload to use this feature." end

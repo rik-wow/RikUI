@@ -117,6 +117,17 @@ local function collectRequirements(name, selected, visiting)
     return true
 end
 
+function core:GetModuleRequirements(name)
+    local selected = {}
+    local ok, reason = collectRequirements(name, selected, {})
+    if not ok then return nil, reason end
+    selected[name] = nil
+    local names = {}
+    for dependency in pairs(selected) do names[#names + 1] = dependency end
+    table.sort(names)
+    return names
+end
+
 function core:SetModuleEnabled(name, enabled)
     if not self.Profile then return nil, "Still loading." end
     if not records[name] then return nil, "Unknown module." end
