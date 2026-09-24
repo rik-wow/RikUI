@@ -515,6 +515,11 @@ return function(check)
         { "shadow", "main", 4, "Devouring Plague", "Shadow Word: Pain" },
         { "shadow", "main", 5, "Shadow Word: Death", "Mind Blast" },
     })
+    levelingChecks(check, "PALADIN", {
+        { "tank", "main", 1, "Hammer of the Righteous", "Holy Strike" },
+        { "tank", "main", 3, "Seal of Fury", "Seal of Righteousness" },
+        { "dps", "main", 11, "Seal of Command", "Seal of Righteousness" },
+    })
     fallbackChecks(check)
 end
 

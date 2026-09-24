@@ -1,7 +1,7 @@
 -- Three roles share utility and targeted mouseover healing.
 RikUI.Presets.PALADIN = {
     ["class"] = "PALADIN",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = {
         "dps",
         "tank",
@@ -67,7 +67,7 @@ RikUI.Presets.PALADIN = {
                 ["macro"] = "Flash of Light",
             },
             [11] = {
-                ["spell"] = "Seal of Command",
+                ["spell"] = "Seal of Command", fallback = "Seal of Righteousness",
                 ["level"] = 20,
             },
             [12] = {
@@ -166,7 +166,7 @@ RikUI.Presets.PALADIN = {
         },
         ["bar4"] = {
             [1] = {
-                ["spell"] = "Seal of Fury",
+                ["spell"] = "Seal of Fury", fallback = "Seal of Righteousness",
                 ["level"] = 10,
             },
             [2] = {
@@ -178,7 +178,7 @@ RikUI.Presets.PALADIN = {
                 ["level"] = 6,
             },
             [4] = {
-                ["spell"] = "Hammer of the Righteous",
+                ["spell"] = "Hammer of the Righteous", fallback = "Holy Strike",
                 ["level"] = 40,
             },
             [5] = {
@@ -310,11 +310,11 @@ RikUI.Presets.PALADIN = {
         ["tank"] = {
             ["main"] = {
                 [1] = {
-                    ["spell"] = "Hammer of the Righteous",
+                    ["spell"] = "Hammer of the Righteous", fallback = "Holy Strike",
                     ["level"] = 40,
                 },
                 [3] = {
-                    ["spell"] = "Seal of Fury",
+                    ["spell"] = "Seal of Fury", fallback = "Seal of Righteousness",
                     ["level"] = 10,
                 },
                 [5] = {
