@@ -90,8 +90,8 @@ local function guess(preset)
 end
 
 -- nil, nil, reason means unknown, never a fabricated zero-point allocation.
-function setup.GuessRole(class)
-    local preset = core.Presets[class]
+function setup.GuessRole(class, presetName)
+    local preset = setup.Source(class, presetName)
     if not preset then return nil, nil, "No preset for " .. tostring(class) end
     local ok, role, trees = pcall(guess, preset)
     if ok then return role, trees end

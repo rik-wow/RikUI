@@ -188,7 +188,7 @@ runStep = function(context, index)
         -- so level-up placement has no preset to look for.
         if not context.preset.empty then
             context.charDB.applied = { class = context.preset.class, role = context.preset.role,
-                at = time(), presetVersion = context.preset.version or 1 }
+                at = time(), presetVersion = context.preset.version or 1, presetName = context.preset.presetName }
         end
         context.result.status, active = "applied", nil
         core:Print("Setup complete; type /rik undo to revert.")
@@ -215,6 +215,7 @@ function setup.ValidateOptions(opts)
     for _, name in ipairs({ "macros", "bars", "binds", "cvars", "layout", "strafe", "mouse45", "allowEmpty" }) do
         if opts[name] ~= nil and type(opts[name]) ~= "boolean" then return name .. " must be a boolean" end
     end
+    if opts.presetName ~= nil and type(opts.presetName) ~= "string" then return "presetName must be a string" end
     if opts.cvarSelection ~= nil and type(opts.cvarSelection) ~= "table" then return "cvarSelection must be a table" end
     if opts.onComplete ~= nil and type(opts.onComplete) ~= "function" then return "onComplete must be a function" end
     if opts.layoutPreset ~= nil then
@@ -230,8 +231,8 @@ function setup.Apply(class, role, opts)
     local reason = setup.ValidateOptions(opts)
     if reason then return reject(reason) end
     local preset
-    preset, reason = setup.Resolve(class, role)
-    if not preset and opts.allowEmpty and not core.Presets[class] then preset = setup.EmptyPreset(class) end
+    preset, reason = setup.Resolve(class, role, opts.presetName)
+    if not preset and opts.allowEmpty and not opts.presetName and not core.Presets[class] then preset = setup.EmptyPreset(class) end
     if not preset then return reject(reason) end
     local result = { status = "running", steps = {}, class = class, role = preset.role }
     local context = { preset = preset, opts = copy(opts), result = result, onComplete = opts.onComplete,

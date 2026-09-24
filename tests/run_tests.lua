@@ -162,6 +162,7 @@ loadstring_untainted, SecureHandlerExecute = nil, originalExecute
 
 dofile("tests/sharing-codec.test.lua")(check)
 dofile("tests/preset-schema.test.lua")(check)
+dofile("tests/preset-library.test.lua")(check)
 
 -- The addon core shares the same runner and reports through check().
 local coreOk, coreErr = pcall(function() dofile("tests/core.test.lua")(check) end)

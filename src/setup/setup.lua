@@ -63,15 +63,31 @@ function setup.EmptyPreset(class)
     return { class = class, role = "none", empty = true, version = 0, bars = {}, macros = {} }
 end
 
-function setup.Resolve(class, role)
-    local preset = core.Presets[class]
-    if not preset then return nil, "No preset for " .. tostring(class) end
+function setup.Source(class, name)
+    local marker = core.CharDB and core.CharDB.applied
+    if name == nil and type(marker) == "table" and marker.class == class then name = marker.presetName end
+    if name == "" then name = nil end
+    if name ~= nil then
+        if not core.PresetLibrary then return nil, "Preset library unavailable", name end
+        local preset, reason = core.PresetLibrary.Get(class, name)
+        return preset, reason, name
+    end
+    return core.Presets[class], "No preset for " .. tostring(class)
+end
+
+function setup.Resolve(class, role, presetName)
+    local preset, reason, selectedName = setup.Source(class, presetName)
+    if not preset then return nil, reason end
+    if selectedName then
+        local issues = setup.ValidateSharedPreset(preset)
+        if #issues > 0 then return nil, issues[1] end
+    end
     role = role or (preset.roleOrder and preset.roleOrder[1]) or "dps"
     if type(preset.roles) ~= "table" or not preset.roles[role] then return nil, "Unknown role: " .. tostring(role) end
     local issues = setup.ValidatePreset(preset)
     if #issues > 0 then return nil, issues[1] end
     local result, overrides = copy(preset), (preset.roleOverrides or {})[role] or {}
-    result.bars, result.class, result.role = {}, class, role
+    result.bars, result.class, result.role, result.presetName = {}, class, role, selectedName
     for _, page in ipairs(setup.PageOrder) do
         -- Do not populate stance pages for classes that did not declare them.
         if preset.bars[page] or overrides[page] then result.bars[page] = resolvePage(preset, overrides, page) end

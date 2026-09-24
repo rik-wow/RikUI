@@ -17,7 +17,7 @@ end
 local function current(context)
     local marker, class = eligible()
     return core.CharDB == context.db and marker == context.marker and class == context.class
-        and marker.role == context.previousRole and core.Presets[class] == context.preset
+        and marker.role == context.previousRole and setup.Source(class) == context.preset
         and setup.GuessRole(class) == context.role
 end
 
@@ -63,7 +63,7 @@ local function suggest()
     if not marker then return end
     local role = setup.GuessRole(class)
     if not role or role == marker.role or not installPopup() then return end
-    local preset = core.Presets[class]
+    local preset = setup.Source(class)
     local context = { db = core.CharDB, marker = marker, class = class,
         previousRole = marker.role, role = role, preset = preset }
     pending = context

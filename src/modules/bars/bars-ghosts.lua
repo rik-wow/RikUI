@@ -23,7 +23,7 @@ local function prepare()
     local marker = core.CharDB and core.CharDB.applied
     local _, class = UnitClass("player")
     local role = type(marker) == "table" and marker.role
-    local source = core.Presets[class]
+    local source = setup.Source(class)
     if marker == cachedMarker and role == cachedRole and class == cachedClass and source == cachedSource then return end
     cachedMarker, cachedRole, cachedClass, cachedSource = marker, role, class, source
     entries, preset = {}, nil
