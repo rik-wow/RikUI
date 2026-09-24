@@ -84,3 +84,11 @@ Player: Arcane Intellect, Frost Armor, Ice Armor, Mage Armor, Mana Shield, Fire 
 
 [Current feedback](https://us.forums.blizzard.com/en/wow/t/im-worried-about-mage-pvp/2355422) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/mage) supplies the direct-aura families through the existing 69913 catalogue. No guessed Fingers of Frost, Hot Streak, Missile Barrage, Clearcasting, Arcane Blast stack, Winter's Chill or Improved Scorch aura IDs. Ice Block aura identity is not inferred from legacy mappings. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Warlock — 2026-09-23
+
+Track armor and defensive/preparation buffs, your DoTs, Forever Banes, curses and control effects; retain target utility buffs.
+
+Player: Demon Skin, Demon Armor, Unending Breath, Detect Invisibility, Shadow Ward, Amplify Curse, Fel Domination. Target harmful: Corruption, Bane of Agony, Immolate, Siphon Life, Bane of Doom, Wrack, Bane of Havoc, Curse of the Elements, Fear, Banish, Curse of Tongues, Curse of Weakness, Curse of Exhaustion. Target helpful: Unending Breath, Detect Invisibility.
+
+[Current feedback](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/warlock) supplies the direct-aura families through the existing 69913 catalogue. Nightfall, Decimation, Molten Core, Demonic Sacrifice, Soul Link and item-use Soulstone effects require separate verified aura IDs and are excluded. Six simultaneous target debuffs fit the focus row; general aura rows remain available. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
