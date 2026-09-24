@@ -60,9 +60,16 @@ local function visit(value, spec, path, exporting)
     return result
 end
 
-function sharing.ExportProfile()
+function sharing.ExportProfile(name)
     if not core.Profile then return nil, "Still loading." end
-    local ok, value = pcall(visit, core.Profile, schema, "profile", true)
+    local profile = core.Profile
+    if name ~= nil then
+        if not core:IsProfileName(name) or not core.DB or type(core.DB.profiles[name]) ~= "table" then
+            return nil, "Unknown profile."
+        end
+        profile = core.DB.profiles[name]
+    end
+    local ok, value = pcall(visit, profile, schema, "profile", true)
     if not ok then return nil, value end
     return sharing.Encode("profile", value)
 end
@@ -81,8 +88,8 @@ function sharing.ImportProfile(name, text)
     return true
 end
 
-function sharing.OpenProfileExport()
-    local text, reason = sharing.ExportProfile()
+function sharing.OpenProfileExport(name)
+    local text, reason = sharing.ExportProfile(name)
     if not text then core:Print(reason); return nil end
     return sharing.OpenDialog("Export UI profile", text, nil,
         "Copy with Ctrl-C. Shares UI preferences and frame positions; excludes chat history and character data.")

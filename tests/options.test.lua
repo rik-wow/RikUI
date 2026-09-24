@@ -625,6 +625,31 @@ return function(check)
             local choices = rowByKey(safeRows,"profile").spec.values()
             check("malformed restored profile keys do not break pickers", #choices == 2 and choices[2].value == "Good")
         end
+        do
+            local exported
+            local savedOptions = boot({ profiles = { Default = { scale = 1 }, Source = { scale = 0.8 } } }, nil, function(core)
+                core.Sharing = { OpenProfileExport = function(name) exported = name end }
+            end)
+            local rows = pageByTitle(savedOptions, "Profiles").list
+            local source, copyRow = rowByKey(rows, "savedProfile"), rowByKey(rows, "copySavedProfile")
+            check("saved profile management controls exist", source ~= nil and copyRow ~= nil)
+            if source and copyRow then
+                savedOptions.Commit(source, "Source")
+                local nameRow = rowByKey(rows, "newName")
+                nameRow.widget:SetText("Archive")
+                env.runScript(nameRow.widget, "OnTextChanged", true)
+                env.click(copyRow.widget)
+                check("copying a saved profile leaves active layout selected", RikUI.CharDB.profile == "Default"
+                    and RikUI.Profile.scale == 1 and RikUI.DB.profiles.Archive.scale == 0.8
+                    and RikUI.DB.profiles.Archive ~= RikUI.DB.profiles.Source and not RikUI:ProfileNeedsReload())
+                env.click(rowByKey(rows, "exportSavedProfile").widget)
+                check("saved export routes the selected source", exported == "Source")
+                RikUI.DB.profiles.Source = nil
+                savedOptions.Refresh()
+                check("deleted saved sources disable actions", not copyRow.enabled
+                    and not rowByKey(rows, "exportSavedProfile").enabled)
+            end
+        end
         -- Profiles.
         options = boot({ profiles = { Default = { scale = 0.9, positions = { main = { x = 5 } } } } })
         local profiles = pageByTitle(options, "Profiles").list

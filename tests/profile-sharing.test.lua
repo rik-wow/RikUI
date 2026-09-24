@@ -74,6 +74,15 @@ return function(check)
         env.inCombat = false
         sharing.OpenProfileExport()
         check("profile export uses copy dialog", sharing.Window.edit:GetText() == text and not sharing.Window.importButton:IsShown())
+        RikUI.DB.profiles.Inactive = { scale = 0.8 }
+        local inactiveText = sharing.ExportProfile("Inactive")
+        local inactiveData = inactiveText and sharing.Decode(inactiveText, "profile")
+        check("named export reads an inactive profile without switching", inactiveData and inactiveData.scale == 0.8
+            and RikUI.Profile == active and RikUI.CharDB.profile == "Default")
+        check("unknown and invalid named exports refuse instead of falling back", sharing.ExportProfile("Missing") == nil
+            and sharing.ExportProfile(false) == nil)
+        sharing.OpenProfileExport("Inactive")
+        check("named export dialog contains chosen profile", sharing.Window.edit:GetText() == inactiveText)
         sharing.OpenProfileImport()
         sharing.Window.name:SetText("Dialog"); sharing.Window.edit:SetText(text)
         check("profile paste is inert", not RikUI.DB.profiles.Dialog)

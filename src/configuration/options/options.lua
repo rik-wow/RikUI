@@ -336,6 +336,22 @@ local function deleteProfile()
     core:Print(ok and "Profile deleted." or reason)
 end
 
+local function savedProfile()
+    return state.savedProfile or core.CharDB.profile
+end
+
+local function missingSavedProfile()
+    return type(core.DB.profiles[savedProfile()]) ~= "table"
+end
+
+local function copySavedProfile()
+    local ok, reason = options.CreateProfile(state.newName, savedProfile())
+    if not ok then return nil, reason end
+    core:Print("Profile copied: " .. state.newName .. ". Your active profile is unchanged.")
+    state.newName = ""
+    return true
+end
+
 local function profileSpecs()
     return {
         { type = "heading", label = "Profiles" },
@@ -356,6 +372,16 @@ local function profileSpecs()
             action = function() core.Sharing.OpenProfileExport() end },
         { type = "button", key = "profileimport", label = "Save a shared UI profile", text = "Import",
             action = function() core.Sharing.OpenProfileImport() end },
+        { type = "heading", label = "Saved profiles" },
+        { type = "dropdown", key = "savedProfile", label = "Profile to copy or export",
+            values = function() return profileEntries(false) end, get = savedProfile,
+            set = function(value) state.savedProfile = value end },
+        { type = "button", key = "copySavedProfile", label = "Copy selected profile", text = "Copy saved",
+            description = "Enter a new Name above. Keeps your active profile and layout.",
+            disabled = function() return cannotCreate() or missingSavedProfile() end, action = copySavedProfile },
+        { type = "button", key = "exportSavedProfile", label = "Export selected profile", text = "Export saved",
+            disabled = function() return missingSavedProfile() or not core.Sharing end,
+            action = function() return core.Sharing.OpenProfileExport(savedProfile()) end },
         { type = "heading", label = "Reuse layout" },
         { type = "dropdown", key = "layoutSource", label = "Layout source", values = function() return profileEntries(true) end,
             get = function() return state.layoutSource end, set = function(value) state.layoutSource = value end },

@@ -1,5 +1,7 @@
 # RikUI settings
 
+Profiles > **Saved profiles** lets you choose any saved profile and **Copy saved** or **Export saved** without activating it. Copy uses the Name field above and creates an independent profile; your current layout stays selected. Existing Create/Copy controls still select the newly created profile.
+
 Profile names use one rule for creation, import, restore and selection: 1–64 bytes, no control characters or markup, and no leading/trailing whitespace. Unicode names remain supported. Invalid stored names are omitted from pickers without deleting their records; an invalid active name falls back to Default.
 
 Profiles > **Reuse layout** copies positions and chat size from another profile after a named confirmation. Other preferences, frame scale and character setup stay with the destination. **General > Undo layout change** restores the prior arrangement. Copying is unavailable in combat or during Setup; invalid source geometry is rejected. The destination screen bounds and collision rules still apply.
