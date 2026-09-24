@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Druid — 2026-09-24
+
+Priorities: Bash, Growl, Feral Charge, Barkskin, Frenzied Regeneration, Berserk, Tiger's Fury, Dash, Innervate, Rebirth, Swiftmend, Tranquility.
+
+[Current player feedback](https://us.forums.blizzard.com/en/wow/t/feral-druid-feedback-so-far/2356947): Feral feedback highlights combat flow and utility tradeoffs across forms.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/druid) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+All learned form utilities remain visible regardless of current form. No form page, rage/energy condition, powershift or proc eligibility is inferred. Native acceptance supplied by user.
+
 ### Shaman — 2026-09-24
 
 Priorities: Earth Shock, Flame Shock, Frost Shock, Stormstrike, Grounding Totem, Earthbind Totem, Fire Nova, Mana Tide Totem, Riptide, Nature's Swiftness, Lava Burst, Rage of the Farseer.

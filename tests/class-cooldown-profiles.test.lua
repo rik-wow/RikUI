@@ -20,6 +20,7 @@ return function(check)
         { class = "HUNTER", ids = { 5384, 3045, 1293241, 1293527 }, excluded = 75 },
         { class = "PALADIN", ids = { 853, 10308, 633, 10310, 1044 }, excluded = 21084 },
         { class = "SHAMAN", ids = { 8042, 10414, 17364, 408521, 1239243, 408490 }, excluded = 403 },
+        { class = "DRUID", ids = { 5211, 8983, 1238122, 29166, 20484, 20748 }, excluded = 5176 },
         -- Add independently sourced class fixtures here.
     }
     local function item(id) return { spellID = id, itemType = 71 } end

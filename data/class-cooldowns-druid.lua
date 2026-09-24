@@ -1,0 +1,16 @@
+-- Learned player cooldown priorities; research checked 2026-09-24.
+-- IDs/ranks: verified Forever catalogue 1.60.1.69913. See docs/class-cooldowns.md.
+RikUI.ClassCooldownProfiles.DRUID = {
+    "Bash",
+    "Growl",
+    "Feral Charge",
+    "Barkskin",
+    "Frenzied Regeneration",
+    "Berserk",
+    "Tiger's Fury",
+    "Dash",
+    "Innervate",
+    "Rebirth",
+    "Swiftmend",
+    "Tranquility",
+}
