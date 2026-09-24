@@ -6,7 +6,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = f
     chat = { fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },
-    bags = { autoRepair = false },
+    bags = { autoRepair = false, columns = 10 },
     barFade = { bar3 = true },
     questtracker = { collapsed = false, collapseInCombat = false, hideCompleted = false, readyFirst = false },
     minimap = { serverTime = false },

@@ -240,7 +240,7 @@ local function createHolder()
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, HOLDER_NAME) end
     -- A window you open over the screen and close again, like a tooltip: it neither blocks other frames
     -- nor is moved out of their way.
-    layout.Register(holder, KEY, DEFAULTS, { label = "Bags", floating = true })
+    layout.Register(holder, KEY, DEFAULTS, { label = "Bags", floating = true, onApply = bags.ApplyColumns })
 end
 
 -- Fullscreen panels reparent each stock frame on their own, so every frame is parked by itself and
@@ -264,6 +264,7 @@ function bags:OnEnable()
         return
     end
     createHolder()
+    bags.ApplyColumns()
     park()
     for _, name in ipairs(TOGGLES) do
         if type(_G[name]) == "function" then core.Hooks.Function(name, bags.Sync) end

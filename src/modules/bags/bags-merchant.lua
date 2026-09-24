@@ -69,6 +69,9 @@ function bags.EnableMerchant()
 end
 
 bags.Options = { title = "Bags and vendors", settings = {
+    { type = "slider", key = "columns", label = "Bag columns",
+        description = "Wider bags show fewer rows. Layout changes wait until combat ends.",
+        min = 10, max = 16, step = 1, get = bags.Columns, set = bags.SetColumns },
     { type = "checkbox", key = "autoRepair", label = "Automatically repair gear",
         description = "Use personal funds at repair vendors. Hold Shift when opening a vendor to skip.",
         get = function() return core.Profile.bags.autoRepair == true end,

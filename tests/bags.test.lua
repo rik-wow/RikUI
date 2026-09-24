@@ -419,6 +419,34 @@ return function(check)
         check("a saved position is used at the next login", module.Holder.point[1] == "CENTER"
             and module.Holder.point[4] == 300 and module.Holder.point[5] == -50)
 
+        module = load()
+        OpenAllBags()
+        local columns
+        for _, setting in ipairs(module.Options.settings) do
+            if setting.key == "columns" then columns = setting end
+        end
+        check("bag columns setting exists", columns ~= nil)
+        columns.set(12)
+        check("wider grid reduces rows without replacing item buttons", module.Holder.width == 470
+            and button(0, 13).point[4] == 0 and button(0, 13).point[5] == -38
+            and button(0, 1):GetID() == 1 and RikUI.Profile.bags.columns == 12)
+        env.inCombat = true
+        columns.set(14)
+        env.fire("BAG_UPDATE_DELAYED")
+        check("combat keeps prior column geometry", module.Holder.width == 470)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("queued columns apply after combat", module.Holder.width == 546)
+        columns.set(0/0)
+        check("invalid column count is rejected", RikUI.Profile.bags.columns == 14)
+        columns.set(1)
+        check("minimum width fits the header", module.Holder.width == 394)
+        columns.set(100)
+        check("column count is bounded", module.Holder.width == 622)
+        module = load({ bags = { columns = 12 } })
+        OpenAllBags()
+        check("column preference survives reload", module.Holder.width == 470)
+
         module = load(nil, true)
         check("a combat login builds the holder and queues the parking", module.Holder ~= nil
             and ContainerFrame1.parent == ContainerFrameContainer)

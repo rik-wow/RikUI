@@ -9,7 +9,8 @@ local bags = core.Bags
 
 local BAG_IDS = { 0, 1, 2, 3, 4 }
 local BUTTON_TYPE, TEMPLATE, NAME_FORMAT = "ItemButton", "ContainerFrameItemButtonTemplate", "RikUIBag%dSlot%d"
-local SLOT, GAP, COLUMNS, EDGE, COUNT_INSET = 36, 2, 10, 1, 2
+local SLOT, GAP, DEFAULT_COLUMNS, EDGE, COUNT_INSET = 36, 2, 10, 1, 2
+local MIN_COLUMNS, MAX_COLUMNS, columns = 10, 16, DEFAULT_COLUMNS
 local ICON_MIN, ICON_MAX = 0.07, 0.93
 local EMPTY, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0.32 }
 local MIN_BORDER_QUALITY = 2 -- uncommon
@@ -25,9 +26,31 @@ local function plain(value, kind)
     return not core.Secret.IsSecret(value) and type(value) == kind
 end
 
+function bags.Columns()
+    local value = core.Profile and core.Profile.bags.columns
+    if not plain(value, "number") or value ~= value or value == math.huge or value == -math.huge then
+        return DEFAULT_COLUMNS
+    end
+    return math.max(MIN_COLUMNS, math.min(MAX_COLUMNS, math.floor(value)))
+end
+
+function bags.ApplyColumns()
+    core.Combat.Queue(function()
+        columns = bags.Columns()
+        if not bags.Holder then return end
+        if bags.Holder:IsShown() then bags.Refresh() else bags.Resize() end
+    end, "bags:columns")
+end
+
+function bags.SetColumns(value)
+    if not plain(value, "number") or value ~= value or value == math.huge or value == -math.huge then return end
+    core.Profile.bags.columns = math.max(MIN_COLUMNS, math.min(MAX_COLUMNS, math.floor(value)))
+    bags.ApplyColumns()
+end
+
 function bags.GridSize(total)
-    local rows = math.max(1, math.ceil(total / COLUMNS))
-    return COLUMNS * SLOT + (COLUMNS - 1) * GAP, rows * SLOT + (rows - 1) * GAP
+    local rows = math.max(1, math.ceil(total / columns))
+    return columns * SLOT + (columns - 1) * GAP, rows * SLOT + (rows - 1) * GAP
 end
 
 local function bagFrame(bag)
@@ -85,7 +108,7 @@ local function createButton(frame, slot)
 end
 
 local function place(button, index)
-    local column, row = index % COLUMNS, math.floor(index / COLUMNS)
+    local column, row = index % columns, math.floor(index / columns)
     button:ClearAllPoints()
     button:SetPoint("TOPLEFT", bags.Holder.grid, "TOPLEFT", column * (SLOT + GAP), -row * (SLOT + GAP))
 end

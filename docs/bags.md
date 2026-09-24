@@ -14,6 +14,8 @@ The **Materials** quick filter highlights trade goods and reagents, including cl
 
 The **New** quick filter highlights items still marked new by the client. Hovering an item acknowledges it and immediately updates the filter count. Missing or unreadable new-item data produces no matches; the native new-item flag is the source of truth.
 
+**Bag columns** in Settings > Bags and vendors adjusts the grid from 10 to 16 columns. Wider windows need fewer rows. The preference follows your profile; changes requested during combat apply after combat. Buttons keep their original native bag and slot IDs.
+
 ## What you see
 
 B, the backpack key, a bag key and everything else that goes through
