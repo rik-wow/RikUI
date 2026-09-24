@@ -15,4 +15,10 @@ Use /rik export [role] to copy the last-applied preset (or the bundled class pre
 
 Imports do not overwrite existing names, execute text, or apply bars automatically. Presets may contain arbitrary macro bodies: inspect the source before choosing Apply. Up to six roles fit the wizard. The format supports existing verified class catalogs only; unknown spell names fail with a path. It is not an exchange format for Blizzard Edit Mode, retail profiles or other addons.
 
+Use /rik profileexport and /rik profileimport (or Profiles → Export/Import) for UI preferences. Import saves a separately named profile and leaves your current selection unchanged. Select it in Profiles and reload to apply all module settings. Duplicate names, malformed settings and combat imports are refused without changes.
+
+Profile sharing includes module toggles, frame anchors, global scale, bar fade/stock/gryphon/ghost/border options, chat appearance and size, tooltip, bags, quest tracker, minimap, swing timer, druid mana, world-map fog and XP-bar preferences. It excludes chat lines, account/character records, live bars, bindings, CVars, layout undo, quest journals and unrecognized fields. Future settings require explicit schema support. Imports reject unknown fields; exports omit fields outside this list. Position coordinates remain relative to their anchors; a different screen size can require rearranging.
+
+The [Forever saved-variable workaround report](https://www.reddit.com/r/wowforever/comments/1wlh5qf/foreversvfix_workaround_for_addon_settings_not/) was reviewed 2026-09-24 as community motivation for portable backups. This does not establish that bug on this client, and importing a string does not repair the client's persistence subsystem.
+
 Native/game-client acceptance is supplied by the user; automated fixtures exercise format and behavior without claiming client observations.

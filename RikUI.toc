@@ -272,4 +272,5 @@ src/configuration/options/options-controls.lua
 src/configuration/options/options.lua
 src/configuration/options/options-view.lua
 src/configuration/options/sharing.lua
+src/configuration/options/profile-sharing.lua
 src/configuration/options/importexport.lua
