@@ -172,6 +172,8 @@ src/modules/popups/popups.lua
 src/modules/popups/popups-skin.lua
 src/modules/screentext/screentext.lua
 src/ui/skin.lua
+src/modules/panels/interiors.lua
+src/modules/panels/interiors-character.lua
 src/modules/personalresource/personalresource.lua
 src/ui/scroll.lua
 src/ui/shell.lua

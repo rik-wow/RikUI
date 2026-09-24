@@ -84,6 +84,7 @@ end
 function panels:OnEnable()
     panels.Skin.HookTabs()
     panels.Discover()
+    if core.Interiors then core.Interiors.Enable() end
     core:RegisterEvent("ADDON_LOADED", panels.Discover)
 end
 
