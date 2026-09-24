@@ -504,6 +504,11 @@ return function(check)
         { "fire", "main", 2, "Scorch", "Fire Blast" },
         { "fire", "main", 4, "Pyroblast", "Fireball" },
     })
+    levelingChecks(check, "HUNTER", {
+        { "dps", "main", 4, "Aimed Shot", "Arcane Shot" },
+        { "beast", "main", 3, "Summon Hawk", "Arcane Shot" },
+        { "survival", "main", 4, "Lacerate", "Raptor Strike" },
+    })
     fallbackChecks(check)
 end
 

@@ -1,7 +1,7 @@
 -- Rotation, control, cooldowns, pet care and tracking. See docs/class-presets.md.
 RikUI.Presets.HUNTER = {
     ["class"] = "HUNTER",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = { "dps", "beast", "survival" },
     ["roles"] = {
         ["dps"] = { label = "Marksmanship", trees = { 2 } },
@@ -23,7 +23,7 @@ RikUI.Presets.HUNTER = {
                 ["level"] = 6,
             },
             [4] = {
-                ["spell"] = "Aimed Shot",
+                ["spell"] = "Aimed Shot", fallback = "Arcane Shot",
                 ["level"] = 20,
             },
             [5] = {
@@ -154,11 +154,11 @@ RikUI.Presets.HUNTER = {
         },
         ["bar4"] = {
             [1] = {
-                ["spell"] = "Summon Hawk",
+                ["spell"] = "Summon Hawk", fallback = "Arcane Shot",
                 ["level"] = 25,
             },
             [2] = {
-                ["spell"] = "Lacerate",
+                ["spell"] = "Lacerate", fallback = "Raptor Strike",
                 ["level"] = 30,
             },
             [3] = {
@@ -263,19 +263,19 @@ RikUI.Presets.HUNTER = {
     },
     ["roleOverrides"] = {
         beast = {
-            main = { [3] = { spell = "Summon Hawk", level = 25 } },
+            main = { [3] = { spell = "Summon Hawk", fallback = "Arcane Shot", level = 25 } },
             bar4 = { [1] = { spell = "Arcane Shot", level = 6 } },
         },
         survival = {
             main = {
                 [1] = { spell = "Raptor Strike", level = 1 },
                 [3] = { spell = "Mongoose Bite", level = 16 },
-                [4] = { spell = "Lacerate", level = 30 },
+                [4] = { spell = "Lacerate", fallback = "Raptor Strike", level = 30 },
                 [5] = { spell = "Counterattack", level = 30 },
                 [11] = { spell = "Strider Kick" },
             },
             bar4 = {
-                [2] = { spell = "Aimed Shot", level = 20 },
+                [2] = { spell = "Aimed Shot", fallback = "Arcane Shot", level = 20 },
                 [3] = { spell = "Auto Shot", level = 1 },
                 [6] = { spell = "Arcane Shot", level = 6 },
                 [7] = { spell = "Multi-Shot", level = 18 },

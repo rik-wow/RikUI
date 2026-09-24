@@ -37,6 +37,12 @@ Frost and Arcane can start with learned Fireball, then adopt their school's prim
 
 Rechecked [class feedback](https://www.reddit.com/r/classicwow/comments/1wi00u6/critique_my_fire_mage_build_for_leveling_in_pvp/) and the [published spellbook](https://foreverchanges.pro/spellbook/mage). Community discussion motivates accessible leveling keys; the catalogue remains pinned to verified build 1.60.1.69913, without newly inferred spell IDs, ranks or acquisition levels. Preset version 3. Learned-spell, resolved-page and regression checks cover selection; native acceptance is supplied by the user.
 
+### Hunter leveling keys for ranged pet and melee roles — 2026-09-23
+
+Ranged and Beast Mastery primary keys retain Arcane Shot until Aimed Shot or Summon Hawk is learned. Survival retains Raptor Strike on the later Lacerate key. Pet attack/follow, trap and mark controls stay explicit; no pet AI or balance fix is claimed.
+
+Rechecked [class feedback](https://us.forums.blizzard.com/en/wow/t/ranged-pulling-pet-ai-changes-assistdefensive-auto-engage-boar-charge-micromanagement/2355253) and the [published spellbook](https://foreverchanges.pro/spellbook/hunter). Community discussion motivates accessible leveling keys; the catalogue remains pinned to verified build 1.60.1.69913, without newly inferred spell IDs, ranks or acquisition levels. Preset version 3. Learned-spell, resolved-page and regression checks cover selection; native acceptance is supplied by the user.
+
 ## Source boundaries
 
 Spell families and rank order come from the author-published [ForeverChanges spellbooks](https://foreverchanges.pro/spellbook/hunter). Their embedded data explicitly identifies **1.60.1.69913**, despite the site's header advertising 69977. IDs and names for all eight new classes (1,446 unique IDs) were cross-checked with Blizzard's extracted [SpellName](https://wago.tools/db2/SpellName/csv?build=1.60.1.69913) and [SpellMisc](https://wago.tools/db2/SpellMisc/csv?build=1.60.1.69913) records: no mismatches or missing records. Numeric icons come from SpellMisc, keyed by SpellID and default difficulty. Internal DB2 spell levels do not establish acquisition: unknown talent levels stay nil. Multiple unranked IDs in one family are retained and only a learned player spellbook entry can become an action.
