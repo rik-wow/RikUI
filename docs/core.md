@@ -1,5 +1,7 @@
 # Core module contract
 
+Restart backup writes are read back before being marked successful. Missing or truncated macro bodies keep **Restart backup needs attention** visible and remain retryable without another settings change. This confirms the API readback, not disk durability; multiple macro writes are still not atomic. The existing APIs were checked against the [69913 macro UI source](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_MacroUI/Blizzard_MacroUI.lua) on 2026-09-24.
+
 Recovery selects account and character sources independently: loaded SavedVariables, then valid CVar tables, then restart macros. A recovered account no longer blocks missing character preferences (or the reverse), and a loaded side is never overwritten by the older macro copy.
 
 Restart backups preserve named profiles even when every setting matches defaults. Empty profiles restore with independent default tables; malformed profile records refuse the save. Research reviewed 2026-09-24: [players report lost addon settings](https://www.reddit.com/r/WowUI/comments/1wl0hw4/wow_forever_established_addons_already_working_ui/). This fixes RikUI backup identity loss, not the client persistence subsystem.

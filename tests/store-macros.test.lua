@@ -295,6 +295,27 @@ return function(check)
         check("scalar CVar records do not block valid restart backups", core.Profile.scale == 0.8
             and core.CharDB.askRole == false)
 
+        macros = {}; core = restart()
+        local createMacro, editMacro = CreateMacro, EditMacro
+        CreateMacro = function() return 1 end
+        core.Profile.scale = 0.9
+        core.Store.FlushMacros()
+        check("unretained successful macro creation is detected", core.Store.MacroStatus().failure ~= nil
+            and core.Store.BackupIssue() == "Restart backup needs attention")
+        CreateMacro = createMacro
+        core.Store.FlushMacros()
+        check("unchanged settings retry failed creation", macros["RikUI data 1"] ~= nil
+            and core.Store.MacroStatus().failure == nil)
+        EditMacro = function(name, _, _, text) macros[name] = text:sub(1, -2); return 1 end
+        core.Profile.scale = 0.7
+        core.Store.FlushMacros()
+        check("truncated macro edits are detected", core.Store.MacroStatus().failure ~= nil)
+        EditMacro = editMacro
+        core.Store.FlushMacros()
+        core = restart()
+        check("unchanged settings retry truncated edits and survive restart", core.Profile.scale == 0.7
+            and core.Store.MacroStatus().failure == nil)
+
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil

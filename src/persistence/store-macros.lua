@@ -156,8 +156,12 @@ local function readText()
 end
 
 local function writeMacro(name, text)
-    if body(name) ~= nil then return EditMacro(name, name, nil, text) ~= nil end
-    return CreateMacro(name, ICON, text, false) ~= nil
+    local written
+    if body(name) ~= nil then written = EditMacro(name, name, nil, text)
+    else written = CreateMacro(name, ICON, text, false) end
+    if written == nil or written == false then return false, FULL end
+    if body(name) ~= text then return false, "the client did not retain the restart backup macro" end
+    return true
 end
 
 local function writeText(text)
@@ -167,8 +171,9 @@ local function writeText(text)
     if total > MAX_MACROS then return false, "the settings are too large for the macro store" end
     for index = 1, total do
         local chunk = text:sub((index - 1) * room + 1, index * room)
-        local ok, written = pcall(writeMacro, NAME .. index, HEADER .. index .. "/" .. total .. " " .. sum .. " " .. chunk)
-        if not ok or not written then return false, FULL end
+        local ok, written, reason = pcall(writeMacro, NAME .. index, HEADER .. index .. "/" .. total .. " " .. sum .. " " .. chunk)
+        if not ok then return false, "restart backup write failed: " .. tostring(written) end
+        if not written then return false, reason end
     end
     for index = total + 1, math.max(state.used, total) do pcall(DeleteMacro, NAME .. index) end
     state.used = total
