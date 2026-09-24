@@ -12,6 +12,10 @@ module in `/rik config` and reload to get the stock cluster back.
 
 In `/rik config` → Gameplay → Minimap, **Show server time** switches the clock from local time to realm time, marked `ST`. Both modes respect Blizzard's 12/24-hour preference. Missing, secret, or invalid server time shows `--:-- ST`; it never substitutes local time.
 
+Click the zone name above the minimap to open or close the world map. Its hover
+hint explains the shortcut. This uses the native map toggle and leaves minimap
+ping and tracking clicks intact.
+
 ## What you see
 
 A 198x198 square map at the top right with RikUI's flat border. The zone name

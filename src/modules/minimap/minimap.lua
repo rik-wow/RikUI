@@ -142,6 +142,32 @@ function minimap.UpdateZone()
     holder.zone:SetTextColor(unpack(PVP_COLORS[pvpType] or NEUTRAL))
 end
 
+function minimap.OpenMap()
+    if type(ToggleWorldMap)~="function" then warn("map","world map unavailable on this client");return end
+    local ok,reason=pcall(ToggleWorldMap)
+    if not ok then warn("map",reason) end
+end
+
+local function zoneButton()
+    local button=CreateFrame("Button",nil,holder)
+    button:SetSize(SIZE,22);button:SetPoint("BOTTOM",holder,"TOP",0,0)
+    button:RegisterForClicks("LeftButtonUp")
+    button:SetScript("OnClick",minimap.OpenMap)
+    button:SetScript("OnEnter",function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self,"ANCHOR_LEFT")
+        GameTooltip:SetText("World map")
+        GameTooltip:AddLine("Click the zone name to open or close the map.",1,1,1,true)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
+    button:SetScript("OnHide",function(self) if GameTooltip and GameTooltip:IsOwned(self) then GameTooltip:Hide() end end)
+    core.Motion.BindHover(button)
+    holder.zone:ClearAllPoints();holder.zone:SetPoint("CENTER",button,"CENTER",0,0)
+    holder.zone:SetWidth(SIZE-4);holder.zone:SetWordWrap(false)
+    holder.zoneButton=button
+end
+
 local function createHolder()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     holder:SetSize(SIZE + 2 * EDGE, SIZE + 2 * EDGE)
@@ -149,6 +175,7 @@ local function createHolder()
     for _, line in ipairs(holder.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     holder.zone = label("label", "BOTTOM", "TOP", TEXT_GAP)
     holder.rikZoneFade = core.Motion.Tween(holder.zone, 0, 1, 0.2)
+    zoneButton()
     holder.clock = label("small", "TOPLEFT", "BOTTOMLEFT", -TEXT_GAP)
     holder.coords = label("small", "TOPRIGHT", "BOTTOMRIGHT", -TEXT_GAP)
     holder.elapsed = 0

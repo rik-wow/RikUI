@@ -6,7 +6,7 @@ return function(check)
     local stub = require("minimap_stub")
     local originalCreate = CreateFrame
     local API = { "GetMinimapZoneText", "C_PvP", "C_Map", "GetCursorPosition", "MinimapCluster", "Minimap",
-        "MinimapBackdrop", "MinimapCompassTexture", "MinimapZoneText", "QueueStatusButton" }
+        "MinimapBackdrop", "MinimapCompassTexture", "MinimapZoneText", "QueueStatusButton", "ToggleWorldMap" }
     local saved, savedGetCVar = {}, C_CVar.GetCVar
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local function protected()
@@ -196,6 +196,15 @@ return function(check)
         check("local clock remains selectable", holder.clock.text:match("^%d+:%d%d [AP]M$") ~= nil)
         GetGameTime, C_CVar.GetCVar = oldGameTime, savedGetCVar
 
+        local opens=0
+        ToggleWorldMap=function() opens=opens+1 end
+        env.click(holder.zoneButton)
+        check("zone label opens the native world map",opens==1 and holder.zoneButton.width==198)
+        ToggleWorldMap=nil
+        module.OpenMap();module.OpenMap()
+        check("missing world map API is contained and reported once",printedContains("Minimap map"))
+        ToggleWorldMap=function() error("map unavailable") end
+        check("world map failure cannot escape the click handler",pcall(module.OpenMap))
         local zonePlays = holder.rikZoneFade.plays
         module.UpdateZone()
         check("unchanged zone events do not replay the text fade", holder.rikZoneFade.plays == zonePlays)
