@@ -60,6 +60,18 @@ local function readQuest(questID)
     }
 end
 
+local function readyFirst(list)
+    if not core.Profile.questtracker.readyFirst then return list end
+    local result = {}
+    for _, quest in ipairs(list) do
+        if quest.complete and not quest.failed then result[#result + 1] = quest end
+    end
+    for _, quest in ipairs(list) do
+        if not quest.complete or quest.failed then result[#result + 1] = quest end
+    end
+    return result
+end
+
 local function readWatched()
     local list = {}
     for index = 1, C_QuestLog.GetNumQuestWatches() do
@@ -67,7 +79,7 @@ local function readWatched()
         local quest = questID and readQuest(questID) or nil
         if quest then list[#list + 1] = quest end
     end
-    return list
+    return readyFirst(list)
 end
 
 local combatCollapsed
@@ -141,7 +153,8 @@ local function build()
     tracker.View.Build(holder)
     -- The list grows downward; the arrangement system reports the room down to the next frame and the
     -- list caps itself there, so it can never grow into a neighbour.
-    layout.Register(holder, KEY, DEFAULTS, { label = "Quest tracker", grow = "DOWN", onLimit = tracker.SetRoom })
+    layout.Register(holder, KEY, DEFAULTS, { label = "Quest tracker", grow = "DOWN", onLimit = tracker.SetRoom,
+        onApply = tracker.Refresh })
     tracker.Holder = holder
     tracker.Refresh()
     parkStock()
@@ -169,6 +182,10 @@ tracker.Options = { title = "Quest tracker", group = "Gameplay", settings = {
         description = "Keep unfinished steps in the list. Hover a quest to see every objective.",
         get = function() return core.Profile.questtracker.hideCompleted == true end,
         set = function(value) core.Profile.questtracker.hideCompleted = value == true; tracker.Refresh() end },
+    { type = "checkbox", key = "readyFirst", label = "Ready quests first",
+        description = "Show turn-ins at the top. Keep the original watch order within each group.",
+        get = function() return core.Profile.questtracker.readyFirst == true end,
+        set = function(value) core.Profile.questtracker.readyFirst = value == true; tracker.Refresh() end },
 } }
 
 core:RegisterModule("questtracker", tracker)

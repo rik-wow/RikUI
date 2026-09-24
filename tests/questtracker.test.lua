@@ -167,6 +167,21 @@ return function(check)
         check("an unwatched quest leaves and the list closes up", view.Blocks[1].questID == 22
             and view.Blocks[2].questID == 33 and view.Blocks[3].shown == false and holder.height == 18 + 4 + 26 + 6 + 26)
 
+        local ready
+        for _, setting in ipairs(module.Options.settings) do
+            if setting.key == "readyFirst" then ready = setting end
+        end
+        check("ready-first preference exists", ready ~= nil)
+        stub.watches = { 22, 33, 11 }
+        ready.set(true)
+        check("ready quests move ahead with stable unfinished order", view.Blocks[1].questID == 11
+            and view.Blocks[2].questID == 22 and view.Blocks[3].questID == 33 and stub.watches[1] == 22)
+        ready.set(false)
+        check("watch order restored when ready-first is disabled", view.Blocks[1].questID == 22
+            and view.Blocks[2].questID == 33 and view.Blocks[3].questID == 11)
+        stub.watches = { 22, 33 }
+        update()
+
         -- The arrangement system tells the list how tall it may get: the room down to the next frame.
         local group = RikUI.Layout.Groups.questtracker
         check("the list registers as a frame that grows downward and listens for its room",
@@ -198,6 +213,7 @@ return function(check)
         env.runScript(view.Blocks[1], "OnLeave")
         check("leaving a quest clears the highlight", view.Blocks[1].highlight.shown == false)
 
+        local beforeExpand = view.Blocks[1].fade.plays
         env.click(view.Header)
         check("clicking the header collapses the list to the header and remembers it",
             view.Blocks[1].shown == false and holder.height == 18 and view.Header.glyph.rikIcon == "chevron-right"
@@ -205,7 +221,7 @@ return function(check)
         env.click(view.Header)
         check("clicking it again expands the list with a fade", view.Blocks[1].shown == true
             and holder.height > 18 and RikUI.Profile.questtracker.collapsed == false
-            and view.Blocks[1].fade.plays == 2)
+            and view.Blocks[1].fade.plays == beforeExpand + 1)
 
         local combatSetting = module.Options.settings[1]
         combatSetting.set(true)
