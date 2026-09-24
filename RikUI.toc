@@ -179,6 +179,7 @@ src/modules/panels/interiors-quests.lua
 src/modules/panels/interiors-commerce.lua
 src/modules/panels/interiors-services.lua
 src/modules/panels/interiors-social.lua
+src/modules/panels/interiors-misc.lua
 src/modules/personalresource/personalresource.lua
 src/ui/scroll.lua
 src/ui/shell.lua

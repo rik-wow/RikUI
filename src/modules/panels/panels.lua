@@ -35,6 +35,7 @@ local TARGETS = {
     { name = "TransmogFrame" }, { name = "PetStableFrame" }, { name = "QuestLogPopupDetailFrame" },
     { name = "InspectRecipeFrame" }, { name = "ItemUpgradeFrame" }, { name = "ClickBindingFrame" },
     { name = "ArchaeologyFrame" },
+    { name = "PlayerChoiceFrame" }, { name = "SplashFrame" }, { name = "GenericTraitFrame" },
 }
 local failed, warnings = {}, {}
 

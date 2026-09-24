@@ -1,5 +1,18 @@
 # Window interiors
 
+## Special windows
+
+Player choice, splash, generic traits, collections and transmog receive flat
+decorative backings and matching type. Item models, previews, rewards and
+selection remain native. Generic trait nodes reuse the talent state treatment;
+the stopwatch and splash close buttons use the shared close glyph. Absent
+game-variant roots are skipped; actual refused operations report once.
+
+Source: pinned PlayerChoice, SplashFrame and GenericTraitFrame XML. The misc
+fixture checks decorative stripping, model preservation, repeated refresh and
+late item creation. Secure totem dismissal is described in [totems](totems.md).
+
+
 ## Social, calendar and achievements
 
 Friend/guild/community/group/raid/PvP/inspect rows use flat backgrounds and

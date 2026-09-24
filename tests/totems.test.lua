@@ -57,17 +57,26 @@ return function(check)
         env.fire("PLAYER_TOTEM_UPDATE", FIRE)
         check("an update for a totem that is already up does not fade in again", fire.fade.plays == 1)
         place(EARTH, { have = true, name = "Stoneskin Totem", start = 110, duration = 120, icon = 136098 })
-        check("shown slots pack from the left in slot order", fire.points[1][4] == 0
+        check("slots remain in fixed element order", fire.points[1][4] == 0
             and module.Slots[EARTH].points[1][4] > 0)
         place(FIRE, nil)
-        check("a removed totem hides, clears its sweep and the rest repack", fire.shown == false
-            and fire.cooldown.duration == nil and module.Slots[EARTH].points[1][4] == 0)
+        check("a removed totem hides and clears its sweep without moving secure targets", fire.shown == false
+            and fire.cooldown.duration == nil and module.Slots[EARTH].points[1][4] == 31)
         place(WATER, { have = true, name = "Expired", start = 0, duration = 0, icon = 1 })
         check("a totem with no duration counts as gone", module.Slots[WATER].shown == false)
 
         env.runScript(module.Slots[EARTH], "OnEnter")
         check("hovering a slot asks the tooltip for that totem", stub.tooltipSlot == EARTH)
-        check("slots take no clicks", module.Slots[EARTH]:GetScript("OnClick") == nil)
+        local dismiss = module.Dismiss[EARTH]
+        check("right click uses the native secure action and the correct fixed slot",
+            dismiss.template == "SecureActionButtonTemplate" and dismiss:GetAttribute("type2") == "destroytotem"
+            and dismiss:GetAttribute("totem-slot") == EARTH and dismiss:GetAttribute("useOnKeyDown") == false
+            and dismiss.points[1][4] == 31 and dismiss:GetScript("OnClick") == nil)
+        for _, target in ipairs(module.Dismiss) do
+            function target:SetPoint() error("secure target moved during refresh") end
+            function target:Hide() error("secure target hidden during refresh") end
+            function target:SetAttribute() error("secure target attributes changed during refresh") end
+        end
 
         place(FIRE, { have = env.SECRET, name = env.SECRET, start = env.SECRET, duration = env.SECRET,
             icon = env.SECRET })

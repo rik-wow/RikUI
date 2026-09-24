@@ -1,11 +1,11 @@
 -- A flat totem row. Blizzard's TotemFrame is a child of PlayerFrame, which RikUI parks, so without
--- this a shaman sees no totems. The slots are unprotected and show and hide in combat, which is
+-- this a shaman sees no totems. Visual slots are unprotected and show and hide in combat, which is
 -- when totems drop. Whether GetTotemInfo hands out secrets on 69913 is unverified: readable values
 -- decide presence the way Blizzard does, secret values cannot be compared and go straight to the
 -- widgets. The cooldown widget draws the sweep and the countdown, so no time is worked out here.
--- Display only: DestroyTotem is called from secure code in the stock button and is left alone.
+-- Fixed secure sibling buttons dispatch right-click dismissal through the native secure action.
 local core, layout, skin, motion = RikUI, RikUI.Layout, RikUI.Skin, RikUI.Motion
-local totems = { Slots = {} }
+local totems = { Slots = {}, Dismiss = {} }
 core.Totems = totems
 
 local HOLDER_NAME, KEY = "RikUITotems", "totems"
@@ -19,16 +19,22 @@ local function warn(operation, reason)
     core:Print("Totems " .. operation .. ": " .. tostring(reason))
 end
 
--- Shown slots pack from the left in slot order.
-local function arrange()
-    local offset = 0
-    for _, button in ipairs(totems.Slots) do
-        if button:IsShown() then
-            button:ClearAllPoints()
-            button:SetPoint("LEFT", holder, "LEFT", offset, 0)
-            offset = offset + SIZE + GAP
-        end
-    end
+-- Secure dismissal targets never move during combat. Visual siblings may hide freely.
+local function createDismiss(slot, visual)
+    local click = CreateFrame("Button", nil, holder, "SecureActionButtonTemplate")
+    click:SetSize(SIZE, SIZE)
+    click:SetPoint("LEFT", holder, "LEFT", (slot - 1) * (SIZE + GAP), 0)
+    click:SetFrameLevel(visual:GetFrameLevel() + 2)
+    click:RegisterForClicks("RightButtonUp")
+    click:SetAttribute("type2", "destroytotem")
+    click:SetAttribute("totem-slot", slot)
+    click:SetAttribute("useOnKeyDown", false)
+    click.slot = slot
+    click:SetScript("OnEnter", function(self)
+        if visual:IsShown() then GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT"); GameTooltip:SetTotem(slot) end
+    end)
+    click:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    totems.Dismiss[slot] = click
 end
 
 local function hide(button)
@@ -63,7 +69,7 @@ end
 function totems.Refresh()
     if not holder then return end
     for _, button in ipairs(totems.Slots) do refreshSlot(button) end
-    arrange()
+
 end
 
 local function showTooltip(button)
@@ -89,6 +95,7 @@ end
 local function createSlot(slot)
     local button = CreateFrame("Frame", nil, holder)
     button:SetSize(SIZE, SIZE)
+    button:SetPoint("LEFT", holder, "LEFT", (slot - 1) * (SIZE + GAP), 0)
     button.slot = slot
     button.rikFill = skin.Fill(button, skin.BACKING)
     button.rikBorder = skin.Outline(button)
@@ -104,6 +111,7 @@ local function createSlot(slot)
     button:SetScript("OnLeave", hideTooltip)
     button:Hide()
     totems.Slots[slot] = button
+    createDismiss(slot, button)
 end
 
 local function build()

@@ -61,5 +61,6 @@ local function spells(frame)
     end
 end
 
+interiors.Spells = spells
 interiors.Register("spells", { "PlayerSpellsFrame" }, spells)
 

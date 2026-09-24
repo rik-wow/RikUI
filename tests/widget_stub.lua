@@ -102,6 +102,7 @@ local function wrapFrame(frame)
     function frame:EnableMouse(value) self.mouseEnabled=value end
     function frame:IsEnabled() return self.enabled~=false end
     function frame:SetFrameLevel(level) self.level = level end
+    function frame:GetFrameLevel() return self.level or 1 end
     function frame:SetFrameStrata(strata) self.strata = strata end
     function frame:SetAttribute(key, value)
         assert(not InCombatLockdown(), "attribute written in combat")
