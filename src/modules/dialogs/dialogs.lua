@@ -93,7 +93,8 @@ local function apply(frame, target)
     frame.rikFill = skin.Fill(frame)
     frame.rikBorder = skin.Outline(frame)
     closeButton(frame, target.name)
-    frame.rikFade = motion.Tween(frame, 0, 1, skin.FADE_SECONDS)
+    frame.rikFade = motion.Entrance(frame, true)
+    core.Hooks.Script(frame, "OnHide", function() motion.Stop(frame.rikFade) end)
 end
 
 -- A failed dialog is not retried: half a skin applied twice is worse than half a skin. The controls

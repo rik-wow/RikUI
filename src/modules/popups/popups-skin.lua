@@ -133,7 +133,8 @@ function skin.Apply(frame, target)
         frame.rikBorder = outline(frame)
     end
     KINDS[target.kind](frame)
-    frame.rikFade = motion.Tween(frame, 0, 1, FADE_SECONDS)
+    frame.rikFade = motion.Entrance(frame, true)
+    core.Hooks.Script(frame, "OnHide", function() motion.Stop(frame.rikFade) end)
 end
 
 -- The game menu releases and re-acquires its buttons from a pool whenever it is built.

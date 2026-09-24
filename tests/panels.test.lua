@@ -135,10 +135,10 @@ return function(check)
             and first.MiddleActive.alpha == 0 and first.RightHighlight.alpha == 0 and first.rikBacking ~= nil
             and #first.rikBorder == 4 and first.Text.fontPath == RikUI.Media.font)
         check("the selected tab shows the accent at first", first.rikAccent.shown == true
-            and second.rikAccent.shown == false)
+            and second.rikAccent.alpha == 0)
         PanelTemplates_DeselectTab(first)
         PanelTemplates_SelectTab(second)
-        check("the accent follows Blizzard's tab selection", first.rikAccent.shown == false
+        check("the accent follows Blizzard's tab selection", first.rikAccent.alpha == 0
             and second.rikAccent.shown == true and second.selected == true)
 
         WorldMapFrame:Show()
@@ -161,7 +161,7 @@ return function(check)
         check("tab system tabs are skinned and their accent follows SetTabSelected", spellTab.Left.alpha == 0
             and spellTab.rikAccent.shown == true and spellTab.selected == true)
         spellTab:SetTabSelected(false)
-        check("deselecting a tab system tab clears its accent", spellTab.rikAccent.shown == false)
+        check("deselecting a tab system tab clears its accent", spellTab.rikAccent.alpha == 0)
 
         BankFrame.NineSlice.SetAlpha = function() error("bank art locked") end
         BankFrame:Show()

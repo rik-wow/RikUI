@@ -55,6 +55,13 @@ local function skinTitle(chrome)
     if not isRegion(title) or type(title.SetFont) ~= "function" then return end
     media.Font(title, "label")
     title:SetTextColor(unpack(TITLE_COLOR))
+    local rule = chrome:CreateTexture(nil, "BORDER")
+    rule:SetTexture(FLAT)
+    rule:SetVertexColor(0.75, 0.57, 0.18, 0.65)
+    rule:SetPoint("TOPLEFT", chrome, "TOPLEFT", 12, -28)
+    rule:SetPoint("TOPRIGHT", chrome, "TOPRIGHT", -12, -28)
+    rule:SetHeight(1)
+    chrome.rikTitleRule = rule
 end
 
 local function skinClose(button)
@@ -83,7 +90,16 @@ local function skinInset(inset)
 end
 
 local function setAccent(tab, selected)
-    if tabs[tab] then tab.rikAccent:SetShown(selected == true) end
+    local state = tabs[tab]
+    if not state then return end
+    selected = selected == true
+    if state.selected == selected then return end
+    motion.Stop(state.enter); motion.Stop(state.leave)
+    state.selected = selected
+    tab.rikAccent:Show()
+    tab.rikAccent:SetAlpha(selected and 1 or 0)
+    motion.Play(selected and state.enter or state.leave)
+    if not selected and not state.leave then tab.rikAccent:Hide() end
 end
 
 -- TabSystem tabs keep their selection in isSelected; PanelTemplates tabs go through the global hooks.
@@ -109,7 +125,16 @@ local function skinTab(tab, selected)
     tab.rikAccent:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -TAB_INSET, TAB_INSET)
     tab.rikAccent:SetHeight(ACCENT_HEIGHT)
     if isRegion(tab.Text) and type(tab.Text.SetFont) == "function" then media.Font(tab.Text, "small") end
-    tabs[tab] = true
+    local state = { enter = motion.Tween(tab.rikAccent, 0, 1, 0.12),
+        leave = motion.Tween(tab.rikAccent, 1, 0, 0.12) }
+    tabs[tab] = state
+    if state.leave then state.leave:SetScript("OnFinished", function()
+        if not state.selected then tab.rikAccent:Hide() end
+    end) end
+    core.Hooks.Script(tab, "OnHide", function()
+        motion.Stop(state.enter); motion.Stop(state.leave)
+        tab.rikAccent:SetShown(state.selected == true)
+    end)
     setAccent(tab, selected)
     if type(tab.SetTabSelected) == "function" then followTabSystem(tab) end
 end
@@ -176,7 +201,10 @@ function skin.Apply(frame, target)
     skinClose(findClose(chrome, target.name))
     skinInset(frame.Inset)
     skinTabs(frame)
-    if target.fade ~= false then frame.rikFade = motion.Tween(frame, 0, 1, FADE_SECONDS) end
+    if target.fade ~= false then
+        frame.rikFade = motion.Entrance(frame, true)
+        core.Hooks.Script(frame, "OnHide", function() motion.Stop(frame.rikFade) end)
+    end
 end
 
 function skin.FadeIn(frame) motion.Play(frame.rikFade) end

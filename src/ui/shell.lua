@@ -40,7 +40,7 @@ local function allowed(entry, key)
 end
 
 function shell.Close()
-    if shell.Panel then shell.Panel:Hide() end
+    core.Motion.CloseOwned(shell.Panel)
 end
 
 function shell.Register(id, entry)
@@ -159,6 +159,7 @@ local function createPanel()
     panel.scroll = core.Scroll.Create(panel)
     panel.scroll:SetPoint("TOPLEFT", PAD, -HEADER_HEIGHT)
     panel.headings = {}
+    core.Motion.BindEntrance(panel, true)
     panel:SetScript("OnShow", shell.Rebuild)
     panel:SetScript("OnHide", function() if shell.Dismiss then shell.Dismiss:Hide() end end)
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "RikUIUtilityPanel") end
@@ -169,6 +170,7 @@ function shell.Open()
     shell.Initialize()
     shell.Rebuild()
     shell.Dismiss:Show()
+    core.Motion.CancelClose(shell.Panel)
     shell.Panel:Show()
 end
 

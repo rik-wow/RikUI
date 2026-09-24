@@ -56,9 +56,7 @@ local ENTRY_SECONDS, HOVER_SECONDS, FLASH_SECONDS = 0.18, 0.1, 0.45
 local SLIDE_DISTANCE, HOVER_ALPHA = 6, 0.12
 
 -- Cosmetic transforms reset when the group ends; layout anchors are never moved.
-function motion.BindEntrance(owner, slide)
-    local existing = owner.rikEntry
-    if type(existing) == "table" or type(existing) == "userdata" then return end
+function motion.Entrance(owner, slide)
     local group = motion.Tween(owner, 0, 1, ENTRY_SECONDS)
     if not group then return end
     if slide then
@@ -73,6 +71,37 @@ function motion.BindEntrance(owner, slide)
         -- Alpha and rise start after the instantaneous initial offset.
         group.rikAlpha:SetOrder(2)
     end
+    return group
+end
+
+-- Only addon-owned surfaces may opt into a delayed hide.
+function motion.CloseOwned(owner)
+    if not owner or not owner:IsShown() or owner.rikClosing then return end
+    motion.Stop(owner.rikEntry)
+    local group = owner.rikExit
+    if not group then
+        group = motion.Tween(owner, 1, 0, 0.12)
+        if not group then owner:Hide(); return end
+        owner.rikExit = group
+        group:SetScript("OnFinished", function()
+            if owner.rikClosing then owner.rikClosing = nil; owner:Hide() end
+        end)
+        owner:HookScript("OnHide", function() owner.rikClosing = nil; motion.Stop(group) end)
+    end
+    owner.rikClosing = true
+    motion.Play(group)
+end
+
+function motion.CancelClose(owner)
+    if not owner then return end
+    owner.rikClosing = nil
+    motion.Stop(owner.rikExit)
+end
+function motion.BindEntrance(owner, slide)
+    local existing = owner.rikEntry
+    if type(existing) == "table" or type(existing) == "userdata" then return end
+    local group = motion.Entrance(owner, slide)
+    if not group then return end
     owner.rikEntry = group
     owner:HookScript("OnShow", function() motion.Play(group) end)
     owner:HookScript("OnHide", function() motion.Stop(group) end)
