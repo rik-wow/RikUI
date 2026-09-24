@@ -97,10 +97,42 @@ local function itemLevel(data)
     return nil
 end
 
+local function validCount(value)
+    return readable(value, "number") and value >= 0 and value < math.huge and value == math.floor(value)
+end
+
+local function ownedText(data)
+    if core.Profile.tooltip.ownedCounts == false or not C_Item or type(C_Item.GetItemCount) ~= "function" then return end
+    local item = data.id
+    if not readable(item, "number") then item = data.hyperlink end
+    if not readable(item, "number") and not readable(item, "string") then return end
+    local ok, carried = pcall(C_Item.GetItemCount, item, false, false, false, false)
+    if not ok or not validCount(carried) then return end
+    local bankOk, total = pcall(C_Item.GetItemCount, item, true, false, false, false)
+    local text = "Carried/equipped: " .. carried
+    if bankOk and validCount(total) and total >= carried then text = text .. "  Bank: " .. (total - carried) end
+    return text
+end
+
+local function addOwnership(frame, data)
+    local text = ownedText(data)
+    if not text then return end
+    for index = 1, frame:NumLines() do
+        local region = line(frame, index)
+        local current = region and region:GetText()
+        if readable(current, "string") and current:find("Carried/equipped: ", 1, true) == 1 then
+            region:SetText(text)
+            return
+        end
+    end
+    frame:AddLine(text, LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b)
+end
+
 local function onItem(frame, data)
     if type(data) ~= "table" then return end
     local level = itemLevel(data)
     if level then frame:AddLine(string.format(ITEM_LEVEL_FORMAT, level), LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b) end
+    addOwnership(frame, data)
 end
 
 local function onSpell(frame, data)

@@ -138,6 +138,23 @@ return function(check)
         stub.process("Item", tip, { id = 2, hyperlink = "item:2" })
         check("a missing item level adds no line", #tip.lines == 1)
 
+        local oldCount = C_Item.GetItemCount
+        C_Item.GetItemCount = function(_, bank) return bank and 12 or 3 end
+        stub.setLines(tip, { "Owned item" })
+        stub.process("Item", tip, { id = 2 })
+        check("ownership separates carried and bank counts", lastLine(tip).text == "Carried/equipped: 3  Bank: 9")
+        stub.process("Item", tip, { id = 2 })
+        check("reprocessing does not duplicate ownership", #tip.lines == 2)
+        RikUI.Profile.tooltip.ownedCounts = false
+        stub.setLines(tip, { "Owned item" })
+        stub.process("Item", tip, { id = 2 })
+        check("ownership setting suppresses counts", #tip.lines == 1)
+        RikUI.Profile.tooltip.ownedCounts = true
+        C_Item.GetItemCount = function() return env.SECRET end
+        stub.process("Item", tip, { id = 2 })
+        check("secret counts do not add a line", #tip.lines == 1)
+        C_Item.GetItemCount = oldCount
+
         stub.setLines(tip, { "Fireball" })
         stub.process("Spell", tip, { id = 133 })
         check("spell tooltips end with the spell id", lastLine(tip).text == "Spell ID 133" and #tip.lines == 2)

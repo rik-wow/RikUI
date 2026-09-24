@@ -2,7 +2,7 @@
 local core, runtime = RikUI, RikUI.Runtime
 local DEFAULT_PROFILE = "Default"
 local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = false, ghosts = true,
-    tooltip = { hideInCombat = false },
+    tooltip = { hideInCombat = false, ownedCounts = true },
     chat = { fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },

@@ -125,4 +125,9 @@ table.insert(tooltip.Options.settings, { type = "checkbox", key = "hideInCombat"
     get = tooltip.HideInCombat,
     set = function(value) core.Profile.tooltip.hideInCombat = value == true end })
 
+table.insert(tooltip.Options.settings, { type = "checkbox", key = "ownedCounts", label = "Show item ownership counts",
+    description = "Current character only: carried/equipped items and bank items reported by the client.",
+    get = function() return core.Profile.tooltip.ownedCounts ~= false end,
+    set = function(value) core.Profile.tooltip.ownedCounts = value == true end })
+
 core:RegisterModule("tooltip", tooltip)
