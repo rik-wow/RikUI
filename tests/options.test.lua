@@ -142,6 +142,13 @@ return function(check)
         check("dropdown opens a list of readable entries", choice.widget.list.shown and #choice.widget.list.buttons == 3
             and choice.widget.list.buttons[3].text:GetText() == "Gamma")
         env.click(choice.widget.list.buttons[3])
+        local savedValues = choice.spec.values
+        choice.spec.values = {}
+        env.click(choice.widget)
+        check("empty dropdown explains missing choices", choice.widget.list.empty:IsShown()
+            and not choice.widget.list.buttons[1]:IsShown())
+        options.CloseDropdown()
+        choice.spec.values = savedValues
         check("dropdown selection commits and closes", state.choice == "c" and not choice.widget.list.shown
             and choice.widget.text:GetText() == "Gamma")
         check("colour swatch shows the current value", colour.widget.swatch.color[1] == 0.1 and colour.widget.swatch.color[3] == 0.3)
@@ -332,6 +339,8 @@ return function(check)
         env.click(popup.buttons[20])
         check("last dropdown entry remains selectable", picked == 20 and not popup.shown)
         env.click(last.widget)
+        check("dropdown reveals and marks the selected choice", popup.scroll.offset > 0
+            and popup.buttons[20].selected:IsShown() and not popup.buttons[1].selected:IsShown())
         env.runScript(long.scroll.view, "OnMouseWheel", 1)
         check("scrolling content dismisses detached dropdown", not popup.shown)
         env.click(config.groups.Interface)

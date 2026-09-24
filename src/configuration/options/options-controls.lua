@@ -82,8 +82,11 @@ local function listButton(row, list, index)
     button:SetSize(metrics.controlWidth - 14, metrics.controlHeight)
     button:SetPoint("TOPLEFT", 0, -(index - 1) * metrics.controlHeight)
     core.Motion.BindHover(button)
+    button.selected = options.Flat(button, "BACKGROUND", { 0.12, 0.27, 0.34, 0.9 })
+    button.mark = options.Text(button, "small", ">")
+    button.mark:SetPoint("RIGHT", -4, 0)
     button.text = options.Text(button, "label")
-    button.text:SetPoint("LEFT", metrics.textInset, 0); button.text:SetPoint("RIGHT", -metrics.textInset, 0)
+    button.text:SetPoint("LEFT", metrics.textInset, 0); button.text:SetPoint("RIGHT", -18, 0)
     button.text:SetJustifyH("LEFT"); button.text:SetWordWrap(false)
     button:SetScript("OnClick", function()
         closeList(row)
@@ -105,6 +108,8 @@ local function createList(row)
     list.scroll = core.Scroll.Create(list)
     list.scroll:SetAllPoints()
     list.buttons = {}
+    list.empty = options.Text(list, "small", "No choices available")
+    list.empty:SetPoint("CENTER"); list.empty:Hide()
     core.Motion.BindEntrance(list, false)
     list:Hide()
     return list
@@ -126,17 +131,23 @@ local function openList(row)
     local widget = row.widget
     widget.list = widget.list or createList(row)
     local list, values = widget.list, dropdownValues(row.spec)
+    local selected = 1
     for index, entry in ipairs(values) do
         local button = list.buttons[index] or listButton(row, list, index)
         list.buttons[index] = button
         button.entry = entry
         button.text:SetText(entry.text)
+        local current = entry.value == row.value
+        setShown(button.selected, current); setShown(button.mark, current)
+        if current then selected = index end
         button:Show()
     end
     for index = #values + 1, #list.buttons do list.buttons[index]:Hide() end
     placeList(row, list, math.max(1, math.min(MAX_VISIBLE, #values)) * metrics.controlHeight)
     core.Scroll.SetContentHeight(list.scroll, math.max(1, #values) * metrics.controlHeight)
+    setShown(list.empty, #values == 0)
     core.Scroll.SetOffset(list.scroll, 0)
+    core.Scroll.Reveal(list.scroll, (selected - 1) * metrics.controlHeight, metrics.controlHeight)
     activeDropdown = list
     list.dismiss:Show(); list:Show()
 end
