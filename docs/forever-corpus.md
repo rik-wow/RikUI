@@ -6,17 +6,20 @@ locations no longer require an entry in the three-quest reviewed guide. Live
 objectives and completion remain authoritative. Explicit client waypoints and
 reviewed interaction bindings retain priority.
 
-The delivered target is Forever **1.60.1.69913 / enUS / interface 16001**. New addon
+The data identity is Forever **1.60.1.69913 / enUS / interface 16001**. The installed
+client is **1.60.1.69977**, accepted through the independently verified identical-data
+mapping in `quest-builds.lua`. New addon
 folders and TOC modules require a **full client restart**. The installed RikUI
 folder is a junction to this checkout. Generated provider data stays outside Git.
 
 ## Sources and measured coverage
 
 QuestieDB is pinned to
-[`baa0998d49695c70a1fb8fec559fa9169e9adf33`](https://github.com/Questie/QuestieDB/tree/baa0998d49695c70a1fb8fec559fa9169e9adf33).
+[`b6f5b07b0acf1c820993cbb0ce2521c912bb4c92`](https://github.com/Questie/QuestieDB/tree/b6f5b07b0acf1c820993cbb0ce2521c912bb4c92),
+the latest merged upstream revision checked on 2026-09-23.
 The exporter resolves the supported Source reader, static corrections, dynamic
 corrections and derived fields for both factions and all nine class selectors.
-It verifies the clean checkout and hashes 135 source inputs before and after
+It verifies the clean checkout and hashes 147 source inputs before and after
 extraction. All nine available localization sets and support data are retained
 in the audit export; runtime matching currently requires enUS.
 
@@ -56,11 +59,58 @@ and their variant provenance remain in the report.
 
 The client inventory verifies the actual executable version and hashes, active
 build/CDN configuration, exact QuestV2 CSV and all six available WDB caches.
-Framing admits 315 creature, 176 object and 28 quest cache records; three other
+The 2026-09-23 refresh admits 397 creature, 609 object and 62 quest cache records; three other
 caches are empty. **WDB payload semantics remain unknown.** Four archived RIKQ
 packets have valid checksums; one corrupt transcription is excluded. A sidecar
 cannot restore counts from a corrupt packet. Archives are historical character
 observations, never global facts or newly acquired live observations.
+
+## Freshness audit (2026-09-23)
+
+The [merged provider comparison](https://github.com/Questie/QuestieDB/compare/baa0998d49695c70a1fb8fec559fa9169e9adf33...b6f5b07b0acf1c820993cbb0ce2521c912bb4c92)
+contains six newer commits. All 52 files under the Forever entity, correction and
+localization directories are unchanged. The fresh export confirms zero changed
+baseline quest/NPC/item/object rows and unchanged objective ordering/schema.
+Shared enums and dungeon entrance support are newer; their complete producing
+inputs are included in the export proof. The provider's explicit coordinate
+conversion helper is not automatically applied again to already converted data.
+
+The 18 faction/class correction selectors remain sufficient for this revision:
+no new race-dependent callback was introduced. The provider still uses Classic
+rules for inferred race masks; newly published Skyborne enum values do not prove
+Skyborne quest restrictions are complete.
+
+The freshly downloaded [69977 QuestV2](https://wago.tools/db2/QuestV2/csv?build=1.60.1.69977)
+is byte-identical to the pinned [69913 table](https://wago.tools/db2/QuestV2/csv?build=1.60.1.69913):
+6,600 rows, SHA-256
+`07353cb935ef0907a71c2e51f2aeed4d6460712d4011cb3873f759af5536df4a`.
+The refreshed inventory is `D:/RikUI-local/forever-inventory-20260923`.
+QuestV2 establishes membership, not complete requirements, locations or offers.
+
+The current consumer changes only Brewfest among the twelve holiday files.
+Eight active IDs are removed and two added; none is present in exact-build
+QuestV2. The exact-build intersection remains the same 161 event/quest pairs.
+The compiler nevertheless consumes the current full 1,000-row membership list
+and retains its provenance for provider-only reference quests.
+
+[Upstream PR 49](https://github.com/Questie/QuestieDB/pull/49) remains unmerged.
+It proposes Mulgore quests 95805, 96130 and 96659 with supporting entities;
+those candidates are not part of the merged corpus and do not fix Tirisfal
+eligibility. Their absence is explicit, rather than a claim of complete new
+Forever coverage.
+
+The refresh uses isolated checkout `D:/RikUI-local/QuestieDB-b6f5b07b`,
+export `D:/RikUI-local/forever-provider-b6f5b07b.json`, and build output
+`D:/RikUI-local/quest-corpus-refresh-20260923`. The prior working artifact
+`D:/RikUI-local/adaptive-corpus-build` is retained for recovery. This distinguishes
+the installed delivery from older experimental build directories.
+
+Delivery verification: 420 owned addon folders and 1,260 files match the new
+manifest byte for byte. Corpus revision is
+`5f990a1129b4bd10d57dd369226ceb5049166684f8821aa11d05cd99470ab76c`.
+The complete host replay admits all 7,311 records and 21,152 action transitions;
+4,323 of 4,463 synthetic source objectives bind. These counts preserve the
+documented source gaps. Restart the client to discard previously loaded pages.
 
 ## Compiler and artifact contracts
 
@@ -157,13 +207,13 @@ Example PowerShell commands from this repository:
 
 ```powershell
 git clone https://github.com/Questie/QuestieDB D:/RikUI-local/QuestieDB
-git -C D:/RikUI-local/QuestieDB checkout --detach baa0998d49695c70a1fb8fec559fa9169e9adf33
+git -C D:/RikUI-local/QuestieDB checkout --detach b6f5b07b0acf1c820993cbb0ce2521c912bb4c92
 python -m pip install --target D:/RikUI-local/questiedb-python-tools -r tools/requirements-forever-export.txt
 $env:PYTHONPATH = "D:/RikUI-local/questiedb-python-tools"
 python -B tools/export_forever.py --source-root D:/RikUI-local/QuestieDB --output D:/RikUI-local/forever-provider.json
 python -B tools/quest_inventory.py --client-root "C:/Program Files (x86)/World of Warcraft" --observations D:/RikUI-local/observations --output-dir D:/RikUI-local/forever-inventory
 git clone https://github.com/Questie/Questie D:/RikUI-local/Questie-consumer-review
-git -C D:/RikUI-local/Questie-consumer-review checkout --detach 454b9d072965ee8f1a881429260fcf1fac8d60f7
+git -C D:/RikUI-local/Questie-consumer-review checkout --detach 67c164d6e0aa4823ea26dad79a3ce54531b5b66c
 python -B tools/quest_corpus.py build --export D:/RikUI-local/forever-provider.json --client-index D:/RikUI-local/forever-inventory/QuestV2-1.60.1.69913.csv --event-source-root D:/RikUI-local/Questie-consumer-review --output D:/RikUI-local/forever-corpus-build
 python -B tools/quest_corpus.py verify --output D:/RikUI-local/forever-corpus-build
 python -B tools/quest_corpus.py install --output D:/RikUI-local/forever-corpus-build --addons "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
@@ -179,9 +229,9 @@ compare manifests to check determinism. The CSV is pinned to SHA-256
 a changed table requires deliberate review.
 
 The composed export SHA-256 is
-`114d9e36ed0565f6ed3c4799ff35d1791da471fb30f0f85096eb40636587cedb`.
+`95a1a209762db3ae510c402e7f1d0234b20609e71e4a5e7cd42b8abd490209fe`.
 Current source notices are preserved in the audit.
-[QuestieDB provenance](https://github.com/Questie/QuestieDB/blob/baa0998d49695c70a1fb8fec559fa9169e9adf33/PROVENANCE.md)
+[QuestieDB provenance](https://github.com/Questie/QuestieDB/blob/b6f5b07b0acf1c820993cbb0ce2521c912bb4c92/PROVENANCE.md)
 identifies inherited Questie material, but a separate comprehensive QuestieDB
 redistribution grant was not established. This delivery supplies local
 acquisition/compiler code and a local installation; it does not commit or
@@ -221,8 +271,9 @@ by the user; these are automated results.
 ## Seasonal availability
 
 Builds also read the twelve holiday membership tables from the pinned Questie
-consumer commit. The parser includes 1,006 active membership rows and excludes
-thirteen commented-out rows. Membership input and source-file hashes are retained
+consumer commit. The parser now reads consumer
+[`67c164d6e0aa4823ea26dad79a3ce54531b5b66c`](https://github.com/Questie/Questie/tree/67c164d6e0aa4823ea26dad79a3ce54531b5b66c/Database/Corrections/Holidays/quests),
+including 1,000 active membership rows and excluding nineteen commented-out rows. Membership input and source-file hashes are retained
 in the local audit and bound into the corpus revision. These are event
 classifications, not a calendar or current availability feed.
 

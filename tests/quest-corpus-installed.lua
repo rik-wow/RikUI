@@ -26,7 +26,7 @@ end}
 assert(C_AddOns.LoadAddOn("RikUIQuestCorpus"))
 local catalog=assert(RikUIQuestCorpusCatalog)
 local identity=catalog.identity
-assert(catalog.eventMemberships and catalog.eventMemberships.sourceMemberships==1006,
+assert(catalog.eventMemberships and catalog.eventMemberships.sourceMemberships==1000,
     "pinned active holiday memberships must be installed")
 local context={identity=identity,origin="live",attributes={class=1,faction="Alliance"},position={mapID=1426,x=.5,y=.5},
     destinations={},rewards={},history={},observedAt=1}
@@ -48,7 +48,7 @@ assert(p.SemanticData.Status().loadedPartitions==#buckets,p.SemanticData.Status(
 for _,case in ipairs({{8653,"LunarFestival"},{172,"ChildrensWeek"},{7905,"DarkmoonFaire"}}) do
     local quest=assert(p.SemanticData.Quest(identity,case[1]),"required seasonal source record")
     assert(quest.planning.seasonalEvent==case[2],"seasonal membership missing: "..case[1])
-    assert(quest.planning.seasonalProvenance.revision=="454b9d072965ee8f1a881429260fcf1fac8d60f7")
+    assert(quest.planning.seasonalProvenance.revision=="67c164d6e0aa4823ea26dad79a3ce54531b5b66c")
 end
 collectgarbage("collect")
 local retained=collectgarbage("count")-before

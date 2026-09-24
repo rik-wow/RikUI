@@ -16,7 +16,7 @@ import shutil
 import subprocess
 import tempfile
 
-PIN = "baa0998d49695c70a1fb8fec559fa9169e9adf33"
+PIN = "b6f5b07b0acf1c820993cbb0ce2521c912bb4c92"
 CLIENT_INDEX_SHA256 = "07353cb935ef0907a71c2e51f2aeed4d6460712d4011cb3873f759af5536df4a"
 IDENTITY = {"product": "forever", "build": "1.60.1.69913", "locale": "enUS"}
 KINDS = ("quests", "npcs", "items", "objects")
@@ -831,8 +831,8 @@ def verify_provider_manifest(path, data, raw):
     if proof.get("counts") != counts or proof.get("personaCount") != 18 or selectors != expected:
         raise ValueError("provider manifest counts or complete persona coverage mismatch")
     inputs = proof.get("inputs", [])
-    if len(inputs) != 135 or len({row.get("path") for row in inputs}) != len(inputs):
-        raise ValueError("pinned provider must include 135 unique hashed source inputs")
+    if len(inputs) != 147 or len({row.get("path") for row in inputs}) != len(inputs):
+        raise ValueError("pinned provider must include 147 unique hashed source inputs")
     for row in inputs:
         path = Path(row.get("path", ""))
         if path.is_absolute() or ".." in path.parts or not re.fullmatch(r"[0-9a-f]{64}", row.get("sha256", "")):
@@ -841,7 +841,7 @@ def verify_provider_manifest(path, data, raw):
     return metadata, proof_raw
 
 
-EVENT_PIN = "454b9d072965ee8f1a881429260fcf1fac8d60f7"
+EVENT_PIN = "67c164d6e0aa4823ea26dad79a3ce54531b5b66c"
 
 
 def event_memberships(repo):
@@ -872,8 +872,8 @@ def event_memberships(repo):
             if quest_id in result and result[quest_id]["key"] != entry["key"]:
                 raise ValueError(f"Ambiguous event membership {quest_id}")
             result[quest_id] = entry
-    # 1,006 active rows; thirteen commented-out rows are intentionally excluded.
-    if len(result) != 1006:
+    # 1,000 active rows at the audited consumer pin; commented rows are excluded.
+    if len(result) != 1000:
         raise ValueError("pinned holiday membership count differs from audit")
     return {"revision": EVENT_PIN, "files": hashes, "quests": result}
 

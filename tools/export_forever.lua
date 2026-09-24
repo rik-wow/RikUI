@@ -6,7 +6,7 @@
 -- are decimal strings, nil fields are omitted, and empty tables remain {}.
 local outputPath = assert(arg[1], 'output JSON path required')
 local expectedCommit = assert(arg[2], 'expected QuestieDB commit required')
-assert(expectedCommit == 'baa0998d49695c70a1fb8fec559fa9169e9adf33',
+assert(expectedCommit == 'b6f5b07b0acf1c820993cbb0ce2521c912bb4c92',
   'This adapter audits dynamic dependencies only at its pinned revision')
 local stagingPath = outputPath .. '.tmp'
 assert(expectedCommit:match('^[0-9a-f]+$') and #expectedCommit == 40, 'invalid commit')

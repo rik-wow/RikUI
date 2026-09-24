@@ -203,12 +203,12 @@ class CorpusTests(unittest.TestCase):
         classes = ("WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "SHAMAN", "MAGE", "WARLOCK", "DRUID")
         data["variants"] = [{"selector": {"faction": faction, "classFile": cls}} for faction in ("Alliance", "Horde") for cls in classes]
         raw = corpus.canonical(data).encode()
-        proof = {"schemaVersion": 1, "revision": corpus.PIN, "flavor": "Forever", "exportSha256": corpus.sha(raw), "exportBytes": len(raw), "personaCount": 18, "counts": {"Quest": 1, "Npc": 2, "Item": 1, "Object": 1}, "inputs": [{"path": f"source/{index}.lua", "sha256": "0" * 64} for index in range(135)]}
+        proof = {"schemaVersion": 1, "revision": corpus.PIN, "flavor": "Forever", "exportSha256": corpus.sha(raw), "exportBytes": len(raw), "personaCount": 18, "counts": {"Quest": 1, "Npc": 2, "Item": 1, "Object": 1}, "inputs": [{"path": f"source/{index}.lua", "sha256": "0" * 64} for index in range(147)]}
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "proof.json"
             path.write_text(corpus.canonical(proof), encoding="utf8")
             metadata, _ = corpus.verify_provider_manifest(path, data, raw)
-            self.assertEqual(metadata["inputFiles"], 135)
+            self.assertEqual(metadata["inputFiles"], 147)
             with self.assertRaises(ValueError):
                 corpus.verify_provider_manifest(path, data, raw + b" ")
             data["variants"].pop()
