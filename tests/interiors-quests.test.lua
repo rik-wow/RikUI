@@ -33,12 +33,17 @@ return function(check)
         local anonymousCoords = frame()
         anonymousCoords.CursorCoords, anonymousCoords.PlayerCoords = frame(), frame()
         map.overlayFrames = { anonymousCoords }
+        map.ThreatFrame = frame()
+        map.ThreatFrame.Eye = frame()
+        map.ThreatFrame.Background = map.ThreatFrame:CreateTexture()
         local pin = frame()
         pin.Background = pin:CreateTexture()
         map.ScrollContainer.children = { pin }
         RikUI.Interiors.MapSurfaces(map)
         check("map side toggle and coordinates flat", RikUI.Interiors.State(map.SidePanelToggle)
             and RikUI.Interiors.State(map.Coordinates) and RikUI.Interiors.State(anonymousCoords))
+        check("named threat overlay backs only its eye", RikUI.Interiors.State(map.ThreatFrame) == nil
+            and RikUI.Interiors.State(map.ThreatFrame.Eye).fill and map.ThreatFrame.Background.alpha == 0)
         check("map canvas and pin art untouched", RikUI.Interiors.State(map) == nil
             and RikUI.Interiors.State(pin) == nil and rawget(pin.Background, "alpha") == nil)
     end)

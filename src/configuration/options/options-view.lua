@@ -64,7 +64,7 @@ local function navigationButton(index, page)
     local button = CreateFrame("Button", nil, panel.nav.content)
     button:SetSize(NAV_WIDTH - 24, NAV_ROW)
     button.selected = options.Flat(button, "BACKGROUND", { 0.1, 0.23, 0.3, 0.8 })
-    button:SetHighlightTexture(core.Media.highlight, "ADD")
+    core.Motion.BindHover(button)
     button.text = options.Text(button, "small", page.title)
     button.text:SetPoint("LEFT", 10, 0); button.text:SetPoint("RIGHT", -4, 0)
     button.text:SetJustifyH("LEFT"); button.text:SetWordWrap(false)
@@ -82,6 +82,7 @@ local function createPage(index, spec)
     pane.OnScroll = function() if options.CloseDropdown then options.CloseDropdown() end end
     local page = { id = spec.id, title = spec.title, group = spec.group, description = spec.description,
         frame = frame, scroll = pane, list = list, tab = navigationButton(index, spec) }
+    core.Motion.BindEntrance(frame, false)
     frame:Hide()
     return page
 end
@@ -107,6 +108,7 @@ local function createNavigation()
     for _, group in ipairs(GROUPS) do
         local button = CreateFrame("Button", nil, panel.nav.content)
         button:SetSize(NAV_WIDTH - 14, NAV_ROW)
+        core.Motion.BindHover(button)
         button.label = options.Text(button, "small")
         button.label:SetPoint("LEFT"); button.label:SetTextColor(0.4, 0.75, 0.9)
         button:SetScript("OnClick", function() button.collapsed = not button.collapsed; navigationLayout() end)
@@ -120,13 +122,20 @@ local function footerButton(label, width, callback)
     options.Flat(button, "BACKGROUND", { 0.1, 0.2, 0.25, 1 })
     options.Border(button, { 0.25, 0.45, 0.55, 1 })
     button.text = options.Text(button, "small", label); button.text:SetPoint("CENTER")
-    button:SetHighlightTexture(core.Media.highlight, "ADD"); button:SetScript("OnClick", callback)
+    core.Motion.BindHover(button); button:SetScript("OnClick", callback)
     return button
 end
 
 local function createFurniture()
     options.Flat(panel, "BACKGROUND", { 0.035, 0.045, 0.06, 0.98 })
     panel.title = options.Text(panel, "heading", "RikUI")
+    panel.title:SetTextColor(1, 0.82, 0)
+    options.Border(panel, { 0.25, 0.28, 0.32, 1 })
+    panel.titleRule = panel:CreateTexture(nil, "BORDER")
+    panel.titleRule:SetTexture(core.Skin.FLAT)
+    panel.titleRule:SetVertexColor(0.75, 0.57, 0.18, 0.65)
+    panel.titleRule:SetPoint("TOPLEFT", PAD, -50); panel.titleRule:SetPoint("TOPRIGHT", -PAD, -50)
+    panel.titleRule:SetHeight(1)
     panel.title:SetPoint("TOPLEFT", PAD, -PAD)
     panel.title:SetPoint("TOPRIGHT", -50, -PAD); panel.title:SetJustifyH("LEFT"); panel.title:SetWordWrap(false)
     panel.hint = options.Text(panel, "small", "")
@@ -138,7 +147,7 @@ local function createFurniture()
     panel.status:SetJustifyH("LEFT"); panel.status:SetWordWrap(false)
     panel.reload = footerButton("Reload UI", 100, function() if not InCombatLockdown() then ReloadUI() end end)
     panel.reload:SetPoint("BOTTOMRIGHT", -PAD, 10); panel.reload:Hide()
-    panel.close = footerButton("X", 24, function() panel:Hide() end)
+    panel.close = footerButton("X", 24, function() core.Motion.CloseOwned(panel) end)
     panel.close:SetPoint("TOPRIGHT", -PAD, -12); panel.close:Hide()
 end
 
@@ -146,6 +155,7 @@ local function register()
     if panel then return end
     panel = CreateFrame("Frame", "RikUIOptionsPanel", UIParent)
     panel:Hide(); panel:SetSize(WIDTH, HEIGHT)
+    core.Motion.BindEntrance(panel, true)
     createFurniture(); createNavigation()
     panel.pages = {}
     for index, page in ipairs(options.Pages()) do panel.pages[index] = createPage(index, page) end
@@ -164,6 +174,7 @@ end
 function options.Open(id)
     if not core.Profile then core:Print("Still loading."); return end
     register()
+    core.Motion.CancelClose(panel)
     if core.Shell then core.Shell.Close() end
     if category and Settings.OpenToCategory then Settings.OpenToCategory(category:GetID())
     else

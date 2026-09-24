@@ -13,6 +13,7 @@ return function(check)
             if key:match("^[A-Z]") then return methods(t, key) end
         end })
         frame.alpha, frame.enabled = 1, true
+        function frame:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         if frame.kind == "Texture" then frame.shown = true end
         function frame:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         function frame:SetTexture(path) self.texture = path end
@@ -116,6 +117,16 @@ return function(check)
             and list.rows[3].point[5] - list.rows[2].point[5] == list.rows[2].point[5] - list.rows[1].point[5])
         local flag, amount, choice, colour, name, pressRow = rowByKey(list, "flag"), rowByKey(list, "amount"),
             rowByKey(list, "choice"), rowByKey(list, "colour"), rowByKey(list, "name"), rowByKey(list, "press")
+        env.runScript(flag.widget, "OnEnter")
+        check("controls use a cancellable hover wash", flag.widget.rikHover.enter:IsPlaying())
+        env.runScript(flag.widget, "OnHide")
+        check("hidden controls cancel hover", not flag.widget.rikHover.enter:IsPlaying()
+            and flag.widget.rikHover.region.alpha == 0)
+        env.runScript(name.widget, "OnEditFocusGained")
+        check("text entry focus animates the row", name.focusEnter:IsPlaying() and name.focusActive)
+        env.runScript(name.widget, "OnEditFocusLost")
+        name.focusLeave:Finish()
+        check("text blur clears focus after its fade", not name.focus.shown)
         check("checkbox reflects false before any click", flag.widget.mark.shown == false)
         env.click(flag.widget)
         check("checkbox click sets true and shows the mark", state.flag == true and flag.widget.mark.shown == true
@@ -171,7 +182,7 @@ return function(check)
         check("tab focuses the first control, skipping headings", panel.focused == flag and flag.focus.shown and panel.propagate == false)
         press(panel, "DOWN")
         press(panel, "DOWN")
-        check("arrows move focus down", panel.focused == choice and not flag.focus.shown)
+        check("arrows move focus down", panel.focused == choice and flag.focus.alpha == 0)
         press(panel, "RIGHT")
         check("right cycles a dropdown forward without opening it", state.choice == "c" and not choice.widget.list.shown)
         press(panel, "LEFT")
@@ -251,6 +262,8 @@ return function(check)
         check("sidebar entries are readable and the first page starts selected", panelFrame.pages[1].tab.text:GetText() == "General"
             and panelFrame.pages[1].frame.shown and not panelFrame.pages[2].frame.shown)
         env.click(panelFrame.pages[2].tab)
+        check("page transition starts its own entrance", panelFrame.pages[2].frame.rikEntry:IsPlaying())
+        check("settings title has a flat gold rule", panelFrame.titleRule.height == 1)
         check("sidebar click switches the visible page", panelFrame.pages[2].frame.shown and not panelFrame.pages[1].frame.shown
             and panelFrame.current == 2)
 
@@ -273,7 +286,14 @@ return function(check)
         check("without the Settings API the panel opens standalone", standalone.shown and standalone.parent == UIParent
             and standalone.close.shown)
         env.click(standalone.close)
+        check("standalone close has a short exit fade", standalone.rikExit:IsPlaying() and standalone.shown)
+        standalone.rikExit:Finish()
         check("standalone close hides the panel", not standalone.shown)
+        options.Open()
+        env.click(standalone.close)
+        options.Open()
+        standalone.rikExit:Finish()
+        check("reopening settings cancels stale close", standalone.shown and not standalone.rikClosing)
         Settings = originalSettings
 
         -- Long pages and narrow native Settings canvases remain fully reachable.

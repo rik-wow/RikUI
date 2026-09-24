@@ -38,6 +38,7 @@ function options.WidgetFrame(row, kind)
     widget:SetPoint("RIGHT", row, "RIGHT", 0, 0)
     widget.background = options.Flat(widget, "BACKGROUND", BACKGROUND)
     widget.border = options.Border(widget, BORDER_TINT)
+    core.Motion.BindHover(widget)
     return widget
 end
 
@@ -75,12 +76,30 @@ function options.CreateRow(parent, spec, list)
     row.focus:SetTexture(media.highlight)
     row.focus:SetVertexColor(FOCUS_TINT[1], FOCUS_TINT[2], FOCUS_TINT[3], FOCUS_TINT[4])
     row.focus:Hide()
+    row.focusEnter = core.Motion.Tween(row.focus, 0, 0.6, 0.1)
+    row.focusLeave = core.Motion.Tween(row.focus, 0.6, 0, 0.1)
+    if row.focusLeave then row.focusLeave:SetScript("OnFinished", function()
+        if not row.focusActive then row.focus:Hide() end
+    end) end
+    row:HookScript("OnHide", function()
+        core.Motion.Stop(row.focusEnter); core.Motion.Stop(row.focusLeave)
+        row.focusActive, row.keyboardFocused, row.editFocused = false, false, false
+        row.focus:Hide()
+    end)
     local role = spec.type == "heading" and "heading" or "label"
     row.label = options.Text(row, role, spec.label)
     row.label:SetJustifyH("LEFT")
     row.label:SetWordWrap(true)
     if spec.get then row.initial = spec.get() end
     row.label:SetPoint("LEFT", row, "LEFT", metrics.textInset, 0)
+    if spec.type == "heading" then
+        row.label:SetTextColor(1, 0.82, 0)
+        row.rule = row:CreateTexture(nil, "BORDER")
+        row.rule:SetTexture(core.Skin.FLAT)
+        row.rule:SetVertexColor(0.3, 0.28, 0.2, 0.7)
+        row.rule:SetPoint("BOTTOMLEFT", 6, 0); row.rule:SetPoint("BOTTOMRIGHT", -6, 0)
+        row.rule:SetHeight(1)
+    end
     if kind.create then row.widget = kind.create(row) end
     return row
 end
@@ -141,11 +160,31 @@ function options.Render(parent, specs)
     return list
 end
 
+local function focusEffect(row, active)
+    if row.focusActive == active then return end
+    row.focusActive = active
+    core.Motion.Stop(row.focusEnter); core.Motion.Stop(row.focusLeave)
+    row.focus:Show()
+    row.focus:SetAlpha(active and 0.6 or 0)
+    local animation = active and row.focusEnter or row.focusLeave
+    core.Motion.Play(animation)
+    if not active and not animation then row.focus:Hide() end
+end
+
+function options.EditFocus(row, active)
+    row.editFocused = active
+    focusEffect(row, active or row.keyboardFocused == true)
+end
+
 function options.SetFocus(panel, row)
-    if panel.focused then panel.focused.focus:Hide() end
+    if panel.focused then
+        panel.focused.keyboardFocused = false
+        focusEffect(panel.focused, panel.focused.editFocused == true)
+    end
     panel.focused = row
     if row then
-        row.focus:Show()
+        row.keyboardFocused = true
+        focusEffect(row, true)
         if row.list.scroll then core.Scroll.Reveal(row.list.scroll, row.top, row.height) end
     end
 end

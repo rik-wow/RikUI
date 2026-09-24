@@ -33,7 +33,12 @@ function interiors.MapSurfaces(map)
     if not interiors.IsFrame(map) then return end
     for _, key in ipairs(MAP_SURFACES) do
         local frame = map[key]
-        if interiors.IsFrame(frame) then interiors.Walk(frame, "mapSurfaces") end
+        if interiors.IsFrame(frame) then
+            if key == "ThreatFrame" then
+                skin.Strip(frame, { "Background" })
+                if interiors.IsFrame(frame.Eye) then interiors.Walk(frame.Eye, "mapSurfaces") end
+            else interiors.Walk(frame, "mapSurfaces") end
+        end
     end
     -- These overlays are anonymous in the native registry, not named fields on the map.
     for _, frame in ipairs(type(map.overlayFrames) == "table" and map.overlayFrames or {}) do

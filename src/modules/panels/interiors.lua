@@ -86,6 +86,7 @@ function interiors.Item(frame)
     end
     local state = states[frame]
     if not state.edge then state.edge = skin.Outline(frame, nil, 0, icon, "OVERLAY") end
+    if not state.hover then hover(frame, state) end
     interiors.Labels(frame)
     interiors.Quality(frame)
 end
@@ -96,6 +97,9 @@ function interiors.Row(frame)
         states[frame] = state
         hover(frame, state)
     end
+    local state = states[frame]
+    if not state.fill then state.fill = skin.Fill(frame, skin.CONTROL, 1) end
+    if not state.hover then hover(frame, state) end
     skin.Strip(frame, ROW_ART)
     interiors.Labels(frame)
 end

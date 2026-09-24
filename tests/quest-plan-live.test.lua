@@ -12,7 +12,7 @@ return function(check)
         RikUI={CharDB={},Media={Font=function() end},Combat={Queue=function(fn) fn() end},
             Changed=function() end,Print=function() end}
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
-        dofile("src/ui/skin.lua");dofile("src/ui/scroll.lua")
+        dofile("src/ui/motion.lua");dofile("src/ui/skin.lua");dofile("src/ui/scroll.lua")
         RikUI["Secret"]={IsSecret=function() return false end,Read=function(fn,...) return pcall(fn,...) end}
         local now,x,counts=1,.1,{[9]=2,[55]=1}
         local mapID=1426

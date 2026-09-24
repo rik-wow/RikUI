@@ -16,7 +16,7 @@ types.checkbox = {
         box.mark:SetAllPoints()
         box.mark:SetTexture(media.checked)
         box.mark:SetVertexColor(ACTIVE_TINT[1], ACTIVE_TINT[2], ACTIVE_TINT[3], ACTIVE_TINT[4])
-        box:SetHighlightTexture(media.highlight, "ADD")
+        -- Hover wash is provided by WidgetFrame.
         box:SetScript("OnClick", function() options.Commit(row, not row.value) end)
         return box
     end,
@@ -81,7 +81,7 @@ local function listButton(row, list, index)
     local button = CreateFrame("Button", nil, list.scroll.content)
     button:SetSize(metrics.controlWidth - 14, metrics.controlHeight)
     button:SetPoint("TOPLEFT", 0, -(index - 1) * metrics.controlHeight)
-    button:SetHighlightTexture(media.highlight, "ADD")
+    core.Motion.BindHover(button)
     button.text = options.Text(button, "label")
     button.text:SetPoint("LEFT", metrics.textInset, 0); button.text:SetPoint("RIGHT", -metrics.textInset, 0)
     button.text:SetJustifyH("LEFT"); button.text:SetWordWrap(false)
@@ -105,6 +105,7 @@ local function createList(row)
     list.scroll = core.Scroll.Create(list)
     list.scroll:SetAllPoints()
     list.buttons = {}
+    core.Motion.BindEntrance(list, false)
     list:Hide()
     return list
 end
@@ -148,7 +149,7 @@ end
 types.dropdown = {
     create = function(row)
         local widget = options.WidgetFrame(row)
-        widget:SetHighlightTexture(media.highlight, "ADD")
+        -- Hover wash is provided by WidgetFrame.
         widget.text = options.Text(widget, "label")
         widget.text:SetPoint("LEFT", widget, "LEFT", metrics.textInset, 0)
         widget.text:SetPoint("RIGHT", widget, "RIGHT", -24, 0)
@@ -195,7 +196,7 @@ types.colour = {
     create = function(row)
         local widget = options.WidgetFrame(row)
         widget:SetSize(metrics.controlHeight * 2, metrics.controlHeight)
-        widget:SetHighlightTexture(media.highlight, "ADD")
+        -- Hover wash is provided by WidgetFrame.
         widget.swatch = widget:CreateTexture(nil, "ARTWORK")
         widget.swatch:SetPoint("TOPLEFT", widget, "TOPLEFT", SWATCH_INSET, -SWATCH_INSET)
         widget.swatch:SetPoint("BOTTOMRIGHT", widget, "BOTTOMRIGHT", -SWATCH_INSET, SWATCH_INSET)
@@ -213,6 +214,8 @@ types.text = {
     create = function(row)
         local box = options.WidgetFrame(row, "EditBox")
         box:SetAutoFocus(false)
+        box:HookScript("OnEditFocusGained", function() options.EditFocus(row, true) end)
+        box:HookScript("OnEditFocusLost", function() options.EditFocus(row, false) end)
         box:SetMaxLetters(MAX_LETTERS)
         box:SetTextInsets(metrics.textInset, metrics.textInset, 0, 0)
         media.Font(box, "label")
@@ -235,7 +238,7 @@ types.text = {
 types.button = {
     create = function(row)
         local widget = options.WidgetFrame(row)
-        widget:SetHighlightTexture(media.highlight, "ADD")
+        -- Hover wash is provided by WidgetFrame.
         widget.text = options.Text(widget, "label", row.spec.text or row.spec.label)
         widget.text:SetPoint("LEFT", 6, 0); widget.text:SetPoint("RIGHT", -6, 0)
         widget.text:SetJustifyH("CENTER"); widget.text:SetWordWrap(false)

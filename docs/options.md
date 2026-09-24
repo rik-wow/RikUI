@@ -14,6 +14,14 @@ fields below their labels; checkboxes remain compact. Sliders reserve space
 for their values. Dropdowns use a bounded scrollable popup above the content,
 so the final control on a page can still open every choice.
 
+## Motion and focus
+
+The canvas uses the shared short rise/fade entrance, a gold title and fine accent
+rule. Section pages and dropdowns fade in. Sidebar, footer and controls use the
+same gold hover wash; keyboard and text-entry focus use a blue row fade.
+Hidden rows cancel their animations. Standalone close fades briefly and can
+be cancelled by reopening; native Settings controls its own hide timing.
+
 ## Everyday controls
 
 - General: scale, layout preset, Move frames and Reset positions.
