@@ -84,6 +84,7 @@ src/modules/chat/chat-clicks.lua
 src/modules/bags/bags.lua
 src/modules/bags/bags-items.lua
 src/modules/bags/bags-feedback.lua
+src/modules/bags/bags-merchant.lua
 src/modules/bags/bags-equipped.lua
 src/modules/micromenu/micromenu.lua
 src/modules/xpbar/xpbar.lua

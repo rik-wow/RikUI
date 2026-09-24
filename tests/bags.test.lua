@@ -127,7 +127,7 @@ return function(check)
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         local selected = {}
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
-            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua", "src/modules/bags/bags-equipped.lua", "src/modules/bags/bags-feedback.lua" }) do selected[file] = true end
+            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua", "src/modules/bags/bags-equipped.lua", "src/modules/bags/bags-feedback.lua", "src/modules/bags/bags-merchant.lua" }) do selected[file] = true end
         -- Use the client manifest order, including Skin loading after the bag module.
         for line in io.lines("RikUI.toc") do
             local file = line:match("^%s*(.-)%s*$")
@@ -219,6 +219,29 @@ return function(check)
         typeSearch("")
         check("an empty search drops the match count", holder.title.text == "Bags 3/22")
 
+        local oldRepair, oldCost, oldCan, oldShift = RepairAllItems, GetRepairAllCost, CanMerchantRepair, IsShiftKeyDown
+        local repairs, cost, canRepair, shifted = 0, 50, true, false
+        RepairAllItems = function(guild) check("repair uses personal funds", guild == false); repairs = repairs + 1 end
+        GetRepairAllCost = function() return cost, true end
+        CanMerchantRepair = function() return canRepair end
+        IsShiftKeyDown = function() return shifted end
+        env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
+        check("automatic repair is opt-in", repairs == 0)
+        RikUI.Profile.bags.autoRepair = true
+        env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
+        check("opening merchant repairs once", repairs == 1)
+        cost = stub.money + 1
+        env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
+        check("unaffordable repairs are skipped", repairs == 1)
+        cost, shifted = 10, true
+        env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
+        check("shift bypasses automatic repair", repairs == 1)
+        shifted, cost = false, env.SECRET
+        env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
+        check("unreadable repair costs never spend", repairs == 1)
+        RikUI.Profile.bags.autoRepair = false
+        RepairAllItems, GetRepairAllCost, CanMerchantRepair, IsShiftKeyDown = oldRepair, oldCost, oldCan, oldShift
+        env.printed = {}
         local oldNew, marked = C_NewItems, true
         C_NewItems = { IsNewItem = function(bag, slot) return marked and bag == 0 and slot == 1 end,
             RemoveNewItem = function(bag, slot) if bag == 0 and slot == 1 then marked = false end end }

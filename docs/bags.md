@@ -152,6 +152,13 @@ Newly acquired items carry a small gold **N**. Hovering acknowledges the item
 through Blizzard's new-item API. Empty slots and unavailable or secret new-item
 data never show a marker. Native item clicks and tooltips remain unchanged.
 
+## Vendor repairs
+
+Enable **Automatically repair gear** under Bags and vendors to repair when
+opening a vendor. It uses personal funds, skips unaffordable repairs, and never
+uses guild money. Hold Shift when opening the vendor to bypass it. The option
+is off by default; missing or failed repair APIs produce a one-time diagnostic.
+
 ## Available space
 
 The footer shows general free slots separately from specialized bag space.

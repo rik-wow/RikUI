@@ -264,6 +264,7 @@ function bags:OnEnable()
     end
     for _, event in ipairs(REFRESH_EVENTS) do core:RegisterEvent(event, refreshIfOpen) end
     core:RegisterEvent("PLAYER_MONEY", bags.UpdateMoney)
+    bags.EnableMerchant()
 end
 
 function bags:Debug(sample)
