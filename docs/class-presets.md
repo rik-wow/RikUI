@@ -102,3 +102,7 @@ Checked 2026-09-23. In Setup and support, disable Automatically update preset sp
 
 Checked 2026-09-23 against the [published exact-build spellbook](https://foreverchanges.pro/spellbook/hunter) and existing DB2-backed catalogue. [Current player experiences](https://www.reddit.com/r/classicwow/comments/1wmqsy3/how_are_you_feeling_about_your_class_in_wow/) highlight melee Survival and pet play; these are requests/context, not balance verification. Marksmanship retains the saved `dps` role; Beast Mastery brings Summon Hawk forward and Survival brings melee strikes forward. Displaced ranged attacks stay on the side row. Pet command keys and Freezing Trap stay fixed. Talent inference uses each separate tree. Spell availability still requires the actual learned ID; these layouts make no performance recommendation.
 
+## Rogue talent layouts
+
+Checked 2026-09-23: [Rogue player discussion](https://us.forums.blizzard.com/en/wow/t/rogues-in-forever/2349386) informs support for different playstyles; [author-published spellbook](https://foreverchanges.pro/spellbook/rogue) and existing 69913 catalogue establish the spell families. Combat keeps saved `dps`; Assassination promotes Mutilate and Subtlety promotes Hemorrhage. Sinister Strike stays on the side row, including before those talents are learned. Stealth openers, Kick, Sprint and poison access stay fixed. No talent availability or damage ranking is inferred from level alone.
+

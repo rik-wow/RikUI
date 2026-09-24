@@ -81,6 +81,18 @@ return function(check)
             return groups
         end,
     }
+    for tree, expected in ipairs({ "assassination", "dps", "subtlety" }) do
+        points = { 0, 0, 0 }; points[tree] = 10
+        check("Rogue tree selects " .. expected, RikUI.Setup.GuessRole("ROGUE") == expected)
+    end
+    for _, sample in ipairs({ { "assassination", "Mutilate" }, { "subtlety", "Hemorrhage" } }) do
+        local current = RikUI.Setup.Resolve("ROGUE", sample[1])
+        check("Rogue " .. sample[1] .. " puts builder on main", current and current.bars.main[1].spell == sample[2])
+        check("Rogue " .. sample[1] .. " retains openers and interrupt", current
+            and current.bars.stealth[1].spell == "Ambush" and current.bars.stealth[8].spell == "Kick"
+            and current.bars.bar4[9].spell == "Sinister Strike")
+    end
+
     for tree, expected in ipairs({ "beast", "dps", "survival" }) do
         points = { 0, 0, 0 }; points[tree] = 10
         check("Hunter tree selects " .. expected, RikUI.Setup.GuessRole("HUNTER") == expected)
