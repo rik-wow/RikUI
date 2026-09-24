@@ -12,6 +12,8 @@ updating**, a `/reload` does not pick up new files.
 
 The **Materials** quick filter highlights trade goods and reagents, including cloth, ore and herbs when the client classifies them that way. It combines with text search; unreadable categories do not match. All restores the grid without moving any items.
 
+The **New** quick filter highlights items still marked new by the client. Hovering an item acknowledges it and immediately updates the filter count. Missing or unreadable new-item data produces no matches; the native new-item flag is the source of truth.
+
 ## What you see
 
 B, the backpack key, a bag key and everything else that goes through

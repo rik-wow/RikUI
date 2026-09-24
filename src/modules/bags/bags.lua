@@ -118,7 +118,7 @@ local function createFilters()
     holder.filters = {}
     local offset = PAD
     for _, entry in ipairs({ { "all", "All" }, { "junk", "Junk" }, { "quest", "Quest" },
-        { "gear", "Gear" }, { "use", "Use" }, { "materials", "Materials", 64 } }) do
+        { "gear", "Gear" }, { "use", "Use" }, { "materials", "Materials", 64 }, { "new", "New" } }) do
         local key = entry[1]
         local width = entry[3] or 44
         local button = textButton(entry[2], width, function() bags.SetFilter(key) end)

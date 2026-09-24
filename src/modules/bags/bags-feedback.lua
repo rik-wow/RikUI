@@ -7,6 +7,7 @@ function bags.UpdateNewItem(button)
         local ok, value = pcall(C_NewItems.IsNewItem, button:GetParent():GetID(), button:GetID())
         fresh = ok and not core.Secret.IsSecret(value) and value == true
     end
+    button.rikFresh = fresh
     button.rikNew:SetShown(fresh)
 end
 
@@ -14,7 +15,8 @@ local function acknowledge(button)
     if not button.rikFilled or not C_NewItems or type(C_NewItems.RemoveNewItem) ~= "function" then return end
     local ok, reason = pcall(C_NewItems.RemoveNewItem, button:GetParent():GetID(), button:GetID())
     if not ok then bags.Warn("new item", reason) end
-    bags.UpdateNewItem(button)
+    bags.UpdateButton(button)
+    bags.UpdateTitle()
 end
 
 function bags.CreateNewItem(button)

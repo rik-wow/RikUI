@@ -131,6 +131,7 @@ end
 local function categoryMatches(button)
     if filter == "all" then return true end
     if not button.rikFilled then return false end
+    if filter == "new" then return button.rikFresh == true end
     if filter == "junk" then return button.rikQuality == 0 end
     if filter == "quest" then return button.rikQuest or button.rikClass == ITEM_QUEST end
     if filter == "gear" then return button.rikClass == ITEM_WEAPON or button.rikClass == ITEM_ARMOR end
@@ -260,7 +261,7 @@ end
 
 function bags.SetFilter(value)
     if value ~= "all" and value ~= "junk" and value ~= "quest" and value ~= "gear" and value ~= "use"
-        and value ~= "materials" then return end
+        and value ~= "materials" and value ~= "new" then return end
     filter = value
     for key, button in pairs(bags.Holder.filters) do
         button.label:SetTextColor(key == filter and 1 or 0.65, key == filter and 0.82 or 0.65, key == filter and 0 or 0.65)

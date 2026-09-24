@@ -268,7 +268,14 @@ return function(check)
             RemoveNewItem = function(bag, slot) if bag == 0 and slot == 1 then marked = false end end }
         module.Refresh()
         check("new loot has a compact marker", cloth.rikNew.visible and not stone.rikNew.visible)
+        check("new-loot filter exists", holder.filters.new ~= nil)
+        env.click(holder.filters.new)
+        check("new-loot filter isolates newly acquired items", cloth.alpha == 1 and stone.alpha == 0.25
+            and holder.title.text == "Bags 3/22  1 match")
         env.runScript(cloth, "OnEnter")
+        check("acknowledgement refreshes active filter and count", cloth.alpha == 0.25
+            and holder.title.text == "Bags 3/22  0 matches")
+        env.click(holder.filters.all)
         check("hover acknowledges native new-item status", not marked and not cloth.rikNew.visible)
         C_NewItems.IsNewItem = function() return env.SECRET end
         module.Refresh()
