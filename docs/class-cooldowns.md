@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Rogue — 2026-09-24
+
+Priorities: Kick, Kidney Shot, Blind, Evasion, Sprint, Vanish, Gouge, Cold Blood, Blade Flurry, Adrenaline Rush, Preparation, Premeditation.
+
+[Current player feedback](https://us.forums.blizzard.com/en/wow/t/combat-rogue-sprint-ability-suggestion/2356506): Players request better Sprint mobility and discuss cooldown reduction/reset options.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/rogue) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+Preparation and mobility resets follow the native duration events; no predicted reset, energy threshold, stealth or combo-point eligibility. Native acceptance supplied by user.
+
 ### Warrior — 2026-09-24
 
 Priorities: Shield Bash, Pummel, Taunt, Shield Block, Shield Wall, Retaliation,

@@ -16,6 +16,7 @@ return function(check)
     local items, failScan = {}, false
     local cases = {
         { class = "WARRIOR", ids = { 72, 1671, 1672, 871, 6552, 6554 }, excluded = 78 },
+        { class = "ROGUE", ids = { 1766, 1769, 2983, 11305, 14185 }, excluded = 1752 },
         -- Add independently sourced class fixtures here.
     }
     local function item(id) return { spellID = id, itemType = 71 } end
