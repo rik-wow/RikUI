@@ -65,6 +65,30 @@ return function(check)
     core:RegisterModule("late", { OnEnable = function() lateEnabled = lateEnabled + 1 end })
     check("module registered after login enables once", lateEnabled == 1)
 
+    local ownerCalls, ownerEvents = 0, 0
+    local owner = { OnEnable = function()
+        ownerCalls = ownerCalls + 1
+        if ownerCalls > 1 then error("alias activation would remove original subscriptions") end
+        core:RegisterEvent("UNIT_HEALTH", function() ownerEvents = ownerEvents + 1 end)
+    end }
+    core:RegisterModule("identityOwner", owner)
+    local aliasOK = pcall(function() core:RegisterModule("identityAlias", owner) end)
+    env.fire("UNIT_HEALTH", "player")
+    check("duplicate module identity is rejected", not aliasOK)
+    check("alias leaves original activation and callbacks intact", ownerCalls == 1 and ownerEvents == 1
+        and core:GetModuleState("identityOwner") == "enabled")
+    check("alias leaves no registry record or profile flag", core.Modules.identityAlias == nil
+        and core:GetModuleState("identityAlias") == nil and core.Profile.modules.identityAlias == nil)
+    core.Profile.modules.disabledAlias = false
+    check("disabled alias cannot change original enabled flag",
+        not pcall(function() core:RegisterModule("disabledAlias", owner) end) and owner.enabled == true)
+    local invalidOwner = {}
+    check("invalid registration does not claim identity", not pcall(function()
+        core:RegisterModule("invalidIdentity", invalidOwner, { dependencies = false })
+    end))
+    check("valid registration after invalid options succeeds",
+        pcall(function() core:RegisterModule("validIdentity", invalidOwner) end))
+
     local saved = { version = 2, community = { example = {} }, profiles = {
         Default = { scale = 0.8 }, Custom = { scale = 1.3, positions = { bars = { x = 42 } }, modules = { bars = false } },
     } }

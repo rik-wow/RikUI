@@ -1,6 +1,6 @@
 -- Deterministic activation with explicit dependencies and isolated failure states.
 local core, runtime = RikUI, RikUI.Runtime
-local records, visiting = {}, {}
+local records, visiting, owners = {}, {}, {}
 local order = runtime.moduleOrder
 local starting = false
 
@@ -93,9 +93,10 @@ end
 function core:RegisterModule(name, module, options)
     assert(type(name) == "string" and name ~= "" and type(module) == "table", "RegisterModule needs a name and table")
     assert(not self.Modules[name], "Module already registered: " .. name)
+    assert(not owners[module], "Module table already registered: " .. tostring(owners[module]))
     assert(module.OnEnable == nil or type(module.OnEnable) == "function", "OnEnable must be a function")
     local record = { state = "registered", dependencies = dependencies(options) }
-    self.Modules[name], records[name] = module, record
+    self.Modules[name], records[name], owners[module] = module, record, name
     order[#order + 1] = name
     if runtime.initialized then configure(name) end
     if runtime.loggedIn then runtime.StartModules() end
