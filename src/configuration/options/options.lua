@@ -90,6 +90,7 @@ local function layoutSpecs(specs)
     specs[#specs + 1] = { type = "heading", label = "Layout" }
     specs[#specs + 1] = { type = "slider", key = "scale", label = "Frame scale", protected = true,
         min = SCALE_MIN, max = SCALE_MAX, step = SCALE_STEP,
+        format = function(value) return string.format("%.0f%%", value * 100) end,
         get = function() return core.Layout.GetScale() end,
         set = function(value) return core.Layout.SetScale(value) end }
     if core.Layout.PresetOption then specs[#specs + 1] = core.Layout.PresetOption() end

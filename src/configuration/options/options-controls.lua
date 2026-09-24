@@ -25,6 +25,8 @@ types.checkbox = {
 }
 
 local function clampStep(spec, value)
+    local step = spec.step or 1
+    if step > 0 then value = spec.min + math.floor((value - spec.min) / step + 0.5) * step end
     return math.min(spec.max, math.max(spec.min, value))
 end
 
@@ -41,7 +43,7 @@ types.slider = {
         slider.text = options.Text(slider, "small")
         slider.text:SetPoint("LEFT", slider, "RIGHT", metrics.textInset, 0)
         slider:SetScript("OnValueChanged", function(_, value)
-            if not row.refreshing then options.Commit(row, value) end
+            if not row.refreshing then options.Commit(row, clampStep(row.spec, value)) end
         end)
         return slider
     end,
@@ -49,7 +51,9 @@ types.slider = {
         row.refreshing = true
         row.widget:SetValue(value)
         row.refreshing = false
-        row.widget.text:SetFormattedText("%.2f", value)
+        local text = row.spec.format and row.spec.format(value)
+            or string.format("%.3f", value):gsub("0+$", ""):gsub("%.$", "")
+        row.widget.text:SetText(text)
     end,
     adjust = function(row, delta)
         options.Commit(row, clampStep(row.spec, row.value + delta * row.spec.step))
