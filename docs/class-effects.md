@@ -68,3 +68,11 @@ Player: Mark of the Wild, Gift of the Wild, Thorns, Barkskin, Enrage, Tiger's Fu
 
 [Current feedback](https://us.forums.blizzard.com/en/wow/t/feral-druid-feedback-so-far/2356947) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/druid) supplies the direct-aura families through the existing 69913 catalogue. Nature's Grasp self buff is distinct from its triggered root. Clearcasting, separate Pounce bleed and Feral Charge effects remain excluded. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Priest — 2026-09-23
+
+Track shields and defensive buffs, your healing and buff effects on allies, and Shadow DoTs or control on enemies.
+
+Player: Power Word: Shield, Renew, Inner Fire, Inner Focus, Power Infusion, Shadowform, Fear Ward, Fade, Power Word: Fortitude, Divine Spirit. Target harmful: Shadow Word: Pain, Devouring Plague, Holy Fire, Vampiric Embrace, Shackle Undead, Psychic Scream, Silence, Mind Soothe. Target helpful: Power Word: Shield, Renew, Fear Ward, Power Infusion, Power Word: Fortitude, Divine Spirit, Abolish Disease, Shadow Protection.
+
+[Current feedback](https://us.forums.blizzard.com/en/wow/t/power-word-shield-and-rage-generation-in-wow-forever/2354715) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/priest) supplies the direct-aura families through the existing 69913 catalogue. Weakened Soul, Prayer of Mending bounce auras, Spirit Tap and other triggered effects remain unverified. Vampiric Embrace is a target debuff in the source. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
