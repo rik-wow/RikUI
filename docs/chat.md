@@ -67,6 +67,12 @@ in Search to select the results for copying. Refresh captures the latest lines
 from the same chat window, keeps your search, and returns to the top. Address
 links have no Refresh action. Native chat remains unchanged.
 
+A copy reads at most the latest 1000 messages. Failed individual reads keep
+other readable lines and mark the count `(partial)`; secret strings are skipped.
+If Refresh cannot read the history, the previous snapshot and search stay in
+place with `(stale)`. A successful refresh clears that notice. Opening a source
+that cannot be read shows an empty copy marked `(unavailable)`.
+
 Web addresses (`http://`, `https://` or a bare `www.`) in say, yell, emote,
 party, raid, instance, guild, officer, whisper, Battle.net whisper, channel,
 community and system messages turn into light-blue links. Clicking one opens

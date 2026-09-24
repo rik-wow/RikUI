@@ -103,20 +103,35 @@ local function plain(text)
     return text
 end
 
+local function readLine(frame, index)
+    local text = frame:GetMessageInfo(index)
+    if usable(text) then return plain(text) end
+end
+
 local function readLines(frame)
-    local lines = {}
-    for index = 1, frame:GetNumMessages() do
-        local text = frame:GetMessageInfo(index)
-        if usable(text) then lines[#lines + 1] = plain(text) end
+    local count = frame:GetNumMessages()
+    if core.Secret.IsSecret(count) or type(count) ~= "number" or count ~= count
+        or count < 0 or count == math.huge or count % 1 ~= 0 then
+        error("message count unavailable")
     end
-    return table.concat(lines, "\n")
+    local lines, failed = {}, false
+    local limit = math.min(count, 1000)
+    -- Bound the loop itself even if a foreign frame reports a huge count.
+    for offset = 1, limit do
+        local ok, text = pcall(readLine, frame, count - limit + offset)
+        if not ok then failed = true
+        elseif text then lines[#lines + 1] = text end
+    end
+    if failed then chat.Warn("copy", "one or more message reads unavailable") end
+    local status = failed and #lines == 0 and "unavailable" or (failed or count > limit) and "partial" or nil
+    return table.concat(lines, "\n"), status
 end
 
 function chat.PlainText(frame)
-    local ok, text = pcall(readLines, frame)
-    if ok then return text end
-    chat.Warn("copy", text)
-    return ""
+    local ok, text, status = pcall(readLines, frame)
+    if ok then return text, status end
+    chat.Warn("copy", "message history unavailable")
+    return "", "unavailable"
 end
 
 -- Whisper tabs can carry a secret name; those fall back to the frame's own name.
@@ -164,13 +179,16 @@ function chat.ApplyCopySearch()
         end
     end
     window.edit:SetText(query=="" and (window.snapshot or "") or table.concat(lines,"\n"))
-    window.count:SetText(#lines.." / "..total.." lines")
+    local suffix=window.copyStatus and (" ("..window.copyStatus..")") or ""
+    window.count:SetText(#lines.." / "..total.." lines"..suffix)
     window.scroll:SetVerticalScroll(0)
 end
 
 function chat.RefreshCopy()
     if not window or not window.source then return end
-    window.snapshot=chat.PlainText(window.source)
+    local text,status=chat.PlainText(window.source)
+    if status=="unavailable" then window.copyStatus="stale"
+    else window.snapshot,window.copyStatus=text,status end
     chat.ApplyCopySearch()
 end
 
@@ -248,7 +266,8 @@ function chat.OpenCopy(frame, text)
     window.title:SetText(frame and frameTitle(frame) or LINK_TITLE)
     window.source=text==nil and frame or nil
     window.refresh:SetShown(window.source~=nil)
-    window.snapshot=text or chat.PlainText(frame)
+    if text~=nil then window.snapshot,window.copyStatus=text,nil
+    else window.snapshot,window.copyStatus=chat.PlainText(frame) end
     window.search:SetText("")
     chat.ApplyCopySearch()
     window:Show()

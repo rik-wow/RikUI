@@ -209,6 +209,40 @@ return function(check)
         check("a failing message read is reported once and leaves an empty box", printedContains("Chat copy")
             and #env.printed == 1 and window.edit.text == "")
         stub.messageError, env.printed = nil, {}
+        local originalRead, originalCount = ChatFrame2.GetMessageInfo, ChatFrame2.GetNumMessages
+        ChatFrame2.GetMessageInfo=function(self,index)
+            if index==2 then error("one unreadable line") end
+            return originalRead(self,index)
+        end
+        module.OpenCopy(ChatFrame2)
+        check("a failed line preserves readable chat and marks partial",window.edit.text=="other window"
+            and window.count.text=="1 / 1 lines (partial)")
+        ChatFrame2.GetMessageInfo=originalRead
+        module.RefreshCopy()
+        check("a recovered refresh clears partial state",window.edit.text=="other window\nother new"
+            and window.count.text=="2 / 2 lines")
+        window.search:SetText("new");env.runScript(window.search,"OnTextChanged")
+        ChatFrame2.GetNumMessages=function() error("count unavailable") end
+        module.RefreshCopy()
+        check("failed refresh retains snapshot and search with stale notice",window.edit.text=="other new"
+            and window.search.text=="new" and window.count.text=="1 / 2 lines (stale)")
+        ChatFrame2.GetNumMessages=function() return env.SECRET end
+        check("secret message count is rejected without inspection",module.PlainText(ChatFrame2)=="")
+        ChatFrame2.GetNumMessages=function() return 0/0 end
+        check("nonfinite message count is rejected",select(2,module.PlainText(ChatFrame2))=="unavailable")
+        local reads, first, last=0
+        ChatFrame2.GetNumMessages=function() return 1005 end
+        ChatFrame2.GetMessageInfo=function(_,index)
+            reads=reads+1;first=first or index;last=index
+            return "line "..index
+        end
+        local transcript,status=module.PlainText(ChatFrame2)
+        check("copy bounds work to latest 1000 messages",reads==1000 and first==6 and last==1005
+            and status=="partial" and transcript:match("^line 6\n")~=nil)
+        ChatFrame2.GetNumMessages,ChatFrame2.GetMessageInfo=originalCount,originalRead
+        module.RefreshCopy()
+        check("successful refresh clears stale notice while retaining search",window.edit.text=="other new"
+            and window.count.text=="1 / 2 lines")
         module.CloseCopy()
     end
     local function linkChecks(module)
