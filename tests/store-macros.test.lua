@@ -36,11 +36,11 @@ return function(check)
         "data/layouts.lua", "src/layout/layout-audit.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua",
         "src/layout/layout-drag.lua", "src/layout/layout-presets.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }
     local files = { "src/core/core.lua", "src/persistence/store.lua", "src/persistence/store-macros.lua" }
-    local function boot(combat)
+    local function boot(combat, db, charDB)
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         tickers = {}
         fakeClient()
-        RikUI, RikUIDB, RikUICharDB = nil, nil, nil
+        RikUI, RikUIDB, RikUICharDB = nil, db, charDB
         for _, file in ipairs(files) do assert(loadfile(file))("RikUI", {}) end
         env.fire("ADDON_LOADED", "RikUI")
         env.inCombat = combat == true
@@ -262,6 +262,38 @@ return function(check)
         core.Store.FlushMacros()
         check("malformed profile does not silently become a default profile",
             writes == beforeInvalid and core.Store.MacroStatus().failure ~= nil)
+
+        macros = {}; core = restart()
+        core.Profile.scale = 0.8; core.CharDB.askRole = false
+        core.Store.FlushMacros()
+        cvars = {}
+        core = boot(false, { profiles = { Default = { scale = 1.2 } } })
+        check("loaded account keeps precedence while missing character recovers", core.Profile.scale == 1.2
+            and core.CharDB.askRole == false and core.Store.MacroStatus().restored)
+        cvars = {}
+        core = boot(false, nil, { askRole = true, wizardDone = true })
+        check("loaded character keeps precedence while missing account recovers", core.Profile.scale == 0.8
+            and core.CharDB.askRole == true and core.CharDB.wizardDone == true)
+        cvars = {}
+        core = boot(false, { profiles = { Default = { scale = 1.3 } } }, { askRole = true })
+        check("complete saved variables are never overlaid by macros", core.Profile.scale == 1.3
+            and core.CharDB.askRole and not core.Store.MacroStatus().restored)
+        cvars = {}
+        core.Store.Save("account", { profiles = { Default = { scale = 1.1 } } })
+        core = boot()
+        check("CVar account permits missing character macro recovery", core.Profile.scale == 1.1
+            and core.CharDB.askRole == false)
+        cvars = {}
+        core.Store.Save(core.Store.CharacterKey(), { askRole = true, wizardDone = true })
+        core = boot()
+        check("CVar character permits missing account macro recovery", core.Profile.scale == 0.8
+            and core.CharDB.askRole and core.CharDB.wizardDone)
+        cvars = {}
+        core.Store.Save("account", false)
+        core.Store.Save(core.Store.CharacterKey(), 42)
+        core = boot()
+        check("scalar CVar records do not block valid restart backups", core.Profile.scale == 0.8
+            and core.CharDB.askRole == false)
 
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}

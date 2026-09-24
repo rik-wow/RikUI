@@ -1,5 +1,7 @@
 # Core module contract
 
+Recovery selects account and character sources independently: loaded SavedVariables, then valid CVar tables, then restart macros. A recovered account no longer blocks missing character preferences (or the reverse), and a loaded side is never overwritten by the older macro copy.
+
 Restart backups preserve named profiles even when every setting matches defaults. Empty profiles restore with independent default tables; malformed profile records refuse the save. Research reviewed 2026-09-24: [players report lost addon settings](https://www.reddit.com/r/WowUI/comments/1wl0hw4/wow_forever_established_addons_already_working_ui/). This fixes RikUI backup identity loss, not the client persistence subsystem.
 
 `/rik errors` lists up to 20 distinct errors caught by RikUI's runtime, with occurrence counts. Repeats print once while retained; a cleared or evicted error can print again. `/rik errors clear` resets the session history. Setup and support also has **Show errors**. This covers RikUI runtime boundaries, not every client or addon error, and never changes the client's error settings. Details are bounded to 512 bytes and secret values stay opaque. History is session-only; `GetErrors()` returns detached records.

@@ -259,7 +259,9 @@ end
 -- merges defaults and binds the profile again.
 function store.RestoreLate()
     local status = store.Status()
-    if not store.MacrosAvailable() or status.loaded or status.restored.account or status.restored.character then return false end
+    local accountMissing = not (status.loadedAccount or status.restored.account)
+    local characterMissing = not (status.loadedCharacter or status.restored.character)
+    if not store.MacrosAvailable() or not (accountMissing or characterMissing) then return false end
     local text, present = readText()
     local data = text and store.Decode(text) or nil
     if type(data) ~= "table" then
@@ -267,14 +269,14 @@ function store.RestoreLate()
         return false
     end
     state.data, state.lastText = data, text
-    if type(data.account) == "table" then
+    if accountMissing and type(data.account) == "table" then
         overlay(RikUIDB, data.account)
         for _, profile in pairs(RikUIDB.profiles or {}) do unpackPositions(profile) end
     end
     local own = type(data.characters) == "table" and data.characters[store.CharacterKey()] or nil
-    if type(own) == "table" then overlay(RikUICharDB, own) end
-    state.restored = true
-    return true
+    if characterMissing and type(own) == "table" then overlay(RikUICharDB, own) end
+    state.restored = (accountMissing and type(data.account) == "table") or (characterMissing and type(own) == "table")
+    return state.restored
 end
 
 core:RegisterEvent("PLAYER_LOGIN", function()

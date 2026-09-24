@@ -113,14 +113,17 @@ end
 
 -- Called by src/core/core.lua before defaults are merged. Saved variables that loaded are never replaced.
 function store.Restore()
-    status.loaded = RikUIDB ~= nil or RikUICharDB ~= nil
+    status.loadedAccount, status.loadedCharacter = type(RikUIDB) == "table", type(RikUICharDB) == "table"
+    status.loaded = status.loadedAccount or status.loadedCharacter
     if not store.Available() then return end
-    if RikUIDB == nil then
-        RikUIDB = store.Load("account")
+    if not status.loadedAccount then
+        local loaded = store.Load("account")
+        RikUIDB = type(loaded) == "table" and loaded or nil
         status.restored.account = RikUIDB ~= nil
     end
-    if RikUICharDB == nil then
-        RikUICharDB = store.Load(store.CharacterKey())
+    if not status.loadedCharacter then
+        local loaded = store.Load(store.CharacterKey())
+        RikUICharDB = type(loaded) == "table" and loaded or nil
         status.restored.character = RikUICharDB ~= nil
     end
 end
