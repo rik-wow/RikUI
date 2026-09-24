@@ -70,13 +70,33 @@ local function textButton(text, width, onClick)
     return button
 end
 
-function bags.Sort()
+local function sortUnavailable()
+    if InCombatLockdown() then return "Sort bags after combat." end
     if type(C_Container) ~= "table" or type(C_Container.SortBags) ~= "function" then
-        bags.Warn("sort", "C_Container.SortBags unavailable on this client")
-        return
+        return "C_Container.SortBags unavailable on this client"
     end
+    if type(CursorHasItem) ~= "function" then return "Cursor state unavailable." end
+    local ok, held = pcall(CursorHasItem)
+    if not ok or core.Secret.IsSecret(held) or type(held) ~= "boolean" then return "Cursor state unavailable." end
+    if held then return "Place the held item before sorting." end
+end
+
+function bags.RefreshSort()
+    if holder and holder.sort then holder.sort:SetEnabled(sortUnavailable() == nil) end
+end
+
+function bags.Sort()
+    local unavailable = sortUnavailable()
+    if unavailable then bags.Warn("sort", unavailable); return end
     local ok, reason = pcall(C_Container.SortBags)
     if not ok then bags.Warn("sort", reason) end
+end
+
+local function sortTooltip(button)
+    if not GameTooltip then return end
+    GameTooltip:SetOwner(button, "ANCHOR_TOP")
+    GameTooltip:SetText(sortUnavailable() or "Sort bags using your native organization preferences.")
+    GameTooltip:Show()
 end
 
 local function searchChanged(box)
@@ -138,6 +158,8 @@ local function createControls()
     holder.close.icon:SetPoint("CENTER", holder.close, "CENTER", 0, 0)
     holder.close:SetPoint("TOPRIGHT", holder, "TOPRIGHT", -PAD, -PAD)
     holder.sort = textButton(SORT_LABEL, SORT_WIDTH, bags.Sort)
+    holder.sort:SetScript("OnEnter", sortTooltip)
+    holder.sort:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
     holder.sort:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD + SEARCH_WIDTH + CONTROL_GAP, -30)
     holder.search = createSearch()
     holder.search:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -30)
@@ -181,6 +203,7 @@ function bags.UpdateTitle()
 end
 
 local function onShow()
+    bags.RefreshSort()
     bags.Refresh()
     bags.UpdateMoney()
 end
@@ -274,6 +297,10 @@ function bags:OnEnable()
         if type(_G[name]) == "function" then core.Hooks.Function(name, bags.Sync) end
     end
     for _, event in ipairs(REFRESH_EVENTS) do core:RegisterEvent(event, refreshIfOpen) end
+    for _, event in ipairs({ "CURSOR_CHANGED", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }) do
+        core:RegisterEvent(event, bags.RefreshSort)
+    end
+    bags.RefreshSort()
     core:RegisterEvent("PLAYER_MONEY", bags.UpdateMoney)
     bags.EnableMerchant()
 end

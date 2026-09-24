@@ -372,6 +372,23 @@ return function(check)
         check("all restores every slot", blade.alpha == 1 and empty.alpha == 1)
         env.click(holder.sort)
         check("the sort button calls C_Container.SortBags", stub.sorted == 1)
+        env.inCombat = true; env.fire("PLAYER_REGEN_DISABLED")
+        check("sort button disables during combat", holder.sort.enabled == false)
+        module.Sort()
+        check("combat sort neither executes nor queues", stub.sorted == 1 and RikUI.Combat.Pending() == 0)
+        env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
+        stub.cursor = { icon = 777 }; env.fire("CURSOR_CHANGED")
+        check("held item disables sorting", holder.sort.enabled == false)
+        module.Sort()
+        check("sort leaves cursor item untouched", stub.sorted == 1 and stub.cursor.icon == 777)
+        stub.cursor = nil; env.fire("CURSOR_CHANGED")
+        check("clearing cursor re-enables sort without executing it", holder.sort.enabled == true and stub.sorted == 1)
+        local cursorReader = CursorHasItem
+        CursorHasItem = function() return env.SECRET end
+        module.Sort()
+        check("unreadable cursor blocks sort", stub.sorted == 1)
+        CursorHasItem = cursorReader
+        env.printed = {}
         stub.items["0:1"], stub.items["0:3"] = nil, { iconFileID = 132889, stackCount = 20, quality = 1,
             hyperlink = stub.link("Linen Cloth") }
         env.fire("BAG_UPDATE_DELAYED")
@@ -540,6 +557,11 @@ return function(check)
         OpenAllBags()
         OpenAllBags()
         check("a missing item template prints one line", printedContains("Bags buttons") and #env.printed == 1)
+
+        module = load(nil, false, function() C_Container.SortBags = function() error("sort failed") end end)
+        OpenAllBags()
+        check("sort API exceptions stay inside callback", pcall(module.Sort))
+        check("sort API exception is reported", printedContains("sort failed"))
 
         module = load(nil, false, function() C_Container.SortBags = nil end)
         OpenAllBags()
