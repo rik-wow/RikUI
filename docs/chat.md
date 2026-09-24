@@ -63,7 +63,9 @@ bracketed text.
 
 The copy window has a case-insensitive, literal Search field and a matching-line
 count. Search filters the captured transcript; Clear restores it. Press Enter
-in Search to select the results for copying. Native chat remains unchanged.
+in Search to select the results for copying. Refresh captures the latest lines
+from the same chat window, keeps your search, and returns to the top. Address
+links have no Refresh action. Native chat remains unchanged.
 
 Web addresses (`http://`, `https://` or a bare `www.`) in say, yell, emote,
 party, raid, instance, guild, officer, whisper, Battle.net whisper, channel,

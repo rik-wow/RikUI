@@ -168,6 +168,12 @@ function chat.ApplyCopySearch()
     window.scroll:SetVerticalScroll(0)
 end
 
+function chat.RefreshCopy()
+    if not window or not window.source then return end
+    window.snapshot=chat.PlainText(window.source)
+    chat.ApplyCopySearch()
+end
+
 local function createSearch()
     local label=window:CreateFontString(nil,"OVERLAY")
     media.Font(label,"label");label:SetText("Search")
@@ -189,6 +195,12 @@ local function createSearch()
     window.clear=clear
     window.count=window:CreateFontString(nil,"OVERLAY");media.Font(window.count,"label")
     window.count:SetPoint("LEFT",clear,"RIGHT",8,0)
+    local refresh=CreateFrame("Button",nil,window)
+    refresh:SetSize(70,22);refresh:SetPoint("TOPRIGHT",window,"TOPRIGHT",-PAD,-28)
+    refresh:SetNormalFontObject(GameFontNormal);refresh:SetText("Refresh")
+    refresh:SetHighlightTexture(media.highlight,"ADD")
+    refresh:SetScript("OnClick",chat.RefreshCopy)
+    window.refresh=refresh
 end
 
 local function createEdit()
@@ -234,6 +246,8 @@ end
 function chat.OpenCopy(frame, text)
     if not window then createWindow() end
     window.title:SetText(frame and frameTitle(frame) or LINK_TITLE)
+    window.source=text==nil and frame or nil
+    window.refresh:SetShown(window.source~=nil)
     window.snapshot=text or chat.PlainText(frame)
     window.search:SetText("")
     chat.ApplyCopySearch()

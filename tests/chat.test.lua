@@ -44,6 +44,7 @@ return function(check)
         function frame:SetHeight(h) self.height = h end
         function frame:SetWidth(w) self.width = w end
         function frame:SetFrameStrata(strata) self.strata = strata end
+        function frame:SetShown(shown) if shown then self:Show() else self:Hide() end end
         function frame:SetClampRectInsets(...) self.clamp = { ... } end
         function frame:GetClampRectInsets() return unpack(self.clamp or { 0, 0, 0, 0 }) end
         function frame:SetClampedToScreen(clamped) self.clamped = clamped end
@@ -188,6 +189,14 @@ return function(check)
         env.click(rawget(ChatFrame2, "rikCopy"))
         check("another frame's button shows that frame's lines in the same window", RikUIChatCopy == window
             and window:IsShown() and window.edit.text == "other window")
+        window.search:SetText("other");env.runScript(window.search,"OnTextChanged")
+        ChatFrame2:AddMessage("other new");ChatFrame2:AddMessage(env.SECRET)
+        check("copy snapshot stays stable until refresh",window.edit.text=="other window")
+        local reset
+        window.scroll.SetVerticalScroll=function(_,value) reset=value end
+        env.click(window.refresh)
+        check("refresh retains search and reads only selected source",window.edit.text=="other window\nother new"
+            and window.search.text=="other" and window.count.text=="2 / 2 lines" and reset==0)
         env.click(window.close)
         check("the close button hides the window", not window:IsShown())
         stub.messageError = "messages unavailable"
@@ -228,6 +237,9 @@ return function(check)
         check("clicking an address link opens the box with the address selected", window:IsShown()
             and window.edit.text == URL and window.edit.highlighted == true and window.title.text == "Link"
             and ItemRefTooltip.shown == false)
+        check("standalone links cannot refresh an old chat source",not window.refresh:IsShown() and window.source==nil)
+        module.RefreshCopy()
+        check("link remains unchanged after refresh request",window.edit.text==URL)
         module.CloseCopy()
         SetItemRef("addon:Other:data", "[x]", "LeftButton", ChatFrame1)
         SetItemRef("addon:RikUI", "[x]", "LeftButton", ChatFrame1)
