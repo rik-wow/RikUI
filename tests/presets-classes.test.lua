@@ -65,6 +65,23 @@ return function(check)
         priest.macros["Flash Heal"].body == "#showtooltip Flash Heal\n/cast [@mouseover,help,nodead][help,nodead][@player] Flash Heal")
 
 
+    for _, role in ipairs(priest.roleOrder) do
+        local page = RikUI.Setup.Resolve("PRIEST", role)
+        check("Priest " .. role .. " exposes targeted utility", page.bars.main[8].macro == "Dispel Magic"
+            and page.bars.bar2[12].macro == "Penance" and page.bars.bar3[5].macro == "Resurrection")
+    end
+    for _, name in ipairs({ "Penance", "Dispel Magic" }) do
+        local macro = priest.macros[name]
+        check("Priest " .. name .. " supports friendly mouseover without losing hostile target", macro
+            and macro.body:find("[@mouseover,help,nodead][exists,nodead][@player]", 1, true)
+            and macro.spells[1] == name)
+    end
+    check("Priest resurrection only selects dead friendly units", priest.macros.Resurrection
+        and priest.macros.Resurrection.body:find("[@mouseover,help,dead][help,dead]", 1, true)
+        and not priest.macros.Resurrection.body:find("@player", 1, true))
+    check("Priest Power Infusion is learned-gated friendly utility", priest.macros["Power Infusion"]
+        and priest.macros["Power Infusion"].spells[1] == "Power Infusion")
+
     local savedTalents, savedTraits = C_ClassTalents, C_Traits
     assert(loadfile("src/setup/setup-talents.lua"))()
     local points = { 0, 0, 0 }

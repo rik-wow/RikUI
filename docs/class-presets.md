@@ -110,3 +110,7 @@ Checked 2026-09-23: [Rogue player discussion](https://us.forums.blizzard.com/en/
 
 Checked 2026-09-23. [Warrior interface feedback](https://www.reddit.com/r/classicwow/comments/1wl4exp/forever_warrior/) motivates separate talent layouts. The [published spellbook](https://foreverchanges.pro/spellbook/warrior) confirms the existing catalogue's Mortal Strike, Bloodthirst and Shield Slam families. Arms keeps `dps`, Protection keeps `tank`, and Fury gains its own role. Primary pages expose the relevant strike; displaced Rend/Heroic Strike remain on side rows. Existing stance-specific controls remain. Six other talent-only families still need an ID/icon audit and are not guessed into this change.
 
+## Priest targeted utility
+
+Checked 2026-09-23 using [Priest feedback](https://us.forums.blizzard.com/en/wow/t/priest-feedback-lvl-1-20/2357230), [healer-control requests](https://us.forums.blizzard.com/en/wow/t/healer-assist-needs-work-in-wow-forever-client/2355387) and the [published spellbook](https://foreverchanges.pro/spellbook/priest). Penance and Dispel Magic prefer a living friendly mouseover, then a living current target (including enemies), then self. Power Infusion follows friendly healing targeting. Resurrection accepts only a dead friendly mouseover or target. All four remain gated by learned spells and work in both layouts. These are player-triggered native macros, not automatic dispel or healing decisions.
+

@@ -1,7 +1,7 @@
 -- Friendly living mouseover, target, then self heals in every role.
 RikUI.Presets.PRIEST = {
     ["class"] = "PRIEST",
-    ["version"] = 1,
+    ["version"] = 2,
     ["roleOrder"] = {
         "heal",
         "shadow",
@@ -47,8 +47,7 @@ RikUI.Presets.PRIEST = {
                 ["level"] = 4,
             },
             [8] = {
-                ["spell"] = "Dispel Magic",
-                ["level"] = 18,
+                ["macro"] = "Dispel Magic",
             },
             [9] = {
                 ["macro"] = "Greater Heal",
@@ -69,7 +68,7 @@ RikUI.Presets.PRIEST = {
                 ["spell"] = "Inner Focus",
             },
             [2] = {
-                ["spell"] = "Power Infusion",
+                ["macro"] = "Power Infusion",
             },
             [3] = {
                 ["spell"] = "Desperate Prayer",
@@ -106,8 +105,7 @@ RikUI.Presets.PRIEST = {
                 ["level"] = 14,
             },
             [12] = {
-                ["spell"] = "Penance",
-                ["level"] = 30,
+                ["macro"] = "Penance",
             },
         },
         ["bar3"] = {
@@ -128,8 +126,7 @@ RikUI.Presets.PRIEST = {
                 ["level"] = 30,
             },
             [5] = {
-                ["spell"] = "Resurrection",
-                ["level"] = 10,
+                ["macro"] = "Resurrection",
             },
             [6] = {
                 ["spell"] = "Levitate",
@@ -252,6 +249,14 @@ RikUI.Presets.PRIEST = {
         },
     },
     ["macros"] = {
+        ["Penance"] = { icon = 237545, spells = { "Penance" },
+            body = "#showtooltip Penance\n/cast [@mouseover,help,nodead][exists,nodead][@player] Penance" },
+        ["Dispel Magic"] = { icon = 135894, spells = { "Dispel Magic" },
+            body = "#showtooltip Dispel Magic\n/cast [@mouseover,help,nodead][exists,nodead][@player] Dispel Magic" },
+        ["Power Infusion"] = { icon = 135939, spells = { "Power Infusion" },
+            body = "#showtooltip Power Infusion\n/cast [@mouseover,help,nodead][help,nodead][@player] Power Infusion" },
+        ["Resurrection"] = { icon = 135955, spells = { "Resurrection" },
+            body = "#showtooltip Resurrection\n/cast [@mouseover,help,dead][help,dead] Resurrection" },
         ["Lesser Heal"] = {
             ["icon"] = 135929,
             ["body"] = "#showtooltip Lesser Heal\n/cast [@mouseover,help,nodead][help,nodead][@player] Lesser Heal",
