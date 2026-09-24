@@ -3,10 +3,25 @@ local core, options = RikUI, RikUI.Options
 local SCALE_MIN, SCALE_MAX, SCALE_STEP = 0.25, 3, 0.05
 local state = { newName = "", deleteName = nil }
 
-local function copyTable(value)
-    if type(value) ~= "table" then return value end
+local MAX_PROFILE_NODES, MAX_PROFILE_DEPTH, MAX_NAME = 8192, 32, 64
+local function copyTable(value, state, depth)
+    state, depth = state or { nodes = 0, seen = {} }, depth or 0
+    state.nodes = state.nodes + 1
+    if state.nodes > MAX_PROFILE_NODES or depth > MAX_PROFILE_DEPTH then error("Profile is too large.", 0) end
+    if type(value) ~= "table" then
+        local kind = type(value)
+        if kind ~= "string" and kind ~= "number" and kind ~= "boolean" then error("Unsupported profile value.", 0) end
+        if kind == "number" and (value ~= value or math.abs(value) == math.huge) then error("Invalid profile number.", 0) end
+        return value
+    end
+    if state.seen[value] or getmetatable(value) then error("Profile contains a cycle or metatable.", 0) end
+    state.seen[value] = true
     local result = {}
-    for key, entry in pairs(value) do result[key] = copyTable(entry) end
+    for key, entry in pairs(value) do
+        if type(key) ~= "string" and type(key) ~= "number" then error("Invalid profile key.", 0) end
+        result[key] = copyTable(entry, state, depth + 1)
+    end
+    state.seen[value] = nil
     return result
 end
 
@@ -34,11 +49,17 @@ end
 
 function options.CreateProfile(name, copyFrom)
     if not core.DB then return nil, "Still loading." end
+    if type(name) ~= "string" then return nil, "Enter a profile name." end
     name = trim(name)
     if name == "" then return nil, "Enter a profile name." end
+    if #name > MAX_NAME or name:find("[%c|]") then return nil, "Use a name of 1..64 characters without markup." end
     if core.DB.profiles[name] then return nil, "Profile already exists: " .. name end
     local source = copyFrom and core.DB.profiles[copyFrom]
-    core.DB.profiles[name] = source and copyTable(source) or {}
+    if copyFrom and type(source) ~= "table" then return nil, "Unknown source profile." end
+    local ok, profile = pcall(copyTable, source or {})
+    if not ok then return nil, profile end
+    core.DB.profiles[name] = profile
+    core:Changed()
     return true
 end
 
@@ -47,6 +68,7 @@ function options.DeleteProfile(name)
     if name == core.CharDB.profile then return nil, "Switch away from the active profile before deleting it." end
     if type(name) ~= "string" or not core.DB.profiles[name] then return nil, "Unknown profile." end
     core.DB.profiles[name] = nil
+    core:Changed()
     if state.deleteName == name then state.deleteName = nil end
     return true
 end

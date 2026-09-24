@@ -104,6 +104,24 @@ return function(check)
         RikUI.Scroll.Reveal(earlyPane, 44, 22)
         check("reveal uses a resized viewport before its event", earlyPane.offset == 22 and earlyPane.range == 44)
         deferPaneSizeEvents = false
+        local saves = 0
+        RikUI.Store = { Touch = function() saves = saves + 1 end }
+        check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)
+        check("profile deletion schedules a save", options.DeleteProfile("Saved") and saves == 2)
+        check("profile names reject markup", not options.CreateProfile("|Hbad"))
+        check("profile names reject excessive length", not options.CreateProfile(string.rep("x", 65)))
+        check("profile copy rejects missing source", not options.CreateProfile("Missing", "Absent")
+            and RikUI.DB.profiles.Missing == nil)
+        RikUI.DB.profiles.Cyclic = {}; RikUI.DB.profiles.Cyclic.self = RikUI.DB.profiles.Cyclic
+        local copied, copyResult = pcall(options.CreateProfile, "Broken", "Cyclic")
+        check("cyclic copy fails safely without mutation", copied and not copyResult and RikUI.DB.profiles.Broken == nil)
+        RikUI.DB.profiles.Cyclic = nil
+        local huge = {}; for i = 1, 8200 do huge[i] = i end
+        RikUI.DB.profiles.Huge = huge
+        check("oversized copy fails without mutation", not options.CreateProfile("TooBig", "Huge")
+            and RikUI.DB.profiles.TooBig == nil)
+        RikUI.DB.profiles.Huge = nil
+        RikUI.Store = nil
         -- Renderer with synthetic specs.
 
         check("configuration confines page content to a scrolling viewport", options.Panel().pages[1].scroll ~= nil)
