@@ -124,6 +124,28 @@ return function(check)
         alerts({ [HEAD] = 1 })
         check("a client without game rules still shows the pill", module.Pill.shown == true)
 
+        module = load({ durability = { showPercent = true } })
+        stub.durability[1], stub.durability[16] = { 90, 100 }, { 35, 50 }
+        module.Refresh()
+        check("optional durability HUD shows lowest gear percent", module.Pill.shown and module.Pill.label.text == "70% durability")
+        hover(module.Pill)
+        check("durability summary tooltip includes healthy worn-down gear", tooltipContains("Head") and tooltipContains("90%"))
+        GetInventoryAlertStatus = function(index) if index == WEAPON then return 2 end end
+        stub.durability[16] = { 0, 50 }
+        module.Refresh()
+        check("sparse status reads retain later broken gear", module.Pill.label.text:find("1 broken", 1, true))
+        stub.durability[1], stub.durability[16] = { 0, 0 }, { env.SECRET, 50 }
+        hover(module.Pill)
+        check("invalid durability never displays nan or infinity", not tooltipContains("nan") and not tooltipContains("inf"))
+        GetInventoryAlertStatus = function(index) return index == WEAPON and 2 or env.SECRET end
+        module.Refresh()
+        check("opaque earlier statuses do not suppress later alerts", module.Pill.label.text:find("1 broken", 1, true))
+        module.Options.settings[1].set(false)
+        check("durability preference applies and keeps alerts", not RikUI.Profile.durability.showPercent and module.Pill.shown)
+        stub.repairDisabled = true
+        module.Refresh()
+        check("percentage option respects repair-disabled rules", not module.Pill.shown)
+
         module = load({ modules = { durability = false } })
         check("a disabled module leaves the stock figure untouched", module.Pill == nil
             and DurabilityFrame.parent == UIParent and RikUI.Layout.Groups.durability == nil)

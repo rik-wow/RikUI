@@ -36,7 +36,11 @@ end
 
 local function readStatuses()
     local statuses = {}
-    for index in ipairs(SLOTS) do statuses[index] = GetInventoryAlertStatus(index) end
+    for index in ipairs(SLOTS) do
+        local ok, value = pcall(GetInventoryAlertStatus, index)
+        if not ok then warn("status", value) end
+        statuses[index] = ok and not core.Secret.IsSecret(value) and (value == WORN or value == BROKEN) and value or 0
+    end
     return statuses
 end
 
@@ -73,14 +77,37 @@ local function setPulsing(pulsing)
     pill.alert:SetAlpha(0)
 end
 
+local function showPercent()
+    local settings = core.Profile and core.Profile.durability
+    return type(settings) == "table" and settings.showPercent == true
+end
+
+local function percent(slot)
+    local ok, current, maximum = pcall(GetInventoryItemDurability, slot)
+    if not ok or core.Secret.IsSecret(current) or core.Secret.IsSecret(maximum) then return end
+    if type(current) ~= "number" or type(maximum) ~= "number" or current ~= current or maximum ~= maximum
+        or maximum <= 0 or maximum == math.huge or current < 0 or current > maximum then return end
+    return math.floor(current / maximum * 100 + 0.5)
+end
+
+local function lowestPercent()
+    local lowest
+    for _, info in ipairs(SLOTS) do
+        local value = percent(info.slot)
+        if value then lowest = math.min(lowest or value, value) end
+    end
+    return lowest
+end
+
 -- The pill is unprotected, so it shows and hides in combat.
 local function show(worn, broken)
     local visible = pill:IsShown()
     counts.worn, counts.broken = worn, broken
-    pill:SetShown(worn + broken > 0)
+    local minimum = showPercent() and not repairDisabled() and lowestPercent() or nil
+    pill:SetShown(worn + broken > 0 or minimum ~= nil)
     setPulsing(broken > 0)
-    if worn + broken == 0 then return end
-    pill.label:SetText(describe(worn, broken))
+    if worn + broken == 0 and minimum == nil then return end
+    pill.label:SetText(worn + broken > 0 and describe(worn, broken) or (minimum .. "% durability"))
     pill.label:SetTextColor(unpack(broken > 0 and BROKEN_COLOR or WORN_COLOR))
     if not visible then motion.Play(durability.Fade) end
 end
@@ -95,22 +122,17 @@ function durability.Refresh()
     show(count(statuses))
 end
 
-local function percent(slot)
-    local current, maximum = GetInventoryItemDurability(slot)
-    return string.format("%d%%", math.floor(current / maximum * 100 + 0.5))
-end
-
 local function slotLine(info, status)
-    local ok, text = pcall(percent, info.slot)
-    local state = status == BROKEN and "broken" or "worn"
-    return info.label .. (ok and "  " .. text or "") .. "  " .. state
+    local value = percent(info.slot)
+    local state = status == BROKEN and "broken" or status == WORN and "worn" or ""
+    return info.label .. (value and "  " .. value .. "%" or "") .. "  " .. state
 end
 
 local function showTooltip(frame)
     GameTooltip:SetOwner(frame, "ANCHOR_BOTTOM")
     GameTooltip:SetText("Durability")
     for index, status in ipairs(durability.Statuses or {}) do
-        if status == WORN or status == BROKEN then
+        if status == WORN or status == BROKEN or (showPercent() and percent(SLOTS[index].slot)) then
             local color = status == BROKEN and BROKEN_COLOR or WORN_COLOR
             GameTooltip:AddLine(slotLine(SLOTS[index], status), unpack(color))
         end
@@ -164,5 +186,15 @@ end
 function durability:Debug()
     core:Print("Durability pill=" .. tostring(pill ~= nil) .. " worn=" .. counts.worn .. " broken=" .. counts.broken)
 end
+
+durability.Options = { title = "Durability", settings = {
+    { type = "checkbox", key = "showPercent", label = "Show lowest gear durability",
+        description = "Keep the lowest readable gear percentage visible before a worn or broken alert.",
+        get = showPercent, set = function(value)
+            core.Profile.durability = core.Profile.durability or {}
+            core.Profile.durability.showPercent = value == true
+            durability.Refresh()
+        end },
+} }
 
 core:RegisterModule("durability", durability)

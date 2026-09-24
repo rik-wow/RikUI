@@ -1,4 +1,8 @@
-# Durability alert
+# Durability
+
+Settings > Durability offers **Show lowest gear durability**. It keeps the lowest readable percentage visible before warning thresholds; worn/broken alerts still take precedence. Hover lists readable gear. Missing, secret and invalid readings are omitted, and unavailable early slots no longer hide later alerts. The existing eleven-slot coverage and repair-disabled game rule still apply.
+
+Research reviewed 2026-09-24: [Forever UI wishlist](https://www.reddit.com/r/wowforever/comments/1wnnqtf/what_does_your_wow_forever_wishlist_look_like/). This is an inferred HUD improvement, not a specific player request. Existing API coverage is reused; online retrieval of the pinned source failed during this run.
 
 `src/modules/durability/durability.lua` replaces the armoured figure that appears under the minimap
 when gear wears out. A small flat pill says how many pieces are worn or broken
