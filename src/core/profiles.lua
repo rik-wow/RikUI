@@ -12,7 +12,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 
     minimap = { serverTime = false, coordinates = true, dayNight = true },
     swingtimer = { kiting = true, stopLead = 0.6 },
     druidmana = { show = true },
-    nameplates = { threatText = true },
+    nameplates = { threatText = true, selectedScale = 1.15, otherAlpha = 0.6 },
     unitframes = { healthText = "both", powerText = "both" },
     worldmap = { fog = true },
     xpbar = { compact = false, text = true, animations = true, ticks = true } }

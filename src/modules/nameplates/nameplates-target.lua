@@ -13,7 +13,10 @@ local ACCENT, THREAT = { 0.45, 0.75, 1, 1 }, { 1, 0.25, 0.2, 1 }
 local ARROW_GAP, LINE_PIXELS, LINE_GAP_PIXELS = 3, 2, 1
 local APPEAR_SECONDS, PULSE_SECONDS, PULSE_LOW = 0.12, 0.6, 0.35
 -- Written only when the client knows the CVar; the originals go to the profile.
-local CVARS = { nameplateSelectedScale = "1.15", nameplateNotSelectedAlpha = "0.6" }
+local CVARS = {
+    nameplateSelectedScale = { key = "selectedScale", default = 1.15, min = 1, max = 1.5 },
+    nameplateNotSelectedAlpha = { key = "otherAlpha", default = 0.6, min = 0.2, max = 1 },
+}
 local INFO_CVAR, INFO_PERCENT = "nameplateInfoDisplay", "CurrentHealthPercent"
 
 local ARROW_SIZE = 12
@@ -184,10 +187,16 @@ local function writePercent()
     C_CVar.SetCVarBitfield(INFO_CVAR, index, true)
 end
 
+local function preference(spec)
+    local value = core.Profile.nameplates and core.Profile.nameplates[spec.key]
+    if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then value = spec.default end
+    return tostring(math.max(spec.min, math.min(spec.max, value)))
+end
+
 local function applyCVars()
     core.Profile.nameplateCVars = core.Profile.nameplateCVars or {}
     for name, value in pairs(CVARS) do
-        if known(name) then write(name, value) end
+        if known(name) then write(name, preference(value)) end
     end
     writePercent()
 end
@@ -206,7 +215,7 @@ function target.ApplyCVars()
     core.Combat.Queue(function()
         local ok, reason = pcall(applyCVars)
         if not ok then core:Print("Nameplates settings: " .. tostring(reason)) end
-    end)
+    end, "nameplates:settings")
 end
 
 -- CVars outlive the module toggle, so a disabled module hands the saved values back at login.
@@ -215,5 +224,5 @@ core:RegisterEvent("PLAYER_LOGIN", function()
     core.Combat.Queue(function()
         local ok, reason = pcall(restoreCVars)
         if not ok then core:Print("Nameplates settings: " .. tostring(reason)) end
-    end)
+    end, "nameplates:settings")
 end)

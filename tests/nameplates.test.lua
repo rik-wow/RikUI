@@ -185,6 +185,20 @@ return function(check)
         check("the original settings are kept in the profile", RikUI.Profile.nameplateCVars.nameplateSelectedScale == "1"
             and RikUI.Profile.nameplateCVars.nameplateInfoDisplay == "0")
 
+        RikUI.Profile.nameplates.selectedScale, RikUI.Profile.nameplates.otherAlpha = 1.4, 0.9
+        env.inCombat = true
+        module.Target.ApplyCVars()
+        check("nameplate preferences defer in combat", stub.cvars.nameplateSelectedScale == "1.15")
+        env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
+        check("nameplate preferences reach native CVars", stub.cvars.nameplateSelectedScale == "1.4"
+            and stub.cvars.nameplateNotSelectedAlpha == "0.9")
+        check("preference updates preserve original native values", RikUI.Profile.nameplateCVars.nameplateSelectedScale == "1")
+        RikUI.Profile.nameplates.selectedScale, RikUI.Profile.nameplates.otherAlpha = 0 / 0, -9
+        module.Target.ApplyCVars()
+        check("invalid nameplate scale falls back and opacity clamps", stub.cvars.nameplateSelectedScale == "1.15"
+            and stub.cvars.nameplateNotSelectedAlpha == "0.2")
+        RikUI.Profile.nameplates.selectedScale, RikUI.Profile.nameplates.otherAlpha = 1.15, 0.6
+        module.Target.ApplyCVars()
         stub.classification = "elite"
         local first = plate("nameplate1")
         local frame, bar = first.UnitFrame, first.UnitFrame.HealthBarsContainer.healthBar
@@ -305,7 +319,8 @@ return function(check)
             check("unrelated threat token ignored", reads == oldReads)
             env.fire("UNIT_THREAT_LIST_UPDATE", env.SECRET)
             check("secret event token refreshes public active units", reads == oldReads + 1)
-            local spec = module.Options.settings[1]
+            local spec
+            for _, option in ipairs(module.Options.settings) do if option.key == "threatText" then spec = option end end
             spec.set(false)
             oldReads = reads
             env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")

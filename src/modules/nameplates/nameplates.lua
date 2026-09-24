@@ -217,7 +217,15 @@ function nameplates:Debug()
         .. " containers=" .. auras.Count(nameplates.Containers))
 end
 
+local function emphasisOption(key, label, low, high, fallback)
+    return { type = "slider", key = key, label = label, min = low, max = high, step = 0.05,
+        protected = true, format = function(value) return string.format("%.0f%%", value * 100) end,
+        get = function() return core.Profile.nameplates[key] or fallback end,
+        set = function(value) core.Profile.nameplates[key] = value; nameplates.Target.ApplyCVars() end }
+end
 nameplates.Options = { title = "Nameplates", group = "Combat", settings = {
+    emphasisOption("selectedScale", "Target size", 1, 1.5, 1.15),
+    emphasisOption("otherAlpha", "Non-target opacity", 0.2, 1, 0.6),
     { type = "checkbox", key = "threatText", label = "Show threat text",
         description = "Client threat percentage beside each plate; AGGRO when only the native warning is available.",
         get = function() return core.Profile.nameplates.threatText ~= false end,
