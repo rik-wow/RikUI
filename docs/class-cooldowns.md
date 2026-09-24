@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Mage — 2026-09-24
+
+Priorities: Counterspell, Blink, Ice Block, Ice Barrier, Frost Nova, Cone of Cold, Evocation, Presence of Mind, Arcane Power, Combustion, Cold Snap, Fire Blast.
+
+[Current player feedback](https://us.forums.blizzard.com/en/wow/t/im-worried-about-mage-pvp/2355422): Mage PvP feedback focuses on control, mobility and burst interactions.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/mage) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+Uses Forever catalogue Ice Block 11958 and Cold Snap 12472, not legacy-name assumptions. No Hot Streak, Fingers of Frost, Arcane stacks or reset prediction. Native acceptance supplied by user.
+
 ### Priest — 2026-09-24
 
 Priorities: Power Word: Shield, Penance, Prayer of Mending, Fear Ward, Fade, Psychic Scream, Silence, Power Infusion, Inner Focus, Mind Blast, Devouring Plague, Shadow Word: Death.
