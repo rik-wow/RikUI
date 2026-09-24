@@ -16,6 +16,9 @@ return function(check)
         RikUI.Profile.borderColor = { 0.1, 0.2, 0.3 }
         RikUI.Profile.barFade.main = false
         RikUI.Profile.font = "game"
+        RikUI.Profile.bags.capacityLowOnly = true
+        RikUI.Profile.bags.capacityThreshold = 7
+        RikUI.Profile.durability = { showPercent = false }
         RikUI.Profile.panels.questTextSize = 20
         RikUI.Profile.panels.skins = { spells = false }
         RikUI.Profile.positions.main = { point="CENTER", relativePoint="CENTER", x=120, y=-30 }
@@ -25,11 +28,23 @@ return function(check)
         check("export excludes private and transient fields", not data.chatHistory and not data.layoutUndo and not data.chat.secret)
         check("export includes appearance and anchors", data.borderColor[3] == 0.3 and data.positions.main.x == 120 and data.barFade.main == false)
         check("shared font choice round trips", data.font == "game")
+        check("capacity warning policy round trips", data.bags.capacityLowOnly == true and data.bags.capacityThreshold == 7)
+        check("durability visibility round trips", data.durability and data.durability.showPercent == false)
+        local function defaultCoverage(defaults, shared, path)
+            for key, value in pairs(defaults) do
+                local name = path .. "." .. tostring(key)
+                check("portable default has shared representation " .. name, shared and shared[key] ~= nil)
+                if type(value) == "table" then defaultCoverage(value, shared and shared[key], name) end
+            end
+        end
+        defaultCoverage(RikUI.Defaults.profile, data, "profile")
         check("quest prose size round trips", data.panels.questTextSize == 20)
         check("window selection round trips", data.panels.skins.spells == false)
         local active = RikUI.Profile
         check("import creates a separate profile", sharing.ImportProfile("Backup", text) == true
             and RikUI.DB.profiles.Backup ~= active and RikUI.Profile == active and RikUI.CharDB.profile == "Default")
+        check("import retains portable inventory preferences", RikUI.DB.profiles.Backup.bags.capacityThreshold == 7
+            and RikUI.DB.profiles.Backup.durability.showPercent == false)
         check("duplicate profile cannot overwrite", sharing.ImportProfile("Backup", text) == nil)
         check("bad profile names refused", sharing.ImportProfile("|bad", text) == nil)
         local mutations = {
@@ -42,6 +57,10 @@ return function(check)
             function(p) p.modules.foo = "yes" end,
             function(p) p.chatHistory = {} end,
             function(p) p.bags.columns = 1 end,
+            function(p) p.bags.capacityLowOnly = 1 end,
+            function(p) p.bags.capacityThreshold = 21 end,
+            function(p) p.bags.capacityThreshold = 1.5 end,
+            function(p) p.durability.showPercent = "yes" end,
             function(p) p.borderColor[4] = 1 end,
         }
         for i, mutate in ipairs(mutations) do

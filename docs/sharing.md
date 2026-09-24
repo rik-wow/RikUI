@@ -1,5 +1,7 @@
 # Portable settings and presets
 
+UI profile exports include the low-space-only capacity setting, its threshold, and durability percentage visibility. Tests cover every defaulted portable preference so additions cannot silently disappear from backups. Invalid thresholds and flag types reject an import before creating a profile.
+
 Research reviewed 2026-09-24:
 - [Players sharing UI layouts](https://www.reddit.com/r/classicwow/comments/1wjudz5/protip_you_can_import_your_retail_ui_to_forever/) want to reuse setups and transfer other settings. These are community reports, not verified client guarantees.
 - [Recent addon requests](https://www.reddit.com/r/classicwow/comments/1wn4jbq/top_addons_for_forever/) mention customization and threat readability.
