@@ -185,6 +185,24 @@ return function(check)
         stub.setLines(tip, { "Fireball" })
         stub.process("Spell", tip, { id = 133 })
         check("spell tooltips end with the spell id", lastLine(tip).text == "Spell ID 133" and #tip.lines == 2)
+        stub.process("Spell", tip, { id = 133 })
+        check("repeated spell processing does not duplicate metadata", #tip.lines == 2)
+        RikUI.Profile.tooltip.spellID = false
+        stub.setLines(tip, { "Fireball" })
+        stub.process("Spell", tip, { id = 133 })
+        check("spell ID can be disabled", #tip.lines == 1)
+        RikUI.Profile.tooltip.spellID = true
+        RikUI.Profile.tooltip.itemID, RikUI.Profile.tooltip.itemLevel = true, false
+        stub.setLines(tip, { "Hearthstone" })
+        stub.process("Item", tip, { id = 6948 })
+        stub.process("Item", tip, { id = 6948 })
+        check("item IDs are optional and idempotent without item level", #tip.lines == 2 and lastLine(tip).text == "Item ID 6948")
+        for _, id in ipairs({ env.SECRET, 0, -1, 1.5, math.huge, 0/0 }) do
+            stub.setLines(tip, { "Unknown" })
+            stub.process("Item", tip, { id = id })
+            check("invalid or protected item ID is omitted", #tip.lines == 1)
+        end
+        RikUI.Profile.tooltip.itemID, RikUI.Profile.tooltip.itemLevel = false, true
         stub.setLines(tip, { "Secret spell" })
         stub.process("Spell", tip, { id = env.SECRET })
         check("a secret spell id adds no line", #tip.lines == 1)

@@ -1,5 +1,9 @@
 # Tooltips
 
+**Show item IDs**, **Show spell IDs** and **Show item levels** independently control metadata on the next tooltip display. Item IDs default off; spell IDs and item levels preserve their existing on defaults. Shared profiles include these choices. Protected, missing, fractional or invalid IDs are omitted. Repeated processing updates an existing metadata row.
+
+Research reviewed 2026-09-24: [Forever addon discussion](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/) lists TooltipID for item/spell lookup. This is community usage, not proof of API coverage. RikUI reuses its existing TooltipDataProcessor data and does not infer unknown IDs.
+
 **Tooltip size** scales styled tooltips from 75% to 150% of their original size,
 independently of HUD scale. Changes apply immediately, including comparison
 tooltips; newly loaded tooltips inherit the preference. Repeated shows do not

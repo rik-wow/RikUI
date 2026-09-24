@@ -164,4 +164,17 @@ table.insert(tooltip.Options.settings, { type = "slider", key = "scale", label =
     get = function() return core.Profile.tooltip.scale end,
     set = function(value) core.Profile.tooltip.scale = value; tooltip.Refresh() end })
 
+for _, choice in ipairs({ { "itemID", "Show item IDs", false },
+    { "spellID", "Show spell IDs", true }, { "itemLevel", "Show item levels", true } }) do
+    local key, fallback = choice[1], choice[3]
+    table.insert(tooltip.Options.settings, { type = "checkbox", key = key, label = choice[2],
+        description = "Applies the next time a tooltip is shown.",
+        get = function()
+            local value = core.Profile.tooltip[key]
+            if value == nil then return fallback end
+            return value == true
+        end,
+        set = function(value) core.Profile.tooltip[key] = value == true end })
+end
+
 core:RegisterModule("tooltip", tooltip)

@@ -3,7 +3,6 @@
 -- Blizzard's GUID-watched GameTooltip.StatusBar: its SetWatch is written for tainted callers and
 -- its secure mixin feeds SetValue, so nothing here reads UnitHealth or writes a bar value.
 local core, media, ui, tooltip = RikUI, RikUI.Media, RikUI.UI, RikUI.Tooltip
-local ITEM_LEVEL_FORMAT, SPELL_ID_FORMAT = "Item level %d", "Spell ID %d"
 local LINE_COLOR, GUILD_COLOR = { r = 0.7, g = 0.7, b = 0.7 }, { r = 0.55, g = 0.75, b = 1 }
 local HANDLER_TYPES = { "Unit", "Item", "Spell" } -- Enum.TooltipDataType keys
 local warnings = {}
@@ -128,16 +127,30 @@ local function addOwnership(frame, data)
     frame:AddLine(text, LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b)
 end
 
+local function metadata(frame, prefix, value)
+    if not readable(value, "number") or value <= 0 or value >= math.huge or value % 1 ~= 0 then return end
+    local text = prefix .. string.format("%d", value)
+    for index = 1, frame:NumLines() do
+        local region = line(frame, index)
+        local current = region and region:GetText()
+        if readable(current, "string") and current:find(prefix, 1, true) == 1 then
+            region:SetText(text)
+            return
+        end
+    end
+    frame:AddLine(text, LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b)
+end
+
 local function onItem(frame, data)
     if type(data) ~= "table" then return end
-    local level = itemLevel(data)
-    if level then frame:AddLine(string.format(ITEM_LEVEL_FORMAT, level), LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b) end
+    if core.Profile.tooltip.itemLevel ~= false then metadata(frame, "Item level ", itemLevel(data)) end
+    if core.Profile.tooltip.itemID == true then metadata(frame, "Item ID ", data.id) end
     addOwnership(frame, data)
 end
 
 local function onSpell(frame, data)
     if type(data) ~= "table" or not readable(data.id, "number") then return end
-    frame:AddLine(string.format(SPELL_ID_FORMAT, data.id), LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b)
+    if core.Profile.tooltip.spellID ~= false then metadata(frame, "Spell ID ", data.id) end
 end
 
 local HANDLERS = { Unit = onUnit, Item = onItem, Spell = onSpell }
