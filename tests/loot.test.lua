@@ -180,7 +180,23 @@ return function(check)
         env.fire("LOOT_OPENED", false)
         check("a failing slot read is reported once and contained", printedContains("Loot slot") and #env.printed == 1)
         stub.infoError = nil
-
+        env.fire("LOOT_SLOT_CHANGED", 1)
+        check("unavailable opening row recovers when data arrives", shownRows(module) == 1 and module.Rows[1].name.text == "Linen Cloth")
+        stub.infoError = "temporary"
+        env.fire("LOOT_SLOT_CHANGED", 1)
+        check("transient slot failure keeps known loot accessible", shownRows(module) == 1)
+        stub.infoError = nil
+        stub.slots[1] = {}
+        env.fire("LOOT_SLOT_CHANGED", 1)
+        check("readable empty slot disappears", shownRows(module) == 0)
+        stub.slots[1] = {132889, "Recovered cloth", 2, nil, 1}
+        env.fire("LOOT_SLOT_CHANGED", 1)
+        check("hidden slot recovers on later update", shownRows(module) == 1 and module.Rows[1].name.text == "Recovered cloth")
+        env.fire("LOOT_SLOT_CHANGED", 3)
+        check("previous session slots stay hidden", shownRows(module) == 1)
+        env.fire("LOOT_CLOSED")
+        env.fire("LOOT_SLOT_CHANGED", 1)
+        check("closed session ignores late slot updates", not holder:IsShown())
         local roll = GroupLootFrame1
         check("roll frames lose the toast art and gain the flat border", roll.Background.alpha == 0 and roll.Border.alpha == 0
             and roll.IconFrame.Border.alpha == 0 and #roll.rikBorder == 4 and #module.SkinnedRolls == 4)

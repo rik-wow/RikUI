@@ -15,6 +15,7 @@ local BACKGROUND, BORDER, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32,
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local EVENTS = { "LOOT_OPENED", "LOOT_CLOSED", "LOOT_SLOT_CLEARED", "LOOT_SLOT_CHANGED" }
 local holder, closing, warnings = nil, false, {}
+local sessionSlots, MAX_LOOT_SLOTS = 0, 200
 
 local function warn(operation, reason)
     if warnings[operation] then return end
@@ -87,7 +88,7 @@ end
 -- Returns false when the slot holds nothing to show.
 local function fillRow(row, slot)
     local ok, texture, name, quantity, currencyID, quality = pcall(GetLootSlotInfo, slot)
-    if not ok then warn("slot", texture) return false end
+    if not ok then warn("slot", texture) return nil end
     if texture == nil and name == nil then return false end
     local publicQuantity = readable(quantity, "number") and quantity or nil
     if readable(name, "string") and (row.rikItemName ~= name or row.rikQuantity ~= publicQuantity) then
@@ -127,17 +128,23 @@ local function place()
 end
 
 local function rowFor(slot)
-    for _, row in ipairs(loot.Rows) do
-        if row.slot == slot and row:IsShown() then return row end
-    end
+    if not holder:IsShown() or not readable(slot, "number") or slot ~= slot
+        or slot < 1 or slot > sessionSlots or slot % 1 ~= 0 then return end
+    return loot.Rows[slot]
 end
 
 function loot.Open()
     local ok, slots = pcall(GetNumLootItems)
-    if not ok then warn("open", slots); slots = 0 end
-    for _, row in ipairs(loot.Rows) do row:Hide() end
-    for slot = 1, readable(slots, "number") and slots or 0 do
+    if not ok or not readable(slots, "number") or slots ~= slots or slots < 0
+        or slots > MAX_LOOT_SLOTS or slots % 1 ~= 0 then
+        warn("open", "Loot slot count unavailable")
+        slots = 0
+    end
+    sessionSlots = slots
+    for _, row in ipairs(loot.Rows) do row:Hide(); row.slot = nil end
+    for slot = 1, slots do
         local row = loot.Rows[slot] or createRow()
+        row.slot = slot
         if fillRow(row, slot) then row:Show() else row:Hide() end
     end
     stackRows()
@@ -160,7 +167,11 @@ end
 
 function loot.SlotChanged(_, slot)
     local row = rowFor(slot)
-    if row and not fillRow(row, slot) then row:Hide(); stackRows() end
+    if not row then return end
+    local filled = fillRow(row, slot)
+    if filled == nil then return end
+    if filled then row:Show() else row:Hide() end
+    stackRows()
 end
 
 local HANDLERS = { LOOT_OPENED = loot.Open, LOOT_CLOSED = loot.Close, LOOT_SLOT_CLEARED = loot.SlotCleared,

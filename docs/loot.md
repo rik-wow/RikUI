@@ -1,5 +1,7 @@
 # Loot
 
+Loot slots now recover when their item data arrives late, including rows that were initially hidden. A failed update preserves an already visible row; readable empty slots still disappear. Late updates after closing and slots from an older session are ignored.
+
 The loot list fades and slides upward over 180ms; new or updated rows flash gold and have a soft hover wash. Native roll frames gain a fade entrance. Loot closing remains immediate, cancelling animation without postponing CloseLoot or slot updates. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
 
 `src/modules/loot/loot.lua` replaces Blizzard's loot window with a compact flat list and
