@@ -126,6 +126,10 @@ end
 local function generalSpecs()
     local specs = {}
     layoutSpecs(specs)
+    specs[#specs + 1] = { type = "checkbox", key = "reducedMotion", label = "Reduce cosmetic motion", reload = true,
+        description = "Remove RikUI fades, flashes and pulses. Cast and cooldown timers stay active. Reload to apply.",
+        get = function() return core.Profile.reducedMotion == true end,
+        set = function(value) core.Profile.reducedMotion = value == true end }
     specs[#specs + 1] = { type = "slider", key = "textScale", label = "Text size", reload = true,
         description = "Resize RikUI labels without resizing frames. Chat has its own font size. Reload to apply.",
         min = 0.85, max = 1.3, step = 0.05,

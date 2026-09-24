@@ -3,7 +3,12 @@
 local motion = {}
 RikUI.Motion = motion
 
+function motion.Reduced()
+    return RikUI.Profile and RikUI.Profile.reducedMotion == true
+end
+
 function motion.Interpolation(name)
+    if motion.Reduced() then name = "Immediate" end
     local enum = type(Enum) == "table" and Enum.StatusBarInterpolation
     return type(enum) == "table" and enum[name] or nil
 end
@@ -11,6 +16,7 @@ end
 -- One alpha tween on a region or frame; nil where the client has no animation groups. delay holds
 -- the start back, which staggers a row of things that appear together.
 function motion.Tween(owner, from, to, seconds, delay)
+    if motion.Reduced() then return nil end
     local group = type(owner.CreateAnimationGroup) == "function" and owner:CreateAnimationGroup() or nil
     if not group then return nil end
     local alpha = group:CreateAnimation("Alpha")
@@ -25,6 +31,7 @@ end
 -- A region travelling distance units to the right over and over: the band of an indeterminate
 -- state. The region's parent has to clip it. nil where the client lacks translation animations.
 function motion.Sweep(region, distance, seconds)
+    if motion.Reduced() then return nil end
     local group = type(region.CreateAnimationGroup) == "function" and region:CreateAnimationGroup() or nil
     local slide = group and group:CreateAnimation("Translation") or nil
     if not slide or type(slide.SetOffset) ~= "function" then return nil end
@@ -138,6 +145,7 @@ function motion.BindHover(owner)
 end
 
 function motion.Flash(owner)
+    if motion.Reduced() then return end
     if not owner.rikFlash then
         local region = effectRegion(owner)
         owner.rikFlash = motion.Tween(region, 0.32, 0, FLASH_SECONDS)

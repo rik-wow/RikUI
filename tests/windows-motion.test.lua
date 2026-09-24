@@ -3,6 +3,18 @@ return function(check)
     local restore = widgets.install()
     local ok, reason = pcall(function()
         widgets.loadAddon(env, {})
+        RikUI.Profile.reducedMotion = true
+        local quiet = CreateFrame("Frame")
+        check("reduced motion omits fades", RikUI.Motion.Tween(quiet, 0, 1, 1) == nil)
+        check("reduced motion omits sweeps", RikUI.Motion.Sweep(quiet, 10, 1) == nil)
+        check("reduced motion uses immediate fill", RikUI.Motion.Interpolation("ExponentialEaseOut")
+            == Enum.StatusBarInterpolation.Immediate)
+        RikUI.Motion.CloseOwned(quiet)
+        check("reduced motion close completes immediately", not quiet:IsShown())
+        RikUI.Motion.BindHover(quiet)
+        env.runScript(quiet, "OnEnter")
+        check("reduced motion retains static hover feedback", quiet.rikHover.region.alpha == 0.12)
+        RikUI.Profile.reducedMotion = false
         local frame = CreateFrame("Frame")
         function frame:SetPoint() error("layout anchor must not move") end
         env.inCombat = true

@@ -31,21 +31,8 @@ local function warn(operation, reason)
     core:Print("Nameplates " .. operation .. ": " .. tostring(reason))
 end
 
-local function interpolation(name)
-    local enum = type(Enum) == "table" and Enum.StatusBarInterpolation
-    return type(enum) == "table" and enum[name] or nil
-end
-
--- One alpha tween on a region or frame; nil where the client has no animation groups.
-local function tween(owner, from, to, seconds)
-    local group = type(owner.CreateAnimationGroup) == "function" and owner:CreateAnimationGroup() or nil
-    if not group then return nil end
-    local alpha = group:CreateAnimation("Alpha")
-    alpha:SetFromAlpha(from)
-    alpha:SetToAlpha(to)
-    alpha:SetDuration(seconds)
-    return group
-end
+local interpolation = core.Motion.Interpolation
+local tween = core.Motion.Tween
 skin.Tween = tween
 
 local function play(group)
