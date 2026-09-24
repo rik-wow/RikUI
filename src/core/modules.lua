@@ -103,6 +103,34 @@ function core:RegisterModule(name, module, options)
     return module
 end
 
+local function collectRequirements(name, selected, visiting)
+    if visiting[name] then return nil, "Cyclic module dependency: " .. name end
+    if selected[name] then return true end
+    local record = records[name]
+    if not record then return nil, "Missing required module: " .. tostring(name) end
+    visiting[name] = true
+    for _, dependency in ipairs(record.dependencies) do
+        local ok, reason = collectRequirements(dependency, selected, visiting)
+        if not ok then return nil, reason end
+    end
+    visiting[name], selected[name] = nil, true
+    return true
+end
+
+function core:SetModuleEnabled(name, enabled)
+    if not self.Profile then return nil, "Still loading." end
+    if not records[name] then return nil, "Unknown module." end
+    if type(enabled) ~= "boolean" then return nil, "Module choice must be a boolean." end
+    local selected = {}
+    if enabled then
+        local ok, reason = collectRequirements(name, selected, {})
+        if not ok then return nil, reason end
+    else selected[name] = true end
+    for target in pairs(selected) do self.Profile.modules[target] = enabled end
+    self:Changed()
+    return true
+end
+
 function core:GetModuleState(name)
     local record = records[name]
     if record then return record.state, record.reason end

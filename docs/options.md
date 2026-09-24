@@ -64,7 +64,7 @@ be cancelled by reopening; native Settings controls its own hide timing.
   These are client settings shared across RikUI profiles.
 - Move frames closes settings and unlocks the existing drag handles. The
   minimap launcher changes to **Done**; clicking it locks the frames.
-- Modules: enable or disable any registered module. A single **Reload UI**
+- Modules: enable or disable any registered module. Enabling also selects its required modules, including indirect requirements. Missing or cyclic requirements reject the entire change. Disabling changes only that module; dependent features may need it restored. Activation still waits for reload. A single **Reload UI**
   button appears when saved choices differ from the currently loaded modules.
   Reverting a choice or switching back to the original profile clears it.
   Gold sidebar counts show which pages need a reload; the footer identifies

@@ -106,7 +106,7 @@ local function moduleToggle(name, module)
     return { type = "checkbox", key = "module." .. name, label = moduleTitle(name, module), reload = true,
         description = "", getDescription = function() return options.ModuleStatus(name) end,
         get = function() return core.Profile.modules[name] ~= false end,
-        set = function(value) core.Profile.modules[name] = value == true end,
+        set = function(value) return core:SetModuleEnabled(name, value == true) end,
         pending = function() return (core.Profile.modules[name] ~= false) ~= (module.enabled ~= false) end }
 end
 

@@ -632,6 +632,28 @@ return function(check)
         env.fire("PLAYER_REGEN_ENABLED")
         check("deferred profile selection applies after combat", RikUI.CharDB.profile == "Alt")
 
+        options = boot({ profiles = { Default = { modules = { base = false, middle = false, feature = false } } } }, nil, function(core)
+            core:RegisterModule("base", {})
+            core:RegisterModule("middle", {}, { dependencies = { "base" } })
+            core:RegisterModule("feature", {}, { dependencies = { "middle" } })
+            core:RegisterModule("broken", {}, { dependencies = { "absent" } })
+            core:RegisterModule("cycleA", {}, { dependencies = { "cycleB" } })
+            core:RegisterModule("cycleB", {}, { dependencies = { "cycleA" } })
+        end)
+        local dependencyRows = pageByTitle(options, "Modules").list
+        env.click(rowByKey(dependencyRows, "module.feature").widget)
+        check("enable selects transitive module requirements", RikUI.Profile.modules.feature
+            and RikUI.Profile.modules.middle and RikUI.Profile.modules.base)
+        check("dependency selection does not activate live modules", RikUI:GetModuleState("base") == "disabled")
+        RikUI:SetModuleEnabled("feature", false)
+        check("disabling feature preserves dependency choices", not RikUI.Profile.modules.feature and RikUI.Profile.modules.base)
+        RikUI.Profile.modules.broken = false
+        check("missing dependency rejects atomically", not RikUI:SetModuleEnabled("broken", true)
+            and RikUI.Profile.modules.broken == false and RikUI.Profile.modules.absent == nil)
+        RikUI.Profile.modules.cycleA, RikUI.Profile.modules.cycleB = false, false
+        check("cyclic dependencies reject atomically", not RikUI:SetModuleEnabled("cycleA", true)
+            and not RikUI.Profile.modules.cycleA and not RikUI.Profile.modules.cycleB)
+
         -- Real bars module declares appearance options.
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }
