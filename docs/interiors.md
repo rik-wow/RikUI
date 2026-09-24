@@ -1,5 +1,20 @@
 # Window interiors
 
+## Social, calendar and achievements
+
+Friend/guild/community/group/raid/PvP/inspect rows use flat backgrounds and
+hover fades while presence, rank, class and selection indicators remain native.
+Calendar day cells keep event art, invites and date selection but flatten the
+decorative backing and restyle date text. Achievement cards retain progress,
+rewards and completion state. Forbidden CommunitiesAddDialog/CreateDialog
+surfaces report a client limit once instead of being traversed.
+
+Source: pinned FriendsFrame, CommunitiesMemberList, CalendarTemplates,
+AchievementUI and CommunitiesSecure XML. The social fixture checks lowercase
+friend labels, calendar global date regions, achievement progress preservation
+and forbidden subtree exclusion. Optional game-variant roots remain conditional.
+
+
 ## Auction, training, professions, guild bank and stable
 
 Service lists use the same flat rows and cropped item treatment. Recipe labels,
