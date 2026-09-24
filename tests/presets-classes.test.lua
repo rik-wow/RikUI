@@ -6,9 +6,10 @@ return function(check)
     RikUI, RikUIDB, RikUICharDB = nil, nil, nil
     loader.Core()
     for _, path in ipairs(loader.Manifest()) do
-        if path:match("^data/spells") or path == "data/bonus-pages.lua" or path:match("^presets/") then assert(loadfile(path))() end
+        if path:match("^data/spells") or path == "data/bonus-pages.lua" or path == "data/racials.lua" or path:match("^presets/") then assert(loadfile(path))() end
     end
     assert(loadfile("src/setup/setup.lua"))()
+    assert(loadfile("src/setup/setup-racials.lua"))()
     local class = "HUNTER"
     local preset = RikUI.Presets[class]
     check("Hunter has a bundled class preset", type(preset) == "table")
@@ -93,6 +94,14 @@ return function(check)
                 RikUI.Setup.GuessRole("SHAMAN") == expected)
         end
     end
+
+    for tree, expected in ipairs({ "heal", "tank", "dps" }) do
+        if RikUI.Presets.PALADIN then
+            points = { 0, 0, 0 }; points[tree] = 10
+            check("Paladin ten-point tree " .. tree .. " chooses " .. expected,
+                RikUI.Setup.GuessRole("PALADIN") == expected)
+        end
+    end
     C_ClassTalents, C_Traits = savedTalents, savedTraits
 
     local savedBook, savedEnum = C_SpellBook, Enum
@@ -135,6 +144,53 @@ return function(check)
         and shaman.bars.bar3[1].macro == "Earth Totems" and shaman.macros["Air Totems"].spells[1] == "Grounding Totem")
     check("Forever Fire Nova is not a fabricated Fire Nova Totem family",
         RikUI.Spells.Entry("Fire Nova", "SHAMAN") and not RikUI.Spells.Entry("Fire Nova Totem", "SHAMAN"))
+
+
+    local paladin = assert(RikUI.Presets.PALADIN, "Paladin preset missing")
+    local holy = assert(RikUI.Setup.Resolve("PALADIN", "heal"))
+    local protection = assert(RikUI.Setup.Resolve("PALADIN", "tank"))
+    local retribution = assert(RikUI.Setup.Resolve("PALADIN", "dps"))
+    check("Paladin has distinct healing tank and damage rotations", holy.bars.main[1].macro == "Holy Light"
+        and protection.bars.main[1].spell == "Hammer of the Righteous" and retribution.bars.main[1].spell == "Holy Strike")
+    check("Paladin Righteous Fury and shared healing remain accessible", protection.bars.bar3[8].spell == "Righteous Fury"
+        and retribution.bars.bar2[10].macro == "Flash of Light")
+    local oldRace = UnitRace
+    UnitRace = function() return "Undead", "Scourge", 5 end
+    local undead = assert(RikUI.Setup.Resolve("PALADIN", "tank"))
+    check("Undead Paladin gets racial utilities without losing existing slots",
+        undead.bars.bar3[11].spell == "Will of the Forsaken" and undead.bars.bar3[12].spell == "Cannibalize"
+        and undead.bars.extra[1].spell == paladin.bars.bar3[11].spell
+        and RikUI.Setup.SlotToAction("extra", 1) == 13)
+    UnitRace = function() return "Windshaper Skyborne", "Skyborne", 96 end
+    local sky = assert(RikUI.Setup.Resolve("MAGE", "frost"))
+    check("Skyborne faction racials use numeric race ID", sky.bars.bar3[12].spell == "Skysight")
+    UnitRace = function() return "High Order Skyborne", "Skyborne", 95 end
+    check("High Order Skyborne keeps its own racial", RikUI.Setup.Resolve("MAGE", "frost").bars.bar3[12].spell == "Read Ley Line")
+    UnitRace = function() return "Unknown", "Unknown", 999 end
+    check("Unknown races keep their existing utility", RikUI.Setup.Resolve("MAGE", "frost").bars.bar3[11].spell == "Conjure Mana Agate")
+
+    UnitRace = function() return "Gnome", "Gnome", 7 end
+    check("Gnome Eureka IDs remain class specific", RikUI.Spells.Entry("Eureka!", "MAGE").ranks[1] == 1259817
+        and RikUI.Spells.Entry("Eureka!", "WARRIOR").ranks[1] == 1259813)
+    local first = RikUI.Setup.Resolve("MAGE", "frost")
+    local second = RikUI.Setup.Resolve("MAGE", "frost")
+    first.bars.extra[1].spell = "mutated result"
+    check("racial placement never mutates the preset or another resolution",
+        second.bars.extra[1].spell == "Conjure Mana Agate" and RikUI.Presets.MAGE.bars.bar3[11].spell == "Conjure Mana Agate")
+    local full = { class = "MAGE", bars = { bar3 = { [11] = { spell = "Conjure Mana Agate" } }, extra = {} } }
+    for slot = 1, 12 do full.bars.extra[slot] = { item = "kept" } end
+    RikUI.Setup.AddRacials(full)
+    check("full extra page never discards an existing utility action", full.bars.bar3[11].spell == "Conjure Mana Agate")
+
+    local oldAction = GetActionInfo
+    GetActionInfo = function(slot) return "spell", 10000 + slot end
+    assert(loadfile("src/setup/setup-snapshot.lua"))()
+    local snapshot = assert(RikUI.Setup.CaptureSnapshot(undead,
+        { macros = false, binds = false, cvars = false, layout = false }, {}, {}, "Default"))
+    check("racial and displaced action slots are captured for Undo",
+        snapshot.bars[59].id == 10059 and snapshot.bars[60].id == 10060 and snapshot.bars[13].id == 10013)
+    GetActionInfo = oldAction
+    UnitRace = oldRace
 
     for class, current in pairs(RikUI.Presets) do
         check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)

@@ -8,8 +8,8 @@ local SLOTS_PER_PAGE = 12
 
 -- Native binding pages: MultiActionBar1=6, MultiActionBar2=5, right=3, left=4.
 local PAGE_STARTS = { main = 1, battle = 73, defensive = 85, berserker = 97, stealth = 73,
-    bar2 = 61, bar3 = 49, bar4 = 25, bar5 = 37 }
-setup.PageOrder = { "main", "battle", "defensive", "berserker", "stealth", "bar2", "bar3", "bar4", "bar5" }
+    bar2 = 61, bar3 = 49, bar4 = 25, bar5 = 37, extra = 13 }
+setup.PageOrder = { "main", "battle", "defensive", "berserker", "stealth", "bar2", "bar3", "bar4", "bar5", "extra" }
 
 function setup.CopyState(value)
     if type(value) ~= "table" then return value end
@@ -76,6 +76,7 @@ function setup.Resolve(class, role)
         -- Do not populate stance pages for classes that did not declare them.
         if preset.bars[page] or overrides[page] then result.bars[page] = resolvePage(preset, overrides, page) end
     end
+    if setup.AddRacials then setup.AddRacials(result) end
     return result
 end
 

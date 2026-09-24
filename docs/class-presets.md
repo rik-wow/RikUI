@@ -64,3 +64,15 @@ Elemental, Enhancement and Restoration have separate rotations and common emerge
 
 Shaman HTML SHA-256: `3a2b09ccc5ea49f96622eec592a2086e77f2bc3b39b37c0cbcb2e1cc30dc560a`.
 
+## Paladin layout and shared racials
+
+Holy, Protection and Retribution share emergency healing and utility. Righteous Fury is explicit on the Ctrl row and tank main page; seals, blessings and auras retain separate actions. All 56 published families are catalogued. Targeted friendly heals follow the Priest convention; Holy Shock retains native hostile/friendly targeting.
+
+Every class's resolved preset places its two supported active racials on Ctrl-C/V. Any displaced preset actions move to the first empty slots of manual page two (native actions 13–24), so no utility is lost. A full extra page preserves the existing action. Unknown races retain their original layout. Placement still requires the actual spellbook ID; the static racial list grants no ability.
+
+Race selection uses UnitRace's numeric ID: 95 and 96 are distinct Skyborne factions even though both have the Skyborne token. Gnome Eureka! has a separate verified ID for Warrior, Rogue, Priest, Mage and Warlock. Undead Paladin and Dwarf Shaman need no outdated class allowlist.
+
+Racial actives were joined from [the author's published racial descriptions](https://foreverchanges.pro/racials) to exact-build [ChrRaces](https://wago.tools/db2/ChrRaces/csv?build=1.60.1.69913) and [SkillLineAbility](https://wago.tools/db2/SkillLineAbility/csv?build=1.60.1.69913), using playable race bit masks and class masks, then verified against SpellName and non-passive SpellMisc attributes. Internal spell levels are not used to manufacture acquisition requirements.
+
+Paladin HTML SHA-256: `22a7c476dca15b6a90ba9489099083e92b85f2edb1ad16bfd1eb09d8ba94ac80`.
+

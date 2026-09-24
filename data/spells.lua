@@ -49,6 +49,7 @@ core.SpellCatalogs = { WARRIOR = core.SpellData }
 
 function spells.RegisterClass(class, data)
     core.SpellCatalogs[class] = data
+    if core.Racials then core.Racials.AddToCatalog(class, data) end
 end
 
 function spells.Catalog(class)
