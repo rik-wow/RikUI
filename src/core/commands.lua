@@ -50,6 +50,15 @@ local function showHelp()
     end
 end
 
+core:RegisterCommand("errors", function(args)
+    if args == "clear" then core:ClearErrors(); core:Print("Session errors cleared."); return end
+    if args ~= "" then core:Print("Usage: /rik errors [clear]"); return end
+    local entries = core:GetErrors()
+    core:Print("Retained session errors: " .. #entries .. " (up to 20 distinct errors)")
+    for _, entry in ipairs(entries) do
+        core:Print(entry.context .. ": " .. entry.detail .. " (x" .. entry.count .. ")")
+    end
+end, "Show session errors; use clear to reset")
 core:RegisterCommand("help", showHelp, "Show available commands")
 core:RegisterCommand("debug", function() core:Debug() end, "Show module dependency secrecy")
 SLASH_RIKUI1 = "/rik"

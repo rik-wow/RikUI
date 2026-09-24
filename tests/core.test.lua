@@ -40,6 +40,26 @@ return function(check)
             and repaired.Profile.unitframes.healthText == "hidden")
     end
 
+    do
+        local journalCore = ready(loadCore())
+        for _ = 1, 5 do journalCore.Runtime.Report("Repeated", "failure") end
+        check("runtime failure prints once", #env.printed == 1)
+        local history = journalCore:GetErrors()
+        check("runtime errors retain occurrence count", #history == 1 and history[1].count == 5)
+        history[1].count = 0
+        check("runtime history is detached", journalCore:GetErrors()[1].count == 5)
+        for index = 1, 25 do journalCore.Runtime.Report("Error " .. index, "detail") end
+        check("runtime error history is bounded", #journalCore:GetErrors() == 20)
+        SlashCmdList.RIKUI("errors")
+        check("errors command shows retained details", contains("Error 25"))
+        SlashCmdList.RIKUI("errors clear")
+        check("errors clear empties session history", #journalCore:GetErrors() == 0)
+        journalCore.Runtime.Report(env.SECRET, env.SECRET)
+        check("secret error details remain opaque", journalCore:GetErrors()[1].detail == "unknown error")
+        journalCore.Runtime.Report("Long", string.rep("a", 1000))
+        check("error detail memory is bounded", #journalCore:GetErrors()[2].detail == 512)
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

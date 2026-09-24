@@ -1,5 +1,7 @@
 # Core module contract
 
+`/rik errors` lists up to 20 distinct errors caught by RikUI's runtime, with occurrence counts. Repeats print once while retained; a cleared or evicted error can print again. `/rik errors clear` resets the session history. Setup and support also has **Show errors**. This covers RikUI runtime boundaries, not every client or addon error, and never changes the client's error settings. Details are bounded to 512 bytes and secret values stay opaque. History is session-only; `GetErrors()` returns detached records.
+
 See [architecture](architecture.md) for source ownership, startup, extension
 examples, lifecycle states, performance properties and verification boundaries.
 The TOC loads explicit core services, shared UI services, data and feature files.

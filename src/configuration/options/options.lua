@@ -271,6 +271,7 @@ local function setupSpecs()
     end
     specs[#specs + 1] = { type = "heading", label = "Support" }
     specs[#specs + 1] = action("debug", "Interface diagnostics", "Show in chat", function() core:Debug() end)
+    specs[#specs + 1] = action("errors", "Recent interface errors", "Show errors", function() run("errors") end)
     if core.Store then
         specs[#specs + 1] = action("storage", "Saved data status", "Show in chat", function() run("store") end)
         specs[#specs + 1] = action("savebackup", "Retry settings backups", "Save now", function()
