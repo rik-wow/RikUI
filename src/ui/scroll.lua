@@ -43,6 +43,9 @@ function scroll.SetContentHeight(pane, height)
 end
 
 function scroll.Reveal(pane, top, height)
+    -- Hidden panes may be sized before OnSizeChanged populates our layout cache.
+    local width, viewportHeight = math.max(1, pane:GetWidth() or 1), math.max(1, pane:GetHeight() or 1)
+    if pane.width ~= width or pane.height ~= viewportHeight then scroll.Resize(pane, width, viewportHeight) end
     local offset = pane.offset or 0
     if top < offset or height > pane.height then scroll.SetOffset(pane, top)
     elseif top + height > offset + pane.height then scroll.SetOffset(pane, top + height - pane.height) end

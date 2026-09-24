@@ -3,6 +3,7 @@ local loadfile = dofile("tests/load_addon.lua").Loadfile
 return function(check)
     local env = require("wow_stub")
     local originalCreate, originalSettings, originalPicker = CreateFrame, Settings, ColorPickerFrame
+    local deferPaneSizeEvents = false
     local function contains(text)
         for _, line in ipairs(env.printed) do if line:find(text, 1, true) then return true end end
         return false
@@ -29,14 +30,19 @@ return function(check)
         function frame:SetEnabled(value) self.enabled = value end
         function frame:SetShown(value) if value then self:Show() else self:Hide() end end
         function frame:SetSize(w,h)
+            if self.view and deferPaneSizeEvents then
+                self.nativeWidth, self.nativeHeight = w, h
+                return
+            end
+            self.nativeWidth, self.nativeHeight = nil, nil
             if self.width == w and self.height == h then return end
             self.width,self.height=w,h
             env.runScript(self, "OnSizeChanged", w, h)
         end
         function frame:SetWidth(w) self.width=w end
         function frame:SetHeight(h) self.height=h end
-        function frame:GetWidth() return self.width end
-        function frame:GetHeight() return self.height end
+        function frame:GetWidth() return self.nativeWidth or self.width end
+        function frame:GetHeight() return self.nativeHeight or self.height end
         function frame:SetClipsChildren(value) self.clips=value end
         function frame:SetScrollChild(child) self.scrollChild=child end
         function frame:SetVerticalScroll(value) self.scrollOffset=value end
@@ -80,8 +86,26 @@ return function(check)
     local function press(panel, key) env.runScript(panel, "OnKeyDown", key) end
 
     local ok, reason = pcall(function()
-        -- Renderer with synthetic specs.
+        -- Hidden panes can have dimensions before their size callback runs.
+        deferPaneSizeEvents = true
         local options = boot()
+        check("login completes before hidden pane size events", not contains("Event PLAYER_LOGIN:")
+            and #env.settings.registered > 0)
+        check("login navigation uses its real viewport", options.Panel().nav.height == 424
+            and options.Panel().nav.offset == 0)
+        local earlyPane = RikUI.Scroll.Create(UIParent)
+        local unsized = pcall(RikUI.Scroll.Reveal, earlyPane, 44, 22)
+        check("reveal tolerates a pane without dimensions", unsized)
+        earlyPane:SetSize(200, 88)
+        RikUI.Scroll.SetContentHeight(earlyPane, 88)
+        RikUI.Scroll.Reveal(earlyPane, 44, 22)
+        check("reveal before size event keeps a fitting row visible", earlyPane.offset == 0 and earlyPane.range == 0)
+        earlyPane:SetSize(200, 44)
+        RikUI.Scroll.Reveal(earlyPane, 44, 22)
+        check("reveal uses a resized viewport before its event", earlyPane.offset == 22 and earlyPane.range == 44)
+        deferPaneSizeEvents = false
+        -- Renderer with synthetic specs.
+
         check("configuration confines page content to a scrolling viewport", options.Panel().pages[1].scroll ~= nil)
         local emptyPane=RikUI.Scroll.Create(UIParent)
         local emptyList=options.Render(emptyPane.content,{})
@@ -165,7 +189,11 @@ return function(check)
         check("slider clamps input at bounds", state.amount == 2)
         env.runScript(amount.widget, "OnValueChanged", 1.5)
         check("dropdown shows the current text", choice.widget.text:GetText() == "Beta")
+        deferPaneSizeEvents = true
         env.click(choice.widget)
+        check("dropdown lays out before its size event", choice.widget.list.scroll.height == 66
+            and choice.widget.list.scroll.range == 0 and choice.widget.list.scroll.offset == 0)
+        deferPaneSizeEvents = false
         check("dropdown opens a list of readable entries", choice.widget.list.shown and #choice.widget.list.buttons == 3
             and choice.widget.list.buttons[3].text:GetText() == "Gamma")
         env.click(choice.widget.list.buttons[3])
