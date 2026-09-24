@@ -28,3 +28,11 @@ Player: Slice and Dice, Evasion, Sprint, Stealth. Target harmful: Garrote, Ruptu
 
 [Current feedback](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/rogue) supplies the direct-aura families through the existing 69913 catalogue. Poison craft IDs are not target poison auras; indirect talent procs remain unknown. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Warrior — 2026-09-23
+
+Track defensive windows, rage buffs and shout uptime alongside your Rend, Sunder and control debuffs.
+
+Player: Battle Shout, Shield Block, Bloodrage, Berserker Rage, Shield Wall, Retaliation, Recklessness. Target harmful: Rend, Sunder Armor, Demoralizing Shout, Thunder Clap, Hamstring, Disarm.
+
+[Current feedback](https://www.curseforge.com/wow/addons/overpowerproc-wow-forever-beta) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/warrior) supplies the direct-aura families through the existing 69913 catalogue. Overpower and Victory Rush proc IDs remain unverified; no combat-text inference or stance automation. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
