@@ -227,6 +227,7 @@ src/modules/lossofcontrol/lossofcontrol.lua
 src/modules/extrabuttons/extrabuttons.lua
 src/modules/extrabuttons/proc-overlay.lua
 src/modules/classcooldowns/classcooldowns.lua
+data/class-cooldowns-shaman.lua
 data/class-cooldowns-paladin.lua
 data/class-cooldowns-hunter.lua
 data/class-cooldowns-rogue.lua

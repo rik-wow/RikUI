@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Shaman — 2026-09-24
+
+Priorities: Earth Shock, Flame Shock, Frost Shock, Stormstrike, Grounding Totem, Earthbind Totem, Fire Nova, Mana Tide Totem, Riptide, Nature's Swiftness, Lava Burst, Rage of the Farseer.
+
+[Current player feedback](https://us.forums.blizzard.com/en/wow/t/shaman-beta-feedback-high-order-skyborne-shaman-please/2358582): Current Shaman feedback requests earlier active melee tools and a smoother spell-leveling experience.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/shaman) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+Shared shock and totem cooldowns come from the client; no assumed shared-timer duration, imbue effect, totem lifetime or Maelstrom proc. Forever Fire Nova replaces the legacy totem entry; Riptide uses 408521, not the retail ID. Elemental Mastery is not in the verified catalogue. Native acceptance supplied by user.
+
 ### Paladin — 2026-09-24
 
 Priorities: Hammer of Justice, Blessing of Protection, Blessing of Freedom, Lay on Hands, Divine Shield, Divine Protection, Holy Shield, Holy Shock, Repentance, Divine Favor, Exorcism, Holy Strike.
