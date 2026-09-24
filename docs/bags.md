@@ -1,5 +1,7 @@
 # Bags
 
+Hover the money line for session income, spending and net balance changes. Click it to reset. Transfers, trades, repairs and purchases all count; this is observed cash flow, not farming profit. Missing balance reads mark the totals partial and do not invent changes across the gap. Counters reset on reload and are never saved.
+
 If a bag-size read fails or is invalid, the inventory keeps its last complete grid until a valid refresh arrives. A readable zero still removes an unequipped bag. This is a guarded display snapshot; item actions remain owned by the client.
 
 **Sort** disables during combat and while an item is held on the cursor. Hover for the current reason. It never clears the cursor or queues an automatic sort for later; click again when ready. Unavailable or unreadable cursor state also blocks sorting. The refresh event is verified in the [69913 Cursor API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/CursorDocumentation.lua).

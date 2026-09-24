@@ -220,6 +220,23 @@ return function(check)
         check("the money line shows gold, silver and copper", holder.money.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
             == "12g 34s 56c")
 
+        local moneyAPI = GetMoney
+        local balance = 123456
+        GetMoney = function() return balance end
+        balance = balance + 1000; env.fire("PLAYER_MONEY")
+        balance = balance - 300; env.fire("PLAYER_MONEY")
+        local session = module.MoneySession()
+        check("session money tracks income spending and net", session.income == 1000 and session.spent == 300 and session.net == 700)
+        balance = env.SECRET; env.fire("PLAYER_MONEY")
+        check("unreadable money clears the displayed balance", holder.money.text == "")
+        balance = 500; env.fire("PLAYER_MONEY")
+        check("money gaps do not invent spending", module.MoneySession().spent == 300 and module.MoneySession().partial)
+        balance = 550; env.fire("PLAYER_MONEY")
+        check("money observation resumes after a gap", module.MoneySession().income == 1050)
+        env.click(holder.moneyButton)
+        check("money reset clears only session counters", module.MoneySession().net == 0 and not module.MoneySession().partial)
+        GetMoney = moneyAPI
+        module.ResetMoneySession()
         check("the search box is Blizzard's bag search box with its art faded", RikUIBagsSearch.template == "BagSearchBoxTemplate"
             and RikUIBagsSearch.Left.alpha == 0 and RikUIBagsSearch.Middle.alpha == 0 and #RikUIBagsSearch.rikBorder == 4)
         typeSearch("LINEN ")

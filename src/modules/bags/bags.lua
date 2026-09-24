@@ -178,6 +178,15 @@ local function createControls()
     holder.money = holder:CreateFontString(nil, "OVERLAY")
     media.Font(holder.money, "small")
     holder.money:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", -PAD, PAD)
+    holder.moneyButton = CreateFrame("Button", nil, holder)
+    holder.moneyButton:SetSize(160, CONTROL_HEIGHT)
+    holder.moneyButton:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", -PAD, PAD)
+    holder.moneyButton:SetScript("OnEnter", bags.ShowMoneySession)
+    holder.moneyButton:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+    holder.moneyButton:SetScript("OnClick", function(self)
+        bags.ResetMoneySession()
+        bags.ShowMoneySession(self)
+    end)
     holder.grid = CreateFrame("Frame", nil, holder)
     holder.grid:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -(PAD + HEADER))
 end
@@ -302,6 +311,7 @@ function bags:OnEnable()
     end
     bags.RefreshSort()
     core:RegisterEvent("PLAYER_MONEY", bags.UpdateMoney)
+    bags.UpdateMoney()
     bags.EnableMerchant()
 end
 

@@ -328,12 +328,44 @@ function bags.MoneyText(amount)
     return table.concat(parts, " ")
 end
 
+local lastMoney, income, spent, moneyGap = nil, 0, 0, false
+
+function bags.MoneySession()
+    return { income = income, spent = spent, net = income - spent, partial = moneyGap }
+end
+
 function bags.UpdateMoney()
     if not bags.Holder then return end
     local ok, amount = pcall(GetMoney)
-    if not ok then
-        bags.Warn("money", amount)
+    if not ok or not plain(amount, "number") or amount ~= amount or amount < 0
+        or amount == math.huge or amount % 1 ~= 0 then
+        if not ok then bags.Warn("money", amount) end
+        lastMoney, moneyGap = nil, true
+        bags.Holder.money:SetText("")
         return
     end
-    bags.Holder.money:SetText(plain(amount, "number") and bags.MoneyText(amount) or "")
+    if lastMoney then
+        local delta = amount - lastMoney
+        if delta > 0 then income = income + delta else spent = spent - delta end
+    end
+    lastMoney = amount
+    bags.Holder.money:SetText(bags.MoneyText(amount))
+end
+
+function bags.ResetMoneySession()
+    lastMoney, income, spent, moneyGap = nil, 0, 0, false
+    bags.UpdateMoney()
+end
+
+function bags.ShowMoneySession(button)
+    if not GameTooltip then return end
+    GameTooltip:SetOwner(button, "ANCHOR_TOP")
+    GameTooltip:SetText("Session money")
+    GameTooltip:AddLine("Income: " .. bags.MoneyText(income))
+    GameTooltip:AddLine("Spent: " .. bags.MoneyText(spent))
+    local net = income - spent
+    GameTooltip:AddLine("Net: " .. (net < 0 and "-" or "+") .. bags.MoneyText(math.abs(net)))
+    if moneyGap then GameTooltip:AddLine("Partial: some balance updates were unavailable.") end
+    GameTooltip:AddLine("Click the money line to reset. Includes all observed balance changes.")
+    GameTooltip:Show()
 end
