@@ -118,3 +118,9 @@ Checked 2026-09-23 using [Priest feedback](https://us.forums.blizzard.com/en/wow
 
 Checked 2026-09-23 against [Mage utility feedback](https://us.forums.blizzard.com/en/wow/t/beta-feedback-21-year-wow-vet/2356930) and the [published spellbook](https://foreverchanges.pro/spellbook/mage). Curse removal, Intellect, Dampen Magic and Amplify Magic now use living friendly mouseover, friendly target, then self in every role. Each macro is learned gated. Offensive targeting, Blink and Counterspell keep their existing controls. This supports deliberate group utility; it does not inspect auras or automatically choose a dispel target.
 
+### Warlock control targets — 2026-09-23
+
+[September 16 player testing and discussion](https://www.reddit.com/r/classicwow/comments/1widqqd/i_tested_warlock_for_10_hours_in_wow_forever/) emphasizes pet management and crowd control; this is community motivation, not confirmed client mechanics. The [author's extracted Warlock spellbook](https://foreverchanges.pro/spellbook/warlock) pins its data to 1.60.1.69913 and supports the existing Fear, Banish and Health Funnel families. No IDs or rank assumptions were added.
+
+All three roles now use living hostile mouseover, then current hostile target, for Fear and Banish. Health Funnel explicitly addresses the living pet without changing the selected enemy. Existing pet attack/follow keys, damage rotations and learned-spell gates remain. Pet-family abilities, soulstone item ranks and unresolved scaling are outside this change. Version 2 marks the preset update. Automated role-composition and macro-contract checks cover these changes; native acceptance is supplied by the user.
+

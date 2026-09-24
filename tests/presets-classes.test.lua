@@ -223,6 +223,23 @@ return function(check)
         and warlock.macros["Pet Attack"].body == RikUI.Presets.HUNTER.macros["Pet Attack"].body)
 
 
+    for _, role in ipairs(warlock.roleOrder) do
+        local resolved = assert(RikUI.Setup.Resolve("WARLOCK", role))
+        check("Warlock control slots survive " .. role, resolved.bars.main[6].macro == "Fear"
+            and resolved.bars.bar2[6].macro == "Banish" and resolved.bars.bar2[12].macro == "Banish")
+        check("Warlock pet heal follows role " .. role,
+            resolved.bars.main[role == "demonology" and 5 or 10].macro == "Health Funnel")
+    end
+    for _, name in ipairs({ "Fear", "Banish" }) do
+        local macro = warlock.macros[name]
+        check("Warlock living hostile targeting " .. name, macro
+            and macro.body == "#showtooltip " .. name .. "\n/cast [@mouseover,harm,nodead][harm,nodead] " .. name
+            and macro.spells[1] == name)
+    end
+    check("Warlock pet heal never changes enemy target", warlock.macros["Health Funnel"]
+        and warlock.macros["Health Funnel"].body == "#showtooltip Health Funnel\n/cast [@pet,exists,nodead] Health Funnel"
+        and warlock.macros["Health Funnel"].spells[1] == "Health Funnel")
+
     local shaman = assert(RikUI.Presets.SHAMAN, "Shaman preset missing")
     local enhancement = assert(RikUI.Setup.Resolve("SHAMAN", "enh"))
     local elemental = assert(RikUI.Setup.Resolve("SHAMAN", "ele"))

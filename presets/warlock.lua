@@ -1,7 +1,7 @@
 -- Native pet controls and role rotations; evidence: docs/class-presets.md.
 RikUI.Presets.WARLOCK = {
     ["class"] = "WARLOCK",
-    ["version"] = 1,
+    ["version"] = 2,
     ["roleOrder"] = {
         "affliction",
         "demonology",
@@ -50,8 +50,7 @@ RikUI.Presets.WARLOCK = {
                 ["level"] = 14,
             },
             [6] = {
-                ["spell"] = "Fear",
-                ["level"] = 8,
+                ["macro"] = "Fear",
             },
             [7] = {
                 ["spell"] = "Life Tap",
@@ -66,8 +65,7 @@ RikUI.Presets.WARLOCK = {
                 ["level"] = 10,
             },
             [10] = {
-                ["spell"] = "Health Funnel",
-                ["level"] = 12,
+                ["macro"] = "Health Funnel",
             },
             [11] = {
                 ["spell"] = "Death Coil",
@@ -95,8 +93,7 @@ RikUI.Presets.WARLOCK = {
                 ["level"] = 40,
             },
             [6] = {
-                ["spell"] = "Banish",
-                ["level"] = 28,
+                ["macro"] = "Banish",
             },
             [7] = {
                 ["spell"] = "Rain of Fire",
@@ -117,8 +114,7 @@ RikUI.Presets.WARLOCK = {
                 ["macro"] = "Pet Follow",
             },
             [12] = {
-                ["spell"] = "Banish",
-                ["level"] = 28,
+                ["macro"] = "Banish",
             },
         },
         ["bar3"] = {
@@ -270,6 +266,12 @@ RikUI.Presets.WARLOCK = {
         },
     },
     ["macros"] = {
+        ["Fear"] = { icon = 136183, spells = { "Fear" },
+            body = "#showtooltip Fear\n/cast [@mouseover,harm,nodead][harm,nodead] Fear" },
+        ["Banish"] = { icon = 136135, spells = { "Banish" },
+            body = "#showtooltip Banish\n/cast [@mouseover,harm,nodead][harm,nodead] Banish" },
+        ["Health Funnel"] = { icon = 136168, spells = { "Health Funnel" },
+            body = "#showtooltip Health Funnel\n/cast [@pet,exists,nodead] Health Funnel" },
         ["Pet Attack"] = {
             ["icon"] = 132161,
             ["body"] = "#showtooltip\n/petattack [@target,harm,nodead]",
@@ -283,8 +285,7 @@ RikUI.Presets.WARLOCK = {
         ["demonology"] = {
             ["main"] = {
                 [5] = {
-                    ["spell"] = "Health Funnel",
-                    ["level"] = 12,
+                    ["macro"] = "Health Funnel",
                 },
                 [10] = {
                     ["spell"] = "Drain Life",
