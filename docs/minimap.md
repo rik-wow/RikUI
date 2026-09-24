@@ -16,6 +16,10 @@ Click the zone name above the minimap to open or close the world map. Its hover
 hint explains the shortcut. This uses the native map toggle and leaves minimap
 ping and tracking clicks intact.
 
+**Show coordinates** on the Minimap options page is saved per profile. Turning
+it off clears the text immediately and stops position polling; turning it on
+reads your current position immediately.
+
 ## What you see
 
 A 198x198 square map at the top right with RikUI's flat border. The zone name

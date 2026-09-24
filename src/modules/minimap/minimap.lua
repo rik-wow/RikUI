@@ -113,12 +113,17 @@ local function coordsText()
     return string.format(COORDS_FORMAT, x * 100, y * 100)
 end
 
+function minimap.UpdateCoordinates()
+    if not holder then return end
+    holder.coords:SetText(core.Profile.minimap.coordinates~=false and coordsText() or "")
+end
+
 function minimap.Tick(self, elapsed)
     self.elapsed = self.elapsed + elapsed
     if self.elapsed < UPDATE_SECONDS then return end
     self.elapsed = 0
     self.clock:SetText(clockText())
-    self.coords:SetText(coordsText())
+    minimap.UpdateCoordinates()
 end
 
 local function readZone()
@@ -180,7 +185,7 @@ local function createHolder()
     holder.coords = label("small", "TOPRIGHT", "BOTTOMRIGHT", -TEXT_GAP)
     holder.elapsed = 0
     holder:SetScript("OnUpdate", minimap.Tick)
-    layout.Register(holder, KEY, DEFAULTS)
+    layout.Register(holder, KEY, DEFAULTS, { onApply = minimap.UpdateCoordinates })
     minimap.Holder = holder
 end
 
@@ -294,5 +299,10 @@ table.insert(minimap.Options.settings, { type = "checkbox", key = "serverTime", 
     description = "Use realm time, marked ST. Both clocks follow your 12/24-hour setting.",
     get = function() return core.Profile.minimap.serverTime == true end,
     set = function(value) core.Profile.minimap.serverTime = value == true end })
+
+table.insert(minimap.Options.settings, { type = "checkbox", key = "coordinates", label = "Show coordinates",
+    description = "Display your position below the minimap. Hidden coordinates stop position polling.",
+    get = function() return core.Profile.minimap.coordinates ~= false end,
+    set = function(value) core.Profile.minimap.coordinates = value == true; minimap.UpdateCoordinates() end })
 
 core:RegisterModule("minimap", minimap)

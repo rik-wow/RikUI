@@ -160,6 +160,16 @@ return function(check)
         check("ticks are throttled", holder.coords.text == "")
         tick(holder)
         check("the next full tick reads again", holder.coords.text == "25.0, 75.0")
+        local reads=0
+        local readMap=C_Map.GetBestMapForUnit
+        C_Map.GetBestMapForUnit=function(...) reads=reads+1;return readMap(...) end
+        module.Options.settings[2].set(false)
+        tick(holder);tick(holder)
+        check("hidden coordinates clear immediately and stop API polling",holder.coords.text=="" and reads==0
+            and RikUI.Profile.minimap.coordinates==false)
+        module.Options.settings[2].set(true)
+        check("coordinates reappear immediately when enabled",holder.coords.text=="25.0, 75.0" and reads==1)
+        C_Map.GetBestMapForUnit=readMap
         stub.position = { env.SECRET, 0.5 }
         tick(holder)
         check("a secret coordinate clears the text without printing", holder.coords.text == "" and #env.printed == 0)
@@ -254,6 +264,9 @@ return function(check)
         module = load(nil, false, function() QueueStatusButton = nil end)
         check("an absent queue button is skipped", module.Holder ~= nil and #module.Adopted == 2)
 
+        module=load({minimap={coordinates=false}})
+        tick(module.Holder)
+        check("coordinate preference survives profile reload",module.Holder.coords.text=="" and module.Options.settings[2].get()==false)
         module = load({ modules = { minimap = false } })
         cluster, map = MinimapCluster, Minimap
         check("a disabled module leaves the cluster untouched", module.Holder == nil and map.parent == cluster.MinimapContainer
