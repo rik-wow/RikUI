@@ -113,6 +113,13 @@ end
 function preview.Details(entry, preset, level)
     if not entry then return nil, "Empty slot", false end
     local icon, names
+    if entry.spell and entry.fallback then
+        local id, reason, _, selected = core.Setup.KnownSpell(entry, preset.class)
+        if id and not reason and selected ~= entry.spell then
+            local data = core.Spells.Entry(selected, preset.class)
+            return data and data.icon, selected .. " · Learned · until " .. entry.spell .. " is learned", true
+        end
+    end
     if entry.spell then
         local data = core.Spells.Entry(entry.spell, preset.class)
         icon, names = data and data.icon, { entry.spell }

@@ -50,7 +50,7 @@ end
 
 local function resolveAction(entry, preset)
     if entry.spell then
-        local id, reason = core.Spells.HighestKnownRank(entry.spell)
+        local id, reason = setup.KnownSpell(entry, preset and preset.class)
         return "spell", id, reason
     end
     if entry.macro then return resolveMacro(entry, preset) end

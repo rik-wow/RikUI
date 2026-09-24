@@ -169,6 +169,37 @@ return function(check)
     env.fire("SPELLS_CHANGED")
     check("reenabling automatic placement permits later learned updates", actions[1] and actions[1].id == 284)
 
+    fresh()
+    RikUI.Presets.WARRIOR.bars.main[1] = { spell = "Mortal Strike", level = 40, fallback = "Heroic Strike" }
+    known = { 78, 284 }
+    learned(284)
+    check("fallback learned event fills main and stance pages", actions[1] and actions[1].id == 284
+        and actions[73] and actions[73].id == 284)
+    known = { 78, 284, 12294 }
+    learned(12294)
+    check("learning primary replaces fallback on inherited pages", actions[1] and actions[1].id == 12294
+        and actions[73] and actions[73].id == 12294)
+    known = { 78, 284 }
+    env.fire("SPELLS_CHANGED")
+    check("incomplete book never demotes primary to fallback", actions[1] and actions[1].id == 12294)
+    actions[1] = { kind = "spell", id = 772 }
+    known = { 284, 12294 }
+    learned(12294)
+    check("fallback promotion preserves unrelated player spell", actions[1].id == 772)
+    actions[1], actions[73] = nil, nil
+    RikUICharDB.autoPlacement = false
+    learned(284)
+    check("fallback respects automatic placement opt-out", actions[1] == nil)
+    RikUICharDB.autoPlacement = true
+    known = { 284 }
+    env.inCombat = true
+    learned(284)
+    check("fallback does not write during combat", actions[1] == nil)
+    known = { 284, 12294 }
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    check("queued fallback rereads primary learned during combat", actions[1] and actions[1].id == 12294)
+
     fresh(true)
     known = { 284 }
     env.fire("SPELLS_CHANGED")

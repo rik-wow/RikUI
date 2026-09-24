@@ -88,6 +88,22 @@ local function actionKind(slot)
     if count == 1 then return kind end
 end
 
+-- Select once from learned spellbook entries; an API failure is not an unlearned spell.
+function setup.KnownSpell(entry, class)
+    local id, reason, rank = core.Spells.HighestKnownRank(entry.spell, class)
+    if reason then return nil, reason end
+    if id or not entry.fallback then return id, nil, rank, entry.spell end
+    id, reason, rank = core.Spells.HighestKnownRank(entry.fallback, class)
+    return id, reason, rank, entry.fallback
+end
+
+local function fallbackIssue(slot, data)
+    if slot.fallback == nil then return end
+    if not slot.spell then return "fallback requires a spell action" end
+    if type(slot.fallback) ~= "string" or not data[slot.fallback] then return "fallback must name a class spell" end
+    if slot.fallback == slot.spell then return "fallback must differ from primary spell" end
+end
+
 local function spellIssue(slot, data)
     local entry = data[slot.spell]
     if not entry then return "unresolved spell: " .. slot.spell end
@@ -102,6 +118,8 @@ local function slotIssue(slot, macros, data)
     if not kind then return "slot must contain exactly one action" end
     local name = slot[kind]
     if type(name) ~= "string" or name == "" then return kind .. " must be a nonempty name" end
+    local fallbackError = fallbackIssue(slot, data)
+    if fallbackError then return fallbackError end
     if kind == "spell" then return spellIssue(slot, data) end
     if kind == "macro" and type(macros[name]) ~= "table" then
         return "unresolved macro: " .. name

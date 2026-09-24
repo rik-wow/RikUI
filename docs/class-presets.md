@@ -1,5 +1,14 @@
 # Class presets and current research
 
+## Learned starter spells on primary keys
+
+Checked 2026-09-23. Spell slots can declare a single starter fallback from the same class catalogue. Apply chooses the highest learned primary rank, or the highest learned starter rank until the primary is available. The wizard shows the starter and names the planned upgrade. A spellbook error never counts as an unlearned spell.
+
+Automatic updates can promote that declared starter to the primary, including inherited stance pages. They preserve unrelated spells, items and macros, never demote an existing primary because a spellbook scan is incomplete, and obey combat deferral and the automatic-placement preference. Explicit Apply can rebuild a layout after changing talents. These are action-bar choices, not an automated rotation or a claim that the spells are mechanically interchangeable.
+
+[Current early-class experiences](https://www.reddit.com/r/classicwow/comments/1wmqsy3/how_are_you_feeling_about_your_class_in_wow/) and [feedback after several level-20 characters](https://www.reddit.com/r/wowforever/comments/1wnj0m8/feedback_after_getting_a_few_20s_in_the_beta/) motivate usable leveling controls. Fallback selection is our interface design, not a reported client mechanic. IDs, ranks and levels remain those in the verified catalogues below. Native acceptance is supplied by the user.
+
+
 Checked 2026-09-23. All nine classes have ready-to-apply role presets. Eight new player-spell catalogues join the existing Warrior catalogue; this is coverage of the published sources below, not a claim that every unpublished beta ability is known.
 
 The setup role page previews every resolved action page, including stance/form/stealth overlays, racial utility and displaced extra-page actions. Hover a slot for its name, proposed key and learned status. Unlearned talents remain dim even at maximum level, and missing acquisition levels are explicitly unknown. Mouse-key help names the selected class's actual actions and shows the keyboard fallback.

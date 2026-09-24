@@ -53,13 +53,17 @@ local function placeAction(context, job, kind, id)
 end
 
 local function placeSpell(context, job)
-    local id, reason, rank = core.Spells.HighestKnownRank(job.name)
+    local id, reason, rank, selected = setup.KnownSpell(job.entry)
     if reason then reportSkip(context, job, reason); return end
     if not id then return end -- Never clear a slot for an unknown or unlearned spell.
     local kind, currentID = GetActionInfo(job.slot)
     if kind == "spell" and currentID == id then reported[job.slot] = nil; return end
     if kind then
-        local currentRank = kind == "spell" and rankOf(job.name, currentID)
+        local currentRank = kind == "spell" and rankOf(selected, currentID)
+        -- Only promote a declared fallback. Never demote a primary on an incomplete book.
+        local promoting = kind == "spell" and selected == job.name and job.entry.fallback
+            and rankOf(job.entry.fallback, currentID)
+        if promoting then currentRank = 0 end
         if not currentRank then reportOccupied(context, job, kind); return end
         if not rank or currentRank >= rank then return end
     end
@@ -82,7 +86,9 @@ local function placeMacro(context, job)
 end
 
 local function jobFor(preset, entry, slot)
-    if entry.spell then return { name = entry.spell, spells = { entry.spell }, slot = slot } end
+    if entry.spell then
+        return { name = entry.spell, spells = { entry.spell, entry.fallback }, slot = slot, entry = entry }
+    end
     local macro = entry.macro and preset.macros[entry.macro]
     -- Macros without a spells list are placed by Apply alone.
     if type(macro) ~= "table" or type(macro.spells) ~= "table" or #macro.spells == 0 then return end

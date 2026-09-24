@@ -1,3 +1,59 @@
+-- Learned fallback selection, validation, placement and preview.
+local function fallbackChecks(check)
+    require("wow_stub")
+    local loader = dofile("tests/load_addon.lua")
+    RikUI, RikUIDB, RikUICharDB = nil, nil, nil
+    loader.Core()
+    assert(loadfile("data/spells.lua"))()
+    assert(loadfile("src/setup/setup.lua"))()
+    assert(loadfile("src/setup/setup-actions.lua"))()
+    local setup = RikUI.Setup
+    local entry = { spell = "Mortal Strike", level = 40, fallback = "Rend" }
+    local preset = { class = "WARRIOR", roles = { dps = {} }, macros = {}, bars = { main = { entry }, battle = {} } }
+    RikUI.Presets.WARRIOR = preset
+    check("valid fallback belongs to the same class", #setup.ValidatePreset(preset) == 0)
+    for _, bad in ipairs({ "", "Moonfire", "Mortal Strike", true, {} }) do
+        entry.fallback = bad
+        check("malformed or unresolved fallback rejected " .. tostring(bad), #setup.ValidatePreset(preset) > 0)
+    end
+    entry.fallback = "Rend"
+    preset.bars.main[2] = { item = "Hearthstone", fallback = "Rend" }
+    check("fallback rejected on nonspell actions", #setup.ValidatePreset(preset) > 0)
+    preset.bars.main[2] = nil
+    local resolved = assert(setup.Resolve("WARRIOR"))
+    check("fallback survives inherited pages", resolved.bars.battle[1].fallback == "Rend")
+    check("fallback selector exists", type(setup.KnownSpell) == "function")
+    if not setup.KnownSpell then return end
+    local original = RikUI.Spells.HighestKnownRank
+    local known, failure, requestedClass = {}, nil, nil
+    RikUI.Spells.HighestKnownRank = function(name, class)
+        requestedClass = class
+        return known[name], failure, known[name] and 1
+    end
+    local id, reason, rank, name = setup.KnownSpell(entry, "WARRIOR")
+    check("neither spell learned leaves slot empty", id == nil and reason == nil)
+    known.Rend = 772
+    id, reason, rank, name = setup.KnownSpell(entry, "WARRIOR")
+    check("learned fallback wins with explicit class", id == 772 and name == "Rend" and requestedClass == "WARRIOR")
+    known["Mortal Strike"] = 12294
+    id, reason, rank, name = setup.KnownSpell(entry, "WARRIOR")
+    check("primary wins when both are learned", id == 12294 and name == "Mortal Strike")
+    failure = "Spellbook lookup failed"
+    id, reason = setup.KnownSpell(entry, "WARRIOR")
+    check("book error is never treated as unlearned", id == nil and reason == failure)
+    failure, known["Mortal Strike"] = nil, nil
+    local restore, written = setup.RestoreSlot
+    setup.RestoreSlot = function(slot, action) written = action; return {} end
+    setup.WriteSlot(1, entry, preset)
+    check("Apply writes the learned fallback", written and written.id == 772)
+    setup.RestoreSlot = restore
+    assert(loadfile("src/configuration/wizard/wizard-preview.lua"))()
+    local icon, label, ready = RikUI.WizardPreview.Details(entry, preset, 10)
+    check("preview explains actual action and later upgrade", ready and icon == RikUI.SpellData.Rend.icon
+        and label:find("Rend", 1, true) and label:find("Mortal Strike", 1, true))
+    RikUI.Spells.HighestKnownRank = original
+end
+
 -- Cross-class catalogue and preset integration; callable by the standard runner.
 return function(check)
     package.path = "tests/?.lua;" .. package.path
@@ -393,5 +449,6 @@ return function(check)
             check(class .. " macro size " .. name, #name <= 16 and #macro.body <= 255 and type(macro.icon) == "number")
         end
     end
+    fallbackChecks(check)
 end
 
