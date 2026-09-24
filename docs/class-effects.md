@@ -44,3 +44,11 @@ Player: Aspect of the Monkey, Aspect of the Hawk, Aspect of the Cheetah, Aspect 
 
 [Current feedback](https://www.reddit.com/r/classicwow/comments/1wonh43/melee_hunter_macros_and_addons_for_wowforever/) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/hunter) supplies the direct-aura families through the existing 69913 catalogue. Trap victim auras and pet ability effects are excluded until their separate IDs are verified; no pet-AI or Auto Shot timing claim. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Paladin — 2026-09-23
+
+Track Righteous Fury, seals and defensive buffs, with your blessings on allies and control effects on enemies.
+
+Player: Righteous Fury, Seal of Righteousness, Seal of Fury, Seal of Command, Seal of Light, Seal of Wisdom, Seal of Justice, Seal of the Crusader, Divine Shield, Holy Shield. Target harmful: Hammer of Justice, Turn Undead, Repentance. Target helpful: Blessing of Might, Blessing of Wisdom, Blessing of Kings, Blessing of Salvation, Blessing of Protection, Blessing of Freedom, Blessing of Sacrifice, Greater Blessing of Might, Greater Blessing of Wisdom, Greater Blessing of Kings, Greater Blessing of Salvation.
+
+[Current feedback](https://us.forums.blizzard.com/en/wow/t/paladin-feedback-1-20-beta/2355823) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/paladin) supplies the direct-aura families through the existing 69913 catalogue. No inferred missing-seal or missing-Righteous-Fury warning. Judgement outcomes, Forbearance and indirect seal/talent procs are excluded. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+

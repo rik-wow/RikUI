@@ -45,6 +45,7 @@ return function(check)
         { class = "ROGUE", player = { 5171, 6774, 5277 }, harmful = { 1943, 11275, 8647 }, helpful = {  }, excluded = { 1752 }, enchants = true },
         { class = "WARRIOR", player = { 6673, 25289, 2565 }, harmful = { 772, 7386 }, helpful = {  }, excluded = { 78 }, enchants = false },
         { class = "HUNTER", player = { 3045 }, harmful = { 1130, 1978, 5116 }, helpful = {  }, excluded = { 75 }, enchants = false },
+        { class = "PALADIN", player = { 25780, 642 }, harmful = { 853 }, helpful = { 1044, 19740 }, excluded = { 20271 }, enchants = false },
         -- Additional verified class fixtures.
     }
     local function verifyProfile(sample)
