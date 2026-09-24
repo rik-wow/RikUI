@@ -212,6 +212,9 @@ local function showPresets(args)
     local names = {}
     for name in pairs(core.Presets) do names[#names + 1] = name end
     table.sort(names)
+    if core.PresetLibrary then
+        for _, line in ipairs(core.PresetLibrary.ValidateAll()) do core:Print(line) end
+    end
     if #names == 0 then core:Print("No presets loaded.") return end
     for _, name in ipairs(names) do
         local issues = setup.ValidatePreset(core.Presets[name])

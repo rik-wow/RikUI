@@ -90,7 +90,11 @@ local function refreshRoles(page, state)
         page.barTitle:ClearAllPoints()
         page.barTitle:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", 0, -(32 + math.ceil(#page.cards / 3) * 68))
     end
-    page.presetButton.label:SetText("Preset: " .. (state.presetName ~= "" and state.presetName or "Bundled") .. " (click to change)")
+    local sourceLabel = state.presetName ~= "" and state.presetName or "Bundled"
+    for _, entry in ipairs(core.PresetLibrary and core.PresetLibrary.Entries(state.class) or {}) do
+        if entry.value == state.presetName then sourceLabel = entry.text end
+    end
+    page.presetButton.label:SetText(sourceLabel .. " (click to change)")
     page.note:SetText(known and "" or (state.presetName ~= "" and "Preset unavailable. Choose another preset."
         or "There is no preset for " .. className(state) .. " yet; bars stay as they are."))
     if state.role == nil then state.role = guessedRole(state) end

@@ -1,0 +1,13 @@
+-- PLACEHOLDER TEMPLATE: not loaded by the TOC and not a recommended build.
+-- Replace the name, author, class/role and bars before submission.
+local preset = {
+    class = "WARRIOR",
+    author = "YOUR NAME",
+    version = 1,
+    roles = { example = { label = "PLACEHOLDER ROLE", trees = { 1 } } },
+    roleOrder = { "example" },
+    bars = { main = {} },
+    macros = {},
+}
+local ok, reason = RikUI.PresetLibrary.Register("REPLACE WITH UNIQUE NAME", preset)
+if not ok then RikUI:Print(reason) end

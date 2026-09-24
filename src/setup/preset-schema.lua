@@ -1,6 +1,6 @@
 -- Structural boundary for imported presets; semantic spell checks stay in Setup.
 local core, setup = RikUI, RikUI.Setup
-local ROOT = { class=true, version=true, roles=true, roleOrder=true, bars=true, macros=true, roleOverrides=true }
+local ROOT = { author=true, class=true, version=true, roles=true, roleOrder=true, bars=true, macros=true, roleOverrides=true }
 local ROLE = { label=true, trees=true }
 local MACRO = { icon=true, body=true, spells=true, scope=true }
 local SLOT = { spell=true, macro=true, item=true, level=true, fallback=true }
@@ -103,6 +103,7 @@ local function shape(preset)
     record(preset, ROOT, "preset")
     requireValue(type(preset.class) == "string" and core.SpellCatalogs[preset.class] ~= nil, "class", "unknown class")
     requireValue(integer(preset.version, 1, 1000000), "version", "must be a positive integer")
+    requireValue(preset.author == nil or name(preset.author, 80), "author", "must be readable text up to 80 bytes")
     roles(preset)
     macros(preset)
     pages(preset.bars, "bars")

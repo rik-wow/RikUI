@@ -43,5 +43,24 @@ return function(check)
     RikUI.DB.community[7] = {}
     RikUI.DB.community.bad = { class = "WARRIOR" }
     check("picker excludes corrupt and mixed-key data", #library.Entries("WARRIOR") == 1)
+    local bundle = setup.CopyState(RikUI.Presets.WARRIOR)
+    bundle.author = "Example author"
+    check("bundled registration API", type(library.Register) == "function")
+    if library.Register then
+        check("bundled source registers", library.Register("Example", bundle) == true)
+        bundle.author = "Mutated"
+        check("bundle is copied without saved-variable writes", library.Get("WARRIOR", "Example").author == "Example author"
+            and RikUI.DB.community.Example == nil)
+        check("bundle appears with attribution", library.Entries("WARRIOR")[2].text == "Community: Example — Example author")
+        check("bundle cannot be shadowed by import", library.Add("Example", RikUI.Presets.WARRIOR) == nil)
+        check("duplicate registration refused", library.Register("Example", bundle) == nil)
+        bundle.author = nil
+        check("bundle requires author", library.Register("Missing author", bundle) == nil)
+        bundle.author = "|bad"
+        check("author markup rejected", #setup.ValidateSharedPreset(bundle) > 0)
+        RikUI.CommunityPresets.Broken = { class = "WARRIOR" }
+        check("diagnostics include malformed bundle", #library.ValidateAll() > 0)
+        check("invalid bundle excluded", #library.Entries("WARRIOR") == 2)
+    end
     RikUI = previous
 end
