@@ -6,7 +6,7 @@ return function(check)
     RikUI, RikUIDB, RikUICharDB = nil, nil, nil
     loader.Core()
     for _, path in ipairs(loader.Manifest()) do
-        if path:match("^data/spells") or path:match("^presets/") then assert(loadfile(path))() end
+        if path:match("^data/spells") or path == "data/bonus-pages.lua" or path:match("^presets/") then assert(loadfile(path))() end
     end
     assert(loadfile("src/setup/setup.lua"))()
     local class = "HUNTER"
@@ -39,6 +39,17 @@ return function(check)
     check("Forever talent IDs are preserved rather than modern replacements",
         RikUI.Spells.Entry("Ice Block", "MAGE").ranks[1] == 11958
         and RikUI.Spells.Entry("Cold Snap", "MAGE").ranks[1] == 12472)
+
+
+    local rogue = assert(RikUI.Presets.ROGUE, "Rogue preset missing")
+    local stealth = assert(RikUI.Setup.Resolve("ROGUE"))
+    check("Rogue stealth openers inherit control and hearthstone", stealth.bars.stealth[1].spell == "Ambush"
+        and stealth.bars.stealth[3].spell == "Cheap Shot" and stealth.bars.stealth[8].spell == "Kick"
+        and stealth.bars.stealth[12].item == "Hearthstone")
+    check("Rogue stealth targets native bonus slots", RikUI.Setup.SlotToAction("stealth", 1) == 73
+        and RikUI.Data.BonusPages.ROGUE[1].offset == 1)
+    check("Rogue poison recipes retain distinct rank families", RikUI.Spells.Entry("Instant Poison II", "ROGUE")
+        and RikUI.Spells.Entry("Instant Poison", "ROGUE"))
 
     for class, current in pairs(RikUI.Presets) do
         check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)

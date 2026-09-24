@@ -40,3 +40,9 @@ Frost, Fire and Arcane roles share control and defensive positions. Mouse4/5 rem
 
 Mage HTML SHA-256: `31e2cf872cf35af78a8f292aa7493617b56637d90fcef4c9e251f897b474064f`.
 
+## Rogue layout
+
+Stealth replaces five main slots with openers, Sap and Pick Pocket, while retaining Kick and shared utility. Native Stealth form 30 uses BonusActionBar 1 (slots 73–84), verified in [SpellShapeshiftForm](https://wago.tools/db2/SpellShapeshiftForm/csv?build=1.60.1.69913). No inferred form-index paging is used. Sprint/Kick stay on Mouse4/5; poison crafting recipes remain distinct from weapon enchant auras. All 57 published families are catalogued.
+
+Rogue HTML SHA-256: `6e8f091cfe6d69064632e3915d3f2e5ca323d9460090754686ad098c718ef3e8`.
+

@@ -156,6 +156,19 @@ return function(check)
         RikUI.Layout.Reset()
         check("reset reaches every main overlay without replacing drivers", battle.point[4] == 0
             and battle.point[5] == 40 and drivers[battle] == originalCondition)
+        class = "ROGUE"
+        bars = loadBars()
+        check("Rogue stealth uses the native bonus driver", bars.Frames.stealth
+            and drivers[bars.Frames.stealth] == "[bar:1,bonusbar:1] show; hide")
+        for _, combat in ipairs({ false, true }) do
+            env.inCombat = combat
+            local before = writes
+            verifyPages(bars, 0, combat)
+            verifyPages(bars, 1, combat)
+            env.fire("UPDATE_BONUS_ACTIONBAR")
+            check("Rogue stealth changes never rewrite protected slots", writes == before)
+        end
+        env.inCombat = false
         class = "MAGE"
         bars = loadBars()
         check("class without recorded bonus pages creates no bonus overlay", bars.Frames.battle == nil)

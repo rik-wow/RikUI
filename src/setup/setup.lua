@@ -7,9 +7,9 @@ local ACTIONS = { "spell", "macro", "item" }
 local SLOTS_PER_PAGE = 12
 
 -- Native binding pages: MultiActionBar1=6, MultiActionBar2=5, right=3, left=4.
-local PAGE_STARTS = { main = 1, battle = 73, defensive = 85, berserker = 97,
+local PAGE_STARTS = { main = 1, battle = 73, defensive = 85, berserker = 97, stealth = 73,
     bar2 = 61, bar3 = 49, bar4 = 25, bar5 = 37 }
-setup.PageOrder = { "main", "battle", "defensive", "berserker", "bar2", "bar3", "bar4", "bar5" }
+setup.PageOrder = { "main", "battle", "defensive", "berserker", "stealth", "bar2", "bar3", "bar4", "bar5" }
 
 function setup.CopyState(value)
     if type(value) ~= "table" then return value end
@@ -48,7 +48,7 @@ end
 
 local function resolvePage(preset, overrides, page)
     local slots = {}
-    if page == "battle" or page == "defensive" or page == "berserker" then
+    if page == "battle" or page == "defensive" or page == "berserker" or page == "stealth" then
         overlay(slots, preset.bars.main)
         overlay(slots, overrides.main)
     end
