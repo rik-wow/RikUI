@@ -8,7 +8,7 @@ local ACCENT, MUTED = { 0.4, 0.8, 1 }, { 0.62, 0.7, 0.76 }
 function ui.Text(parent, value, role, width, height)
     local label = parent:CreateFontString(nil, "OVERLAY")
     core.Media.Font(label, role or "small")
-    if core.Media.font and core.Media.sizes then label:SetFont(core.Media.font, core.Media.sizes[role or "small"], "") end
+    if core.Media.font and core.Media.sizes then label:SetFont(core.Media.font, core.Media.Size(role or "small"), "") end
     label:SetText(value or ""); label:SetJustifyH("LEFT"); label:SetJustifyV("TOP")
     label:SetWordWrap(true); label:SetSize(width, height)
     return label

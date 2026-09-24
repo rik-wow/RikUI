@@ -64,7 +64,7 @@ function nameplates.Resize(lines, size)
 end
 
 function nameplates.Font(region, role)
-    if isRegion(region) then region:SetFont(media.font, media.sizes[role], "OUTLINE") end
+    if isRegion(region) then region:SetFont(media.font, media.Size(role), "OUTLINE") end
 end
 
 local function addGroup(container)

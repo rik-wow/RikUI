@@ -40,8 +40,15 @@ function media.Icon(parent, name, size, layer)
     return icon
 end
 
+function media.Size(role)
+    local scale = RikUI.Profile and RikUI.Profile.textScale or 1
+    if type(scale) ~= "number" or scale ~= scale or math.abs(scale) == math.huge then scale = 1 end
+    scale = math.max(0.85, math.min(1.3, scale))
+    return math.floor((media.sizes[role] or media.sizes.label) * scale + 0.5)
+end
+
 function media.Font(region, role)
-    local size = media.sizes[role]
+    local size = media.Size(role)
     local loaded = region:SetFont(media.font, size, "OUTLINE")
     if loaded == false then
         local fallback = type(STANDARD_TEXT_FONT) == "string" and STANDARD_TEXT_FONT or FALLBACK_FONT

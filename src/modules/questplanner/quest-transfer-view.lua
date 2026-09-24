@@ -18,7 +18,7 @@ local function build()
     end)
     window.edit=CreateFrame("EditBox",nil,scroll)
     window.edit:SetMultiLine(true); window.edit:SetAutoFocus(false); window.edit:SetWidth(520)
-    window.edit:SetFont(media.font,media.sizes.small,""); window.edit:SetMaxLetters(131072)
+    window.edit:SetFont(media.font,media.Size("small"),""); window.edit:SetMaxLetters(131072)
     window.edit:SetScript("OnEscapePressed",close); scroll:SetScrollChild(window.edit)
     window.edit:SetScript("OnTextChanged",function(self)
         if not window.inspect then return end

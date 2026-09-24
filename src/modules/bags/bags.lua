@@ -108,7 +108,7 @@ local function createSearch()
         if type(art) == "table" and type(art.SetAlpha) == "function" then art:SetAlpha(0) end
     end
     box:SetSize(SEARCH_WIDTH, CONTROL_HEIGHT)
-    box:SetFont(media.font, media.sizes.small, "")
+    box:SetFont(media.font, media.Size("small"), "")
     flat(box, FIELD)
     box:HookScript("OnTextChanged", searchChanged)
     return box

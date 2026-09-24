@@ -28,7 +28,7 @@ local function skinRoll(frame)
     skinIcon(frame.IconFrame)
     if isRegion(frame.Timer) then frame.Timer:SetStatusBarTexture(media.statusbar) end
     if isRegion(frame.Name) then
-        frame.Name:SetFont(media.font, media.sizes.label, "OUTLINE")
+        frame.Name:SetFont(media.font, media.Size("label"), "OUTLINE")
     end
     core.Motion.BindEntrance(frame)
     loot.SkinnedRolls[#loot.SkinnedRolls + 1] = frame

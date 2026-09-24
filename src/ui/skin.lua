@@ -94,7 +94,7 @@ local function buttonFonts()
     fonts = {}
     for state, color in pairs(BUTTON_FONT_COLORS) do
         local object = CreateFont(BUTTON_FONT_PREFIX .. state)
-        object:SetFont(media.font, media.sizes.label, "OUTLINE")
+        object:SetFont(media.font, media.Size("label"), "OUTLINE")
         object:SetTextColor(unpack(color))
         fonts[state] = object
     end

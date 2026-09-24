@@ -126,6 +126,12 @@ end
 local function generalSpecs()
     local specs = {}
     layoutSpecs(specs)
+    specs[#specs + 1] = { type = "slider", key = "textScale", label = "Text size", reload = true,
+        description = "Resize RikUI labels without resizing frames. Chat has its own font size. Reload to apply.",
+        min = 0.85, max = 1.3, step = 0.05,
+        format = function(value) return string.format("%.0f%%", value * 100) end,
+        get = function() return core.Profile.textScale or 1 end,
+        set = function(value) core.Profile.textScale = value end }
     return specs
 end
 

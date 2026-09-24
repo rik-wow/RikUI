@@ -11,7 +11,7 @@ end
 local function editBox(parent, width, height, maximum)
     local box = CreateFrame("EditBox", nil, parent)
     box:SetSize(width, height); box:SetAutoFocus(false); box:SetMaxLetters(maximum)
-    box:SetFont(core.Media.font, core.Media.sizes.label, "")
+    box:SetFont(core.Media.font, core.Media.Size("label"), "")
     box:SetScript("OnEscapePressed", sharing.Close)
     core.Skin.Fill(box, core.Skin.BACKING); core.Skin.Outline(box)
     return box

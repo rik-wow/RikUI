@@ -11,6 +11,18 @@ return function(check)
         assert(loadfile("src/core/core.lua"))("RikUI", {})
         assert(loadfile("src/ui/media.lua"))("RikUI", {})
         local media = RikUI.Media
+        RikUI.Profile = { textScale = 1.2 }
+        check("role text scales independently", media.Size and media.Size("label") == 16)
+        RikUI.Profile.textScale = 99
+        check("role text clamps excessive scale", media.Size and media.Size("small") == 14)
+        RikUI.Profile.textScale = 0 / 0
+        check("role text ignores non-finite scale", media.Size and media.Size("label") == 13)
+        RikUI.Profile.textScale = 1.2
+        local scaled = CreateFrame("Frame"):CreateFontString()
+        function scaled:SetFont(_, size) self.measured = size; return true end
+        media.Font(scaled, "small")
+        check("Font uses scaled role at its actual sink", scaled.measured == 13)
+        RikUI.Profile = nil
         local known, missing, sizes = 0, {}, {}
         for name in pairs(media.Icons) do
             known = known + 1

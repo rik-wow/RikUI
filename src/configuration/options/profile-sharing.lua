@@ -13,7 +13,7 @@ local anchors = { TOP=true, BOTTOM=true, LEFT=true, RIGHT=true, CENTER=true,
     TOPLEFT=true, TOPRIGHT=true, BOTTOMLEFT=true, BOTTOMRIGHT=true }
 local function anchor(value) return type(value) == "string" and anchors[value] == true end
 local schema = {
-    scale=number(0.25,3), gryphons=boolean, ghosts=boolean, showStockBars=boolean, lootAtCursor=boolean,
+    scale=number(0.25,3), textScale=number(0.85,1.3), gryphons=boolean, ghosts=boolean, showStockBars=boolean, lootAtCursor=boolean,
     modules={ wildcard=boolean },
     positions={ wildcard={ point=anchor, relativePoint=anchor, x=number(-32768,32768), y=number(-32768,32768) } },
     borderColor={ [1]=number(0,1), [2]=number(0,1), [3]=number(0,1) },
