@@ -233,6 +233,7 @@ function bags.Refresh()
     end
     bags.RefreshEquipped()
     bags.UpdateCapacity()
+    bags.RefreshMerchant()
     bags.Total, bags.Used = index, used
     bags.Resize()
 end

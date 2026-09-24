@@ -152,6 +152,13 @@ Newly acquired items carry a small gold **N**. Hovering acknowledges the item
 through Blizzard's new-item API. Empty slots and unavailable or secret new-item
 data never show a marker. Native item clicks and tooltips remain unchanged.
 
+## Sell junk
+
+At a merchant, **Sell junk (count)** appears beside Sort. A click requests one
+native bulk sale; Blizzard decides which items qualify and respects its own
+bag exclusions. No items are sold automatically. The action is unavailable in
+combat or when the client cannot confirm a supported junk sale.
+
 ## Vendor repairs
 
 Enable **Automatically repair gear** under Bags and vendors to repair when

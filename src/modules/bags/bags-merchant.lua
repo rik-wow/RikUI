@@ -7,6 +7,35 @@ local function amount(value)
         and value >= 0 and value < math.huge
 end
 
+local function junkCount()
+    local api = C_MerchantFrame
+    if not merchantOpen or InCombatLockdown() or type(api) ~= "table" then return nil end
+    for _, key in ipairs({ "GetNumJunkItems", "IsSellAllJunkEnabled", "SellAllJunkItems" }) do
+        if type(api[key]) ~= "function" then return nil end
+    end
+    local ok, enabled = pcall(api.IsSellAllJunkEnabled)
+    if not ok or core.Secret.IsSecret(enabled) or enabled ~= true then return nil end
+    local read, count = pcall(api.GetNumJunkItems)
+    if read and amount(count) and count == math.floor(count) then return count end
+end
+
+function bags.RefreshMerchant()
+    local button = bags.Holder and bags.Holder.junk
+    if not button then return end
+    button:SetShown(merchantOpen)
+    local count = junkCount()
+    button:SetEnabled(count ~= nil and count > 0)
+    button.label:SetText(count and ("Sell junk (" .. count .. ")") or "Sell junk")
+end
+
+function bags.SellJunk()
+    local count = junkCount()
+    if not count or count <= 0 then return end
+    local ok, reason = pcall(C_MerchantFrame.SellAllJunkItems)
+    if not ok then bags.Warn("sell junk", reason) end
+    bags.RefreshMerchant()
+end
+
 local function repair()
     if InCombatLockdown() or (type(IsShiftKeyDown) == "function" and IsShiftKeyDown()) then return end
     for _, name in ipairs({ "CanMerchantRepair", "GetRepairAllCost", "GetMoney", "RepairAllItems" }) do
@@ -24,6 +53,7 @@ end
 local function onMerchantShow()
     if merchantOpen then return end
     merchantOpen = true
+    bags.RefreshMerchant()
     if not core.Profile.bags.autoRepair then return end
     local ok, reason = pcall(repair)
     if not ok then bags.Warn("repair", reason) end
@@ -31,7 +61,11 @@ end
 
 function bags.EnableMerchant()
     core:RegisterEvent("MERCHANT_SHOW", onMerchantShow)
-    core:RegisterEvent("MERCHANT_CLOSED", function() merchantOpen = false end)
+    core:RegisterEvent("MERCHANT_CLOSED", function() merchantOpen = false; bags.RefreshMerchant() end)
+    for _, event in ipairs({ "MERCHANT_UPDATE", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }) do
+        core:RegisterEvent(event, bags.RefreshMerchant)
+    end
+    bags.RefreshMerchant()
 end
 
 bags.Options = { title = "Bags and vendors", settings = {

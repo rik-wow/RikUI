@@ -53,6 +53,8 @@ return function(check)
         function frame:SetID(id) self.id = id end
         function frame:GetID() return self.id or 0 end
         function frame:SetSize(w, h) self.width, self.height = w, h end
+        function frame:SetShown(value) if value then self:Show() else self:Hide() end end
+        function frame:SetEnabled(value) self.enabled = value end
         function frame:SetPoint(...) self.point = { ... } end
         function frame:SetAlpha(alpha) self.alpha = alpha end
         function frame:SetMovable(flag) self.movable = flag end
@@ -219,6 +221,25 @@ return function(check)
         typeSearch("")
         check("an empty search drops the match count", holder.title.text == "Bags 3/22")
 
+        local oldMerchant, sold = C_MerchantFrame, 0
+        C_MerchantFrame = { GetNumJunkItems = function() return 3 end,
+            IsSellAllJunkEnabled = function() return true end,
+            SellAllJunkItems = function() sold = sold + 1 end }
+        env.fire("MERCHANT_SHOW")
+        check("vendor shows junk count without selling automatically", holder.junk:IsShown() and holder.junk.label.text == "Sell junk (3)" and sold == 0)
+        env.click(holder.junk)
+        check("junk button delegates exactly one native sale", sold == 1)
+        env.inCombat = true
+        env.click(holder.junk)
+        check("combat blocks junk sale", sold == 1)
+        env.inCombat = false
+        C_MerchantFrame.GetNumJunkItems = function() return env.SECRET end
+        env.click(holder.junk)
+        check("secret junk count blocks sale", sold == 1)
+        env.fire("MERCHANT_CLOSED")
+        env.click(holder.junk)
+        check("closed merchant hides and refuses junk action", not holder.junk:IsShown() and sold == 1)
+        C_MerchantFrame = oldMerchant
         local oldRepair, oldCost, oldCan, oldShift = RepairAllItems, GetRepairAllCost, CanMerchantRepair, IsShiftKeyDown
         local repairs, cost, canRepair, shifted = 0, 50, true, false
         RepairAllItems = function(guild) check("repair uses personal funds", guild == false); repairs = repairs + 1 end
