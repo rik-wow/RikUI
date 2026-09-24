@@ -10,7 +10,7 @@ core.Bags = bags
 local HOLDER_NAME, SEARCH_NAME, KEY = "RikUIBags", "RikUIBagsSearch", "bags"
 -- Bottom right, above the tooltip anchor.
 local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -126, y = 350 }
-local PAD, HEADER, FOOTER, EDGE = 8, 24, 18, 1
+local PAD, HEADER, FOOTER, EDGE = 8, 24, 64, 1
 local CONTROL_HEIGHT, SEARCH_WIDTH, SORT_WIDTH, CLOSE_WIDTH, CONTROL_GAP = 18, 120, 40, 18, 4
 local BACKGROUND, FIELD, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.1, 0.11, 0.13, 1 }, { 0.25, 0.28, 0.32, 1 }
 local TITLE_FORMAT, SEARCH_HINT, SORT_LABEL, CLOSE_ICON = "Bags %d/%d", "Search", "Sort", "close"
@@ -205,6 +205,7 @@ local function createHolder()
     holder:EnableMouse(true)
     flat(holder, BACKGROUND)
     createControls()
+    bags.CreateEquipped(holder)
     enableDrag()
     holder:Hide()
     holder:SetScript("OnShow", onShow)

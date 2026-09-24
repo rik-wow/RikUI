@@ -134,7 +134,11 @@ local function dropdown(button)
     skin.Typeface(button.Text)
 end
 
-local KINDS = { button = pushButton, check = checkBox, edit = editBox, slider = slider,
+local function tabButton(tab)
+    if core.Panels and core.Panels.Skin.Tab then core.Panels.Skin.Tab(tab, tab.isSelected == true) end
+end
+
+local KINDS = { tab = tabButton, button = pushButton, check = checkBox, edit = editBox, slider = slider,
     legacy = legacyScrollBar, scroll = scrollBar, dropdown = dropdown }
 
 -- Action, spell and item buttons are CheckButtons or Buttons too; an icon or a large face gives them away.
@@ -153,6 +157,7 @@ local function classify(frame)
     if kind == "CheckButton" then return isCheckBox(frame) and "check" or nil end
     if hasAll(frame, "Track", "Back", "Forward") then return "scroll" end
     if kind ~= "Button" and kind ~= "DropdownButton" then return nil end
+    if hasAll(frame, "LeftActive", "MiddleActive", "RightActive") then return "tab" end
     if hasAll(frame, "Left", "Middle", "Right") then return "button" end
     if hasAll(frame, "Background", "Arrow") then return "dropdown" end
     return nil

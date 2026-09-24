@@ -1,6 +1,6 @@
 local core, interiors, skin = RikUI, RikUI.Interiors, RikUI.Skin
 local PAPER = { "MaterialTopLeft", "MaterialTopRight", "MaterialBotLeft", "MaterialBotRight",
-    "Background", "Bg", "SealMaterialBG", "Parchment", "TopDetail", "Top", "Bottom" }
+    "Background", "Bg", "SealMaterialBG", "Parchment" }
 local MAP_SURFACES = { "SidePanelToggle", "Coordinates", "BountyBoard", "BountyBoardFrame",
     "ActionButton", "WorldMapActionButton", "ThreatFrame" }
 local mapHooks = setmetatable({}, { __mode = "k" })
@@ -19,10 +19,19 @@ local function readable(region)
 end
 
 local function quest(frame)
+    if interiors.SideTab(frame) then return end
     if skin.IsRegion(interiors.Icon(frame)) then interiors.Item(frame) end
     if skin.IsRegion(frame.Text) or skin.IsRegion(frame.ButtonText) then interiors.Row(frame) end
+    -- QuestLogBorderFrame sits at level 100 above the scroll contents. Its filigree
+    -- is decoration, never a reason to add a full-frame opaque backing.
+    if skin.IsRegion(frame.TopDetail) then skin.Strip(frame, { "TopDetail", "Border", "Shadow" }) end
     for _, key in ipairs(PAPER) do
-        if skin.IsRegion(frame[key]) then interiors.Surface(frame, PAPER); break end
+        local texture = frame[key]
+        if skin.IsRegion(texture) and texture:GetObjectType() == "Texture" then
+            -- Keep the original bounds/layer; a new fill on an overlay obscures the list.
+            texture:SetTexture(skin.FLAT)
+            texture:SetVertexColor(unpack(skin.BACKING))
+        end
     end
     if type(frame.GetRegions) == "function" then
         for _, region in ipairs({ frame:GetRegions() }) do readable(region) end

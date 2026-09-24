@@ -67,6 +67,7 @@ end
 local function installContainerApi()
     C_Container = {
         GetContainerNumSlots = function(bag) return stub.slots[bag] or 0 end,
+        ContainerIDToInventoryID = function(bag) return 19 + bag end,
         GetContainerItemInfo = function(bag, slot)
             stub.infoReads = stub.infoReads + 1
             if stub.infoError then error(stub.infoError) end
@@ -80,6 +81,22 @@ local function installContainerApi()
         SortBags = function() stub.sorted = stub.sorted + 1 end,
         SetItemSearch = stub.setItemSearch,
     }
+    stub.equipped, stub.cursor, stub.equips, stub.pickups = { [20] = { icon = 133634, size = 6 } }, nil, {}, {}
+    function GetInventoryItemTexture(_, id) return stub.equipped[id] and stub.equipped[id].icon end
+    function GetInventorySlotInfo(name) return 20 + tonumber(name:match("Bag(%d)Slot")) end
+    function CursorHasItem() return stub.cursor ~= nil end
+    function PutItemInBag(id)
+        stub.equips[#stub.equips + 1] = id
+        if stub.rejectSwap then return false end
+        stub.cursor, stub.equipped[id] = stub.equipped[id], stub.cursor
+        stub.slots[id - 19] = stub.equipped[id] and stub.equipped[id].size or 0
+        stub.env.fire("BAG_UPDATE_DELAYED")
+        return true
+    end
+    function PickupBagFromSlot(id)
+        stub.pickups[#stub.pickups + 1] = id
+        stub.cursor, stub.equipped[id] = stub.equipped[id], stub.cursor
+    end
     function GetMoney() return stub.money end
     C_Item.GetItemQualityColor = function(quality)
         local color = QUALITY_COLORS[quality]
@@ -93,7 +110,7 @@ function stub.install(env)
     stub.env = env
     stub.slots, stub.items, stub.cooldowns = { [0] = 16, [1] = 6, [2] = 0, [3] = 0, [4] = 0 }, defaultItems(), {}
     stub.money, stub.sorted, stub.infoReads, stub.closeAllCalls, stub.infoError = 123456, 0, 0, 0, nil
-    stub.templateMissing, stub.searchTemplateMissing, stub.searchText = false, false, nil
+    stub.templateMissing, stub.searchTemplateMissing, stub.searchText, stub.rejectSwap = false, false, nil, false
     installFrames()
     installToggles()
     installContainerApi()

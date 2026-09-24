@@ -83,6 +83,7 @@ src/modules/chat/chat-tabs.lua
 src/modules/chat/chat-clicks.lua
 src/modules/bags/bags.lua
 src/modules/bags/bags-items.lua
+src/modules/bags/bags-equipped.lua
 src/modules/micromenu/micromenu.lua
 src/modules/xpbar/xpbar.lua
 src/modules/xpbar/xpbar-details.lua

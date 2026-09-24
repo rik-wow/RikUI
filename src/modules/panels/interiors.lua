@@ -104,6 +104,30 @@ function interiors.Row(frame)
     interiors.Labels(frame)
 end
 
+-- LargeSideTabButtonTemplate is a Frame, with native mouse handlers and a mask.
+function interiors.SideTab(frame)
+    if not skin.IsRegion(frame.Mask) or not skin.IsRegion(frame.SelectedTexture)
+        or not skin.IsRegion(frame.Icon) then return false end
+    interiors.Item(frame)
+    local state = states[frame]
+    if state.sideTab then return true end
+    state.sideTab = true
+    skin.Strip(frame, { "Background" })
+    frame.Icon:RemoveMaskTexture(frame.Mask)
+    for _, key in ipairs({ "SelectedTexture", "TabGlow", "HighlightTexture" }) do
+        local region = frame[key]
+        if skin.IsRegion(region) then
+            region:SetTexture(skin.FLAT)
+            region:ClearAllPoints()
+            region:SetPoint("BOTTOMLEFT", frame.Icon, "BOTTOMLEFT", 0, 0)
+            region:SetPoint("BOTTOMRIGHT", frame.Icon, "BOTTOMRIGHT", 0, 0)
+            region:SetHeight(2)
+            region:SetVertexColor(0.3, 0.75, 1)
+        end
+    end
+    return true
+end
+
 function interiors.Surface(frame, art)
     if not states[frame] then states[frame] = { fill = skin.Fill(frame, skin.BACKING, 0) } end
     skin.Strip(frame, art)

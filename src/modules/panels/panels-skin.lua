@@ -139,6 +139,8 @@ local function skinTab(tab, selected)
     if type(tab.SetTabSelected) == "function" then followTabSystem(tab) end
 end
 
+skin.Tab = skinTab
+
 local function selectedID(frame)
     if type(PanelTemplates_GetSelectedTab) ~= "function" then return nil end
     local ok, id = pcall(PanelTemplates_GetSelectedTab, frame)

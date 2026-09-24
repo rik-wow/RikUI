@@ -39,7 +39,16 @@ local function bagFrame(bag)
     return frame
 end
 
+local function clearChrome(button)
+    -- These templates start with decorative glow textures even before native item initialization.
+    -- Blank them as well as alpha: Blizzard's animation groups may restore alpha on show.
+    core.Skin.Blank(button, { "NormalTexture", "PushedTexture", "IconBorder", "NewItemTexture",
+        "flash", "AugmentBorderAnimTexture", "BattlepayItemTexture", "ExtendedSlot" })
+    core.Skin.Strip(button, { "icon", "Count", "Stock" })
+end
+
 local function decorate(button)
+    clearChrome(button)
     button:ClearNormalTexture()
     button:SetSize(SLOT, SLOT)
     button.rikBackground = button:CreateTexture(nil, "BACKGROUND")
@@ -144,6 +153,7 @@ local function itemFeedback(button, info)
 end
 
 function bags.UpdateButton(button)
+    clearChrome(button)
     local bag, slot = button:GetParent():GetID(), button:GetID()
     local info = readInfo(bag, slot)
     itemFeedback(button, info)
@@ -190,6 +200,7 @@ function bags.Refresh()
         if not nextIndex then return end
         index, used = nextIndex, used + filled
     end
+    bags.RefreshEquipped()
     bags.Total, bags.Used = index, used
     bags.Resize()
 end

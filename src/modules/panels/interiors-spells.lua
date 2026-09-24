@@ -35,13 +35,29 @@ local function connection(frame)
     for _, key in ipairs({ "Line", "GhostLine", "Background", "Fill", "FillScroll1", "FillScroll2" }) do
         local line = frame[key]
         if skin.IsRegion(line) and type(line.SetThickness) == "function" then
-            line:SetTexture(skin.FLAT)
+            -- Replacing the atlas loses its baked-in inactive tint. Native edges retain
+            -- rank/availability colours; only narrow their geometry.
             line:SetThickness(2)
         end
     end
 end
 
 local function spells(frame)
+    -- Text tabs contain an unused hidden Icon. Framing it puts a stray square over the label.
+    if skin.IsRegion(frame.LeftActive) and skin.IsRegion(frame.MiddleActive) then
+        if core.Panels and core.Panels.Skin.Tab then core.Panels.Skin.Tab(frame, frame.isSelected == true) end
+        return
+    end
+    if skin.IsRegion(frame.MainRing) and skin.IsRegion(frame.Icon) then
+        skin.Strip(frame, { "MainRing", "TextBackground", "Divider" })
+        -- The header icon has a native portrait mask; remove it without altering the icon.
+        if type(frame.Icon.GetNumMaskTextures) == "function" then
+            for index = frame.Icon:GetNumMaskTextures(), 1, -1 do
+                frame.Icon:RemoveMaskTexture(frame.Icon:GetMaskTexture(index))
+            end
+        end
+    end
+    if skin.IsRegion(frame.UnspentLabel) then skin.Strip(frame, { "Border" }) end
     if skin.IsRegion(frame.BookBGLeft) or skin.IsRegion(frame.BookBGHalved) then
         interiors.Surface(frame, PAGE_ART)
     end

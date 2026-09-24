@@ -18,14 +18,27 @@ return function(check)
         function text:GetTextColor() return unpack(rawget(self, "textColor") or { 0, 0, 0 }) end
         q.regions = { text }
         RikUI.Interiors.Walk(q, "quests")
-        check("quest parchment replaced and dark prose lightened", q.MaterialTopLeft.alpha == 0
-            and text.textColor[1] > 0.8 and RikUI.Interiors.State(q).fill)
+        check("quest parchment replaced and dark prose lightened", q.MaterialTopLeft.texture == RikUI.Skin.FLAT
+            and text.textColor[1] > 0.8 and RikUI.Interiors.State(q) == nil)
         text:SetTextColor(1, 0.2, 0.1)
         RikUI.Interiors.Walk(q, "quests")
         check("semantic quest text colours retained", text.textColor[2] == 0.2)
         text:SetTextColor(0, 0, 0)
         RikUI.Interiors.Walk(q, "quests")
         check("rewritten quest prose becomes readable again", text.textColor[1] > 0.8)
+        local border = frame()
+        border:SetFrameLevel(100)
+        border.TopDetail, border.Border, border.Shadow = border:CreateTexture(), border:CreateTexture(), border:CreateTexture()
+        RikUI.Interiors.Walk(border, "quests")
+        check("quest border above contents never receives an opaque fill", RikUI.Interiors.State(border) == nil
+            and border.TopDetail.alpha == 0 and border.Border.alpha == 0 and border.Shadow.alpha == 0)
+        local container = frame()
+        container.Background = frame()
+        local label = container.Background:CreateFontString()
+        container.children = { container.Background }
+        RikUI.Interiors.Walk(container, "quests")
+        check("a Background child frame is never faded with its content", rawget(container.Background, "alpha") == nil
+            and RikUI.Interiors.State(container) == nil and label)
         local map = frame()
         map.SidePanelToggle, map.Coordinates, map.ScrollContainer = frame(), frame(), frame()
         map.SidePanelToggle.Background = map.SidePanelToggle:CreateTexture()

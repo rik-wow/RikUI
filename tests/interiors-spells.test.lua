@@ -40,7 +40,30 @@ return function(check)
         edge.Line = edge:CreateTexture()
         function edge.Line:SetThickness(v) self.thickness = v end
         service.Walk(edge, "spells")
-        check("connections are thin flat lines", edge.Line.texture == RikUI.Skin.FLAT and edge.Line.thickness == 2)
+        check("connections retain native inactive art and use thin geometry", rawget(edge.Line, "texture") == nil
+            and edge.Line.thickness == 2)
+        local tab = frame("Button")
+        tab.LeftActive, tab.MiddleActive, tab.Icon = tab:CreateTexture(), tab:CreateTexture(), tab:CreateTexture()
+        tab.Icon:Hide()
+        service.Walk(tab, "spells")
+        check("hidden tab placeholder icons get no stray outline", service.State(tab) == nil
+            and rawget(tab.Icon, "coords") == nil)
+        local header = frame()
+        header.Icon, header.MainRing, header.TextBackground, header.Divider =
+            header:CreateTexture(), header:CreateTexture(), header:CreateTexture(), header:CreateTexture()
+        local mask = {}
+        function header.Icon:GetNumMaskTextures() return mask and 1 or 0 end
+        function header.Icon:GetMaskTexture() return mask end
+        function header.Icon:RemoveMaskTexture(value) if value == mask then mask = nil end end
+        service.Walk(header, "spells")
+        check("talent headers lose portrait rings and mask without losing the icon", header.MainRing.alpha == 0
+            and header.TextBackground.alpha == 0 and header.Divider.alpha == 0 and mask == nil
+            and service.State(header).edge)
+        local currency = frame()
+        currency.UnspentLabel, currency.Border = currency:CreateFontString(), currency:CreateTexture()
+        service.Walk(currency, "spells")
+        check("unspent count frame art is removed but label remains", currency.Border.alpha == 0
+            and currency.UnspentLabel.fontPath == RikUI.Media.font)
     end)
     restore()
     check("spell interiors suite completes", ok, reason)

@@ -7,7 +7,7 @@ frame that shows every slot of the backpack and the four bags. The bank stays
 Blizzard's. Disable the `bags` module in `/rik config` and reload to get the
 stock bags back.
 
-`src/modules/bags/bags-items.lua` is a new TOC entry. **Fully exit and restart the client after
+`src/modules/bags/bags-equipped.lua` is a new TOC entry. **Fully exit and restart the client after
 updating**, a `/reload` does not pick up new files.
 
 ## What you see
@@ -32,7 +32,16 @@ record `isFiltered` and answers with `INVENTORY_SEARCH_UPDATE`, and the grid
 redraws from that. A client without `SetItemSearch` falls back to matching
 the item name from its link, ignoring case and treating the text literally.
 Escape in the box clears it, and closing the frame clears it too. Sort calls `C_Container.SortBags()`, Blizzard's own clean-up.
-The footer shows your money.
+The footer shows your money and four equipped-bag targets. Pick up a replacement
+bag from the grid and drop it (or click with it on the cursor) on the bag to replace.
+Each target shows the equipped icon and capacity; an empty target shows `+`.
+Drag an equipped bag to move it. Blizzard decides whether its contents fit and
+leaves any rejected replacement or swapped-out bag on the cursor. Bag replacement
+is disabled during combat; the window still opens, closes and moves normally.
+
+The targets in `bags-equipped.lua` are plain buttons calling `PutItemInBag` and
+`PickupBagFromSlot` from hardware handlers, matching `BaseBagSlotButtonMixin`.
+No native frame method or inventory field is replaced.
 
 Escape closes the frame. Drag it by its header, edges or footer with the left
 button at any time, also in combat; no `/rik move` needed. The drop is saved
@@ -134,34 +143,16 @@ Blizzard's frames following; single-bag and backpack opens; a closed frame
 ignoring events; a combat login; a missing template, `SortBags` or combined
 frame; a disabled module touching nothing.
 
-The stub cannot show taint, rendering or sound. Beta checklist on the
-Warrior, after a full client restart:
-
-1. Press B: one flat frame, no Blizzard bag windows. `/rik debug` should
-   print `Bags holder=true parked=<n> slots=<n> open=true` with no `Bags ...`
-   error line. Note the parked count.
-2. Right-click a food item, equip a weapon from the bag, drag an item to
-   another slot, shift-click a stack to split it. No "action blocked" error.
-3. Repeat the right-click use while in combat.
-4. Open a merchant: the frame should open by itself; right-click sells, and
-   the grey-item sell cursor shows. Close the merchant: the frame closes.
-5. Type part of an item name in the search box: other slots dim. If nothing
-   dims, run `/rik debug` with the text still in the box and note the
-   `search=` and `dimmed=` values. Escape clears it.
-6. Click Sort: items regroup and the grid follows.
-7. Hover an item: tooltip with comparison, in the RikUI tooltip skin.
-8. Press Escape with the frame open: it closes, and B opens it again with one
-   press.
-9. Open the world map fullscreen and press B: no stock bag window appears.
-10. If the character has a keyring button, note whether anything opens.
-11. Drag the frame by its title without `/rik move`, `/reload`, relog: the
-    position is kept. `/rik move` also shows a `Bags` overlay.
-12. Disable the module, reload: the Blizzard bags return.
+Automated regression checks also cover all four equipped targets, inventory-slot mapping,
+replacement, rejected drops, dragging, combat refusal, missing APIs and bag-size updates.
+Native behavior is accepted under the user's standing policy; the stub does not claim
+client rendering or taint verification.
 
 ## Source evidence
 
 Reviewed against the Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
 
+- [Shared bag-button handlers: native PutItemInBag and PickupBagFromSlot behavior](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_MainMenuBarBagButtons/Shared/MainMenuBarBagButtons.lua)
 - [ContainerFrame.lua: the bag functions, ContainerFrame_GenerateFrame, ReparentContainerFrames, ContainerFrameItemButtonMixin (GetBagID, SetBagID, Initialize, UpdateCooldown, OnClick) and ContainerFrame_GetExtendedPriceString](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua)
 - [ContainerFrame.xml: ContainerFrameItemButtonTemplate, its Cooldown child, ContainerFrame1-7, ContainerFrameCombinedBags and the sort button's SortBags call](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ContainerFrame.xml)
 - [Camelot/ContainerFrame.lua: Forever loads the Mainline container code with a small overlay](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/ContainerFrame.lua)

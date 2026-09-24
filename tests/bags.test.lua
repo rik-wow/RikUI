@@ -8,7 +8,8 @@ return function(check)
     local TEMPLATE = "ContainerFrameItemButtonTemplate"
     local API = { "C_Container", "GetMoney", "UISpecialFrames", "ContainerFrameContainer", "ContainerFrameCombinedBags",
         "OpenBag", "CloseBag", "ToggleBag", "OpenBackpack", "CloseBackpack", "ToggleBackpack", "OpenAllBags",
-        "CloseAllBags", "ToggleAllBags" }
+        "CloseAllBags", "ToggleAllBags", "CursorHasItem", "PutItemInBag", "PickupBagFromSlot",
+        "GetInventoryItemTexture", "GetInventorySlotInfo" }
     local saved, savedQualityColor = {}, C_Item.GetItemQualityColor
     local savedCenter, savedScale = rawget(UIParent, "GetCenter"), rawget(UIParent, "GetEffectiveScale")
     function UIParent:GetCenter() return 400, 300 end
@@ -63,7 +64,15 @@ return function(check)
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
-        if template == TEMPLATE then frame.Cooldown = cooldown(frame) end
+        if template == TEMPLATE then
+            frame.Cooldown = cooldown(frame)
+            for _, key in ipairs({ "NormalTexture", "PushedTexture", "NewItemTexture", "IconBorder",
+                "flash", "AugmentBorderAnimTexture", "BattlepayItemTexture", "ExtendedSlot" }) do
+                frame[key] = frame:CreateTexture()
+                frame[key]:SetTexture("native-glow")
+            end
+            frame.IconQuestTexture, frame.JunkIcon = frame:CreateTexture(), frame:CreateTexture()
+        end
         if template == "BagSearchBoxTemplate" then
             frame.Left, frame.Middle, frame.Right = frame:CreateTexture(), frame:CreateTexture(), frame:CreateTexture()
         end
@@ -117,7 +126,7 @@ return function(check)
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
         for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
-            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua" }) do
+            "src/ui/motion.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/bags/bags.lua", "src/modules/bags/bags-items.lua", "src/modules/bags/bags-equipped.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
         env.fire("ADDON_LOADED", "RikUI")
@@ -149,6 +158,13 @@ return function(check)
             and holder.rikEntry.animation.kind == "Translation" and holder.rikEntry.animation.offset[2] == 6)
         local cloth, stone, blade, empty = button(0, 1), button(0, 2), button(1, 3), button(0, 3)
         check("buttons come from the Blizzard item template", cloth.kind == "ItemButton" and cloth.template == TEMPLATE)
+        check("default store glow is blank for occupied and empty slots", cloth.BattlepayItemTexture.texture == nil
+            and empty.BattlepayItemTexture.texture == nil and cloth.NewItemTexture.texture == nil)
+        cloth.BattlepayItemTexture:SetAlpha(1)
+        module.UpdateButton(cloth)
+        check("native glow alpha resets cannot resurrect its art", cloth.BattlepayItemTexture.texture == nil)
+        check("semantic item regions and cooldown remain available", cloth.IconQuestTexture and cloth.JunkIcon
+            and cloth.Cooldown and rawget(cloth.JunkIcon, "alpha") == nil)
         check("the slot is the button ID and the bag is the parent's ID", cloth:GetID() == 1 and cloth.parent:GetID() == 0
             and blade:GetID() == 3 and blade.parent:GetID() == 1 and blade.parent.parent == holder)
         check("no field Blizzard's item button reads is written", rawget(cloth, "bagID") == nil
@@ -173,7 +189,7 @@ return function(check)
         check("slots flow ten to a row across bags", cloth.point[2] == holder.grid and cloth.point[4] == 0
             and cloth.point[5] == 0 and button(0, 10).point[4] == 342 and button(0, 11).point[4] == 0
             and button(0, 11).point[5] == -38 and button(1, 1).point[4] == 228 and button(1, 1).point[5] == -38)
-        check("the holder fits the grid and the title counts used slots", holder.width == 394 and holder.height == 170
+        check("the holder fits the grid and the title counts used slots", holder.width == 394 and holder.height == 216
             and holder.title.text == "Bags 3/22")
         check("the money line shows gold, silver and copper", holder.money.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
             == "12g 34s 56c")
@@ -220,7 +236,7 @@ return function(check)
         stub.slots[1] = 4
         env.fire("BAG_UPDATE_DELAYED")
         check("a smaller bag hides its surplus buttons", shownButtons() == 20 and not button(1, 5):IsShown()
-            and holder.title.text == "Bags 3/20" and holder.height == 132)
+            and holder.title.text == "Bags 3/20" and holder.height == 178)
         stub.items["0:2"] = env.SECRET
         env.fire("BAG_UPDATE_DELAYED")
         check("a secret item record draws an empty slot without printing", stone.rikIcon.texture == nil
@@ -323,6 +339,48 @@ return function(check)
         module = load(nil, false, function() ContainerFrameCombinedBags = nil end)
         check("an absent combined frame is skipped", #module.Parked == 6)
 
+        module = load()
+        OpenAllBags()
+        local first, fourth = module.Holder.equipped[1], module.Holder.equipped[4]
+        check("four equipped targets show capacity and empty slots", #module.Holder.equipped == 4
+            and first.icon.texture == 133634 and first.count.text == "6" and fourth.count.text == "+")
+        stub.cursor = { icon = 777, size = 12 }
+        env.runScript(first, "OnReceiveDrag")
+        check("dropping a bag swaps the chosen inventory slot and resizes the grid", stub.equips[1] == 20
+            and stub.cursor.icon == 133634 and first.icon.texture == 777 and first.count.text == "12"
+            and module.Total == 28)
+        stub.cursor = { icon = 888, size = 8 }
+        env.click(fourth)
+        check("cursor click equips into an empty target", stub.equips[2] == 23 and stub.cursor == nil
+            and fourth.icon.texture == 888 and fourth.count.text == "8")
+        env.click(fourth)
+        check("empty-cursor clicks do not unequip bags", #stub.equips == 2)
+        stub.cursor, stub.rejectSwap = { icon = 999, size = 1 }, true
+        env.runScript(first, "OnReceiveDrag")
+        check("a rejected replacement stays on cursor and keeps equipped contents", stub.cursor.icon == 999
+            and first.icon.texture == 777 and first.count.text == "12")
+        stub.cursor, stub.rejectSwap = nil, false
+        env.runScript(first, "OnDragStart")
+        check("dragging an equipped bag uses its inventory slot", stub.pickups[1] == 20 and stub.cursor.icon == 777)
+        env.inCombat = true
+        local calls = #stub.equips
+        env.runScript(fourth, "OnReceiveDrag"); env.runScript(fourth, "OnDragStart")
+        check("combat refuses swaps and pickups without clearing the cursor", #stub.equips == calls
+            and #stub.pickups == 1 and stub.cursor.icon == 777 and printedContains("after combat"))
+        env.inCombat = false
+        C_Container.ContainerIDToInventoryID = nil
+        env.runScript(first, "OnReceiveDrag")
+        check("inventory slot names provide the mapping fallback", stub.equips[#stub.equips] == 20)
+        PickupBagFromSlot = nil
+        local beforeMissingPickup = #stub.equips
+        env.runScript(fourth, "OnDragStart")
+        check("missing pickup API never falls through to depositing an item", #stub.equips == beforeMissingPickup)
+        PutItemInBag = nil
+        stub.cursor = { icon = 666, size = 2 }
+        env.runScript(first, "OnReceiveDrag")
+        check("missing replacement API keeps cursor and reports availability", stub.cursor.icon == 666
+            and printedContains("bag replacement unavailable"))
+
         module = load({ modules = { bags = false } })
         OpenAllBags()
         check("a disabled module leaves the Blizzard bags alone", module.Holder == nil
@@ -332,7 +390,7 @@ return function(check)
     CreateFrame = originalCreate
     C_Item.GetItemQualityColor = savedQualityColor
     UIParent.GetCenter, UIParent.GetEffectiveScale = savedCenter, savedScale
-    for name, value in pairs(saved) do _G[name] = value end
+    for _, name in ipairs(API) do _G[name] = saved[name] end
     env.inCombat = false
     check("bags suite completes", ok, reason)
 end

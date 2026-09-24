@@ -43,6 +43,33 @@ return function(check)
         check("hidden row cancels hover", not rowState.leave.playing)
         service.Walk(root, "character")
         check("repeat walk reuses regions and hooks", service.State(item) == state and #row.hooks.OnEnter == 1)
+        local host = frame("Frame", root)
+        local background, icon = host:CreateTexture(), host:CreateTexture()
+        function background:GetAtlas() return "UI-Character-Info-General-BG" end
+        function icon:GetAtlas() return "semantic-stat-icon" end
+        function host:GetRegions() return background, icon end
+        local gearBorder = frame("Frame", item)
+        local gear = gearBorder:CreateTexture()
+        function gear:GetAtlas() return "UI-Character-Info-GearSlot" end
+        function gearBorder:GetRegions() return gear end
+        local side = frame("Frame", root)
+        side.Mask, side.Icon, side.Background, side.SelectedTexture, side.TabGlow, side.HighlightTexture =
+            side:CreateTexture(), side:CreateTexture(), side:CreateTexture(), side:CreateTexture(),
+            side:CreateTexture(), side:CreateTexture()
+        function side.Icon:RemoveMaskTexture(mask) self.removedMask = mask end
+        local released = 0
+        side:SetScript("OnMouseUp", function() released = released + 1 end)
+        side.SelectedTexture:Hide()
+        service.Walk(root, "character")
+        env.runScript(side, "OnMouseUp")
+        check("Camelot unnamed pane and gear art removed selectively", background.alpha == 0 and gear.alpha == 0
+            and rawget(icon, "alpha") == nil)
+        check("side tabs keep handlers and native selection with flat accents", released == 1
+            and side.Icon.removedMask == side.Mask and side.Background.alpha == 0
+            and side.SelectedTexture.texture == RikUI.Skin.FLAT and side.SelectedTexture.height == 2
+            and not side.SelectedTexture:IsShown())
+        side.SelectedTexture:Show()
+        check("native side-tab selection still reveals the accent", side.SelectedTexture:IsShown())
         local list = frame("Frame", root)
         list.callbacks = {}
         function list:ForEachFrame() end

@@ -156,7 +156,8 @@ return function(check)
         module.Walk("WorldFrame")
         check("a walk over something that is not a frame does nothing", #env.printed == 1)
 
-        module = load(nil, { "src/modules/panels/panels.lua", "src/modules/panels/panels-skin.lua", "src/ui/skin.lua", "src/modules/controls/controls.lua" })
+        module = load(nil, { "src/modules/panels/panels.lua", "src/modules/panels/panels-skin.lua", "src/ui/skin.lua", "src/modules/controls/controls.lua",
+            "src/modules/panels/interiors.lua", "src/modules/panels/interiors-spells.lua" })
         local merchant = frame("Frame", UIParent)
         merchant:Hide()
         MerchantFrame = merchant
@@ -168,6 +169,22 @@ return function(check)
         merchant:Hide()
         merchant:Show()
         check("and again on the next show, for controls the window built meanwhile", later.rikFill ~= nil)
+        local tab = pushButton(merchant)
+        art(tab, { "LeftActive", "MiddleActive", "RightActive", "LeftHighlight", "MiddleHighlight", "RightHighlight", "Icon" })
+        tab.Icon:Hide()
+        function tab:SetTabSelected(selected)
+            self.isSelected = selected
+            env.runScript(self, selected and "OnDisable" or "OnEnable")
+        end
+        tab:SetTabSelected(true)
+        module.Walk(merchant)
+        RikUI.Interiors.Walk(tab, "spells")
+        check("nested talent tab has one skin, no placeholder icon border and no gold stock art",
+            tab.LeftActive.alpha == 0 and tab.MiddleActive.alpha == 0 and tab.RightActive.alpha == 0
+            and tab.rikBacking and tab.rikFill == nil and RikUI.Interiors.State(tab) == nil
+            and tab.rikAccent.alpha == 1 and rawget(tab.Icon, "coords") == nil)
+        tab:SetTabSelected(false)
+        check("nested tab accent follows native deselection", tab.rikAccent.alpha == 0)
         MerchantFrame = nil
 
         module = load()
