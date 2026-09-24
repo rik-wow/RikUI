@@ -84,6 +84,28 @@ return function(check)
         model=p.PlanRuntime.Result({actions={precursor,future},score=2,status="ready"},rows,ctx,policy,prior,state)
         check("pinned chain keeps its unpinned prerequisite",model.selected.questID==98 and not model.localGuidance)
         policy.pins[99]=nil
+        future.destination={mapID=1426,x=position.x+.002,y=position.y}
+        local pickupResult={actions={future},score=2,status="refining",decisionKind="continuity"}
+        model=p.PlanRuntime.Result(pickupResult,rows,ctx,policy,prior,state)
+        check("nearby eligible pickup survives partial active-quest coverage",model.selected.questID==99 and not model.localGuidance)
+        local pickupTrace=p.PlanRuntime.Replay()
+        local pickupReplay=pickupTrace and p.PlanRuntime.RerunReplay(pickupTrace,pickupTrace.source)
+        check("nearby pickup coverage decision replays exactly",pickupReplay and pickupReplay.status=="match",
+            pickupReplay and pickupReplay.reason)
+        state.completed[99]=nil
+        model=p.PlanRuntime.Result(pickupResult,rows,ctx,policy,prior,state)
+        check("unknown pickup eligibility retains active-quest guidance",model.localGuidance and model.selected.questID~=99)
+        state.completed[99]=false;policy.skips[99]=true
+        model=p.PlanRuntime.Result(pickupResult,rows,ctx,policy,prior,state)
+        check("skipped pickup cannot bypass coverage safeguards",model.localGuidance and model.selected.questID~=99)
+        policy.skips[99]=nil;future.destination=ctx.destinations[413]
+        model=p.PlanRuntime.Result(pickupResult,rows,ctx,policy,prior,state)
+        check("distant pickup still yields to closer active work",model.localGuidance and model.selected.questID~=99)
+        future.destination={mapID=1426,x=position.x+.002,y=position.y}
+        frame.width=nil
+        model=p.PlanRuntime.Result(pickupResult,rows,ctx,policy,prior,state)
+        check("unknown map scale cannot rank pickup ahead of local work",model.localGuidance and model.selected.questID~=99)
+        frame.width=4897.5
         policy.skips[412]=true
         model=project(policy,prior)
         check("live-only Frosthowl can be selected directly",model.localGuidance and model.selected.questID==98326)

@@ -148,6 +148,17 @@ local function liveEligible(row,state,policy)
     end
     return true
 end
+-- Missing source data on an active quest must not hide a closer feasible pickup.
+-- Dimensions are captured with the decision so offline replay uses the same distance.
+function recommendations.CloserPickup(action,row,state,policy,mapSize)
+    if not action or action.kind~="pickup" or not row or policy.pins[row.questID]
+        or not mapSize or not schema.Number(row.distance,0,1000000) then return false end
+    if planner.PlanTransitions.Check(action,state,policy)~=true then return false end
+    local frame={position=state.position,width=mapSize[1],height=mapSize[2]}
+    local gap=distance(action.destination,state.position,frame)
+    local localScore=math.max(0,row.distance-(row.kind=="turnin" and TURNIN_BONUS or 0))
+    return gap~=nil and gap<localScore
+end
 function recommendations.LocalChoice(rows,state,policy)
     if not state or not state.fresh then return end
     local chosen,missing=nil,{}

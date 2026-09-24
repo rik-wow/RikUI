@@ -276,6 +276,11 @@ local function decisionGraph(result,state)
 end
 local function decisionInputs(observed,ctx,policy,previous,state,graph)
     local inputs={observed={},destinations={},localQuests=planner.Recommendations and planner.Recommendations.Capture(observed,state,policy,graph) or {}}
+    local frame=planner.Context and planner.Context.Frame and planner.Context.Frame()
+    if frame and frame.position and state and state.position and frame.position.mapID==state.position.mapID
+        and schema.Number(frame.width,1,100000) and schema.Number(frame.height,1,100000) then
+        inputs.mapSize={frame.width,frame.height}
+    end
     if observed[1] then inputs.observed[1]=selectedIdentity(observed[1]) end
     for id,pinned in pairs(policy.pins) do
         local point=pinned and ctx.destinations[id]
@@ -299,10 +304,15 @@ function runtime.ProjectDecision(result,policy,prior,state,inputs)
     for _,action in ipairs(result.actions or {}) do
         if policy.pins[action.questID] then pinned=true;break end
     end
+    local first
+    for index,action in ipairs(result.actions or {}) do
+        if action.kind~="complete" then first=action;decision.firstIndex=index;break end
+    end
     local localRow,coverage
     if not conflict and not pinned and planner.Recommendations then
         localRow,coverage=planner.Recommendations.LocalChoice(inputs.localQuests,state,policy)
     end
+    if localRow and planner.Recommendations.CloserPickup(first,localRow,state,policy,inputs.mapSize) then localRow=nil end
     if localRow then
         local id=localRow.questID..":live:"..localRow.kind
         display.selected={questID=localRow.questID,kind=localRow.kind,actionID=id};display.actionID=id
@@ -310,10 +320,6 @@ function runtime.ProjectDecision(result,policy,prior,state,inputs)
         local selected={actions={},status=result.status,reason="Nearby active quests first; planning data is incomplete",
             coverage=result.coverage,metrics=result.metrics,limited=result.limited,excluded=result.excluded}
         return selected,prior~=nil and prior.actionID==id,decision
-    end
-    local first
-    for index,action in ipairs(result.actions or {}) do
-        if action.kind~="complete" then first=action;decision.firstIndex=index;break end
     end
     if first and planner.PlanTransitions.Check(first,state,policy)==true then
         display.status="observed";display.actionID=first.id
@@ -446,6 +452,8 @@ local function validDisplay(inputs,expected)
         or not schema.Text(expected.status) or #expected.status>64 or not validSelected(expected.selected)
         or (expected.actionID~=nil and (not schema.Text(expected.actionID) or #expected.actionID>160)) then return false end
     if not validSelected(inputs.observed[1]) then return false end
+    if inputs.mapSize~=nil and (not schema.List(inputs.mapSize,2) or #inputs.mapSize~=2
+        or not schema.Number(inputs.mapSize[1],1,100000) or not schema.Number(inputs.mapSize[2],1,100000)) then return false end
     for _,row in ipairs(inputs.localQuests or {}) do
         if not schema.PlainTable(row) or not validSelected(row)
             or (row.blocked~=nil and type(row.blocked)~="boolean") then return false end

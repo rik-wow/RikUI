@@ -41,6 +41,10 @@ no semantic planning record, automatic guidance chooses among nearby active
 quests using live distance, progress and destination stability. Explicit pins,
 manual selection, exclusions, group restrictions and known action requirements
 still apply. Missing locations do not create speculative destinations.
+A modeled pickup with known eligibility may still be selected when it is closer
+than the chosen active destination (including the existing turn-in preference).
+Its map dimensions are captured in the decision for exact offline replay;
+unknown, blocked and distant pickups retain the active-quest fallback.
 
 The tracker labels this mode **Partial quest data**; More lists the affected
 quests. It omits projected XP, completion time and future steps because those
