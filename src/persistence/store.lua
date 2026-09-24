@@ -137,6 +137,33 @@ function store.BackupIssue()
     return nil
 end
 
+-- Cached usage only: opening settings must never serialize or write a backup.
+function store.BackupSummary()
+    local lines = {}
+    if not store.Available() then lines[#lines + 1] = "Reload backup unavailable."
+    elseif status.failure then lines[#lines + 1] = "Reload backup needs attention: " .. status.failure
+    else lines[#lines + 1] = "Reload backup available." end
+    if not (store.MacrosAvailable and store.MacrosAvailable() and store.MacroStatus) then
+        lines[#lines + 1] = "Restart backup unavailable."
+    else
+        local macro = store.MacroStatus()
+        local limits = macro.limit .. " macros; " .. macro.capacity .. " bytes"
+        if macro.bytes then
+            lines[#lines + 1] = "Last verified restart snapshot: " .. macro.used .. "/" .. macro.limit
+                .. " macros; " .. macro.bytes .. "/" .. macro.capacity .. " bytes."
+        else lines[#lines + 1] = "Restart backup: no verified snapshot yet (limit " .. limits .. ")." end
+        if macro.failure then lines[#lines + 1] = "Restart backup needs attention: " .. macro.failure end
+        if macro.requiredBytes and macro.requiredBytes > macro.capacity then
+            lines[#lines + 1] = "Latest settings need " .. macro.requiredBytes
+                .. " bytes. Remove unused profiles or imported presets, keep portable exports, then choose Save now."
+        elseif macro.failure then lines[#lines + 1] = "Choose Save now to retry outside combat." end
+        if macro.learningReduced > 0 then
+            lines[#lines + 1] = "Restart backup keeps reduced learning for " .. macro.learningReduced .. " character(s)."
+        end
+    end
+    return table.concat(lines, "\n")
+end
+
 local function flushOne(name, value)
     if type(value) ~= "table" then return end
     local text, reason = store.Encode(value)
@@ -186,6 +213,7 @@ end)
 core:RegisterEvent("PLAYER_LOGOUT", store.Flush)
 
 core:RegisterCommand("store", function()
+    core:Print(store.BackupSummary())
     core:Print("Store available=" .. tostring(store.Available()) .. " saves=" .. status.saves .. " chunks=" .. status.chunks
         .. " characters=" .. status.bytes .. " restored account=" .. tostring(status.restored.account == true)
         .. " character=" .. tostring(status.restored.character == true)

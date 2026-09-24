@@ -337,6 +337,38 @@ return function(check)
         core.Store.FlushMacros()
         check("preset backup recovers without changing definitions", core.Store.MacroStatus().failure == nil)
 
+        macros = {}; core = restart()
+        local initialSummary = core.Store.BackupSummary and core.Store.BackupSummary()
+        check("never-saved backup state is explicit", initialSummary and initialSummary:find("no verified snapshot", 1, true))
+        core.Profile.scale = 0.8
+        core.Store.FlushMacros()
+        local capacity = core.Store.MacroStatus()
+        check("restart status reports verified payload and budget", capacity.limit == 12 and capacity.capacity
+            and capacity.bytes and capacity.bytes > 0 and capacity.bytes <= capacity.capacity
+            and capacity.requiredBytes == capacity.bytes and capacity.used == count(macros))
+        local beforeStatus = writes
+        local encoder = core.Store.Encode
+        core.Store.Encode = function() error("status must not serialize") end
+        local statusOK, summary = pcall(function() return core.Store.BackupSummary() end)
+        core.Store.Encode = encoder
+        check("status is read-only and describes verified usage", statusOK and writes == beforeStatus
+            and summary:find("Last verified restart snapshot:", 1, true)
+            and summary:find("/12 macros", 1, true) and summary:find("bytes", 1, true))
+        core.DB.community.Large = { body = string.rep("x", 4000) }
+        core.Store.FlushMacros()
+        local overflow = core.Store.MacroStatus()
+        local warning = core.Store.BackupSummary and core.Store.BackupSummary()
+        check("overflow retains verified usage and reports required capacity", overflow.bytes == capacity.bytes
+            and overflow.requiredBytes and overflow.requiredBytes > overflow.capacity and writes == beforeStatus
+            and warning and warning:find("Remove unused profiles or imported presets", 1, true))
+        core.DB.community.Large = nil
+        core.Store.FlushMacros()
+        core = restart()
+        check("readback restores verified usage after restart", core.Store.MacroStatus().bytes == capacity.bytes
+            and core.Store.MacroStatus().failure == nil)
+        SlashCmdList.RIKUI("store")
+        check("store command includes the capacity summary", printed("Last verified restart snapshot:"))
+
         local function brokenSnapshot(data)
             local text = core.Store.Encode(data)
             local a, b = 1, 0
@@ -375,6 +407,8 @@ return function(check)
         env.fire("PLAYER_LOGIN")
         check("a client without the macro API keeps working without the second tier", RikUI.Profile ~= nil
             and RikUI.Store.MacrosAvailable() == false)
+        check("missing macro API is explicit in summary", RikUI.Store.BackupSummary
+            and RikUI.Store.BackupSummary():find("Restart backup unavailable", 1, true))
     end)
     for _, name in ipairs(NAMES) do _G[name] = saved[name] end
     env.inCombat = false

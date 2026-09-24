@@ -667,6 +667,22 @@ return function(check)
                     and RikUI.CharDB.profile == "Default")
             end
         end
+        do
+            local message, saved = "Last verified restart snapshot: 1/12 macros; 50/2772 bytes.", 0
+            local support = boot(nil, nil, function(core)
+                core.Store = { BackupSummary = function() return message end, Flush = function() saved = saved + 1 end }
+            end)
+            local rows = pageByTitle(support, "Setup and support").list
+            local status = rowByKey(rows, "storage")
+            check("backup usage is rendered in settings", status and status.description
+                and status.description:GetText() == message and saved == 0)
+            message = "Restart backup needs attention: the account macro list is full."
+            support.Refresh()
+            check("backup description refreshes without saving", status and status.description
+                and status.description:GetText() == message and saved == 0)
+            env.click(rowByKey(rows, "savebackup").widget)
+            check("explicit retry still saves", saved == 1)
+        end
         -- Profiles.
         options = boot({ profiles = { Default = { scale = 0.9, positions = { main = { x = 5 } } } } })
         local profiles = pageByTitle(options, "Profiles").list

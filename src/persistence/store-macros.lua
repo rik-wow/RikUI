@@ -3,8 +3,8 @@
 -- both. So what differs from the defaults is also written to account macros named "RikUI data N",
 -- each a single comment line ("#rikui i/n <checksum> <text>") that does nothing when pressed. Only the
 -- difference is kept, so one or two macros usually do. Macros cannot be written in combat; the ticker
--- tries again. src/core/core.lua asks for this tier at login, only when neither saved variables nor the CVar
--- tier had anything. The undo snapshot and the chat history are not kept across a restart.
+-- tries again. src/core/core.lua asks for this tier at login for each account/character side missing
+-- from saved variables and the CVar tier. The undo snapshot and the chat history are not kept across a restart.
 local core, store = RikUI, RikUI.Store
 
 local NAME, HEADER, ICON = "RikUI data ", "#rikui ", "INV_Misc_QuestionMark"
@@ -15,7 +15,11 @@ local FULL = "the account macro list is full, so settings cannot be kept across 
 local DAMAGED = "RikUI's macros are damaged (edited or partly deleted); settings were not restored from them."
 local state = { data = nil, lastText = nil, used = 0, complained = {}, restored = false, learningReduced = 0 }
 local MAX_TEXT = MAX_MACROS * (BODY_LIMIT - #(HEADER .. MAX_MACROS .. "/" .. MAX_MACROS .. " 4294967295 "))
-function store.MacroStatus() return { used=state.used, restored=state.restored, learningReduced=state.learningReduced, failure=state.failure } end
+function store.MacroStatus()
+    return { used=state.used, limit=MAX_MACROS, bytes=state.bytes, capacity=MAX_TEXT,
+        requiredBytes=state.requiredBytes, restored=state.restored,
+        learningReduced=state.learningReduced, failure=state.failure }
+end
 
 function store.MacrosAvailable()
     return type(GetMacroInfo) == "function" and type(CreateMacro) == "function" and type(EditMacro) == "function"
@@ -164,8 +168,7 @@ local function readText()
     end
     local text = table.concat(parts)
     if checksum(text) ~= tonumber(sum) then return nil, true end
-    state.used = total
-    return text, true
+    return text, true, total
 end
 
 local function validateSnapshot(data)
@@ -187,12 +190,13 @@ local function validateSnapshot(data)
 end
 
 local function readSnapshot()
-    local ok, text, present = pcall(readText)
+    local ok, text, present, total = pcall(readText)
     if not ok then complain("restart backup could not be read"); return end
     if not text then if present then complain(DAMAGED) end; return end
     local data = store.Decode(text)
     local valid = pcall(validateSnapshot, data)
     if not valid then complain(DAMAGED); return end
+    state.used, state.bytes = total, #text
     return data, text
 end
 
@@ -250,6 +254,7 @@ end
 local function encodeSnapshot(data,memories)
     local text,reason=store.Encode(data)
     if not text then return nil,reason end
+    state.requiredBytes = #text
     if #text>MAX_TEXT then return nil,"the settings are too large for the macro store" end
     local names={};local own=store.CharacterKey()
     for name in pairs(memories) do if name~=own then names[#names+1]=name end end
@@ -281,13 +286,14 @@ end
 
 function store.FlushMacros()
     if not store.MacrosAvailable() or not core.DB or InCombatLockdown() then return end
+    state.requiredBytes = nil
     local built, data, memories = pcall(snapshot)
     if not built then complain(tostring(data)); return end
     local text, reason = encodeSnapshot(data, memories)
     if not text then complain(reason); return end
     if text == state.lastText and not state.failure then return end
     local ok, failure = writeText(text)
-    if ok then state.lastText, state.data, state.failure = text, data, nil else complain(failure) end
+    if ok then state.lastText, state.data, state.failure, state.bytes = text, data, nil, #text else complain(failure) end
 end
 
 local function overlay(target, source)

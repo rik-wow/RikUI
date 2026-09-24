@@ -295,7 +295,12 @@ local function setupSpecs()
     specs[#specs + 1] = action("debug", "Interface diagnostics", "Show in chat", function() core:Debug() end)
     specs[#specs + 1] = action("errors", "Recent interface errors", "Show errors", function() run("errors") end)
     if core.Store then
-        specs[#specs + 1] = action("storage", "Saved data status", "Show in chat", function() run("store") end)
+        local storage = action("storage", "Saved data status", "Show in chat", function() run("store") end)
+        storage.description = ""
+        storage.getDescription = function()
+            return core.Store and core.Store.BackupSummary and core.Store.BackupSummary() or "Choose Show in chat for details."
+        end
+        specs[#specs + 1] = storage
         specs[#specs + 1] = action("savebackup", "Retry settings backups", "Save now", function()
             core.Store.Flush()
             if core.Store.FlushMacros then core.Store.FlushMacros() end
