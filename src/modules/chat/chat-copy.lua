@@ -136,6 +136,7 @@ end
 function chat.CloseCopy()
     if not window then return end
     window.edit:ClearFocus()
+    if window.search then window.search:ClearFocus() end
     window:Hide()
 end
 
@@ -150,9 +151,49 @@ local function createClose()
     return close
 end
 
+function chat.ApplyCopySearch()
+    if not window then return end
+    local query=window.search:GetText() or ""
+    if not usable(query) then return end
+    query=query:lower()
+    local lines,total={},0
+    for line in ((window.snapshot or "").."\n"):gmatch("(.-)\n") do
+        if line~="" then
+            total=total+1
+            if query=="" or line:lower():find(query,1,true) then lines[#lines+1]=line end
+        end
+    end
+    window.edit:SetText(query=="" and (window.snapshot or "") or table.concat(lines,"\n"))
+    window.count:SetText(#lines.." / "..total.." lines")
+    window.scroll:SetVerticalScroll(0)
+end
+
+local function createSearch()
+    local label=window:CreateFontString(nil,"OVERLAY")
+    media.Font(label,"label");label:SetText("Search")
+    label:SetPoint("TOPLEFT",window,"TOPLEFT",PAD,-32)
+    local search=CreateFrame("EditBox",nil,window)
+    search:SetSize(180,22);search:SetPoint("TOPLEFT",window,"TOPLEFT",64,-28)
+    search:SetAutoFocus(false);search:SetFont(media.font,media.sizes.label,TEXT_FLAGS)
+    search:SetMaxLetters(128)
+    chat.Flat(search,BACKGROUND)
+    search:SetScript("OnTextChanged",chat.ApplyCopySearch)
+    search:SetScript("OnEscapePressed",chat.CloseCopy)
+    search:SetScript("OnEnterPressed",function() search:ClearFocus();window.edit:SetFocus();window.edit:HighlightText() end)
+    window.search=search
+    local clear=CreateFrame("Button",nil,window)
+    clear:SetSize(48,22);clear:SetPoint("LEFT",search,"RIGHT",8,0)
+    clear:SetNormalFontObject(GameFontNormal);clear:SetText("Clear")
+    clear:SetHighlightTexture(media.highlight,"ADD")
+    clear:SetScript("OnClick",function() search:SetText("");chat.ApplyCopySearch();search:SetFocus() end)
+    window.clear=clear
+    window.count=window:CreateFontString(nil,"OVERLAY");media.Font(window.count,"label")
+    window.count:SetPoint("LEFT",clear,"RIGHT",8,0)
+end
+
 local function createEdit()
     local scroll = CreateFrame("ScrollFrame", nil, window)
-    scroll:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -(PAD + TITLE_HEIGHT))
+    scroll:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -(PAD + TITLE_HEIGHT + 28))
     scroll:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, PAD)
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", scrollWheel)
@@ -182,6 +223,7 @@ local function createWindow()
     window.title:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -PAD)
     window.close = createClose()
     window.scroll, window.edit = createEdit()
+    createSearch()
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, WINDOW_NAME) end
     window:Hide()
     core.Motion.BindEntrance(window, true)
@@ -192,7 +234,9 @@ end
 function chat.OpenCopy(frame, text)
     if not window then createWindow() end
     window.title:SetText(frame and frameTitle(frame) or LINK_TITLE)
-    window.edit:SetText(text or chat.PlainText(frame))
+    window.snapshot=text or chat.PlainText(frame)
+    window.search:SetText("")
+    chat.ApplyCopySearch()
     window:Show()
     window.edit:SetFocus()
     window.edit:HighlightText()
