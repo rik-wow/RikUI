@@ -1,6 +1,6 @@
 -- Nested navigation and independently bounded content inside the native Settings canvas.
 local core, options, scroll = RikUI, RikUI.Options, RikUI.Scroll
-local PAD, HEADER, FOOTER, NAV_WIDTH, GAP, NAV_ROW = 16, 58, 42, 140, 20, 28
+local PAD, HEADER, FOOTER, NAV_WIDTH, GAP, NAV_ROW = 16, 94, 42, 140, 20, 28
 local WIDTH, HEIGHT = 760, 560
 local GROUPS = { "Interface", "Gameplay", "System" }
 local panel, category
@@ -33,9 +33,9 @@ local function navigationLayout()
         y = y + NAV_ROW
         for _, page in ipairs(panel.pages) do
             if page.group == group then
-                shown(page.tab, not header.collapsed)
+                shown(page.tab, not header.collapsed and not page.filtered)
                 page.tab:ClearAllPoints(); page.tab:SetPoint("TOPLEFT", 10, -y)
-                if not header.collapsed then y = y + NAV_ROW end
+                if not header.collapsed and not page.filtered then y = y + NAV_ROW end
             end
         end
         y = y + 12
@@ -45,7 +45,7 @@ end
 
 function options.ShowPage(index)
     local selected = panel and panel.pages[index]
-    if not selected then return end
+    if not selected or selected.filtered then return end
     if options.CloseDropdown then options.CloseDropdown() end
     for position, page in ipairs(panel.pages) do
         shown(page.frame, position == index); shown(page.tab.selected, position == index)
@@ -58,6 +58,40 @@ function options.ShowPage(index)
     panel.hint:SetText(selected.description or "Customize this part of your interface.")
     options.SetFocus(panel, nil)
     options.Refresh()
+end
+
+local function matches(text, query)
+    return tostring(text or ""):lower():find(query, 1, true) ~= nil
+end
+
+local function filterPage(page, query)
+    local whole = query == "" or matches(page.title, query)
+    local count = 0
+    for _, row in ipairs(page.list.rows) do
+        row.filtered = not (whole or matches(row.spec.label, query) or matches(row.spec.description, query))
+        if not row.filtered then count = count + 1 end
+    end
+    page.filtered = count == 0
+    options.ResizeList(page.list, page.list.width)
+    return not page.filtered
+end
+
+function options.Search(text)
+    if not panel then return end
+    local query = (text or ""):lower():match("^%s*(.-)%s*$")
+    panel.query = query
+    options.CloseDropdown(); options.SetFocus(panel, nil)
+    local first
+    for index, page in ipairs(panel.pages) do
+        if filterPage(page, query) then first = first or index end
+    end
+    shown(panel.empty, not first)
+    if first then options.ShowPage(not panel.pages[panel.current or first].filtered and (panel.current or first) or first)
+    else
+        for _, page in ipairs(panel.pages) do page.frame:Hide(); page.tab.selected:Hide() end
+        navigationLayout()
+    end
+    shown(panel.clearSearch, query ~= "")
 end
 
 local function navigationButton(index, page)
@@ -151,6 +185,30 @@ local function createFurniture()
     panel.close:SetPoint("TOPRIGHT", -PAD, -12); panel.close:Hide()
 end
 
+local function createSearch()
+    local box = CreateFrame("EditBox", nil, panel)
+    box:SetAutoFocus(false); box:SetMaxLetters(100)
+    box:SetPoint("TOPLEFT", PAD, -60); box:SetPoint("TOPRIGHT", -54, -60); box:SetHeight(24)
+    box:SetTextInsets(8, 8, 0, 0); core.Media.Font(box, "label")
+    options.Flat(box, "BACKGROUND", { 0.07, 0.09, 0.12, 1 })
+    options.Border(box, { 0.25, 0.4, 0.5, 1 })
+    box.placeholder = options.Text(box, "small", "Search settings")
+    box.placeholder:SetPoint("LEFT", 8, 0)
+    box:SetScript("OnTextChanged", function(self)
+        shown(self.placeholder, self:GetText() == "")
+        options.Search(self:GetText())
+    end)
+    box:SetScript("OnEscapePressed", function(self) self:SetText(""); self:ClearFocus(); options.Search("") end)
+    box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+    box:HookScript("OnHide", function(self) self:ClearFocus() end)
+    panel.search = box
+    panel.clearSearch = footerButton("X", 24, function() box:SetText(""); options.Search("") end)
+    panel.clearSearch:SetPoint("TOPRIGHT", -PAD, -60); panel.clearSearch:Hide()
+    panel.empty = options.Text(panel, "label", "No settings match. Try a shorter search.")
+    panel.empty:SetPoint("CENTER"); panel.empty:Hide()
+    box:SetText("")
+end
+
 local function register()
     if panel then return end
     panel = CreateFrame("Frame", "RikUIOptionsPanel", UIParent)
@@ -159,6 +217,7 @@ local function register()
     createFurniture(); createNavigation()
     panel.pages = {}
     for index, page in ipairs(options.Pages()) do panel.pages[index] = createPage(index, page) end
+    createSearch()
     options.EnableKeyboard(panel, function() return panel.pages[panel.current].list.rows end)
     panel.OnRefresh = options.Refresh
     panel:SetScript("OnSizeChanged", function(_, width, height) options.Resize(width, height) end)
@@ -183,6 +242,7 @@ function options.Open(id)
         panel.close:Show(); panel:Show()
     end
     if id then
+        panel.search:SetText(""); options.Search("")
         for index, page in ipairs(panel.pages) do if page.id == id then options.ShowPage(index); break end end
     end
     options.Refresh()

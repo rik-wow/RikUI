@@ -161,7 +161,10 @@ end
 function options.ResizeList(list, width)
     local y = 0
     list.width = math.max(1, width)
-    for _, row in ipairs(list.rows) do y = placeRow(row, list.width, y) end
+    for _, row in ipairs(list.rows) do
+        options.SetShown(row, not row.filtered)
+        if not row.filtered then y = placeRow(row, list.width, y) end
+    end
     list.height = y
     if list.scroll and list.scroll.contentHeight ~= y then core.Scroll.SetContentHeight(list.scroll, y) end
 end
@@ -211,7 +214,7 @@ end
 local function moveFocus(panel, rows, delta)
     local candidates = {}
     for _, row in ipairs(rows) do
-        if row.widget and row.enabled then candidates[#candidates + 1] = row end
+        if row.widget and row.enabled and not row.filtered then candidates[#candidates + 1] = row end
     end
     if #candidates == 0 then return end
     local index = 0
@@ -234,6 +237,7 @@ function options.TabFromText(row)
 end
 
 local function handleKey(panel, key)
+    if panel.search and panel.search:HasFocus() then return false end
     for _, candidate in ipairs(panel.GetRows()) do
         if candidate.spec.type == "text" and candidate.widget:HasFocus() then return false end
     end
