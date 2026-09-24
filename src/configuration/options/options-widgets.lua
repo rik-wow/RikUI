@@ -42,6 +42,19 @@ function options.WidgetFrame(row, kind)
     return widget
 end
 
+function options.TryChange(label, callback, ...)
+    local called, result, reason = pcall(callback, ...)
+    if not called then
+        core.Runtime.Report("Settings " .. label, result)
+        return false
+    end
+    if result == false or (result == nil and reason ~= nil) then
+        core.Runtime.Report("Settings " .. label, reason or "Change was refused.")
+        return false
+    end
+    return true
+end
+
 function options.Commit(row, value)
     local spec = row.spec
     if not row.enabled or (spec.disabled and spec.disabled()) then return end
@@ -52,9 +65,8 @@ function options.Commit(row, value)
             options.RefreshList(row.list)
             return
         end
-        local ok, reason = spec.set(value)
-        if ok == nil and reason then core:Print(reason) end
-        if core.Changed then core:Changed() end
+        local accepted = options.TryChange(spec.label, spec.set, value)
+        if accepted and core.Changed then core:Changed() end
         options.RefreshList(row.list)
     end
     if spec.protected and InCombatLockdown() then

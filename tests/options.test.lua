@@ -306,6 +306,24 @@ return function(check)
         options.RefreshList(list)
         options.Commit(amount, 0.5)
 
+        local oldSetter, oldChanged = amount.spec.set, RikUI.Changed
+        local saved = 0
+        RikUI.Changed = function() saved = saved + 1 end
+        amount.spec.set = function() error("preference unavailable") end
+        check("setter exception stays inside settings", pcall(options.Commit, amount, 1))
+        check("failed setter is reported without saving", saved == 0 and contains("preference unavailable"))
+        amount.spec.set = function() return false, "preference refused" end
+        options.Commit(amount, 1)
+        check("rejected setting is reported without saving", saved == 0 and contains("preference refused"))
+        amount.spec.set, RikUI.Changed = oldSetter, oldChanged
+        local oldAction = pressRow.spec.action
+        pressRow.spec.action = function() error("action unavailable") end
+        check("action exception stays inside settings", pcall(options.Activate, pressRow))
+        check("failed action has context", contains("action unavailable"))
+        pressRow.spec.action = oldAction
+        options.Activate(pressRow)
+        check("settings action recovers after failure", state.pressed == 2)
+
         -- Keyboard focus over the same list.
         local panel = CreateFrame("Frame", nil, UIParent)
         options.EnableKeyboard(panel, function() return list.rows end)

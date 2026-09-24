@@ -338,7 +338,7 @@ types.button = {
             end
             cancelConfirmation(row)
         end
-        if row.spec.action then row.spec.action() end
+        if row.spec.action then options.TryChange(row.spec.label, row.spec.action) end
         options.RefreshList(row.list)
         if options.Refresh then options.Refresh() end
     end,

@@ -76,7 +76,7 @@ be cancelled by reopening; native Settings controls its own hide timing.
 
 Module settings are disabled while that module is off. Protected scale changes
 queue during combat; layout and maintenance buttons are disabled during combat.
-Changes save automatically.
+Changes save automatically. Failed or refused preference changes and button actions report their setting name in chat, then refresh from the actual state. Failed setters do not request a settings save.
 
 ## Profiles
 
