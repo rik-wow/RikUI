@@ -51,3 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Warrior — 2026-09-24
+
+Priorities: Shield Bash, Pummel, Taunt, Shield Block, Shield Wall, Retaliation,
+Recklessness, Berserker Rage, Bloodrage, Intercept, Charge and Intimidating Shout.
+
+Current [DPS cooldown feedback](https://us.forums.blizzard.com/en/wow/t/dps-warrior-feedback/2356172)
+and [level-20 tank feedback](https://us.forums.blizzard.com/en/wow/t/level-20-warrior-tanking-feedback/2358381)
+motivate visible defensive and control options. These are player requests, not
+verified tuning. The reopened [spellbook](https://foreverchanges.pro/spellbook/warrior)
+still identifies its underlying data as 69913 despite a newer site header.
+The profile reuses the verified Warrior catalogue and actual learned ranks.
+Talent-only spells absent from that catalogue, Overpower/Victory Rush proc
+eligibility and automatic stance changes are excluded. Cooldowns do not claim
+an ability is usable in the current stance. Native acceptance supplied by user.
+
