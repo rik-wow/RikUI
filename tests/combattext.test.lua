@@ -44,6 +44,10 @@ return function(check)
         load(nil, function() CombatTextFont.refuse = true end)
         check("a refused font is reported once", widgets.printedContains(env, "Combat text font") and #env.printed == 1)
 
+        load({ font = "game" })
+        check("profile font binds before early native damage consumers", DAMAGE_TEXT_FONT == (STANDARD_TEXT_FONT or STOCK)
+            and CombatTextFont.font[1] == DAMAGE_TEXT_FONT)
+
         load({ modules = { combattext = false } })
         check("a disabled module leaves the font object and the damage font stock",
             CombatTextFont.font[1] == STOCK and DAMAGE_TEXT_FONT == STOCK)

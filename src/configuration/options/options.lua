@@ -130,6 +130,11 @@ local function generalSpecs()
         description = "Remove RikUI fades, flashes and pulses. Cast and cooldown timers stay active. Reload to apply.",
         get = function() return core.Profile.reducedMotion == true end,
         set = function(value) core.Profile.reducedMotion = value == true end }
+    specs[#specs + 1] = { type = "dropdown", key = "font", label = "Font", reload = true,
+        description = "Choose RikUI's bundled font or the game's locale font. Reload to apply; world damage numbers require relogging.",
+        choices = { { value = "bundled", label = "RikUI (Noto Sans)" }, { value = "game", label = "Game font" } },
+        get = function() return core.Profile.font or "bundled" end,
+        set = function(value) core.Profile.font = value end }
     specs[#specs + 1] = { type = "slider", key = "textScale", label = "Text size", reload = true,
         description = "Resize RikUI labels without resizing frames. Chat has its own font size. Reload to apply.",
         min = 0.85, max = 1.3, step = 0.05,

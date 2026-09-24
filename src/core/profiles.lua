@@ -1,7 +1,7 @@
 -- Typed persisted defaults. Unit values and client secrets never pass through here.
 local core, runtime = RikUI, RikUI.Runtime
 local DEFAULT_PROFILE = "Default"
-local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 1, reducedMotion = false, gryphons = false, ghosts = true,
+local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 1, font = "bundled", reducedMotion = false, gryphons = false, ghosts = true,
     tooltip = { hideInCombat = false, ownedCounts = true, followCursor = false, scale = 1 },
     chat = { fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,
@@ -52,6 +52,7 @@ function runtime.BindProfile()
     local name = RikUICharDB.profile
     RikUIDB.profiles[name] = normalizeProfile(RikUIDB.profiles[name])
     core.DB, core.CharDB, core.Profile = RikUIDB, RikUICharDB, RikUIDB.profiles[name]
+    if core.Media and core.Media.Configure then core.Media.Configure() end
     runtime.ConfigureModules()
 end
 

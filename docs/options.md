@@ -32,7 +32,18 @@ be cancelled by reopening; native Settings controls its own hide timing.
 
 ## Everyday controls
 
-- General: scale, layout preset, Move frames and Reset positions.
+- General: frame scale, layout preset, Move frames and Reset positions.
+  Font chooses bundled Noto Sans or the game's locale-native font. Text size
+  scales shared labels from 85% to 130% without resizing frames; chat retains
+  its own size. Font, text size and Reduce cosmetic motion require a reload.
+  Reduced motion removes RikUI fades, flashes and pulses while timers keep running.
+  World damage-number fonts require returning to the character list.
+- Unit frames: show current/maximum, current only, or hide health and power text.
+- Nameplates: target enlargement and non-target opacity.
+- Bags and vendors: the movable capacity indicator shows free general and
+  specialized space with bags closed; click it to open inventory.
+- Tooltips: independent 75–150% scale.
+- Castbars: width, height and remaining-time visibility.
 - Move frames closes settings and unlocks the existing drag handles. The
   minimap launcher changes to **Done**; clicking it locks the frames.
 - Modules: enable or disable any registered module. A single **Reload UI**
@@ -59,8 +70,9 @@ Delete offers only inactive profiles. Delete and Reset positions first show
 an inline confirmation naming the target. Click Confirm to apply or Cancel
 to keep the current state; switching targets or hiding the row cancels it.
 Characters pointing at a deleted profile
-receive defaults when they next load. Profile import/export is not yet implemented
-and has no launcher entry.
+receive defaults when they next load. Use `/rik profileexport` and
+`/rik profileimport` to share UI preferences under a new profile name; see
+[sharing](sharing.md). Profile creation and deletion save immediately.
 
 ## Keyboard
 

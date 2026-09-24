@@ -23,6 +23,20 @@ return function(check)
         media.Font(scaled, "small")
         check("Font uses scaled role at its actual sink", scaled.measured == 13)
         RikUI.Profile = nil
+        local bundledChoice = media.font
+        STANDARD_TEXT_FONT = "Fonts\\ARIALN.TTF"
+        RikUI.Profile = { font = "game" }
+        if media.Configure then media.Configure() end
+        check("game font choice uses the locale-native font", media.font == STANDARD_TEXT_FONT)
+        RikUI.Profile.font = "unknown"
+        if media.Configure then media.Configure() end
+        check("unknown font choice returns to bundled path", media.font == bundledChoice)
+        RikUI.Profile.font = "game"
+        STANDARD_TEXT_FONT = nil
+        if media.Configure then media.Configure() end
+        check("game font choice has a known fallback", media.font == "Fonts\\FRIZQT__.TTF")
+        RikUI.Profile = nil
+        if media.Configure then media.Configure() end
         local known, missing, sizes = 0, {}, {}
         for name in pairs(media.Icons) do
             known = known + 1

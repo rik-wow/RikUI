@@ -40,6 +40,15 @@ function media.Icon(parent, name, size, layer)
     return icon
 end
 
+-- Resolve after saved profiles are bound, before native and addon font consumers start.
+function media.Configure()
+    local choice = RikUI.Profile and RikUI.Profile.font
+    media.font = root .. "font.ttf"
+    if choice == "game" then
+        media.font = type(STANDARD_TEXT_FONT) == "string" and STANDARD_TEXT_FONT or FALLBACK_FONT
+    end
+end
+
 function media.Size(role)
     local scale = RikUI.Profile and RikUI.Profile.textScale or 1
     if type(scale) ~= "number" or scale ~= scale or math.abs(scale) == math.huge then scale = 1 end
