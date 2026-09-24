@@ -19,6 +19,7 @@ local NAME_PATTERN = "%[(.-)%]"
 local COPPER_PER_SILVER, COPPER_PER_GOLD = 100, 10000
 local GOLD, SILVER, COPPER = "%d|cffffd700g|r", "%d|cffc7c7cfs|r", "%d|cffeda55fc|r"
 local bagFrames, search, filter = {}, "", "all"
+local nativeSearchAccepted = false
 local ITEM_CONSUMABLE, ITEM_WEAPON, ITEM_ARMOR, ITEM_QUEST = 0, 2, 4, 12
 local ITEM_REAGENT, ITEM_TRADE_GOODS = 5, 7
 
@@ -183,7 +184,7 @@ local function matches(button)
     if not categoryMatches(button) then return false end
     if search == "" then return true end
     if not button.rikFilled then return false end
-    if nativeSearch() then return not button.rikFiltered end
+    if nativeSearchAccepted and button.rikFiltered ~= nil then return not button.rikFiltered end
     local name = button.rikName
     return name ~= nil and name:find(search, 1, true) ~= nil
 end
@@ -221,7 +222,8 @@ function bags.UpdateButton(button)
     local r, g, b = borderColor(info and info.quality)
     for _, line in ipairs(button.rikBorder) do line:SetVertexColor(r, g, b, 1) end
     button.rikName, button.rikFilled = itemName(info), info ~= nil
-    button.rikFiltered = info ~= nil and plain(info.isFiltered, "boolean") and info.isFiltered
+    button.rikFiltered = nil
+    if info and plain(info.isFiltered, "boolean") then button.rikFiltered = info.isFiltered end
     bags.UpdateNewItem(button)
     classify(button, info, bag, slot)
     updateCooldown(button, bag, slot)
@@ -274,9 +276,11 @@ end
 function bags.SetSearch(text)
     if not plain(text, "string") then text = "" end
     search = text:lower():match("^%s*(.-)%s*$")
-    if nativeSearch() then
-        local ok, reason = pcall(C_Container.SetItemSearch, search)
-        if not ok then bags.Warn("search", reason) end
+    nativeSearchAccepted = nativeSearch()
+    if nativeSearchAccepted then
+        local ok, result = pcall(C_Container.SetItemSearch, search)
+        nativeSearchAccepted = ok and not core.Secret.IsSecret(result) and result ~= false
+        if not nativeSearchAccepted then bags.Warn("search", ok and "Search unavailable" or result) end
     end
     eachButton(dim)
     bags.UpdateTitle()

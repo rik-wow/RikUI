@@ -584,6 +584,30 @@ return function(check)
         SlashCmdList.RIKUI("debug")
         check("debug names the search text and how many slots it dims", printedContains("search=\"hearth\" dimmed=21"))
 
+        module = load(nil, false, function() C_Container.SetItemSearch = function() error("search unavailable") end end)
+        OpenAllBags()
+        typeSearch("Hearth")
+        check("failed native search falls back to readable names", button(0, 2).alpha == 1 and button(0, 1).alpha == 0.25)
+        typeSearch("[")
+        check("failed native search fallback is literal", button(0, 2).alpha == 0.25)
+        module = load(nil, false, function() C_Container.SetItemSearch = function() return false end end)
+        OpenAllBags()
+        stub.items["0:1"].isFiltered, stub.items["0:2"].isFiltered = env.SECRET, nil
+        typeSearch("Hearth")
+        module.Refresh()
+        check("refused search and opaque flags fall back to names", button(0, 2).alpha == 1 and button(0, 1).alpha == 0.25)
+
+        check("search failures only warn once", printedContains("Bags search") and #env.printed == 1)
+        C_Container.SetItemSearch = function() end
+        typeSearch("Hearth")
+        module.Refresh()
+        check("accepted search with unreadable flags uses names", button(0, 2).alpha == 1 and button(0, 1).alpha == 0.25)
+        stub.items["0:1"].isFiltered, stub.items["0:2"].isFiltered = false, true
+        module.Refresh()
+        check("readable native flags take precedence over name fallback", button(0, 1).alpha == 1 and button(0, 2).alpha == 0.25)
+        typeSearch("")
+        check("clearing fallback search restores empty slots", button(0, 3).alpha == 1)
+
         module = load(nil, false, function() ContainerFrameCombinedBags = nil end)
         check("an absent combined frame is skipped", #module.Parked == 6)
 

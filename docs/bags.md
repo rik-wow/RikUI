@@ -45,7 +45,7 @@ matches`). If the title never shows a match count, the text is not reaching
 the addon; if it does but nothing darkens, the drawing is at fault. The text goes to Blizzard's
 own bag search (`C_Container.SetItemSearch`), the client marks each item
 record `isFiltered` and answers with `INVENTORY_SEARCH_UPDATE`, and the grid
-redraws from that. A client without `SetItemSearch` falls back to matching
+redraws from that. A missing, failing or refused `SetItemSearch` call, or an unreadable per-item filter flag, falls back to matching
 the item name from its link, ignoring case and treating the text literally.
 Escape in the box clears it, and closing the frame clears it too. Sort calls `C_Container.SortBags()`, Blizzard's own clean-up.
 The footer shows your money and four equipped-bag targets. Pick up a replacement
