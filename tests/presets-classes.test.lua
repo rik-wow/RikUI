@@ -105,6 +105,17 @@ return function(check)
     end
     UnitClass, C_SpellBook, Enum = oldClass, savedBook, savedEnum
 
+
+    local warlock = assert(RikUI.Presets.WARLOCK, "Warlock preset missing")
+    local affliction = assert(RikUI.Setup.Resolve("WARLOCK", "affliction"))
+    local destruction = assert(RikUI.Setup.Resolve("WARLOCK", "destruction"))
+    check("Warlock preserves Forever Banes and role attacks", affliction.bars.main[2].spell == "Bane of Agony"
+        and destruction.bars.main[1].spell == "Incinerate"
+        and RikUI.Spells.Entry("Curse of Agony", "WARLOCK") == nil)
+    check("Warlock pet commands follow Hunter key decision",
+        warlock.bars.bar2[10].macro == "Pet Attack" and warlock.bars.bar2[11].macro == "Pet Follow"
+        and warlock.macros["Pet Attack"].body == RikUI.Presets.HUNTER.macros["Pet Attack"].body)
+
     for class, current in pairs(RikUI.Presets) do
         check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)
         for _, role in ipairs(current.roleOrder) do

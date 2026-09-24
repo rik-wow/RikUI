@@ -52,3 +52,9 @@ Discipline/Holy and Shadow layouts preserve quick healing access. Targeted frien
 
 Priest HTML SHA-256: `a7c824429943f178f17dba3f20d1903ff8f77764507719cdec5ed02eb7201ab6`.
 
+## Warlock layout
+
+Affliction, Demonology and Destruction share Fear, Life Tap, drains and pet controls. Mouse4/5 use the Hunter pet attack/follow convention. The Ctrl row groups armor, stones and demon summons; side rows provide curses, Banes, ritual and travel utility. Forever's Bane of Agony/Bane of Doom names are retained. All 56 player families are catalogued; native pet-family actions are outside the source book and stay native.
+
+Warlock HTML SHA-256: `3db22eb5db4c3c448fcb399f8677055b8c2c677240776b75364e3f21272c945b`.
+
