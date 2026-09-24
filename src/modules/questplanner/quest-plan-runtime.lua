@@ -313,11 +313,17 @@ function runtime.ProjectDecision(result,policy,prior,state,inputs)
         localRow,coverage=planner.Recommendations.LocalChoice(inputs.localQuests,state,policy)
     end
     if localRow and planner.Recommendations.CloserPickup(first,localRow,state,policy,inputs.mapSize) then localRow=nil end
+    if not localRow and not conflict and not pinned and planner.Recommendations then
+        localRow,coverage=planner.Recommendations.UnconfirmedPickupChoice(first,inputs.localQuests,state,policy,inputs.mapSize)
+    end
     if localRow then
         local id=localRow.questID..":live:"..localRow.kind
         display.selected={questID=localRow.questID,kind=localRow.kind,actionID=id};display.actionID=id
-        decision.mode,decision.coverage,decision.switchReason="local",coverage,"coverage"
-        local selected={actions={},status=result.status,reason="Nearby active quests first; planning data is incomplete",
+        local unconfirmed=coverage.mode=="unconfirmed-pickup"
+        decision.mode,decision.coverage,decision.switchReason="local",coverage,unconfirmed and "unconfirmed-pickup" or "coverage"
+        local selected={actions={},status=result.status,reason=unconfirmed
+            and "Nearby active quests first; suggested pickup is unconfirmed"
+            or "Nearby active quests first; planning data is incomplete",
             coverage=result.coverage,metrics=result.metrics,limited=result.limited,excluded=result.excluded}
         return selected,prior~=nil and prior.actionID==id,decision
     end

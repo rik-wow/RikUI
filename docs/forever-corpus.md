@@ -187,6 +187,37 @@ redistribution grant was not established. This delivery supplies local
 acquisition/compiler code and a local installation; it does not commit or
 redistribute the generated provider database.
 
+## Starter quest selection correction (2026-09-23)
+
+The Deathknell Paladin report exposed two planner errors. QuestieDB's
+`friendlyToFaction` is faction affiliation, not permanent attackability:
+[the consumer tests explicitly call AH neutral](https://github.com/Questie/Questie/blob/454b9d072965ee8f1a881429260fcf1fac8d60f7/Database/QuestieDB.test.lua).
+The installed source gives both Mindless Zombie (1501) and Wretched Zombie
+(1502) this value, while quest 364 explicitly requires killing them. Scripted
+same-faction targets also exist: Alliance quest 434 requires NPCs 1754 and 1755,
+whose source faction field is A. Kill/drop actions therefore use their bound
+objectives and prerequisites; faction gates remain on NPC interactions.
+
+An unconfirmed source pickup now yields to feasible active work substantially
+closer on the same map (at least 40 yards and 20% of the pickup distance).
+The existing sorted live recommendations make this choice stable. Exact
+quest/giver offers and explicit pins retain control; nearby pickups remain
+eligible. This local decision discards speculative itinerary, XP and time
+estimates, and its reason identifies the unconfirmed pickup.
+
+Current [Forever quest 8](https://www.wowhead.com/forever/quest=8/a-rogues-deal)
+and [quest 590](https://www.wowhead.com/forever/quest=590/a-rogues-deal) listings
+have minimum level 1, quest level 5 and no class restriction. That does not
+prove the NPC currently offers either quest to a particular character. The
+source prerequisite for 590 remains quest 8. No Rogue-only or invented
+minimum-level restriction was added.
+
+The automated regression reconstructs the reported level-1 Horde Paladin,
+position 31.6,66.0, live 0/8 objectives, both source zombies and Calvin's chain.
+All six planner flavors retain nearby active work, preserve interaction and
+history gates, and replay the published decision. Native acceptance is supplied
+by the user; these are automated results.
+
 ## Seasonal availability
 
 Builds also read the twelve holiday membership tables from the pinned Questie
@@ -253,8 +284,7 @@ latency or native gameplay acceptance. The main test suite covers recommendation
 stability, pins, exclusions, progress, unknown travel and shared-area preferences.
 
 The final delivery receipt records exact gate totals, artifact hashes, installed
-counts, all-record replay results and route measurements. Native game walking,
-visual/interaction acceptance, current new-chain observations and exact lift
-landing/availability/timing evidence remain open in Magistr. Host tests do not
-close those obligations.
+counts, all-record replay results and route measurements. The user supplies
+native/game-client acceptance. Unknown new-chain and lift timing/source facts
+remain explicitly unknown; they do not create routine native-acceptance blockers.
 

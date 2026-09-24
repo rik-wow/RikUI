@@ -2,7 +2,7 @@
 local planner=RikUI.QuestPlanner
 local schema,search=planner.Schema,{}
 planner.PlanSearch=search
-search.REVISION="adaptive-9"
+search.REVISION="adaptive-10"
 local MAX_WORK,MAX_ACTIONS,MAX_DEPTH,WIDTH=48000,128,64,16
 local function copyList(values)
     local result={};for _,value in ipairs(values or {}) do result[#result+1]=value end;return result

@@ -149,9 +149,9 @@ function transitions.Check(action,state,policy)
             or action.method=="start" or action.method=="finish"
         if interaction and not faction then return nil,"Faction interaction unknown" end
         if interaction and friendly~="AH" and friendly~=faction then return false,"Target does not support this faction interaction" end
-        if (action.method=="kill" or action.method=="drop") and (friendly=="AH" or faction and friendly==faction) then
-            return false,"Target is friendly to this faction"
-        end
+        -- Questie faction affiliation is not attackability: AH includes neutral
+        -- enemies, and scripted objectives can target same-faction NPCs.
+        -- Kill/drop feasibility comes from the bound objective and its prerequisites.
     end
     local slots=capacity(action,state)
     if slots and state.bagFree and slots>state.bagFree then return false,"Bags full; use observed stacking capacity or a service" end

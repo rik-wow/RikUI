@@ -3,7 +3,8 @@ return function(check)
     local saved=RikUI
     RikUI={};RikUI["Secret"]={IsSecret=function() return false end}
     local ok,err=pcall(function()
-        for _,name in ipairs({"schema","preferences","plan-graph","plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search"}) do
+        for _,name in ipairs({"schema","preferences","recommendations","guidance","plan-state","plan-graph","plan-transitions",
+            "plan-learning","plan-rewards","plan-costs","plan-search","plan-runtime"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         local p=RikUI.QuestPlanner
@@ -40,8 +41,8 @@ return function(check)
             local seconds=math.abs(from.x-to.x)*1000
             return {seconds=seconds,lower=seconds,upper=seconds,status="authored"}
         end}
-        local function run(g,s,pref)
-            local job=assert(p.PlanSearch.Begin(g,s,pref,environment));local result
+        local function run(g,s,pref,env)
+            local job=assert(p.PlanSearch.Begin(g,s,pref,env or environment));local result
             for _=1,1000 do result=job:Step(64);if result then break end end
             check("adversarial search bounded",result and result.status=="ready" and result.metrics.work<=48000)
             return result
@@ -183,6 +184,120 @@ return function(check)
         g=graph(records,s,pref,{[8653]=1})
         for _,a in ipairs(g.actions) do if a.kind=="pickup" then pickup=a;break end end
         check("script completion flag is not a holiday",not pickup.seasonal and p.PlanTransitions.Check(pickup,s,pref)==true)
+
+        -- Deathknell screenshot: level-1 Paladin, active quest 364 at 31.6,66.0.
+        -- Source shape/positions: QuestieDB baa0998d; AH includes neutral NPCs.
+        -- Counts are live quest-log evidence. Source rewards/availability stay unknown.
+        do
+            local function npc(kind,id,name,x,y,faction,level)
+                return {kind=kind,targetKind="npc",targetID=id,name=name,dispositionKnown=true,friendlyToFaction=faction,
+                    eligibility={minLevel=level,maxLevel=level},rank=0,
+                    areas={{id="npc:"..id,mapID=1420,x=x,y=y}}}
+            end
+            local calvin=npc("start",6784,"Calvin Montague",.3823,.5679,"H",5)
+            local sarvis=npc("finish",1569,"Shadow Priest Sarvis",.3084,.662,"H",5)
+            local zombies={
+                {id="monster:1501:1",type="monster",targetID=1501,methods={npc("kill",1501,"Mindless Zombie",.3228,.6363,"AH",1)}},
+                {id="monster:1502:2",type="monster",targetID=1502,methods={npc("kill",1502,"Wretched Zombie",.3258,.6276,"AH",2)}},
+            }
+            local deathknell={
+                [364]={id=364,title="The Mindless Ones",objectives=zombies,starts={},ends={sarvis},
+                    eligibility={questLevel=2,requiredLevel=1},planning={version=1,requirements={op="minLevel",value=1}}},
+                [8]={id=8,title="A Rogue's Deal",objectives={},starts={calvin},
+                    ends={npc("finish",5688,"Innkeeper Renee",.6172,.5205,"H",30)},providedItemID=7628,
+                    eligibility={questLevel=5,requiredLevel=1},planning={version=1,blockedBy={590},
+                        requirements={op="all",args={{op="minLevel",value=1},{op="raceMask",value=178}}}}},
+                [590]={id=590,title="A Rogue's Deal",objectives={{id="event:590:1",type="event",
+                    methods={{kind="explore",targetKind="event",targetID=590,name="Defeat Calvin Montague",
+                        areas={{id="event:590",mapID=1420,x=.3819,y=.5674}}}}}},starts={calvin},
+                    ends={npc("finish",6784,"Calvin Montague",.3823,.5679,"H",5)},
+                    eligibility={questLevel=5,requiredLevel=1},planning={version=1,requirements={op="completed",questID=8}}},
+            }
+            local starter=initial({364,8,590})
+            starter.identity={product="forever",build="1.60.1.69913",locale="enUS"}
+            starter.level=1;starter.class=2;starter.classMask=2;starter.race=5;starter.raceMask=16;starter.faction="Horde"
+            starter.position={mapID=1420,x=.316,y=.66};starter.active[364]=true;starter.logCount=1
+            starter.live[364]={title="The Mindless Ones",level=2,objectivesComplete=false,hasPlanningRecord=true}
+            starter.progress[364]={};starter.objectiveInfo[364]={}
+            for _,objective in ipairs(zombies) do
+                starter.progress[364][objective.id]=8
+                starter.objectiveInfo[364][objective.id]={required=8,fulfilled=0,bound=true}
+            end
+            local env={mapSizes={[1420]={4518.75,3012.5}}}
+            for _,flavor in ipairs({"Balanced","Efficient","Story","Explorer","Relaxed","Challenge"}) do
+                local policy=p.Preferences.Normalize({flavor=flavor})
+                local g=graph(deathknell,starter,policy,{[364]=1,[590]=1})
+                local pickup,followup
+                for _,action in ipairs(g.actions) do
+                    action.cost=nil
+                    if action.questID==364 and action.kind=="objective" and not action.liveFallback then
+                        check("active neutral zombie remains feasible "..flavor..":"..action.target.id,
+                            p.PlanTransitions.Check(action,starter,policy)==true)
+                    elseif action.kind=="pickup" and action.questID==8 then pickup=action
+                    elseif action.kind=="pickup" and action.questID==590 then followup=action end
+                end
+                check("quest title does not impose Rogue class restriction "..flavor,p.PlanTransitions.Check(pickup,starter,policy)==true)
+                check("Calvin combat followup needs its prerequisite "..flavor,p.PlanTransitions.Check(followup,starter,policy)==false)
+                local result=run(g,starter,policy,env)
+                local observed={{questID=364,kind="objective",destination={mapID=1420,x=.3228,y=.6363},
+                    semantic={objectiveKey="monster:1501:1"},recommendation={distance=78}}}
+                local inputs={observed=observed,destinations={},mapSize=env.mapSizes[1420],
+                    localQuests=p.Recommendations.Capture(observed,starter,policy,g)}
+                local projected,_,decision=p.PlanRuntime.ProjectDecision(result,policy,nil,starter,inputs)
+                check("nearby active starter work precedes Calvin pickup "..flavor,
+                    decision.displayed.selected and decision.displayed.selected.questID==364,
+                    decision.displayed.selected and decision.displayed.selected.questID or "no action")
+                check("active-work override explains unconfirmed pickup without speculative rewards "..flavor,
+                    decision.mode=="local" and projected.reason:find("unconfirmed",1,true)
+                    and projected.score==nil and projected.xp==nil and #projected.actions==0)
+                p.Context={Frame=function() return {position=starter.position,width=4518.75,height=3012.5} end}
+                local model=p.PlanRuntime.Result({actions={pickup},score=42,xp=900,seconds=500,status="refining",
+                    decisionKind="continuity",replayGraph=g},observed,{destinations={}},policy,nil,starter)
+                check("published starter guidance clears speculative itinerary "..flavor,
+                    model.selected.questID==364 and model.localGuidance and model.score==nil and model.estimate.xp==nil
+                    and model.estimate.seconds==nil and #model.upNext==0 and #model.actionIDs==0)
+                local trace=p.PlanRuntime.Replay()
+                local replay=trace and p.PlanRuntime.RerunReplay(trace,trace.source)
+                check("starter choice replays offline "..flavor,replay and replay.status=="match",
+                    replay and (replay.reason or replay.phase))
+                local choice=p.Recommendations.UnconfirmedPickupChoice
+                starter.questOffers={[8]={offered=true,npcID=6784}}
+                check("exact observed offer retains pickup planning "..flavor,choice(pickup,inputs.localQuests,starter,policy,inputs.mapSize)==nil)
+                starter.questOffers={[8]={offered=true,npcID=999}}
+                check("wrong giver cannot confirm pickup "..flavor,choice(pickup,inputs.localQuests,starter,policy,inputs.mapSize)~=nil)
+                starter.questOffers=nil
+                policy.pins[8]=true
+                local _,_,pinned=p.PlanRuntime.ProjectDecision(result,policy,nil,starter,inputs)
+                check("explicit future quest pin retains user choice "..flavor,pinned.displayed.selected.questID==8)
+                policy.pins[8]=nil
+                local nearby=p.Schema.Clone(pickup);nearby.destination={mapID=1420,x=.317,y=.66}
+                check("nearby pickup still fits current work "..flavor,choice(nearby,inputs.localQuests,starter,policy,inputs.mapSize)==nil)
+                check("unknown distances cannot manufacture an active-work override "..flavor,choice(pickup,inputs.localQuests,starter,policy,nil)==nil)
+                policy.skips[364]=true
+                check("skipped active work cannot override pickup "..flavor,choice(pickup,inputs.localQuests,starter,policy,inputs.mapSize)==nil)
+                policy.skips[364]=nil
+                inputs.localQuests[1].blocked=true
+                check("blocked active work cannot override pickup "..flavor,choice(pickup,inputs.localQuests,starter,policy,inputs.mapSize)==nil)
+                check("source planning does not fabricate offer or progress "..flavor,
+                    starter.questOffers==nil and starter.progress[364]["monster:1501:1"]==8 and not starter.active[8])
+                local neutral=p.Schema.Clone(g.byQuest[364][1])
+                for _,a in ipairs(g.byQuest[364]) do if a.method=="kill" then neutral=p.Schema.Clone(a);break end end
+                neutral.method="drop"
+                check("neutral drop source remains feasible "..flavor,p.PlanTransitions.Check(neutral,starter,policy)==true)
+                neutral.friendlyToFaction="H"
+                check("same faction label alone cannot veto scripted objective "..flavor,p.PlanTransitions.Check(neutral,starter,policy)==true)
+                neutral.preconditions={{op="item",itemID=999,count=1}}
+                starter.inventory[999]=0
+                check("scripted objective still needs its setup "..flavor,p.PlanTransitions.Check(neutral,starter,policy)==false)
+                local interaction=p.Schema.Clone(pickup);interaction.friendlyToFaction="A"
+                check("opposing faction giver remains excluded "..flavor,p.PlanTransitions.Check(interaction,starter,policy)==false)
+                interaction.friendlyToFaction="AH"
+                check("neutral giver remains usable "..flavor,p.PlanTransitions.Check(interaction,starter,policy)==true)
+                starter.completed[8]=nil
+                check("neutral giver cannot bypass unknown history "..flavor,p.PlanTransitions.Check(interaction,starter,policy)==nil)
+                starter.completed[8]=false
+            end
+        end
 
         -- R06 signed reputation and explicit non-XP reward preferences.
         records={[401]=source(401,0,100),[402]=source(402,0,100)}

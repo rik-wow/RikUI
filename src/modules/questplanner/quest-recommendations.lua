@@ -159,6 +159,25 @@ function recommendations.CloserPickup(action,row,state,policy,mapSize)
     local localScore=math.max(0,row.distance-(row.kind=="turnin" and TURNIN_BONUS or 0))
     return gap~=nil and gap<localScore
 end
+-- An unobserved pickup must not pull the player away from closer, feasible
+-- active work solely because a speculative future chain scored well.
+function recommendations.UnconfirmedPickupChoice(action,rows,state,policy,mapSize)
+    if not state or not state.fresh or not action or action.kind~="pickup"
+        or action.availability~="source-suggestion" or policy.pins[action.questID] or not mapSize then return end
+    local offer=(state.questOffers or {})[action.questID]
+    if offer and offer.offered==true and action.target and action.target.kind=="npc"
+        and offer.npcID==action.target.id then return end
+    local frame={position=state.position,width=mapSize[1],height=mapSize[2]}
+    local gap=distance(action.destination,state.position,frame)
+    if not gap then return end
+    for _,row in ipairs(rows or {}) do
+        if liveEligible(row,state,policy) and row.destination.mapID==state.position.mapID
+            and schema.Number(row.distance,0,1000000)
+            and gap-row.distance>=math.max(SWITCH_DISTANCE,gap*SWITCH_FRACTION) then
+            return row,{mode="unconfirmed-pickup",distance=row.distance,pickupQuestID=action.questID}
+        end
+    end
+end
 function recommendations.LocalChoice(rows,state,policy)
     if not state or not state.fresh then return end
     local chosen,missing=nil,{}
