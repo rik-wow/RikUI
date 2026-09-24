@@ -28,7 +28,7 @@ local schema = {
     questtracker={ collapsed=boolean, collapseInCombat=boolean, hideCompleted=boolean, readyFirst=boolean },
     minimap={ serverTime=boolean, coordinates=boolean, dayNight=boolean },
     swingtimer={ kiting=boolean, stopLead=number(0.1,1.5) },
-    druidmana={ show=boolean }, worldmap={ fog=boolean }, nameplates={ threatText=boolean, selectedScale=number(1,1.5), otherAlpha=number(0.2,1) },
+    druidmana={ show=boolean }, worldmap={ fog=boolean }, nameplates={ healthHeight=number(12,24,true), nameHeight=number(12,24,true), threatText=boolean, selectedScale=number(1,1.5), otherAlpha=number(0.2,1) },
     unitframes={ healthText=textMode, powerText=textMode },
     castbars={ widthScale=number(0.75,1.5), height=number(16,36,true), timeText=boolean },
     xpbar={ compact=boolean, text=boolean, animations=boolean, ticks=boolean },

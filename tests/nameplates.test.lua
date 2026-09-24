@@ -204,6 +204,18 @@ return function(check)
         local frame, bar = first.UnitFrame, first.UnitFrame.HealthBarsContainer.healthBar
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
         local parts = module.Parts[frame]
+        for _, spec in ipairs(module.Options.settings) do
+            if spec.key == "healthHeight" then spec.set(22) end
+            if spec.key == "nameHeight" then spec.set(18) end
+        end
+        env.flushTimers()
+        layoutPass(frame)
+        check("custom plate rows survive native layout", frame.HealthBarsContainer.height == 22 and parts.plaque.height == 18)
+        RikUI.Profile.nameplates.healthHeight, RikUI.Profile.nameplates.nameHeight = 0/0, 99
+        module.Skin.Apply(frame)
+        check("plate row invalid values fall back or clamp", frame.HealthBarsContainer.height == 14 and parts.plaque.height == 24)
+        RikUI.Profile.nameplates.healthHeight, RikUI.Profile.nameplates.nameHeight = nil, nil
+        module.Skin.Apply(frame)
         local own = parts.bar
         check("the plate gets an own bar over Blizzard's with the RikUI texture and Blizzard's fill faded",
             own.parent == bar and own.barTexture == media.statusbar and bar.barTexture.alpha == 0)

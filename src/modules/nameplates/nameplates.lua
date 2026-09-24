@@ -223,7 +223,17 @@ local function emphasisOption(key, label, low, high, fallback)
         get = function() return core.Profile.nameplates[key] or fallback end,
         set = function(value) core.Profile.nameplates[key] = value; nameplates.Target.ApplyCVars() end }
 end
+local function rowOption(key, label, fallback)
+    return { type = "slider", key = key, label = label, min = 12, max = 24, step = 1,
+        get = function() return nameplates.Skin.Dimension(key, fallback) end,
+        set = function(value)
+            core.Profile.nameplates[key] = value
+            relayoutAllSoon()
+        end }
+end
 nameplates.Options = { title = "Nameplates", group = "Combat", settings = {
+    rowOption("healthHeight", "Health bar height", 14),
+    rowOption("nameHeight", "Name row height", 13),
     emphasisOption("selectedScale", "Target size", 1, 1.5, 1.15),
     emphasisOption("otherAlpha", "Non-target opacity", 0.2, 1, 0.6),
     { type = "checkbox", key = "threatText", label = "Show threat text",

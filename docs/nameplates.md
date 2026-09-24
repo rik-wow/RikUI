@@ -7,6 +7,12 @@ them. The client still creates, positions, stacks and drives every plate.
 the target and threat indicators. Disable the `nameplates` module in
 `/rik config` and reload to get the stock plates back.
 
+## Row sizes
+
+Nameplates settings offer health bar and name row heights from 12 to 24, defaulting to 14 and 13. The preferences apply to active and reused plates and survive native layout resets. They change the existing cosmetic row layout, not the client's hit area or stacking rules. Profile sharing validates integer bounds.
+
+Research reviewed 2026-09-24: [Forever UI feedback](https://us.forums.blizzard.com/en/wow/t/classic-forever-needs-its-ui-fixed/2352794) requests adjustable plate size and readability. This is community demand. The implementation extends the existing build-specific layout surface without assuming additional CVars. User native acceptance applies; automated fixtures cover refresh, layout resets and invalid values.
+
 ## What you see
 
 A 14px flat bar on a dark backing with a one-pixel edge, with the health

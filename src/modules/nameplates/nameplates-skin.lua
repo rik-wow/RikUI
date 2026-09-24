@@ -24,6 +24,11 @@ local MARKERS = { elite = { "star", { 1, 0.82, 0 } }, worldboss = { "skull", { 1
     rare = { "diamond", { 0.75, 0.78, 0.85 } }, rareelite = { "star", { 0.75, 0.78, 0.85 } } }
 local MARKER_SIZE = 10
 local warnings = {}
+function skin.Dimension(key, fallback)
+    local value = core.Profile.nameplates[key]
+    if type(value) ~= "number" or value ~= value then return fallback end
+    return math.max(12, math.min(24, math.floor(value + 0.5)))
+end
 
 local function warn(operation, reason)
     if warnings[operation] then return end
@@ -103,7 +108,7 @@ end
 
 local function applyBar(frame, parts, size)
     local bar = frame.HealthBarsContainer.healthBar
-    frame.HealthBarsContainer:SetHeight(BAR_HEIGHT)
+    frame.HealthBarsContainer:SetHeight(skin.Dimension("healthHeight", BAR_HEIGHT))
     bar.barTexture:SetAlpha(0)
     local backing = bar.bgTexture
     backing:SetTexture(flat)
@@ -142,7 +147,7 @@ local function applyText(frame, parts, size)
     plaque:ClearAllPoints()
     plaque:SetPoint("BOTTOMLEFT", backing, "TOPLEFT", 0, -size)
     plaque:SetPoint("BOTTOMRIGHT", parts.levelBox or backing, "TOPRIGHT", 0, -size)
-    plaque:SetHeight(PLAQUE_HEIGHT)
+    plaque:SetHeight(skin.Dimension("nameHeight", PLAQUE_HEIGHT))
     nameplates.Resize(parts.plaqueBorder, size)
     name:ClearAllPoints()
     name:SetJustifyH("CENTER")
