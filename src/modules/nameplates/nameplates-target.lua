@@ -1,7 +1,7 @@
 -- Target and threat indicators. Blizzard compares units in secure code and expresses the result
 -- through its own regions: healthBar.selectedBorder is shown for target and focus, and the unit
 -- frame's aggroHighlight while the unit is on you. This file copies those shown states and never
--- compares units or reads threat. Target scale and non-target dimming belong to the engine, which
+-- compares units. Optional numeric threat text uses a separate reader-to-sink path below. Target scale and non-target dimming belong to the engine, which
 -- also animates them, so they are set through the client's nameplate CVars.
 local core = RikUI
 local nameplates = core.Nameplates
@@ -50,6 +50,65 @@ local function blankFlare(frame)
     end
 end
 
+local function threatEnabled()
+    return core.Profile and core.Profile.nameplates and core.Profile.nameplates.threatText ~= false
+end
+
+-- Fallback text copies Blizzard's public shown state; it never interprets threat values.
+function target.SyncThreat(frame)
+    local parts = nameplates.Parts[frame]
+    if not parts or not parts.threatText then return end
+    local nameOnly = type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true
+    local shown = parts.threatUnit ~= nil and threatEnabled() and not nameOnly
+    parts.threatText:SetShown(shown)
+    if not parts.threatUnit or not threatEnabled() then parts.threatText:SetText(""); return end
+    if parts.threatFallback then
+        parts.threatText:SetText(parts.aggro and parts.aggro:IsShown() == true and "AGGRO" or "")
+    end
+end
+
+local function readThreat(unit)
+    local _, _, percent = UnitDetailedThreatSituation("player", unit)
+    return percent
+end
+
+function target.UpdateThreat(frame)
+    local parts = nameplates.Parts[frame]
+    if not parts or not parts.threatText then return end
+    parts.threatText:SetText("")
+    parts.threatFallback = true
+    local unit = parts.threatUnit
+    if unit and nameplates.Active[unit] == frame and threatEnabled() and type(UnitDetailedThreatSituation) == "function" then
+        local delivered = false
+        local ok = core.Secret.Apply(function(percent)
+            -- Only readable values are inspected; secrets go directly into the native formatting sink.
+            if not core.Secret.IsSecret(percent) then
+                if type(percent) ~= "number" or percent ~= percent or percent < 0 or percent == math.huge then return end
+            end
+            parts.threatText:SetFormattedText("Threat %.0f%%", percent)
+            delivered = true
+        end, readThreat, unit)
+        parts.threatFallback = not (ok and delivered)
+    end
+    target.SyncThreat(frame)
+end
+
+function target.SetThreatUnit(frame, unit)
+    local parts = nameplates.Parts[frame]
+    if not parts then return end
+    parts.threatUnit = unit
+    target.UpdateThreat(frame)
+end
+
+function target.ThreatEvent(_, unit)
+    if not core.Secret.IsSecret(unit) and type(unit) == "string" and unit:match("^nameplate%d+$") then
+        local frame = nameplates.Active[unit]
+        if frame then target.UpdateThreat(frame) end
+        return
+    end
+    for _, frame in pairs(nameplates.Active) do target.UpdateThreat(frame) end
+end
+
 -- Copies Blizzard's shown states onto the indicators. Blizzard sets them while the plate handles its
 -- events (target, focus, threat) and in its layout pass, so this runs after the plate's OnEvent
 -- script and from the global-function hooks in src/modules/nameplates/nameplates.lua. The regions'
@@ -59,6 +118,7 @@ function target.Sync(frame)
     if not parts then return end
     if parts.selection then setSelected(parts, parts.selection:IsShown() == true) end
     if parts.aggro then parts.threat:SetShown(parts.aggro:IsShown() == true) end
+    target.SyncThreat(frame)
 end
 
 function target.Build(frame, parts)
@@ -76,6 +136,11 @@ function target.Build(frame, parts)
         blankFlare(frame)
         parts.aggro = frame.aggroHighlight
     end
+    parts.threatText = own:CreateFontString(nil, "OVERLAY")
+    font(parts.threatText, "small")
+    parts.threatText:SetPoint("LEFT", parts.levelBox or own, "RIGHT", 18, 0)
+    parts.threatText:SetTextColor(1, 1, 1)
+    parts.threatText:SetText("")
     core.Hooks.Script(frame, "OnEvent", target.Sync)
     target.Sync(frame)
 end

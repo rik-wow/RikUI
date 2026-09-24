@@ -6,6 +6,7 @@ return function(check)
     local originalCreate = CreateFrame
     local API = { "C_NamePlate", "PixelUtil", "UnitClassification", "CompactUnitFrame_SetUpFrame",
         "CompactUnitFrame_UpdateName", "CompactUnitFrame_UpdateAggroHighlight" }
+    local savedThreat = UnitDetailedThreatSituation
     local saved, savedCVar, savedInfoEnum = {}, C_CVar, Enum.NamePlateInfoDisplay
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
@@ -278,6 +279,74 @@ return function(check)
         aggro(frame, false)
         check("and hides with it", parts.threat.shown == false)
 
+        check("numeric threat label exists", parts.threatText ~= nil)
+        if parts.threatText then
+            local percentage, reads = 75.4, 0
+            UnitDetailedThreatSituation = function(player, unit)
+                check("threat reader uses player against active unit", player == "player" and unit == "nameplate1")
+                reads = reads + 1
+                return env.SECRET, env.SECRET, percentage, env.SECRET, env.SECRET
+            end
+            function parts.threatText:SetFormattedText(format, value)
+                self.sinkFormat, self.sinkValue = format, value
+                self.text = value == env.SECRET and "<secret>" or string.format(format, value)
+            end
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("client scaled threat displayed", parts.threatText.text == "Threat 75%")
+            percentage = 0
+            env.fire("UNIT_THREAT_SITUATION_UPDATE", "nameplate1")
+            check("zero threat is not mistaken for missing data", parts.threatText.text == "Threat 0%")
+            percentage = env.SECRET
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("secret percent forwarded unchanged", parts.threatText.sinkValue == env.SECRET
+                and parts.threatText.sinkFormat == "Threat %.0f%%")
+            local oldReads = reads
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate9")
+            check("unrelated threat token ignored", reads == oldReads)
+            env.fire("UNIT_THREAT_LIST_UPDATE", env.SECRET)
+            check("secret event token refreshes public active units", reads == oldReads + 1)
+            local spec = module.Options.settings[1]
+            spec.set(false)
+            oldReads = reads
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("disabled threat text clears and stops reads", parts.threatText.text == "" and reads == oldReads)
+            percentage = 42
+            spec.set(true)
+            check("threat option refreshes immediately", parts.threatText.text == "Threat 42%")
+            percentage = nil
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("missing threat clears stale percent", parts.threatText.text == "")
+            aggro(frame, true)
+            check("native aggro has a text fallback", parts.threatText.text == "AGGRO")
+            aggro(frame, false)
+            check("fallback clears with native aggro", parts.threatText.text == "")
+            for _, invalid in ipairs({ -1, math.huge, 0/0, "bad" }) do
+                percentage = invalid
+                env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+                check("invalid plain threat stays empty", parts.threatText.text == "")
+            end
+            local sink = parts.threatText.SetFormattedText
+            parts.threatText.SetFormattedText = function() error("sink unavailable") end
+            percentage = env.SECRET
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("refused protected sink clears stale text", parts.threatText.text == "")
+            parts.threatText.SetFormattedText = sink
+            UnitDetailedThreatSituation = function() error("unavailable") end
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("failing threat read is contained", parts.threatText.text == "")
+            UnitDetailedThreatSituation = nil
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("missing threat API is contained", parts.threatText.text == "")
+            UnitDetailedThreatSituation = function() return false, 1, 88 end
+            frame.nameOnly = true
+            layoutPass(frame)
+            env.fire("UNIT_THREAT_LIST_UPDATE", "nameplate1")
+            check("name-only plate hides threat text", parts.threatText.shown == false)
+            frame.nameOnly = false
+            layoutPass(frame)
+            check("returning bar shows threat text", parts.threatText.shown == true and parts.threatText.text == "Threat 88%")
+        end
+
         local cast = frame.CastBarsContainer.castBar
         check("the cast bar goes flat with its fill left to Blizzard", cast.Border.alpha == 0
             and cast.Background.texture == "Interface\\BUTTONS\\WHITE8X8" and cast.Text.fontPath == media.font
@@ -312,12 +381,14 @@ return function(check)
         env.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
         check("removed plate stops both feedback cues", own.feedback and not own.feedback.damage.group.playing
             and not own.feedback.heal.group.playing)
+        check("removed plate clears threat identity and text", not parts.threatText or (parts.threatText.text == "" and parts.threatUnit == nil))
         check("a removed plate hides its container", container:IsShown() == false and module.Active.nameplate1 == nil)
         stub.plates.nameplate7, stub.plates.nameplate1 = first, nil
         env.fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
         frame:UpdateAnchors() -- OnUnitSet's UpdateShowOnlyName, after RikUI saw the event
         env.flushTimers()
         check("pooled plate never replays the previous unit's damage", own.flashAnim.plays == damagePlays)
+        check("pooled threat follows the new token", not parts.threatText or (parts.threatUnit == "nameplate7" and parts.threatText.text == "Threat 88%"))
         check("an added plate is laid out again a frame later", frame.HealthBarsContainer.height == 14)
         check("a pooled frame is reused without new hooks or parts and fades in again", #env.hooks == hooks
             and module.Parts[frame] == parts and container.unit == "nameplate7" and container.updates == updates + 1
@@ -368,6 +439,7 @@ return function(check)
             module.Parts[stock.UnitFrame] == nil and #env.hooks == 0 and stub.cvars.nameplateSelectedScale == "1.3"
             and stub.cvars.nameplateNotSelectedAlpha == "1" and RikUI.Profile.nameplateCVars == nil)
     end)
+    UnitDetailedThreatSituation = savedThreat
     CreateFrame = originalCreate
     C_CVar, Enum.NamePlateInfoDisplay = savedCVar, savedInfoEnum
     for _, name in ipairs(API) do _G[name] = saved[name] end

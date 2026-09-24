@@ -37,6 +37,16 @@ plates exist is still up to the `nameplateShowEnemies` and
 `nameplateShowFriendlyPlayers` / `nameplateShowFriendlyNpcs` settings the
 [setup engine](setup.md) writes.
 
+## Threat text
+
+**Show threat text** on the Nameplates options page adds white `Threat 75%` text to the right of the level badge, outside the target arrow. It is enabled by default and included in profile sharing. The number is the client's scaled percentage from `UnitDetailedThreatSituation("player", unit)`; RikUI does not compute a ratio or infer thresholds. Zero is displayed when explicitly reported. If numeric data is unavailable, the label shows `AGGRO` only while Blizzard's existing aggro highlight is shown; otherwise it stays empty.
+
+Threat list/situation events refresh matching plates. Player/alias or protected event tokens refresh known public active tokens without comparing protected tokens. Target changes refresh active plates. No timer polling is added. Removal clears text and unit identity; reused frames read the new unit. Name-only plates hide the label. Disabling the setting clears labels and stops threat reads.
+
+Research reviewed 2026-09-24: a [Forever player requested numeric threat because they are colorblind](https://www.reddit.com/r/classicwow/comments/1wn4jbq/top_addons_for_forever/). This is community demand, not a claim that every build exposes readable numbers. The exact-build [Unit API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua) may return nothing or protected threat values; [FontString.SetFormattedText](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua) permits protected arguments from addon code. Protected percentages go directly to that sink, without arithmetic, comparisons or saved-variable storage. Read or sink failures clear stale percentages.
+
+Automated fixtures cover plain/zero/protected values, malformed results, reader/sink failure, event filtering, fallback warning, name-only visibility, disabled reads and pooled-unit cleanup. Native/game-client acceptance is supplied by the user; these fixtures are not native rendering observations.
+
 ## Animations
 
 - Health eases to its new value (`ExponentialEaseOut`). A pooled plate's first

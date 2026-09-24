@@ -162,6 +162,7 @@ function nameplates.Added(_, unit)
     nameplates.Skin.Ensure(frame)
     nameplates.Skin.Apply(frame)
     nameplates.Skin.SetUnit(frame, unit)
+    nameplates.Target.SetThreatUnit(frame, unit)
     attachAuras(frame, unit)
     relayoutSoon(frame)
 end
@@ -170,7 +171,11 @@ function nameplates.Removed(_, unit)
     if core.Secret.IsSecret(unit) then return end
     local frame = nameplates.Active[unit]
     nameplates.Active[unit] = nil
-    if frame then nameplates.Skin.StopFeedback(frame) end
+    if frame then
+        nameplates.Skin.StopFeedback(frame)
+        local parts = nameplates.Parts[frame]
+        if parts and parts.threatUnit == unit then nameplates.Target.SetThreatUnit(frame, nil) end
+    end
     local container = frame and nameplates.Containers[frame]
     if container then container:Hide() end
 end
@@ -202,6 +207,9 @@ function nameplates:OnEnable()
     core.Hooks.Function("CompactUnitFrame_UpdateName", syncName)
     core.Hooks.Function("CompactUnitFrame_UpdateAggroHighlight", nameplates.Target.Sync)
     nameplates.Target.ApplyCVars()
+    core:RegisterEvent("UNIT_THREAT_LIST_UPDATE", nameplates.Target.ThreatEvent)
+    core:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE", nameplates.Target.ThreatEvent)
+    core:RegisterEvent("PLAYER_TARGET_CHANGED", nameplates.Target.ThreatEvent)
 end
 
 function nameplates:Debug()
@@ -209,4 +217,13 @@ function nameplates:Debug()
         .. " containers=" .. auras.Count(nameplates.Containers))
 end
 
+nameplates.Options = { title = "Nameplates", group = "Combat", settings = {
+    { type = "checkbox", key = "threatText", label = "Show threat text",
+        description = "Client threat percentage beside each plate; AGGRO when only the native warning is available.",
+        get = function() return core.Profile.nameplates.threatText ~= false end,
+        set = function(value)
+            core.Profile.nameplates.threatText = value == true
+            nameplates.Target.ThreatEvent()
+        end },
+} }
 core:RegisterModule("nameplates", nameplates)

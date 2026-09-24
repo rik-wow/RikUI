@@ -12,6 +12,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = f
     minimap = { serverTime = false, coordinates = true, dayNight = true },
     swingtimer = { kiting = true, stopLead = 0.6 },
     druidmana = { show = true },
+    nameplates = { threatText = true },
     worldmap = { fog = true },
     xpbar = { compact = false, text = true, animations = true, ticks = true } }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }
