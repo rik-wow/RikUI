@@ -1,19 +1,12 @@
 -- Rotation, control, cooldowns, pet care and tracking. See docs/class-presets.md.
 RikUI.Presets.HUNTER = {
     ["class"] = "HUNTER",
-    ["version"] = 1,
-    ["roleOrder"] = {
-        "dps",
-    },
+    ["version"] = 2,
+    ["roleOrder"] = { "dps", "beast", "survival" },
     ["roles"] = {
-        ["dps"] = {
-            ["label"] = "Hunter damage",
-            ["trees"] = {
-                1,
-                2,
-                3,
-            },
-        },
+        ["dps"] = { label = "Marksmanship", trees = { 2 } },
+        ["beast"] = { label = "Beast Mastery", trees = { 1 } },
+        ["survival"] = { label = "Survival / melee", trees = { 3 } },
     },
     ["bars"] = {
         ["main"] = {
@@ -268,6 +261,28 @@ RikUI.Presets.HUNTER = {
             ["body"] = "#showtooltip\n/petfollow\n/petpassive",
         },
     },
-    ["roleOverrides"] = {},
+    ["roleOverrides"] = {
+        beast = {
+            main = { [3] = { spell = "Summon Hawk", level = 25 } },
+            bar4 = { [1] = { spell = "Arcane Shot", level = 6 } },
+        },
+        survival = {
+            main = {
+                [1] = { spell = "Raptor Strike", level = 1 },
+                [3] = { spell = "Mongoose Bite", level = 16 },
+                [4] = { spell = "Lacerate", level = 30 },
+                [5] = { spell = "Counterattack", level = 30 },
+                [11] = { spell = "Strider Kick" },
+            },
+            bar4 = {
+                [2] = { spell = "Aimed Shot", level = 20 },
+                [3] = { spell = "Auto Shot", level = 1 },
+                [6] = { spell = "Arcane Shot", level = 6 },
+                [7] = { spell = "Multi-Shot", level = 18 },
+                [12] = { spell = "Distracting Shot", level = 12 },
+            },
+            extra = { [1] = { spell = "Sniper Shot", level = 40 }, [2] = { spell = "Scare Beast", level = 14 } },
+        },
+    },
 }
 

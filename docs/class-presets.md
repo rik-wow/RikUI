@@ -98,3 +98,7 @@ Checked 2026-09-23. In Setup and support, disable Automatically update preset sp
 
 [September 21 player rank-update reports](https://www.reddit.com/r/wowforever/comments/1wmc3uk/next_rank_skills_do_not_equip_automatically/) support keeping upgrades available; opt-out is our design choice for players who maintain their own bars, not a claim of a client bug fix.
 
+## Hunter talent layouts
+
+Checked 2026-09-23 against the [published exact-build spellbook](https://foreverchanges.pro/spellbook/hunter) and existing DB2-backed catalogue. [Current player experiences](https://www.reddit.com/r/classicwow/comments/1wmqsy3/how_are_you_feeling_about_your_class_in_wow/) highlight melee Survival and pet play; these are requests/context, not balance verification. Marksmanship retains the saved `dps` role; Beast Mastery brings Summon Hawk forward and Survival brings melee strikes forward. Displaced ranged attacks stay on the side row. Pet command keys and Freezing Trap stay fixed. Talent inference uses each separate tree. Spell availability still requires the actual learned ID; these layouts make no performance recommendation.
+

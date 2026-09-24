@@ -81,6 +81,35 @@ return function(check)
             return groups
         end,
     }
+    for tree, expected in ipairs({ "beast", "dps", "survival" }) do
+        points = { 0, 0, 0 }; points[tree] = 10
+        check("Hunter tree selects " .. expected, RikUI.Setup.GuessRole("HUNTER") == expected)
+    end
+    local melee = RikUI.Setup.Resolve("HUNTER", "survival")
+    local beast = RikUI.Setup.Resolve("HUNTER", "beast")
+    check("Hunter Survival makes melee attacks primary", melee and melee.bars.main[1].spell == "Raptor Strike"
+        and melee.bars.main[3].spell == "Mongoose Bite" and melee.bars.main[4].spell == "Lacerate")
+    check("Hunter Survival preserves ranged fallback and pet controls", melee and melee.bars.bar4[2].spell == "Aimed Shot"
+        and melee.bars.bar2[10].macro == "Pet Attack" and melee.bars.main[7].spell == "Freezing Trap")
+    check("Hunter Beast Mastery exposes hawk and retains Arcane Shot", beast and beast.bars.main[3].spell == "Summon Hawk"
+        and beast.bars.bar4[1].spell == "Arcane Shot")
+    check("Hunter Survival retains threat shot and sniper utility", melee and melee.bars.bar4[12].spell == "Distracting Shot"
+        and melee.bars.extra[1].spell == "Sniper Shot")
+    for _, role in ipairs(preset.roleOrder) do
+        local current = RikUI.Setup.Resolve("HUNTER", role)
+        local found = {}
+        for _, slots in pairs(current.bars) do
+            for _, entry in pairs(slots) do found[entry.spell or entry.macro or entry.item] = true end
+        end
+        for _, slots in pairs(preset.bars) do
+            for _, entry in pairs(slots) do
+                check("Hunter " .. role .. " preserves " .. (entry.spell or entry.macro or entry.item),
+                    found[entry.spell or entry.macro or entry.item])
+            end
+        end
+    end
+    check("Hunter legacy dps marker resolves to Marksmanship", RikUI.Setup.Resolve("HUNTER", "dps").bars.main[1].spell == "Auto Shot")
+
     for tree, expected in ipairs({ "heal", "heal", "shadow" }) do
         points = { 0, 0, 0 }; points[tree] = 10
         check("Priest ten-point tree " .. tree .. " chooses " .. expected,
