@@ -61,6 +61,21 @@ return function(check)
         GameTooltip_SetDefaultAnchor(ItemRefTooltip, UIParent)
         check("other tooltips asking for the default anchor follow too", anchoredTo(ItemRefTooltip, anchor))
 
+        local sizeSetting
+        for _, option in ipairs(module.Options.settings) do
+            if option.key == "scale" then sizeSetting = option end
+        end
+        check("tooltip size has an independent option", sizeSetting ~= nil)
+        if sizeSetting then
+            sizeSetting.set(1.3)
+            check("size updates existing comparison tooltips", near(tip.scale, 1.3) and near(ShoppingTooltip1.scale, 1.3))
+            module.Refresh(); module.Refresh()
+            check("repeated tooltip shows do not compound scale", near(tip.scale, 1.3))
+            sizeSetting.set(math.huge)
+            check("invalid tooltip size falls back safely", near(tip.scale, 1))
+            sizeSetting.set(1)
+        end
+
         local cursorSetting
         for _, setting in ipairs(module.Options.settings) do
             if setting.key == "followCursor" then cursorSetting = setting end
@@ -228,11 +243,16 @@ return function(check)
         check("a secondary tooltip gets the same flat background, edge and hidden backdrop",
             rawget(EmbeddedItemTooltip, "rikBackground") ~= nil and #EmbeddedItemTooltip.rikBorder == 4
             and EmbeddedItemTooltip.NineSlice.shown == false)
+        RikUI.Profile.tooltip.scale = 1.2
         QuickKeybindTooltip = stub.tooltip("QuickKeybindTooltip")
+        QuickKeybindTooltip:SetScale(0.8)
         env.fire("ADDON_LOADED", "Blizzard_QuickKeybind")
         check("a tooltip that arrives with a later add-on is skinned when that add-on loads",
             rawget(QuickKeybindTooltip, "rikBackground") ~= nil and QuickKeybindTooltip.NineSlice.shown == false
             and #env.printed == 0)
+        check("late tooltips retain original scale as a stable base", near(QuickKeybindTooltip.scale, 0.96))
+        QuickKeybindTooltip:Hide(); QuickKeybindTooltip:Show()
+        check("late tooltip base is not recaptured", near(QuickKeybindTooltip.scale, 0.96))
         EmbeddedItemTooltip, QuickKeybindTooltip = nil, nil
 
         module = load({ modules = { tooltip = false } })

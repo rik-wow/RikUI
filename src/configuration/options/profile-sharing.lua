@@ -19,7 +19,7 @@ local schema = {
     positions={ wildcard={ point=anchor, relativePoint=anchor, x=number(-32768,32768), y=number(-32768,32768) } },
     borderColor={ [1]=number(0,1), [2]=number(0,1), [3]=number(0,1) },
     barFade={ main=boolean, bar2=boolean, bar3=boolean, bar4=boolean, bar5=boolean },
-    tooltip={ hideInCombat=boolean, ownedCounts=boolean, followCursor=boolean },
+    tooltip={ hideInCombat=boolean, ownedCounts=boolean, followCursor=boolean, scale=number(0.75,1.5) },
     chat={ fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
     bags={ autoRepair=boolean, columns=number(10,16,true), capacityHUD=boolean },
     questtracker={ collapsed=boolean, collapseInCombat=boolean, hideCompleted=boolean, readyFirst=boolean },

@@ -48,6 +48,9 @@ end
 function stub.tooltip(name)
     local tip = CreateFrame("GameTooltip", name, UIParent)
     function tip:CreateAnimationGroup() return require("widget_stub").animationGroup() end
+    tip.scale = 1
+    function tip:GetScale() return self.scale end
+    function tip:SetScale(value) self.scale = value end
     tip.NineSlice = CreateFrame("Frame", nil, tip)
     function tip.NineSlice:SetCenterColor(...) self.center = { ... } end
     tip.StatusBar = statusBar(tip)

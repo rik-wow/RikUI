@@ -66,6 +66,24 @@ function tooltip.HideBackdrop(frame)
     if nineSlice then nineSlice:Hide() end
 end
 
+local baseScales = setmetatable({}, { __mode = "k" })
+local function applyScale(frame)
+    local scale = core.Profile.tooltip.scale
+    if type(scale) ~= "number" or scale ~= scale or math.abs(scale) == math.huge then scale = 1 end
+    scale = math.max(0.75, math.min(1.5, scale))
+    if not baseScales[frame] then
+        local base = frame:GetScale()
+        if (issecretvalue and issecretvalue(base)) or type(base) ~= "number" or base <= 0
+            or base ~= base or base == math.huge then base = 1 end
+        baseScales[frame] = base
+    end
+    frame:SetScale(baseScales[frame] * scale)
+end
+
+function tooltip.Refresh()
+    for frame in pairs(tooltip.Skinned) do applyScale(frame) end
+end
+
 local function skin(frame)
     if tooltip.Skinned[frame] then return end
     frame.rikBackground = frame:CreateTexture(nil, "BACKGROUND")
@@ -73,6 +91,8 @@ local function skin(frame)
     frame.rikBackground:SetColorTexture(unpack(BACKGROUND))
     frame.rikBorder = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
+    applyScale(frame)
+    frame:HookScript("OnShow", applyScale)
     core.Motion.BindEntrance(frame)
     tooltip.Skinned[frame] = true
     tooltip.HideBackdrop(frame)
@@ -138,5 +158,10 @@ table.insert(tooltip.Options.settings, { type = "checkbox", key = "followCursor"
     description = "Use the native cursor anchor instead of your movable fixed tooltip position.",
     get = function() return core.Profile.tooltip.followCursor == true end,
     set = function(value) core.Profile.tooltip.followCursor = value == true end })
+
+table.insert(tooltip.Options.settings, { type = "slider", key = "scale", label = "Tooltip size",
+    min = 0.75, max = 1.5, step = 0.05,
+    get = function() return core.Profile.tooltip.scale end,
+    set = function(value) core.Profile.tooltip.scale = value; tooltip.Refresh() end })
 
 core:RegisterModule("tooltip", tooltip)

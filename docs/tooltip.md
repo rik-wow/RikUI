@@ -1,5 +1,11 @@
 # Tooltips
 
+**Tooltip size** scales styled tooltips from 75% to 150% of their original size,
+independently of HUD scale. Changes apply immediately, including comparison
+tooltips; newly loaded tooltips inherit the preference. Repeated shows do not
+compound the scale. Shared text size also affects their fonts.
+
+
 **Tooltips follow the cursor** uses Blizzard's cursor anchor. Turn it off to
 return to the movable fixed tooltip position; the default is fixed.
 
