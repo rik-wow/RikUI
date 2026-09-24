@@ -161,6 +161,7 @@ check("available snippet machinery still runs the probe", workingCalls == 1
 loadstring_untainted, SecureHandlerExecute = nil, originalExecute
 
 dofile("tests/sharing-codec.test.lua")(check)
+dofile("tests/preset-schema.test.lua")(check)
 
 -- The addon core shares the same runner and reports through check().
 local coreOk, coreErr = pcall(function() dofile("tests/core.test.lua")(check) end)
