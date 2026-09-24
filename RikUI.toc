@@ -83,6 +83,7 @@ src/modules/auras/auras.lua
 src/modules/auras/auras-button.lua
 src/modules/auras/auras-units.lua
 src/modules/auras/auras-class.lua
+data/class-auras-mage.lua
 data/class-auras-priest.lua
 data/class-auras-druid.lua
 data/class-auras-shaman.lua

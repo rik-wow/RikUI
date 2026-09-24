@@ -49,6 +49,7 @@ return function(check)
         { class = "SHAMAN", player = { 324, 2645 }, harmful = { 8050, 8056 }, helpful = { 546, 131 }, excluded = { 403 }, enchants = true },
         { class = "DRUID", player = { 22812, 29166 }, harmful = { 8921, 1079 }, helpful = { 774, 8936 }, excluded = { 5176 }, enchants = false },
         { class = "PRIEST", player = { 17, 10901, 15473 }, harmful = { 589, 15286 }, helpful = { 139, 25315 }, excluded = { 585 }, enchants = false },
+        { class = "MAGE", player = { 1459, 10157, 11426 }, harmful = { 118, 12826, 122 }, helpful = {  }, excluded = { 2136 }, enchants = false },
         -- Additional verified class fixtures.
     }
     local function verifyProfile(sample)

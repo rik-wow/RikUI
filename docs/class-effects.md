@@ -76,3 +76,11 @@ Player: Power Word: Shield, Renew, Inner Fire, Inner Focus, Power Infusion, Shad
 
 [Current feedback](https://us.forums.blizzard.com/en/wow/t/power-word-shield-and-rage-generation-in-wow-forever/2354715) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/priest) supplies the direct-aura families through the existing 69913 catalogue. Weakened Soul, Prayer of Mending bounce auras, Spirit Tap and other triggered effects remain unverified. Vampiric Embrace is a target debuff in the source. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
 
+### Mage — 2026-09-23
+
+Track armor, wards, shields and burst-preparation buffs plus your periodic damage, Polymorph, roots and slows.
+
+Player: Arcane Intellect, Frost Armor, Ice Armor, Mage Armor, Mana Shield, Fire Ward, Frost Ward, Ice Barrier, Presence of Mind, Arcane Power. Target harmful: Polymorph, Polymorph: Cow, Fireball, Pyroblast, Frostfire Bolt, Frostbolt, Frost Nova, Cone of Cold, Blast Wave.
+
+[Current feedback](https://us.forums.blizzard.com/en/wow/t/im-worried-about-mage-pvp/2355422) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/mage) supplies the direct-aura families through the existing 69913 catalogue. No guessed Fingers of Frost, Hot Streak, Missile Barrage, Clearcasting, Arcane Blast stack, Winter's Chill or Improved Scorch aura IDs. Ice Block aura identity is not inferred from legacy mappings. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
