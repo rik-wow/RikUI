@@ -1,6 +1,8 @@
 return function(check)
     local env, widgets = require("wow_stub"), require("widget_stub")
     local restore = widgets.install()
+    local savedFriends, savedAdd, savedCreate, savedUpdate = FriendsFrame, CommunitiesAddDialog,
+        CommunitiesCreateDialog, FriendsList_Update
     local ok, reason = pcall(function()
         widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/panels/interiors.lua",
             "src/modules/panels/interiors-social.lua" })
@@ -37,7 +39,50 @@ return function(check)
         RikUI.Interiors.Walk(locked, "social"); RikUI.Interiors.Walk(locked, "social")
         check("forbidden community surfaces reported once", #env.printed == 1
             and widgets.printedContains(env, "forbidden") and RikUI.Interiors.State(locked) == nil)
+        -- Reproduce the native FriendsList_Update hook and deferred event refresh.
+        local service, visibleReads, forbiddenReads = RikUI.Interiors, 0, 0
+        FriendsFrame = frame()
+        FriendsFrame.name = FriendsFrame:CreateFontString()
+        function FriendsFrame:IsShown() visibleReads = visibleReads + 1; return true end
+        CommunitiesAddDialog, CommunitiesCreateDialog = frame(), frame()
+        local newlyForbidden = false
+        function CommunitiesAddDialog:IsForbidden() return true end
+        function CommunitiesAddDialog:IsShown()
+            forbiddenReads = forbiddenReads + 1
+            error("Attempt to access forbidden object")
+        end
+        function CommunitiesCreateDialog:IsForbidden() return newlyForbidden end
+        function CommunitiesCreateDialog:IsShown()
+            if newlyForbidden then
+                forbiddenReads = forbiddenReads + 1
+                error("Attempt to access newly forbidden object")
+            end
+            return true
+        end
+        FriendsList_Update = function() return "native result" end
+        service.Enable()
+        newlyForbidden = true
+        check("social hook preserves native result", FriendsList_Update() == "native result")
+        env.fire("FRIENDLIST_UPDATE"); env.flushTimers()
+        check("social hook and queued refresh skip forbidden visibility reads", forbiddenReads == 0
+            and visibleReads >= 3 and service.State(FriendsFrame) ~= nil)
+        local warningCount = #env.printed
+        FriendsList_Update(); service.Refresh("social")
+        check("repeated refresh does not retry or repeat forbidden warnings", forbiddenReads == 0
+            and #env.printed == warningCount)
+        local refused = frame()
+        function refused:IsShown() error("must not query refused root") end
+        service.Warn(refused, "prior decoration refusal")
+        CommunitiesAddDialog = refused
+        service.Refresh("social")
+        check("previously refused roots skip visibility reads", service.State(refused) == nil)
+        RikUI.Panels = { enabled = false }
+        local before = visibleReads
+        FriendsList_Update(); service.Refresh("social")
+        check("disabled refresh does not inspect root visibility", visibleReads == before)
     end)
+    FriendsFrame, CommunitiesAddDialog, CommunitiesCreateDialog, FriendsList_Update =
+        savedFriends, savedAdd, savedCreate, savedUpdate
     CalendarDayButton42, CalendarDayButton42DateFrameDate, CalendarDayButton42EventBackgroundTexture = nil, nil, nil
     restore()
     check("social interiors suite completes", ok, reason)

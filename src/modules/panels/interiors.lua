@@ -173,9 +173,11 @@ end
 
 local refreshers = {}
 function interiors.Refresh(family)
+    if not enabled() then return end
     for name, kind in pairs(interiors.Roots) do
         local frame = _G[name]
-        if kind == family and interiors.IsFrame(frame) and frame:IsShown() then interiors.Walk(frame, family) end
+        -- Visibility queries are forbidden too; use the same guard as discovery and walking.
+        if kind == family and allowed(frame) and frame:IsShown() then interiors.Walk(frame, family) end
     end
 end
 
