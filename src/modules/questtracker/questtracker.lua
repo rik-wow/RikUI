@@ -165,6 +165,10 @@ tracker.Options = { title = "Quest tracker", group = "Gameplay", settings = {
         description = "Keep the header visible. Click it to reveal quests temporarily; restore your preference after combat.",
         get = function() return core.Profile.questtracker.collapseInCombat == true end,
         set = function(value) core.Profile.questtracker.collapseInCombat = value == true; combatChanged() end },
+    { type = "checkbox", key = "hideCompleted", label = "Hide completed objectives",
+        description = "Keep unfinished steps in the list. Hover a quest to see every objective.",
+        get = function() return core.Profile.questtracker.hideCompleted == true end,
+        set = function(value) core.Profile.questtracker.hideCompleted = value == true; tracker.Refresh() end },
 } }
 
 core:RegisterModule("questtracker", tracker)

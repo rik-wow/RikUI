@@ -115,6 +115,19 @@ return function(check)
             and #view.Header.rikBorder == 4 and view.Header.rikBorder[1].texture == RikUI.Media.border)
         check("blocks fade in when they first appear", first.fade.plays == 1 and second.fade.plays == 1)
 
+        local unfinished
+        for _, setting in ipairs(module.Options.settings) do
+            if setting.key == "hideCompleted" then unfinished = setting end
+        end
+        check("unfinished objectives preference exists", unfinished ~= nil)
+        unfinished.set(true)
+        check("completed lines are removed and height shrinks", first.height == 26 and first.lines[2].shown == false)
+        GameTooltip.lines = {}
+        env.runScript(first, "OnEnter")
+        check("completed objectives remain accessible on hover", tooltipContains("Pelts: 8/8"))
+        env.runScript(first, "OnLeave")
+        unfinished.set(false)
+        check("disabling compact objectives restores all lines", first.height == 38 and first.lines[2].shown)
         stub.quests[11].objectives[1][1] = "Wolves slain: 4/8"
         update()
         check("progress rewrites the objective and flashes only that line",

@@ -148,7 +148,9 @@ local function displayLines(quest)
     end
     local lines = {}
     for _, objective in ipairs(quest.objectives) do
-        lines[#lines + 1] = { text = "- " .. objective.text, color = objective.finished and FINISHED_COLOR or OBJECTIVE_COLOR }
+        if not objective.finished or not core.Profile.questtracker.hideCompleted then
+            lines[#lines + 1] = { text = "- " .. objective.text, color = objective.finished and FINISHED_COLOR or OBJECTIVE_COLOR }
+        end
     end
     return lines
 end

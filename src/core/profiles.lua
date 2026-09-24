@@ -8,7 +8,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = f
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },
     bags = { autoRepair = false },
     barFade = { bar3 = true },
-    questtracker = { collapsed = false, collapseInCombat = false },
+    questtracker = { collapsed = false, collapseInCombat = false, hideCompleted = false },
     minimap = { serverTime = false },
     worldmap = { fog = true },
     xpbar = { compact = false, text = true, animations = true, ticks = true } }

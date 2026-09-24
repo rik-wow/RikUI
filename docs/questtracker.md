@@ -31,6 +31,8 @@ green once for 0.6s. Expanding the list fades every block in. A refresh that
 changes nothing replays nothing, and quests that only move up the list do not
 fade again.
 
+In Settings > Gameplay > Quest tracker, **Hide completed objectives** removes finished steps from active quests and reduces their height. Ready and failed summaries stay visible. The option is off by default; full details remain available on hover.
+
 ## Hover details
 
 Hover a quest to read its full title and every objective with wrapping text, including completed objectives. Ready and failed states appear above the objectives. The tooltip updates with quest progress and clears when the block hides or is reused.
