@@ -369,6 +369,15 @@ return function(check)
             and not rowByKey(generalPage.list, "reset").enabled)
         env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
 
+        -- Open dropdown keyboard navigation does not commit until confirmed.
+        options.Open("long")
+        env.click(last.widget)
+        press(config, "HOME")
+        check("dropdown home previews first choice without saving", popup.cursor == 1 and picked == 20)
+        press(config, "DOWN"); press(config, "ENTER")
+        check("dropdown enter commits highlighted choice", picked == 2 and not popup.shown)
+        env.click(last.widget); press(config, "END"); press(config, "ESCAPE")
+        check("dropdown escape cancels preview", picked == 2 and not popup.shown)
         -- Profiles.
         options = boot({ profiles = { Default = { scale = 0.9, positions = { main = { x = 5 } } } } })
         local profiles = pageByTitle(options, "Profiles").list

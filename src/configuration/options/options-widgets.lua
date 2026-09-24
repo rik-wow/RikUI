@@ -205,6 +205,7 @@ local function moveFocus(panel, rows, delta)
 end
 
 local function handleKey(panel, key)
+    if options.DropdownKey and options.DropdownKey(key) then return true end
     if MOVE_KEYS[key] then
         local delta = MOVE_KEYS[key]
         if key == "TAB" and IsShiftKeyDown() then delta = -1 end

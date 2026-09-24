@@ -148,8 +148,37 @@ local function openList(row)
     setShown(list.empty, #values == 0)
     core.Scroll.SetOffset(list.scroll, 0)
     core.Scroll.Reveal(list.scroll, (selected - 1) * metrics.controlHeight, metrics.controlHeight)
+    list.row, list.count, list.cursor = row, #values, selected
     activeDropdown = list
     list.dismiss:Show(); list:Show()
+end
+
+local function previewChoice(list, index)
+    list.cursor = math.max(1, math.min(list.count, index))
+    for position, button in ipairs(list.buttons) do
+        setShown(button.selected, position == list.cursor)
+    end
+    core.Scroll.Reveal(list.scroll, (list.cursor - 1) * metrics.controlHeight, metrics.controlHeight)
+end
+
+function options.DropdownKey(key)
+    local list = activeDropdown
+    if not list then return false end
+    if key == "ESCAPE" or key == "TAB" then options.CloseDropdown(); return key == "ESCAPE" end
+    if key == "ENTER" or key == "SPACE" then
+        local button = list.count > 0 and list.buttons[list.cursor]
+        options.CloseDropdown()
+        if button then options.Commit(list.row, button.entry.value) end
+        return true
+    end
+    local delta = key == "UP" and -1 or key == "DOWN" and 1
+    if delta or key == "HOME" or key == "END" then
+        if list.count > 0 then
+            previewChoice(list, delta and list.cursor + delta or (key == "HOME" and 1 or list.count))
+        end
+        return true
+    end
+    return false
 end
 
 local function toggleList(row)
