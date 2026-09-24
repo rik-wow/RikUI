@@ -102,6 +102,14 @@ return function(check)
                 RikUI.Setup.GuessRole("PALADIN") == expected)
         end
     end
+
+    for tree, expected in ipairs({ "balance", "feral", "heal" }) do
+        if RikUI.Presets.DRUID then
+            points = { 0, 0, 0 }; points[tree] = 10
+            check("Druid ten-point tree " .. tree .. " chooses " .. expected,
+                RikUI.Setup.GuessRole("DRUID") == expected)
+        end
+    end
     C_ClassTalents, C_Traits = savedTalents, savedTraits
 
     local savedBook, savedEnum = C_SpellBook, Enum
@@ -191,6 +199,23 @@ return function(check)
         snapshot.bars[59].id == 10059 and snapshot.bars[60].id == 10060 and snapshot.bars[13].id == 10013)
     GetActionInfo = oldAction
     UnitRace = oldRace
+
+
+    local druid = assert(RikUI.Presets.DRUID, "Druid preset missing")
+    local feral = assert(RikUI.Setup.Resolve("DRUID", "feral"))
+    local bear = assert(RikUI.Setup.Resolve("DRUID", "tank"))
+    check("Druid combat forms map independent native pages",
+        feral.bars.cat[1].spell == "Claw" and bear.bars.bear[1].spell == "Maul"
+        and RikUI.Setup.SlotToAction("cat", 1) == 73 and RikUI.Setup.SlotToAction("bear", 1) == 97)
+    check("Druid travel and Moonkin do not invent native bonus pages",
+        feral.bars.travel == nil and feral.bars.moonkin == nil and #RikUI.Data.BonusPages.DRUID == 2)
+    check("Druid form shortcuts are named independently of learned indices",
+        druid.bars.bar3[1].macro == "Bear Form" and druid.bars.bar3[2].spell == "Cat Form"
+        and druid.bars.bar3[3].spell == "Moonkin Form")
+    check("same-name class abilities cannot overwrite one another",
+        RikUI.Spells.Entry("Lacerate", "DRUID").ranks[1] ~= RikUI.Spells.Entry("Lacerate", "HUNTER").ranks[1]
+        and RikUI.Spells.Entry("Nature's Swiftness", "DRUID").ranks[1] == 17116
+        and RikUI.Spells.Entry("Nature's Swiftness", "SHAMAN").ranks[1] == 16188)
 
     for class, current in pairs(RikUI.Presets) do
         check(class .. " catalogue validates every page and role", #RikUI.Setup.ValidatePreset(current) == 0)

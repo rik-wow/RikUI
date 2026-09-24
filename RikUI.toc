@@ -29,6 +29,7 @@ data/spells-priest.lua
 data/spells-warlock.lua
 data/spells-shaman.lua
 data/spells-paladin.lua
+data/spells-druid.lua
 data/racials.lua
 data/cvars.lua
 data/bonus-pages.lua
@@ -40,6 +41,7 @@ presets/priest.lua
 presets/warlock.lua
 presets/shaman.lua
 presets/paladin.lua
+presets/druid.lua
 src/setup/setup.lua
 src/setup/setup-racials.lua
 src/setup/setup-actions.lua

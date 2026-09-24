@@ -59,7 +59,7 @@ local function roleCard(page, state, role, index)
         paintRole(page, state)
     end)
     card.role = role
-    card:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", (index - 1) * 252, -16)
+    card:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", ((index - 1) % 3) * 252, -16 - math.floor((index - 1) / 3) * 68)
     card.label = controls.Text(card, "label", preset(state).roles[role].label)
     card.label:SetPoint("CENTER", card, "CENTER", 0, 0)
     return card
@@ -75,7 +75,7 @@ wizard.AddPage({ key = "role", title = "Your role", build = function(page, state
     for index, role in ipairs(known and known.roleOrder or {}) do page.cards[index] = roleCard(page, state, role, index) end
     page.barTitle = paragraph(page, "small", known and "Your main bar. Dim abilities come later as you level; RikUI places "
         .. "them when you learn them." or "")
-    page.barTitle:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", 0, -100)
+    page.barTitle:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", 0, -(32 + math.ceil(#page.cards / 3) * 68))
     page.bar = preview.Bar(page)
     page.bar:SetPoint("TOPLEFT", page.barTitle, "BOTTOMLEFT", 0, -12)
 end, refresh = function(page, state)

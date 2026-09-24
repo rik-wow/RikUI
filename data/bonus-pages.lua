@@ -3,6 +3,10 @@
 -- First slot = (6 normal pages + bonus offset - 1) * 12 + 1.
 -- Battle also has live RikProbe evidence in SDD.md; later stances await native acceptance.
 RikUI.Data.BonusPages = {
+    DRUID = {
+        { name = "cat", offset = 1, firstAction = 73 },
+        { name = "bear", offset = 3, firstAction = 97 },
+    },
     ROGUE = {
         { name = "stealth", offset = 1, firstAction = 73 },
     },

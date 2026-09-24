@@ -169,6 +169,18 @@ return function(check)
             check("Rogue stealth changes never rewrite protected slots", writes == before)
         end
         env.inCombat = false
+        class = "DRUID"
+        bars = loadBars()
+        check("Druid has Cat and Bear native overlays only", bars.Frames.cat and bars.Frames.bear
+            and not bars.Frames.moonkin and not bars.Frames.travel)
+        for _, combat in ipairs({ false, true }) do
+            env.inCombat = combat
+            local before = writes
+            for _, offset in ipairs({ 0, 1, 3 }) do verifyPages(bars, offset, combat) end
+            env.fire("UPDATE_BONUS_ACTIONBAR")
+            check("Druid shifting never rewrites protected action slots", writes == before)
+        end
+        env.inCombat = false
         class = "MAGE"
         bars = loadBars()
         check("class without recorded bonus pages creates no bonus overlay", bars.Frames.battle == nil)

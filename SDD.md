@@ -739,8 +739,11 @@ fix them by launch, nothing here breaks either.
   on bar2 slot 10 (Mouse4), and Pet Follow / Passive on slot 11 (Mouse5).
   The existing no-mouse fallback gives them Shift-G / Ctrl-G. Native pet-row
   bindings stay available. No per-class binding override or second undo path is needed.
-- Druids have up to six forms. `Ctrl-Q/E/R` covers three. Travel and aquatic
-  can stay click-only, but Moonkin players will want a key.
+- Druid form decision (2026-09-23): named form slots Ctrl-1..5 cover
+  Bear/Dire Bear, Cat, Moonkin, Travel and Aquatic. Bear's macro chooses the
+  learned Dire Bear upgrade. Native Ctrl-Q/E/R stance bindings remain available;
+  named shortcuts do not depend on learned-form indices. Only Cat and Bear
+  get bonus overlays: exact-build Moonkin, Travel and Aquatic have offset zero.
 - Healing decision (2026-09-23): every targeted friendly heal uses
   `[@mouseover,help,nodead][help,nodead][@player]` in every role. Resurrection,
   ground/party heals and hostile-capable abilities keep their own targeting.

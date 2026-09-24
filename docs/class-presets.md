@@ -76,3 +76,11 @@ Racial actives were joined from [the author's published racial descriptions](htt
 
 Paladin HTML SHA-256: `22a7c476dca15b6a90ba9489099083e92b85f2edb1ad16bfd1eb09d8ba94ac80`.
 
+## Druid layout
+
+Feral/Cat, Balance, Restoration and explicit Bear-tank roles include all 60 published families. Talent inference defaults the shared Feral tree to Cat; tank remains a deliberate choice. Four role cards wrap inside the wizard. Cat uses native bonus offset 1 and Bear/Dire Bear offset 3. Travel, Aquatic and Moonkin have offset zero and keep the base page; no six-page assumption is retained.
+
+Ctrl-1..5 are stable named form shortcuts: Bear/Dire Bear, Cat, Moonkin, Travel, Aquatic. The Bear macro uses the learned Dire Bear ID condition (9634). Other form actions use native spell behavior. Healing in every role follows the common friendly mouseover convention. Class-specific Nature's Swiftness and Lacerate IDs stay isolated from Shaman and Hunter.
+
+Druid HTML SHA-256: `a33db4422c77b102b65b301ae57173cf3aa9bd52cd338d66a3d0ddbdbf31ffce`.
+
