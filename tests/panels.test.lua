@@ -253,6 +253,36 @@ return function(check)
         check("a client without the tab functions still skins tabs", MerchantFrame.Tabs[1].rikBacking ~= nil
             and #env.printed == 0)
 
+        module = load({ panels = { skins = { character = false, spells = false } } })
+        CharacterFrame:Show()
+        check("disabled character skin remains native", rawget(CharacterFrame.NineSlice, "alpha") == nil)
+        local stockSpells = loadSpells()
+        stockSpells:Show()
+        check("late disabled spellbook remains native", rawget(stockSpells.NineSlice, "alpha") == nil)
+        MerchantFrame:Show()
+        check("other window families still skin", MerchantFrame.NineSlice.alpha == 0)
+        dofile("src/ui/skin.lua")
+        dofile("src/modules/panels/interiors.lua")
+        local decorated = 0
+        RikUI.Interiors.Register("selection-test", { "CharacterFrame" }, function() decorated = decorated + 1 end)
+        RikUI.Interiors.Discover()
+        RikUI.Interiors.Walk(CharacterFrame, "selection-test")
+        check("disabled window interiors also stay native", decorated == 0)
+        dofile("src/modules/controls/controls.lua")
+        local stockButton = CreateFrame("Button", nil, CharacterFrame)
+        stockButton.Left, stockButton.Middle, stockButton.Right = stockButton:CreateTexture(), stockButton:CreateTexture(), stockButton:CreateTexture()
+        RikUI.Controls.Walk(stockButton)
+        check("disabled window descendants retain native control art", rawget(stockButton.Left, "alpha") == nil)
+        local selected
+        for _, spec in ipairs(module.Options.settings) do if spec.key == "skin.character" then selected = spec end end
+        check("window family choice is exposed", selected ~= nil)
+        if selected then
+            selected.set(true)
+            check("changed skin awaits reload", selected.pending() and not module.WindowEnabled("CharacterFrame"))
+            selected.set(false)
+            check("reverting skin choice clears pending state", not selected.pending())
+        end
+
         module = load({ modules = { panels = false } })
         CharacterFrame:Show()
         check("a disabled module leaves every window stock", rawget(CharacterFrame.NineSlice, "alpha") == nil

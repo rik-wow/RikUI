@@ -58,6 +58,7 @@ end
 
 function interiors.MapSurfaces(map)
     if not interiors.IsFrame(map) then return end
+    if core.Panels and core.Panels.FrameEnabled and not core.Panels.FrameEnabled(map) then return end
     for _, key in ipairs(MAP_SURFACES) do
         local frame = map[key]
         if interiors.IsFrame(frame) then

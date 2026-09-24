@@ -205,6 +205,7 @@ end
 
 function visit(frame, depth)
     if not isFrame(frame) or refuses(frame, "IsForbidden") then return end
+    if core.Panels and core.Panels.FrameEnabled and not core.Panels.FrameEnabled(frame) then return end
     if not refuses(frame, "IsProtected") then controls.Skin(frame) end
     watchRows(frame)
     if depth >= MAX_DEPTH or type(frame.GetChildren) ~= "function" then return end

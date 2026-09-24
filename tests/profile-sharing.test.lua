@@ -17,6 +17,7 @@ return function(check)
         RikUI.Profile.barFade.main = false
         RikUI.Profile.font = "game"
         RikUI.Profile.panels.questTextSize = 20
+        RikUI.Profile.panels.skins = { spells = false }
         RikUI.Profile.positions.main = { point="CENTER", relativePoint="CENTER", x=120, y=-30 }
         local text, err = sharing.ExportProfile()
         check("profile export succeeds", text ~= nil, err)
@@ -25,6 +26,7 @@ return function(check)
         check("export includes appearance and anchors", data.borderColor[3] == 0.3 and data.positions.main.x == 120 and data.barFade.main == false)
         check("shared font choice round trips", data.font == "game")
         check("quest prose size round trips", data.panels.questTextSize == 20)
+        check("window selection round trips", data.panels.skins.spells == false)
         local active = RikUI.Profile
         check("import creates a separate profile", sharing.ImportProfile("Backup", text) == true
             and RikUI.DB.profiles.Backup ~= active and RikUI.Profile == active and RikUI.CharDB.profile == "Default")

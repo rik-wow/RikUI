@@ -10,6 +10,18 @@ asks for more readable quest windows. [Blizzard QuestInfo source](https://github
 identifies the three named prose regions. Missing variants remain unchanged;
 community feedback is motivation, not confirmed client behavior.
 
+## Selective windows
+
+Settings > Windows can independently retain native character/inspect, spellbook/talents,
+quests/dialogue, professions/trainers, commerce or map windows. Enabled is the default.
+Changes take effect after reload; reverting a choice clears its pending reload marker.
+Window borders and contents share the choice, including windows loaded later.
+A native world map also keeps its embedded quest panel native. Other modules remain
+independently selectable in Modules.
+
+Reviewed 2026-09-24: [Forever players asking for spellbook-only styling](https://www.reddit.com/r/wowforever/comments/1wkd32q/classic_ui_for_wow_forever/)
+motivated these choices. Runtime fixtures cover optional and late native roots.
+
 ## Special windows
 
 Player choice, splash, generic traits, collections and transmog receive flat

@@ -22,6 +22,7 @@ end
 
 local function allowed(frame)
     if not interiors.IsFrame(frame) or refused[frame] then return false end
+    if core.Panels and core.Panels.FrameEnabled and not core.Panels.FrameEnabled(frame) then return false end
     if type(frame.IsForbidden) == "function" and frame:IsForbidden() then
         -- Forbidden frames are an expected client boundary, not a skin failure.
         refused[frame] = true

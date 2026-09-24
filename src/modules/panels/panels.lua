@@ -37,6 +37,38 @@ local TARGETS = {
     { name = "ArchaeologyFrame" },
     { name = "PlayerChoiceFrame" }, { name = "SplashFrame" }, { name = "GenericTraitFrame" },
 }
+local FAMILIES = {
+    { key = "character", label = "Character and inspect", roots = { "CharacterFrame", "InspectFrame" } },
+    { key = "spells", label = "Spellbook and talents", roots = { "PlayerSpellsFrame", "GenericTraitFrame" } },
+    { key = "quests", label = "Quests and dialogue", roots = { "QuestFrame", "GossipFrame", "QuestMapFrame", "QuestLogPopupDetailFrame" } },
+    { key = "professions", label = "Professions and trainers", roots = { "ProfessionsFrame", "ProfessionsBookFrame", "ClassTrainerFrame", "InspectRecipeFrame" } },
+    { key = "commerce", label = "Vendors, bank, mail and trade", roots = { "MerchantFrame", "BankFrame", "GuildBankFrame", "MailFrame", "OpenMailFrame", "TradeFrame", "AuctionHouseFrame" } },
+    { key = "maps", label = "World and zone maps", roots = { "WorldMapFrame", "BattlefieldMapFrame", "TaxiFrame" } },
+}
+local rootFamily, loadedChoices = {}, nil
+for _, family in ipairs(FAMILIES) do
+    for _, name in ipairs(family.roots) do rootFamily[name] = family.key end
+end
+local function choices()
+    local settings = core.Profile and core.Profile.panels
+    return settings and type(settings.skins) == "table" and settings.skins or {}
+end
+function panels.WindowEnabled(name)
+    local family = rootFamily[name]
+    return not family or (loadedChoices or choices())[family] ~= false
+end
+function panels.FrameEnabled(frame)
+    local seen = {}
+    for _ = 1, 20 do
+        if not frame or seen[frame] then return true end
+        seen[frame] = true
+        if type(frame.IsForbidden) == "function" and frame:IsForbidden() then return false end
+        local name = type(frame.GetName) == "function" and frame:GetName()
+        if not panels.WindowEnabled(name) then return false end
+        frame = type(frame.GetParent) == "function" and frame:GetParent()
+    end
+    return true
+end
 local failed, warnings = {}, {}
 
 local function warn(operation, reason)
@@ -65,7 +97,7 @@ end
 
 local function hook(target)
     local frame = _G[target.name]
-    if panels.Hooked[target.name] or not isFrame(frame) then return end
+    if not panels.WindowEnabled(target.name) or panels.Hooked[target.name] or not isFrame(frame) then return end
     panels.Hooked[target.name] = true
     frame:HookScript("OnShow", function(self) show(self, target) end)
     if frame:IsShown() then show(frame, target) end
@@ -83,6 +115,8 @@ local function count(set)
 end
 
 function panels:OnEnable()
+    loadedChoices = {}
+    for _, family in ipairs(FAMILIES) do loadedChoices[family.key] = choices()[family.key] ~= false end
     panels.Skin.HookTabs()
     panels.Discover()
     if core.Interiors then core.Interiors.Enable() end
@@ -109,5 +143,20 @@ panels.Options = { title = "Windows", settings = {
             return true
         end },
 } }
+
+for _, family in ipairs(FAMILIES) do
+    local key = family.key
+    panels.Options.settings[#panels.Options.settings + 1] = {
+        type = "checkbox", key = "skin." .. key, label = family.label, reload = true,
+        description = "Use RikUI styling for these windows. Reload to apply.",
+        get = function() return choices()[key] ~= false end,
+        set = function(value)
+            local settings = core.Profile.panels
+            if type(settings.skins) ~= "table" then settings.skins = {} end
+            settings.skins[key] = value == true
+        end,
+        pending = function() return loadedChoices ~= nil and (choices()[key] ~= false) ~= loadedChoices[key] end,
+    }
+end
 
 core:RegisterModule("panels", panels)
