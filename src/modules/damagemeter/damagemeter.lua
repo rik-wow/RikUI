@@ -195,6 +195,9 @@ end
 -- layout applies, so the hang is repeated after it, except while Edit Mode is open.
 local function hang(owner)
     if type(owner.IsEditing) == "function" and owner:IsEditing() then return end
+    if InCombatLockdown() then core.Combat.Queue(function() hang(owner) end, "damagemeter:anchor"); return end
+    -- Anchors do not inherit scale from the sibling holder.
+    owner:SetScale(core.Layout.GetScale())
     owner:ClearAllPoints()
     owner:SetPoint("TOPLEFT", meter.Holder, "TOPLEFT", 0, 0)
 end
@@ -209,7 +212,7 @@ end
 local function createHolder(owner)
     meter.Holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     follow(owner)
-    core.Layout.Register(meter.Holder, LAYOUT_KEY, DEFAULTS)
+    core.Layout.Register(meter.Holder, LAYOUT_KEY, DEFAULTS, { onApply = function() hang(owner) end })
     core.Hooks.Script(owner, "OnSizeChanged", follow)
     core.EditMode.Guard(owner, "damage meter", hang)
     hang(owner)

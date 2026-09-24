@@ -40,10 +40,22 @@ function chat.HolderSize(width, height)
     return width + foot.left + foot.right, height + foot.top + foot.bottom
 end
 
+local function scaleWindows()
+    local scale = layout.GetScale()
+    -- Chat windows and their dock tabs are UIParent siblings, not holder children.
+    for frame in pairs(chat.Frames) do
+        frame:SetScale(scale)
+        local tab = _G[frame:GetName() .. "Tab"]
+        if chat.IsFrame(tab) then tab:SetScale(scale) end
+    end
+end
+
 local function anchor()
+    if InCombatLockdown() then core.Combat.Queue(anchor, "chat:anchor"); return end
     local frame = _G[MAIN]
     local ok, reason = pcall(function()
         local foot = chat.Footprint()
+        scaleWindows()
         frame:ClearAllPoints()
         frame:SetPoint("TOPLEFT", holder, "TOPLEFT", foot.left, -foot.top)
     end)
@@ -125,7 +137,7 @@ local function createHolder()
     firstSize()
     local width, height = holderSize()
     if type(width) == "number" and type(height) == "number" then holder:SetSize(chat.HolderSize(width, height)) end
-    layout.Register(holder, KEY, nil, { label = "Chat", onUnlock = refreshLock, resize = chat.SetSize and resizeOption() or nil })
+    layout.Register(holder, KEY, nil, { label = "Chat", onUnlock = refreshLock, onApply = anchor, resize = chat.SetSize and resizeOption() or nil })
     -- The default chat window is placed only by Edit Mode (FCF_RestorePositionAndDimensions skips it),
     -- so its layout applies are the only native re-anchors. The guard puts the window back on the holder
     -- and frees the clamp after each one. The window's SetPoint and clamp setters are not hooked: on

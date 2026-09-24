@@ -65,7 +65,11 @@ return function(check)
         function frame:StartMoving() self.moving = true end
         function frame:StopMovingOrSizing() self.moving = false end
         function frame:GetCenter() return self.centerX, self.centerY end
-        function frame:GetEffectiveScale() return 1 end
+        function frame:SetScale(value) assert(not InCombatLockdown(), "chat scale write in combat"); self.scale = value end
+        function frame:GetScale() return self.scale or 1 end
+        function frame:GetEffectiveScale()
+            return self:GetScale() * (self.parent and self.parent:GetEffectiveScale() or 1)
+        end
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
@@ -489,6 +493,28 @@ return function(check)
         check("a resize of the rectangle sizes the message area by the difference", ChatFrame1.width == 500
             and ChatFrame1.height == 200 and holder.width == 508 and holder.height == 278
             and RikUI.Profile.chat.size.height == 200)
+        UIParent.GetEffectiveScale = function() return 0.75 end
+        layout = RikUI.Layout
+        layout.SetScale(0.85)
+        check("chat and its mover share effective scale below one with a scaled UIParent",
+            math.abs(ChatFrame1:GetEffectiveScale() - holder:GetEffectiveScale()) < 0.0001)
+        check("chat tabs share the message area's scale",
+            math.abs(ChatFrame1Tab:GetEffectiveScale() - ChatFrame1:GetEffectiveScale()) < 0.0001)
+        ChatFrame1:SetScale(1)
+        applyLayout()
+        check("Edit Mode recovery restores chat scale", math.abs(ChatFrame1:GetEffectiveScale() - holder:GetEffectiveScale()) < 0.0001)
+        layout.SetScale(1.2)
+        layout.Apply()
+        check("repeated profile scale application does not compound native chat scale",
+            math.abs(ChatFrame1:GetEffectiveScale() - 0.9) < 0.0001)
+        env.inCombat = true
+        RikUI.Profile.scale = 0.9
+        layout.Apply()
+        check("combat defers chat scale changes", math.abs(ChatFrame1:GetEffectiveScale() - 0.9) < 0.0001)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("queued chat scale follows latest profile after combat", math.abs(ChatFrame1:GetEffectiveScale() - 0.675) < 0.0001)
+        UIParent.GetEffectiveScale = function() return 1 end
         UIParent.GetWidth, UIParent.GetHeight, GetCursorPosition = savedWidth, savedHeight, savedCursor
 
         module = load({ modules = { chat = false } })

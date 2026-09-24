@@ -80,6 +80,8 @@ return function(check)
         ScrollBoxListMixin = { Event = { OnAcquiredFrame = "OnAcquiredFrame" } }
         DamageMeter = CreateFrame("Frame", "DamageMeter", UIParent)
         DamageMeter:SetSize(400, 200)
+        function DamageMeter:SetScale(value) assert(not InCombatLockdown(), "meter scale in combat"); self.scale = value end
+        function DamageMeter:GetScale() return self.scale or 1 end
         function DamageMeter:SetupSessionWindow(index, data)
             data.sessionWindow = data.sessionWindow or window(index)
             data.sessionWindow.alpha = 0.8
@@ -172,6 +174,17 @@ return function(check)
         DamageMeter:SetSize(300, 150)
         env.runScript(DamageMeter, "OnSizeChanged")
         check("the holder follows a resize done in Edit Mode", holder.width == 300 and holder.height == 150)
+
+        RikUI.Layout.SetScale(0.85)
+        check("meter native window follows scaled mover", DamageMeter:GetScale() == 0.85)
+        DamageMeter:SetScale(1)
+        applyLayout()
+        check("Edit Mode recovery restores the meter scale", DamageMeter:GetScale() == 0.85)
+        RikUI.Layout.SetScale(1.2)
+        RikUI.Layout.Apply()
+        check("meter repeated scale apply does not compound", DamageMeter:GetScale() == 1.2)
+        check("meter scaling preserves native dimensions", DamageMeter:GetWidth() == 300 and DamageMeter:GetHeight() == 150)
+        RikUI.Layout.SetScale(1)
 
         local data = {}
         DamageMeter:SetupSessionWindow(2, data)

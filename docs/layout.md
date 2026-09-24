@@ -1,5 +1,13 @@
 # Moving and scaling frames
 
+Chat and the damage meter now apply the profile scale to their native windows as
+well as their movers. Previously a non-unit scale could leave the blue highlight
+smaller than the visible window. Chat tabs follow the same scale; profile changes
+and Edit Mode recovery restore alignment. Combat defers these native frame writes.
+Regression fixtures cover 85% and 120% scales, scaled UIParent, repeated application
+and combat recovery. This fixes the user-reported screenshots from 2026-09-24;
+native acceptance follows the standing user policy, not an agent-run playtest.
+
 Hold the "Hold to show frame locks" key (Key Bindings, RikUI section). While
 it has no key, hold Ctrl+Alt+Shift together. Every frame shows a small lock tag
 on its top left corner and a master tag appears at the top of the screen.
