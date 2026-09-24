@@ -776,6 +776,29 @@ return function(check)
             env.inCombat = false
         end
 
+        do
+            options = boot({ profiles = { Default = {}, Alt = {} } })
+            local scale = rowByKey(pageByTitle(options, "General").list, "scale")
+            env.inCombat = true
+            options.Commit(scale, 2)
+            env.inCombat = false
+            RikUI:SetProfile("Alt"); RikUI:SetProfile("Default")
+            env.fire("PLAYER_REGEN_ENABLED")
+            check("queued setting cancels after switching away and back", RikUI.Profile.scale == 1)
+            local active = rowByKey(pageByTitle(options, "Profiles").list, "profile")
+            env.inCombat = true
+            options.Commit(active, "Alt")
+            options.DeleteProfile("Alt"); options.CreateProfile("Alt")
+            env.inCombat = false
+            env.fire("PLAYER_REGEN_ENABLED")
+            check("queued profile selection cannot target recreated name", RikUI.CharDB.profile == "Default")
+            local reset = rowByKey(pageByTitle(options, "Profiles").list, "resetProfile")
+            env.click(reset.widget)
+            RikUI:SetProfile("Alt"); RikUI:SetProfile("Default")
+            env.click(reset.widget)
+            check("profile transition invalidates destructive confirmation", RikUI.DB.profiles["Recovery 1"] == nil)
+        end
+
         -- Real bars module declares appearance options.
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }

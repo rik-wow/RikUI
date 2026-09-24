@@ -58,9 +58,9 @@ end
 function options.Commit(row, value)
     local spec = row.spec
     if not row.enabled or (spec.disabled and spec.disabled()) then return end
-    local profile = core.Profile
+    local profile, revision = core.Profile, (core.Runtime and core.Runtime.profileRevision)
     local function apply()
-        if core.Profile ~= profile or (spec.disabled and spec.disabled()) then
+        if core.Profile ~= profile or (core.Runtime and core.Runtime.profileRevision) ~= revision or (spec.disabled and spec.disabled()) then
             core:Print(spec.label .. ": queued change cancelled because its target changed.")
             options.RefreshList(row.list)
             return

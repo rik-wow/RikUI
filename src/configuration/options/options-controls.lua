@@ -240,9 +240,9 @@ local function openPicker(row)
     end
     local r, g, b = colourParts(row.value)
     pickerSession = pickerSession + 1
-    local session, profile, revision = pickerSession, core.Profile, core.Runtime.profileRevision
+    local session, profile, revision = pickerSession, core.Profile, (core.Runtime and core.Runtime.profileRevision)
     local function commit(value)
-        if session ~= pickerSession or core.Profile ~= profile or core.Runtime.profileRevision ~= revision then return end
+        if session ~= pickerSession or core.Profile ~= profile or (core.Runtime and core.Runtime.profileRevision) ~= revision then return end
         options.Commit(row, value)
     end
     picker:SetupColorPickerAndShow({ r = r, g = g, b = b, hasOpacity = false,
@@ -296,7 +296,7 @@ types.text = {
 }
 
 local function cancelConfirmation(row)
-    row.confirming = nil
+    row.confirming, row.confirmProfile, row.confirmRevision = nil, nil, nil
     if row.cancel then row.cancel:Hide(); row.confirmText:Hide() end
     row.widget.text:SetText(row.spec.text or row.spec.label)
     options.ResizeList(row.list, row.list.width)
@@ -330,14 +330,16 @@ types.button = {
         return widget
     end,
     refresh = function(row)
-        if row.confirming and (not row.enabled or row.spec.confirm() ~= row.confirming) then cancelConfirmation(row) end
+        if row.confirming and (not row.enabled or row.spec.confirm() ~= row.confirming
+            or row.confirmProfile ~= core.Profile or row.confirmRevision ~= (core.Runtime and core.Runtime.profileRevision)) then cancelConfirmation(row) end
     end,
     activate = function(row)
         if row.spec.confirm then
             local target = row.spec.confirm()
             if not target then return end
-            if row.confirming ~= target then
-                row.confirming = target
+            if row.confirming ~= target or row.confirmProfile ~= core.Profile
+                or row.confirmRevision ~= (core.Runtime and core.Runtime.profileRevision) then
+                row.confirming, row.confirmProfile, row.confirmRevision = target, core.Profile, (core.Runtime and core.Runtime.profileRevision)
                 row.widget.text:SetText("Confirm")
                 row.confirmText:SetText(target); row.confirmText:Show(); row.cancel:Show()
                 options.ResizeList(row.list, row.list.width)

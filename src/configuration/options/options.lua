@@ -40,7 +40,13 @@ local function run(command) SlashCmdList.RIKUI(command) end
 
 local function selectProfile(name)
     if not InCombatLockdown() then return core:SetProfile(name) end
+    local target = core.DB.profiles[name]
     core.Combat.Queue(function()
+        if not target or core.DB.profiles[name] ~= target then
+            core:Print("Queued profile selection cancelled because its target changed.")
+            if options.Refresh then options.Refresh() end
+            return
+        end
         local ok, reason = core:SetProfile(name)
         if not ok then core:Print(reason) end
         if options.Refresh then options.Refresh() end
