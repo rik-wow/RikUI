@@ -526,6 +526,16 @@ return function(check)
         { "ele", "main", 11, "Lava Burst", "Lightning Bolt" },
         { "heal", "main", 7, "Water Shield", "Lightning Shield" },
     })
+    levelingChecks(check, "DRUID", {
+        { "balance", "main", 1, "Starfire", "Wrath" },
+        { "feral", "main", 3, "Starfire", "Wrath" },
+        { "balance", "main", 4, "Insect Swarm", "Moonfire" },
+        { "feral", "cat", 11, "Mangle", "Claw" },
+        { "tank", "bear", 4, "Mangle", "Maul" },
+        { "tank", "bear", 3, "Lacerate", "Maul" },
+        { "heal", "cat", 11, "Mangle", "Claw" },
+        { "heal", "bear", 4, "Mangle", "Maul" },
+    })
     fallbackChecks(check)
 end
 

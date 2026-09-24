@@ -1,7 +1,7 @@
 -- Named form keys and native Cat/Bear pages; evidence: docs/class-presets.md.
 RikUI.Presets.DRUID = {
     ["class"] = "DRUID",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = {
         "feral",
         "balance",
@@ -45,11 +45,11 @@ RikUI.Presets.DRUID = {
                 ["level"] = 4,
             },
             [3] = {
-                ["spell"] = "Starfire",
+                ["spell"] = "Starfire", fallback = "Wrath",
                 ["level"] = 20,
             },
             [4] = {
-                ["spell"] = "Insect Swarm",
+                ["spell"] = "Insect Swarm", fallback = "Moonfire",
                 ["level"] = 20,
             },
             [5] = {
@@ -122,7 +122,7 @@ RikUI.Presets.DRUID = {
                 ["level"] = 20,
             },
             [11] = {
-                ["spell"] = "Mangle",
+                ["spell"] = "Mangle", fallback = "Claw",
             },
             [12] = {
                 ["item"] = "Hearthstone",
@@ -138,11 +138,11 @@ RikUI.Presets.DRUID = {
                 ["level"] = 16,
             },
             [3] = {
-                ["spell"] = "Lacerate",
+                ["spell"] = "Lacerate", fallback = "Maul",
                 ["level"] = 42,
             },
             [4] = {
-                ["spell"] = "Mangle",
+                ["spell"] = "Mangle", fallback = "Maul",
             },
             [5] = {
                 ["spell"] = "Demoralizing Roar",
@@ -382,7 +382,7 @@ RikUI.Presets.DRUID = {
         ["balance"] = {
             ["main"] = {
                 [1] = {
-                    ["spell"] = "Starfire",
+                    ["spell"] = "Starfire", fallback = "Wrath",
                     ["level"] = 20,
                 },
                 [3] = {
