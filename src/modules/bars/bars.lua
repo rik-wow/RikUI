@@ -6,6 +6,7 @@ local BUTTONS, BUTTON_SIZE, BUTTON_GAP = 12, 36, 6
 local FADE_SECONDS, LEAVE_DELAY = 0.2, 0.05
 local BAR_ORDER = { "main", "bar2", "bar3", "bar4", "bar5" }
 local pending = {}
+local refreshFades
 
 local function finite(value)
     return type(value) == "number" and value == value and math.abs(value) < math.huge
@@ -77,8 +78,17 @@ local function reveal(bar)
     bar:SetAlpha(1)
 end
 
+local function shouldReveal(bar)
+    local key = bar.positionKey or bar.key
+    local preference = core.Profile.barFade and core.Profile.barFade[key]
+    local fade = preference
+    if fade == nil then fade = bar.rikDefaultFade end
+    return not fade or InCombatLockdown() or bar:IsMouseOver()
+        or (core.Layout.IsUnlocked and core.Layout.IsUnlocked(key))
+end
+
 local function updateFade(bar)
-    if InCombatLockdown() or bar:IsMouseOver() then reveal(bar); return end
+    if shouldReveal(bar) then reveal(bar); return end
     if bar:GetAlpha() > 0 and not bar.fadeOut:IsPlaying() then bar.fadeOut:Play() end
 end
 
@@ -97,22 +107,24 @@ local function configureFade(bar)
     alpha:SetToAlpha(0)
     alpha:SetDuration(FADE_SECONDS)
     bar.fadeOut:SetScript("OnFinished", function()
-        if InCombatLockdown() or bar:IsMouseOver() then reveal(bar) else bar:SetAlpha(0) end
+        if shouldReveal(bar) then reveal(bar) else bar:SetAlpha(0) end
     end)
     fadeHandlers(bar, bar)
     for _, button in ipairs(bar.buttons) do fadeHandlers(bar, button) end
-    bar:SetAlpha(bar:IsMouseOver() and 1 or 0)
+    bar:HookScript("OnShow", function() updateFade(bar) end)
+    bar:SetAlpha(shouldReveal(bar) and 1 or 0)
 end
 
 local function refreshAppearance(bar)
     bars.UpdateGryphons(bar)
     if bars.RefreshGhosts then bars.RefreshGhosts(bar) end
+    if bar.fadeOut then updateFade(bar) end
 end
 
 local function position(bar)
     local key = bar.positionKey or bar.key
     core.Layout.Register(bar, key, setup.DefaultPositions[key] or setup.DefaultPositions.main,
-        { onApply = refreshAppearance })
+        { onApply = refreshAppearance, onUnlock = function() if refreshFades then refreshFades() end end })
 end
 
 -- Companion factories share the layout and appearance contract.
@@ -183,7 +195,8 @@ local function createBar(name, firstAction, opts)
     bar:SetSize(opts.vertical and opts.size or length, opts.vertical and length or opts.size)
     position(bar)
     for i = 1, BUTTONS do bar.buttons[i] = createButton(bar, i, opts) end
-    if opts.fade then configureFade(bar) end
+    bar.rikDefaultFade = opts.fade == true
+    configureFade(bar)
     bars.Frames[name] = bar
     return bar
 end
@@ -226,7 +239,7 @@ function bars.Create(name, firstAction, layoutOpts)
     return nil, "queued"
 end
 
-local function refreshFades()
+refreshFades = function()
     for _, bar in pairs(bars.Frames) do
         if bar.fadeOut then updateFade(bar) end
     end
@@ -252,6 +265,16 @@ function bars:OnEnable()
     end
     core:RegisterEvent("PLAYER_REGEN_DISABLED", refreshFades)
     core:RegisterEvent("PLAYER_REGEN_ENABLED", refreshFades)
+end
+
+for _, key in ipairs(BAR_ORDER) do
+    local name = key
+    bars.Options.settings[#bars.Options.settings + 1] = {
+        type = "checkbox", key = "fade." .. name, label = (name == "main" and "Main bar" or ("Bar " .. name:sub(-1))) .. " on mouseover",
+        description = "Fade while idle. Show on hover, in combat, and while moving this bar.",
+        get = function() return core.Profile.barFade[name] == true end,
+        set = function(value) core.Profile.barFade[name] = value == true; refreshFades() end,
+    }
 end
 
 core:RegisterModule("bars", bars)

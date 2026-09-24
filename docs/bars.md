@@ -1,5 +1,10 @@
 # Overlay action bars
 
+Bars and layout settings now offer a mouseover toggle for each of the five
+action rows. Enabled rows fade while idle, reveal on hover, and stay visible
+in combat or while unlocked for layout editing. Main-page overlays share the
+main bar preference. Bar 3 keeps its prior fade default; other rows start visible.
+
 Buttons now have a 120 ms hover entrance, a brief press flash and a mint
 cooldown-completion flash driven by the cooldown widget's own done callback.
 Mouse feedback covers action, stance and pet buttons; native action-key feedback

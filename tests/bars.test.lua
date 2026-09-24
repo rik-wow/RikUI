@@ -216,6 +216,30 @@ return function(check)
         env.runScript(button, "OnReceiveDrag")
         check("empty cursor cannot clear a slot", #drags == before)
 
+        local fadeSetting
+        for _, setting in ipairs(bars.Options.settings) do
+            if setting.key == "fade.bar4" then fadeSetting = setting end
+        end
+        check("each side bar exposes a visibility preference", fadeSetting ~= nil)
+        fadeSetting.set(true)
+        finishFades()
+        check("side-bar preference fades idle bar", bars.Frames.bar4.alpha == 0)
+        env.runScript(bars.Frames.bar4.buttons[1], "OnEnter")
+        check("side-bar hover reveals actions", bars.Frames.bar4.alpha == 1)
+        fadeSetting.set(false)
+        finishFades()
+        check("always-visible preference cancels fading", bars.Frames.bar4.alpha == 1)
+        RikUI.Profile.barFade.main = true
+        bars.ApplyLayout()
+        finishFades()
+        check("main overlays inherit main visibility preference", main.alpha == 0 and overlay.alpha == 0)
+        local oldUnlocked = RikUI.Layout.IsUnlocked
+        RikUI.Layout.IsUnlocked = function(key) return key == "main" end
+        RikUI.Layout.Groups.main.onUnlock(true)
+        check("layout unlocking reveals main overlays", main.alpha == 1 and overlay.alpha == 1)
+        RikUI.Layout.IsUnlocked = oldUnlocked
+        RikUI.Profile.barFade.main = false
+        bars.ApplyLayout()
         check("utility row starts transparent", fade.alpha == 0)
         fade.mouse = true
         env.runScript(fade.buttons[1], "OnEnter")
