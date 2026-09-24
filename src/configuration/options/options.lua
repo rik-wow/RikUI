@@ -114,7 +114,11 @@ local function moduleSpecs()
 end
 
 local function setupSpecs()
-    local specs = { { type = "heading", label = "Setup" } }
+    local specs = { { type = "heading", label = "Setup" },
+        { type = "checkbox", key = "autoPlacement", label = "Automatically update preset spell slots",
+            description = "This character: fill empty preset slots and upgrade learned ranks. Re-sync still works when disabled.",
+            get = function() return core.CharDB.autoPlacement ~= false end,
+            set = function(value) core.CharDB.autoPlacement = value == true end } }
     if core:HasCommand("setup") then specs[#specs + 1] = action("wizard", "Configure your character", "Open wizard", function() run("setup") end) end
     if core:HasCommand("resync") then specs[#specs + 1] = action("resync", "Refresh preset spell slots", "Re-sync", function() core.Setup.Resync() end) end
     specs[#specs + 1] = { type = "button", key = "undo", label = "Last setup change", text = "Undo",

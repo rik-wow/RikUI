@@ -92,3 +92,9 @@ A movable blue mana strip accompanies Cat energy and Bear rage; caster form hide
 
 This answers the [September 20 player request](https://us.forums.blizzard.com/en/wow/t/druid-mana-bar-in-bearcat-form/2355852); the [DruidForeverManaBar author's September 22 release](https://www.curseforge.com/wow/addons/druidforevermanabar) is additional demand/prior art, not API proof. Rechecked September 23. The pinned [Unit APIs](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua) document explicit power types and possible secrecy; [StatusBar sinks](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleStatusBarAPIDocumentation.lua) accept opaque values. The native [secondary power mapping](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_UnitFrame/Mainline/AlternatePowerBar.lua) lacks Druid Energy/Rage to Mana, so this is a separate addon strip.
 
+## Automatic placement preference
+
+Checked 2026-09-23. In Setup and support, disable Automatically update preset spell slots to stop learned-spell and rank events changing this character's bars. This also cancels queued automatic work when combat ends. Explicit Apply and Re-sync still work; Apply and Undo preserve the preference. Legacy characters default to enabled. The setting uses the existing character persistence transport.
+
+[September 21 player rank-update reports](https://www.reddit.com/r/wowforever/comments/1wmc3uk/next_rank_skills_do_not_equip_automatically/) support keeping upgrades available; opt-out is our design choice for players who maintain their own bars, not a claim of a client bug fix.
+

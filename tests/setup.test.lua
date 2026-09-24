@@ -159,7 +159,9 @@ return function(check)
     actions[71] = { kind = "spell", id = 555 }
     cursor = { kind = "item", id = 777 }
     keys["6"], keyOrder[1] = "ACTIONBUTTON6", "6"
+    RikUICharDB.autoPlacement = false
     local result = setup.Apply("WARRIOR")
+    check("Apply preserves persistent automatic placement preference", RikUICharDB.autoPlacement == false)
     local primary, secondary = GetBindingKey("ACTIONBUTTON6")
     check("Setup promotes preset key and retains the old main-bar alias", primary == "Q" and secondary == "6")
     check("Apply finishes and records versioned character identity", result.status == "applied"
@@ -375,7 +377,9 @@ return function(check)
         check("Apply advertises undo once", countLines("type /rik undo to revert") == 1)
         macroData[130] = { name = "Unrelated", icon = 55, body = "/say keep" }
         env.printed, calls = {}, {}
+        RikUICharDB.autoPlacement = false
         local undone = setup.Undo()
+        check("Undo preserves automatic placement preference", RikUICharDB.autoPlacement == false)
         check("Undo restores spell item empty and scoped macro slots", undone.status == "undone"
             and actions[1].id == 999 and actions[8].id == 42 and actions[2] == nil
             and actions[5].kind == "macro" and actions[5].id == 1 and actions[25].id == 555)

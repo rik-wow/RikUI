@@ -118,6 +118,7 @@ return function(check)
         -- The real case: saved variables are written but do not load.
         cvars = {}
         core = boot()
+        core.CharDB.autoPlacement = false
         core.Profile.positions.chat = { point = "CENTER", relativePoint = "BOTTOMLEFT", x = 219, y = 107 }
         core.Profile.scale = 0.9
         core.CharDB.wizardDone = true
@@ -126,6 +127,7 @@ return function(check)
         check("logging out writes the account and the character settings to the store",
             cvars.rikuiStore_account ~= nil and next(cvars) ~= nil and core.Store.Status().saves >= 2)
         core = boot(nil, nil)
+        check("automatic placement opt-out survives CVar store reload", core.CharDB.autoPlacement == false)
         check("on a login where saved variables did not load, the settings come back from the store",
             core.Profile.positions.chat ~= nil and core.Profile.positions.chat.x == 219 and core.Profile.scale == 0.9
             and core.CharDB.wizardDone == true and core.Store.Status().restored.character and not printed("restored"))

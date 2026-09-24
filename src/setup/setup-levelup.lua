@@ -122,7 +122,7 @@ end
 local function stillCurrent(context)
     local marker = appliedState()
     return marker == context.marker and marker.class == context.class and marker.role == context.role
-        and not busy()
+        and not busy() and (context.manual or core.CharDB.autoPlacement ~= false)
 end
 
 local run
@@ -164,6 +164,7 @@ run = function(context)
 end
 
 local function request(name, manual)
+    if not manual and core.CharDB and core.CharDB.autoPlacement == false then return end
     local marker = appliedState()
     local reason = not marker and "no applied preset for this class" or busy() and "another Setup operation is pending"
     if reason then

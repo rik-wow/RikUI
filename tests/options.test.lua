@@ -283,6 +283,12 @@ return function(check)
         local general = pageByTitle(options, "General").list
         local modules = pageByTitle(options, "Modules").list
         local setup = pageByTitle(options, "Setup and support").list
+        local automatic = rowByKey(setup, "autoPlacement")
+        check("setup exposes default-on per-character automatic placement", automatic and automatic.spec.get() == true)
+        env.click(automatic.widget)
+        check("setup checkbox persists automatic placement opt-out", RikUI.CharDB.autoPlacement == false)
+        RikUI.Runtime.BindProfile()
+        check("profile binding keeps automatic placement opt-out", RikUI.CharDB.autoPlacement == false)
         check("Modules lists registered modules without filling General", rowByKey(modules, "module.alpha")
             and rowByKey(modules, "module.zeta") and not rowByKey(modules, "module.bars")
             and not rowByKey(general, "module.alpha") and rowByKey(modules, "module.alpha").spec.reload == true)

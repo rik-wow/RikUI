@@ -15,7 +15,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, gryphons = f
     worldmap = { fog = true },
     xpbar = { compact = false, text = true, animations = true, ticks = true } }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }
-local CHARACTER_DEFAULTS = { profile = DEFAULT_PROFILE, askRole = true, wizardDone = false }
+local CHARACTER_DEFAULTS = { profile = DEFAULT_PROFILE, askRole = true, wizardDone = false, autoPlacement = true }
 core.Defaults = { account = ACCOUNT_DEFAULTS, profile = PROFILE_DEFAULTS, character = CHARACTER_DEFAULTS }
 
 local function invalid(value, default)

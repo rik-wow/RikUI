@@ -146,6 +146,29 @@ return function(check)
     SlashCmdList.RIKUI("resync extra")
     check("resync rejects arguments without writes", #writes == before and countLines("Usage: /rik resync") == 1)
 
+    fresh()
+    known = { 284 }
+    RikUICharDB.autoPlacement = false
+    RikUI.Runtime.BindProfile()
+    check("character default normalization preserves opted-out preference", RikUICharDB.autoPlacement == false)
+    learned(284)
+    env.fire("SPELLS_CHANGED")
+    check("automatic placement opt-out avoids writes and spellbook reads", #writes == 0 and reads == 0)
+    setup.Resync()
+    check("manual resync remains available with automatic placement disabled", actions[1] and actions[1].id == 284)
+
+    fresh()
+    known = { 284 }
+    env.inCombat = true
+    learned(284)
+    RikUICharDB.autoPlacement = false
+    env.inCombat = false
+    env.fire("PLAYER_REGEN_ENABLED")
+    check("disabling automatic placement cancels already queued automatic work", #writes == 0)
+    RikUICharDB.autoPlacement = true
+    env.fire("SPELLS_CHANGED")
+    check("reenabling automatic placement permits later learned updates", actions[1] and actions[1].id == 284)
+
     fresh(true)
     known = { 284 }
     env.fire("SPELLS_CHANGED")
