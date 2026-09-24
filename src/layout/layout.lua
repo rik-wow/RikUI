@@ -123,11 +123,16 @@ function layout.Register(frame, key, defaults, opts)
     return group
 end
 
-function layout.Reset()
+function layout.Reset(selected)
     if InCombatLockdown() then return nil, "Cannot reset frames in combat." end
     if not core.Profile then return nil, "Still loading." end
+    if selected and not layout.Groups[selected] then return nil, "Choose a registered frame." end
+    if layout.StopMoving then layout.StopMoving() end
+    local chat = core.Profile.chat
+    core.Profile.layoutUndo = { positions = setup.CopyState(core.Profile.positions),
+        chatSize = type(chat) == "table" and setup.CopyState(chat.size) or false }
     for key, group in pairs(layout.Groups) do
-        core.Profile.positions[key] = position(group.defaults, ORIGIN)
+        if not selected or key == selected then core.Profile.positions[key] = position(group.defaults, ORIGIN) end
     end
     if core.Changed then core:Changed() end
     layout.Apply()

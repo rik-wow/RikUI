@@ -753,6 +753,29 @@ return function(check)
             UIParent.GetWidth, UIParent.GetHeight = oldWidth, oldHeight
         end
 
+        do
+            options = boot()
+            assert(loadfile("data/layouts.lua"))("RikUI", {})
+            assert(loadfile("src/layout/layout-presets.lua"))("RikUI", {})
+            local layout = RikUI.Layout
+            local frame = CreateFrame("Frame", nil, UIParent); frame:SetSize(100, 30)
+            layout.Register(frame, "resetOne", { point = "CENTER", relativePoint = "CENTER", x = 5, y = 6 })
+            RikUI.Profile.positions.resetOne = { point = "CENTER", relativePoint = "CENTER", x = 50, y = 60 }
+            RikUI.Profile.positions.unrelated = { point = "TOP", relativePoint = "TOP", x = 7, y = 8 }
+            RikUI.Profile.chat.size = { width = 333, height = 222 }
+            check("selected frame reset succeeds", layout.Reset("resetOne"))
+            check("reset keeps previous positions for undo", RikUI.Profile.layoutUndo and RikUI.Profile.layoutUndo.positions.resetOne.x == 50)
+            check("selected reset preserves unrelated state", RikUI.Profile.positions.unrelated.x == 7 and RikUI.Profile.positions.resetOne.x == 5)
+            if RikUI.Profile.layoutUndo then
+                layout.UndoPreset()
+                check("undo restores reset and chat size", RikUI.Profile.positions.resetOne.x == 50 and RikUI.Profile.chat.size.width == 333)
+            end
+            check("unknown reset target is refused", not layout.Reset("absent"))
+            env.inCombat = true
+            check("reset refuses combat without recovery overwrite", not layout.Reset("resetOne") and not RikUI.Profile.layoutUndo)
+            env.inCombat = false
+        end
+
         -- Real bars module declares appearance options.
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }

@@ -1,5 +1,7 @@
 # RikUI settings
 
+**Reset frame** restores only the selected frame after confirmation. Both it and **Reset positions** keep the prior arrangement for **Undo layout change**, including the previous chat size. Scale and unrelated position keys are preserved. Recovery uses the same saved one-step history as layout presets; a later preset/reset replaces that history.
+
 General now offers a **Frame to position** picker and Left/Right/Up/Down buttons. Each click moves one screen unit using the same collision and screen bounds as dragging, including at non-default scales. The controls work through existing keyboard navigation and refuse movement during combat or while a frame positions itself. This does not add native controller focus.
 
 Research reviewed 2026-09-24: [Forever interface-editing feedback](https://www.reddit.com/r/wow/comments/1wkyhmn/wow_forever_summary_feedback/). Player requests motivate these controls; their behavior is verified against RikUI’s layout engine.

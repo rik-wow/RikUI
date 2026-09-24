@@ -161,6 +161,20 @@ local function frameChoices()
 end
 
 local function precisionSpecs(specs)
+    local reset = action("resetFrame", "Reset selected frame", "Reset frame", function()
+        return core.Layout.Reset(state.layoutFrame)
+    end)
+    reset.disabled = function() return InCombatLockdown() or not core.Layout.Groups[state.layoutFrame] end
+    reset.confirm = function()
+        local group = core.Layout.Groups[state.layoutFrame]
+        return group and ("Reset " .. (group.label or state.layoutFrame) .. " in " .. core.CharDB.profile .. "?")
+    end
+    specs[#specs + 1] = reset
+    local undo = action("undoLayout", "Previous layout", "Undo layout change", function() return core.Layout.UndoPreset() end)
+    undo.disabled = function()
+        return InCombatLockdown() or not core.Layout.UndoPreset or type(core.Profile.layoutUndo) ~= "table"
+    end
+    specs[#specs + 1] = undo
     specs[#specs + 1] = { type = "dropdown", key = "layoutFrame", label = "Frame to position",
         values = frameChoices, get = function() return state.layoutFrame end,
         set = function(value) state.layoutFrame = value end }
