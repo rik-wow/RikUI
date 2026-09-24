@@ -265,6 +265,7 @@ function bags:OnEnable()
     end
     createHolder()
     bags.ApplyColumns()
+    bags.CreateCapacityHUD()
     park()
     for _, name in ipairs(TOGGLES) do
         if type(_G[name]) == "function" then core.Hooks.Function(name, bags.Sync) end

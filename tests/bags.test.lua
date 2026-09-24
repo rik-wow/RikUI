@@ -377,6 +377,24 @@ return function(check)
         check("closing clears the search", RikUIBagsSearch.text == "" and blade.alpha == 1 and stone.alpha == 1
             and stub.searchText == "")
         local reads = stub.infoReads
+        check("capacity HUD exists outside bag window", module.CapacityHUD and module.CapacityHUD.parent == UIParent
+            and module.CapacityHUD:IsShown() and RikUI.Layout.Groups.bagspace)
+        local capacityReader = C_Container.GetContainerNumFreeSlots
+        C_Container.GetContainerNumFreeSlots = function(bag) return bag == 0 and 3 or 0, 0 end
+        env.fire("BAG_UPDATE_DELAYED")
+        check("closed bag HUD updates without item reads", module.CapacityHUD and module.CapacityHUD.label.text == "3 free"
+            and stub.infoReads == reads)
+        C_Container.GetContainerNumFreeSlots = function() return math.huge, 0 end
+        env.fire("BAG_UPDATE_DELAYED")
+        check("infinite capacity is unavailable", module.CapacityHUD and module.CapacityHUD.label.text == "Space unavailable")
+        RikUI.Profile.bags.capacityHUD = false; module.UpdateCapacity()
+        check("capacity HUD can be hidden", module.CapacityHUD and not module.CapacityHUD:IsShown())
+        RikUI.Profile.bags.capacityHUD = true
+        C_Container.GetContainerNumFreeSlots = capacityReader
+        env.click(module.CapacityHUD)
+        check("capacity HUD opens inventory through native toggle", holder:IsShown())
+        CloseAllBags()
+        reads = stub.infoReads
         env.fire("BAG_UPDATE_DELAYED")
         check("a closed frame ignores bag events", stub.infoReads == reads)
 

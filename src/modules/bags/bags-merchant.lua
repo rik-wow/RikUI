@@ -69,6 +69,10 @@ function bags.EnableMerchant()
 end
 
 bags.Options = { title = "Bags and vendors", settings = {
+    { type = "checkbox", key = "capacityHUD", label = "Show bag capacity on the HUD",
+        description = "See free general and specialized space while bags are closed. Click the indicator to open bags.",
+        get = function() return core.Profile.bags.capacityHUD ~= false end,
+        set = function(value) core.Profile.bags.capacityHUD = value == true; bags.UpdateCapacity() end },
     { type = "slider", key = "columns", label = "Bag columns",
         description = "Wider bags show fewer rows. Layout changes wait until combat ends.",
         min = 10, max = 16, step = 1, get = bags.Columns, set = bags.SetColumns },

@@ -21,7 +21,7 @@ local schema = {
     barFade={ main=boolean, bar2=boolean, bar3=boolean, bar4=boolean, bar5=boolean },
     tooltip={ hideInCombat=boolean, ownedCounts=boolean, followCursor=boolean },
     chat={ fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
-    bags={ autoRepair=boolean, columns=number(10,16,true) },
+    bags={ autoRepair=boolean, columns=number(10,16,true), capacityHUD=boolean },
     questtracker={ collapsed=boolean, collapseInCombat=boolean, hideCompleted=boolean, readyFirst=boolean },
     minimap={ serverTime=boolean, coordinates=boolean, dayNight=boolean },
     swingtimer={ kiting=boolean, stopLead=number(0.1,1.5) },

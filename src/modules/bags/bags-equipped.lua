@@ -52,23 +52,21 @@ end
 local LOW_SPACE = 4
 
 local function freeCapacity()
-    if type(C_Container.GetContainerNumFreeSlots) ~= "function" then return nil end
+    if type(C_Container) ~= "table" or type(C_Container.GetContainerNumFreeSlots) ~= "function" then return nil end
     local general, special = 0, 0
     for bag = 0, COUNT do
         local free, family = C_Container.GetContainerNumFreeSlots(bag)
-        if not plainNumber(free) or free < 0 or free ~= math.floor(free) then return nil end
+        if not plainNumber(free) or free < 0 or free == math.huge or free ~= math.floor(free) then return nil end
         if free > 0 then
-            if not plainNumber(family) then return nil end
+            if not plainNumber(family) or family < 0 or family == math.huge or family ~= math.floor(family) then return nil end
             if family == 0 then general = general + free else special = special + free end
         end
     end
     return general, special
 end
 
-function bags.UpdateCapacity()
-    local label = bags.Holder and bags.Holder.capacity
+local function capacityText(label, ok, general, special)
     if not label then return end
-    local ok, general, special = pcall(freeCapacity)
     if not ok or general == nil then
         label:SetText("Space unavailable")
         label:SetTextColor(0.65, 0.7, 0.78)
@@ -80,6 +78,32 @@ function bags.UpdateCapacity()
     if general == 0 then label:SetTextColor(1, 0.3, 0.3)
     elseif general <= LOW_SPACE then label:SetTextColor(1, 0.75, 0.2)
     else label:SetTextColor(0.65, 0.85, 0.7) end
+end
+
+function bags.UpdateCapacity()
+    local ok, general, special = pcall(freeCapacity)
+    capacityText(bags.Holder and bags.Holder.capacity, ok, general, special)
+    if bags.CapacityHUD then
+        bags.CapacityHUD:SetShown(core.Profile.bags.capacityHUD ~= false)
+        capacityText(bags.CapacityHUD.label, ok, general, special)
+    end
+end
+
+function bags.CreateCapacityHUD()
+    local hud = CreateFrame("Button", "RikUIBagCapacity", UIParent)
+    bags.CapacityHUD = hud
+    hud:SetSize(210, 22)
+    core.Skin.Fill(hud, core.Skin.BACKING)
+    core.Skin.Outline(hud)
+    hud.label = hud:CreateFontString(nil, "OVERLAY")
+    media.Font(hud.label, "small")
+    hud.label:SetPoint("CENTER")
+    hud:SetScript("OnClick", function() if type(ToggleAllBags) == "function" then ToggleAllBags() end end)
+    core.Layout.Register(hud, "bagspace", { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -16, y = 46 },
+        { label = "Bag capacity", onApply = bags.UpdateCapacity })
+    core:RegisterEvent("BAG_UPDATE_DELAYED", bags.UpdateCapacity)
+    core:RegisterEvent("PLAYER_ENTERING_WORLD", bags.UpdateCapacity)
+    bags.UpdateCapacity()
 end
 
 function bags.CreateEquipped(holder)
