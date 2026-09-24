@@ -70,7 +70,23 @@ local function readWatched()
     return list
 end
 
-local function collapsed() return core.Profile.questtracker.collapsed == true end
+local combatCollapsed
+local function automaticCollapse()
+    return core.Profile.questtracker.collapseInCombat == true and InCombatLockdown()
+end
+
+local function collapsed()
+    if automaticCollapse() then
+        if combatCollapsed ~= nil then return combatCollapsed end
+        return true
+    end
+    return core.Profile.questtracker.collapsed == true
+end
+
+local function combatChanged()
+    combatCollapsed = nil
+    if holder then tracker.View.Render(holder, quests, collapsed()) end
+end
 
 -- A failed read keeps the last good list on screen.
 function tracker.Refresh()
@@ -97,7 +113,8 @@ function tracker.Request()
 end
 
 function tracker.ToggleCollapsed()
-    core.Profile.questtracker.collapsed = not collapsed()
+    if automaticCollapse() then combatCollapsed = not collapsed()
+    else core.Profile.questtracker.collapsed = not collapsed() end
     tracker.View.Render(holder, quests, collapsed(), not collapsed())
 end
 
@@ -134,11 +151,20 @@ function tracker:OnEnable()
     if not available() then return core:Print("Quest tracker unavailable: the quest log API is missing.") end
     core.Combat.Queue(build)
     for _, event in ipairs(EVENTS) do core:RegisterEvent(event, tracker.Request) end
+    core:RegisterEvent("PLAYER_REGEN_DISABLED", combatChanged)
+    core:RegisterEvent("PLAYER_REGEN_ENABLED", combatChanged)
 end
 
 function tracker:Debug()
     core:Print("Quest tracker holder=" .. tostring(holder ~= nil) .. " quests=" .. #quests
         .. " collapsed=" .. tostring(core.Profile ~= nil and collapsed()))
 end
+
+tracker.Options = { title = "Quest tracker", group = "Gameplay", settings = {
+    { type = "checkbox", key = "collapseInCombat", label = "Collapse objectives in combat",
+        description = "Keep the header visible. Click it to reveal quests temporarily; restore your preference after combat.",
+        get = function() return core.Profile.questtracker.collapseInCombat == true end,
+        set = function(value) core.Profile.questtracker.collapseInCombat = value == true; combatChanged() end },
+} }
 
 core:RegisterModule("questtracker", tracker)

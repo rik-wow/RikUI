@@ -191,6 +191,25 @@ return function(check)
             and holder.height > 18 and RikUI.Profile.questtracker.collapsed == false
             and view.Blocks[1].fade.plays == 2)
 
+        local combatSetting = module.Options.settings[1]
+        combatSetting.set(true)
+        env.inCombat = true
+        env.fire("PLAYER_REGEN_DISABLED")
+        check("combat collapse keeps header and saved preference", holder.height == 18 and not RikUI.Profile.questtracker.collapsed)
+        env.click(view.Header)
+        check("header can temporarily reveal quests during combat", holder.height > 18 and not RikUI.Profile.questtracker.collapsed)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("combat end restores expanded preference", holder.height > 18)
+        RikUI.Profile.questtracker.collapsed = true
+        env.inCombat = true
+        env.fire("PLAYER_REGEN_DISABLED")
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("combat end preserves manual collapse", holder.height == 18 and RikUI.Profile.questtracker.collapsed)
+        RikUI.Profile.questtracker.collapsed = false
+        combatSetting.set(false)
+
         stub.watches = {}
         update("QUEST_WATCH_LIST_CHANGED")
         check("nothing watched hides the whole list", holder.shown == false)
