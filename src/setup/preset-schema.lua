@@ -42,7 +42,7 @@ end
 local function roles(preset)
     record(preset.roles, nil, "roles")
     local seen = {}
-    list(preset.roleOrder, "roleOrder", 16, function(role, path)
+    list(preset.roleOrder, "roleOrder", 6, function(role, path)
         requireValue(name(role, 32) and preset.roles[role] ~= nil and not seen[role], path, "unknown or duplicate role")
         seen[role] = true
     end)

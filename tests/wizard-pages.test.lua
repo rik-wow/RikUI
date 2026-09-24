@@ -64,6 +64,21 @@ return function(check)
         check("choosing Protection changes the state and the preview", wizard.State.role == "tank" and role.cards[3].isChosen == true
             and role.cards[1].isChosen == false and role.bar.slots[1].icon.texture == RikUI.SpellData["Sunder Armor"].icon)
 
+        dofile("src/persistence/codec.lua"); dofile("src/setup/preset-schema.lua"); dofile("src/setup/preset-library.lua")
+        local shared = RikUI.Setup.CopyState(RikUI.Presets.WARRIOR)
+        shared.roles, shared.roleOrder = { tank = shared.roles.tank }, { "tank" }
+        shared.roleOverrides = { tank = shared.roleOverrides.tank }
+        RikUI.PresetLibrary.Add("Shared tank", shared)
+        local marker = RikUI.CharDB.applied
+        local selected = wizard.SelectPreset("Shared tank")
+        role = page("role")
+        check("wizard shows imported source roles", selected and #role.cards == 1 and role.cards[1].role == "tank")
+        check("draft source selection does not change applied state", RikUI.CharDB.applied == marker
+            and wizard.Options().presetName == "Shared tank")
+        env.click(role.presetButton)
+        check("picker cycles back to bundled source", wizard.State.presetName == "" and #role.cards == 3)
+        wizard.State.role = "tank"
+
         local keysPage = page("keys")
         check("the key page draws the three tiers and the mouse and strafe keys", #keysPage.tiers == 3
             and #keysPage.tiers[1] == 11 and keysPage.tiers[1][1].label.text == "1" and keysPage.tiers[2][1].label.text == "S-1"

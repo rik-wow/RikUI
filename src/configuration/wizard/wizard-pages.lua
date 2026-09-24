@@ -23,11 +23,17 @@ local function className(state)
     return type(name) == "string" and name or tostring(state.class)
 end
 
-local function preset(state) return core.Presets[state.class] end
+local function preset(state)
+    local source = core.Setup.Source(state.class, state.presetName)
+    if source and state.presetName and state.presetName ~= "" and core.Setup.ValidateSharedPreset then
+        if #core.Setup.ValidateSharedPreset(source) > 0 then return nil end
+    end
+    return source
+end
 
 local function resolved(state)
     if not preset(state) then return nil end
-    return (core.Setup.Resolve(state.class, state.role))
+    return (core.Setup.Resolve(state.class, state.role, state.presetName))
 end
 
 -- 1. Welcome
@@ -43,7 +49,7 @@ end })
 local function guessedRole(state)
     local known = preset(state)
     if not known then return nil end
-    local role = core.Setup.GuessRole and core.Setup.GuessRole(state.class) or nil
+    local role = core.Setup.GuessRole and core.Setup.GuessRole(state.class, state.presetName) or nil
     return known.roles[role] and role or known.roleOrder[1]
 end
 
@@ -75,14 +81,42 @@ local function roleCard(page, state, role, index)
     return card
 end
 
+local function refreshRoles(page, state)
+    local known = preset(state)
+    if page.source ~= known or page.state ~= state then
+        for _, card in ipairs(page.cards) do card:Hide() end
+        page.cards, page.source, page.state = {}, known, state
+        for index, role in ipairs(known and known.roleOrder or {}) do page.cards[index] = roleCard(page, state, role, index) end
+        page.barTitle:ClearAllPoints()
+        page.barTitle:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", 0, -(32 + math.ceil(#page.cards / 3) * 68))
+    end
+    page.presetButton.label:SetText("Preset: " .. (state.presetName ~= "" and state.presetName or "Bundled") .. " (click to change)")
+    page.note:SetText(known and "" or (state.presetName ~= "" and "Preset unavailable. Choose another preset."
+        or "There is no preset for " .. className(state) .. " yet; bars stay as they are."))
+    if state.role == nil then state.role = guessedRole(state) end
+    paintRole(page, state)
+end
+
+local function cyclePreset()
+    local state = wizard.State
+    local entries = core.PresetLibrary and core.PresetLibrary.Entries(state.class) or { { value = "" } }
+    local selected = 0
+    for i, entry in ipairs(entries) do if entry.value == state.presetName then selected = i end end
+    local ok, reason = wizard.SelectPreset(entries[selected % #entries + 1].value)
+    if not ok then core:Print(reason) end
+end
+
 wizard.AddPage({ key = "role", title = "Your role", build = function(page, state)
     local known = preset(state)
     page.intro = paragraph(page, "label", known and "Pick what you play. It decides which abilities go on the bars; you "
         .. "can switch later with /rik role." or "")
     page.note = paragraph(page, "label", known and "" or "There is no preset for " .. className(state) .. " yet, so the "
         .. "bars stay as they are. Keybinds, settings and the layout are still set up.")
+    page.presetButton = controls.Button(page, "", cyclePreset)
+    page.presetButton:SetWidth(CONTENT_WIDTH); page.presetButton:SetPoint("TOPLEFT", 0, 0)
+    page.intro:ClearAllPoints(); page.intro:SetPoint("TOPLEFT", 0, -38)
+    page.note:ClearAllPoints(); page.note:SetPoint("TOPLEFT", 0, -76)
     page.cards = {}
-    for index, role in ipairs(known and known.roleOrder or {}) do page.cards[index] = roleCard(page, state, role, index) end
     page.barTitle = paragraph(page, "small", "")
     page.barTitle:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", 0, -(32 + math.ceil(#page.cards / 3) * 68))
     page.bar = preview.Bar(page)
@@ -98,10 +132,7 @@ wizard.AddPage({ key = "role", title = "Your role", build = function(page, state
     page.detail = paragraph(page, "small", "", page.previous, 12)
     page.detail:SetHeight(38)
     page.bar.onInspect = function(description) page.detail:SetText(description) end
-end, refresh = function(page, state)
-    if state.role == nil then state.role = guessedRole(state) end
-    paintRole(page, state)
-end })
+end, refresh = refreshRoles })
 
 -- 3. Keybinds
 local CAP_WIDTH, CAP_HEIGHT, CAP_GAP, TIER_GAP = 44, 30, 6, 12

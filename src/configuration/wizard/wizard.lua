@@ -37,7 +37,9 @@ end
 -- Everything on, as the design says; the layout starts on whatever the screen looks like now.
 function wizard.NewState()
     local _, class = UnitClass("player")
-    local state = { class = class, role = nil, strafe = false, mouse45 = true, keepPositions = false,
+    local marker = core.CharDB and core.CharDB.applied
+    local state = { class = class, role = nil, presetName = type(marker) == "table" and marker.class == class and marker.presetName or "",
+        strafe = false, mouse45 = true, keepPositions = false,
         layoutPreset = core.Layout.MatchingPreset and core.Layout.MatchingPreset() or nil,
         modules = moduleChoices(), cvars = {}, steps = {} }
     state.layoutPreset = state.layoutPreset or core.Layouts.Order[1]
@@ -47,9 +49,24 @@ function wizard.NewState()
 end
 
 -- The options setup.Apply takes. A setting switched off is left out of the selection.
+function wizard.SelectPreset(name)
+    if applying or InCombatLockdown() then return nil, "Setup is busy." end
+    local state = wizard.State
+    if not state then return nil, "Open setup first." end
+    local preset, reason = core.Setup.Source(state.class, name)
+    if not preset then return nil, reason end
+    if name ~= "" then
+        local issues = core.Setup.ValidateSharedPreset(preset)
+        if #issues > 0 then return nil, issues[1] end
+    end
+    state.presetName, state.role = name, nil
+    wizard.Go(wizard.Index)
+    return true
+end
+
 function wizard.Options()
     local state = wizard.State
-    local opts = { strafe = state.strafe, mouse45 = state.mouse45, allowEmpty = true, cvarSelection = {} }
+    local opts = { strafe = state.strafe, mouse45 = state.mouse45, allowEmpty = true, cvarSelection = {}, presetName = state.presetName }
     for _, step in ipairs(STEPS) do opts[step] = state.steps[step] == true end
     for name, chosen in pairs(state.cvars) do
         if chosen then opts.cvarSelection[name] = true end

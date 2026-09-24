@@ -124,6 +124,10 @@ local function setupSpecs()
     specs[#specs + 1] = { type = "button", key = "undo", label = "Last setup change", text = "Undo",
         disabled = function() return InCombatLockdown() or not core.CharDB.undo end,
         action = function() core.Setup.Undo() end }
+    if core.Sharing then
+        specs[#specs + 1] = action("export", "Share character preset", "Export", core.Sharing.OpenExport)
+        specs[#specs + 1] = action("import", "Add a shared preset", "Import", core.Sharing.OpenImport)
+    end
     specs[#specs + 1] = { type = "heading", label = "Support" }
     specs[#specs + 1] = action("debug", "Interface diagnostics", "Show in chat", function() core:Debug() end)
     if core.Store then specs[#specs + 1] = action("storage", "Saved data status", "Show in chat", function() run("store") end) end
