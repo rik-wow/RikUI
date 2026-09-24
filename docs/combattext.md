@@ -2,8 +2,14 @@
 
 `src/modules/combattext/combattext.lua` puts floating combat text in the RikUI font: the scrolling
 text for your own damage taken, heals and gains, and the damage numbers over
-enemies. Fonts only. What is shown, where it scrolls and how crits grow stay
-Blizzard's and the client's settings. Disable the `combattext` module in
+enemies. The Combat text options page also exposes the client's scrolling
+text visibility and Up/Down/Arc direction. These remain native client settings
+shared across RikUI profiles; opening or enabling the module never changes them.
+Explicit changes wait until combat ends and repeated requests coalesce.
+Direction is available only while scrolling text is enabled, the direction
+CVar exists, and classic-style world text is off. Missing or rejected native
+controls stay unavailable rather than claiming support. Blizzard still owns
+message content, rendering, crit sizing and any spell icons. Disable the `combattext` module in
 `/rik config`, then log out to the character list and back in for the stock
 font.
 
@@ -46,7 +52,7 @@ font reported once; the disabled module leaving both stock.
 
 The stub cannot settle these: whether `ADDON_LOADED` is early enough for the
 engine on 69913, whether the engine accepts a font inside an addon folder, and
-how the outline looks on crits scaled with `SetTextHeight`. Beta checklist:
+how the outline looks on crits scaled with `SetTextHeight`. Native behavior is accepted by the user; the following is optional reference:
 
 1. Fully exit and restart the client (new TOC entry).
 2. Hit a mob: the numbers over it should be in the RikUI font. If they are
@@ -56,6 +62,15 @@ how the outline looks on crits scaled with `SetTextHeight`. Beta checklist:
 4. `/rik debug` should print `Combat text font=true damage=true`.
 
 ## Source evidence
+
+The native controls follow the pinned [CombatOverrides.lua](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_SettingsDefinitions_Frame/Mainline/CombatOverrides.lua):
+`enableFloatingCombatText`, `floatingCombatTextFloatMode_v2` values 1/2/3, and
+the `classicStyleWorldText == 0` condition. Actual CVar availability is checked
+at runtime; no outgoing damage/healing filters or arbitrary numeric sizes are inferred.
+
+Research on 2026-09-24: [Forever players requesting combat-text customization](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/).
+This request is community feedback; the source and runtime checks determine supported controls.
+
 
 Reviewed against the Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
 

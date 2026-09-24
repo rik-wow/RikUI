@@ -44,6 +44,8 @@ be cancelled by reopening; native Settings controls its own hide timing.
   specialized space with bags closed; click it to open inventory.
 - Tooltips: independent 75–150% scale.
 - Castbars: width, height and remaining-time visibility.
+- Combat text: native visibility and scrolling direction where supported.
+  These are client settings shared across RikUI profiles.
 - Move frames closes settings and unlocks the existing drag handles. The
   minimap launcher changes to **Done**; clicking it locks the frames.
 - Modules: enable or disable any registered module. A single **Reload UI**

@@ -3,7 +3,7 @@
 return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
-    local API = { "CombatTextFont", "DAMAGE_TEXT_FONT" }
+    local API = { "CombatTextFont", "DAMAGE_TEXT_FONT", "C_CVar", "CombatText_LoadUI", "UpdateFloatingCombatTextSafe" }
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local STOCK = "Fonts\\FRIZQT__.TTF"
@@ -47,6 +47,43 @@ return function(check)
         load({ font = "game" })
         check("profile font binds before early native damage consumers", DAMAGE_TEXT_FONT == (STANDARD_TEXT_FONT or STOCK)
             and CombatTextFont.font[1] == DAMAGE_TEXT_FONT)
+
+        local values = { enableFloatingCombatText = "0", floatingCombatTextFloatMode_v2 = "1", classicStyleWorldText = "0" }
+        local writes, loads, refreshes = 0, 0, 0
+        C_CVar = {
+            GetCVar = function(name) return values[name] end,
+            SetCVar = function(name, value) writes = writes + 1; values[name] = value; return true end,
+        }
+        CombatText_LoadUI = function() loads = loads + 1 end
+        UpdateFloatingCombatTextSafe = function() refreshes = refreshes + 1 end
+        local module = load()
+        check("combat text startup leaves client preferences alone", writes == 0)
+        local settings = module.Options and module.Options.settings
+        check("native combat text controls exist", settings and #settings == 2)
+        if settings then
+            local enabled, flow = settings[1], settings[2]
+            enabled.set(true)
+            check("native text enable loads the renderer", values.enableFloatingCombatText == "1" and loads == 1)
+            flow.set(3)
+            check("native arc flow updates displayed text", values.floatingCombatTextFloatMode_v2 == "3" and refreshes == 2)
+            env.inCombat = true
+            flow.set(1); flow.set(2)
+            check("combat flow writes wait", writes == 2)
+            env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
+            check("combat flow requests coalesce", writes == 3 and values.floatingCombatTextFloatMode_v2 == "2")
+            values.classicStyleWorldText = "1"
+            check("classic world text disables unsupported flow", flow.disabled())
+            flow.set(3)
+            check("unsupported flow cannot write", writes == 3)
+            values.classicStyleWorldText = "0"
+            flow.set(99)
+            check("invalid flow cannot write", writes == 3)
+            values.floatingCombatTextFloatMode_v2 = nil
+            check("missing flow CVar disables control", flow.disabled())
+            C_CVar.SetCVar = function() error("rejected native write") end
+            local safe = pcall(enabled.set, false)
+            check("native write failure is contained", safe and values.enableFloatingCombatText == "1")
+        end
 
         load({ modules = { combattext = false } })
         check("a disabled module leaves the font object and the damage font stock",
