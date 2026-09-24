@@ -497,6 +497,13 @@ return function(check)
         { "destruction", "main", 4, "Shadowburn", "Bane of Agony" },
         { "destruction", "main", 5, "Soul Fire", "Drain Life" },
     })
+    levelingChecks(check, "MAGE", {
+        { "frost", "main", 1, "Frostbolt", "Fireball" },
+        { "arcane", "main", 1, "Arcane Missiles", "Fireball" },
+        { "arcane", "main", 2, "Arcane Blast", "Arcane Missiles" },
+        { "fire", "main", 2, "Scorch", "Fire Blast" },
+        { "fire", "main", 4, "Pyroblast", "Fireball" },
+    })
     fallbackChecks(check)
 end
 

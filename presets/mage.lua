@@ -1,7 +1,7 @@
 -- Class role layouts; spellbook and DB2 evidence: docs/class-presets.md.
 RikUI.Presets.MAGE = {
     ["class"] = "MAGE",
-    ["version"] = 2,
+    ["version"] = 3,
     ["roleOrder"] = {
         "frost",
         "fire",
@@ -30,7 +30,7 @@ RikUI.Presets.MAGE = {
     ["bars"] = {
         ["main"] = {
             [1] = {
-                ["spell"] = "Frostbolt",
+                ["spell"] = "Frostbolt", fallback = "Fireball",
                 ["level"] = 4,
             },
             [2] = {
@@ -174,19 +174,19 @@ RikUI.Presets.MAGE = {
                 ["level"] = 1,
             },
             [2] = {
-                ["spell"] = "Pyroblast",
+                ["spell"] = "Pyroblast", fallback = "Fireball",
                 ["level"] = 20,
             },
             [3] = {
-                ["spell"] = "Scorch",
+                ["spell"] = "Scorch", fallback = "Fire Blast",
                 ["level"] = 22,
             },
             [4] = {
-                ["spell"] = "Arcane Missiles",
+                ["spell"] = "Arcane Missiles", fallback = "Fireball",
                 ["level"] = 8,
             },
             [5] = {
-                ["spell"] = "Arcane Blast",
+                ["spell"] = "Arcane Blast", fallback = "Arcane Missiles",
                 ["level"] = 20,
             },
             [6] = {
@@ -287,11 +287,11 @@ RikUI.Presets.MAGE = {
                     ["level"] = 1,
                 },
                 [2] = {
-                    ["spell"] = "Scorch",
+                    ["spell"] = "Scorch", fallback = "Fire Blast",
                     ["level"] = 22,
                 },
                 [4] = {
-                    ["spell"] = "Pyroblast",
+                    ["spell"] = "Pyroblast", fallback = "Fireball",
                     ["level"] = 20,
                 },
                 [5] = {
@@ -303,11 +303,11 @@ RikUI.Presets.MAGE = {
         ["arcane"] = {
             ["main"] = {
                 [1] = {
-                    ["spell"] = "Arcane Missiles",
+                    ["spell"] = "Arcane Missiles", fallback = "Fireball",
                     ["level"] = 8,
                 },
                 [2] = {
-                    ["spell"] = "Arcane Blast",
+                    ["spell"] = "Arcane Blast", fallback = "Arcane Missiles",
                     ["level"] = 20,
                 },
                 [4] = {
