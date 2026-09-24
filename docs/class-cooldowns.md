@@ -51,6 +51,18 @@ Native behavior is accepted by the user; no agent-observed client result is clai
 
 Each class section below records its current feedback, curated coverage and limits.
 
+### Priest — 2026-09-24
+
+Priorities: Power Word: Shield, Penance, Prayer of Mending, Fear Ward, Fade, Psychic Scream, Silence, Power Infusion, Inner Focus, Mind Blast, Devouring Plague, Shadow Word: Death.
+
+[Current player feedback](https://us.forums.blizzard.com/en/wow/t/shadow-priest-feedback-for-wow-forever/2357561): Shadow feedback discusses Devouring Plague downtime and asks for a broader active toolkit.
+These are community requests, not verified tuning or spell mechanics. The
+[client-derived spellbook](https://foreverchanges.pro/spellbook/priest) still
+identifies source build 69913; the profile reuses the verified local catalogue
+and actual learned ranks rather than assuming legacy IDs.
+
+Shield cooldown is distinct from Weakened Soul; Prayer of Mending cooldown is not a bounce tracker. No extra abilities or racial eligibility are inferred. Native acceptance supplied by user.
+
 ### Druid — 2026-09-24
 
 Priorities: Bash, Growl, Feral Charge, Barkskin, Frenzied Regeneration, Berserk, Tiger's Fury, Dash, Innervate, Rebirth, Swiftmend, Tranquility.
