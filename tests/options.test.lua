@@ -102,7 +102,7 @@ return function(check)
                 return { { value = "a", text = "Alpha" }, { value = "b", text = "Beta" }, { value = "c", text = "Gamma" } }
             end, get = function() return state.choice end, set = setter("choice") },
             { type = "colour", key = "colour", label = "Colour", get = function() return state.colour end, set = setter("colour") },
-            { type = "text", key = "name", label = "Name", get = function() return state.name end, set = setter("name") },
+            { type = "text", key = "name", label = "Name", description = "Choose a memorable name.", get = function() return state.name end, set = setter("name") },
             { type = "button", key = "press", label = "Action", text = "Press", action = function() state.pressed = state.pressed + 1 end },
             { type = "checkbox", key = "locked", label = "Locked", disabled = function() return state.locked end,
                 get = function() return true end, set = setter("locked") },
@@ -117,6 +117,12 @@ return function(check)
             and list.rows[3].point[5] - list.rows[2].point[5] == list.rows[2].point[5] - list.rows[1].point[5])
         local flag, amount, choice, colour, name, pressRow = rowByKey(list, "flag"), rowByKey(list, "amount"),
             rowByKey(list, "choice"), rowByKey(list, "colour"), rowByKey(list, "name"), rowByKey(list, "press")
+        check("described settings have readable secondary text", name.description and name.description:GetText() == "Choose a memorable name."
+            and name.height > flag.height)
+        options.ResizeList(list, 260)
+        check("descriptions fit below stacked controls", name.description.width == 248
+            and name.widget.point[5] > 4 and name.height > 62)
+        options.ResizeList(list, 500)
         env.runScript(flag.widget, "OnEnter")
         check("controls use a cancellable hover wash", flag.widget.rikHover.enter:IsPlaying())
         env.runScript(flag.widget, "OnHide")

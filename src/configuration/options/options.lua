@@ -89,6 +89,7 @@ local function layoutSpecs(specs)
     if not core.Layout then return end
     specs[#specs + 1] = { type = "heading", label = "Layout" }
     specs[#specs + 1] = { type = "slider", key = "scale", label = "Frame scale", protected = true,
+        description = "Resize all RikUI frames together. Changes wait until combat ends.",
         min = SCALE_MIN, max = SCALE_MAX, step = SCALE_STEP,
         format = function(value) return string.format("%.0f%%", value * 100) end,
         get = function() return core.Layout.GetScale() end,
@@ -181,6 +182,7 @@ local function profileSpecs()
             get = function() return core.CharDB.profile end, set = selectProfile },
         { type = "heading", label = "New profile" },
         { type = "text", key = "newName", label = "Name",
+            description = "Use a unique name. Create starts fresh; Copy keeps your current setup.",
             get = function() return state.newName end, set = function(value) state.newName = trim(value) end },
         { type = "button", key = "create", label = "Start from defaults", text = "Create", disabled = cannotCreate,
             action = function() createProfile(false) end },

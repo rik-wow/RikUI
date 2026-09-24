@@ -100,6 +100,11 @@ function options.CreateRow(parent, spec, list)
         row.rule:SetPoint("BOTTOMLEFT", 6, 0); row.rule:SetPoint("BOTTOMRIGHT", -6, 0)
         row.rule:SetHeight(1)
     end
+    if spec.description then
+        row.description = options.Text(row, "small", spec.description)
+        row.description:SetJustifyH("LEFT"); row.description:SetWordWrap(true)
+        row.description:SetTextColor(0.62, 0.7, 0.77)
+    end
     if kind.create then row.widget = kind.create(row) end
     return row
 end
@@ -125,12 +130,21 @@ local function placeRow(row, width, y)
     local kind = row.spec.type
     local narrow = kind == "checkbox" and metrics.controlHeight or (kind == "colour" and metrics.controlHeight * 2)
     local stacked = width < STACK_WIDTH and row.widget ~= nil and not narrow
-    local height = stacked and STACK_HEIGHT or ROW_HEIGHT
+    local baseHeight = stacked and STACK_HEIGHT or ROW_HEIGHT
+    local descriptionHeight = 0
+    if row.description then
+        row.description:SetWidth(math.max(1, width - 12))
+        descriptionHeight = math.max(24, row.description:GetStringHeight() or 0) + 8
+        row.description:ClearAllPoints()
+        row.description:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -baseHeight)
+        row.description:SetHeight(descriptionHeight - 8)
+    end
+    local height = baseHeight + descriptionHeight
     row.top, row.height = y, height
     row:SetSize(width, height)
     row:ClearAllPoints(); row:SetPoint("TOPLEFT", row.list.parent, "TOPLEFT", 0, -y)
     row.label:ClearAllPoints()
-    row.label:SetPoint(stacked and "TOPLEFT" or "LEFT", row, stacked and "TOPLEFT" or "LEFT", 6, stacked and -4 or 0)
+    row.label:SetPoint(stacked and "TOPLEFT" or "LEFT", row, stacked and "TOPLEFT" or "LEFT", 6, stacked and -4 or descriptionHeight / 2)
     local controlWidth = math.min(narrow or metrics.controlWidth, width - 12)
     row.label:SetWidth(math.max(1, row.widget and not stacked and width - controlWidth - CONTROL_GAP or width - 12))
     row.label:SetHeight(stacked and 24 or 32)
@@ -139,7 +153,7 @@ local function placeRow(row, width, y)
         local reserved = kind == "slider" and 44 or 0
         widget:ClearAllPoints()
         widget:SetWidth(narrow or math.max(1, controlWidth - reserved))
-        widget:SetPoint(stacked and "BOTTOMRIGHT" or "RIGHT", row, stacked and "BOTTOMRIGHT" or "RIGHT", -reserved, stacked and 4 or 0)
+        widget:SetPoint(stacked and "BOTTOMRIGHT" or "RIGHT", row, stacked and "BOTTOMRIGHT" or "RIGHT", -reserved, stacked and 4 + descriptionHeight or descriptionHeight / 2)
     end
     return y + height + ROW_GAP
 end
