@@ -58,6 +58,22 @@ return function(check)
         local again, none = layout.UndoPreset()
         check("there is one step of undo", again == nil and none == "Nothing to undo.")
 
+        RikUI.DB.profiles.Source = { positions = { player = {point="TOPLEFT", relativePoint="TOPLEFT", x=35, y=-40} },
+            chat = {size={width=500,height=220}}, scale=2, reducedMotion=true }
+        local active, oldScale = RikUI.Profile, RikUI.Profile.scale
+        check("layout copies from another profile", layout.CopyProfile("Source") == true)
+        check("layout copy preserves other settings and identity", RikUI.Profile == active and active.scale == oldScale
+            and active.reducedMotion == false and active.chat.size.width == 500)
+        check("copied geometry is independent", active.positions.player ~= RikUI.DB.profiles.Source.positions.player
+            and active.chat.size ~= RikUI.DB.profiles.Source.chat.size)
+        check("layout copy supports undo", layout.UndoPreset() and active.positions.player == nil and active.chat.size == nil)
+        RikUI.DB.profiles.Source.positions.player.x = 0/0
+        local oldPositions = active.positions
+        check("invalid source geometry is atomic", not layout.CopyProfile("Source") and active.positions == oldPositions)
+        RikUI.DB.profiles.Source.positions.player.x = 35
+        env.inCombat = true
+        check("layout copying refuses combat", not layout.CopyProfile("Source") and active.positions == oldPositions)
+        env.inCombat = false
         local unknown, unknownReason = layout.ApplyPreset("nonsense")
         check("an unknown layout is refused by name", unknown == nil and unknownReason:find("nonsense", 1, true) ~= nil
             and RikUI.Profile.positions.player == nil)

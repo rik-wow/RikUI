@@ -605,6 +605,20 @@ return function(check)
         check("dropdown enter commits highlighted choice", picked == 2 and not popup.shown)
         env.click(last.widget); press(config, "END"); press(config, "ESCAPE")
         check("dropdown escape cancels preview", picked == 2 and not popup.shown)
+        do
+            local copied
+            local copyOptions = boot({profiles={Default={},Source={}}}, nil, function(core)
+                core.Layout.CopyProfile = function(name) copied = name; return true end
+            end)
+            local rows = pageByTitle(copyOptions, "Profiles").list
+            local source, copyRow = rowByKey(rows,"layoutSource"), rowByKey(rows,"copyLayout")
+            copyOptions.Commit(source, "Source")
+            check("layout copy exposes selected source", copyRow.enabled and source.spec.get() == "Source")
+            env.click(copyRow.widget)
+            check("layout copy waits for named confirmation", copied == nil and copyRow.confirmText:GetText():find("Source",1,true))
+            env.click(copyRow.widget)
+            check("layout copy routes confirmed action", copied == "Source")
+        end
         -- Profiles.
         options = boot({ profiles = { Default = { scale = 0.9, positions = { main = { x = 5 } } } } })
         local profiles = pageByTitle(options, "Profiles").list

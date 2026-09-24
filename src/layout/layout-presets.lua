@@ -93,6 +93,46 @@ function layout.ApplyPreset(name)
     return true
 end
 
+local ANCHORS = { TOP=true, BOTTOM=true, LEFT=true, RIGHT=true, CENTER=true,
+    TOPLEFT=true, TOPRIGHT=true, BOTTOMLEFT=true, BOTTOMRIGHT=true }
+local function boundedNumber(value, low, high)
+    return type(value) == "number" and value >= low and value <= high
+end
+
+local function profileGeometry(source)
+    if type(source.positions) ~= "table" then return nil end
+    local positions, count = {}, 0
+    for key, place in pairs(source.positions) do
+        count = count + 1
+        if count > 256 or type(key) ~= "string" or #key > 64 or type(place) ~= "table"
+            or not ANCHORS[place.point] or not ANCHORS[place.relativePoint]
+            or not boundedNumber(place.x, -32768, 32768) or not boundedNumber(place.y, -32768, 32768) then return nil end
+        positions[key] = { point=place.point, relativePoint=place.relativePoint, x=place.x, y=place.y }
+    end
+    local size = type(source.chat) == "table" and source.chat.size
+    if size ~= nil and size ~= false then
+        if type(size) ~= "table" or not boundedNumber(size.width, 250, 1200)
+            or not boundedNumber(size.height, 120, 800) then return nil end
+        size = { width=size.width, height=size.height }
+    end
+    return positions, size
+end
+
+function layout.CopyProfile(name)
+    if InCombatLockdown() then return nil, "Copy layouts after combat." end
+    if not core.DB or not core.Profile then return nil, "Still loading." end
+    local source = core.DB.profiles[name]
+    if type(source) ~= "table" or source == core.Profile then return nil, "Choose another profile." end
+    if setup.IsApplying() or (setup.IsUndoing and setup.IsUndoing()) then return nil, "Finish the pending Setup operation." end
+    local positions, size = profileGeometry(source)
+    if not positions then return nil, "The source profile has invalid layout data." end
+    local chat = chatSettings()
+    core.Profile.layoutUndo = { positions=copy(core.Profile.positions), chatSize=copy(chat.size) or false }
+    core.Profile.positions, chat.size = positions, size or nil
+    refresh()
+    return true
+end
+
 function layout.UndoPreset()
     if InCombatLockdown() then return nil, "Cannot change the layout in combat." end
     local undo = core.Profile and core.Profile.layoutUndo

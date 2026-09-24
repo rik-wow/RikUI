@@ -1,5 +1,7 @@
 # RikUI settings
 
+Profiles > **Reuse layout** copies positions and chat size from another profile after a named confirmation. Other preferences, frame scale and character setup stay with the destination. **General > Undo layout change** restores the prior arrangement. Copying is unavailable in combat or during Setup; invalid source geometry is rejected. The destination screen bounds and collision rules still apply.
+
 Modules now warns **After reload: needs …** when an enabled feature has a disabled direct or indirect requirement in the saved choices. Restoring the provider clears the warning. Disabling a feature still changes only that feature. This helps mix UI components without discovering a missing dependency only after reload. [Modular UI prior art reviewed 2026-09-24](https://www.curseforge.com/wow/addons/fcui-foreverclassicui).
 
 Queued settings and destructive confirmations expire after a profile transition, including switching away and back. A queued profile selection also expires if its destination was deleted and recreated under the same name. Re-select or confirm again to act on the current profile.

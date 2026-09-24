@@ -356,6 +356,19 @@ local function profileSpecs()
             action = function() core.Sharing.OpenProfileExport() end },
         { type = "button", key = "profileimport", label = "Save a shared UI profile", text = "Import",
             action = function() core.Sharing.OpenProfileImport() end },
+        { type = "heading", label = "Reuse layout" },
+        { type = "dropdown", key = "layoutSource", label = "Layout source", values = function() return profileEntries(true) end,
+            get = function() return state.layoutSource end, set = function(value) state.layoutSource = value end },
+        { type = "button", key = "copyLayout", label = "Copy positions and chat size", text = "Copy layout",
+            description = "Keep your other preferences. General > Undo layout change restores the previous arrangement.",
+            disabled = function()
+                return InCombatLockdown() or not core.Layout or not core.Layout.CopyProfile or not state.layoutSource
+                    or state.layoutSource == core.CharDB.profile or not core.DB.profiles[state.layoutSource]
+            end,
+            confirm = function()
+                return state.layoutSource and ("Copy layout from " .. state.layoutSource .. " into " .. core.CharDB.profile .. "?")
+            end,
+            action = function() return core.Layout.CopyProfile(state.layoutSource) end },
         { type = "heading", label = "Recovery" },
         { type = "button", key = "resetProfile", label = "Reset active UI profile", text = "Reset",
             description = "Keep a Recovery copy, then restore UI defaults. Character setup stays unchanged. Reload to apply.",
