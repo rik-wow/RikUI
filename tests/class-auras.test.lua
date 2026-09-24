@@ -13,11 +13,11 @@ return function(check)
     C_UnitAuras = setmetatable({}, { __index = function()
         return function() reads = reads + 1; error("secret aura access") end
     end })
-    local function load(profile, combat, missing, invalid)
+    local function load(profile, combat, missing, invalid, class)
         env.frames, env.printed, env.timers, env.inCombat = {}, {}, {}, false
         env.auraContainerMissing = missing == true
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile or { modules = { auras = false } } } }, nil
-        UnitClass = function() return "Warrior", "WARRIOR" end
+        UnitClass = function() return class or "Warrior", class or "WARRIOR" end
         for _, path in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua",
             "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua",
             "src/layout/layout.lua", "src/modules/auras/auras.lua", "src/modules/auras/auras-button.lua" }) do
@@ -30,12 +30,51 @@ return function(check)
         RikUI.ClassAuraProfiles = { WARRIOR = { player = { invalid and "Unknown" or "Battle Shout" },
             harmful = { "Rend" }, helpful = { "Battle Shout" }, enchants = true } }
         assert(loader("src/modules/auras/auras-class.lua"))("RikUI", {})
+        if class then
+            for _, path in ipairs(dofile("tests/load_addon.lua").Manifest()) do
+                if path == "data/spells.lua" or path:match("^data/spells%-")
+                    or path:match("^data/class%-auras%-") then assert(loader(path))("RikUI", {}) end
+            end
+        end
         env.fire("ADDON_LOADED", "RikUI")
         env.inCombat = combat == true
         env.fire("PLAYER_LOGIN")
         return RikUI.ClassAuras
     end
+    local cases = {
+        { class = "ROGUE", player = { 5171, 6774, 5277 }, harmful = { 1943, 11275, 8647 }, helpful = {  }, excluded = { 1752 }, enchants = true },
+        -- Additional verified class fixtures.
+    }
+    local function verifyProfile(sample)
+        local module = load(nil, false, false, false, sample.class)
+        check(sample.class .. " creates class buff and effect rows", module.Rows.player and module.Rows.target)
+        local profile = RikUI.ClassAuraProfiles[sample.class]
+        check(sample.class .. " profile loads from the manifest", profile ~= nil)
+        for _, key in ipairs({ "player", "harmful", "helpful" }) do
+            local row = module.Rows[key == "player" and "player" or "target"]
+            local group = row and row.container.groups[key]
+            for _, id in ipairs(sample[key]) do
+                check(sample.class .. " tracks direct " .. key .. " effect " .. id,
+                    group and group.options.candidateFilters.includeSpellIDs[id] == true)
+            end
+            for _, name in ipairs(profile and profile[key] or {}) do
+                local entry = RikUI.Spells.Entry(name, sample.class)
+                check(sample.class .. " family resolves " .. name, entry ~= nil)
+                for _, id in ipairs(entry and entry.ranks or {}) do
+                    check(sample.class .. " preserves rank " .. id, group and group.options.candidateFilters.includeSpellIDs[id] == true)
+                end
+            end
+            for _, id in ipairs(sample.excluded) do
+                check(sample.class .. " excludes direct damage " .. id .. " from " .. key,
+                    not group or not group.options.candidateFilters.includeSpellIDs[id])
+            end
+        end
+        local native = module.Rows.player and module.Rows.player.container.enchants
+        check(sample.class .. " weapon-enchant ownership is explicit", native
+            and (native[0] ~= nil) == sample.enchants and (native[1] ~= nil) == sample.enchants)
+    end
     local ok, reason = pcall(function()
+        for _, sample in ipairs(cases) do verifyProfile(sample) end
         local module = load()
         local player, target = module.Rows.player, module.Rows.target
         check("class tracker creates independent movable native rows", player and target

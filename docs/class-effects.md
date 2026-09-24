@@ -20,3 +20,11 @@ Automated integration tests exercise real container configuration, all-rank filt
 
 ## Class coverage
 
+### Rogue — 2026-09-23
+
+Track Slice and Dice, defensive/movement buffs, your bleeds and control effects, plus both native weapon-enchant slots.
+
+Player: Slice and Dice, Evasion, Sprint, Stealth. Target harmful: Garrote, Rupture, Expose Armor, Cheap Shot, Kidney Shot, Gouge, Sap, Blind.
+
+[Current feedback](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/) motivates this interface; [published spellbook](https://foreverchanges.pro/spellbook/rogue) supplies the direct-aura families through the existing 69913 catalogue. Poison craft IDs are not target poison auras; indirect talent procs remain unknown. Automated tests verify actual native filters and rank expansion; native acceptance is supplied by the user.
+
