@@ -31,6 +31,7 @@ layouts.Sizes = {
     mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 76 },
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
     druidmana = { width = 121, height = 18 },
+    classbuffs = { width = 212, height = 68 }, classeffects = { width = 212, height = 68 },
     questtracker = { width = 240, height = 120 }, questtimers = { width = 220, height = 38 },
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
     bags = { width = 394, height = 360 }, chat = { width = 344, height = 214 },
@@ -94,6 +95,7 @@ local function shared()
         questtimers = topRight(COLUMN, TIMERS_Y), questtracker = topRight(COLUMN, TRACKER_Y),
         durability = at("TOP", "TOP", 0, -MARGIN),
         mirrortimers = at("TOP", "TOP", 0, -MARGIN - layouts.Sizes.durability.height - 2 * GAP),
+        classbuffs = bottomLeftOfCentre(-328, 652), classeffects = bottomLeftOfCentre(-544, 652),
         chat = CHAT, loot = at("TOPLEFT", "CENTER", 20, 162),
         party = at("LEFT", "LEFT", MARGIN, 0), raid = topLeft(MARGIN, -120),
     }
@@ -136,6 +138,7 @@ local CLASS_ROW = CAST_ROW + CAST_HEIGHT + GAP
 
 layouts.classic = layout("Classic", "Blizzard's arrangement: player and target in the top left corner, the party "
     .. "under them, your cast bar over the action bars.", {
+    classbuffs = bottomLeftOfCentre(-316, 296), classeffects = bottomLeftOfCentre(104, 280),
     player = topLeft(MARGIN, -MARGIN), target = topLeft(TARGET_X, -MARGIN),
     petframe = topLeft(MARGIN, UNDER_UNITS), castpet = topLeft(MARGIN, UNDER_UNITS - SMALL_HEIGHT - GAP),
     casttarget = topLeft(TARGET_X, UNDER_UNITS),
@@ -158,6 +161,7 @@ local HUD_CAST = HUD_SWING + layouts.Sizes.swingtimer.height + GAP
 
 layouts.hud = layout("HUD", "Player and target close beside your character with the cast bar between them, "
     .. "everything else pushed to the edges.", {
+    classbuffs = bottomLeftOfCentre(-216, 408), classeffects = bottomLeftOfCentre(-328, 652),
     player = bottom(-HUD_X, HUD_Y), target = bottom(HUD_X, HUD_Y),
     swingtimer = bottom(0, HUD_SWING), castplayer = bottom(0, HUD_CAST),
     combopoints = bottom(0, HUD_CAST + CAST_HEIGHT + 2 * GAP),
@@ -184,6 +188,7 @@ local THIRD_X = SECOND_X + UNIT_WIDTH + GAP
 
 layouts.healer = layout("Healer", "Party and raid frames over the action bars, where a healer looks, with your own "
     .. "frames in rows above them.", {
+    classbuffs = bottomLeftOfCentre(-328, 612), classeffects = bottomLeftOfCentre(-520, 488),
     raid = bottom(0, GRID_Y), party = bottom(0, GRID_Y),
     player = bottomLeftOfCentre(GRID_LEFT, ROW_A), target = bottomLeftOfCentre(SECOND_X, ROW_A),
     tot = bottomLeftOfCentre(THIRD_X, ROW_A),

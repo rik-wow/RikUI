@@ -82,6 +82,7 @@ src/modules/castbars/castbars-status.lua
 src/modules/auras/auras.lua
 src/modules/auras/auras-button.lua
 src/modules/auras/auras-units.lua
+src/modules/auras/auras-class.lua
 src/modules/nameplates/nameplates.lua
 src/modules/nameplates/nameplates-skin.lua
 src/modules/nameplates/nameplates-target.lua
