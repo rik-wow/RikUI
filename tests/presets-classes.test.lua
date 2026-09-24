@@ -42,6 +42,19 @@ return function(check)
         and RikUI.Spells.Entry("Cold Snap", "MAGE").ranks[1] == 12472)
 
 
+    for _, role in ipairs(mage.roleOrder) do
+        local page = RikUI.Setup.Resolve("MAGE", role)
+        check("Mage " .. role .. " can decurse without retargeting", page.bars.main[11].macro == "Remove Curse"
+            and page.bars.bar3[1].macro == "Intellect")
+        check("Mage " .. role .. " preserves movement and interrupt", page.bars.bar2[10].spell == "Blink"
+            and page.bars.bar2[11].spell == "Counterspell")
+    end
+    for _, name in ipairs({ "Remove Curse", "Intellect", "Dampen Magic", "Amplify Magic" }) do
+        local macro = mage.macros[name]
+        check("Mage friendly utility " .. name .. " is learned and mouseover gated", macro and macro.spells
+            and macro.body:find("[@mouseover,help,nodead][help,nodead][@player]", 1, true))
+    end
+
     local rogue = assert(RikUI.Presets.ROGUE, "Rogue preset missing")
     local stealth = assert(RikUI.Setup.Resolve("ROGUE"))
     check("Rogue stealth openers inherit control and hearthstone", stealth.bars.stealth[1].spell == "Ambush"

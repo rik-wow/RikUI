@@ -114,3 +114,7 @@ Checked 2026-09-23. [Warrior interface feedback](https://www.reddit.com/r/classi
 
 Checked 2026-09-23 using [Priest feedback](https://us.forums.blizzard.com/en/wow/t/priest-feedback-lvl-1-20/2357230), [healer-control requests](https://us.forums.blizzard.com/en/wow/t/healer-assist-needs-work-in-wow-forever-client/2355387) and the [published spellbook](https://foreverchanges.pro/spellbook/priest). Penance and Dispel Magic prefer a living friendly mouseover, then a living current target (including enemies), then self. Power Infusion follows friendly healing targeting. Resurrection accepts only a dead friendly mouseover or target. All four remain gated by learned spells and work in both layouts. These are player-triggered native macros, not automatic dispel or healing decisions.
 
+## Mage group utility
+
+Checked 2026-09-23 against [Mage utility feedback](https://us.forums.blizzard.com/en/wow/t/beta-feedback-21-year-wow-vet/2356930) and the [published spellbook](https://foreverchanges.pro/spellbook/mage). Curse removal, Intellect, Dampen Magic and Amplify Magic now use living friendly mouseover, friendly target, then self in every role. Each macro is learned gated. Offensive targeting, Blink and Counterspell keep their existing controls. This supports deliberate group utility; it does not inspect auras or automatically choose a dispel target.
+

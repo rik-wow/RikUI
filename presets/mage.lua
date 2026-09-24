@@ -1,7 +1,7 @@
 -- Class role layouts; spellbook and DB2 evidence: docs/class-presets.md.
 RikUI.Presets.MAGE = {
     ["class"] = "MAGE",
-    ["version"] = 1,
+    ["version"] = 2,
     ["roleOrder"] = {
         "frost",
         "fire",
@@ -70,8 +70,7 @@ RikUI.Presets.MAGE = {
                 ["level"] = 20,
             },
             [11] = {
-                ["spell"] = "Remove Lesser Curse",
-                ["level"] = 18,
+                ["macro"] = "Remove Curse",
             },
             [12] = {
                 ["item"] = "Hearthstone",
@@ -124,8 +123,7 @@ RikUI.Presets.MAGE = {
         },
         ["bar3"] = {
             [1] = {
-                ["spell"] = "Arcane Intellect",
-                ["level"] = 1,
+                ["macro"] = "Intellect",
             },
             [2] = {
                 ["spell"] = "Conjure Water",
@@ -148,12 +146,10 @@ RikUI.Presets.MAGE = {
                 ["level"] = 34,
             },
             [7] = {
-                ["spell"] = "Dampen Magic",
-                ["level"] = 12,
+                ["macro"] = "Dampen Magic",
             },
             [8] = {
-                ["spell"] = "Amplify Magic",
-                ["level"] = 18,
+                ["macro"] = "Amplify Magic",
             },
             [9] = {
                 ["spell"] = "Fire Ward",
@@ -273,7 +269,16 @@ RikUI.Presets.MAGE = {
             },
         },
     },
-    ["macros"] = {},
+    ["macros"] = {
+        ["Remove Curse"] = { icon = 136082, spells = { "Remove Lesser Curse" },
+            body = "#showtooltip Remove Lesser Curse\n/cast [@mouseover,help,nodead][help,nodead][@player] Remove Lesser Curse" },
+        ["Intellect"] = { icon = 135932, spells = { "Arcane Intellect" },
+            body = "#showtooltip Arcane Intellect\n/cast [@mouseover,help,nodead][help,nodead][@player] Arcane Intellect" },
+        ["Dampen Magic"] = { icon = 136006, spells = { "Dampen Magic" },
+            body = "#showtooltip Dampen Magic\n/cast [@mouseover,help,nodead][help,nodead][@player] Dampen Magic" },
+        ["Amplify Magic"] = { icon = 135907, spells = { "Amplify Magic" },
+            body = "#showtooltip Amplify Magic\n/cast [@mouseover,help,nodead][help,nodead][@player] Amplify Magic" },
+    },
     ["roleOverrides"] = {
         ["fire"] = {
             ["main"] = {
