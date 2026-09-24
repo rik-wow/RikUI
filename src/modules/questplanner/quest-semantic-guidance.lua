@@ -119,7 +119,11 @@ local function pick(list,shared)
         local count=shared[value.area.id] or 1
         value.shared=count
         value.score=value.distance/math.min(count,4)
-        if not best or value.score<best.score or value.score==best.score and tostring(value.area.id)<tostring(best.area.id) then best=value end
+        local tied=best and value.score==best.score
+        local preferred=tied and value.questZone==true and best.questZone~=true
+        local sameZone=tied and value.questZone==best.questZone
+        if not best or value.score<best.score or preferred
+            or sameZone and tostring(value.area.id)<tostring(best.area.id) then best=value end
     end
     return best
 end
@@ -208,6 +212,7 @@ local function questCandidates(snapshot,id,ctx,policy,frame,itemCount)
         objectiveCandidates(live,binding,ctx,policy,frame,list,itemCount,advice[id])
         extraCandidates(record,live,binding,ctx,policy,frame,list)
     end
+    for _,value in ipairs(list) do value.questZone=value.area.areaID==record.zoneOrSort and record.zoneOrSort~=nil end
     return list
 end
 local function huntBindings(binding)
@@ -215,7 +220,7 @@ local function huntBindings(binding)
         for _,method in ipairs(expected.methods or {}) do
             if method.kind=="kill" or method.kind=="drop" then
                 binding.navigation[expected.id]={kind="hunt",radius=0,source="source-targets",
-                    text="Look for "..(method.name or expected.name or "quest targets"),
+                    text=(method.kind=="drop" and "Collect " or "Look for ")..(expected.name or "quest objectives"),
                     basis="Source target relation; use live quest progress to identify productive areas."}
                 break
             end
@@ -238,7 +243,7 @@ local function choiceKey(snapshot,selected,ctx,policy,list,shared)
     table.sort(inventoryIDs)
     for _,itemID in ipairs(inventoryIDs) do parts[#parts+1]="item:"..itemID.."="..tostring(ctx.inventory[itemID]>0) end
     for _,candidate in ipairs(list) do
-        parts[#parts+1]=tostring(candidate.area.id).."/"..candidate.index.."/"..candidate.method.kind.."/"..tostring(shared[candidate.area.id])
+        parts[#parts+1]=tostring(candidate.area.id).."/"..candidate.index.."/"..candidate.method.kind.."/"..tostring(shared[candidate.area.id]).."/"..tostring(candidate.questZone)
     end
     return table.concat(parts,":")
 end
@@ -299,12 +304,13 @@ function guidance.Apply(snapshot,id,point,step)
         action=action,instructions=action..". "..(value.sourceHint and ("Source hint: "..value.sourceHint..". ") or "").."Confirm progress in the quest log.",basis=value.distance==math.huge and "Source location; travel between zones, access and floor are unverified."
             or "Forever provider reference; current spawn availability, access and floor are unverified."}
     semantic.comparison=value.comparison and schema.Clone(value.comparison)
-    if point and not value.modeledMeters then
-        semantic.areaID=nil;semantic.locationSource="runtime-quest-marker"
-        local evaluated=value.comparison and value.comparison.terrainAvailable
-        semantic.costBasis=evaluated and "source areas unmodeled; live quest marker" or "checking source areas; live quest marker"
-        semantic.basis="Source action; follow the live quest marker until a source area has a usable modeled approach."
-        return point,nil,semantic
+    if point and point.mapID==area.mapID and not value.modeledMeters then
+        -- A quest-scoped marker establishes no particular mob, objective or turn-in identity.
+        -- Cross-zone source coordinates must never be relabeled as a nearby marker.
+        return point,nil,{authority="reference",source="client quest marker",locationSource="runtime-quest-marker",
+            action="Follow quest marker",instructions="Follow the quest marker and check the quest log for the objective.",
+            costBasis="live quest marker; target unverified",comparison=semantic.comparison,
+            basis="This marker identifies the quest vicinity, not a confirmed creature or objective location."}
     end
     local target={mapID=area.mapID,x=area.x,y=area.y,scope="semantic-objective-area",api="QuestieDB",areaID=area.id}
     local radius=area.radius

@@ -52,8 +52,37 @@ for _,case in ipairs({{8653,"LunarFestival"},{172,"ChildrensWeek"},{7905,"Darkmo
 end
 collectgarbage("collect")
 local retained=collectgarbage("count")-before
+-- Source-driven reproduction; marker and counters are synthetic, not a native capture.
+local reported=assert(p.SemanticData.Quest(identity,418))
+local leechMaps,reportedObjectives={},{}
+for _,objective in ipairs(reported.objectives) do
+    local maps={}
+    for _,method in ipairs(objective.methods or {}) do for _,area in ipairs(method.areas or {}) do maps[area.mapID]=true end end
+    local labels={};for id in pairs(maps) do labels[#labels+1]=tostring(id) end;table.sort(labels)
+    io.write("OBJECTIVE "..objective.name.." maps "..table.concat(labels,",").."\n")
+    reportedObjectives[#reportedObjectives+1]={text="0/3 "..objective.name,type=objective.type,
+        numFulfilled=0,numRequired=3,finished=false}
+    for _,method in ipairs(objective.methods or {}) do
+        if method.targetID==1111 then
+            for _,area in ipairs(method.areas or {}) do leechMaps[area.mapID]=true end
+        end
+    end
+end
+assert(leechMaps[1437] and not leechMaps[1426],"Leech Stalker belongs to Wetlands source areas")
+snapshot={identity=identity,order={418},quests={[418]={id=418,title=reported.title,
+    objectives=reportedObjectives,objectivesComplete=false}}}
+context.destinations[418]={mapID=1426,x=.51,y=.5,scope="current-map-quest-poi"}
+p.SemanticGuidance.Observe(snapshot,context,policy)
+local reportedRow=p.Guidance.Observed(snapshot,context,policy)[1]
+io.write("QUEST 418: "..reportedRow.detail.."; destination map "..reportedRow.destination.mapID
+    .."; source target "..tostring(reportedRow.semantic and reportedRow.semantic.targetID).."\n")
+assert(reportedRow.destination.mapID==1432 and reportedRow.semantic and reportedRow.semantic.targetID~=1111,
+    "Thelsamar ingredients prefer Loch Modan source areas, not a Dun Morogh marker or arbitrary Wetlands dropper")
+assert(not reportedRow.hunt or not reportedRow.hunt.text:find("Leech Stalker",1,true),"hunt text cannot invent local Leech Stalker")
+context.destinations[418]=nil
 local records,objectives,matched,located,zones,methods=0,0,0,0,{},{}
 local callbackTimes={}
+local markerChecks=0
 local plannerRecords,plannerActions,plannerFuture=0,0,0
 local plannerPolicy=assert(p.Preferences.Normalize({}))
 local function admitPlan(record)
@@ -110,11 +139,24 @@ for _,bucket in ipairs(buckets) do
                     assert(row.step and row.step.state~="completed","proximity completed sourced objective")
                 end
                 callbackTimes[#callbackTimes+1]=(os.clock()-begin)*1000
+                if row and row.semantic and row.destination then
+                    context.destinations[id]={mapID=row.destination.mapID,x=.51,y=.5,scope="current-map-quest-poi"}
+                    local marked=p.Guidance.Observed(snapshot,context,policy)[1]
+                    if marked.semantic and marked.semantic.locationSource=="runtime-quest-marker" then
+                        markerChecks=markerChecks+1
+                        assert(not marked.semantic.targetID and not marked.semantic.objectiveKey and not marked.semantic.areaID,
+                            "quest marker inherited unverified reference identity: "..id)
+                        assert(marked.detail=="Follow quest marker","marker action names an unverified target")
+                    end
+                    context.destinations[id]=nil
+                end
             end
         end
     end
 end
 local zoneCount=0;for _ in pairs(zones) do zoneCount=zoneCount+1 end
+assert(markerChecks>1000,"quest marker identity regression coverage too narrow")
+print("MARKER IDENTITY",markerChecks,"quests")
 assert(records>7000,"expected full provider plus exact client membership universe")
 assert(matched>1000 and located>1000 and zoneCount>20,"semantic integration too narrow")
 table.sort(callbackTimes)

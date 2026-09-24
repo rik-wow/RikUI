@@ -35,6 +35,7 @@ return function(check)
         p.SemanticGuidance.Observe(snapshot,ctx,policy)
         local binding=p.StepBindings.Match(snapshot,900)
         check("unlisted quest binds semantic item by observed identity",binding and binding.ids[1]=="item:9")
+        check("generic hunt binding names the objective rather than an arbitrary dropper",binding.navigation["item:9"].text=="Collect Field Token")
         local function row() return p.Guidance.Observed(snapshot,ctx,policy)[1] end
         local value=row()
         check("nearest evidenced method area replaces missing quest POI",value.destination and value.destination.x==.2)
@@ -89,6 +90,11 @@ return function(check)
         check("cross-map source target retains honest travel-unknown guidance",row().destination and row().destination.mapID==1426
             and row().semantic.costBasis=="travel distance unknown")
         ctx.position.mapID=1426
+        local unknown=p.Optimizer.BeginAreas({{area={id="a"},distance=math.huge},
+            {area={id="z"},distance=math.huge,questZone=true}},{},identity,ctx.position)
+        local preferred
+        for _=1,4 do preferred=unknown:Step() end
+        check("unknown cross-zone travel prefers the quest region before lexical IDs",preferred and preferred.area.id=="z")
         local calls=0
         p.Terrain={BeginAreaEstimate=function(_,_,candidate)
             calls=calls+1
@@ -115,7 +121,18 @@ return function(check)
         p.SemanticGuidance.Observe(snapshot,ctx,policy)
         check("unmodeled source areas retain usable live marker",row().destination.x==.6
             and row().semantic.locationSource=="runtime-quest-marker")
-        p.Terrain=nil;ctx.destinations[900]=nil
+        check("unmodeled reference mob is never named at a live quest marker", row().semantic.targetID == nil
+            and row().detail == "Follow quest marker" and row().semantic.objectiveKey == nil)
+        p.Terrain=nil
+        local originalMap,areaID,farID=area.mapID,area.id,far.id
+        area.mapID=1437;far.mapID=1437;area.id="wetlands-near";far.id="wetlands-far"
+        p.SemanticGuidance.Observe(snapshot,ctx,policy)
+        local unrelated=row()
+        check("other-zone source keeps its own map instead of local marker coordinates", unrelated.destination.mapID==1437
+            and unrelated.semantic.targetID==7 and unrelated.semantic.locationSource~="runtime-quest-marker"
+            and unrelated.semantic.costBasis=="travel distance unknown")
+        area.mapID=originalMap;far.mapID=originalMap;area.id=areaID;far.id=farID
+        ctx.destinations[900]=nil
         local carried=0
         p.Context.ItemCount=function() return carried end
         quest.requiredItems={{itemID=11,methods={{kind="loot",targetKind="object",targetID=12,name="Supply crate",

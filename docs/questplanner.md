@@ -606,6 +606,24 @@ objectives, consumables, level changes, optional dungeons, downstream flight
 unlocks, cancellation and missing data. This is algorithm evidence, not a
 Dun Morogh speed or native performance claim.
 
+## Quest marker and target identity
+
+A quest-level map marker does not identify a particular creature or objective.
+When guidance falls back to such a marker, it says **Follow quest marker** and
+omits reference creature, objective and area identities. A source target in
+another zone retains its own coordinates and map. When cross-zone travel costs
+are equally unknown, sources in the quest's region win the tie; this is a
+preference, not a measured travel estimate. Explicit client access waypoints
+retain priority. Generic hunt bindings name the quest item or objective because
+a learned productive area does not establish a specific creature identity.
+
+The reported Thelsamar Blood Sausages mismatch was reproduced against the
+installed pinned corpus: a synthetic Dun Morogh quest marker inherited Leech
+Stalker's Wetlands identity. Corrected selection prefers a Loch Modan source
+and keeps that destination in Loch Modan. Installed-corpus replay also checks
+generic marker identity across all applicable records. Replay markers and
+counters are synthetic; native acceptance is supplied by the user.
+
 ## Live controller and guidance
 
 Steering looks ahead along approximately 24 yards of portal geometry, retaining

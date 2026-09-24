@@ -12,6 +12,7 @@ function optimizer.BeginAreas(list,shared,identity,position)
     end
     table.sort(candidates,function(a,b)
         if a.score~=b.score then return a.score<b.score end
+        if (a.questZone==true)~=(b.questZone==true) then return a.questZone==true end
         return tostring(a.area.id)<tostring(b.area.id)
     end)
     local initial=candidates[1]
