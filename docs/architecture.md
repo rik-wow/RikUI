@@ -198,7 +198,7 @@ return `nil, reason` on failure; decoded `false` is a valid result.
 
 `store.lua` owns CVar chunking, checksums, registration and scheduling. It checks
 header bounds before reading chunks, verifies chunk lengths and checksums, and
-encodes each account/character payload once per flush. The fallback poll still
+encodes each account/character payload once per flush. Reload backups alternate between two checksum-verified CVar banks; a bank header commits last, so interrupted writes preserve the other bank. Legacy v2 snapshots remain readable. The fallback poll still
 detects direct DB mutations by older call sites.
 
 `store-macros.lua` owns compact default-diff snapshots and the restart transport.

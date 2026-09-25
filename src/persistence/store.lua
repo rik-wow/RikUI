@@ -10,7 +10,7 @@ local store = {}
 core.Store = store
 store.Encode, store.Decode = core.Codec.Encode, core.Codec.Decode
 
-local PREFIX, VERSION, CHUNK, MAX_CHUNKS, TICK_SECONDS, TOUCH_SECONDS = "rikuiStore_", "v2", 180, 120, 5, 0.2
+local PREFIX, CHUNK, MAX_CHUNKS, TICK_SECONDS, TOUCH_SECONDS = "rikuiStore_", 180, 120, 5, 0.2
 local status = { saves = 0, chunks = 0, bytes = 0, restored = {}, failure = nil }
 local lastText, failures = {}, {}
 
@@ -52,41 +52,22 @@ local function put(name, value)
     return true
 end
 
-local function saveText(name, text)
-    if not store.Available() then return false, "no CVar registration on this client" end
-    if not validName(name) then return false, "invalid store name" end
-    local chunks = math.ceil(#text / CHUNK)
-    if chunks > MAX_CHUNKS then return false, "settings too large for the store: " .. #text .. " characters" end
-    for index = 1, chunks do
-        local ok, reason = put(PREFIX .. name .. "_" .. index, text:sub((index - 1) * CHUNK + 1, index * CHUNK))
-        if not ok then return false, reason end
-    end
-    local ok, reason = put(PREFIX .. name, table.concat({ VERSION, chunks, #text, checksum(text) }, "x"))
-    if not ok then return false, reason end
-    status.saves, status.chunks, status.bytes = status.saves + 1, chunks, #text
-    return true, chunks
-end
-
-function store.Save(name, value)
-    local text, reason = store.Encode(value)
-    if not text then return false, reason end
-    return saveText(name, text)
-end
-
 local function parseHeader(header)
     if type(header) ~= "string" then return nil, "invalid store header" end
-    local version, chunks, length, sum = header:match("^(%w+)x(%d+)x(%d+)x(%d+)$")
-    if version ~= VERSION then return nil, "nothing stored" end
-    chunks, length, sum = tonumber(chunks), tonumber(length), tonumber(sum)
-    if not chunks or chunks < 1 or chunks > MAX_CHUNKS or not length or length < 1
-        or length > CHUNK * MAX_CHUNKS or chunks ~= math.ceil(length / CHUNK)
+    local generation, chunks, length, sum = header:match("^v3x(%d+)x(%d+)x(%d+)x(%d+)$")
+    if not generation then
+        chunks, length, sum = header:match("^v2x(%d+)x(%d+)x(%d+)$")
+        generation = "0"
+    end
+    if not chunks then return nil, "nothing stored" end
+    generation, chunks, length, sum = tonumber(generation), tonumber(chunks), tonumber(length), tonumber(sum)
+    if generation > 9007199254740990 or not chunks or chunks < 1 or chunks > MAX_CHUNKS
+        or not length or length < 1 or length > CHUNK * MAX_CHUNKS or chunks ~= math.ceil(length / CHUNK)
         or not sum or sum < 0 or sum >= 4294967296 then return nil, "invalid store header" end
-    return { chunks = chunks, length = length, checksum = sum }
+    return { generation = generation, chunks = chunks, length = length, checksum = sum }
 end
 
-function store.Load(name)
-    if not store.Available() then return nil, "no CVar registration on this client" end
-    if not validName(name) then return nil, "invalid store name" end
+local function readBank(name)
     local header, reason = get(PREFIX .. name)
     if header == nil then return nil, reason end
     local info, failure = parseHeader(header)
@@ -101,7 +82,56 @@ function store.Load(name)
     end
     local text = table.concat(parts)
     if checksum(text) ~= info.checksum then return nil, "checksum mismatch in stored settings" end
-    return store.Decode(text)
+    local value, problem = store.Decode(text)
+    if value == nil then return nil, problem end
+    return { value = value, generation = info.generation, name = name }
+end
+
+local function latestBank(name)
+    local first, firstError = readBank(name .. "_bankA")
+    local second, secondError = readBank(name .. "_bankB")
+    if first and (not second or first.generation >= second.generation) then return first end
+    if second then return second end
+    local legacy, legacyError = readBank(name)
+    if legacy then return legacy end
+    for _, reason in ipairs({ firstError, secondError, legacyError }) do
+        if reason ~= "nothing stored" then return nil, reason end
+    end
+    return nil, "nothing stored"
+end
+
+local function saveText(name, text)
+    if not store.Available() then return false, "no CVar registration on this client" end
+    if not validName(name) then return false, "invalid store name" end
+    local chunks = math.ceil(#text / CHUNK)
+    if chunks > MAX_CHUNKS then return false, "settings too large for the store: " .. #text .. " characters" end
+    local current = latestBank(name)
+    local target = name .. (current and current.name == name .. "_bankA" and "_bankB" or "_bankA")
+    local generation = current and current.generation + 1 or 1
+    if generation > 9007199254740990 then return false, "store generation limit reached" end
+    for index = 1, chunks do
+        local ok, reason = put(PREFIX .. target .. "_" .. index, text:sub((index - 1) * CHUNK + 1, index * CHUNK))
+        if not ok then return false, reason end
+    end
+    local header = table.concat({ "v3", string.format("%.0f", generation), chunks, #text, checksum(text) }, "x")
+    local ok, reason = put(PREFIX .. target, header)
+    if not ok then return false, reason end
+    status.saves, status.chunks, status.bytes = status.saves + 1, chunks, #text
+    return true, chunks
+end
+
+function store.Save(name, value)
+    local text, reason = store.Encode(value)
+    if not text then return false, reason end
+    return saveText(name, text)
+end
+
+function store.Load(name)
+    if not store.Available() then return nil, "no CVar registration on this client" end
+    if not validName(name) then return nil, "invalid store name" end
+    local bank, reason = latestBank(name)
+    if not bank then return nil, reason end
+    return bank.value
 end
 
 -- A character's settings are kept under a number made from its name and realm: CVar names are ASCII.

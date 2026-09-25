@@ -100,12 +100,52 @@ return function(check)
         check("cyclic settings do not write a header", store.Save("cycle", cycle) == false and cvars.rikuiStore_cycle == nil)
         check("v2 dictionary remains byte compatible", store.Encode({ point = "CENTER", x = 219 }) == "Tk01k05k03n219zE")
 
+        -- A failed overwrite must leave the previous complete snapshot loadable.
+        store.Save("atomic", { note = string.rep("old", 150) })
+        local setter, calls = C_CVar.SetCVar, 0
+        C_CVar.SetCVar = function(name, value)
+            calls = calls + 1
+            if calls == 2 then return false end
+            return setter(name, value)
+        end
+        local replaced = store.Save("atomic", { note = string.rep("new", 150) })
+        C_CVar.SetCVar = setter
+        local retained = store.Load("atomic")
+        check("failed overwrite preserves committed CVar snapshot", replaced == false
+            and retained and retained.note == string.rep("old", 150))
+        check("retry commits new CVar snapshot", store.Save("atomic", { note = "retry" })
+            and store.Load("atomic").note == "retry")
+
+        local committed = cvars.rikuiStore_atomic_bankB
+        cvars.rikuiStore_atomic_bankB = "damaged"
+        check("corrupt newest header recovers prior committed bank",
+            store.Load("atomic").note == string.rep("old", 150))
+        cvars.rikuiStore_atomic_bankB = committed
+        C_CVar.SetCVar = function(name, value)
+            if name == "rikuiStore_atomic_bankA" then cvars[name] = "truncated"; return true end
+            return setter(name, value)
+        end
+        check("truncated commit header reports failure", not store.Save("atomic", { note = "uncommitted" }))
+        C_CVar.SetCVar = setter
+        check("truncated commit header retains previous bank", store.Load("atomic").note == "retry")
+        local legacyText = store.Encode({ legacy = true })
+        local sumA, sumB = 1, 0
+        for i = 1, #legacyText do sumA = (sumA + legacyText:byte(i)) % 65521; sumB = (sumB + sumA) % 65521 end
+        cvars.rikuiStore_legacy = "v2x1x" .. #legacyText .. "x" .. (sumB * 65536 + sumA)
+        cvars.rikuiStore_legacy_1 = legacyText
+        check("legacy v2 backup loads", store.Load("legacy").legacy == true)
+        store.Save("legacy", { migrated = true })
+        check("new bank supersedes legacy without destroying it", store.Load("legacy").migrated
+            and cvars.rikuiStore_legacy_1 == legacyText)
+        store.Save("falsevalue", false)
+        check("bank selection preserves false payload", store.Load("falsevalue") == false)
+
         check("the store is available when the client can register CVars", store.Available() == true)
         local wrote, chunks = store.Save("account", sample)
         check("a long value is split over several CVars under one header", wrote == true and chunks > 1
-            and cvars.rikuiStore_account ~= nil and cvars.rikuiStore_account_1 ~= nil)
+            and cvars.rikuiStore_account_bankA ~= nil and cvars.rikuiStore_account_bankA_1 ~= nil)
         check("and loads back whole", store.Load("account").positions.chat.x == 219)
-        cvars.rikuiStore_account_1 = cvars.rikuiStore_account_1:sub(1, -3) .. "xx"
+        cvars.rikuiStore_account_bankA_1 = cvars.rikuiStore_account_bankA_1:sub(1, -3) .. "xx"
         local broken, why = store.Load("account")
         check("a chunk that came back changed is caught by the checksum", broken == nil and why:find("checksum", 1, true) ~= nil)
         limit = 40
@@ -125,7 +165,7 @@ return function(check)
         core.CharDB.chatHistory = { { { text = "a long line" } } }
         env.fire("PLAYER_LOGOUT")
         check("logging out writes the account and the character settings to the store",
-            cvars.rikuiStore_account ~= nil and next(cvars) ~= nil and core.Store.Status().saves >= 2)
+            cvars.rikuiStore_account_bankA ~= nil and next(cvars) ~= nil and core.Store.Status().saves >= 2)
         core = boot(nil, nil)
         check("automatic placement opt-out survives CVar store reload", core.CharDB.autoPlacement == false)
         check("on a login where saved variables did not load, the settings come back from the store",
