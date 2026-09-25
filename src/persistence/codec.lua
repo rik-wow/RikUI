@@ -14,6 +14,15 @@ local WORDS = { "point", "relativePoint", "x", "y", "CENTER", "TOP", "BOTTOM", "
     "focus", "tot", "petframe", "party", "raid", "castplayer", "casttarget", "castfocus", "castpet", "buffs", "debuffs",
     "minimap", "micromenu", "durability", "mirrortimers", "swingtimer", "combopoints", "totems", "questtimers", "loot",
     "bags", "damagemeter", "WARRIOR", "dps", "tank", "nameplateCVars" }
+function codec.Checksum(text)
+    local a, b = 1, 0
+    for index = 1, #text do
+        a = (a + text:byte(index)) % 65521
+        b = (b + a) % 65521
+    end
+    return b * 65536 + a
+end
+
 local DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
 local CODES = {}
 for index, word in ipairs(WORDS) do

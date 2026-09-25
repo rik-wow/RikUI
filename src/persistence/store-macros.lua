@@ -137,14 +137,7 @@ local function pruneAccount(db)
     return next(result) ~= nil and result or nil
 end
 
-local function checksum(text)
-    local a, b = 1, 0
-    for index = 1, #text do
-        a = (a + text:byte(index)) % 65521
-        b = (b + a) % 65521
-    end
-    return b * 65536 + a
-end
+local checksum = RikUI.Codec.Checksum
 
 local function body(name)
     local _, _, text = GetMacroInfo(name)

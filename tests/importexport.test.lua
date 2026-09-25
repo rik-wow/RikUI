@@ -13,7 +13,15 @@ return function(check)
         check("sharing service exists", sharing ~= nil)
         if not sharing then return end
         local text = sharing.ExportPreset("WARRIOR")
-        check("export has versioned prefix", text and text:sub(1,6) == "!RIK2!")
+        check("export has versioned prefix", text and text:sub(1,6) == "!RIK3!")
+        local portable = sharing.Encode("profile", { scale = 1.1 })
+        local corrupted = portable:gsub("n1_2e1z", "n1_2e2z", 1)
+        check("sharing refuses valid-looking copy corruption", corrupted ~= portable and sharing.Decode(corrupted, "profile") == nil)
+        check("sharing accepts existing v2 exports", sharing.Decode("!RIK2!" .. RikUI.Serialize({kind="profile", data={scale=1.1}}), "profile").scale == 1.1)
+        check("sharing checksum uses standard Adler32", RikUI.Codec.Checksum and RikUI.Codec.Checksum("Wikipedia") == 0x11e60398)
+        check("sharing rejects missing integrity header", sharing.Decode("!RIK3!TE", "profile") == nil)
+        check("sharing refuses corrupt imports without storing", sharing.ImportPreset("Corrupt", text:sub(1, -2)) == nil
+            and RikUI.DB.community.Corrupt == nil)
         local parsed = sharing.Decode(text, "preset")
         check("envelope retains all roles and macro text", parsed and parsed.roles.tank
             and parsed.macros.Execute.body == RikUI.Presets.WARRIOR.macros.Execute.body)

@@ -1,18 +1,32 @@
 -- Versioned portable payloads. The strict codec bounds parsing and never executes input.
 local core = RikUI
-local sharing = { Prefix = "!RIK2!", Limit = 21606 }
+local sharing = { Prefix = "!RIK3!", Limit = 21621 }
+local LEGACY_PREFIX = "!RIK2!"
 core.Sharing = sharing
 
 function sharing.Encode(kind, data)
     local text, reason = core.Serialize({ kind = kind, data = data })
     if not text then return nil, reason end
-    return sharing.Prefix .. text
+    return sharing.Prefix .. #text .. ":" .. string.format("%08x", core.Codec.Checksum(text)) .. ":" .. text
+end
+
+local function payload(text)
+    if type(text) ~= "string" or #text > sharing.Limit then return nil, "Sharing text exceeds the size limit." end
+    if text:sub(1, #LEGACY_PREFIX) == LEGACY_PREFIX then return text:sub(#LEGACY_PREFIX + 1) end
+    if text:sub(1, #sharing.Prefix) ~= sharing.Prefix then return nil, "Expected a RikUI !RIK3! or !RIK2! sharing string." end
+    local length, sum, body = text:sub(#sharing.Prefix + 1):match("^(%d+):(%x+):([%w_]+)$")
+    if not length or #length > 5 or #sum ~= 8 or tonumber(length) ~= #body then
+        return nil, "Sharing text is incomplete or has an invalid header."
+    end
+    if core.Codec.Checksum(body) ~= tonumber(sum, 16) then return nil, "Sharing checksum mismatch. Copy the full export again." end
+    return body
 end
 
 function sharing.Decode(text, kind)
-    if type(text) ~= "string" or #text > sharing.Limit then return nil, "Sharing text exceeds the size limit." end
-    if text:sub(1, #sharing.Prefix) ~= sharing.Prefix then return nil, "Expected a !RIK2! RikUI sharing string." end
-    local envelope, reason = core.Deserialize(text:sub(#sharing.Prefix + 1))
+    local body, reason = payload(text)
+    if not body then return nil, reason end
+    local envelope
+    envelope, reason = core.Deserialize(body)
     if not envelope then return nil, reason end
     if type(envelope) ~= "table" or envelope.kind ~= kind or type(envelope.data) ~= "table" then
         return nil, "This is not a RikUI " .. kind .. " export."
