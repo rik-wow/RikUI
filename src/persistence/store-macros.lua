@@ -209,11 +209,24 @@ local function writeMacro(name, text)
     return true
 end
 
+local function preflightNames(total)
+    for index = 1, math.max(total, state.used) do
+        local ok, existing = pcall(body, NAME .. index)
+        if not ok then return false, "restart backup macro could not be read" end
+        if existing and not existing:match("^#rikui " .. index .. "/%d+ %d+ ") then
+            return false, "macro name is already in use: " .. NAME .. index .. "; rename that macro before saving"
+        end
+    end
+    return true
+end
+
 local function writeText(text)
     local sum = checksum(text)
     local room = BODY_LIMIT - #(HEADER .. MAX_MACROS .. "/" .. MAX_MACROS .. " " .. sum .. " ")
     local total = math.max(1, math.ceil(#text / room))
     if total > MAX_MACROS then return false, "the settings are too large for the macro store" end
+    local available, problem = preflightNames(total)
+    if not available then return false, problem end
     for index = 1, total do
         local chunk = text:sub((index - 1) * room + 1, index * room)
         local ok, written, reason = pcall(writeMacro, NAME .. index, HEADER .. index .. "/" .. total .. " " .. sum .. " " .. chunk)

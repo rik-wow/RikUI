@@ -399,6 +399,28 @@ return function(check)
             and core.Store.MacroStatus().failure ~= nil)
         GetMacroInfo = macroReader
 
+        macros = { ["RikUI data 1"] = "/say my macro" }; core = restart()
+        local collisionWrites = writes
+        core.Store.FlushMacros()
+        check("same-name user macro is never overwritten", macros["RikUI data 1"] == "/say my macro"
+            and writes == collisionWrites and core.Store.MacroStatus().failure ~= nil)
+        macros = {}; core = restart()
+        core.Profile.customPayload = string.rep("a", 600)
+        macros["RikUI data 2"] = "/say later collision"
+        collisionWrites = writes
+        core.Store.FlushMacros()
+        check("later macro collision prevents all earlier writes", writes == collisionWrites
+            and macros["RikUI data 1"] == nil and macros["RikUI data 2"] == "/say later collision")
+        macros["RikUI data 2"] = nil
+        core.Store.FlushMacros()
+        check("macro save recovers after collision removed", core.Store.MacroStatus().failure == nil and writes > collisionWrites)
+        macros["RikUI data 2"] = "/say replaced old backup"
+        core.Profile.customPayload = nil
+        collisionWrites = writes
+        core.Store.FlushMacros()
+        check("shrinking backup cannot delete user replacement", macros["RikUI data 2"] == "/say replaced old backup"
+            and writes == collisionWrites)
+
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
