@@ -138,6 +138,29 @@ return function(check)
         check("reverted module change clears reload", not reloadCore:ProfileNeedsReload())
     end
 
+    do
+        local blockedCore = ready(loadCore())
+        blockedCore.DB.blockedActions = {{ event = "ADDON_ACTION_BLOCKED", func = "ProtectedFixture",
+            combat = false, at = "fixture-time", zone = "PRIVATE_ZONE", stack = "PRIVATE_STACK" }}
+        local report = blockedCore:SupportReport()
+        check("support includes blocked action summary", report:find("ProtectedFixture", 1, true) and report:find("combat=false", 1, true))
+        check("support excludes blocked zone and stack", not report:find("PRIVATE_ZONE", 1, true) and not report:find("PRIVATE_STACK", 1, true))
+        check("blocked journal API exists", type(blockedCore.GetBlockedActions) == "function")
+        if blockedCore.GetBlockedActions then
+            local rows = blockedCore:GetBlockedActions()
+            rows[1].func = "changed"
+            check("blocked journal reads are detached", blockedCore.DB.blockedActions[1].func == "ProtectedFixture")
+        end
+        blockedCore.DB.blockedActions[1].combat = nil
+        check("support distinguishes unknown combat state", blockedCore:SupportReport():find("combat=<unavailable>", 1, true))
+        SlashCmdList.RIKUI("blocked")
+        check("blocked command displays incidents", contains("ProtectedFixture"))
+        SlashCmdList.RIKUI("blocked clear")
+        check("blocked clear empties history", #blockedCore.DB.blockedActions == 0)
+        blockedCore.DB.blockedActions = "damaged"
+        check("support tolerates damaged journal", type(blockedCore:SupportReport()) == "string" and blockedCore.DB.blockedActions == "damaged")
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

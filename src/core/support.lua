@@ -46,6 +46,12 @@ function core:SupportReport()
     for _, entry in ipairs(errors) do
         lines[#lines + 1] = plain(entry.context) .. ": " .. plain(entry.detail) .. " (x" .. plain(entry.count) .. ")"
     end
+    local blocked = self:GetBlockedActions()
+    lines[#lines + 1] = "Retained blocked actions: " .. #blocked
+    for _, row in ipairs(blocked) do
+        lines[#lines + 1] = plain(row.at) .. " " .. plain(row.event) .. ": " .. plain(row.func)
+            .. "; combat=" .. plain(row.combat)
+    end
     local text = table.concat(lines, "\n")
     if #text > MAX_REPORT then text = text:sub(1, MAX_REPORT - 32) .. "\n[Report truncated]" end
     return text

@@ -35,6 +35,23 @@ local function history()
     return rows
 end
 
+function core:GetBlockedActions() return history() end
+
+function core:ClearBlockedActions()
+    if self.DB then self.DB.blockedActions = {} end
+end
+
+core:RegisterCommand("blocked", function(args)
+    if args == "clear" then core:ClearBlockedActions(); core:Print("Blocked-action history cleared."); return end
+    if args ~= "" then core:Print("Usage: /rik blocked [clear]"); return end
+    local rows = core:GetBlockedActions()
+    core:Print("Retained blocked actions: " .. #rows)
+    for _, row in ipairs(rows) do
+        core:Print((row.at or "<unavailable>") .. " " .. (row.event or "<unavailable>") .. ": "
+            .. row.func .. "; combat=" .. (row.combat == nil and "<unavailable>" or tostring(row.combat)))
+    end
+end, "Inspect or clear blocked-action diagnostics")
+
 local function enableTaintLog()
     local set = C_CVar and C_CVar.SetCVar or SetCVar
     if type(set) == "function" then pcall(set, "taintLog", TAINT_LOG_LEVEL) end

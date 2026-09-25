@@ -1,6 +1,6 @@
 # Core module contract
 
-Blocked-action diagnostics keep at most 20 recent incidents with bounded plain metadata (512-byte fields and 4096-byte stacks). Each optional reader is protected independently; missing, secret or failed values remain unavailable. Malformed prior history is repaired on the next incident. Other addons' events are ignored. Taint logging is enabled only when RikUI is named in a blocked/forbidden event.
+Blocked-action diagnostics keep at most 20 recent incidents with bounded plain metadata (512-byte fields and 4096-byte stacks). Each optional reader is protected independently; missing, secret or failed values remain unavailable. Malformed prior history is repaired on the next incident. `/rik blocked` displays event/function/time/combat summaries; `/rik blocked clear` clears only that journal. Support reports include the same fields and omit zones and stacks. `GetBlockedActions()` returns a detached sanitized view without rewriting stored data. Unknown combat state is reported as unavailable, rather than false. Other addons' events are ignored. Taint logging is enabled only when RikUI is named in a blocked/forbidden event.
 
 `/rik profile` lists saved profiles with `*` beside the current one. `/rik profile Exact Name` selects an existing profile, including names with spaces, without the settings window. Names are case-sensitive. Combat and pending setup operations refuse selection; frame positions apply immediately and the command reports when a reload is needed.
 
