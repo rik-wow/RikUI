@@ -73,16 +73,21 @@ The layout decision is a product inference from this evidence and the user's scr
 
 The user's 2026-09-25 15:28 screenshot showed two Immolate icons inside
 **Essential cooldowns**. `/rik debug` identified them as two configured entries,
-spell 348 (Immolate rank 1) and spell 11668 (rank 7): the native manager tracks
-each learned rank as its own entry. The 70009 build adds a
-`SelectHighestLevelLinkedSpell` cooldown flag, so Blizzard may fold ranks
-server-side later; RikUI does not assume it has.
+spell 348 (Immolate rank 1) and spell 11668 (rank 7) on a level 3 character.
+The native manager marks both entries known, so its `isKnown` flag cannot tell
+which rank the player has. The 70009 build adds a `SelectHighestLevelLinkedSpell`
+cooldown flag, so Blizzard may fold ranks server-side later; RikUI does not
+assume it has.
 
-`cooldownviewer-ranks.lua` finds known entries in the same row group (Essential
-and Utility, or the two buff rows) that are ranks of one spell in RikUI's class
-catalogue, and asks once: **Hide and reload**, **Not now** or **Keep both**.
-Detection only reads the provider's built display data. Hiding calls the
-provider's `SetCooldownToCategory` into the native hidden category, saves with
+`cooldownviewer-ranks.lua` groups entries in the same row group (Essential and
+Utility, or the two buff rows) that are ranks of one spell in RikUI's class
+catalogue. It keeps the entry for the highest rank the spellbook holds
+(`Spells.HighestKnownRank`) and hides the others; when a later rank is learned it
+shows an entry RikUI hid earlier and hides the old one. It never shows an entry
+the player hid, and changes nothing when the spellbook is unreadable or no entry
+is at or below the learned rank. It asks **Update and reload**, **Not now** or
+**Keep as is**, once per set of changes. Detection only reads the provider's
+built display data. Changes call the provider's `SetCooldownToCategory`, save with
 the layout manager's `SaveLayouts` (`C_CooldownViewer.SetLayoutData`) and reloads
 immediately. The reload matters: the viewer keeps aura instance IDs in tables
 that refuse tainted access, so layout state written by addon code must not
