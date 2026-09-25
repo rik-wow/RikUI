@@ -59,6 +59,31 @@ return function(check)
         check("profile command restores original profile", recovery.CharDB.profile == "Default")
     end
 
+    do
+        local diagnostic = ready(fresh())
+        local oldDate, oldZone, oldStack = date, GetRealZoneText, debugstack
+        date = function() error("date unavailable") end
+        GetRealZoneText = function() return env.SECRET end
+        debugstack = function() return string.rep("stack", 2000) end
+        diagnostic.DB.blockedActions = "malformed"
+        env.fire("ADDON_ACTION_BLOCKED", "RikUI", "ProtectedCall")
+        local rows = diagnostic.DB.blockedActions
+        check("blocked capture survives optional failures and malformed history",
+            type(rows) == "table" and rows[1] and rows[1].func == "ProtectedCall")
+        if type(rows) == "table" and rows[1] then
+            check("blocked metadata stays opaque and bounded", rows[1].zone == nil and rows[1].at == nil and #rows[1].stack <= 4096)
+        end
+        date, GetRealZoneText, debugstack = oldDate, oldZone, oldStack
+        diagnostic.DB.blockedActions = {}
+        for index = 1, 25 do env.fire("ADDON_ACTION_BLOCKED", "RikUI", "Call" .. index) end
+        check("blocked journal retains only twenty recent incidents", #diagnostic.DB.blockedActions == 20 and diagnostic.DB.blockedActions[1].func == "Call25")
+        local count = #diagnostic.DB.blockedActions
+        env.fire("ADDON_ACTION_BLOCKED", "OtherAddon", "Ignore")
+        check("blocked capture ignores other addons", #diagnostic.DB.blockedActions == count)
+        env.fire("ADDON_ACTION_FORBIDDEN", "RikUI", env.SECRET)
+        check("blocked function secrets remain opaque", diagnostic.DB.blockedActions[1].func == "<unavailable>")
+    end
+
     local core, calls = fresh(), {}
     local second = function() calls[#calls + 1] = "second" end
     local late = function() calls[#calls + 1] = "late" end

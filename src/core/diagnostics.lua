@@ -1,11 +1,39 @@
--- Blocked-action evidence. When the client blocks or forbids a protected call
--- and names RikUI, record which function, when, and whether in combat, so the
--- tainting code can be found instead of guessed. The first block also switches
--- on the client's taint log, so Logs/taint.log names the source of later ones.
+-- Bounded blocked-action evidence; unavailable metadata must not erase an incident.
 local core, runtime = RikUI, RikUI.Runtime
-local MAX_RECORDS = 20
-local TAINT_LOG_LEVEL = "1"   -- 1 logs blocked actions with the tainting source
-local reported = {}
+local MAX_RECORDS, MAX_FIELD, MAX_STACK = 20, 512, 4096
+local TAINT_LOG_LEVEL = "1"
+
+local function plain(value, limit)
+    if core.Secret.IsSecret(value) or type(value) ~= "string" then return nil end
+    return value:sub(1, limit or MAX_FIELD):gsub("[%c|]", " ")
+end
+
+local function read(reader, ...)
+    if type(reader) ~= "function" then return nil end
+    local ok, value = pcall(reader, ...)
+    if not ok or core.Secret.IsSecret(value) then return nil end
+    return value
+end
+
+local function clean(row)
+    if type(row) ~= "table" or core.Secret.IsSecret(row) then return nil end
+    local combat = rawget(row, "combat")
+    if core.Secret.IsSecret(combat) or type(combat) ~= "boolean" then combat = nil end
+    return { event = plain(rawget(row, "event")), func = plain(rawget(row, "func")) or "<unavailable>",
+        at = plain(rawget(row, "at")), combat = combat, zone = plain(rawget(row, "zone")),
+        stack = plain(rawget(row, "stack"), MAX_STACK) }
+end
+
+local function history()
+    local source = core.DB and core.DB.blockedActions
+    local rows = {}
+    if type(source) ~= "table" or core.Secret.IsSecret(source) then return rows end
+    for index = 1, MAX_RECORDS do
+        local row = clean(rawget(source, index))
+        if row then rows[#rows + 1] = row end
+    end
+    return rows
+end
 
 local function enableTaintLog()
     local set = C_CVar and C_CVar.SetCVar or SetCVar
@@ -13,25 +41,23 @@ local function enableTaintLog()
 end
 
 local function record(event, addon, func)
-    if addon ~= runtime.addonName then return end
-    local db = core.DB
-    local row = { event = event, func = tostring(func), at = date and date("%Y-%m-%d %H:%M:%S") or nil,
-        combat = InCombatLockdown and InCombatLockdown() or false,
-        zone = GetRealZoneText and GetRealZoneText() or nil,
-        stack = debugstack and debugstack(3, 12, 0) or nil }
-    if db then
-        db.blockedActions = db.blockedActions or {}
-        table.insert(db.blockedActions, 1, row)
-        for index = #db.blockedActions, MAX_RECORDS + 1, -1 do db.blockedActions[index] = nil end
+    if core.Secret.IsSecret(addon) or addon ~= runtime.addonName then return end
+    local row = clean({ event = event, func = func, at = read(date, "%Y-%m-%d %H:%M:%S"),
+        combat = read(InCombatLockdown), zone = read(GetRealZoneText), stack = read(debugstack, 3, 12, 0) })
+    local rows, reported = history(), false
+    for _, previous in ipairs(rows) do
+        if previous.func == row.func then reported = true; break end
     end
-    -- Only now: loading RikUI never writes CVars. Later blocks then show their source.
+    table.insert(rows, 1, row)
+    rows[MAX_RECORDS + 1] = nil
+    if core.DB then core.DB.blockedActions = rows end
+    -- Loading the addon never writes this CVar.
     enableTaintLog()
-    if not reported[row.func] then
-        reported[row.func] = true
-        core:Print("Blocked call " .. row.func .. (row.combat and " in combat" or "")
-            .. " was recorded with its calling stack in RikUI diagnostics.")
+    if not reported then
+        core:Print("Blocked call " .. row.func .. (row.combat == true and " in combat" or "")
+            .. " was recorded in RikUI diagnostics.")
     end
 end
 
-core:RegisterEvent("ADDON_ACTION_BLOCKED", function(event, addon, func) record(event, addon, func) end)
-core:RegisterEvent("ADDON_ACTION_FORBIDDEN", function(event, addon, func) record(event, addon, func) end)
+core:RegisterEvent("ADDON_ACTION_BLOCKED", record)
+core:RegisterEvent("ADDON_ACTION_FORBIDDEN", record)

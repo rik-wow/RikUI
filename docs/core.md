@@ -1,5 +1,7 @@
 # Core module contract
 
+Blocked-action diagnostics keep at most 20 recent incidents with bounded plain metadata (512-byte fields and 4096-byte stacks). Each optional reader is protected independently; missing, secret or failed values remain unavailable. Malformed prior history is repaired on the next incident. Other addons' events are ignored. Taint logging is enabled only when RikUI is named in a blocked/forbidden event.
+
 `/rik profile` lists saved profiles with `*` beside the current one. `/rik profile Exact Name` selects an existing profile, including names with spaces, without the settings window. Names are case-sensitive. Combat and pending setup operations refuse selection; frame positions apply immediately and the command reports when a reload is needed.
 
 `/rik module` lists module names, current runtime states and saved next-reload choices. `/rik module <name> [status|on|off]` inspects or changes one choice without needing the settings window. Enabling also selects its required providers; missing or cyclic dependencies reject the whole change. Disabling preserves other choices, whose dependency warnings remain visible in settings. Reload UI to apply changes.
