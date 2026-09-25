@@ -125,6 +125,19 @@ return function(check)
             check("clearing highlight words disables custom matches", count == 0)
         end
 
+        local muted = option(chat, "mutedPhrases")
+        check("muted phrase setting exists", muted ~= nil)
+        if muted then
+            muted.set("buy gold, [spam]")
+            check("public literal phrase is muted case-insensitively",
+                deliver(ChatFrame1, "CHAT_MSG_CHANNEL", "BUY GOLD now", "Ann", 150, "2. Trade", 2) == nil)
+            check("public punctuation matches literally", deliver(ChatFrame1, "CHAT_MSG_YELL", "[spam]", "Ann", 151) == nil)
+            check("guild messages bypass mute phrases", deliver(ChatFrame1, "CHAT_MSG_GUILD", "buy gold", "Bob", 152) ~= nil)
+            check("whispers bypass mute phrases", deliver(ChatFrame1, "CHAT_MSG_WHISPER", "buy gold", "Bob", 153) ~= nil)
+            check("own public messages bypass mute phrases", deliver(ChatFrame1, "CHAT_MSG_SAY", "buy gold", "Probey", 154) ~= nil)
+            muted.set("")
+            check("clearing mute phrases restores public messages", deliver(ChatFrame1, "CHAT_MSG_YELL", "[spam]", "Ann", 155) ~= nil)
+        end
         state.now = 200
         local first = deliver(ChatFrame1, "CHAT_MSG_CHANNEL", "WTS ore", "Ann", 20, "2. Trade - City", 2)
         local sameLine = deliver(ChatFrame2, "CHAT_MSG_CHANNEL", "WTS ore", "Ann", 20, "2. Trade - City", 2)

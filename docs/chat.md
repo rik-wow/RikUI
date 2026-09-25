@@ -1,5 +1,7 @@
 # Chat
 
+**Mute public chat phrases** hides matching say, yell, emote and numbered-channel messages from other players. Use up to 16 comma-separated literal phrases (256 characters total); case does not matter. Guild, group, whispers and your own messages stay visible. Link contents are skipped. Muting runs before mention sounds, and clearing the field disables it.
+
 **Highlight words and phrases** accepts up to 16 comma-separated literal phrases (256 characters total), such as `lf tank, deadmines`. Matching ignores letter case, skips hyperlinks and markup, and chooses the longest match when phrases overlap. It works independently of name highlighting, uses the existing five-second sound throttle, and adds no second whisper sound. Clear the field to disable it; your own messages remain unchanged.
 
 The copy window now fades and slides in over 180ms. Input focus glow fades both ways, tab selection cross-fades the gold underline, and tab hover fades out smoothly. Rapid focus/tab changes cancel the outgoing animation; hiding input or the copy window stops pending motion immediately. Chat panel art replays its entrance when shown. These transitions touch addon art and the addon copy window; native message-frame scripts, routing, existing mention highlights and whisper unread cues are unchanged. Regression coverage includes rapid reversals, Escape, reused copy contents and native message behavior. Native acceptance is supplied by the user's standing policy.

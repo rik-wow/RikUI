@@ -220,10 +220,26 @@ local function repeatFilter(_, _, message, sender, ...)
     return false
 end
 
+local function mutedFilter(_, _, message, sender)
+    if not usable(message) or not usable(sender) or isSelf(sender) then return false end
+    local phrases = chat.PhraseList(chat.Settings().mutedPhrases)
+    if #phrases == 0 then return false end
+    local matched = false
+    chat.MapPlain(message, function(plain)
+        plain = plain:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+            :gsub("|T.-|t", ""):gsub("|A.-|a", ""):lower()
+        for _, phrase in ipairs(phrases) do
+            if plain:find(phrase, 1, true) then matched = true; break end
+        end
+        return plain
+    end)
+    return matched
+end
+
 local function registerFilters()
     local add = chat.FilterAdder and chat.FilterAdder() or nil
     if not add then return end
-    for _, event in ipairs(REPEAT_EVENTS) do add(event, repeatFilter) end
+    for _, event in ipairs(REPEAT_EVENTS) do add(event, mutedFilter); add(event, repeatFilter) end
     for _, event in ipairs(MENTION_EVENTS) do add(event, mentionFilter) end
 end
 
@@ -252,3 +268,5 @@ checkbox("mentions", "Highlight my name", nil)
 table.insert(chat.Options.settings, chat.PhraseSetting("highlightWords", "Highlight words and phrases",
     "Up to 16 comma-separated literal phrases, 256 characters total. Leave empty to disable. Name highlighting is independent."))
 checkbox("collapseRepeats", "Collapse repeated public lines", nil)
+table.insert(chat.Options.settings, chat.PhraseSetting("mutedPhrases", "Mute public chat phrases",
+    "Comma-separated literal phrases in say, yell, emote and numbered channels. Own, group, guild and private messages stay visible. Empty disables."))
