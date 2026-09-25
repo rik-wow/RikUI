@@ -96,6 +96,19 @@ return function(check)
         check("HUD: player and target mirror each other about the screen centre", near(1365 - hudTarget.right, hudPlayer.left)
             and near(hudPlayer.bottom, hudTarget.bottom) and hudPlayer.bottom >= 300)
 
+        -- Check the fitted recipe too: the packer must not move the combat cluster back to centre.
+        for _, screen in ipairs({ SCREENS[4], SCREENS[5] }) do
+            local positions = layouts.Positions("hud", screen)
+            local stackTop = layouts.Rect("hud", "pet", screen, positions).top
+            for _, key in ipairs({ "player", "target", "focus", "petframe", "tot", "castplayer",
+                "casttarget", "castfocus", "castpet", "swingtimer", "combopoints", "totems",
+                "druidmana", "classbuffs", "classeffects", "classcooldowns" }) do
+                local rect = layouts.Rect("hud", key, screen, positions)
+                check("HUD " .. key .. " leaves character clear on " .. screen.name,
+                    rect.bottom >= stackTop and rect.top < screen.height / 2 - 100)
+            end
+        end
+
         -- The whole addon: nominal sizes are the real ones, and the defaults are the Centered layout.
         local everything, layout = loadEverything(1365)
         local wrong, drift, groups = {}, {}, 0
@@ -152,6 +165,16 @@ return function(check)
                 end
                 check(name .. " has no runtime collisions at 4K, layout scale " .. scale,
                     #issues == 0, table.concat(issues, "; "))
+                if name == "hud" then
+                    local stackTop = layout.Rect("pet").top
+                    for _, key in ipairs({ "player", "target", "focus", "petframe", "tot", "castplayer",
+                        "casttarget", "castfocus", "castpet", "swingtimer", "combopoints", "totems",
+                        "druidmana", "classbuffs", "classeffects", "classcooldowns" }) do
+                        local rect = layout.Rect(key)
+                        check("HUD " .. key .. " stays above bars and below character at scale " .. scale,
+                            rect.bottom >= stackTop and rect.top < UIParent:GetHeight() / 2 - 100)
+                    end
+                end
                 local foot = everything.ChatFootprint
                 local inputBottom = layout.Rect("chat").bottom
                     + (foot.bottom - 4 - 2 - 18 - 2 - 24) * scale

@@ -49,8 +49,11 @@ local function anchor(entry)
         frame:SetPointBase("TOPLEFT", holder, "TOPLEFT", 0, 0)
     end
     local width, height = frame:GetSize()
-    if not number(width) then width = entry.width end
-    if not number(height) then height = entry.height end
+    -- Empty native viewers can report a positive 1x1 size. Keep their move label
+    -- and lock inside a usable placeholder; populated viewers still fit exactly.
+    if not number(width) or not number(height) or width <= 1 or height <= 1 then
+        width, height = entry.width, entry.height
+    end
     holder:SetSize(width, height)
 end
 

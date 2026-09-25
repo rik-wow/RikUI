@@ -9,8 +9,9 @@ All four presets now include bag capacity and the four native cooldown viewers.
 The micro menu wraps into a compact column, with room above it for bag capacity
 and the damage meter. Presets fit supporting widgets around the main controls
 before applying positions; the setup preview uses that same fitted arrangement.
-The HUD's combat frames follow the screen centre, so a larger usable screen
-doesn't leave them down by the action bars.
+The HUD's combat frames sit above the action bars, anchored from the bottom so
+they stay below the character on larger usable screens. Empty native cooldown
+viewers keep a full-size mover instead of collapsing their labels at the edge.
 
 The chat channel strip and input now follow the chat window's effective scale.
 Opening the input restores its height and placement if the client changed them.
@@ -218,8 +219,8 @@ Groups that need a Blizzard frame the stubs lack are settled at login instead.
 `data/layouts.lua` holds four arrangements of every movable frame, in
 `RikUI.Layouts.Order`: `centered` (unit frames above the bar stack, flush with
 its ends; the default), `classic` (player and target top left, party under
-them, the cast bar over the bars), `hud` (player and target 120 either side of
-the character, cast bar and class widgets between them) and `healer` (party and
+them, the cast bar over the bars), `hud` (a combat cluster above the action bars,
+with player and target flanking the cast bar) and `healer` (party and
 raid over the bars, your own frames in rows above the group's left end).
 
 Positions are written from constants, never bare numbers: `MARGIN = 16` to the

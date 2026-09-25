@@ -102,8 +102,9 @@ return function(check)
             UIParent.GetHeight = function() return height end
             layout.ApplyPreset("hud")
             local rect = layout.Rect("player")
-            check("HUD follows screen centre at height " .. height,
-                math.abs((rect.top + rect.bottom) / 2 - height / 2) < 100)
+            check("HUD stays above the bars instead of following screen centre at height " .. height,
+                RikUI.Profile.positions.player.relativePoint == "BOTTOM"
+                and rect.bottom >= 300 and rect.top < 500)
             for _, key in ipairs({ "bagspace", "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
                 check("HUD places " .. key, type(RikUI.Profile.positions[key]) == "table")
             end

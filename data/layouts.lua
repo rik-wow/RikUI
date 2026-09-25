@@ -165,17 +165,17 @@ layouts.classic = layout("Classic", "Blizzard's arrangement: player and target i
     druidmana = bottomRightOfCentre(-layouts.Sizes.swingtimer.width / 2 - GAP, CLASS_ROW),
 })
 
--- HUD: player and target either side of the character, the cast bar and class widgets between them.
-local REFERENCE_HEIGHT, HUD_SPREAD = 768, 120
-local HUD_Y = REFERENCE_HEIGHT / 2 + GAP / 2
+-- HUD: a bottom-anchored combat cluster above the bars, leaving the character clear.
+local HUD_SPREAD = 120
+local HUD_SWING = STACK_TOP + GAP + layouts.Sizes.classcooldowns.height + GAP
+local HUD_Y = HUD_SWING + UNIT_HEIGHT + CAST_HEIGHT - GAP
 local HUD_X = HUD_SPREAD + UNIT_WIDTH / 2
 local HUD_EDGE = HUD_SPREAD + UNIT_WIDTH
 local HUD_UNDER = HUD_Y - GAP - CAST_HEIGHT
-local HUD_SWING = HUD_Y - UNIT_HEIGHT - CAST_HEIGHT + GAP
 local HUD_CAST = HUD_SWING + layouts.Sizes.swingtimer.height + GAP
 
-layouts.hud = layout("HUD", "Player and target close beside your character with the cast bar between them, "
-    .. "everything else pushed to the edges.", {
+layouts.hud = layout("HUD", "Player and target below your character, above the action bars, with the cast bar "
+    .. "between them and other controls around the edges.", {
     classcooldowns = bottom(0, HUD_SWING - GAP - layouts.Sizes.classcooldowns.height),
     classbuffs = bottomLeftOfCentre(-HUD_EDGE, HUD_Y + UNIT_HEIGHT + GAP),
     classeffects = bottomLeftOfCentre(HUD_SPREAD, HUD_Y + UNIT_HEIGHT + GAP),
@@ -191,14 +191,6 @@ layouts.hud = layout("HUD", "Player and target close beside your character with 
     castfocus = bottomRightOfCentre(-HUD_EDGE - GAP, HUD_Y - CAST_HEIGHT),
     party = topLeft(MARGIN, -120),
 })
-
--- Combat information follows the character, not a fixed distance from the screen bottom.
--- Preserve its reference-screen composition while allowing larger UIParent dimensions.
-for _, key in ipairs({ "player", "target", "focus", "petframe", "tot", "castplayer", "casttarget",
-    "castfocus", "castpet", "swingtimer", "combopoints", "totems", "druidmana", "classbuffs", "classeffects", "classcooldowns" }) do
-    local position = layouts.hud.positions[key]
-    position.relativePoint, position.y = "CENTER", position.y - REFERENCE_HEIGHT / 2
-end
 
 -- Healer: the group over the bars where the eyes are, your own frames in rows above its left end.
 local GRID_LEFT = -layouts.Sizes.raid.width / 2

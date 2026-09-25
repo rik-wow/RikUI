@@ -169,6 +169,23 @@ return function(check)
                 holder:GetWidth() == native[index]:GetWidth() and holder:GetHeight() == native[index]:GetHeight()
                 and native[index].points[1][4] == 0 and native[index].points[1][5] == 0)
         end
+        for _, emptySize in ipairs({ 0, 0.01, 1 }) do
+            for _, frame in ipairs(native) do frame:SetSize(emptySize, emptySize) end
+            module.RefreshLayout()
+            for index, key in ipairs(keys) do
+                local holder = module.Holders[names[index]]
+                check(key .. " keeps usable empty mover bounds at size " .. emptySize,
+                    holder:GetWidth() >= 220 and holder:GetHeight() >= 30
+                    and layout.Overlays[key]:GetWidth() >= 220
+                    and native[index]:GetWidth() == emptySize and native[index]:GetHeight() == emptySize)
+            end
+        end
+        for index, frame in ipairs(native) do
+            frame:SetSize(index == 4 and 220 or (index == 2 and 80 or 200), 50)
+        end
+        module.RefreshLayout()
+        check("populated compact viewer returns to its exact bounds",
+            module.Holders[names[2]]:GetWidth() == 80 and module.Holders[names[2]]:GetHeight() == 50)
         local lastOverlay = layout.Overlays[keys[4]]
         env.click(lastOverlay.lock)
         check("locking one group removes its placement label and outline",
