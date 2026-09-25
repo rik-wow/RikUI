@@ -135,6 +135,7 @@ local function createSearch()
         if not GameTooltip then return end
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText("Search bags")
+        GameTooltip:AddLine("Save: /rik bagsearch save <name> [query]. Recall: /rik bagsearch use <name>.", 1, 1, 1, true)
         GameTooltip:AddLine("Combine q:rare, type:gear, id:123 and words. Use !word to exclude.", 1, 1, 1, true)
         GameTooltip:Show()
     end)
@@ -346,5 +347,58 @@ function bags:Debug(sample)
         .. "\" dimmed=" .. dimmed)
     sample("GetContainerNumSlots(0)", function() return C_Container.GetContainerNumSlots(0) end)
 end
+
+-- Named queries reuse the ordinary search path and never move inventory.
+local MAX_SEARCHES, MAX_SEARCH_NAME, MAX_QUERY = 8, 24, 256
+
+local function saveSearch(name, query)
+    if #name < 1 or #name > MAX_SEARCH_NAME or not name:match("^[%w_-]+$") then
+        return "Use a name of 1-24 letters, numbers, _ or -."
+    end
+    if query == "" then query = bags.SearchState() end
+    if #query == 0 or #query > MAX_QUERY or query:find("[%c|]") then return "Use a search of 1-256 plain characters." end
+    local searches, count = core.Profile.bags.searches, 0
+    for _ in pairs(searches) do count = count + 1 end
+    if not searches[name] and count >= MAX_SEARCHES then return "Keep at most eight saved searches." end
+    searches[name] = query
+    core:Changed()
+    return "Saved bag search " .. name .. "."
+end
+
+local function useSearch(name)
+    local query = core.Profile.bags.searches[name]
+    if not query then return "Unknown saved search." end
+    if not holder or type(OpenAllBags) ~= "function" then return "Enable Bags and reload first." end
+    local ok = pcall(OpenAllBags)
+    if not ok then return "Bags could not be opened." end
+    bags.SetFilter("all")
+    holder.search:SetText(query)
+    bags.SetSearch(query)
+    return "Using bag search " .. name .. "."
+end
+
+local function searchCommand(input)
+    if not core.Profile then return "Still loading." end
+    local action, name, query = input:match("^(%S+)%s*(%S*)%s*(.-)$")
+    action, name = (action or "list"):lower(), (name or ""):lower()
+    if action == "save" then return saveSearch(name, query) end
+    if action == "use" then return useSearch(name) end
+    local searches = core.Profile.bags.searches
+    if action == "delete" and searches[name] then
+        searches[name] = nil
+        core:Changed()
+        return "Deleted bag search " .. name .. "."
+    end
+    if action ~= "list" then return "Use /rik bagsearch save|use|delete <name> [query], or list." end
+    local names = {}
+    for key in pairs(searches) do names[#names + 1] = key end
+    table.sort(names)
+    for _, key in ipairs(names) do core:Print(key .. ": " .. searches[key]) end
+    return #names == 0 and "No saved bag searches. Use /rik bagsearch save <name> <query>."
+        or "Use /rik bagsearch use <name> to recall a search."
+end
+
+core:RegisterCommand("bagsearch", function(input) core:Print(searchCommand(input)) end,
+    "Save, use, delete or list named bag searches", bags)
 
 core:RegisterModule("bags", bags)

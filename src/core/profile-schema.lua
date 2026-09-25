@@ -16,6 +16,18 @@ local function itemIDs(value)
     end
     return true
 end
+local function bagSearches(value)
+    if type(value) ~= "table" or getmetatable(value) then return false end
+    local count = 0
+    for name, query in pairs(value) do
+        count = count + 1
+        if count > 8 or type(name) ~= "string" or #name < 1 or #name > 24
+            or not name:match("^[%w_-]+$") or type(query) ~= "string" or #query < 1
+            or #query > 256 or query:find("[%c|]") then return false end
+    end
+    return true
+end
+
 local function phrases(value)
     return type(value) == "string" and #value <= 256 and not value:find("[%c|]")
 end
@@ -38,7 +50,7 @@ local schema = {
     chat={ mutedPhrases=phrases, highlightWords=phrases, fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
     panels={ questTextSize=function(value) return value == 0 or number(12,24,true)(value) end,
         skins={ character=boolean, spells=boolean, quests=boolean, professions=boolean, commerce=boolean, maps=boolean } },
-    bags={ protectFavorites=boolean, favorites=itemIDs, autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
+    bags={ searches=bagSearches, protectFavorites=boolean, favorites=itemIDs, autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
         capacityLowOnly=boolean, capacityThreshold=number(0,20,true) },
     combattimer={ show=boolean, linger=number(0,30,true) },
     durability={ showPercent=boolean },

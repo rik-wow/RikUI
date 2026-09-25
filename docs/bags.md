@@ -1,5 +1,7 @@
 # Bags
 
+**Named searches:** `/rik bagsearch save cloth type:materials linen` saves a query; omit the query to save the current search. `/rik bagsearch use cloth` opens bags and recalls it with the All quick filter. `list` shows saved queries; `delete cloth` removes one. Up to eight searches follow your profile and shared settings. Names use 1–24 letters, digits, underscores or hyphens.
+
 **Protect favorites from bulk junk sales** is on by default. RikUI skips the whole manual or automatic bulk sale when it finds favorite junk or cannot verify inventory. The merchant button explains the block. You can sell individual items normally, or disable protection explicitly. The guard reads current slots again at click time.
 
 Use **/rik favorite <item link or ID>** to add or remove a favorite item. Paste a link by shift-clicking it into the command. The **Favorites** quick filter, `type:favorites` search selector and small gold **F** badge follow the item ID across bag moves. Favorites are saved per UI profile (up to 50 item IDs), work with text search, and are included in shared profiles. They organize items and can guard RikUI bulk junk sales; native individual use, sorting and selling remain available. Hover Favorites for command help.

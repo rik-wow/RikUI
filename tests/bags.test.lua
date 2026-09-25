@@ -900,6 +900,26 @@ return function(check)
         check("missing replacement API keeps cursor and reports availability", stub.cursor.icon == 666
             and printedContains("bag replacement unavailable"))
 
+        module = load()
+        OpenAllBags()
+        SlashCmdList.RIKUI("bagsearch save cloth q:common linen")
+        check("named search persists query", RikUI.Profile.bags.searches and RikUI.Profile.bags.searches.cloth == "q:common linen")
+        CloseAllBags()
+        SlashCmdList.RIKUI("bagsearch use cloth")
+        check("recall opens bags and applies query", module.Holder:IsShown() and button(0, 1).alpha == 1 and button(0, 2).alpha == 0.25)
+        SlashCmdList.RIKUI("bagsearch save bad " .. string.rep("a", 257))
+        check("oversized query rejected", not (RikUI.Profile.bags.searches and RikUI.Profile.bags.searches.bad))
+        for i = 1, 8 do SlashCmdList.RIKUI("bagsearch save s" .. i .. " hearth") end
+        local savedCount = 0
+        for _ in pairs(RikUI.Profile.bags.searches or {}) do savedCount = savedCount + 1 end
+        check("saved searches capped at eight", savedCount == 8)
+        SlashCmdList.RIKUI("bagsearch delete cloth")
+        check("saved search can be deleted", RikUI.Profile.bags.searches and RikUI.Profile.bags.searches.cloth == nil)
+        check("shared searches validate bounds", not pcall(RikUI.ProfileSchema.Project, {bags={searches={bad=string.rep("x",257)}}}))
+        module = load({ bags = { searches = { cloth = "linen" } } })
+        SlashCmdList.RIKUI("bagsearch use cloth")
+        check("named search survives profile reload", module.Holder:IsShown() and button(0, 1).alpha == 1 and button(0, 2).alpha == 0.25)
+
         module = load({ modules = { bags = false } })
         OpenAllBags()
         check("a disabled module leaves the Blizzard bags alone", module.Holder == nil
