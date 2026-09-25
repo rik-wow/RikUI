@@ -16,11 +16,12 @@ return function(check)
             function animation:SetFromAlpha(value) self.from = value end
             function animation:SetToAlpha(value) self.to = value end
             function animation:SetDuration(value) self.duration = value end
+            function animation:SetOffset(x, y) self.offset = { x, y } end
             group.animation = animation
             return animation
         end
-        function group:Stop() end
-        function group:Play() self.plays = self.plays + 1 end
+        function group:Stop() self.playing = false end
+        function group:Play() self.plays = self.plays + 1; self.playing = true end
         return group
     end
     local function region(value)
@@ -132,6 +133,8 @@ return function(check)
         env.fire("PLAYER_XP_UPDATE", "player")
         check("an experience gain eases the fill and flashes the row", xp.bar.value == 450 and xp.bar.easing == EASE
             and xp.flashAnim.plays == 1 and xp.rested.value == 650)
+        check("earned XP floats above the bar", xp.gainText and xp.gainText.text == "+150 XP"
+            and xp.gainAnim and xp.gainAnim.plays == 1)
         env.fire("PLAYER_XP_UPDATE", "player")
         check("duplicate XP events do not replay the gain flash", xp.flashAnim.plays == 1)
         stub.xp = 460
@@ -141,7 +144,14 @@ return function(check)
         check("detailed XP labels include remaining experience", xp.caption:GetText():find("550 to level", 1, true))
         module.SetOption("compact", true)
         check("compact mode restores thin bars and hides labels", holder.height == 8 and not xp.caption.shown)
+        check("compact mode clears the floating gain", xp.gainText.alpha == 0 and not xp.gainAnim.playing)
+        check("XP rise uses cosmetic translation", xp.gainAnim.animation.offset[2] == 14
+            and xp.gainAnim.animation.duration == 0.85 and xp.gainAnim.plays == 1)
         module.SetOption("compact", false)
+        RikUI.Profile.reducedMotion = true
+        module.Details.ShowGain(xp, 999)
+        check("global reduced motion suppresses existing gain animation", xp.gainAnim.plays == 1 and not xp.gainAnim.playing)
+        RikUI.Profile.reducedMotion = false
         module.SetOption("text", false)
         check("labels can be disabled independently", holder.height == 18 and not xp.caption.shown)
         module.SetOption("text", true)

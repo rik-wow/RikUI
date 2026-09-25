@@ -170,12 +170,14 @@ end
 
 local function gained(_, unit)
     if not holder or (unit and unit ~= "player") then return end
-    local gainedXP = not xpbar.Details or xpbar.Details.Gain()
+    local gainedXP, amount = true, nil
+    if xpbar.Details then gainedXP, amount = xpbar.Details.Gain() end
     local row = xpbar.Rows.xp
     local visible = row:IsShown()
     xpbar.Refresh()
     if gainedXP and visible and row:IsShown() and (not xpbar.Details or xpbar.Details.Animated()) then
         motion.Play(row.flashAnim)
+        if xpbar.Details then xpbar.Details.ShowGain(row, amount) end
     end
 end
 

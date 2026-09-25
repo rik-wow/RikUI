@@ -24,7 +24,7 @@ local function snapshot()
     return { current = current, maximum = maximum, level = level }
 end
 function details.Height(key) return settings().compact and 8 or key == "xp" and 18 or 12 end
-function details.Animated() return settings().animations end
+function details.Animated() return settings().animations and not motion.Reduced() end
 function details.Gain()
     local ok, value = pcall(snapshot)
     if not ok or not value then last = nil; sessionIncomplete = true; return false end
@@ -39,7 +39,7 @@ function details.Gain()
     if gain <= 0 then return false end
     latestGain = gain
     sessionGain = sessionGain + gain
-    return true
+    return true, gain
 end
 local function label(parent, role)
     local font = parent:CreateFontString(nil, "OVERLAY")
@@ -47,6 +47,31 @@ local function label(parent, role)
     font:SetWordWrap(false)
     return font
 end
+local GAIN_SECONDS, GAIN_RISE = 0.85, 14
+local function clearGain(row)
+    motion.Stop(row.gainAnim)
+    if row.gainText then row.gainText:SetAlpha(0) end
+end
+function details.ShowGain(row, amount)
+    if not number(amount) or amount <= 0 or not details.Animated()
+        or settings().compact or not settings().text then return end
+    if not row.gainText then
+        row.gainText = label(row.bar, "label")
+        row.gainText:SetPoint("BOTTOMRIGHT", row, "TOPRIGHT", -6, 2)
+        row.gainText:SetTextColor(0.8, 0.65, 1)
+        row.gainText:SetAlpha(0)
+        row.gainAnim = motion.Tween(row.gainText, 1, 0, GAIN_SECONDS)
+        if row.gainAnim then
+            local rise = row.gainAnim:CreateAnimation("Translation")
+            rise:SetOffset(0, GAIN_RISE)
+            rise:SetDuration(GAIN_SECONDS)
+        end
+        row:HookScript("OnHide", function() clearGain(row) end)
+    end
+    row.gainText:SetText(string.format("+%d XP", amount))
+    motion.Play(row.gainAnim)
+end
+
 function details.Build(row, key)
     row.caption = label(row.bar, "small")
     row.caption:SetPoint("LEFT", row, "LEFT", 6, 0)
@@ -125,6 +150,7 @@ function details.Refresh(faction)
             local ok, value = pcall(key == "xp" and xpText or repText, faction)
             row.caption:SetText(ok and value or key == "xp" and (settings().pace and "Pace unavailable" or "Experience") or "Reputation")
             if key == "xp" then
+                if not details.Animated() or settings().compact or not settings().text then clearGain(row) end
                 local active = settings().pace and settings().text and not settings().compact and row:IsShown()
                 row:SetScript("OnUpdate", active and paceTick or nil)
                 if not active then row.paceElapsed = 0 end

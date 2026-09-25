@@ -1,5 +1,7 @@
 # XP and reputation bar
 
+Readable earned XP rises briefly above the right edge as `+N XP`. Duplicate events, login observations, corrections and unreadable gains do not celebrate. Compact mode, hidden labels and reduced motion suppress the floating text; disabling animations or hiding the row clears it.
+
 Enable **Experience > Show session pace in XP label** to display session XP/hour and approximate minutes to level directly on the bar. It updates once per second, including idle time, after at least one minute and a readable gain. Gathering XP, unavailable clocks and unreadable gaps have explicit labels; reset the session after a gap. Compact mode or disabled progress labels hide the pace and remove its update callback. The preference is per profile; the observed session is shared across profile switches and clears on reload.
 
 The XP tooltip includes observed session XP. After one minute with gains, it adds XP/hour and an approximate time to level at that pace, including idle time. **Experience > Reset session** clears this session and rebases the snapshot; reloading also starts over. Secret or failed reads leave an explicit gap and suppress the rate until reset. These are estimates, not predicted rewards.
