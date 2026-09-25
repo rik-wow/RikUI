@@ -920,6 +920,27 @@ return function(check)
         SlashCmdList.RIKUI("bagsearch use cloth")
         check("named search survives profile reload", module.Holder:IsShown() and button(0, 1).alpha == 1 and button(0, 2).alpha == 0.25)
 
+        module = load()
+        OpenAllBags()
+        typeSearch("count:>=5")
+        check("stack threshold finds material stacks", button(0, 1).alpha == 1 and button(0, 2).alpha == 0.25)
+        typeSearch("count:<5 !hearth")
+        check("numeric comparison combines exclusions", button(0, 1).alpha == 0.25 and button(1, 3).alpha == 1)
+        local oldLevel = C_Item.GetDetailedItemLevelInfo
+        C_Item.GetDetailedItemLevelInfo = function(link) return link:find("Blade") and 23 or nil end
+        module.Refresh()
+        typeSearch("level:>=20")
+        check("item level search works without level badges", button(1, 3).alpha == 1 and button(0, 1).alpha == 0.25)
+        typeSearch("!level:>=20")
+        check("unknown level cannot match negated comparison", button(0, 1).alpha == 0.25)
+        stub.items["1:3"].stackCount = env.SECRET
+        module.Refresh()
+        typeSearch("!count:1")
+        check("opaque counts never match exclusions", button(1, 3).alpha == 0.25)
+        typeSearch("count:=>5")
+        check("malformed operator matches nothing", button(0, 1).alpha == 0.25)
+        C_Item.GetDetailedItemLevelInfo = oldLevel
+
         module = load({ modules = { bags = false } })
         OpenAllBags()
         check("a disabled module leaves the Blizzard bags alone", module.Holder == nil

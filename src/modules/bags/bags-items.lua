@@ -267,9 +267,32 @@ local function parseSearch(text)
     return terms
 end
 
+local function numericTerm(button, term)
+    local operator, expected = term.value:match("^([<>=]*)(%d+)$")
+    local compare = {
+        [""] = function(a, b) return a == b end, ["="] = function(a, b) return a == b end,
+        [">"] = function(a, b) return a > b end, [">="] = function(a, b) return a >= b end,
+        ["<"] = function(a, b) return a < b end, ["<="] = function(a, b) return a <= b end,
+    }
+    expected = tonumber(expected)
+    if not compare[operator] or not expected or expected > 1000000000 then return nil end
+    local actual = button.rikStackCount
+    if term.kind == "level" then
+        actual = nil
+        if button.rikLink and C_Item and type(C_Item.GetDetailedItemLevelInfo) == "function" then
+            local ok, level = pcall(C_Item.GetDetailedItemLevelInfo, button.rikLink)
+            if ok then actual = level end
+        end
+    end
+    if not plain(actual, "number") or actual ~= actual or actual < 0 or actual >= math.huge
+        or actual % 1 ~= 0 then return nil end
+    return compare[operator](actual, expected)
+end
+
 local function termMatch(button, term)
     local value = term.value
     if not value or value == "" then return nil end
+    if term.kind == "count" or term.kind == "level" then return numericTerm(button, term) end
     if term.kind == "name" then
         if not button.rikName then return nil end
         return button.rikName:find(value, 1, true) ~= nil
@@ -354,6 +377,8 @@ function bags.UpdateButton(button)
     local itemID = info and info.itemID
     button.rikItemID = plain(itemID, "number") and itemID or nil
     button.rikFavorite:SetText(bags.IsFavorite(button.rikItemID) and "F" or "")
+    button.rikStackCount = plain(count, "number") and count or nil
+    button.rikLink = info and plain(info.hyperlink, "string") and info.hyperlink or nil
     button.rikName, button.rikFilled = itemName(info), info ~= nil
     button.rikFiltered = nil
     if info and plain(info.isFiltered, "boolean") then button.rikFiltered = info.isFiltered end

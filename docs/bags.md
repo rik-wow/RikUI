@@ -1,5 +1,7 @@
 # Bags
 
+**Numeric searches:** `count:>=5` finds stacks of at least five; `type:gear level:<30` finds gear below item level 30. Exact values and `=`, `<`, `<=`, `>`, `>=` work. Combine them with other selectors or `!` exclusions. Unreadable values never match, including exclusions. Item-level lookups occur only when using the level selector or gear-level badges.
+
 **Named searches:** `/rik bagsearch save cloth type:materials linen` saves a query; omit the query to save the current search. `/rik bagsearch use cloth` opens bags and recalls it with the All quick filter. `list` shows saved queries; `delete cloth` removes one. Up to eight searches follow your profile and shared settings. Names use 1–24 letters, digits, underscores or hyphens.
 
 **Protect favorites from bulk junk sales** is on by default. RikUI skips the whole manual or automatic bulk sale when it finds favorite junk or cannot verify inventory. The merchant button explains the block. You can sell individual items normally, or disable protection explicitly. The guard reads current slots again at click time.
