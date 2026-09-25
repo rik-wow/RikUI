@@ -96,26 +96,32 @@ end
 
 local function readPosition()
     local mapID = C_Map.GetBestMapForUnit("player")
-    if not mapID then return nil end
+    if core.Secret.IsSecret(mapID) or type(mapID) ~= "number" or mapID <= 0 or mapID >= math.huge or mapID % 1 ~= 0 then return nil end
     local position = C_Map.GetPlayerMapPosition(mapID, "player")
-    if not position then return nil end
-    return position:GetXY()
+    if core.Secret.IsSecret(position) or not position then return nil end
+    local x, y = position:GetXY()
+    return x, y, mapID
 end
 
 local function readable(value)
     return not core.Secret.IsSecret(value) and type(value) == "number"
 end
 
+local function validPosition(x, y)
+    return readable(x) and readable(y) and x >= 0 and x <= 1 and y >= 0 and y <= 1
+end
+
 local function coordsText()
     local ok, x, y = pcall(readPosition)
     if not ok then warn("coords", x); return "" end
-    if not readable(x) or not readable(y) then return "" end
+    if not validPosition(x, y) then return "" end
     return string.format(COORDS_FORMAT, x * 100, y * 100)
 end
 
 function minimap.UpdateCoordinates()
     if not holder then return end
     holder.coords:SetText(core.Profile.minimap.coordinates~=false and coordsText() or "")
+    if holder.coordsButton then holder.coordsButton:SetShown(core.Profile.minimap.coordinates ~= false) end
 end
 
 function minimap.UpdateDiel()
@@ -210,6 +216,55 @@ local function zoneButton()
     holder.zoneButton=button
 end
 
+local function positionMessage()
+    local ok, x, y, mapID = pcall(readPosition)
+    if not ok or not validPosition(x, y) then return nil end
+    local name = "Map " .. mapID
+    if type(C_Map.GetMapInfo) == "function" then
+        local read, info = pcall(C_Map.GetMapInfo, mapID)
+        if read and not core.Secret.IsSecret(info) and type(info) == "table"
+            and not core.Secret.IsSecret(info.name) and type(info.name) == "string"
+            and #info.name > 0 and #info.name <= 120 and not info.name:find("[%c|]") then name = info.name end
+    end
+    return name .. ": " .. string.format(COORDS_FORMAT, x * 100, y * 100)
+end
+
+function minimap.ShareCoordinates()
+    if core.Profile.minimap.coordinates == false then return end
+    local message = positionMessage()
+    if not message then core:Print("Current map coordinates unavailable."); return end
+    local insert = ChatFrameUtil and ChatFrameUtil.InsertLink or ChatEdit_InsertLink
+    local open = ChatFrameUtil and ChatFrameUtil.OpenChat or ChatFrame_OpenChat
+    if type(insert) == "function" then
+        local ok, inserted = pcall(insert, message)
+        if ok and not core.Secret.IsSecret(inserted) and inserted == true then return end
+        if not ok then warn("share coordinates", "Chat insertion failed."); return end
+    end
+    if type(open) == "function" then
+        local ok = pcall(open, message)
+        if ok then return end
+    end
+    core:Print(message .. " (chat input unavailable)")
+end
+
+local function coordinateButton()
+    local button = CreateFrame("Button", nil, holder)
+    button:SetSize(96, 18)
+    button:SetPoint("TOPRIGHT", holder, "BOTTOMRIGHT", 0, -TEXT_GAP)
+    button:RegisterForClicks("LeftButtonUp")
+    button:SetScript("OnClick", minimap.ShareCoordinates)
+    button:SetScript("OnEnter", function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText("Share coordinates")
+        GameTooltip:AddLine("Click to insert your current map position into chat. Press Enter yourself to send.", 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+    button:SetScript("OnHide", function(self) if GameTooltip and GameTooltip:IsOwned(self) then GameTooltip:Hide() end end)
+    holder.coordsButton = button
+end
+
 local function createHolder()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     holder:SetSize(SIZE + 2 * EDGE, SIZE + 2 * EDGE)
@@ -220,6 +275,7 @@ local function createHolder()
     zoneButton()
     holder.clock = label("small", "TOPLEFT", "BOTTOMLEFT", -TEXT_GAP)
     holder.coords = label("small", "TOPRIGHT", "BOTTOMRIGHT", -TEXT_GAP)
+    coordinateButton()
     holder.diel = label("small", "TOPLEFT", "BOTTOMLEFT", -(TEXT_GAP + 16))
     holder.performance = label("small", "TOPRIGHT", "BOTTOMRIGHT", -(TEXT_GAP + 16))
     holder.elapsed = 0

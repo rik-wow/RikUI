@@ -1,5 +1,7 @@
 # Minimap
 
+**Click the coordinates** to put your current map name and position into chat input; you decide when to send. It uses a fresh position in the named map's coordinate system, or a map ID when its name is unavailable. Missing and protected positions are never copied. Hiding coordinates also hides the click target. API reviewed 2026-09-24: [69913 ChatFrameUtil draft insertion](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua).
+
 **Show FPS and world latency** adds a performance readout below the coordinates, opposite day/night. It is off by default, updates once per second while enabled, and stops performance polling when disabled. Missing or unreadable measurements show `--`. Latency is the world connection, not home/chat latency.
 
 Visible minimap controls gain a 100ms gold hover wash. Changed public zone names fade in over 200ms; repeated zone events do not restart it. Native tracking, queue and ping actions remain intact. Motion is regression-tested; native acceptance is supplied by the user's standing policy.

@@ -321,6 +321,34 @@ return function(check)
             check("missing cycle API stays unavailable", holder.diel.text == "")
         end
 
+        module = load()
+        local oldInsert, oldOpen, oldUtil = ChatEdit_InsertLink, ChatFrame_OpenChat, ChatFrameUtil
+        ChatFrameUtil = nil
+        local inserted, opened = {}, {}
+        C_Map.GetMapInfo = function() return { name = "Elwynn Forest" } end
+        ChatEdit_InsertLink = function(text) inserted[#inserted + 1] = text; return true end
+        ChatFrame_OpenChat = function(text) opened[#opened + 1] = text end
+        check("coordinates have a click target", module.Holder.coordsButton ~= nil)
+        if module.Holder.coordsButton then
+            env.click(module.Holder.coordsButton)
+            check("coordinate click inserts map-relative position", inserted[1] == "Elwynn Forest: 50.0, 50.0" and #opened == 0)
+            ChatEdit_InsertLink = function() return false end
+            stub.position = { 0.25, 0.75 }
+            env.click(module.Holder.coordsButton)
+            check("coordinate click opens unsent draft when chat inactive", opened[1] == "Elwynn Forest: 25.0, 75.0")
+            stub.position = { env.SECRET, 0.75 }
+            env.click(module.Holder.coordsButton)
+            check("protected position cannot leak stale coordinates", #opened == 1)
+            stub.position = { 2, 0.75 }
+            env.click(module.Holder.coordsButton)
+            tick(module.Holder)
+            check("invalid coordinates clear and do not insert", #opened == 1 and module.Holder.coords.text == "")
+        end
+        stub.position = { 0.5, 0.5 }
+        ChatFrameUtil = { InsertLink = function(text) inserted[#inserted + 1] = text; return true end }
+        if module.ShareCoordinates then module.ShareCoordinates() end
+        check("modern chat utility accepts coordinate draft", inserted[2] == "Elwynn Forest: 50.0, 50.0")
+        ChatEdit_InsertLink, ChatFrame_OpenChat, ChatFrameUtil = oldInsert, oldOpen, oldUtil
         module=load({minimap={coordinates=false}})
         tick(module.Holder)
         check("coordinate preference survives profile reload",module.Holder.coords.text=="" and module.Options.settings[2].get()==false)
