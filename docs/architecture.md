@@ -34,6 +34,8 @@ folder. Helpers used across unrelated features belong in an appropriate service.
 For example, `RikUI.UI.Edges`, `HealthColor` and `PowerColor` do not require the
 unit-frame feature. The old `UnitFrames` helper names remain compatibility aliases.
 
+`ProfileNeedsReload()` compares the selected profile, startup font/text/motion settings and module choices with their loaded state. Reverting those choices clears the pending state.
+
 Profile selection delegates geometry and registered appearance work to `Layout`.
 Features attach cosmetic refreshes through `Layout.Register(..., { onApply = callback })`;
 the callback receives each frame after placement. Bars use this for gryphon art,

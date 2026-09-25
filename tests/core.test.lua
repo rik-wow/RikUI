@@ -118,6 +118,26 @@ return function(check)
         end
     end
 
+    do
+        local reloadCore = loadCore()
+        check("reload state before login is clear", not reloadCore:ProfileNeedsReload())
+        reloadCore:RegisterModule("reloadFixture", {})
+        ready(reloadCore)
+        check("unchanged loaded profile needs no reload", not reloadCore:ProfileNeedsReload())
+        for _, change in ipairs({ {"font", "game"}, {"textScale", 1.2}, {"reducedMotion", true} }) do
+            local key, value = change[1], change[2]
+            local previous = reloadCore.Profile[key]
+            reloadCore.Profile[key] = value
+            check("active profile " .. key .. " change needs reload", reloadCore:ProfileNeedsReload())
+            reloadCore.Profile[key] = previous
+            check("reverted " .. key .. " clears reload", not reloadCore:ProfileNeedsReload())
+        end
+        reloadCore:SetModuleEnabled("reloadFixture", false)
+        check("module change in active profile needs reload", reloadCore:ProfileNeedsReload())
+        reloadCore:SetModuleEnabled("reloadFixture", true)
+        check("reverted module change clears reload", not reloadCore:ProfileNeedsReload())
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

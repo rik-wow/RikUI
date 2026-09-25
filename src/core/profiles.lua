@@ -77,8 +77,27 @@ function core:Changed()
     if self.Store and self.Store.Touch then runtime.Invoke("Save changed settings", self.Store.Touch) end
 end
 
-function core:ProfileNeedsReload()
+local STARTUP_SETTINGS = { "font", "textScale", "reducedMotion" }
+
+function runtime.CaptureProfileState()
+    runtime.loadedProfile, runtime.loadedSettings = core.Profile, {}
+    for _, key in ipairs(STARTUP_SETTINGS) do runtime.loadedSettings[key] = core.Profile[key] end
+end
+
+function core:ProfileSelectionNeedsReload()
     return runtime.loadedProfile ~= nil and runtime.loadedProfile ~= self.Profile
+end
+
+function core:ProfileNeedsReload()
+    if not runtime.loadedProfile then return false end
+    if self:ProfileSelectionNeedsReload() then return true end
+    for _, key in ipairs(STARTUP_SETTINGS) do
+        if runtime.loadedSettings[key] ~= self.Profile[key] then return true end
+    end
+    for name, module in pairs(self.Modules) do
+        if (self.Profile.modules[name] ~= false) ~= (module.enabled ~= false) then return true end
+    end
+    return false
 end
 
 -- Module activation flags still take effect on reload, not during a profile switch.

@@ -20,7 +20,7 @@ local function login()
     restore("RestoreCharacter")
     restore("RestoreLate")
     runtime.BindProfile()
-    runtime.loadedProfile = core.Profile
+    runtime.CaptureProfileState()
     runtime.loggedIn = true
     runtime.StartModules()
 end
