@@ -78,10 +78,33 @@ local function paint(lines, color)
     for _, line in ipairs(lines) do line:SetVertexColor(unpack(color)) end
 end
 
+local FOCUS_ALPHA, FOCUS_SECONDS = 0.1, 0.16
+local function focusHalo(edit)
+    local region = edit:CreateTexture(nil, "ARTWORK")
+    region:SetAllPoints(edit)
+    region:SetTexture(skin.FLAT)
+    region:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3])
+    region:SetAlpha(0)
+    local halo = { region = region, enter = motion.Tween(region, 0, FOCUS_ALPHA, FOCUS_SECONDS) }
+    edit.rikFocus = halo
+    local function clear()
+        motion.Stop(halo.enter)
+        region:SetAlpha(0)
+        paint(edit.rikBorder, skin.LINE)
+    end
+    edit:HookScript("OnEditFocusGained", function()
+        region:SetAlpha(FOCUS_ALPHA)
+        if not motion.Reduced() then motion.Play(halo.enter) end
+    end)
+    edit:HookScript("OnEditFocusLost", clear)
+    edit:HookScript("OnHide", clear)
+end
+
 local function editBox(edit)
     skin.Strip(edit, FIELD_ART)
     box(edit, FIELD, 0)
     skin.Typeface(edit)
+    focusHalo(edit)
     edit:HookScript("OnEditFocusGained", function(self) paint(self.rikBorder, ACCENT) end)
     edit:HookScript("OnEditFocusLost", function(self) paint(self.rikBorder, skin.LINE) end)
 end

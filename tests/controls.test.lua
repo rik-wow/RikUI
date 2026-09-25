@@ -107,10 +107,21 @@ return function(check)
             ui.edit.Left.alpha == 0 and ui.edit.Right.alpha == 0 and ui.edit.rikFill ~= nil
             and ui.edit.fontPath == RikUI.Media.font and ui.edit.fontSize == 12)
         env.runScript(ui.edit, "OnEditFocusGained")
+        check("focus halo fades in behind the field", ui.edit.rikFocus and ui.edit.rikFocus.region.alpha == 0.1
+            and ui.edit.rikFocus.enter:IsPlaying())
         local focused = ui.edit.rikBorder[1].color
         env.runScript(ui.edit, "OnEditFocusLost")
         check("keyboard focus turns the edit box edge to the accent colour and back",
             focused[3] == 1 and ui.edit.rikBorder[1].color[3] < 1)
+        check("focus loss clears halo", ui.edit.rikFocus.region.alpha == 0 and not ui.edit.rikFocus.enter:IsPlaying())
+        env.runScript(ui.edit, "OnEditFocusGained")
+        ui.edit:Hide()
+        check("hidden fields clear focus art", ui.edit.rikFocus.region.alpha == 0 and ui.edit.rikBorder[1].color[3] < 1)
+        RikUI.Profile.reducedMotion = true
+        env.runScript(ui.edit, "OnEditFocusGained")
+        check("reduced motion keeps focus static", ui.edit.rikFocus.region.alpha == 0.1 and not ui.edit.rikFocus.enter:IsPlaying())
+        env.runScript(ui.edit, "OnEditFocusLost")
+        RikUI.Profile.reducedMotion = false
         check("a slider gets a thin flat track and a flat thumb", ui.slider.Left.alpha == 0
             and ui.slider.rikTrack.texture == RikUI.Skin.FLAT and ui.slider.rikTrack.height ~= nil
             and ui.slider.thumb.texture == RikUI.Skin.FLAT and ui.slider.thumb.width ~= nil)
