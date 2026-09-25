@@ -15,7 +15,7 @@ return function(check)
     end
     local bootstrap, lifecycle = "src/core/core.lua", "src/core/lifecycle.lua"
     check("TOC starts with bootstrap", files[1] == bootstrap)
-    for _, name in ipairs({ "events", "profile-schema", "profiles", "modules", "commands", "combat" }) do
+    for _, name in ipairs({ "events", "profile-schema", "profiles", "modules", "commands", "combat", "support" }) do
         local path = "src/core/" .. name .. ".lua"
         before(bootstrap, path)
         before(path, lifecycle)

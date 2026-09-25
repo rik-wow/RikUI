@@ -317,6 +317,7 @@ local function setupSpecs()
     end
     importedPresetSpecs(specs)
     specs[#specs + 1] = { type = "heading", label = "Support" }
+    specs[#specs + 1] = action("support", "Share troubleshooting details", "Copy support report", function() return core:OpenSupportReport() end)
     specs[#specs + 1] = action("debug", "Interface diagnostics", "Show in chat", function() core:Debug() end)
     specs[#specs + 1] = action("errors", "Recent interface errors", "Show errors", function() run("errors") end)
     if core.Store then

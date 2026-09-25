@@ -88,6 +88,36 @@ return function(check)
         check("unknown profile extension survives shared repair", profile.customExtension.retained == true)
     end
 
+    do
+        local supportCore = ready(loadCore())
+        check("support report API exists", type(supportCore.SupportReport) == "function")
+        if supportCore.SupportReport then
+            supportCore:RegisterModule("supportBroken", { OnEnable = function() error("support fixture failure") end })
+            supportCore:RegisterModule("supportHealthy", {})
+            supportCore.Profile.modules.supportHealthy = false
+            supportCore.CharDB.privateFixture = "DO_NOT_INCLUDE_CHARACTER_DATA"
+            supportCore.Store = { BackupSummary = function() return "Backup fixture ready" end,
+                Flush = function() error("report attempted a save") end }
+            env.inCombat = true
+            supportCore.Combat.Queue(function() end, "support:fixture")
+            local report = supportCore:SupportReport()
+            check("support reports actual failures and pending choices", report:find("supportBroken: failed", 1, true)
+                and report:find("supportHealthy: enabled; next reload=off", 1, true))
+            check("support includes backup and queued work", report:find("Backup fixture ready", 1, true)
+                and report:find("Queued work: 1", 1, true))
+            check("support excludes character records", not report:find("DO_NOT_INCLUDE_CHARACTER_DATA", 1, true))
+            supportCore.Combat.Cancel("support:fixture"); env.inCombat = false
+            local metadata = GetBuildInfo
+            GetBuildInfo = function() error("optional metadata unavailable") end
+            check("support survives optional metadata failure", type(supportCore:SupportReport()) == "string")
+            GetBuildInfo = metadata
+            for index = 1, 30 do supportCore.Runtime.Report("Report "..index .. string.rep("c", 512), string.rep("x", 1000)) end
+            check("support report has bounded size", #supportCore:SupportReport() <= 20000 and supportCore:SupportReport():find("[Report truncated]", 1, true))
+            SlashCmdList.RIKUI("support")
+            check("support command has chat fallback", contains("RikUI support report"))
+        end
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

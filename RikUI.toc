@@ -14,6 +14,7 @@ src/core/profiles.lua
 src/core/modules.lua
 src/core/commands.lua
 src/core/combat.lua
+src/core/support.lua
 src/core/lifecycle.lua
 src/core/diagnostics.lua
 src/platform/hooks.lua
