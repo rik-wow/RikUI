@@ -136,12 +136,24 @@ end
 
 -- A character's settings are kept under a number made from its name and realm: CVar names are ASCII.
 function store.CharacterKey()
-    local name = type(UnitName) == "function" and UnitName("player") or nil
-    local realm = type(GetRealmName) == "function" and GetRealmName() or nil
-    return "char" .. checksum(tostring(name) .. "-" .. tostring(realm))
+    local nameOK, name = pcall(UnitName, "player")
+    local realmOK, realm = pcall(GetRealmName)
+    if not nameOK or not realmOK or core.Secret.IsSecret(name) or core.Secret.IsSecret(realm)
+        or type(name) ~= "string" or name == "" or type(realm) ~= "string" or realm == "" then return nil end
+    return "char" .. checksum(name .. "-" .. realm)
 end
 
--- Called by src/core/core.lua before defaults are merged. Saved variables that loaded are never replaced.
+function store.RestoreCharacter()
+    if status.loadedCharacter or status.restored.character or not store.Available() then return false end
+    local key = store.CharacterKey()
+    if not key then return false end
+    local loaded = store.Load(key)
+    if type(loaded) ~= "table" then return false end
+    RikUICharDB, status.restored.character = loaded, true
+    return true
+end
+
+-- Called before defaults are merged. Loaded SavedVariables are never replaced.
 function store.Restore()
     status.loadedAccount, status.loadedCharacter = type(RikUIDB) == "table", type(RikUICharDB) == "table"
     status.loaded = status.loadedAccount or status.loadedCharacter
@@ -151,18 +163,14 @@ function store.Restore()
         RikUIDB = type(loaded) == "table" and loaded or nil
         status.restored.account = RikUIDB ~= nil
     end
-    if not status.loadedCharacter then
-        local loaded = store.Load(store.CharacterKey())
-        RikUICharDB = type(loaded) == "table" and loaded or nil
-        status.restored.character = RikUICharDB ~= nil
-    end
+    store.RestoreCharacter()
 end
 
 function store.Status() return status end
 
 function store.BackupIssue()
     if not store.Available() then return "Reload backup unavailable" end
-    if status.failure then return "Reload backup needs attention" end
+    if status.failure or status.identityFailure then return "Reload backup needs attention" end
     if store.MacroStatus and store.MacroStatus().failure then return "Restart backup needs attention" end
     return nil
 end
@@ -171,7 +179,7 @@ end
 function store.BackupSummary()
     local lines = {}
     if not store.Available() then lines[#lines + 1] = "Reload backup unavailable."
-    elseif status.failure then lines[#lines + 1] = "Reload backup needs attention: " .. status.failure
+    elseif status.failure or status.identityFailure then lines[#lines + 1] = "Reload backup needs attention: " .. (status.failure or status.identityFailure)
     else lines[#lines + 1] = "Reload backup available." end
     if not (store.MacrosAvailable and store.MacrosAvailable() and store.MacroStatus) then
         lines[#lines + 1] = "Restart backup unavailable."
@@ -217,7 +225,9 @@ function store.Flush()
         end
         flushOne("account", account)
     end
-    flushOne(store.CharacterKey(), core.CharDB)
+    local key = store.CharacterKey()
+    status.identityFailure = not key and "Character identity is not available yet; character backup deferred." or nil
+    if key then flushOne(key, core.CharDB) end
 end
 
 -- core:Changed() lands here. One save a moment later covers a burst of changes (a drag reports its

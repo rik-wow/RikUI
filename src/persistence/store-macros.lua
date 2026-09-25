@@ -331,6 +331,7 @@ end
 
 function store.FlushMacros()
     if not store.MacrosAvailable() or not core.DB or InCombatLockdown() then return end
+    if not store.CharacterKey() then complain("Character identity is not available yet; restart backup deferred."); return end
     state.requiredBytes = nil
     local built, data, memories = pcall(snapshot)
     if not built then complain(tostring(data)); return end

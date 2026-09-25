@@ -17,6 +17,7 @@ end
 local function login()
     if runtime.loggedIn or not runtime.initialized then return end
     -- Macros are readable at login; bind again after even a partially failed restore.
+    restore("RestoreCharacter")
     restore("RestoreLate")
     runtime.BindProfile()
     runtime.loadedProfile = core.Profile

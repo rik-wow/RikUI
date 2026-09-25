@@ -253,6 +253,36 @@ return function(check)
         check("autosave recovers after timer and transport failures",
             core.Store.Load("account") and core.Store.Load("account").profiles.Default.scale == 0.65)
 
+        core = boot()
+        local identityName, identityRealm = UnitName, GetRealmName
+        local knownKey = core.Store.CharacterKey()
+        core.CharDB.autoPlacement = false
+        core.Store.Flush()
+        UnitName = function() return nil end
+        check("missing player name has no character key", core.Store.CharacterKey() == nil)
+        local beforeIdentitySave = core.Store.Status().saves
+        core.CharDB.autoPlacement = true
+        core.Store.Flush()
+        check("missing identity does not write character backup", core.Store.Status().saves == beforeIdentitySave)
+        UnitName = function() error("identity loading") end
+        local keyOK, unavailable = pcall(core.Store.CharacterKey)
+        check("throwing identity API has no character key", keyOK and unavailable == nil)
+        UnitName, GetRealmName = identityName, identityRealm
+        check("known character key remains compatible", core.Store.CharacterKey() == knownKey)
+
+        -- Identity can become available between ADDON_LOADED and PLAYER_LOGIN.
+        env.frames, env.printed, env.hooks = {}, {}, {}
+        RikUI, RikUIDB, RikUICharDB = nil, nil, nil
+        UnitName = function() return nil end
+        assert(loadfile("src/core/core.lua"))("RikUI", {})
+        assert(loadfile("src/persistence/store.lua"))("RikUI", {})
+        env.fire("ADDON_LOADED", "RikUI")
+        UnitName = identityName
+        env.fire("PLAYER_LOGIN")
+        core = RikUI
+        check("late identity restores character CVar before activation", core.CharDB.autoPlacement == false
+            and core.Store.Status().restored.character == true)
+
         bare = true
         core = boot()
         check("a client without RegisterCVar has no store and nothing breaks", core.Store.Available() == false

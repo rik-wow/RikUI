@@ -479,6 +479,17 @@ return function(check)
         check("shrinking backup cannot delete user replacement", macros["RikUI data 2"] == "/say replaced old backup"
             and writes == collisionWrites)
 
+        macros = {}; core = restart()
+        local playerName = UnitName
+        UnitName = function() return nil end
+        local anonymousWrites = writes
+        core.Store.FlushMacros()
+        check("restart backup waits for character identity", writes == anonymousWrites
+            and core.Store.MacroStatus().failure:find("identity", 1, true))
+        UnitName = playerName
+        core.Store.FlushMacros()
+        check("restart backup resumes with known identity", writes > anonymousWrites and not core.Store.MacroStatus().failure)
+
         GetMacroInfo, CreateMacro, EditMacro, DeleteMacro = nil, nil, nil, nil
         env.frames, env.printed, env.inCombat, env.hooks = {}, {}, false, {}
         RikUI, RikUIDB, RikUICharDB = nil, nil, nil
