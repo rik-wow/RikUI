@@ -170,6 +170,7 @@ function viewer:OnEnable()
     if viewer.EnableLayout then viewer.EnableLayout() end
     core:RegisterEvent("ADDON_LOADED", function(_, name) if name == ADDON then discover() end end, viewer)
     discover()
+    if viewer.EnableRanks then viewer.EnableRanks() end
 end
 
 function viewer:Debug()

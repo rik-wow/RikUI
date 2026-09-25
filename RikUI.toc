@@ -249,6 +249,7 @@ src/modules/cooldownviewer/cooldownviewer-style.lua
 src/modules/cooldownviewer/cooldownviewer-layout.lua
 src/modules/cooldownviewer/cooldownviewer-controls.lua
 src/modules/cooldownviewer/cooldownviewer-diagnostics.lua
+src/modules/cooldownviewer/cooldownviewer-ranks.lua
 src/modules/toasts/toasts.lua
 src/modules/banners/banners.lua
 src/modules/damagemeter/damagemeter.lua

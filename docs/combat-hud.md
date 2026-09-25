@@ -71,18 +71,23 @@ The layout decision is a product inference from this evidence and the user's scr
 
 ## Native duplicate icons
 
-The user's 2026-09-25 15:28 screenshot shows two Immolate-like icons inside
-**Essential cooldowns**, with the separate class-effect row empty. Their exact
-configured spell identities remain unknown; this is not evidence of cross-row
-duplication. RikUI does not delete native entries based on matching artwork.
-`/rik debug` now includes each category's configured entry, spell and override
-IDs, without inspecting live aura state.
+The user's 2026-09-25 15:28 screenshot showed two Immolate icons inside
+**Essential cooldowns**. `/rik debug` identified them as two configured entries,
+spell 348 (Immolate rank 1) and spell 11668 (rank 7): the native manager tracks
+each learned rank as its own entry. The 70009 build adds a
+`SelectHighestLevelLinkedSpell` cooldown flag, so Blizzard may fold ranks
+server-side later; RikUI does not assume it has.
 
-The [native viewer](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_CooldownViewer/CooldownViewer.lua)
-allocates a minimum of two pooled items and can show filler icons during native
-Edit Mode. That source behavior alone does not establish why these two icons
-are visible in the screenshot. The [settings provider](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerSettingsDataProvider.lua)
-provides the configured entries used by diagnostics.
+`cooldownviewer-ranks.lua` finds known entries in the same row group (Essential
+and Utility, or the two buff rows) that are ranks of one spell in RikUI's class
+catalogue, and asks once: **Hide and reload**, **Not now** or **Keep both**.
+Detection only reads the provider's built display data. Hiding calls the
+provider's `SetCooldownToCategory` into the native hidden category, saves with
+the layout manager's `SaveLayouts` (`C_CooldownViewer.SetLayoutData`) and reloads
+immediately. The reload matters: the viewer keeps aura instance IDs in tables
+that refuse tainted access, so layout state written by addon code must not
+survive into play. Choices are remembered per character; `/rik cooldownranks`
+asks again. Uncatalogued spells and unreadable entries are left alone.
 
 ## Verification
 
