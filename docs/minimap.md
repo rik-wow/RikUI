@@ -1,5 +1,7 @@
 # Minimap
 
+**Show FPS and world latency** adds a performance readout below the coordinates, opposite day/night. It is off by default, updates once per second while enabled, and stops performance polling when disabled. Missing or unreadable measurements show `--`. Latency is the world connection, not home/chat latency.
+
 Visible minimap controls gain a 100ms gold hover wash. Changed public zone names fade in over 200ms; repeated zone events do not restart it. Native tracking, queue and ping actions remain intact. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
 
 `src/modules/minimap/minimap.lua` keeps Blizzard's `Minimap` (the client draws the map, blips,

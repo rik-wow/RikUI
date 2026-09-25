@@ -128,7 +128,34 @@ function minimap.UpdateDiel()
     holder.diel:SetText(day and "Day" or "Night")
 end
 
+local PERFORMANCE_INTERVAL = 1
+
+local function metricText(value)
+    if not readable(value) or value < 0 or value ~= value or value >= math.huge then return "--" end
+    return string.format("%.0f", value)
+end
+
+function minimap.UpdatePerformance()
+    if not holder or not holder.performance then return end
+    holder.performanceElapsed = 0
+    if core.Profile.minimap.performance ~= true then holder.performance:SetText(""); return end
+    local fps, latency
+    if type(GetFramerate) == "function" then
+        local ok, value = pcall(GetFramerate)
+        if ok then fps = value end
+    end
+    if type(GetNetStats) == "function" then
+        local ok, _, _, _, value = pcall(GetNetStats)
+        if ok then latency = value end
+    end
+    holder.performance:SetText(metricText(fps) .. " FPS  " .. metricText(latency) .. " ms")
+end
+
 function minimap.Tick(self, elapsed)
+    if core.Profile.minimap.performance == true then
+        self.performanceElapsed = (self.performanceElapsed or 0) + elapsed
+        if self.performanceElapsed >= PERFORMANCE_INTERVAL then minimap.UpdatePerformance() end
+    end
     self.elapsed = self.elapsed + elapsed
     if self.elapsed < UPDATE_SECONDS then return end
     self.elapsed = 0
@@ -194,9 +221,10 @@ local function createHolder()
     holder.clock = label("small", "TOPLEFT", "BOTTOMLEFT", -TEXT_GAP)
     holder.coords = label("small", "TOPRIGHT", "BOTTOMRIGHT", -TEXT_GAP)
     holder.diel = label("small", "TOPLEFT", "BOTTOMLEFT", -(TEXT_GAP + 16))
+    holder.performance = label("small", "TOPRIGHT", "BOTTOMRIGHT", -(TEXT_GAP + 16))
     holder.elapsed = 0
     holder:SetScript("OnUpdate", minimap.Tick)
-    layout.Register(holder, KEY, DEFAULTS, { onApply = function() minimap.UpdateCoordinates(); minimap.UpdateDiel() end })
+    layout.Register(holder, KEY, DEFAULTS, { onApply = function() minimap.UpdateCoordinates(); minimap.UpdateDiel(); minimap.UpdatePerformance() end })
     minimap.Holder = holder
 end
 
@@ -288,6 +316,7 @@ local function build()
     installMouse()
     minimap.UpdateZone()
     minimap.UpdateDiel()
+    minimap.UpdatePerformance()
     if core.EditMode then core.EditMode.Guard(MinimapCluster, "minimap", reattach) end
 end
 
@@ -323,5 +352,10 @@ table.insert(minimap.Options.settings, { type = "checkbox", key = "dayNight", la
     description = "Show the world cycle reported by the client, independently of the clock.",
     get = function() return core.Profile.minimap.dayNight ~= false end,
     set = function(value) core.Profile.minimap.dayNight = value == true; minimap.UpdateDiel() end })
+
+table.insert(minimap.Options.settings, { type = "checkbox", key = "performance", label = "Show FPS and world latency",
+    description = "Update once per second below the minimap. Unavailable measurements show --.",
+    get = function() return core.Profile.minimap.performance == true end,
+    set = function(value) core.Profile.minimap.performance = value == true; minimap.UpdatePerformance() end })
 
 core:RegisterModule("minimap", minimap)

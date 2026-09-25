@@ -185,6 +185,30 @@ return function(check)
         check("the clock follows the 12-hour setting", holder.clock.text:match("^%d+:%d%d [AP]M$") ~= nil)
         C_CVar.GetCVar = savedGetCVar
 
+        do
+            local oldFPS, oldNet = GetFramerate, GetNetStats
+            local performance, polls = nil, 0
+            for _, setting in ipairs(module.Options.settings) do if setting.key == "performance" then performance = setting end end
+            GetFramerate = function() polls = polls + 1; return 59.8 end
+            GetNetStats = function() return 1, 2, 30, 45 end
+            check("performance setting exists", performance ~= nil)
+            if performance then
+                performance.set(true)
+                check("performance shows FPS and world latency", holder.performance.text == "60 FPS  45 ms")
+                local before = polls
+                tick(holder, 0.2); tick(holder, 0.2)
+                check("performance sampling is throttled separately", polls == before)
+                tick(holder, 0.6)
+                check("performance refreshes once per second", polls == before + 1)
+                GetNetStats = function() return 1, 2, 30, env.SECRET end
+                tick(holder)
+                check("unknown latency does not become zero", holder.performance.text == "60 FPS  -- ms")
+                performance.set(false)
+                before = polls; tick(holder)
+                check("disabled performance clears and stops polling", holder.performance.text == "" and polls == before)
+            end
+            GetFramerate, GetNetStats = oldFPS, oldNet
+        end
         local oldGameTime = GetGameTime
         GetGameTime = function() return 0, 5 end
         module.Options.settings[1].set(true)

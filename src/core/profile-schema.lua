@@ -32,7 +32,7 @@ local schema = {
         capacityLowOnly=boolean, capacityThreshold=number(0,20,true) },
     durability={ showPercent=boolean },
     questtracker={ collapsed=boolean, collapseInCombat=boolean, hideCompleted=boolean, readyFirst=boolean },
-    minimap={ serverTime=boolean, coordinates=boolean, dayNight=boolean },
+    minimap={ performance=boolean, serverTime=boolean, coordinates=boolean, dayNight=boolean },
     swingtimer={ kiting=boolean, stopLead=number(0.1,1.5) },
     druidmana={ show=boolean }, worldmap={ fog=boolean }, nameplates={ healthHeight=number(12,24,true), nameHeight=number(12,24,true), threatText=boolean, selectedScale=number(1,1.5), otherAlpha=number(0.2,1) },
     unitframes={ healthText=textMode, powerText=textMode },
