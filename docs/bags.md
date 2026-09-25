@@ -1,6 +1,8 @@
 # Bags
 
-Use **/rik favorite <item link or ID>** to add or remove a favorite item. Paste a link by shift-clicking it into the command. The **Favorites** quick filter, `type:favorites` search selector and small gold **F** badge follow the item ID across bag moves. Favorites are saved per UI profile (up to 50 item IDs), work with text search, and are included in shared profiles. They organize items; they do not prevent native use, sorting or selling. Hover Favorites for command help.
+**Protect favorites from bulk junk sales** is on by default. RikUI skips the whole manual or automatic bulk sale when it finds favorite junk or cannot verify inventory. The merchant button explains the block. You can sell individual items normally, or disable protection explicitly. The guard reads current slots again at click time.
+
+Use **/rik favorite <item link or ID>** to add or remove a favorite item. Paste a link by shift-clicking it into the command. The **Favorites** quick filter, `type:favorites` search selector and small gold **F** badge follow the item ID across bag moves. Favorites are saved per UI profile (up to 50 item IDs), work with text search, and are included in shared profiles. They organize items and can guard RikUI bulk junk sales; native individual use, sorting and selling remain available. Hover Favorites for command help.
 
 **Show item levels on bag gear** adds a level in the top-right of weapon and armor icons, leaving the new-item badge and stack count in their own corners. It is off by default and applies immediately. Unreadable or uncached levels stay blank and refresh on existing item-data events. Native item click and drag behavior is unchanged.
 

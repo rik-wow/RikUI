@@ -73,7 +73,7 @@ end
 
 core:RegisterCommand("favorite", function(input)
     if input == "" then
-        core:Print("Use /rik favorite <item link or ID> to toggle. Favorites only filter items; they do not prevent selling.")
+        core:Print("Use /rik favorite <item link or ID> to toggle. Protect favorites in Bags settings guards RikUI bulk junk sales; individual sales remain available.")
         return
     end
     local _, message = bags.ToggleFavorite(input)

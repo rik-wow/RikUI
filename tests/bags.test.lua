@@ -362,6 +362,25 @@ return function(check)
         check("unknown modifier skips auto sale", sold == 3)
         IsShiftKeyDown = savedShift
         RikUI.Profile.bags.autoSellJunk = false
+        stub.items["0:1"].itemID, stub.items["0:1"].quality = 123, 0
+        RikUI.Profile.bags.favorites = "123"
+        env.fire("MERCHANT_SHOW")
+        local beforeGuard = sold
+        module.SellJunk()
+        check("favorite junk blocks bulk sale", sold == beforeGuard and holder.junk.enabled == false)
+        stub.items["0:1"].quality = env.SECRET
+        module.SellJunk()
+        check("unknown favorite quality blocks bulk sale", sold == beforeGuard)
+        stub.items["0:1"].quality = 1
+        module.SellJunk()
+        check("readable nonjunk favorites allow bulk sale", sold == beforeGuard + 1)
+        stub.items["0:1"].quality = 0
+        RikUI.Profile.bags.protectFavorites = false
+        module.SellJunk()
+        check("explicitly disabled favorite protection allows sale", sold == beforeGuard + 2)
+        RikUI.Profile.bags.favorites = ""
+        stub.items["0:1"].itemID, stub.items["0:1"].quality = nil, 1
+        env.fire("MERCHANT_CLOSED")
         C_MerchantFrame = oldMerchant
         local oldRepair, oldCost, oldCan, oldShift = RepairAllItems, GetRepairAllCost, CanMerchantRepair, IsShiftKeyDown
         local repairs, cost, canRepair, shifted = 0, 50, true, false

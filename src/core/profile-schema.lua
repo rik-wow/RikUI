@@ -38,7 +38,7 @@ local schema = {
     chat={ mutedPhrases=phrases, highlightWords=phrases, fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
     panels={ questTextSize=function(value) return value == 0 or number(12,24,true)(value) end,
         skins={ character=boolean, spells=boolean, quests=boolean, professions=boolean, commerce=boolean, maps=boolean } },
-    bags={ favorites=itemIDs, autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
+    bags={ protectFavorites=boolean, favorites=itemIDs, autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
         capacityLowOnly=boolean, capacityThreshold=number(0,20,true) },
     combattimer={ show=boolean, linger=number(0,30,true) },
     durability={ showPercent=boolean },

@@ -7,6 +7,29 @@ local function amount(value)
         and value >= 0 and value < math.huge
 end
 
+local function favoriteSaleBlock()
+    if core.Profile.bags.protectFavorites == false or core.Profile.bags.favorites == "" then return nil end
+    if type(C_Container) ~= "table" then return "Inventory unavailable" end
+    for bag = 0, 4 do
+        local ok, slots = pcall(C_Container.GetContainerNumSlots, bag)
+        if not ok or not amount(slots) or slots > 200 or slots % 1 ~= 0 then return "Inventory unavailable" end
+        for slot = 1, slots do
+            local read, info = pcall(C_Container.GetContainerItemInfo, bag, slot)
+            if not read or core.Secret.IsSecret(info) then return "Inventory unavailable" end
+            if info ~= nil then
+                if type(info) ~= "table" or core.Secret.IsSecret(info.quality)
+                    or not amount(info.quality) then return "Inventory unavailable" end
+                if info.quality == 0 then
+                    if core.Secret.IsSecret(info.itemID) or not amount(info.itemID) or info.itemID <= 0 then
+                        return "Inventory unavailable"
+                    end
+                    if bags.IsFavorite(info.itemID) then return "Favorite junk saved" end
+                end
+            end
+        end
+    end
+end
+
 local function junkCount()
     local api = C_MerchantFrame
     if not merchantOpen or InCombatLockdown() or type(api) ~= "table" then return nil end
@@ -25,13 +48,20 @@ function bags.RefreshMerchant()
     if not button then return end
     button:SetShown(merchantOpen)
     local count = junkCount()
-    button:SetEnabled(count ~= nil and count > 0)
-    button.label:SetText(count and ("Sell junk (" .. count .. ")") or "Sell junk")
+    local blocked = merchantOpen and favoriteSaleBlock()
+    button:SetEnabled(not blocked and count ~= nil and count > 0)
+    button.label:SetText(blocked or count and ("Sell junk (" .. count .. ")") or "Sell junk")
 end
 
 function bags.SellJunk()
     local count = junkCount()
     if not count or count <= 0 then return end
+    local blocked = favoriteSaleBlock()
+    if blocked then
+        core:Print(blocked .. ". Bulk sale skipped; sell individual items or change Protect favorites.")
+        bags.RefreshMerchant()
+        return
+    end
     local ok, reason = pcall(C_MerchantFrame.SellAllJunkItems)
     if not ok then bags.Warn("sell junk", reason) end
     bags.RefreshMerchant()
@@ -137,7 +167,11 @@ local function nativeBagOption(name, label)
 end
 
 bags.Options = { title = "Bags and vendors", settings = {
-    { type = "heading", label = "Favorite items", description = "Use /rik favorite <item link or ID> to mark up to 50 favorite items, then choose Favorites in bags. Favorites do not prevent selling." },
+    { type = "heading", label = "Favorite items", description = "Use /rik favorite <item link or ID> to mark up to 50 favorite items, then choose Favorites in bags. Protect favorites guards RikUI bulk junk sales. Individual native item sales remain available." },
+    { type = "checkbox", key = "protectFavorites", label = "Protect favorites from bulk junk sales",
+        description = "Skip the whole bulk sale if a favorite junk item is present or inventory is unreadable. Individual item sales stay available.",
+        get = function() return core.Profile.bags.protectFavorites ~= false end,
+        set = function(value) core.Profile.bags.protectFavorites = value == true; bags.RefreshMerchant() end },
     nativeBagOption("SortBagsRightToLeft", "Sort bags from right to left"),
     nativeBagOption("InsertItemsLeftToRight", "Place new loot from left to right"),
     nativeBagOption("BackpackAutosortDisabled", "Exclude backpack from sorting"),

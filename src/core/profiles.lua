@@ -9,7 +9,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },
     combattimer = { show = false, linger = 5 },
     panels = { questTextSize = 0 },
-    bags = { favorites = "", autoRepair = false, itemLevels = false, repairGuild = false, autoSellJunk = false, columns = 10, capacityHUD = true, capacityLowOnly = false, capacityThreshold = 4 },
+    bags = { protectFavorites = true, favorites = "", autoRepair = false, itemLevels = false, repairGuild = false, autoSellJunk = false, columns = 10, capacityHUD = true, capacityLowOnly = false, capacityThreshold = 4 },
     barFade = { bar3 = true },
     questtracker = { collapsed = false, collapseInCombat = false, hideCompleted = false, readyFirst = false },
     minimap = { performance = false, serverTime = false, coordinates = true, dayNight = true },
