@@ -37,6 +37,20 @@ function bags.SellJunk()
     bags.RefreshMerchant()
 end
 
+local function guildFunds(cost)
+    if core.Profile.bags.repairGuild ~= true then return false end
+    for _, name in ipairs({ "CanGuildBankRepair", "GetGuildBankMoney", "GetGuildBankWithdrawMoney" }) do
+        if type(_G[name]) ~= "function" then return false end
+    end
+    local ok, allowed = pcall(CanGuildBankRepair)
+    if not ok or core.Secret.IsSecret(allowed) or allowed ~= true then return false end
+    local bankOK, bank = pcall(GetGuildBankMoney)
+    local limitOK, limit = pcall(GetGuildBankWithdrawMoney)
+    if not bankOK or not amount(bank) or bank < cost or not limitOK
+        or core.Secret.IsSecret(limit) then return false end
+    return limit == -1 or (amount(limit) and limit >= cost)
+end
+
 local function repairState()
     if not merchantOpen or InCombatLockdown() then return nil end
     for _, name in ipairs({ "CanMerchantRepair", "GetRepairAllCost", "GetMoney", "RepairAllItems" }) do
@@ -45,26 +59,28 @@ local function repairState()
     local canRepair = CanMerchantRepair()
     if core.Secret.IsSecret(canRepair) or canRepair ~= true then return nil end
     local cost, needed = GetRepairAllCost()
+    if core.Secret.IsSecret(needed) or needed ~= true or not amount(cost) then return nil end
+    if guildFunds(cost) then return cost, cost, true end
     local money = GetMoney()
-    if core.Secret.IsSecret(needed) or needed ~= true or not amount(cost) or not amount(money) then return nil end
-    return cost, money
+    if not amount(money) then return nil end
+    return cost, money, false
 end
 
 function bags.RefreshRepair()
     local button = bags.Holder and bags.Holder.repair
     if not button then return end
-    local ok, cost, money = pcall(repairState)
+    local ok, cost, money, guild = pcall(repairState)
     button:SetShown(merchantOpen)
     button:SetEnabled(ok and cost ~= nil and cost > 0 and cost <= money)
-    button.label:SetText(ok and cost and cost > money and "Can't afford" or "Repair all")
+    button.label:SetText(ok and cost and cost > money and "Can't afford" or guild and "Guild repair" or "Repair all")
 end
 
 function bags.Repair()
-    local ok, cost, money = pcall(repairState)
+    local ok, cost, money, guild = pcall(repairState)
     if not ok then bags.Warn("repair", cost); return end
     if not cost or cost == 0 then return end
     if cost > money then core:Print("Not enough money to repair your gear."); return end
-    local repaired, reason = pcall(RepairAllItems, false)
+    local repaired, reason = pcall(RepairAllItems, guild)
     if not repaired then bags.Warn("repair", reason) end
     bags.RefreshRepair()
 end
@@ -145,8 +161,12 @@ bags.Options = { title = "Bags and vendors", settings = {
         description = "Sell native junk once when opening a vendor. Hold Shift to skip. Respects native backpack exclusions.",
         get = function() return core.Profile.bags.autoSellJunk == true end,
         set = function(value) core.Profile.bags.autoSellJunk = value == true end },
+    { type = "checkbox", key = "repairGuild", label = "Prefer guild funds for repairs",
+        description = "Use guild funds when permitted and sufficient; otherwise use your money. Applies to manual and automatic repairs.",
+        get = function() return core.Profile.bags.repairGuild == true end,
+        set = function(value) core.Profile.bags.repairGuild = value == true; bags.RefreshRepair() end },
     { type = "checkbox", key = "autoRepair", label = "Automatically repair gear",
-        description = "Use personal funds at repair vendors. Hold Shift when opening a vendor to skip.",
+        description = "Repair at vendors using your selected funding preference. Hold Shift when opening a vendor to skip.",
         get = function() return core.Profile.bags.autoRepair == true end,
         set = function(value) core.Profile.bags.autoRepair = value == true end },
 } }

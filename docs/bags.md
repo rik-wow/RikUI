@@ -1,5 +1,7 @@
 # Bags
 
+**Prefer guild funds for repairs** uses guild money when the client reports permission, sufficient balance and allowance. Otherwise it uses affordable personal funds. It applies to both automatic and manual repairs; the button says **Guild repair** when selected. It defaults off and never retries spending after a failed repair call. Missing guild APIs leave personal repair available.
+
 **Automatically sell junk** is off by default in Bags and vendors. When enabled it runs the client's Sell junk action once on opening a merchant, respecting native exclusions. Hold Shift to skip both automatic selling and repair; manual buttons remain available. Combat or unavailable modifier/item data skips selling without scheduling a later sale.
 
 API reviewed 2026-09-24: [69913 native merchant batch selling](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/MerchantFrameDocumentation.lua).

@@ -400,6 +400,35 @@ return function(check)
         env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
         check("unreadable repair costs never spend", repairs == 1)
         RikUI.Profile.bags.autoRepair = false
+        do
+            local oldGuildCan, oldGuildMoney, oldGuildLimit = CanGuildBankRepair, GetGuildBankMoney, GetGuildBankWithdrawMoney
+            local permission, bank, allowance, funding = true, 1000, 100, {}
+            CanGuildBankRepair = function() return permission end
+            GetGuildBankMoney = function() return bank end
+            GetGuildBankWithdrawMoney = function() return allowance end
+            RepairAllItems = function(guild) funding[#funding + 1] = guild end
+            RikUI.Profile.bags.repairGuild = true
+            cost = 50
+            env.fire("MERCHANT_SHOW")
+            module.RefreshRepair(); module.Repair()
+            check("guild repair preference uses guild money", funding[1] == true and holder.repair.label.text == "Guild repair")
+            allowance = 10; module.Repair()
+            check("low guild allowance falls back to personal funds", funding[2] == false)
+            allowance = -1; module.Repair()
+            check("unlimited guild allowance is supported", funding[3] == true)
+            bank = env.SECRET; module.Repair()
+            check("opaque guild balance falls back to personal funds", funding[4] == false)
+            bank, permission, cost = 1000, false, stub.money + 1
+            module.Repair()
+            check("no affordable funding refuses repair", #funding == 4)
+            cost, permission = 50, true
+            RepairAllItems = function() error("guild request failed") end
+            module.Repair()
+            check("failed guild repair is reported without fallback spending", printedContains("guild request failed"))
+            env.fire("MERCHANT_CLOSED")
+            RikUI.Profile.bags.repairGuild = false
+            CanGuildBankRepair, GetGuildBankMoney, GetGuildBankWithdrawMoney = oldGuildCan, oldGuildMoney, oldGuildLimit
+        end
         RepairAllItems, GetRepairAllCost, CanMerchantRepair, IsShiftKeyDown = oldRepair, oldCost, oldCan, oldShift
         env.printed = {}
         local oldNew, marked = C_NewItems, true
