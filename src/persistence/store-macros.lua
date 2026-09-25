@@ -210,12 +210,48 @@ local function writeMacro(name, text)
 end
 
 local function preflightNames(total)
+    local previous = {}
     for index = 1, math.max(total, state.used) do
         local ok, existing = pcall(body, NAME .. index)
-        if not ok then return false, "restart backup macro could not be read" end
+        if not ok then return nil, "restart backup macro could not be read" end
         if existing and not existing:match("^#rikui " .. index .. "/%d+ %d+ ") then
-            return false, "macro name is already in use: " .. NAME .. index .. "; rename that macro before saving"
+            return nil, "macro name is already in use: " .. NAME .. index .. "; rename that macro before saving"
         end
+        previous[index] = existing or false
+    end
+    return previous
+end
+
+local function removeMacro(name)
+    DeleteMacro(name)
+    return body(name) == nil
+end
+
+local function rollback(previous, problem)
+    local restored = true
+    for index = #previous, 1, -1 do
+        local name, text = NAME .. index, previous[index]
+        local ok, result = pcall(function()
+            if body(name) == (text or nil) then return true end
+            if text then return writeMacro(name, text) end
+            return removeMacro(name)
+        end)
+        if not ok or not result then restored = false end
+    end
+    if not restored then problem = problem .. "; previous restart backup could not be fully restored" end
+    return false, problem
+end
+
+local function applyText(text, room, total, sum, previous)
+    for index = 1, total do
+        local chunk = text:sub((index - 1) * room + 1, index * room)
+        local ok, written, reason = pcall(writeMacro, NAME .. index, HEADER .. index .. "/" .. total .. " " .. sum .. " " .. chunk)
+        if not ok then return rollback(previous, "restart backup write failed: " .. tostring(written)) end
+        if not written then return rollback(previous, reason) end
+    end
+    for index = total + 1, #previous do
+        local ok, removed = pcall(removeMacro, NAME .. index)
+        if not ok or not removed then return rollback(previous, "old restart backup macro could not be removed") end
     end
     return true
 end
@@ -225,18 +261,14 @@ local function writeText(text)
     local room = BODY_LIMIT - #(HEADER .. MAX_MACROS .. "/" .. MAX_MACROS .. " " .. sum .. " ")
     local total = math.max(1, math.ceil(#text / room))
     if total > MAX_MACROS then return false, "the settings are too large for the macro store" end
-    local available, problem = preflightNames(total)
-    if not available then return false, problem end
-    for index = 1, total do
-        local chunk = text:sub((index - 1) * room + 1, index * room)
-        local ok, written, reason = pcall(writeMacro, NAME .. index, HEADER .. index .. "/" .. total .. " " .. sum .. " " .. chunk)
-        if not ok then return false, "restart backup write failed: " .. tostring(written) end
-        if not written then return false, reason end
-    end
-    for index = total + 1, math.max(state.used, total) do pcall(DeleteMacro, NAME .. index) end
+    local previous, problem = preflightNames(total)
+    if not previous then return false, problem end
+    local ok, reason = applyText(text, room, total, sum, previous)
+    if not ok then return false, reason end
     state.used = total
     return true
 end
+
 
 -- User choices get the whole budget first. Learning remains complete in the
 -- reload/SavedVariables tiers; the small restart tier keeps what fits.

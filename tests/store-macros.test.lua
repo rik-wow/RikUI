@@ -399,6 +399,64 @@ return function(check)
             and core.Store.MacroStatus().failure ~= nil)
         GetMacroInfo = macroReader
 
+        macros = {}; core = restart()
+        core.Profile.customPayload = string.rep("old", 250)
+        core.Store.FlushMacros()
+        local prior = {}
+        for name, value in pairs(macros) do prior[name] = value end
+        core.Profile.customPayload = string.rep("new", 250)
+        local editMacro, rejected = EditMacro, false
+        EditMacro = function(name, ...)
+            if name == "RikUI data 2" and not rejected then rejected = true; return nil end
+            return editMacro(name, ...)
+        end
+        core.Store.FlushMacros()
+        EditMacro = editMacro
+        local intact = true
+        for name, value in pairs(prior) do if macros[name] ~= value then intact = false end end
+        check("partial macro overwrite rolls back prior snapshot", intact and core.Store.MacroStatus().failure ~= nil)
+        core = restart()
+        check("rolled back restart snapshot remains readable", core.Profile.customPayload == string.rep("old", 250))
+        core.Profile.customPayload = string.rep("new", 250)
+        core.Store.FlushMacros()
+        check("macro retry after rollback succeeds", core.Store.MacroStatus().failure == nil)
+
+        local deleteMacro = DeleteMacro
+        core.Profile.customPayload = nil
+        local deleteRejected = false
+        DeleteMacro = function(name)
+            if not deleteRejected then deleteRejected = true; return end
+            return deleteMacro(name)
+        end
+        local beforeShrink = macros["RikUI data 1"]
+        core.Store.FlushMacros()
+        DeleteMacro = deleteMacro
+        check("cleanup failure rolls back prior header", macros["RikUI data 1"] == beforeShrink
+            and core.Store.MacroStatus().failure ~= nil)
+        macros = {}; core = restart()
+        core.Profile.customPayload = string.rep("first", 150)
+        local createMacro = CreateMacro
+        CreateMacro = function(name, ...)
+            if name == "RikUI data 2" then return nil end
+            return createMacro(name, ...)
+        end
+        core.Store.FlushMacros()
+        CreateMacro = createMacro
+        check("failed first save removes partial created macros", next(macros) == nil
+            and core.Store.MacroStatus().failure ~= nil)
+        core.Store.FlushMacros()
+        core.Profile.customPayload = string.rep("changed", 120)
+        local failures = 0
+        EditMacro = function(name, ...)
+            failures = failures + 1
+            if failures >= 2 then return nil end
+            return editMacro(name, ...)
+        end
+        core.Store.FlushMacros()
+        EditMacro = editMacro
+        check("rollback failure is explicit", core.Store.MacroStatus().failure
+            and core.Store.MacroStatus().failure:find("could not be fully restored", 1, true))
+
         macros = { ["RikUI data 1"] = "/say my macro" }; core = restart()
         local collisionWrites = writes
         core.Store.FlushMacros()
