@@ -6,6 +6,7 @@ Texture layers never add walkable geometry; they only bias route costs.
 """
 import argparse, csv, json, pathlib, re, subprocess
 import acquire as a
+import client_build
 
 MAX_TILES = 4096
 MAX_TILE_BYTES = 8 * 1024 * 1024
@@ -70,11 +71,11 @@ def main():
         a.fail('game-root-must-contain-Data')
     output = a.empty_output(args.output, (game, tool.parent, pathlib.Path(__file__).parent))
     rows = tiles(args.tile_csv, set(args.world))
-    arguments = [str(tool), '-d', str(game), '-p', profile['product'], '-b', profile['buildConfig'],
-                 '-c', profile['cdnConfig'], '-l', profile['locale']]
+    arguments = [str(tool), '-d', str(game), '-p', profile['product'], '-b', client_build.IDENTITY['buildConfig'],
+                 '-c', client_build.IDENTITY['cdnConfig'], '-l', profile['locale']]
     extract(arguments, output, rows)
-    manifest = dict(format='rikui-tex0-acquisition-v1', product=profile['product'], build=profile['version'],
-                    locale=profile['locale'], buildConfig=profile['buildConfig'], cdnConfig=profile['cdnConfig'],
+    manifest = dict(format='rikui-tex0-acquisition-v1', product=profile['product'], build=client_build.BUILD,
+                    locale=profile['locale'], buildConfig=client_build.IDENTITY['buildConfig'], cdnConfig=client_build.IDENTITY['cdnConfig'],
                     tool=pin, tileCSVSHA256=a.digest(pathlib.Path(args.tile_csv).read_bytes()),
                     parserSHA256=a.digest(pathlib.Path(__file__).read_bytes()), files=rows,
                     gameFilesModified=False, nativeVerified=False)

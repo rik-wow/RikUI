@@ -101,6 +101,82 @@ reads were identical to 1.60.1.69913, so `quest-builds.lua` maps 69977 to the
 69913 data build instead of rebuilding. A patch that changes sources needs a
 rebake of what they feed.
 
+## Forever 1.60.1.70009 (2026-09-24)
+
+The user's launcher screenshot and installed `.build.info` identify this client:
+BuildConfig `05215079e3905ef5922ae0b03ffefb73`, CDNConfig
+`9b3c456dbb837d133a026d380c7c13e9`, product `wow_classic_beta`, locale `enUS`.
+Current [player patch reports](https://www.reddit.com/r/wowforever/comments/1wpfkl3/patch_notes/)
+mention settings persistence after restarting. These are community reports;
+the compatibility decision below uses exact client assets and DB2 exports.
+
+The comparison found 14,965 identical and 732 changed/missing entries among
+15,697 old references. Current placement traversal requires 14,291 assets:
+1,888 root ADTs, 1,888 object ADTs, 867 WMO roots, 4,104 base WMO groups and
+5,544 M2s. Three initially missing object ADTs were successfully re-extracted;
+unused old WMO group references are omitted. All seven pinned WDTs and
+UiMapAssignment are unchanged. No old terrain bytes replace missing sources.
+
+Primary DB2 exports are from
+[wago.tools, build 70009](https://wago.tools/db2/Map/csv?build=1.60.1.70009),
+including [TaxiNodes](https://wago.tools/db2/TaxiNodes/csv?build=1.60.1.70009),
+[LiquidType](https://wago.tools/db2/LiquidType/csv?build=1.60.1.70009) and
+[QuestV2](https://wago.tools/db2/QuestV2/csv?build=1.60.1.70009).
+Stormwind's flight master and nearby TaxiPathNode coordinates changed.
+LiquidType adds water ID 1344 (Stormwind canals); all prior SoundBank
+classifications remain unchanged. LiquidType CSV SHA-256:
+`e3746a054e1711f645ab1e7023e24ac42c9514707096054d67747e06ac28808d`.
+
+QuestV2 preserves every old record and adds 98372, 99257, 99258, 99260 and
+99326. This establishes ID continuity, not unchanged server quest behavior.
+The existing quest corpus remains a supported subset with its original
+provenance; those five IDs have unknown corpus coverage. `DataBuild` selects
+that quest baseline while `NavigationIdentity` requires rebuilt 70009 terrain.
+Unknown builds, different products and locales do not inherit terrain admission.
+A mismatch now has a specific status instead of generic terrain-unavailable text.
+
+Set `RIKUI_TERRAIN_BUILD=1.60.1.70009` for acquisition, projection, placement
+indexing, baking and road compilation. The default remains 69913 to reproduce
+archived builds; unlisted overrides fail. `refresh_sources.py` takes a completed
+`verify_build.py` comparison, checks cached hashes, walks current placement
+dependencies and extracts missing assets with the pinned TACTTool. Only WDTs
+matching topology pins may be supplied as supplementary files.
+
+Local evidence:
+
+- Comparison: `D:/RikUI-local/verify-70009-world/verification.json`.
+- Acquisition: `C:/RikUI-local/70009-sources/acquisition-profile.json`,
+  SHA-256 `0ab27d151c6b472ac5eee02d019869e2e52568af06974ff59f7e2b99620776f3`.
+- Independent refreshed acquisition: `C:/RikUI-local/70009-sources-audited`,
+  SHA-256 `c01c0067975fe38b3cb51c8bc793e27b80367caf5f009b7a977185673963cda2`;
+  every asset hash, kind, world and tile binding agrees with the bake input.
+- Placement index: `C:/RikUI-local/70009-placements.sqlite`,
+  SHA-256 `79927be45b9e435b019ebd052d82f75fd95f06f8c097324e81511c36fb84e21e`.
+- Road rasters: `C:/RikUI-local/70009-road-rasters`, 1,888 tiles;
+  travel links: `C:/RikUI-local/70009-travel-links.json`.
+
+### 70009 build verification
+
+All 2,290 physical batches completed and passed receipt, geometry and seam
+validation. The resulting seven-world pack has 277 addons, 12,427 installable
+files and 271,252,243 bytes. Build output: `C:/RikUI-local/70009-road-network`;
+receipt SHA-256 `08e32aef12ed9e9541af9ab3639edec53a24d41df8989bfaa02d1c7a9ae7c46f`.
+
+The ownership-aware installer installed all 277 addons and verified all
+12,427 files in the beta client's AddOns folder. Previous packs remain at
+`Interface/.rikui-road-stage-3c8sqds4/previous`. Restart the game completely
+to discover the new addon set and clear the old in-memory catalogs.
+
+The 17,052 Lua checks, 80 Python checks and manifest compilation pass.
+All seven real graph suites load with client build 70009 and pass ten sampled
+A*/Dijkstra cases each, retaining disconnected components. The two Dun Morogh
+detail routes measure 125 and 181 yards with no follower regressions.
+The archived quest 315 observation `9c563e01` matches its decision across
+596 candidates and arrives after 559.5 yards without route swaps or replans.
+Its first route appears at frame 110; largest callback is 23 ms and addon load
+10 ms on this host. These are host checks; native acceptance follows the
+user's standing policy, not an agent-observed game traversal.
+
 ## Runtime
 
 `RikUIQuestRoads` (always loaded) maps each UI map to its world's network
@@ -202,10 +278,13 @@ python -B tools/terrain/test_road_textures.py
 python -B tools/terrain/test_quest_pockets.py
 python -B tools/terrain/test_install_roads.py
 luajit tests/run_tests.lua                                  # includes quest-roads
-luajit tests/quest-roads-real.lua <network dir> <world> [pairs]
+luajit tests/quest-roads-real.lua <network dir> <world> [pairs] [clientBuild]
 luajit tests/quest-roads-navigate-real.lua <network dir> <uiMapID> sx sy gx gy ...
 luajit tests/quest-adaptive-roads.lua <AddOns root> <RIKQ packet> [questID] [frames] [flavor]
 ```
+
+For newer-build host replays, set `RIKUI_CLIENT_BUILD=1.60.1.70009` for the
+navigate/adaptive scripts; archived quest packets keep their original identity.
 
 Everything here is modeled geometry. Native walking, doors, swimming and
 transports are not verified.

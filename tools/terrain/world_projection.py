@@ -11,16 +11,12 @@ import argparse, csv, hashlib, json, math
 from dataclasses import dataclass
 from pathlib import Path
 
-BUILD = '1.60.1.69913'
+from client_build import BUILD, SOURCE_HASHES
 PRODUCT = 'wow_classic_beta'
 COORDINATES = 'Y-up; X=game world Y; Z=game world X'
 TILE_SIZE = 1600.0 / 3.0
 TILE_WORKLIST_SHA256 = '944a435972c6108c4e7f068cfa792823f82f8f4a4491e1630524dac1e78533f9'
-SOURCE_HASHES = {
- 'Map': 'fdd6a598e4263ce106371ccb0d2bd8eca6842c4580feabce1f8f8e9cbc27344c',
- 'UiMapAssignment': '79267e8be8034e47daab14350411b3acc0b1f64e86efc9d821a217497254ca0a',
- 'UiMap': '4c5ede52826ef48808aa7c0cd9d63fb3d028df88de1b2041148b164bb42328b2',
-}
+
 
 
 def finite(value):

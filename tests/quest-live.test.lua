@@ -39,13 +39,20 @@ return function(check)
         dofile("tests/load_addon.lua").Core()
         assert(loadfile("src/ui/media.lua"))("RikUI",{})
         dofile("src/ui/skin.lua"); dofile("src/ui/scroll.lua")
-        for _,name in ipairs({"schema","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","journey-graph","actions","simulation","optimizer",
+        for _,name in ipairs({"schema","builds","objectives","evidence","corpus","reader","transfer","eligibility","elevators","travel","journey-graph","actions","simulation","optimizer",
             "context","gossip","journal","dataset","steps","step-bindings","guide-data","observed-steps","targets","recommendations","guidance","controller","nav-geometry","view","window-layout","window","navigation","transfer-view","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         dofile("src/modules/questplanner/questplanner.lua")
         env.fire("ADDON_LOADED","RikUI"); env.fire("PLAYER_LOGIN"); env.flushTimers()
         local p=RikUI.QuestPlanner
+        GetBuildInfo=function() return "1.60.1","70009","date",16001 end
+        local patched=assert(p.Reader.Read())
+        check("70009 reader keeps supported quest baseline",patched.identity.build=="1.60.1.69913")
+        check("70009 reader requires current navigation",p.Builds.Client()=="1.60.1.70009"
+            and p.Builds.NavigationIdentity(patched.identity).build=="1.60.1.70009")
+        GetBuildInfo=function() return "1.60.1","69913","date",16001 end
+        assert(p.Reader.Read())
         local model=p.Controller.Get()
         check("reader records initial snapshot independently",p.Journal.Export().entries[1].event=="initial-observation")
         check("live unknown geometry presents observations without ETA",model.status=="observed" and not model.calculated and model.seconds==nil)

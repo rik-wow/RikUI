@@ -11,7 +11,7 @@ import compile_backbone as compact
 import compile_quest_terrain as compiler
 from world_source import Source,canonical,sha,need
 from terrain_contract import runtime_geometry,runtime_metadata
-RUNTIME_IDENTITY=dict(product='forever',build='1.60.1.69913',locale='enUS')
+from client_build import RUNTIME_IDENTITY
 MAX_BATCHES=2290
 MAX_GROUP_POLYGONS=524288
 

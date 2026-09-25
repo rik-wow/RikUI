@@ -6,6 +6,9 @@ return function(check,p,env)
     end
     check("missing terrain is explicit",p.Guidance.RouteStatus(observed,nil)=="Terrain datasource is not installed")
     check("installed service distinguishes missing datasource",status("unavailable","Terrain datasource is not installed")=="Terrain datasource is not installed")
+    for _,reason in ipairs({"road-network-identity","Terrain build or locale does not match"}) do
+        check("navigation mismatch is explicit",status("unavailable",reason)=="Navigation data does not match this client build or locale")
+    end
     check("missing player position is distinct",status("unavailable-position")=="Your position is unavailable")
     check("uncovered player is distinct",status("unknown-location","outside known navigation polygons")=="Your position is outside the walking model")
     check("ambiguous floor does not claim uncovered player",status("unknown-location","Floor or polygon boundary is ambiguous")=="Your floor is uncertain")

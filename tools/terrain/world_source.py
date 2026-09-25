@@ -6,8 +6,7 @@ import argparse, csv, hashlib, json, math, pathlib, struct
 import terrain_probe as terrain
 import world_projection as projection
 
-IDENTITY = dict(product='wow_classic_beta', edition='Forever', build='1.60.1.69913', locale='enUS',
- buildConfig='6c0df97e8e481a9a41600e373367c200', cdnConfig='5525ea1ce6668e895569c89c2d6a154c')
+from client_build import IDENTITY
 WDT_PINS = {
  0:(775971,'160452dec4c2b0ae4cbe7468ce52fee91ac7ec521d2cb0f28e955def0d087137'),
  1:(782779,'1120509b2ac42a94310bf05f915b5e67ed233be854089a3545829e064b614b44'),

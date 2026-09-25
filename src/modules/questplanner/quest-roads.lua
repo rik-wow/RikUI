@@ -232,6 +232,7 @@ end
 
 -- Returns graph, or nil plus "loading"/reason. Call once per frame until ready.
 function roads.Prepare(identity,world)
+    identity=planner.Builds and planner.Builds.NavigationIdentity(identity) or identity
     local entry=index.worlds[world]
     if not entry then return nil,"no-road-network" end
     if not same(entry.identity,identity) then return nil,"road-network-identity" end

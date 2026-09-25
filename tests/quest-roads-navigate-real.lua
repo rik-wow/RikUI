@@ -7,7 +7,7 @@ require("wow_stub")
 local root, mapID = arg[1], tonumber(arg[2])
 assert(root and mapID and #arg >= 6, "usage: <network dir> <uiMapID> sx sy gx gy ...")
 RikUI = {Secret = {IsSecret = function() return false end}}
-for _, name in ipairs({"schema", "nav-geometry", "nav-funnel", "nav-follow", "nav-search", "navmesh", "nav-attach",
+for _, name in ipairs({"schema", "builds", "nav-geometry", "nav-funnel", "nav-follow", "nav-search", "navmesh", "nav-attach",
     "path-codec", "roads", "road-patches", "road-route", "road-follow", "road-navigate"}) do
     dofile("src/modules/questplanner/quest-" .. name .. ".lua")
 end
@@ -21,7 +21,9 @@ C_AddOns = {LoadAddOn = function(addon)
     end
     return true
 end}
-local identity = {product = "forever", build = "1.60.1.69913", locale = "enUS"}
+local clientBuild = os.getenv("RIKUI_CLIENT_BUILD") or "1.60.1.69913"
+p.Builds.Observe(clientBuild)
+local identity = {product = "forever", build = p.Builds.DataBuild(clientBuild), locale = "enUS"}
 local function finish(job, limit)
     for _ = 1, limit or 2000000 do local r = job:Step(16); if r then return r end end
     error("step limit")

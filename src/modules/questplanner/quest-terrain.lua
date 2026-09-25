@@ -24,7 +24,13 @@ local function setState(status,detail)
     state={status=status,detail=detail}
     if planner.View and planner.View.Refresh then planner.View.Refresh() end
 end
-local function same(a,b) return a.product==b.product and a.build==b.build and a.locale==b.locale end
+local function navigationIdentity(identity)
+    return planner.Builds and planner.Builds.NavigationIdentity(identity) or identity
+end
+local function same(a,b)
+    b=navigationIdentity(b)
+    return a.product==b.product and a.build==b.build and a.locale==b.locale
+end
 local function clear(forgetLocation)
     if request then request:Cancel(); request=nil end
     route,display,selectedKey,lastAttempt=nil,nil,nil,nil
@@ -236,7 +242,7 @@ local function prepareRegions()
     local row=model.selected
     local destination=row and row.destination or live.position
     if manager.Admit then
-        local admitted,why=manager.Admit(snapshot.identity,live.position,destination,live.world and live.world.mapID)
+        local admitted,why=manager.Admit(navigationIdentity(snapshot.identity),live.position,destination,live.world and live.world.mapID)
         if not admitted then
             -- A directly installed legacy mesh can remain useful without regional packs.
             if mesh and meta and not meta.regionalCandidate and same(meta.identity,snapshot.identity)
@@ -261,7 +267,7 @@ local function prepareRegions()
     if regionBinding and regionBinding.packs then
         clear(true);setState("coverage-frontier","This map is served by the road network");return false
     end
-    local packet,reason=manager.Prepare(snapshot.identity,live.position,destination,false)
+    local packet,reason=manager.Prepare(navigationIdentity(snapshot.identity),live.position,destination,false)
     if regionalToken and not manager.Current(regionalToken) then
         if loader then loader:Cancel();loader=nil end
         regionalToken=nil;clear(true)

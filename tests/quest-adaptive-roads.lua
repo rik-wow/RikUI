@@ -6,7 +6,7 @@
 -- churn: invalidate the controller every N frames, as rapid quest-state events do in game.
 local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={CharDB={},Changed=function() end};RikUI["Secret"]={IsSecret=function() return false end}
-local modules={"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
+local modules={"schema","builds","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
     "path-codec","nav-attach","region-codec","terrain-packs","regions","navmesh",
     "roads","road-patches","road-route","road-follow","road-navigate","road-travel","road-guidance",
     "steps","step-bindings","guide-data","observed-steps","hunts","targets",
@@ -18,6 +18,8 @@ local p=RikUI.QuestPlanner
 local file=assert(io.open(assert(arg[2]),"rb"));local wire=file:read(131073);file:close()
 local snapshot=assert(p.Transfer.Decode(wire:gsub("[\r\n]+$","")))
 snapshot.origin=nil
+-- Explicit host override exercises a newer client's navigation against the archived quest observation.
+p.Builds.Observe(os.getenv("RIKUI_CLIENT_BUILD") or snapshot.identity.build)
 local ctx=snapshot.context
 ctx.origin="live"
 local position={mapID=1426,x=tonumber(arg[6]) or .429,y=tonumber(arg[7]) or .472}

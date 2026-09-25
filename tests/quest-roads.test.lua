@@ -3,9 +3,13 @@
 return function(check)
  local saved,savedAddOns=RikUI,C_AddOns
  local ok,why=pcall(function()
+  for _,clientBuild in ipairs({'1.60.1.69913','1.60.1.70009'}) do
   RikUI={};RikUI['Secret']={IsSecret=function()return false end}
-  for _,name in ipairs({'schema','path-codec','roads','road-route','road-follow'})do dofile('src/modules/questplanner/quest-'..name..'.lua')end
+  for _,name in ipairs({'schema','builds','path-codec','roads','road-route','road-follow'})do dofile('src/modules/questplanner/quest-'..name..'.lua')end
   local p=RikUI.QuestPlanner;local identity={product='forever',build='1.60.1.69913',locale='enUS'}
+  p.Builds.Observe(clientBuild)
+  local requestIdentity=p.Schema.Clone(identity)
+  identity.build=clientBuild
   local ALPHABET='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~'
   local function b85(bytes)
    while #bytes%4~=0 do bytes=bytes..'\0' end
@@ -61,10 +65,18 @@ return function(check)
   local view={uiMapID=1426,projection={originX=1000,originY=1000,width=1000,height=1000},validUIRectangle={0,0,1,1}}
   check('road index installs',p.Roads.InstallIndex({format='rikui-road-index-v1',identity=identity,worlds={{worldMapID=0,revision=revision,addon='RikUIQuestRoads_W0',views={view}}}}))
   check('road index rejects bad format',not p.Roads.InstallIndex({format='x',identity=identity,worlds={}}))
+  if clientBuild=='1.60.1.70009' then
+   p.Roads.InstallIndex({format='rikui-road-index-v1',identity=requestIdentity,
+       worlds={{worldMapID=0,revision=revision,addon='RikUIQuestRoads_W0',views={view}}}})
+   local rejected,reason=p.Roads.Prepare(requestIdentity,0)
+   check('70009 refuses old terrain even with compatible quest data',not rejected and reason=='road-network-identity')
+   p.Roads.InstallIndex({format='rikui-road-index-v1',identity=identity,
+       worlds={{worldMapID=0,revision=revision,addon='RikUIQuestRoads_W0',views={view}}}})
+  end
   local loads=0
   C_AddOns={LoadAddOn=function(name)loads=loads+1;return p.Roads.Install(catalog)end}
   local graph,state
-  for _=1,50 do graph,state=p.Roads.Prepare(identity,0);if graph then break end end
+  for _=1,50 do graph,state=p.Roads.Prepare(requestIdentity,0);if graph then break end end
   check('road graph loads through its addon',graph~=nil and loads==1,state)
   check('road graph rejects other identities',not p.Roads.Prepare({product='x',build='1',locale='enUS'},0))
   local x,z,_,road=graph:Node(id(2,2));check('road node decodes position and road',x==150 and z==150 and road==1)
@@ -126,6 +138,7 @@ return function(check)
   local later=handle.follow({x=150,z=52},{speed=7});check('road follower advances along the line',later.meters<d.meters)
   local off=handle.follow({x=150,z=400});check('road follower flags leaving the route',off.status=='off-route')
   check('road follower rejects empty routes',not p.RoadFollow.Begin({points={}},unproject))
+  end
  end)
  RikUI,C_AddOns=saved,savedAddOns;check('road network suite completes',ok,why)
 end

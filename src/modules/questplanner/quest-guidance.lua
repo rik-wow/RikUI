@@ -93,6 +93,9 @@ function guidance.RouteStatus(model,terrain)
     if not terrain or (terrain.status=="unavailable" and terrain.detail=="Terrain datasource is not installed") then
         return "Terrain datasource is not installed"
     end
+    if terrain.detail=="road-network-identity" or terrain.detail=="Terrain build or locale does not match" then
+        return "Navigation data does not match this client build or locale"
+    end
     if terrain.status=="unknown-location" then
         if (terrain.detail or ""):find("ambiguous",1,true) then return "Your floor is uncertain" end
         if (terrain.detail or ""):find("disagree",1,true) then return "Player location is inconsistent" end

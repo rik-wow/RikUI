@@ -1,12 +1,12 @@
 -- Real compiled road network: load the addon files as the client would,
 -- then check A* against plain Dijkstra on random node pairs.
--- Usage: luajit tests/quest-roads-real.lua <network dir> <worldMapID> [pairs]
+-- Usage: luajit tests/quest-roads-real.lua <network dir> <worldMapID> [pairs] [clientBuild]
 package.path = "tests/?.lua;" .. package.path
 require("wow_stub")
 local root, world, pairsWanted = arg[1], tonumber(arg[2]), tonumber(arg[3] or 40)
-assert(root and world, "usage: quest-roads-real.lua <network dir> <world> [pairs]")
+assert(root and world, "usage: quest-roads-real.lua <network dir> <world> [pairs] [clientBuild]")
 RikUI = {Secret = {IsSecret = function() return false end}}
-for _, name in ipairs({"schema", "path-codec", "roads", "road-route", "road-follow"}) do
+for _, name in ipairs({"schema", "builds", "path-codec", "roads", "road-route", "road-follow"}) do
     dofile("src/modules/questplanner/quest-" .. name .. ".lua")
 end
 local p = RikUI.QuestPlanner
@@ -22,7 +22,9 @@ C_AddOns = {LoadAddOn = function(addon)
     for _, file in ipairs(readToc(addon)) do dofile(root .. "/" .. addon .. "/" .. file) end
     return true
 end}
-local identity = {product = "forever", build = "1.60.1.69913", locale = "enUS"}
+local clientBuild = arg[4] or "1.60.1.69913"
+p.Builds.Observe(clientBuild)
+local identity = {product = "forever", build = p.Builds.DataBuild(clientBuild), locale = "enUS"}
 local started = os.clock()
 local graph, why
 for _ = 1, 100000 do graph, why = p.Roads.Prepare(identity, world); if graph or why ~= "loading" then break end end

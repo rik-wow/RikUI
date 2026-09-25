@@ -1,7 +1,7 @@
--- Client builds verified to ship the same data as the build RikUI's navigation
--- and quest data were compiled from. A patch that leaves every source byte
--- unchanged does not invalidate that data; this table says so explicitly, with
--- the evidence, instead of relabelling the data itself.
+-- Supported quest baselines and separately admitted navigation builds.
+-- Byte-identical patches may share navigation; changed geometry requires a
+-- fresh build. Quest compatibility retains the corpus's original provenance
+-- and does not imply terrain compatibility or complete new-quest coverage.
 --
 -- 1.60.1.69977 against 1.60.1.69913 (verified 2026-09-22):
 --   * 15,697 terrain sources in the world acquisition profile (root/obj0 ADTs,
@@ -15,14 +15,28 @@ local planner = RikUI.QuestPlanner
 local builds = {}
 planner.Builds = builds
 
-local SAME_DATA = { ["1.60.1.69977"] = "1.60.1.69913" }
+-- 70009 retains every existing QuestV2 record; five new IDs remain outside
+-- the compiled quest corpus. Its changed geometry requires a separate rebuild.
+-- Exact source pins and coverage: tools/terrain/ROADS.md.
+local QUEST_DATA = {
+    ["1.60.1.69977"] = "1.60.1.69913",
+    ["1.60.1.70009"] = "1.60.1.69913",
+}
 
--- The build whose compiled data applies to this client build.
+-- The build of the supported quest corpus, not the terrain geometry.
 function builds.DataBuild(clientBuild)
-    return SAME_DATA[clientBuild] or clientBuild
+    return QUEST_DATA[clientBuild] or clientBuild
 end
 
 -- The running client's own build, when it differs from the data build.
 local clientBuild
 function builds.Client() return clientBuild end
-function builds.Observe(build) clientBuild = SAME_DATA[build] and build or nil end
+function builds.Observe(build) clientBuild = QUEST_DATA[build] and build or nil end
+
+-- Navigation must use freshly compiled 70009 geometry and travel coordinates.
+-- Keep the quest snapshot immutable and preserve product/locale admission.
+function builds.NavigationIdentity(identity)
+    if clientBuild ~= "1.60.1.70009" or not identity or identity.product ~= "forever"
+        or identity.build ~= "1.60.1.69913" then return identity end
+    return {product=identity.product, build=clientBuild, locale=identity.locale}
+end
