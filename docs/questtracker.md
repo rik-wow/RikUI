@@ -1,5 +1,7 @@
 # Quest tracker
 
+Enable **Track newly accepted quests** to add future accepted quests to the native watch list. It defaults off and does not track the entire existing quest log. Combat requests wait until combat ends and recheck the active profile, setting and quest presence. Native refusal is reported. Both single-ID and Classic index-plus-ID acceptance payloads are handled; an unreadable second payload never falls back to the log index. API reviewed 2026-09-24: [69913 QUEST_ACCEPTED and AddQuestWatch](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestLogDocumentation.lua).
+
 **Control-click a quest to pin or unpin it.** Pinned quests carry `*` and appear before unpinned quests, including ready turn-ins. Ready-first sorting still applies within those groups. Pins persist per profile (up to 50 IDs); they change display order only. Shift-click retains its stop-tracking action. Hover explains the current pin action.
 
 `src/modules/questtracker/questtracker.lua` and `src/modules/questtracker/questtracker-blocks.lua` replace the stock objective

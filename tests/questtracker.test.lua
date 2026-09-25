@@ -10,6 +10,8 @@ return function(check)
     local saved = {}
     for _, name in ipairs(API) do saved[name] = _G[name] end
     local stub = {}
+    local acceptedKnown = env.KNOWN_EVENTS.QUEST_ACCEPTED
+    env.KNOWN_EVENTS.QUEST_ACCEPTED = true
     local savedFlag = LE_FRAME_TUTORIAL_HOW_TO_SUPERTRACK
     local savedSet, savedGet = C_CVar.SetCVarBitfield, C_CVar.GetCVarBitfield
     local function printedContains(text)
@@ -320,12 +322,49 @@ return function(check)
         check("pinned quest tooltip explains unpin", tooltipContains("Control-click: unpin"))
         check("invalid pins rejected by sharing schema", not pcall(RikUI.ProfileSchema.Project, {questtracker={pins="oops"}}))
 
+        module = load()
+        local watched = {}
+        C_QuestLog.AddQuestWatch = function(id) watched[#watched + 1] = id; return true end
+        env.fire("QUEST_ACCEPTED", 33)
+        check("auto tracking defaults off", #watched == 0)
+        RikUI.Profile.questtracker.autoWatch = true
+        env.fire("QUEST_ACCEPTED", 33)
+        check("newly accepted quest is tracked", watched[1] == 33)
+        env.fire("QUEST_ACCEPTED", env.SECRET)
+        env.fire("QUEST_ACCEPTED", 0)
+        check("invalid accepted ids do nothing", #watched == 1)
+        env.inCombat = true
+        env.fire("QUEST_ACCEPTED", 22)
+        check("watch changes wait during combat", #watched == 1)
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("watch request applies after combat", watched[2] == 22)
+        env.inCombat = true
+        env.fire("QUEST_ACCEPTED", 11)
+        RikUI.Profile.questtracker.autoWatch = false
+        env.inCombat = false
+        env.fire("PLAYER_REGEN_ENABLED")
+        check("disabling auto tracking cancels deferred intent", #watched == 2)
+        RikUI.Profile.questtracker.autoWatch = true
+        C_QuestLog.AddQuestWatch = function() return false end
+        env.fire("QUEST_ACCEPTED", 33)
+        check("native watch refusal is explained", printedContains("could not track"))
+        C_QuestLog.AddQuestWatch = function(id) watched[#watched + 1] = id; return true end
+        env.fire("QUEST_ACCEPTED", 3, 33)
+        check("classic acceptance uses quest id rather than log index", watched[3] == 33)
+        env.fire("QUEST_ACCEPTED", 3, env.SECRET)
+        check("protected second payload cannot become log index", #watched == 3)
+        C_QuestLog.GetLogIndexForQuestID = function() return nil end
+        env.fire("QUEST_ACCEPTED", 33)
+        check("quest removed before processing is not tracked", #watched == 3)
+
         module = load({ modules = { questtracker = false } })
         check("a disabled module leaves the stock tracker untouched", module.Holder == nil
             and ObjectiveTrackerFrame.parent == UIParent and RikUI.Layout.Groups.questtracker == nil)
     end)
     C_CVar.SetCVarBitfield, C_CVar.GetCVarBitfield = savedSet, savedGet
     LE_FRAME_TUTORIAL_HOW_TO_SUPERTRACK = savedFlag
+    env.KNOWN_EVENTS.QUEST_ACCEPTED = acceptedKnown
     restoreCreate()
     for _, name in ipairs(API) do _G[name] = saved[name] end
     env.inCombat, env.shiftDown = false, false

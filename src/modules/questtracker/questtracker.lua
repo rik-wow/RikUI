@@ -168,6 +168,7 @@ end
 
 function tracker.Click(block)
     if IsShiftKeyDown() then
+        if validQuestID(block.questID) then core.Combat.Cancel("questtracker:watch:" .. block.questID) end
         if type(C_QuestLog.RemoveQuestWatch) == "function" then C_QuestLog.RemoveQuestWatch(block.questID) end
         return
     end
@@ -200,10 +201,31 @@ local function build()
     parkStock()
 end
 
+local function watchAccepted(_, first, second)
+    if core.Secret.IsSecret(second) then return end
+    local questID = second ~= nil and second or first
+    if core.Profile.questtracker.autoWatch ~= true or not validQuestID(questID) then return end
+    local profile = core.Profile
+    core.Combat.Queue(function()
+        if core.Profile ~= profile or profile.questtracker.autoWatch ~= true then return end
+        if type(C_QuestLog.AddQuestWatch) ~= "function" then
+            warn("auto watch", "automatic tracking unavailable"); return
+        end
+        local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, questID)
+        if not ok or not validQuestID(index) then return end
+        local added, result = pcall(C_QuestLog.AddQuestWatch, questID)
+        if not added or core.Secret.IsSecret(result) or result ~= true then
+            warn("auto watch", "Client could not track the accepted quest; use the quest log.")
+        end
+        tracker.Request()
+    end, "questtracker:watch:" .. questID)
+end
+
 function tracker:OnEnable()
     if not available() then return core:Print("Quest tracker unavailable: the quest log API is missing.") end
     core.Combat.Queue(build)
     for _, event in ipairs(EVENTS) do core:RegisterEvent(event, tracker.Request) end
+    core:RegisterEvent("QUEST_ACCEPTED", watchAccepted)
     core:RegisterEvent("PLAYER_REGEN_DISABLED", combatChanged)
     core:RegisterEvent("PLAYER_REGEN_ENABLED", combatChanged)
 end
@@ -222,6 +244,10 @@ tracker.Options = { title = "Quest tracker", group = "Gameplay", settings = {
         description = "Keep unfinished steps in the list. Hover a quest to see every objective.",
         get = function() return core.Profile.questtracker.hideCompleted == true end,
         set = function(value) core.Profile.questtracker.hideCompleted = value == true; tracker.Refresh() end },
+    { type = "checkbox", key = "autoWatch", label = "Track newly accepted quests",
+        description = "Add accepted quests to the native watch list. Existing quests and manual untracking are unchanged.",
+        get = function() return core.Profile.questtracker.autoWatch == true end,
+        set = function(value) core.Profile.questtracker.autoWatch = value == true end },
     { type = "checkbox", key = "readyFirst", label = "Ready quests first",
         description = "Show turn-ins at the top. Keep the original watch order within each group.",
         get = function() return core.Profile.questtracker.readyFirst == true end,
