@@ -234,6 +234,25 @@ return function(check)
         C_CVar.SetCVar = write
         core.Store.Flush()
         check("successful retry clears backup issue", core.Store.Status().failure == nil and core.Store.BackupIssue() == nil)
+        core = boot()
+        local after, flush, macroFlush = C_Timer.After, core.Store.Flush, core.Store.FlushMacros
+        local reloadSaves, restartSaves = 0, 0
+        core.Store.Flush = function() reloadSaves = reloadSaves + 1; error("reload transport failed") end
+        core.Store.FlushMacros = function() restartSaves = restartSaves + 1 end
+        C_Timer.After = function() error("timer unavailable") end
+        core:Changed()
+        C_Timer.After = after
+        core:Changed()
+        check("timer failure permits another scheduled save", #timers == 1)
+        if timers[1] then pcall(timers[1].run) end
+        check("reload transport failure does not suppress restart backup", reloadSaves == 2 and restartSaves == 2)
+        core.Store.Flush, core.Store.FlushMacros = flush, macroFlush
+        core.Profile.scale = 0.65
+        core:Changed()
+        if timers[2] then timers[2].run() end
+        check("autosave recovers after timer and transport failures",
+            core.Store.Load("account") and core.Store.Load("account").profiles.Default.scale == 0.65)
+
         bare = true
         core = boot()
         check("a client without RegisterCVar has no store and nothing breaks", core.Store.Available() == false

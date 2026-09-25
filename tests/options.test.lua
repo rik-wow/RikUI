@@ -670,7 +670,7 @@ return function(check)
         do
             local message, saved = "Last verified restart snapshot: 1/12 macros; 50/2772 bytes.", 0
             local support = boot(nil, nil, function(core)
-                core.Store = { BackupSummary = function() return message end, Flush = function() saved = saved + 1 end }
+                core.Store = { BackupSummary = function() return message end, SaveNow = function() saved = saved + 1 end }
             end)
             local rows = pageByTitle(support, "Setup and support").list
             local status = rowByKey(rows, "storage")

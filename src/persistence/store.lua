@@ -222,17 +222,24 @@ end
 
 -- core:Changed() lands here. One save a moment later covers a burst of changes (a drag reports its
 -- place on every frame); without a timer API the save happens at once.
+function store.SaveNow()
+    local reloadOK = core.Runtime.Invoke("Reload settings backup", store.Flush)
+    local restartOK = true
+    if store.FlushMacros then restartOK = core.Runtime.Invoke("Restart settings backup", store.FlushMacros) end
+    return reloadOK and restartOK
+end
+
 local touched = false
 function store.Touch()
     if touched then return end
     local function save()
         touched = false
-        store.Flush()
-        if store.FlushMacros then store.FlushMacros() end
+        store.SaveNow()
     end
     if type(C_Timer) ~= "table" or type(C_Timer.After) ~= "function" then return save() end
     touched = true
-    C_Timer.After(TOUCH_SECONDS, save)
+    local ok = core.Runtime.Invoke("Schedule settings backup", C_Timer.After, TOUCH_SECONDS, save)
+    if not ok then save() end
 end
 
 core:RegisterEvent("PLAYER_LOGIN", function()

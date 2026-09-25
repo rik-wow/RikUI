@@ -302,8 +302,7 @@ local function setupSpecs()
         end
         specs[#specs + 1] = storage
         specs[#specs + 1] = action("savebackup", "Retry settings backups", "Save now", function()
-            core.Store.Flush()
-            if core.Store.FlushMacros then core.Store.FlushMacros() end
+            core.Store.SaveNow()
             run("store")
         end)
     end
