@@ -14,6 +14,15 @@ function core:Print(message)
 end
 
 local errors, MAX_ERRORS, MAX_DETAIL = {}, 20, 512
+local errorSequence = 0
+
+local function errorTime()
+    if type(GetTime) ~= "function" then return nil end
+    local ok, value = pcall(GetTime)
+    if not ok or issecretvalue(value) or type(value) ~= "number" then return nil end
+    if value ~= value or value < 0 or value == math.huge then return nil end
+    return value
+end
 
 local function errorText(value, fallback)
     if issecretvalue(value) or type(value) ~= "string" then return fallback end
@@ -23,24 +32,31 @@ end
 function core:GetErrors()
     local copy = {}
     for index, entry in ipairs(errors) do
-        copy[index] = { context = entry.context, detail = entry.detail, count = entry.count }
+        copy[index] = { context = entry.context, detail = entry.detail, count = entry.count,
+            firstSequence = entry.firstSequence, lastSequence = entry.lastSequence,
+            firstAt = entry.firstAt, lastAt = entry.lastAt }
     end
     return copy
 end
 
-function core:ClearErrors() errors = {} end
+function core:ClearErrors() errors, errorSequence = {}, 0 end
 
 function runtime.Report(context, reason)
     context = errorText(context, "Runtime")
     local detail = errorText(reason, "unknown error")
-    for _, entry in ipairs(errors) do
+    errorSequence = errorSequence + 1
+    local at = errorTime()
+    for index, entry in ipairs(errors) do
         if entry.context == context and entry.detail == detail then
-            entry.count = entry.count + 1
+            entry.count, entry.lastSequence, entry.lastAt = entry.count + 1, errorSequence, at
+            table.remove(errors, index)
+            errors[#errors + 1] = entry
             return
         end
     end
     if #errors == MAX_ERRORS then table.remove(errors, 1) end
-    errors[#errors + 1] = { context = context, detail = detail, count = 1 }
+    errors[#errors + 1] = { context = context, detail = detail, count = 1,
+        firstSequence = errorSequence, lastSequence = errorSequence, firstAt = at, lastAt = at }
     -- Reporting must never abort event dispatch or leave a queue locked.
     pcall(core.Print, core, context .. ": " .. detail .. " (see /rik errors)")
 end

@@ -44,7 +44,9 @@ function core:SupportReport()
     local errors = self:GetErrors()
     lines[#lines + 1] = "Retained errors: " .. #errors
     for _, entry in ipairs(errors) do
-        lines[#lines + 1] = plain(entry.context) .. ": " .. plain(entry.detail) .. " (x" .. plain(entry.count) .. ")"
+        lines[#lines + 1] = plain(entry.context) .. ": " .. plain(entry.detail) .. " (x" .. plain(entry.count)
+            .. "; first #" .. plain(entry.firstSequence) .. ", last #" .. plain(entry.lastSequence)
+            .. "; session seconds=" .. plain(entry.firstAt) .. ".." .. plain(entry.lastAt) .. ")"
     end
     local blocked = self:GetBlockedActions()
     lines[#lines + 1] = "Retained blocked actions: " .. #blocked

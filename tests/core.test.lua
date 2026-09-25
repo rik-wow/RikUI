@@ -161,6 +161,33 @@ return function(check)
         check("support tolerates damaged journal", type(blockedCore:SupportReport()) == "string" and blockedCore.DB.blockedActions == "damaged")
     end
 
+    do
+        local errorCore = ready(loadCore())
+        local clock, now = GetTime, 10
+        GetTime = function() return now end
+        errorCore.Runtime.Report("Active", "kept")
+        for index = 1, 19 do errorCore.Runtime.Report("Old" .. index, "detail") end
+        now = 20
+        errorCore.Runtime.Report("Active", "kept")
+        errorCore.Runtime.Report("New", "detail")
+        local active
+        for _, row in ipairs(errorCore:GetErrors()) do if row.context == "Active" then active = row end end
+        check("recurring errors survive least-recent eviction", active and active.count == 2)
+        check("error chronology preserves first and last occurrence", active and active.firstAt == 10 and active.lastAt == 20
+            and active.firstSequence == 1 and active.lastSequence == 21)
+        GetTime = function() error("clock unavailable") end
+        errorCore.Runtime.Report("Clock", "failure")
+        check("error reporting survives clock failure", #errorCore:GetErrors() == 20)
+        GetTime = function() return env.SECRET end
+        errorCore.Runtime.Report("SecretClock", "failure")
+        local rows = errorCore:GetErrors()
+        check("secret clocks stay opaque", rows[#rows].lastAt == nil)
+        GetTime = clock
+        SlashCmdList.RIKUI("errors")
+        check("error command includes chronology", contains("first #"))
+        check("support includes error chronology", errorCore:SupportReport():find("last #", 1, true))
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

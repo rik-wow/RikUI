@@ -100,7 +100,8 @@ core:RegisterCommand("errors", function(args)
     local entries = core:GetErrors()
     core:Print("Retained session errors: " .. #entries .. " (up to 20 distinct errors)")
     for _, entry in ipairs(entries) do
-        core:Print(entry.context .. ": " .. entry.detail .. " (x" .. entry.count .. ")")
+        core:Print(entry.context .. ": " .. entry.detail .. " (x" .. entry.count .. "; first #"
+            .. entry.firstSequence .. ", last #" .. entry.lastSequence .. ")")
     end
 end, "Show session errors; use clear to reset")
 core:RegisterCommand("help", showHelp, "Show available commands")
