@@ -224,8 +224,8 @@ return function(check)
         env.fire("LOOT_OPENED", false)
         check("the layout position is kept when the cursor option is off", module.Holder:IsShown()
             and module.Holder.point[2] == UIParent and module.Holder.point[3] == "CENTER")
-        check("with the cursor option off the list takes part in the arrangement",
-            RikUI.Layout.Floats(RikUI.Layout.Groups.loot) == false)
+        check("fixed loot still uses its saved position without reserving permanent HUD space",
+            RikUI.Layout.Floats(RikUI.Layout.Groups.loot) == true)
         local option = module.Options.settings[1]
         check("the options panel exposes the cursor setting", option.key == "lootAtCursor" and option.get() == false)
         option.set(true)

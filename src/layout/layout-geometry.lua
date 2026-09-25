@@ -12,7 +12,7 @@ local FRACTIONS = {
     LEFT = { 0, 0.5 }, CENTER = { 0.5, 0.5 }, RIGHT = { 1, 0.5 },
     BOTTOMLEFT = { 0, 0 }, BOTTOM = { 0.5, 0 }, BOTTOMRIGHT = { 1, 0 },
 }
-local SEARCH_STEP = 8
+-- Exact obstacle edges keep narrow but valid gaps available at fractional UI scales.
 -- low and high edge names per axis, and the axis a growth direction runs along.
 local AXES = { x = { "left", "right", "width" }, y = { "bottom", "top", "height" } }
 local DIRECTIONS = { LEFT = { "x", -1 }, RIGHT = { "x", 1 }, DOWN = { "y", -1 }, UP = { "y", 1 } }
@@ -121,12 +121,15 @@ local function flushCandidates(rect, obstacles)
     return list
 end
 
-local function gridCandidates(rect, screen)
+local function edgeCandidates(rect, obstacles, screen)
     local width, height, list = rect.right - rect.left, rect.top - rect.bottom, {}
-    for left = 0, math.max(0, screen.width - width), SEARCH_STEP do
-        for bottom = 0, math.max(0, screen.height - height), SEARCH_STEP do
-            list[#list + 1] = geometry.Rect(left, bottom, width, height)
-        end
+    local xs, ys = { 0, screen.width-width, rect.left }, { 0, screen.height-height, rect.bottom }
+    for _, obstacle in ipairs(obstacles) do
+        xs[#xs+1], xs[#xs+2] = obstacle.left-width, obstacle.right
+        ys[#ys+1], ys[#ys+2] = obstacle.bottom-height, obstacle.top
+    end
+    for _, left in ipairs(xs) do
+        for _, bottom in ipairs(ys) do list[#list+1] = geometry.Rect(left, bottom, width, height) end
     end
     return list
 end
@@ -143,12 +146,12 @@ local function closestFree(origin, candidates, obstacles, screen)
 end
 
 -- The closest free place for a rectangle: where it is, else flush against an obstacle, else the
--- closest free cell of a coarse grid. The second result is false when the screen has no room.
+-- closest intersection of obstacle edges. The second result is false when the screen has no room.
 function geometry.Nearest(rect, obstacles, screen)
     local origin = geometry.Clamp(rect, screen)
     if fits(origin, screen) and not geometry.AnyOverlap(origin, obstacles) then return origin, true end
     local spot = closestFree(origin, flushCandidates(origin, obstacles), obstacles, screen)
-        or closestFree(origin, gridCandidates(origin, screen), obstacles, screen)
+        or closestFree(origin, edgeCandidates(origin, obstacles, screen), obstacles, screen)
     if spot then return spot, true end
     return origin, false
 end

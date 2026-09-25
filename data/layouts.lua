@@ -27,7 +27,7 @@ layouts.Sizes = {
     casttarget = { width = UNIT_WIDTH, height = CAST_HEIGHT }, castfocus = { width = FOCUS_WIDTH, height = CAST_HEIGHT },
     castpet = { width = SMALL_WIDTH, height = CAST_HEIGHT }, buffs = { width = 268, height = 132 },
     debuffs = { width = 268, height = 64 }, minimap = { width = 200, height = 200 },
-    micromenu = { width = 118, height = 22 }, durability = { width = 132, height = 18 },
+    micromenu = { width = 238, height = 70 }, bagspace = { width = 210, height = 22 }, durability = { width = 132, height = 18 },
     mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 76 },
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
     combattimer = { width = 110, height = 20 }, stopwatch = { width = 110, height = 20 },
@@ -38,6 +38,8 @@ layouts.Sizes = {
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
     bags = { width = 394, height = 360 }, chat = { width = 344, height = 214 },
     damagemeter = { width = 260, height = 180 },
+    cooldownessential = { width = 280, height = 50 }, cooldownutility = { width = 280, height = 30 },
+    cooldownbuffs = { width = 220, height = 40 }, cooldownbars = { width = 220, height = 90 },
 }
 -- Room outside the frame: the minimap's zone line above and clock below, the reputation row under the
 -- experience row.
@@ -48,7 +50,7 @@ layouts.Pads = { minimap = { top = 16, bottom = 16 }, xpbar = { bottom = 14 } }
 -- chat above is a 336x136 message area plus this.
 layouts.ChatFootprint = { left = 4, right = 4, top = 28, bottom = 50 }
 -- Windows that float over the screen block nothing; party and raid are never shown together.
-layouts.Floating = { tooltip = true, bags = true }
+layouts.Floating = { tooltip = true, bags = true, loot = true }
 layouts.Exclusive = { party = "group", raid = "group" }
 -- The message area a layout gives the chat on the narrowest screen; layout-presets.lua widens it.
 layouts.ChatSize = { width = layouts.Sizes.chat.width - layouts.ChatFootprint.left - layouts.ChatFootprint.right,
@@ -73,7 +75,8 @@ local STACK_TOP = PET_BAR_Y + ROW_HEIGHT
 local SIDE_BAR_2 = -(MARGIN + BAR_HEIGHT + BAR_GAP)
 local COLUMN = SIDE_BAR_2 - BAR_HEIGHT - GAP
 local MENU_TOP = MARGIN + layouts.Sizes.micromenu.height
-local METER_Y = MENU_TOP + GAP
+local BAGSPACE_Y = MENU_TOP + GAP
+local METER_Y = BAGSPACE_Y + layouts.Sizes.bagspace.height + GAP
 local METER_TOP = METER_Y + layouts.Sizes.damagemeter.height
 -- The top right corner: minimap under its zone line, aura rows to its left, timers and tracker under it.
 local MINIMAP_Y = -(MARGIN + layouts.Pads.minimap.top)
@@ -90,7 +93,12 @@ local function shared()
         bar3 = bottom(0, MAIN_Y + 2 * BAR_PITCH), stance = bottomLeftOfCentre(BAR_LEFT, STANCE_Y),
         pet = bottomLeftOfCentre(BAR_LEFT, PET_BAR_Y),
         bar4 = bottomRight(-MARGIN, MARGIN), bar5 = bottomRight(SIDE_BAR_2, MARGIN),
-        micromenu = bottomRight(COLUMN, MARGIN), damagemeter = bottomRight(COLUMN, METER_Y),
+        micromenu = bottomRight(COLUMN, MARGIN), bagspace = bottomRight(COLUMN, BAGSPACE_Y),
+        damagemeter = bottomRight(COLUMN, METER_Y),
+        cooldownessential = topLeft(MARGIN, -MARGIN),
+        cooldownutility = topLeft(MARGIN, -MARGIN - 54),
+        cooldownbuffs = at("BOTTOMLEFT", "BOTTOMLEFT", MARGIN, 240),
+        cooldownbars = topLeft(MARGIN + 284, -MARGIN),
         tooltip = bottomRight(COLUMN, METER_TOP + GAP), bags = bottomRight(COLUMN, METER_TOP + GAP),
         minimap = topRight(-MARGIN, MINIMAP_Y), buffs = topRight(AURAS_X, -MARGIN),
         debuffs = topRight(AURAS_X, -MARGIN - layouts.Sizes.buffs.height - GAP),
@@ -101,7 +109,7 @@ local function shared()
         classcooldowns = bottom(-340, 418),
         classbuffs = bottomLeftOfCentre(-328, 652), classeffects = bottomLeftOfCentre(-544, 652),
         chat = CHAT, loot = at("TOPLEFT", "CENTER", 20, 162),
-        party = at("LEFT", "LEFT", MARGIN, 0), raid = topLeft(MARGIN, -120),
+        party = topLeft(MARGIN, -120), raid = topLeft(MARGIN, -120),
     }
 end
 
@@ -158,29 +166,39 @@ layouts.classic = layout("Classic", "Blizzard's arrangement: player and target i
 })
 
 -- HUD: player and target either side of the character, the cast bar and class widgets between them.
-local HUD_Y, HUD_SPREAD = STACK_TOP + UNIT_HEIGHT + CAST_HEIGHT - GAP, 120
+local REFERENCE_HEIGHT, HUD_SPREAD = 768, 120
+local HUD_Y = REFERENCE_HEIGHT / 2 + GAP / 2
 local HUD_X = HUD_SPREAD + UNIT_WIDTH / 2
 local HUD_EDGE = HUD_SPREAD + UNIT_WIDTH
 local HUD_UNDER = HUD_Y - GAP - CAST_HEIGHT
-local HUD_SWING = STACK_TOP + GAP
+local HUD_SWING = HUD_Y - UNIT_HEIGHT - CAST_HEIGHT + GAP
 local HUD_CAST = HUD_SWING + layouts.Sizes.swingtimer.height + GAP
 
 layouts.hud = layout("HUD", "Player and target close beside your character with the cast bar between them, "
     .. "everything else pushed to the edges.", {
-    classcooldowns = bottom(-316, 418),
-    classbuffs = bottomLeftOfCentre(-216, 408), classeffects = bottomLeftOfCentre(-328, 652),
+    classcooldowns = bottom(0, HUD_SWING - GAP - layouts.Sizes.classcooldowns.height),
+    classbuffs = bottomLeftOfCentre(-HUD_EDGE, HUD_Y + UNIT_HEIGHT + GAP),
+    classeffects = bottomLeftOfCentre(HUD_SPREAD, HUD_Y + UNIT_HEIGHT + GAP),
     player = bottom(-HUD_X, HUD_Y), target = bottom(HUD_X, HUD_Y),
     swingtimer = bottom(0, HUD_SWING), castplayer = bottom(0, HUD_CAST),
     combopoints = bottom(0, HUD_CAST + CAST_HEIGHT + 2 * GAP),
-    totems = bottom(-100, HUD_CAST + CAST_HEIGHT + layouts.Sizes.combopoints.height + 3 * GAP),
+    totems = bottom(0, HUD_CAST + CAST_HEIGHT + layouts.Sizes.combopoints.height + 3 * GAP),
     druidmana = bottomRightOfCentre(-layouts.Sizes.swingtimer.width / 2 - GAP, HUD_SWING),
     casttarget = bottom(HUD_X, HUD_UNDER), tot = bottomLeftOfCentre(HUD_SPREAD, HUD_UNDER - GAP - SMALL_HEIGHT),
     petframe = bottomRightOfCentre(BAR_LEFT - GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
     castpet = bottomRightOfCentre(BAR_LEFT - SMALL_WIDTH - 2 * GAP, HUD_UNDER - GAP - SMALL_HEIGHT),
     focus = bottomRightOfCentre(-HUD_EDGE - GAP, HUD_Y + GAP),
     castfocus = bottomRightOfCentre(-HUD_EDGE - GAP, HUD_Y - CAST_HEIGHT),
-    party = at("LEFT", "LEFT", MARGIN, 90),
+    party = topLeft(MARGIN, -120),
 })
+
+-- Combat information follows the character, not a fixed distance from the screen bottom.
+-- Preserve its reference-screen composition while allowing larger UIParent dimensions.
+for _, key in ipairs({ "player", "target", "focus", "petframe", "tot", "castplayer", "casttarget",
+    "castfocus", "castpet", "swingtimer", "combopoints", "totems", "druidmana", "classbuffs", "classeffects", "classcooldowns" }) do
+    local position = layouts.hud.positions[key]
+    position.relativePoint, position.y = "CENTER", position.y - REFERENCE_HEIGHT / 2
+end
 
 -- Healer: the group over the bars where the eyes are, your own frames in rows above its left end.
 local GRID_LEFT = -layouts.Sizes.raid.width / 2

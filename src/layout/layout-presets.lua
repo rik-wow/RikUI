@@ -13,7 +13,7 @@ local function names() return table.concat(layouts.Order, ", ") end
 -- audited width and Blizzard's.
 function layout.ChatSize(screen)
     local foot = layouts.ChatFootprint
-    local room = screen and math.floor(screen.width / 2 - BAR_HALF_WIDTH - layouts.GAP - layouts.MARGIN
+    local room = screen and math.floor(screen.width / layout.GetScale() / 2 - BAR_HALF_WIDTH - layouts.GAP - layouts.MARGIN
         - foot.left - foot.right) or 0
     local width = math.max(layouts.ChatSize.width, math.min(CHAT_MAX_WIDTH, room))
     return { width = width, height = layouts.ChatSize.height }
@@ -24,7 +24,9 @@ end
 function layout.PresetPositions(name)
     local entry = layouts[name]
     if type(entry) ~= "table" or type(entry.positions) ~= "table" then return nil end
-    local positions = copy(entry.positions)
+    local screen, scale = layout.Screen(), layout.GetScale()
+    local units = screen and { width=screen.width / scale, height=screen.height / scale }
+    local positions = layouts.Positions(name, units)
     local foot = layouts.ChatFootprint
     positions.chat.x = layouts.MARGIN + (layout.ChatSize(layout.Screen()).width + foot.left + foot.right) / 2
     return positions

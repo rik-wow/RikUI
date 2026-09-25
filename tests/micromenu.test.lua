@@ -109,8 +109,8 @@ return function(check)
             and first.rikBorder[1].texture == RikUI.Media.border)
         check("the backpack, four bag slots and the keyring follow the micro buttons", #module.Bags == 6
             and module.Bags[1].bag == 0 and module.Bags[5].bag == 4 and module.Bags[6].bag == -2)
-        check("the holder is one 22px row wide enough for every button",
-            holder.height == 22 and holder.width >= 22 * (#module.Buttons + #module.Bags))
+        check("the menu fits the reserved right column instead of stretching into the bars",
+            holder.width <= 260 and holder.height <= 70 and holder.height > 22)
         check("an equipped bag shows its icon and free slots", module.Bags[2].icon.texture == 133633
             and module.Bags[2].count.text == "4" and module.Bags[1].count.text == "9")
         check("an empty bag slot shows no icon and no count", rawget(module.Bags[3].icon, "texture") == nil

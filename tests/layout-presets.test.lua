@@ -97,6 +97,18 @@ return function(check)
         layout.ApplyPreset("hud")
         check("on a wide screen the chat stops at Blizzard's width", RikUI.Profile.chat.size.width == 430)
 
+        for _, height in ipairs({ 768, 1440, 2160 / 0.85 }) do
+            load(nil, height * 16 / 9)
+            UIParent.GetHeight = function() return height end
+            layout.ApplyPreset("hud")
+            local rect = layout.Rect("player")
+            check("HUD follows screen centre at height " .. height,
+                math.abs((rect.top + rect.bottom) / 2 - height / 2) < 100)
+            for _, key in ipairs({ "bagspace", "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
+                check("HUD places " .. key, type(RikUI.Profile.positions[key]) == "table")
+            end
+        end
+
         load()
         SlashCmdList.RIKUI("layout list")
         check("/rik layout list names the layouts and marks the current one", widgets.printedContains(env, "centered (current)")

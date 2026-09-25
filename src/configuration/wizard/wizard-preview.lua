@@ -42,8 +42,9 @@ function preview.Layout(parent, name, width)
     skin.Fill(canvas, SCREEN_COLOR)
     skin.Outline(canvas)
     canvas.blocks = {}
+    local positions = layouts.Positions(name, SCREEN)
     for key in pairs(layouts.Sizes) do
-        local rect = not HIDDEN[key] and layouts.Rect(name, key, SCREEN) or nil
+        local rect = not HIDDEN[key] and layouts.Rect(name, key, SCREEN, positions) or nil
         if rect then canvas.blocks[key] = block(canvas, rect, scale, KINDS[KIND_OF[key] or "windows"]) end
     end
     return canvas

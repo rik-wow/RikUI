@@ -1,5 +1,22 @@
 # Moving and scaling frames
 
+After updating, use `/rik layout hud` to apply the revised HUD, or replace
+`hud` with `centered`, `classic` or `healer`. Your saved custom positions
+stay in place until you choose a preset. `/rik layout undo` restores the previous
+layout.
+
+All four presets now include bag capacity and the four native cooldown viewers.
+The micro menu wraps into a compact column, with room above it for bag capacity
+and the damage meter. Presets fit supporting widgets around the main controls
+before applying positions; the setup preview uses that same fitted arrangement.
+The HUD's combat frames follow the screen centre, so a larger usable screen
+doesn't leave them down by the action bars.
+
+The chat channel strip and input now follow the chat window's effective scale.
+Opening the input restores its height and placement if the client changed them.
+This applies to every preset and custom layouts. Automated fixtures cover 4K
+at 85% UI scale, additional RikUI scales, and smaller display layouts.
+
 Chat and the damage meter now apply the profile scale to their native windows as
 well as their movers. Previously a non-unit scale could leave the blue highlight
 smaller than the visible window. Chat tabs follow the same scale; profile changes
@@ -125,8 +142,9 @@ saved position keys remain untouched.
 `src/layout/layout-rects.lua` gives the registry one rule: no two layout groups overlap.
 A group's rectangle is computed from its saved position, its first frame's
 size and the layout scale, never read from the screen, so a group that is
-hidden right now (the target frame without a target, the loot list) still has
-one and still blocks.
+hidden right now (such as the target frame without a target) still has
+one and still blocks. Temporary overlays such as bags, tooltips and loot do not
+reserve permanent screen space.
 
 `layout.Register(frame, key, defaults, opts)` takes options:
 
@@ -138,6 +156,7 @@ one and still blocks.
 | `owner` | Optional ownership override for the floating predicate and `onApply` during `Apply`; otherwise captured from the first registration's context |
 | `onApply(frame)` | Refreshes feature appearance for each frame after placement; the first registration owns the group's callback |
 | `floating` | A reference place other things float over (the tooltip anchor): neither blocks nor is blocked. May be a function for a group that floats only some of the time (the loot list at the cursor); while it returns true, `Apply` does not position the group either |
+| `overlay` | Ignores collisions while retaining saved-position placement; loot uses this together with its cursor-position predicate |
 | `exclusive` | Groups with the same tag are never shown together (party and raid) and do not block each other |
 
 | Function | Purpose |
@@ -175,8 +194,8 @@ the first user. `onUnlock(open)` tells a module with a lock control of its own
 Two behaviours, chosen by whether hiding content costs the player anything.
 The quest tracker caps itself: it declares `grow = "DOWN"`, takes the room from
 `onLimit` and ends in `+N more` ([quest tracker](questtracker.md)). Everything
-else relocates: the loot list, quest timers, bag window, damage meter and chat
-window keep their full size, and the size-change hook in `Register` calls
+else keeps its full size: quest timers, the damage meter and the chat
+window relocate, while bag and loot windows can overlay other frames, and the size-change hook in `Register` calls
 `Settle(key)`, which moves that one frame to the nearest free place and saves
 it there. The loot list is not capped on purpose: a hidden row would be an item
 that cannot be looted. While it opens at the cursor (the default) it floats and

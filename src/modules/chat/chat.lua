@@ -120,7 +120,19 @@ local function park(frame)
 end
 
 function chat.AnchorEditBox(frame, anchor, gap)
+    if InCombatLockdown() then
+        core.Combat.Queue(function() chat.AnchorEditBox(frame, anchor, gap) end)
+        return
+    end
     local box = frame.editBox
+    -- Anchors do not inherit scale. Docking may change an edit box's parent.
+    local parent = box:GetParent()
+    local parentScale = parent and parent:GetEffectiveScale() or UIParent:GetEffectiveScale()
+    local scale = anchor:GetEffectiveScale()
+    if type(scale) == "number" and type(parentScale) == "number" and parentScale > 0 then
+        box:SetScale(scale / parentScale)
+    end
+    box:SetHeight(EDIT_HEIGHT)
     box:ClearAllPoints()
     box:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -gap)
     box:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -gap)

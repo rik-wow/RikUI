@@ -178,17 +178,26 @@ local function hookBox(frame)
     hooked[box] = true
     chat.DressEditBox(box)
     for _, script in ipairs({ "OnShow", "OnEditFocusGained", "OnTextChanged" }) do
-        box:HookScript(script, function(self) onHeader(self) end)
+        box:HookScript(script, function(self)
+            if script == "OnShow" then chat.RefreshInputLayout() end
+            onHeader(self)
+        end)
     end
     paint(box, false)
 end
 
 local function sharesStrip(frame) return frame == _G[MAIN] or frame.isDocked == true end
 
-local function placeEditBoxes()
+function chat.RefreshInputLayout()
+    if InCombatLockdown() then core.Combat.Queue(chat.RefreshInputLayout, "chat:input"); return end
+    if holder then holder:SetScale(core.Layout.GetScale()) end
     for frame in pairs(chat.Frames) do
-        if chat.IsFrame(frame.editBox) and sharesStrip(frame) then
-            if holder and stripOn() then chat.AnchorEditBox(frame, holder, EDIT_GAP) else chat.DockEditBox(frame) end
+        if chat.IsFrame(frame.editBox) then
+            if holder and stripOn() and sharesStrip(frame) then
+                chat.AnchorEditBox(frame, holder, EDIT_GAP)
+            else
+                chat.DockEditBox(frame)
+            end
         end
     end
 end
@@ -206,7 +215,7 @@ end
 function chat.SetChannelStrip(value)
     chat.Settings().channelStrip = value == true
     if holder then holder:SetShown(value == true) end
-    placeEditBoxes()
+    chat.RefreshInputLayout()
     return true
 end
 
@@ -226,7 +235,7 @@ function chat.EnableStrip()
     createHolder()
     holder:SetShown(stripOn())
     chat.RefreshStrip()
-    placeEditBoxes()
+    chat.RefreshInputLayout()
     for _, event in ipairs(REFRESH_EVENTS) do core:RegisterEvent(event, chat.RefreshStrip) end
 end
 

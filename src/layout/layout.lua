@@ -34,6 +34,7 @@ end
 -- floating is true, or a function for a group that floats only some of the time (the loot list while
 -- it opens at the cursor).
 function layout.Floats(group)
+    if group.overlay then return true end
     local floating = group.floating
     if type(floating) == "function" then return floating() == true end
     return floating == true
@@ -74,11 +75,13 @@ end
 -- What the arrangement system (src/layout/layout-rects.lua) needs to know about a group. label names it to the
 -- player; grow is the direction a frame that changes size grows in ("UP", "DOWN", "LEFT", "RIGHT");
 -- onLimit(room) hears how far it may grow; floating marks a reference place other things float over
--- (the tooltip anchor), which neither blocks nor is blocked, and may be a function; groups with the same exclusive tag are
+-- (the tooltip anchor), which neither blocks nor is blocked, and may be a function;
+-- overlay also avoids collisions but retains normal saved-position placement;
+-- groups with the same exclusive tag are
 -- never shown together (party and raid) and do not block each other; resize holds the bounds and the
 -- apply(width, height) of a group the player may resize (src/layout/layout-resize.lua); onUnlock(open) hears when
 -- the group is unlocked or locked; onApply(frame) refreshes each frame's appearance after placement.
-local OPTIONS = { "label", "grow", "onLimit", "floating", "exclusive", "resize", "onUnlock", "onApply" }
+local OPTIONS = { "label", "grow", "onLimit", "floating", "overlay", "exclusive", "resize", "onUnlock", "onApply" }
 
 -- The Centered layout (data/layouts.lua) is the default look and the one source for default places.
 -- The position a module registers with is the fallback for a key that layout does not know.

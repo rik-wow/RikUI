@@ -6,7 +6,7 @@ local micromenu = { Buttons = {}, Bags = {} }
 core.MicroMenu = micromenu
 
 local HOLDER_NAME, KEY = "RikUIMicroMenu", "micromenu"
-local SIZE, GAP, GROUP_GAP, EDGE, ICON_INSET = 22, 2, 8, 1, 2
+local SIZE, GAP, EDGE, ICON_INSET, COLUMNS = 22, 2, 1, 2, 10
 local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -16, y = 16 }
 local BACKGROUND, BORDER = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
@@ -38,7 +38,8 @@ end
 
 local function decorate(button, offset)
     button:SetSize(SIZE, SIZE)
-    button:SetPoint("LEFT", holder, "LEFT", offset, 0)
+    button:SetPoint("TOPLEFT", holder, "TOPLEFT", (offset % COLUMNS) * (SIZE + GAP),
+        -math.floor(offset / COLUMNS) * (SIZE + GAP))
     local background = button:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints(button)
     background:SetTexture(FLAT)
@@ -168,21 +169,22 @@ local function createButtons()
     local offset = 0
     for _, entry in ipairs(MICRO) do
         local stock = shownStock(entry[1])
-        if stock then createMicro(stock, entry[2], offset); offset = offset + SIZE + GAP end
+        if stock then createMicro(stock, entry[2], offset); offset = offset + 1 end
     end
-    if offset > 0 then offset = offset + GROUP_GAP end
+    -- Keep the native button order while wrapping inside the reserved utility column.
     for bag = BACKPACK, LAST_BAG do
         createBag(bag, bag == BACKPACK and BACKPACK_TOOLTIP or BAGSLOT, offset)
-        offset = offset + SIZE + GAP
+        offset = offset + 1
     end
     local keyring = keyringBag()
-    if keyring then createBag(keyring, KEYRING, offset); offset = offset + SIZE + GAP end
-    return offset - GAP
+    if keyring then createBag(keyring, KEYRING, offset); offset = offset + 1 end
+    return math.min(offset, COLUMNS) * (SIZE + GAP) - GAP,
+        math.ceil(offset / COLUMNS) * (SIZE + GAP) - GAP
 end
 
 local function build()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
-    holder:SetSize(createButtons(), SIZE)
+    holder:SetSize(createButtons())
     layout.Register(holder, KEY, DEFAULTS)
     micromenu.Holder = holder
     micromenu.RefreshBags()

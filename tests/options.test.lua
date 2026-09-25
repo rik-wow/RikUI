@@ -910,6 +910,7 @@ return function(check)
         do
             options = boot()
             assert(loadfile("data/layouts.lua"))("RikUI", {})
+            assert(loadfile("src/layout/layout-audit.lua"))("RikUI", {})
             assert(loadfile("src/layout/layout-presets.lua"))("RikUI", {})
             local layout = RikUI.Layout
             local frame = CreateFrame("Frame", nil, UIParent); frame:SetSize(100, 30)

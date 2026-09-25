@@ -95,6 +95,32 @@ return function(check)
         check("the main and docked edit boxes move under the strip and other windows keep their own place",
             box.points[1][2] == holder and ChatFrame3.editBox.points[1][2] == holder
             and ChatFrame2.editBox.points[1][2] == ChatFrame2.rikPanel)
+        -- Simulate UIParent siblings and child edit boxes at different scales.
+        local function scaled(frame, parent)
+            frame.parent = parent
+            function frame:GetParent() return self.parent end
+            function frame:SetScale(value) self.scale = value end
+            function frame:GetEffectiveScale()
+                return (self.scale or 1) * (self.parent and self.parent:GetEffectiveScale() or 0.85)
+            end
+        end
+        for _, frame in ipairs({ ChatFrame1, ChatFrame3 }) do
+            scaled(frame, nil)
+            scaled(frame.editBox, frame)
+        end
+        scaled(holder, nil)
+        RikUI.Layout.SetScale(0.65)
+        check("channel strip follows scaled chat", math.abs(holder:GetEffectiveScale() - ChatFrame1:GetEffectiveScale()) < 0.001)
+        check("docked input follows scaled chat", math.abs(box:GetEffectiveScale() - ChatFrame1:GetEffectiveScale()) < 0.001)
+        box:SetScale(2); box:SetHeight(32)
+        env.runScript(box, "OnShow")
+        check("opening input repairs native size and scale changes",
+            box:GetHeight() == 24 and math.abs(box:GetEffectiveScale() - holder:GetEffectiveScale()) < 0.001)
+        box.parent = { GetEffectiveScale = function() return 0.85 end }
+        chat.RefreshInputLayout()
+        check("UIParent sibling edit boxes use the same effective scale",
+            math.abs(box:GetEffectiveScale() - holder:GetEffectiveScale()) < 0.001)
+        RikUI.Layout.SetScale(1)
         state.group, state.raid, state.guild, state.officer = true, true, true, true
         env.fire("GROUP_ROSTER_UPDATE")
         env.fire("PLAYER_GUILD_UPDATE")
@@ -139,8 +165,9 @@ return function(check)
             and art.glow.leave.plays == 1 and not art.glow.fade:IsPlaying())
         env.runScript(box, "OnEditFocusGained")
         check("regaining focus cancels the outgoing glow", not art.glow.leave:IsPlaying())
+        local beforeShow = art.fade.plays or 0
         env.runScript(box, "OnShow")
-        check("the box's art fades in when the box opens, on a frame of RikUI's own", art.fade.plays == 1
+        check("the box's art fades in when the box opens, on a frame of RikUI's own", art.fade.plays == beforeShow + 1
             and rawget(box, "fade") == nil)
         local selected = RikUI.Chat.Colors.selected
         check("the active channel's button carries the selected border",

@@ -48,6 +48,7 @@ local function scaleWindows()
         local tab = _G[frame:GetName() .. "Tab"]
         if chat.IsFrame(tab) then tab:SetScale(scale) end
     end
+    if chat.RefreshInputLayout then chat.RefreshInputLayout() end
 end
 
 local function anchor()

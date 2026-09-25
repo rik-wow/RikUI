@@ -203,9 +203,9 @@ local function createHolder()
     -- Escape and a manual hide end the loot session the way the stock frame's OnHide does.
     holder:SetScript("OnHide", function() if not closing then CloseLoot() end end)
     if type(UISpecialFrames) == "table" then UISpecialFrames[#UISpecialFrames + 1] = HOLDER_NAME end
-    -- At the cursor the list places itself and stands over other frames for a moment, like a tooltip;
-    -- at its layout position it is a group like any other and gives way when it grows.
-    layout.Register(holder, KEY, DEFAULTS, { label = "Loot list", floating = loot.AtCursor })
+    -- Loot is a temporary overlay in either mode. Fixed placement still follows its
+    -- saved anchor, but a closed popup must not push persistent HUD controls away.
+    layout.Register(holder, KEY, DEFAULTS, { label = "Loot list", floating = loot.AtCursor, overlay = true })
     core.Motion.BindEntrance(holder, true)
     loot.Holder = holder
 end

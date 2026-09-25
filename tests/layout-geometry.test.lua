@@ -71,6 +71,13 @@ return function(check)
         local _, fits = g.Nearest(g.Rect(0, 0, 1365, 768), { block }, SCREEN)
         check("Nearest says so when nothing fits", fits == false)
 
+        -- The only opening is fractional and requires moving along both axes.
+        local opening = { g.Rect(0, 0, 40.25, 100), g.Rect(50.25, 0, 49.75, 100),
+            g.Rect(40.25, 0, 10, 30.5), g.Rect(40.25, 40.5, 10, 59.5) }
+        local exact, exactFits = g.Nearest(g.Rect(0, 0, 10, 10), opening, { width=100, height=100 })
+        check("Nearest finds fractional gaps smaller than a coarse search step",
+            exactFits and near(exact.left, 40.25) and near(exact.bottom, 30.5))
+
         local dx, dy, guides = g.Snap(g.Rect(405, 297, 80, 80), { block }, SCREEN, 8, 4)
         check("a rectangle near an obstacle snaps to the gap beside it and to its bottom edge",
             near(dx, -1) and near(dy, 3) and #guides == 2)

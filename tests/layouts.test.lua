@@ -8,10 +8,12 @@ return function(check)
     local restore = widgets.install()
     local savedWidth, savedHeight = UIParent.GetWidth, UIParent.GetHeight
     local SCREENS = { { name = "16:9", width = 1365, height = 768 }, { name = "16:10", width = 1228, height = 768 },
-        { name = "21:9", width = 1820, height = 768 } }
+        { name = "21:9", width = 1820, height = 768 },
+        { name = "4K at 85%", width = 3840 / 0.85, height = 2160 / 0.85 },
+        { name = "4K with a 1440-unit UI", width = 2560, height = 1440 } }
     local NARROW = { name = "4:3", width = 1024, height = 768 }
     -- Frames whose registered size is one row of something that grows; the nominal size is the room kept.
-    local GROWS = { loot = true, bags = true, chat = true }
+    local GROWS = { loot = true, bags = true, chat = true, micromenu = true }
     local function near(a, b) return type(a) == "number" and math.abs(a - b) < 0.01 end
 
     local function loadData()
@@ -64,7 +66,10 @@ return function(check)
                 focus = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT", x = 332, y = 100 },
                 tot = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT", x = 4, y = 400 } } }
         layouts.broken = broken
+        local fit = layouts.Positions
+        layouts.Positions = function(name) return layouts[name].positions end
         local text = table.concat(layouts.Audit("broken", SCREENS[1]), "; ")
+        layouts.Positions = fit
         check("the audit reports an overlap, a gap under four, a margin under sixteen and a missing key",
             text:find("player overlaps target", 1, true) and text:find("target is 2 from focus", 1, true)
             and text:find("tot is 4 from the left edge", 1, true) and text:find("main: not placed", 1, true), text)
@@ -114,6 +119,45 @@ return function(check)
         check("every registered group has a nominal size equal to its real size", groups >= 20 and #wrong == 0,
             table.concat(wrong, "; "))
         check("every module default is the Centered layout's position", #drift == 0, table.concat(drift, "; "))
+
+        -- Populate the optional native widgets too: minimal stubs used to omit these,
+        -- and a five-bag-only micro menu concealed the real client's much wider controls.
+        everything, layout = loadEverything(3840 / 0.85)
+        UIParent.GetHeight = function() return 2160 / 0.85 end
+        for key, size in pairs(everything.Sizes) do
+            if not layout.Groups[key] then
+                local frame = CreateFrame("Frame", nil, UIParent)
+                frame:SetSize(size.width, size.height)
+                layout.Register(frame, key, everything.centered.positions[key],
+                    { floating=everything.Floating[key], exclusive=everything.Exclusive[key] })
+            end
+        end
+        layout.Groups.damagemeter.frames[1]:SetSize(400, 132)
+        layout.Groups.micromenu.frames[1]:SetSize(238, 70)
+        for _, scale in ipairs({ 0.65, 0.85, 1, 1.2 }) do
+            RikUI.Profile.scale = scale
+            for _, name in ipairs(everything.Order) do
+                layout.ApplyPreset(name)
+                local issues = {}
+                for key in pairs(layout.Groups) do
+                    local own = layout.Rect(key)
+                    for _, other in ipairs(layout.Obstacles(key)) do
+                        if key < other.key and RikUI.Geometry.Overlaps(own, other) then
+                            issues[#issues+1] = key .. " x " .. other.key
+                        end
+                    end
+                    if own.left < 0 or own.bottom < 0 or own.right > 3840/0.85 or own.top > 2160/0.85 then
+                        issues[#issues+1] = key .. " off screen"
+                    end
+                end
+                check(name .. " has no runtime collisions at 4K, layout scale " .. scale,
+                    #issues == 0, table.concat(issues, "; "))
+                local foot = everything.ChatFootprint
+                local inputBottom = layout.Rect("chat").bottom
+                    + (foot.bottom - 4 - 2 - 18 - 2 - 24) * scale
+                check(name .. " reserves input below the message area at scale " .. scale, inputBottom >= 0)
+            end
+        end
 
         for _, name in ipairs(everything.Order) do
             everything, layout = loadEverything(NARROW.width)
