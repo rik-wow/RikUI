@@ -153,6 +153,10 @@ local function decorate(button)
     media.Font(button.rikFavorite, "small")
     button.rikFavorite:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", COUNT_INSET, COUNT_INSET)
     button.rikFavorite:SetTextColor(1, 0.82, 0)
+    button.rikQuestStart = button:CreateFontString(nil, "OVERLAY")
+    media.Font(button.rikQuestStart, "label")
+    button.rikQuestStart:SetPoint("CENTER", button, "CENTER", 0, 0)
+    button.rikQuestStart:SetTextColor(1, 0.82, 0)
     bags.CreateNewItem(button)
     button:SetHighlightTexture(media.highlight, "ADD")
 end
@@ -237,6 +241,7 @@ local function classify(button, info, bag, slot)
     local quality = info and info.quality
     button.rikQuality = plain(quality, "number") and quality or nil
     button.rikClass, button.rikQuest = nil, false
+    button.rikQuestStart:SetText("")
     local link = info and info.hyperlink
     if plain(link, "string") and C_Item and type(C_Item.GetItemInfoInstant) == "function" then
         local ok, _, _, _, _, _, class = pcall(C_Item.GetItemInfoInstant, link)
@@ -245,7 +250,11 @@ local function classify(button, info, bag, slot)
     if info and type(C_Container.GetContainerItemQuestInfo) == "function" then
         local ok, quest = pcall(C_Container.GetContainerItemQuestInfo, bag, slot)
         if ok and plain(quest, "table") then
-            button.rikQuest = plain(quest.isQuestItem, "boolean") and quest.isQuestItem
+            local startsQuest = validID(quest.questID)
+            button.rikQuest = startsQuest or (plain(quest.isQuestItem, "boolean") and quest.isQuestItem)
+            if startsQuest and plain(quest.isActive, "boolean") and quest.isActive == false then
+                button.rikQuestStart:SetText("!")
+            end
         end
     end
 end

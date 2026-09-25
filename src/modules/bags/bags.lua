@@ -20,7 +20,7 @@ local SEARCH_TEMPLATE, SEARCH_ART = "BagSearchBoxTemplate", { "Left", "Middle", 
 local STOCK_PREFIX, STOCK_COMBINED, MAX_STOCK = "ContainerFrame", "ContainerFrameCombinedBags", 16
 local TOGGLES = { "OpenAllBags", "CloseAllBags", "ToggleAllBags", "OpenBackpack", "CloseBackpack", "ToggleBackpack",
     "OpenBag", "CloseBag", "ToggleBag" }
-local REFRESH_EVENTS = { "BAG_UPDATE_DELAYED", "INVENTORY_SEARCH_UPDATE" }
+local REFRESH_EVENTS = { "BAG_UPDATE_DELAYED", "INVENTORY_SEARCH_UPDATE", "QUEST_LOG_UPDATE" }
 local holder, warnings = nil, {}
 
 function bags.Warn(operation, reason)

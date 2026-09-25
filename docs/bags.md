@@ -1,5 +1,7 @@
 # Bags
 
+Items that start an unaccepted quest show a gold **!** in their center and appear in the **Quest** filter. Accepting the quest clears the marker. Unknown or zero quest IDs never produce a marker. Native item clicks still start the quest. API reviewed 2026-09-24: [69913 ItemQuestInfo fields](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua).
+
 **Numeric searches:** `count:>=5` finds stacks of at least five; `type:gear level:<30` finds gear below item level 30. Exact values and `=`, `<`, `<=`, `>`, `>=` work. Combine them with other selectors or `!` exclusions. Unreadable values never match, including exclusions. Item-level lookups occur only when using the level selector or gear-level badges.
 
 **Named searches:** `/rik bagsearch save cloth type:materials linen` saves a query; omit the query to save the current search. `/rik bagsearch use cloth` opens bags and recalls it with the All quick filter. `list` shows saved queries; `delete cloth` removes one. Up to eight searches follow your profile and shared settings. Names use 1–24 letters, digits, underscores or hyphens.

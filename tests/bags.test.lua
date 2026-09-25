@@ -941,6 +941,31 @@ return function(check)
         check("malformed operator matches nothing", button(0, 1).alpha == 0.25)
         C_Item.GetDetailedItemLevelInfo = oldLevel
 
+        module = load()
+        local questInfo = { isQuestItem = false, questID = 42, isActive = false }
+        C_Container.GetContainerItemQuestInfo = function(bag, slot)
+            if bag == 0 and slot == 1 then return questInfo end
+            return { isQuestItem = false, isActive = false }
+        end
+        OpenAllBags()
+        module.SetFilter("quest")
+        check("quest starters join quest filter", button(0, 1).alpha == 1 and button(0, 2).alpha == 0.25)
+        check("inactive quest item carries exclamation", button(0, 1).rikQuestStart and button(0, 1).rikQuestStart.text == "!")
+        questInfo.isActive = true
+        env.fire("QUEST_LOG_UPDATE")
+        check("accepting quest clears starter marker", button(0, 1).rikQuestStart and button(0, 1).rikQuestStart.text == "")
+        questInfo.isActive, questInfo.questID = false, env.SECRET
+        module.Refresh()
+        check("protected quest id never gets a marker", button(0, 1).rikQuestStart and button(0, 1).rikQuestStart.text == "")
+        questInfo.questID = 0
+        module.Refresh()
+        check("zero quest sentinel is not a starter", button(0, 1).alpha == 0.25)
+        questInfo.questID = 42
+        module.Refresh()
+        stub.items["0:1"] = nil
+        module.Refresh()
+        check("empty slot clears starter marker", button(0, 1).rikQuestStart and button(0, 1).rikQuestStart.text == "")
+
         module = load({ modules = { bags = false } })
         OpenAllBags()
         check("a disabled module leaves the Blizzard bags alone", module.Holder == nil
