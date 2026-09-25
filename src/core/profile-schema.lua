@@ -6,6 +6,9 @@ local function number(low, high, whole)
         return type(value) == "number" and value >= low and value <= high and (not whole or value % 1 == 0)
     end
 end
+local function phrases(value)
+    return type(value) == "string" and #value <= 256 and not value:find("[%c|]")
+end
 local function fontChoice(value) return value == "bundled" or value == "game" end
 local function textMode(value) return value == "both" or value == "current" or value == "hidden" end
 local function boolean(value) return type(value) == "boolean" end
@@ -22,7 +25,7 @@ local schema = {
     borderColor={ [1]=number(0,1), [2]=number(0,1), [3]=number(0,1) },
     barFade={ main=boolean, bar2=boolean, bar3=boolean, bar4=boolean, bar5=boolean },
     tooltip={ vendorValues=boolean, itemID=boolean, spellID=boolean, itemLevel=boolean, hideInCombat=boolean, ownedCounts=boolean, followCursor=boolean, scale=number(0.75,1.5) },
-    chat={ fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
+    chat={ highlightWords=phrases, fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
     panels={ questTextSize=function(value) return value == 0 or number(12,24,true)(value) end,
         skins={ character=boolean, spells=boolean, quests=boolean, professions=boolean, commerce=boolean, maps=boolean } },
     bags={ autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,

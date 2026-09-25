@@ -105,13 +105,69 @@ local function caseless(name)
     end))
 end
 
+function chat.PhraseList(value)
+    local phrases = {}
+    if not usable(value) or #value > 256 or value:find("[%c|]") then return phrases end
+    for phrase in value:gmatch("[^,]+") do
+        phrase = phrase:match("^%s*(.-)%s*$")
+        if phrase ~= "" and #phrases < 16 then phrases[#phrases + 1] = phrase:lower() end
+    end
+    return phrases
+end
+
+function chat.PhraseSetting(key, label, description)
+    return { type = "text", key = key, label = label, description = description,
+        get = function() return chat.Settings()[key] or "" end,
+        set = function(value)
+            if not usable(value) or #value > 256 or value:find("[%c|]") then
+                return nil, "Use at most 256 characters without markup or control characters."
+            end
+            local count = 0
+            for _ in value:gmatch("[^,]+") do count = count + 1 end
+            if count > 16 then return nil, "Use at most 16 comma-separated phrases." end
+            chat.Settings()[key] = value
+            return true
+        end }
+end
+
+local function markPlain(text, phrases)
+    local lower, parts, position, count = text:lower(), {}, 1, 0
+    while position <= #text do
+        local first, last
+        if mentionPattern then first, last = text:find(mentionPattern, position) end
+        for _, phrase in ipairs(phrases) do
+            local start, stop = lower:find(phrase, position, true)
+            if start and (not first or start < first or start == first and stop > last) then first, last = start, stop end
+        end
+        if not first then parts[#parts + 1] = text:sub(position); break end
+        parts[#parts + 1] = text:sub(position, first - 1) .. HIGHLIGHT .. text:sub(first, last) .. RESET
+        position, count = last + 1, count + 1
+    end
+    return table.concat(parts), count
+end
+
+local function markWithoutMarkup(text, phrases)
+    local parts, position, count = {}, 1, 0
+    while position <= #text do
+        local pipe = text:find("|", position, true)
+        local marked, hits = markPlain(text:sub(position, pipe and pipe - 1 or #text), phrases)
+        parts[#parts + 1], count = marked, count + hits
+        if not pipe then break end
+        local tail = text:sub(pipe)
+        local token = tail:match("^|c%x%x%x%x%x%x%x%x") or tail:match("^|T.-|t")
+            or tail:match("^|A.-|a") or tail:match("^|[rR]") or tail:match("^||") or "|"
+        parts[#parts + 1], position = token, pipe + #token
+    end
+    return table.concat(parts), count
+end
+
 function chat.MarkMentions(text)
-    local name = playerName()
-    if not name then return text, 0 end
-    mentionPattern = mentionPattern or ("%f[%a]" .. caseless(name) .. "%f[%A]")
-    local total = 0
+    if not usable(text) then return text, 0 end
+    local name = chat.Settings().mentions ~= false and playerName() or nil
+    mentionPattern = name and ("%f[%a]" .. caseless(name) .. "%f[%A]") or nil
+    local phrases, total = chat.PhraseList(chat.Settings().highlightWords), 0
     local marked = chat.MapPlain(text, function(plain)
-        local rewritten, count = plain:gsub(mentionPattern, HIGHLIGHT .. "%0" .. RESET)
+        local rewritten, count = markWithoutMarkup(plain, phrases)
         total = total + count
         return rewritten
     end)
@@ -135,7 +191,7 @@ local function mentionSound(event, lineID)
 end
 
 local function mentionFilter(_, event, message, sender, ...)
-    if chat.Settings().mentions == false or not usable(message) or isSelf(sender) then return false end
+    if not usable(message) or isSelf(sender) then return false end
     local marked, count = chat.MarkMentions(message)
     if count == 0 then return false end
     mentionSound(event, (select(LINE_ID_AFTER_SENDER, ...)))
@@ -193,4 +249,6 @@ end
 checkbox("classColors", "Class-coloured names", chat.ApplyClassColors)
 checkbox("shortTags", "Short channel tags", applyShortTags)
 checkbox("mentions", "Highlight my name", nil)
+table.insert(chat.Options.settings, chat.PhraseSetting("highlightWords", "Highlight words and phrases",
+    "Up to 16 comma-separated literal phrases, 256 characters total. Leave empty to disable. Name highlighting is independent."))
 checkbox("collapseRepeats", "Collapse repeated public lines", nil)

@@ -4,7 +4,7 @@ local DEFAULT_PROFILE = "Default"
 local MAX_PROFILE_NAME = 64
 local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 1, font = "bundled", reducedMotion = false, gryphons = false, ghosts = true,
     tooltip = { vendorValues = false, hideInCombat = false, ownedCounts = true, followCursor = false, scale = 1 },
-    chat = { fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
+    chat = { highlightWords = "", fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },
     panels = { questTextSize = 0 },

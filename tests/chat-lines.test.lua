@@ -105,6 +105,26 @@ return function(check)
         check("switching mentions off stops the highlight and the sound", line:find(HIGHLIGHT, 1, true) == nil
             and #state.sounds == 2)
 
+        local highlights = option(chat, "highlightWords")
+        check("custom highlight setting exists", highlights ~= nil)
+        if highlights then
+            check("highlight phrases accept literal punctuation", highlights.set("lf tank, [ore], lf"))
+            local marked, count = chat.MarkMentions("LF TANK and [ore] |Hitem:1|h[ore]|h")
+            check("custom highlights choose longest match and preserve links", count == 2
+                and marked == HIGHLIGHT .. "LF TANK|r and " .. HIGHLIGHT .. "[ore]|r |Hitem:1|h[ore]|h")
+            marked, count = chat.MarkMentions("|cffff0000LF TANK|r |Tlf tank:16|t")
+            check("highlight preserves color and texture escape payloads", count == 1
+                and marked:find("|cffff0000", 1, true) == 1 and marked:find("|Tlf tank:16|t", 1, true) ~= nil)
+            state.now = 190
+            line = deliver(ChatFrame1, "CHAT_MSG_GUILD", "lf tank", "Bob", 19)
+            check("custom phrases work while name mentions are off", line:find(HIGHLIGHT, 1, true) ~= nil)
+            check("highlight settings reject markup and excessive data", not highlights.set("|Hitem:1")
+                and not highlights.set(string.rep("a", 257)))
+            highlights.set("")
+            marked, count = chat.MarkMentions("lf tank")
+            check("clearing highlight words disables custom matches", count == 0)
+        end
+
         state.now = 200
         local first = deliver(ChatFrame1, "CHAT_MSG_CHANNEL", "WTS ore", "Ann", 20, "2. Trade - City", 2)
         local sameLine = deliver(ChatFrame2, "CHAT_MSG_CHANNEL", "WTS ore", "Ann", 20, "2. Trade - City", 2)
