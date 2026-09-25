@@ -1,5 +1,7 @@
 # Bags
 
+Use **/rik favorite <item link or ID>** to add or remove a favorite item. Paste a link by shift-clicking it into the command. The **Favorites** quick filter, `type:favorites` search selector and small gold **F** badge follow the item ID across bag moves. Favorites are saved per UI profile (up to 50 item IDs), work with text search, and are included in shared profiles. They organize items; they do not prevent native use, sorting or selling. Hover Favorites for command help.
+
 **Show item levels on bag gear** adds a level in the top-right of weapon and armor icons, leaving the new-item badge and stack count in their own corners. It is off by default and applies immediately. Unreadable or uncached levels stay blank and refresh on existing item-data events. Native item click and drag behavior is unchanged.
 
 Bag search accepts combined selectors: `type:gear q:uncommon blade`, `id:123`, or `q:common !hearth`. Terms in a structured query must all match; `!` excludes a literal term or selector. Quality names are poor/common/uncommon/rare/epic/legendary (or 0–5), and types are all/junk/quest/gear/use/materials/new. Unknown selector data never matches, including exclusions. Quick filters still apply. Ordinary searches retain native behavior. Hover the search field for help; queries are limited to 256 characters and 16 terms.

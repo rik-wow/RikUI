@@ -523,6 +523,26 @@ return function(check)
         module.Refresh()
         typeSearch("id:123")
         check("item ID selector finds exact item", blade.alpha == 1 and cloth.alpha == 0.25)
+        check("favorite command is registered", RikUI:HasCommand("favorite"))
+        if module.ToggleFavorite then
+            local savedFavorites = RikUI.Profile.bags.favorites
+            check("favorite accepts an item link", module.ToggleFavorite("|cffffffff|Hitem:123:0|h[Blade]|h|r"))
+            typeSearch(""); env.click(holder.filters.favorites)
+            check("favorites filter selects by identity", blade.alpha == 1 and cloth.alpha == 0.25)
+            check("favorite marker is visible", blade.rikFavorite and blade.rikFavorite.text == "F")
+            typeSearch("!blade")
+            check("favorites combine with exclusions", blade.alpha == 0.25)
+            env.click(holder.filters.all); typeSearch("type:favorites")
+            check("favorites are available as a search selector", blade.alpha == 1 and cloth.alpha == 0.25)
+            check("invalid favorite input is rejected", not module.ToggleFavorite("0") and not module.ToggleFavorite("1.5"))
+            module.ToggleFavorite("123")
+            check("toggling favorite removes it", not module.IsFavorite(123) and blade.alpha == 0.25)
+            RikUI.Profile.bags.favorites = "123,456"
+            module.Refresh()
+            check("saved favorite IDs are restored", module.IsFavorite(123) and module.IsFavorite(456))
+            RikUI.Profile.bags.favorites = savedFavorites
+            typeSearch(""); module.Refresh()
+        end
         typeSearch("q:common !hearth")
         check("quality and exclusion combine", cloth.alpha == 1 and stone.alpha == 0.25)
         typeSearch("q:invalid")

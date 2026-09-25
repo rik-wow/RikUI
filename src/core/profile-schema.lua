@@ -6,6 +6,16 @@ local function number(low, high, whole)
         return type(value) == "number" and value >= low and value <= high and (not whole or value % 1 == 0)
     end
 end
+local function itemIDs(value)
+    if type(value) ~= "string" or #value > 550 or value:find("[^%d,]") then return false end
+    local count = 0
+    for token in value:gmatch("[^,]+") do
+        local id = tonumber(token)
+        count = count + 1
+        if not id or id <= 0 or id > 1000000000 or count > 50 then return false end
+    end
+    return true
+end
 local function phrases(value)
     return type(value) == "string" and #value <= 256 and not value:find("[%c|]")
 end
@@ -28,7 +38,7 @@ local schema = {
     chat={ mutedPhrases=phrases, highlightWords=phrases, fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
     panels={ questTextSize=function(value) return value == 0 or number(12,24,true)(value) end,
         skins={ character=boolean, spells=boolean, quests=boolean, professions=boolean, commerce=boolean, maps=boolean } },
-    bags={ autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
+    bags={ favorites=itemIDs, autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
         capacityLowOnly=boolean, capacityThreshold=number(0,20,true) },
     combattimer={ show=boolean, linger=number(0,30,true) },
     durability={ showPercent=boolean },

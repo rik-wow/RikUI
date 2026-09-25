@@ -137,6 +137,7 @@ local function nativeBagOption(name, label)
 end
 
 bags.Options = { title = "Bags and vendors", settings = {
+    { type = "heading", label = "Favorite items", description = "Use /rik favorite <item link or ID> to mark up to 50 favorite items, then choose Favorites in bags. Favorites do not prevent selling." },
     nativeBagOption("SortBagsRightToLeft", "Sort bags from right to left"),
     nativeBagOption("InsertItemsLeftToRight", "Place new loot from left to right"),
     nativeBagOption("BackpackAutosortDisabled", "Exclude backpack from sorting"),

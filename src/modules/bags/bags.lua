@@ -147,13 +147,24 @@ local function createFilters()
     holder.filters = {}
     local offset = PAD
     for _, entry in ipairs({ { "all", "All" }, { "junk", "Junk" }, { "quest", "Quest" },
-        { "gear", "Gear" }, { "use", "Use" }, { "materials", "Materials", 64 }, { "new", "New" } }) do
+        { "gear", "Gear" }, { "use", "Use" }, { "materials", "Materials", 64 }, { "new", "New" }, { "favorites", "Favorites", 58 } }) do
         local key = entry[1]
-        local width = entry[3] or 44
+        local width = entry[3] or 38
         local button = textButton(entry[2], width, function() bags.SetFilter(key) end)
         button:SetPoint("TOPLEFT", holder, "TOPLEFT", offset, -52)
         offset = offset + width + CONTROL_GAP
         holder.filters[key] = button
+        if key == "favorites" then
+            button:SetScript("OnEnter", function(self)
+                if not GameTooltip then return end
+                GameTooltip:SetOwner(self, "ANCHOR_TOP")
+                GameTooltip:SetText("Favorite items")
+                GameTooltip:AddLine("Use /rik favorite followed by an item link or ID to add or remove it.", 1, 1, 1, true)
+                GameTooltip:AddLine("Favorites do not prevent selling.", 1, 0.82, 0)
+                GameTooltip:Show()
+            end)
+            button:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+        end
     end
     bags.SetFilter("all")
 end

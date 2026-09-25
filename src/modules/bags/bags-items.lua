@@ -28,6 +28,58 @@ local function plain(value, kind)
     return not core.Secret.IsSecret(value) and type(value) == kind
 end
 
+local favoriteSource, favoriteIDs = nil, {}
+local MAX_FAVORITES, MAX_ITEM_ID = 50, 1000000000
+
+local function validID(id)
+    return plain(id, "number") and id > 0 and id <= MAX_ITEM_ID and id % 1 == 0
+end
+
+local function favorites()
+    local source = core.Profile and core.Profile.bags.favorites or ""
+    if not plain(source, "string") or #source > 550 then source = "" end
+    if source == favoriteSource then return favoriteIDs end
+    favoriteSource, favoriteIDs = source, {}
+    local count = 0
+    for token in source:gmatch("[^,]+") do
+        local id = tonumber(token)
+        if validID(id) and count < MAX_FAVORITES and not favoriteIDs[id] then
+            favoriteIDs[id], count = true, count + 1
+        end
+    end
+    return favoriteIDs
+end
+
+function bags.IsFavorite(id)
+    return validID(id) and favorites()[id] == true
+end
+
+function bags.ToggleFavorite(input)
+    if not core.Profile or not plain(input, "string") or #input > 1024 then return nil, "Use an item ID or item link." end
+    local id = tonumber(input:match("^%s*(%d+)%s*$") or input:match("|Hitem:(%d+):"))
+    if not validID(id) then return nil, "Use a valid item ID or item link." end
+    local saved, list = favorites(), {}
+    local adding = not saved[id]
+    for itemID in pairs(saved) do if itemID ~= id then list[#list + 1] = itemID end end
+    if adding and #list >= MAX_FAVORITES then return nil, "Keep at most 50 favorite items." end
+    if adding then list[#list + 1] = id end
+    table.sort(list)
+    for index, itemID in ipairs(list) do list[index] = tostring(itemID) end
+    core.Profile.bags.favorites = table.concat(list, ",")
+    core:Changed()
+    if bags.Holder and bags.Holder:IsShown() then bags.Refresh() end
+    return true, (adding and "Added favorite item " or "Removed favorite item ") .. id .. "."
+end
+
+core:RegisterCommand("favorite", function(input)
+    if input == "" then
+        core:Print("Use /rik favorite <item link or ID> to toggle. Favorites only filter items; they do not prevent selling.")
+        return
+    end
+    local _, message = bags.ToggleFavorite(input)
+    core:Print(message)
+end, "Toggle a bag favorite: /rik favorite <item link or ID>", bags)
+
 function bags.Columns()
     local value = core.Profile and core.Profile.bags.columns
     if not plain(value, "number") or value ~= value or value == math.huge or value == -math.huge then
@@ -97,6 +149,10 @@ local function decorate(button)
     media.Font(button.rikLevel, "small")
     button.rikLevel:SetPoint("TOPRIGHT", button, "TOPRIGHT", -COUNT_INSET, -COUNT_INSET)
     button.rikLevel:SetTextColor(1, 1, 1)
+    button.rikFavorite = button:CreateFontString(nil, "OVERLAY")
+    media.Font(button.rikFavorite, "small")
+    button.rikFavorite:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", COUNT_INSET, COUNT_INSET)
+    button.rikFavorite:SetTextColor(1, 0.82, 0)
     bags.CreateNewItem(button)
     button:SetHighlightTexture(media.highlight, "ADD")
 end
@@ -168,6 +224,7 @@ local function categoryMatches(button, category)
     local filter = category or filter
     if filter == "all" then return true end
     if not button.rikFilled then return false end
+    if filter == "favorites" then return bags.IsFavorite(button.rikItemID) end
     if filter == "new" then return button.rikFresh == true end
     if filter == "junk" then return button.rikQuality == 0 end
     if filter == "quest" then return button.rikQuest or button.rikClass == ITEM_QUEST end
@@ -194,7 +251,7 @@ local function classify(button, info, bag, slot)
 end
 
 local QUALITIES = { poor = 0, common = 1, uncommon = 2, rare = 3, epic = 4, legendary = 5 }
-local CATEGORIES = { all = true, junk = true, quest = true, gear = true, use = true, materials = true, new = true }
+local CATEGORIES = { all = true, junk = true, quest = true, gear = true, use = true, materials = true, new = true, favorites = true }
 local MAX_SEARCH, MAX_TERMS = 256, 16
 
 local function parseSearch(text)
@@ -226,7 +283,7 @@ local function termMatch(button, term)
         return button.rikItemID == id
     elseif term.kind == "type" then
         if not CATEGORIES[value] then return nil end
-        if value ~= "all" and value ~= "new" and value ~= "junk" and not button.rikClass and not button.rikQuest then return nil end
+        if value ~= "all" and value ~= "new" and value ~= "favorites" and value ~= "junk" and not button.rikClass and not button.rikQuest then return nil end
         if value == "junk" and button.rikQuality == nil then return nil end
         return categoryMatches(button, value)
     end
@@ -296,6 +353,7 @@ function bags.UpdateButton(button)
     for _, line in ipairs(button.rikBorder) do line:SetVertexColor(r, g, b, 1) end
     local itemID = info and info.itemID
     button.rikItemID = plain(itemID, "number") and itemID or nil
+    button.rikFavorite:SetText(bags.IsFavorite(button.rikItemID) and "F" or "")
     button.rikName, button.rikFilled = itemName(info), info ~= nil
     button.rikFiltered = nil
     if info and plain(info.isFiltered, "boolean") then button.rikFiltered = info.isFiltered end
@@ -406,7 +464,7 @@ end
 
 function bags.SetFilter(value)
     if value ~= "all" and value ~= "junk" and value ~= "quest" and value ~= "gear" and value ~= "use"
-        and value ~= "materials" and value ~= "new" then return end
+        and value ~= "materials" and value ~= "new" and value ~= "favorites" then return end
     filter = value
     for key, button in pairs(bags.Holder.filters) do
         button.label:SetTextColor(key == filter and 1 or 0.65, key == filter and 0.82 or 0.65, key == filter and 0 or 0.65)
