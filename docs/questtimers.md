@@ -1,5 +1,7 @@
 # Quest timers
 
+The final ten seconds use red time text and a faster 180ms pulse. Added time and pooled quest changes restore the appropriate warning level. Reduced motion uses a static red wash, and hiding stops all effects. API shape rechecked 2026-09-24 against [69913 QuestTimerInfo](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestLogDocumentation.lua).
+
 `src/modules/questtimers/questtimers.lua` shows the countdown of timed quests as a flat list.
 Blizzard's `QuestTimerFrame` is a child of `ObjectiveTrackerFrame`, which the
 [quest tracker](questtracker.md) parks, so without this module a timed quest

@@ -58,6 +58,21 @@ return function(check)
         check("a second timer stacks under the first and an hour shows as h:mm:ss", second.shown == true
             and second.title.text == "Race Against Time" and second.time.text == "1:02:05"
             and second.points[1][5] < row.points[1][5] and second.pulse.playing ~= true)
+        update({ { questID = 101, questTimer = 10 }, { questID = 202, questTimer = 3725 } })
+        check("final ten seconds accelerate pulse and turn time red", row.pulse.rikAlpha.duration == 0.18
+            and row.time.textColor[1] == 1 and row.time.textColor[2] == 0.15)
+        local finalPlays = row.pulse.plays
+        update({ { questID = 101, questTimer = 9 } })
+        check("countdown ticks do not restart urgency pulse", row.pulse.plays == finalPlays)
+        RikUI.Profile.reducedMotion = true
+        update({ { questID = 101, questTimer = 8 } })
+        check("reduced motion uses static warning", not row.pulse.playing and row.low.alpha == 0.12)
+        RikUI.Profile.reducedMotion = false
+        update({ { questID = 101, questTimer = 7 } })
+        check("motion preference change resumes urgency once", row.pulse.playing and row.pulse.plays == finalPlays + 1)
+        update({ { questID = 202, questTimer = 20 } })
+        check("pooled timer identity resets urgency", row.pulse.rikAlpha.duration == 0.4
+            and row.time.textColor[2] == 0.82 and row.title.text == "Race Against Time")
         update({ { questID = 999, questTimer = 40 } })
         check("a quest without a title still shows its time, the pulse stops and the spare row hides",
             row.title.text == "" and row.time.text == "0:40" and row.pulse.playing == false and second.shown == false)

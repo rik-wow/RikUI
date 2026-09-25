@@ -29,12 +29,19 @@ local function describe(seconds)
     return string.format("%d:%02d", minutes, seconds % 60)
 end
 
-local function setLow(row, low)
-    if row.isLow == low then return end
-    row.isLow = low
-    if low then motion.Play(row.pulse) return end
+local FINAL_SECONDS, FINAL_PULSE_SECONDS, QUIET_ALPHA = 10, 0.18, 0.12
+local function setLow(row, low, critical)
+    critical = critical == true
+    local quiet = motion.Reduced()
+    if row.isLow == low and row.isCritical == critical and row.quiet == quiet then return end
+    row.isLow, row.isCritical, row.quiet = low, critical, quiet
+    row.time:SetTextColor(unpack(critical and LOW_COLOR or TIME_COLOR))
     motion.Stop(row.pulse)
-    row.low:SetAlpha(0)
+    row.low:SetAlpha(low and quiet and QUIET_ALPHA or 0)
+    if not low or quiet then return end
+    row.pulse = row.pulse or motion.Pulse(row.low, 0, PULSE_ALPHA, PULSE_SECONDS)
+    if row.pulse then row.pulse.rikAlpha:SetDuration(critical and FINAL_PULSE_SECONDS or PULSE_SECONDS) end
+    motion.Play(row.pulse)
 end
 
 local function text(row, justify, point, x)
@@ -62,6 +69,11 @@ local function createRow(index)
     row.time:SetTextColor(unpack(TIME_COLOR))
     row.fade = motion.Tween(row, 0, 1, skin.FADE_SECONDS)
     row.pulse = motion.Pulse(row.low, 0, PULSE_ALPHA, PULSE_SECONDS)
+    row:HookScript("OnHide", function()
+        setLow(row, false)
+        motion.Stop(row.fade)
+        row.questID = nil
+    end)
     row:Hide()
     timers.Rows[index] = row
     return row
@@ -73,12 +85,14 @@ local function title(questID)
 end
 
 local function fill(row, info)
-    local wasShown = row:IsShown()
+    local appearing = not row:IsShown() or row.questID ~= info.questID
+    if appearing then setLow(row, false) end
+    row.questID = info.questID
     row.title:SetText(title(info.questID))
     row.time:SetText(describe(info.questTimer))
-    setLow(row, info.questTimer <= LOW_SECONDS)
     row:Show()
-    if not wasShown then motion.Play(row.fade) end
+    setLow(row, info.questTimer <= LOW_SECONDS, info.questTimer <= FINAL_SECONDS)
+    if appearing and not motion.Reduced() then motion.Play(row.fade) end
 end
 
 local function render(list)
