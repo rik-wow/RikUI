@@ -130,6 +130,15 @@ local function createSearch()
     box:SetSize(SEARCH_WIDTH, CONTROL_HEIGHT)
     box:SetFont(media.font, media.Size("small"), "")
     flat(box, FIELD)
+    box:SetMaxLetters(256)
+    box:HookScript("OnEnter", function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText("Search bags")
+        GameTooltip:AddLine("Combine q:rare, type:gear, id:123 and words. Use !word to exclude.", 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    box:HookScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
     box:HookScript("OnTextChanged", searchChanged)
     return box
 end

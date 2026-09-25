@@ -20,7 +20,7 @@ local NAME_PATTERN = "%[(.-)%]"
 local COPPER_PER_SILVER, COPPER_PER_GOLD = 100, 10000
 local GOLD, SILVER, COPPER = "%d|cffffd700g|r", "%d|cffc7c7cfs|r", "%d|cffeda55fc|r"
 local bagFrames, search, filter = {}, "", "all"
-local nativeSearchAccepted = false
+local nativeSearchAccepted, searchTerms = false, nil
 local ITEM_CONSUMABLE, ITEM_WEAPON, ITEM_ARMOR, ITEM_QUEST = 0, 2, 4, 12
 local ITEM_REAGENT, ITEM_TRADE_GOODS = 5, 7
 
@@ -160,7 +160,8 @@ local function nativeSearch()
     return type(C_Container.SetItemSearch) == "function"
 end
 
-local function categoryMatches(button)
+local function categoryMatches(button, category)
+    local filter = category or filter
     if filter == "all" then return true end
     if not button.rikFilled then return false end
     if filter == "new" then return button.rikFresh == true end
@@ -188,10 +189,58 @@ local function classify(button, info, bag, slot)
     end
 end
 
+local QUALITIES = { poor = 0, common = 1, uncommon = 2, rare = 3, epic = 4, legendary = 5 }
+local CATEGORIES = { all = true, junk = true, quest = true, gear = true, use = true, materials = true, new = true }
+local MAX_SEARCH, MAX_TERMS = 256, 16
+
+local function parseSearch(text)
+    if not text:find(":", 1, true) and not text:find("!", 1, true) then return nil end
+    local terms = {}
+    for token in text:gmatch("%S+") do
+        if #terms >= MAX_TERMS then return { { kind = "invalid" } } end
+        local negate = token:sub(1, 1) == "!"
+        if negate then token = token:sub(2) end
+        local kind, value = token:match("^(%a+):(.*)$")
+        terms[#terms + 1] = { kind = kind or "name", value = value or token, negate = negate }
+    end
+    return terms
+end
+
+local function termMatch(button, term)
+    local value = term.value
+    if not value or value == "" then return nil end
+    if term.kind == "name" then
+        if not button.rikName then return nil end
+        return button.rikName:find(value, 1, true) ~= nil
+    elseif term.kind == "q" then
+        local quality = QUALITIES[value] or tonumber(value)
+        if not quality or quality < 0 or quality > 5 or quality % 1 ~= 0 or button.rikQuality == nil then return nil end
+        return button.rikQuality == quality
+    elseif term.kind == "id" then
+        local id = tonumber(value)
+        if not id or id <= 0 or id == math.huge or id % 1 ~= 0 or not button.rikItemID then return nil end
+        return button.rikItemID == id
+    elseif term.kind == "type" then
+        if not CATEGORIES[value] then return nil end
+        if value ~= "all" and value ~= "new" and value ~= "junk" and not button.rikClass and not button.rikQuest then return nil end
+        if value == "junk" and button.rikQuality == nil then return nil end
+        return categoryMatches(button, value)
+    end
+end
+
+local function structuredMatch(button)
+    for _, term in ipairs(searchTerms) do
+        local matched = termMatch(button, term)
+        if matched == nil or matched == term.negate then return false end
+    end
+    return true
+end
+
 local function matches(button)
     if not categoryMatches(button) then return false end
     if search == "" then return true end
     if not button.rikFilled then return false end
+    if searchTerms then return structuredMatch(button) end
     if nativeSearchAccepted and button.rikFiltered ~= nil then return not button.rikFiltered end
     local name = button.rikName
     return name ~= nil and name:find(search, 1, true) ~= nil
@@ -326,9 +375,11 @@ end
 function bags.SetSearch(text)
     if not plain(text, "string") then text = "" end
     search = text:lower():match("^%s*(.-)%s*$")
+    search = search:sub(1, MAX_SEARCH)
+    searchTerms = parseSearch(search)
     nativeSearchAccepted = nativeSearch()
     if nativeSearchAccepted then
-        local ok, result = pcall(C_Container.SetItemSearch, search)
+        local ok, result = pcall(C_Container.SetItemSearch, searchTerms and "" or search)
         nativeSearchAccepted = ok and not core.Secret.IsSecret(result) and result ~= false
         if not nativeSearchAccepted then bags.Warn("search", ok and "Search unavailable" or result) end
     end

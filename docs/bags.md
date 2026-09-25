@@ -1,5 +1,7 @@
 # Bags
 
+Bag search accepts combined selectors: `type:gear q:uncommon blade`, `id:123`, or `q:common !hearth`. Terms in a structured query must all match; `!` excludes a literal term or selector. Quality names are poor/common/uncommon/rare/epic/legendary (or 0–5), and types are all/junk/quest/gear/use/materials/new. Unknown selector data never matches, including exclusions. Quick filters still apply. Ordinary searches retain native behavior. Hover the search field for help; queries are limited to 256 characters and 16 terms.
+
 **Prefer guild funds for repairs** uses guild money when the client reports permission, sufficient balance and allowance. Otherwise it uses affordable personal funds. It applies to both automatic and manual repairs; the button says **Guild repair** when selected. It defaults off and never retries spending after a failed repair call. Missing guild APIs leave personal repair available.
 
 **Automatically sell junk** is off by default in Bags and vendors. When enabled it runs the client's Sell junk action once on opening a merchant, respecting native exclusions. Hold Shift to skip both automatic selling and repair; manual buttons remain available. Combat or unavailable modifier/item data skips selling without scheduling a later sale.
