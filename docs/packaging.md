@@ -64,7 +64,13 @@ The upload invocation preserves the checked staging directory with `-c -o`.
 A final step downloads and verifies the published ZIP; BigWigs also attaches
 its separate `release.json` metadata asset.
 The single `RikUI/` root contains runtime sources, media, bindings, required
-licenses and the generated release changelog. Development assets, tools, tests,
+licenses and `CHANGELOG.md`. That changelog is the hand-written one at the
+repository root, declared as `manual-changelog` in `.pkgmeta`; BigWigs copies
+it into the archive and sends the whole file as the GitHub release text, so
+add the version's entry before tagging. Without that declaration BigWigs
+would overwrite the file with a list of commits since the previous tag.
+`tools/verify_release.py` only requires the archived changelog to exist and be
+non-empty. Development assets, tools, tests,
 agent files and the separate RikProbe addon are excluded by `.pkgmeta`.
 No externals are fetched: the addon uses its own serialization codec.
 The empty `libs/` placeholder is not shipped.
@@ -87,7 +93,7 @@ python tools/verify_release.py --version v0.0.1-beta.1 .release/RikUI-v0.0.1-bet
 Use the same pinned packager commit as the workflow:
 `e50a250f8705041e40f2fa1ddcb280a686d65aa0`. The `-d` flag skips all uploads;
 the other flags skip externals/localization and normalize text line endings.
-The BigWigs archive has a generated changelog and tag-stamped TOC; the separate
+The BigWigs archive has the manual changelog and a tag-stamped TOC; the separate
 local builder has a hash manifest and deterministic ZIP bytes. Use the
 corresponding verifier for each format. Neither verifier claims publisher
 authenticity.

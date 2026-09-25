@@ -1,6 +1,10 @@
 package-as: RikUI
 enable-nolib-creation: no
 # No externals: serialization is implemented in src/persistence/codec.lua.
+# The hand-written changelog ships in the ZIP and becomes the GitHub release text.
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
 ignore:
   - .agents
   - .claude

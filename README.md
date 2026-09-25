@@ -17,7 +17,8 @@ and includes an optional setup wizard for your action bars, keybinds and layout.
    There shouldn't be another folder between `RikUI` and the TOC.
 4. Start the game and enable RikUI in the AddOns list.
 
-This is built for the Forever beta, currently interface `16001`.
+This is built for the Forever beta, currently interface `16001`. What changed
+in each version is in [CHANGELOG.md](CHANGELOG.md).
 
 ## First login
 
@@ -81,25 +82,71 @@ tracked and where the beta client still limits it.
 
 You can use the interface without applying the preset bars or keybinds.
 
-## Useful commands
+## Commands
 
-Type `/rik` or `/rik help` for the full list available in your game.
+Type `/rik` or `/rik help` in game for the same list. Most people only need
+the first few; the rest are there when something needs a closer look.
+
+Setup and presets:
+
+| Command | What it does |
+| --- | --- |
+| `/rik setup` | Open the setup wizard. |
+| `/rik apply [role]` | Apply your class preset without the wizard, for a role if you name one. |
+| `/rik undo` | Restore the bars, macros, bindings, game settings and frame positions from before the last Apply. |
+| `/rik resync` | Fill empty preset spell and macro slots and upgrade older ranks, keeping unrelated actions in place. |
+| `/rik role` | Show the role RikUI reads from your talents. |
+| `/rik binds` | Apply the character keybind scheme on its own. |
+| `/rik preset validate` | Check the bundled, community and imported presets. |
+| `/rik ghosts on\|off` | Preview the preset's empty slots on the bars. |
+
+Layout and frames:
+
+| Command | What it does |
+| --- | --- |
+| `/rik move [reset]` | Unlock or lock every frame, or put them back where the layout has them. |
+| `/rik scale <0.25-3>` | Scale every RikUI frame. |
+| `/rik layout [list\|undo\|<name>]` | Show the arrangement state, list the layouts, apply one, or undo the last apply. |
+| `/rik hud` | Arrange the combat HUD, keeping your other positions and settings. |
+| `/rik chat lock\|unlock\|reset` | Lock, unlock or reset the main chat window. |
+| `/rik gryphons on\|off` | Show or hide the main bar's end caps. |
+| `/rik stockbars show\|hide\|status` | Show, hide or report Blizzard's bars, stance and pet bars, bag and menu buttons and XP bar. |
+
+Settings and profiles:
 
 | Command | What it does |
 | --- | --- |
 | `/rik config` | Open settings. |
-| `/rik setup` | Open the setup wizard. |
-| `/rik undo` | Undo the most recent setup. |
-| `/rik resync` | Update preset spell slots after learning abilities or ranks, keeping unrelated actions in place. |
-| `/rik hud` | Arrange the combat HUD above the action bars. |
-| `/rik move` | Unlock or lock frames. |
-| `/rik move reset` | Restore default frame positions. |
-| `/rik scale 0.8` | Set the overall UI scale. |
-| `/rik profile` | List saved profiles; add a profile's exact name to select it. |
-| `/rik quests show` | Open the quest planner. |
-| `/rik import` / `/rik export` | Import or export an action-bar preset. |
-| `/rik profileimport` / `/rik profileexport` | Import or export UI preferences. |
+| `/rik profile [exact name]` | List saved profiles, or select one by name. |
+| `/rik module [name [status\|on\|off]]` | List modules, or change which ones load at the next reload. |
+| `/rik export [role]` | Copy an action-bar preset to share. |
+| `/rik import` | Import a shared preset. |
+| `/rik profileexport` | Copy your UI preferences to share. |
+| `/rik profileimport` | Import shared UI preferences. |
+
+Everyday tools:
+
+| Command | What it does |
+| --- | --- |
+| `/rik quests show` | Open the quest planner. Also `pin`, `skip`, `avoid`, `pause`, `map` and `export`. |
+| `/rik bagsearch save\|use\|delete <name> [query]` | Save, use, delete or list named bag searches. |
+| `/rik favorite <item link or ID>` | Mark an item as a favorite so bulk junk selling leaves it alone. |
+| `/rik stopwatch start\|pause\|reset\|show\|hide` | A session stopwatch. |
+| `/rik cooldownranks` | Ask again about cooldown entries that track more than one rank of a spell. |
+| `/rik party test` | Fill the party frames with copies of you to check the layout. Run it again to leave. |
+| `/rik raid test` | The same for the forty raid frames. |
+
+Troubleshooting:
+
+| Command | What it does |
+| --- | --- |
+| `/rik help` | List the commands available in your game. |
 | `/rik support` | Open a report you can copy when reporting a problem. |
+| `/rik errors [clear]` | Show the errors RikUI caught this session. |
+| `/rik blocked [clear]` | Show the actions the game blocked RikUI from taking. |
+| `/rik store` | Report the settings backup that survives reloads and restarts. |
+| `/rik debug` | Report which values the game hides from each module. |
+| `/rik bardebug <slot>` | Pick an action slot for `/rik debug` to inspect. |
 
 ## Preset keybinds
 
@@ -121,12 +168,35 @@ third-bar slot 8 without a scheme binding.
 
 ## A few beta limitations
 
-Forever restricts some of the information addons can read, especially during
-combat. RikUI uses the game's own displays where needed, which limits how
-much some numbers and effects can be customized.
+These were checked in game on beta build 69913 in September 2026. A newer
+build may loosen some of them.
 
-Use RikUI's movement tools for its frames. Blizzard's Edit Mode can't move
-the stock frames that RikUI has hidden.
+**Hidden values.** The client keeps some numbers away from addons: your
+health and power, the target's health, auras, and in combat the cooldown and
+count on each action button. RikUI feeds those into the game's own display
+objects, so it can't show them as text or reformat them, and aura rows are
+laid out by the game rather than by RikUI.
+
+**Saved settings.** The beta client has been seen writing addon saved
+variables at logout but not reading them back at the next login. RikUI keeps
+its own backup so your settings survive anyway: CVars that last through a
+`/reload`, and up to twelve account macros named `RikUI data N` that last
+through a full restart. Leave those macros alone. Deleting or editing one is
+noticed and the backup is skipped rather than half restored. `/rik store`
+shows whether the backup is working. The last setup's undo snapshot and the
+chat history are not backed up.
+
+**Party and raid frames** are fixed slots, four and forty, in unit order
+rather than by subgroup. The secure code that regroups frames during combat
+doesn't run on the beta.
+
+**Edit Mode.** RikUI hides Blizzard's frames rather than registering them
+with Edit Mode, so Edit Mode can't move them; use `/rik move`. If you open
+Edit Mode anyway, its changes to the chat window, minimap and damage meter
+are put back to RikUI's values when it closes.
+
+**Lua errors.** After 100 errors the client stops reporting them until you
+`/reload`. `/rik errors` keeps RikUI's own list of what it caught.
 
 The quest planner doesn't have complete data for every quest, floor or route.
 It shows when data is missing. Separate quest and terrain companion addons
