@@ -69,6 +69,62 @@ class PackageTests(unittest.TestCase):
                 self.assertEqual(len(data), entry["bytes"])
         self.assertEqual(package_addon.verify(self.output)["files"], first["files"])
 
+    def rewrite_archive(self, mutate, links=()):
+        package_addon.build(self.root, self.output)
+        with zipfile.ZipFile(self.output) as archive:
+            contents = {name: archive.read(name) for name in archive.namelist() if name != package_addon.MANIFEST}
+        mutate(contents)
+        manifest = {"format": 1, "version": "0.1.0", "files": {
+            name.removeprefix("RikUI/"): {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+            for name, data in contents.items()
+        }}
+        contents[package_addon.MANIFEST] = json.dumps(manifest).encode()
+        with zipfile.ZipFile(self.output, "w") as archive:
+            for name, data in contents.items():
+                info = zipfile.ZipInfo(name)
+                info.create_system = 3
+                info.external_attr = (0o120777 if name in links else 0o100644) << 16
+                archive.writestr(info, data)
+
+    def test_rejects_ambiguous_install_paths(self):
+        for name in ("RikUI/media//extra.tga", "RikUI/media/./extra.tga",
+                     "RikUI/media/extra.tga.", "RikUI/media/CON.tga", "RikUI/media/a|b.tga",
+                     "RikUI/media/FONT.ttf"):
+            with self.subTest(name=name):
+                self.rewrite_archive(lambda files: files.update({name: b"extra"}))
+                with self.assertRaises(ValueError):
+                    package_addon.verify(self.output)
+
+    def test_rejects_symlink_archive_members(self):
+        name = "RikUI/media/font.ttf"
+        self.rewrite_archive(lambda files: None, links=(name,))
+        with self.assertRaises(ValueError):
+            package_addon.verify(self.output)
+
+    def test_requires_assets_and_toc_sources_even_with_matching_hashes(self):
+        for name in ("RikUI/media/font.ttf", "RikUI/src/core/core.lua", "RikUI/RikUI.toc"):
+            with self.subTest(name=name):
+                self.rewrite_archive(lambda files: files.pop(name))
+                with self.assertRaises(ValueError):
+                    package_addon.verify(self.output)
+
+    def test_rejects_unexpected_payload_even_with_matching_hashes(self):
+        self.rewrite_archive(lambda files: files.update({"RikUI/private.txt": b"private"}))
+        with self.assertRaises(ValueError):
+            package_addon.verify(self.output)
+
+    def test_rejects_duplicate_manifest_fields(self):
+        package_addon.build(self.root, self.output)
+        with zipfile.ZipFile(self.output) as archive:
+            contents = {name: archive.read(name) for name in archive.namelist()}
+        contents[package_addon.MANIFEST] = contents[package_addon.MANIFEST].replace(
+            b'"format": 1', b'"format": 0, "format": 1')
+        with zipfile.ZipFile(self.output, "w") as archive:
+            for name, data in contents.items():
+                archive.writestr(name, data)
+        with self.assertRaises(ValueError):
+            package_addon.verify(self.output)
+
     def test_missing_runtime_preserves_old_archive(self):
         self.output.write_bytes(b"previous")
         (self.root / "src/core/core.lua").unlink()

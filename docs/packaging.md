@@ -25,8 +25,8 @@ The manifest lists the exact byte size and SHA-256 of every payload file.
 Builds validate the existing TOC and icon inventories, required assets and path
 containment before creating output. A temporary archive is verified and then
 replaces the output in one filesystem operation. Invalid or missing inputs leave
-an existing archive intact. Verification checks member inventory and content
-hashes; it establishes integrity against the embedded manifest, not publisher
+an existing archive intact. Verification checks required assets, every TOC source, permitted runtime payloads,
+canonical install paths, case collisions, regular-file members, unique manifest keys and content hashes; it establishes integrity against the embedded manifest, not publisher
 authenticity.
 
 Sorted entries, fixed timestamps and permissions, and uncompressed ZIP members
@@ -39,6 +39,7 @@ This is a local install artifact, not a published 1.0.0 release. The native
 CurseForge project identity and publication.
 
 Research reviewed 2026-09-24:
-[Python ZIP API](https://docs.python.org/3/library/zipfile.html) and
+[Python ZIP API](https://docs.python.org/3/library/zipfile.html),
+[Windows file naming rules](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) and
 [BigWigs packager](https://github.com/BigWigsMods/packager).
 

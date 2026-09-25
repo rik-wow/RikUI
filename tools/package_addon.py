@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import sys
+import stat
 import tempfile
 import zipfile
 
@@ -23,10 +24,21 @@ REQUIRED = {
 }
 
 
-def source_path(root, name):
+def install_path(name):
     path = PurePosixPath(name)
-    if path.is_absolute() or ".." in path.parts or ":" in name or "\\" in name or path.as_posix() != name:
+    reserved = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"}
+    reserved.update(prefix + digit for prefix in ("COM", "LPT") for digit in "123456789¹²³")
+    if not name or path.is_absolute() or path.as_posix() != name or ".." in path.parts:
         raise ValueError(f"Unsafe package path: {name}")
+    for part in path.parts:
+        if (part.endswith((".", " ")) or part.split(".")[0].upper() in reserved
+                or any(ord(char) < 32 or char in '<>:"\\\\|?*' for char in part)):
+            raise ValueError(f"Unsafe package path: {name}")
+    return path
+
+
+def source_path(root, name):
+    path = install_path(name)
     target = root.joinpath(*path.parts)
     if not target.resolve().is_relative_to(root):
         raise ValueError(f"Package input escapes root: {name}")
@@ -70,29 +82,72 @@ def payload(root):
     return files
 
 
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"Duplicate package manifest key: {key}")
+        result[key] = value
+    return result
+
+
+def verify_members(archive):
+    names = archive.namelist()
+    folded = {name.casefold() for name in names}
+    if len(names) != len(folded) or MANIFEST not in names or len(names) > 4096:
+        raise ValueError("Invalid archive inventory")
+    if sum(info.file_size for info in archive.infolist()) > MAX_BYTES:
+        raise ValueError("Archive exceeds the size limit")
+    for info in archive.infolist():
+        path = install_path(info.filename)
+        mode = stat.S_IFMT(info.external_attr >> 16)
+        if not info.filename.startswith(ROOT) or mode not in (0, stat.S_IFREG) or info.is_dir() or info.flag_bits & 1:
+            raise ValueError("Unsafe archive member")
+        if any(parent.as_posix().casefold() in folded for parent in path.parents):
+            raise ValueError("Archive file conflicts with a directory")
+    return set(names)
+
+
+def verify_inventory(archive, names):
+    manifest = json.loads(archive.read(MANIFEST), object_pairs_hook=unique_object)
+    if (not isinstance(manifest, dict) or type(manifest.get("format")) is not int
+            or manifest["format"] != 1 or not isinstance(manifest.get("files"), dict)):
+        raise ValueError("Unsupported package manifest")
+    files = manifest["files"]
+    if set(names) != {ROOT + name for name in files} | {MANIFEST} or not REQUIRED <= files.keys():
+        raise ValueError("Archive inventory differs from required manifest")
+    toc = archive.read(ROOT + "RikUI.toc").decode("utf-8-sig")
+    listed = [line.strip() for line in toc.splitlines() if line.strip() and not line.lstrip().startswith("#")]
+    if not listed or len(listed) != len({name.casefold() for name in listed}):
+        raise ValueError("Invalid archive TOC inventory")
+    for name in listed:
+        path = install_path(name)
+        if path.suffix != ".lua" or path.parts[0] not in {"src", "data", "presets"} or name not in files:
+            raise ValueError(f"Missing or invalid TOC source: {name}")
+    for name in files:
+        path = install_path(name)
+        if name not in REQUIRED and name not in listed and not (path.parts[0] == "media" and path.suffix.lower() in MEDIA_TYPES):
+            raise ValueError(f"Unexpected archive payload: {name}")
+    return manifest
+
+
+def verify_contents(archive, manifest):
+    for name, entry in manifest["files"].items():
+        if (not isinstance(entry, dict) or type(entry.get("bytes")) is not int
+                or entry["bytes"] < 0 or not isinstance(entry.get("sha256"), str)):
+            raise ValueError(f"Invalid archive file metadata: {name}")
+        data = archive.read(ROOT + name)
+        if entry["bytes"] != len(data) or entry["sha256"] != hashlib.sha256(data).hexdigest():
+            raise ValueError(f"Archive content mismatch: {name}")
+
+
 def verify(output):
     output = Path(output)
     with zipfile.ZipFile(output) as archive:
-        names = archive.namelist()
-        if len(names) != len(set(names)) or MANIFEST not in names or len(names) > 4096:
-            raise ValueError("Invalid archive inventory")
-        if sum(info.file_size for info in archive.infolist()) > MAX_BYTES:
-            raise ValueError("Archive exceeds the size limit")
-        for name in names:
-            path = PurePosixPath(name)
-            if not name.startswith(ROOT) or ".." in path.parts or "\\" in name or ":" in name:
-                raise ValueError("Unsafe archive member")
-        manifest = json.loads(archive.read(MANIFEST))
-        if not isinstance(manifest, dict) or manifest.get("format") != 1 or not isinstance(manifest.get("files"), dict):
-            raise ValueError("Unsupported package manifest")
-        expected = {ROOT + name for name in manifest["files"]}
-        if set(names) != expected | {MANIFEST}:
-            raise ValueError("Archive inventory differs from manifest")
-        for name, entry in manifest["files"].items():
-            data = archive.read(ROOT + name)
-            if not isinstance(entry, dict) or entry.get("bytes") != len(data) or entry.get("sha256") != hashlib.sha256(data).hexdigest():
-                raise ValueError(f"Archive content mismatch: {name}")
-    return {"files": len(expected), "bytes": output.stat().st_size,
+        names = verify_members(archive)
+        manifest = verify_inventory(archive, names)
+        verify_contents(archive, manifest)
+    return {"files": len(manifest["files"]), "bytes": output.stat().st_size,
             "sha256": hashlib.sha256(output.read_bytes()).hexdigest(), "version": manifest.get("version")}
 
 
