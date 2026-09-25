@@ -69,18 +69,20 @@ function bags.Repair()
     bags.RefreshRepair()
 end
 
-local function repair()
-    if type(IsShiftKeyDown) == "function" and IsShiftKeyDown() then return end
-    bags.Repair()
+local function automaticActions()
+    if type(IsShiftKeyDown) ~= "function" then return end
+    local ok, shifted = pcall(IsShiftKeyDown)
+    if not ok or core.Secret.IsSecret(shifted) or shifted ~= false then return end
+    if core.Profile.bags.autoSellJunk == true then bags.SellJunk() end
+    if core.Profile.bags.autoRepair == true then bags.Repair() end
 end
 
 local function onMerchantShow()
     if merchantOpen then return end
     merchantOpen = true
     bags.RefreshMerchant()
-    if not core.Profile.bags.autoRepair then return end
-    local ok, reason = pcall(repair)
-    if not ok then bags.Warn("repair", reason) end
+    local ok, reason = pcall(automaticActions)
+    if not ok then bags.Warn("automatic vendor actions", reason) end
 end
 
 function bags.EnableMerchant()
@@ -139,6 +141,10 @@ bags.Options = { title = "Bags and vendors", settings = {
     { type = "slider", key = "columns", label = "Bag columns",
         description = "Wider bags show fewer rows. Layout changes wait until combat ends.",
         min = 10, max = 16, step = 1, get = bags.Columns, set = bags.SetColumns },
+    { type = "checkbox", key = "autoSellJunk", label = "Automatically sell junk",
+        description = "Sell native junk once when opening a vendor. Hold Shift to skip. Respects native backpack exclusions.",
+        get = function() return core.Profile.bags.autoSellJunk == true end,
+        set = function(value) core.Profile.bags.autoSellJunk = value == true end },
     { type = "checkbox", key = "autoRepair", label = "Automatically repair gear",
         description = "Use personal funds at repair vendors. Hold Shift when opening a vendor to skip.",
         get = function() return core.Profile.bags.autoRepair == true end,

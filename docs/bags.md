@@ -1,5 +1,9 @@
 # Bags
 
+**Automatically sell junk** is off by default in Bags and vendors. When enabled it runs the client's Sell junk action once on opening a merchant, respecting native exclusions. Hold Shift to skip both automatic selling and repair; manual buttons remain available. Combat or unavailable modifier/item data skips selling without scheduling a later sale.
+
+API reviewed 2026-09-24: [69913 native merchant batch selling](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/MerchantFrameDocumentation.lua).
+
 Lock changes now read and shade only the affected visible inventory slot, instead of rebuilding all bags. Equipment-only events, unsupported slots and closed inventory do no work. Unreadable lock state clears stale shading. Full inventory changes still refresh the grid. This reduces measured API calls in automated tests; it is not a measured FPS claim. The event's optional slot payload is verified in the [69913 Container API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua).
 
 Items with readable IDs refresh when their delayed item data arrives: icons, names and filter counts update in the open bag window. Only matching visible slots are reread; hidden bags and failed/unrelated completion events do no work. No item is moved or used. Event payloads and container IDs were checked against the [69913 item API](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua) on 2026-09-24. Slots with unavailable IDs still refresh on ordinary bag updates.

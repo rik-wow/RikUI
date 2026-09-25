@@ -25,7 +25,7 @@ local schema = {
     chat={ fontSize=number(10,24), size={ width=number(250,1200), height=number(120,800) } },
     panels={ questTextSize=function(value) return value == 0 or number(12,24,true)(value) end,
         skins={ character=boolean, spells=boolean, quests=boolean, professions=boolean, commerce=boolean, maps=boolean } },
-    bags={ autoRepair=boolean, columns=number(10,16,true), capacityHUD=boolean,
+    bags={ autoRepair=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
         capacityLowOnly=boolean, capacityThreshold=number(0,20,true) },
     durability={ showPercent=boolean },
     questtracker={ collapsed=boolean, collapseInCombat=boolean, hideCompleted=boolean, readyFirst=boolean },

@@ -339,6 +339,29 @@ return function(check)
         env.fire("MERCHANT_CLOSED")
         env.click(holder.junk)
         check("closed merchant hides and refuses junk action", not holder.junk:IsShown() and sold == 1)
+        local savedShift = IsShiftKeyDown
+        IsShiftKeyDown = function() return false end
+        C_MerchantFrame.GetNumJunkItems = function() return 3 end
+        RikUI.Profile.bags.autoSellJunk = true
+        env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_UPDATE")
+        check("automatic junk sells once per visit", sold == 2)
+        env.fire("MERCHANT_CLOSED")
+        IsShiftKeyDown = function() return true end
+        env.fire("MERCHANT_SHOW")
+        check("shift skips automatic junk", sold == 2)
+        env.click(holder.junk)
+        check("shift still permits manual junk sale", sold == 3)
+        env.fire("MERCHANT_CLOSED")
+        IsShiftKeyDown = function() return false end
+        env.inCombat = true; env.fire("MERCHANT_SHOW")
+        env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
+        check("combat skips auto sale without deferring it", sold == 3)
+        env.fire("MERCHANT_CLOSED")
+        IsShiftKeyDown = function() return env.SECRET end
+        env.fire("MERCHANT_SHOW"); env.fire("MERCHANT_CLOSED")
+        check("unknown modifier skips auto sale", sold == 3)
+        IsShiftKeyDown = savedShift
+        RikUI.Profile.bags.autoSellJunk = false
         C_MerchantFrame = oldMerchant
         local oldRepair, oldCost, oldCan, oldShift = RepairAllItems, GetRepairAllCost, CanMerchantRepair, IsShiftKeyDown
         local repairs, cost, canRepair, shifted = 0, 50, true, false
