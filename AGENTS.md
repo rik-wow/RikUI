@@ -22,6 +22,10 @@ The user accepts native/game-client behavior as working and will report regressi
 
 Continue meaningful automated checks and code review for changed behavior. Record the user's acceptance as acceptance; do not invent agent-observed native test results. Preserve explicit unknown source data and supported-coverage limits without treating them as requests for the user to perform testing.
 
+## Client version policy
+
+Never pin a Forever build or Blizzard UI commit for new work. Before reading Blizzard UI source, resolve the latest Forever build: the head of the `forever` branch of Gethe/wow-ui-source (its commit message names the build, e.g. `1.60.1 (NNNNN)`; `version.txt` holds the full version), cross-checked against the user's `WowB.exe` file version when available. Read source from that head. Build numbers and commit SHAs in docs, data and code comments are evidence of what was reviewed at the time, not a target; when one disagrees with the current build, re-check against the current source before relying on it.
+
 ## Class research policy
 
 Always research current online WoW Forever player feedback and class-specific requests before planning or implementing class work. Record dated source links and separate community requests from confirmed client behavior. Verify spell IDs, ranks, form pages and APIs against current primary sources or exact-build client data; preserve unknown coverage explicitly.

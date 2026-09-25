@@ -4,6 +4,9 @@
 
 Follow the user-directed native acceptance policy in `AGENTS.md`: native/game-client behavior is accepted as working unless the user reports a regression. Never require native tests or sign-off for delivery or roadmap progress, and do not retain routine native-test-only blockers or chores. Continue relevant automated verification; preserve unknown data as unknown and attribute user acceptance accurately.
 
+## Client version policy
+
+Follow the client version policy in `AGENTS.md`: never pin a Forever build or Blizzard UI commit. Read Blizzard UI source from the head of the `forever` branch of Gethe/wow-ui-source (the commit message names the build), and treat build numbers in docs and comments as evidence of what was reviewed then.
 
 
 ## Quick Start

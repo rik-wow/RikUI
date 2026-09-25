@@ -39,7 +39,8 @@ only bar addon that works.
 
 | Thing | Value |
 |---|---|
-| Client | `C:\Program Files (x86)\World of Warcraft\_classic_beta_\`, WowB.exe 1.60.1.69913 |
+| Client | `C:\Program Files (x86)\World of Warcraft\_classic_beta_\`, WowB.exe 1.60.1.x (always target the latest build; builds named elsewhere in this document are when a finding was verified) |
+| Blizzard UI source | `forever` branch head of Gethe/wow-ui-source; its commit message names the build |
 | TOC Interface | 16001 |
 | API | Mainline 12.1.5 architecture with vanilla content. Classic globals (`GetSpellInfo`, `UnitAura`, `GetItemInfo`) are gone. Edit Mode, mixins, `C_Timer`, `C_Spell`, `C_UnitAuras`, `C_Macro`, `C_CVar` exist |
 | Beta window | Sep 17 to Oct 21 2026, level cap 30. Launch Nov 4 2026 |
