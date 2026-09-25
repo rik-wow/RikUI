@@ -84,6 +84,7 @@ local function showHint(self)
     end
     GameTooltip:AddLine(CLICK_HINT, 1, 1, 1)
     GameTooltip:AddLine(SHIFT_HINT, 1, 1, 1)
+    GameTooltip:AddLine(quest and quest.pinned and "Control-click: unpin" or "Control-click: pin to top", 1, 1, 1)
     GameTooltip:Show()
 end
 
@@ -168,7 +169,8 @@ local function fillTitle(frame, quest)
     local color = titleColor(quest)
     if frame.questID ~= quest.id then hideHint(frame) end
     frame.questID, frame.quest = quest.id, quest
-    frame.title:SetText(quest.level and string.format("[%d] %s", quest.level, quest.title) or quest.title)
+    local title = quest.level and string.format("[%d] %s", quest.level, quest.title) or quest.title
+    frame.title:SetText((quest.pinned and "* " or "") .. title)
     frame.title:SetTextColor(unpack(color))
     frame.accent:SetVertexColor(unpack(color))
     if hovered == frame then showHint(frame) end

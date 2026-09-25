@@ -72,6 +72,42 @@ local function readyFirst(list)
     return result
 end
 
+local function validQuestID(id)
+    return not core.Secret.IsSecret(id) and type(id) == "number"
+        and id > 0 and id <= 1000000000 and id % 1 == 0
+end
+
+function tracker.IsPinned(id)
+    if not validQuestID(id) then return false end
+    local source = core.Profile.questtracker.pins or ""
+    return ("," .. source .. ","):find("," .. id .. ",", 1, true) ~= nil
+end
+
+function tracker.TogglePin(id)
+    if not validQuestID(id) then return end
+    local pinned, ids = tracker.IsPinned(id), {}
+    for token in (core.Profile.questtracker.pins or ""):gmatch("%d+") do
+        if tonumber(token) ~= id then ids[#ids + 1] = token end
+    end
+    if not pinned and #ids >= 50 then core:Print("Keep at most 50 pinned quests."); return end
+    if not pinned then ids[#ids + 1] = tostring(id) end
+    core.Profile.questtracker.pins = table.concat(ids, ",")
+    core:Changed()
+    tracker.Refresh()
+end
+
+local function pinnedFirst(list)
+    local result = {}
+    for _, quest in ipairs(list) do
+        quest.pinned = tracker.IsPinned(quest.id)
+        if quest.pinned then result[#result + 1] = quest end
+    end
+    for _, quest in ipairs(list) do
+        if not quest.pinned then result[#result + 1] = quest end
+    end
+    return result
+end
+
 local function readWatched()
     local list = {}
     for index = 1, C_QuestLog.GetNumQuestWatches() do
@@ -79,7 +115,7 @@ local function readWatched()
         local quest = questID and readQuest(questID) or nil
         if quest then list[#list + 1] = quest end
     end
-    return readyFirst(list)
+    return pinnedFirst(readyFirst(list))
 end
 
 local combatCollapsed
@@ -134,6 +170,10 @@ function tracker.Click(block)
     if IsShiftKeyDown() then
         if type(C_QuestLog.RemoveQuestWatch) == "function" then C_QuestLog.RemoveQuestWatch(block.questID) end
         return
+    end
+    if type(IsControlKeyDown) == "function" then
+        local ok, pressed = pcall(IsControlKeyDown)
+        if ok and not core.Secret.IsSecret(pressed) and pressed == true then tracker.TogglePin(block.questID); return end
     end
     if type(QuestMapFrame_OpenToQuestDetails) ~= "function" then return warn("open", "quest map unavailable") end
     local ok, reason = pcall(QuestMapFrame_OpenToQuestDetails, block.questID)

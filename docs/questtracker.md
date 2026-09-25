@@ -1,5 +1,7 @@
 # Quest tracker
 
+**Control-click a quest to pin or unpin it.** Pinned quests carry `*` and appear before unpinned quests, including ready turn-ins. Ready-first sorting still applies within those groups. Pins persist per profile (up to 50 IDs); they change display order only. Shift-click retains its stop-tracking action. Hover explains the current pin action.
+
 `src/modules/questtracker/questtracker.lua` and `src/modules/questtracker/questtracker-blocks.lua` replace the stock objective
 tracker with a compact list of watched quests. `ObjectiveTrackerFrame` is
 parked through the [shared hide helper](../SDD.md) once the list exists.

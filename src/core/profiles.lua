@@ -11,7 +11,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 
     panels = { questTextSize = 0 },
     bags = { searches = {}, protectFavorites = true, favorites = "", autoRepair = false, itemLevels = false, repairGuild = false, autoSellJunk = false, columns = 10, capacityHUD = true, capacityLowOnly = false, capacityThreshold = 4 },
     barFade = { bar3 = true },
-    questtracker = { collapsed = false, collapseInCombat = false, hideCompleted = false, readyFirst = false },
+    questtracker = { pins = "", collapsed = false, collapseInCombat = false, hideCompleted = false, readyFirst = false },
     minimap = { performance = false, serverTime = false, coordinates = true, dayNight = true },
     swingtimer = { kiting = true, stopLead = 0.6 },
     druidmana = { show = true },

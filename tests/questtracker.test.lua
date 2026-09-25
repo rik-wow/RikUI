@@ -301,6 +301,25 @@ return function(check)
         env.click(module.View.Header)
         check("unwatched planner can expand again",module.Holder:IsShown() and module.Holder.height>18)
 
+        module = load({ questtracker = { readyFirst = true } })
+        stub.quests[11].complete = true
+        local oldControl = IsControlKeyDown
+        IsControlKeyDown = function() return true end
+        env.click(module.View.Blocks[2])
+        check("control click pins quest ahead of ready turnin", module.View.Blocks[1].questID == 22
+            and module.View.Blocks[1].title.text:find("* ", 1, true) == 1 and #stub.removed == 0 and #stub.opened == 0)
+        check("quest pin persists in profile", RikUI.Profile.questtracker.pins == "22")
+        env.click(module.View.Blocks[1])
+        check("second control click unpins and restores ready order", module.View.Blocks[1].questID == 11
+            and RikUI.Profile.questtracker.pins == "")
+        IsControlKeyDown = oldControl
+        module = load({ questtracker = { pins = "22" } })
+        check("saved pins survive reload", module.View.Blocks[1].questID == 22)
+        GameTooltip.lines = {}
+        env.runScript(module.View.Blocks[1], "OnEnter")
+        check("pinned quest tooltip explains unpin", tooltipContains("Control-click: unpin"))
+        check("invalid pins rejected by sharing schema", not pcall(RikUI.ProfileSchema.Project, {questtracker={pins="oops"}}))
+
         module = load({ modules = { questtracker = false } })
         check("a disabled module leaves the stock tracker untouched", module.Holder == nil
             and ObjectiveTrackerFrame.parent == UIParent and RikUI.Layout.Groups.questtracker == nil)
