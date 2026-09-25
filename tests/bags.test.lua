@@ -501,6 +501,22 @@ return function(check)
         module.Refresh()
         typeSearch("type:gear q:uncommon blade")
         check("combined selectors find matching gear", blade.alpha == 1 and cloth.alpha == 0.25)
+        do
+            local oldLevel = C_Item.GetDetailedItemLevelInfo
+            C_Item.GetDetailedItemLevelInfo = function() return 42 end
+            RikUI.Profile.bags.itemLevels = true
+            module.Refresh()
+            check("gear shows readable item level", blade.rikLevel and blade.rikLevel.text == "42")
+            check("materials do not show gear levels", cloth.rikLevel and cloth.rikLevel.text == "")
+            C_Item.GetDetailedItemLevelInfo = function() return env.SECRET end
+            module.Refresh()
+            check("unreadable item level clears stale label", blade.rikLevel and blade.rikLevel.text == "")
+            C_Item.GetDetailedItemLevelInfo = function() return 42 end
+            RikUI.Profile.bags.itemLevels = false
+            module.Refresh()
+            check("item level option hides labels", blade.rikLevel and blade.rikLevel.text == "")
+            C_Item.GetDetailedItemLevelInfo = oldLevel
+        end
         typeSearch("type:gear !blade")
         check("negative literal excludes a matching item", blade.alpha == 0.25)
         stub.items["1:3"].itemID = 123

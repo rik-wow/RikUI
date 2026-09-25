@@ -93,6 +93,10 @@ local function decorate(button)
     button.rikDim:SetAllPoints()
     button.rikDim:SetColorTexture(unpack(DIM_OVERLAY))
     button.rikDim:SetShown(false)
+    button.rikLevel = button:CreateFontString(nil, "OVERLAY")
+    media.Font(button.rikLevel, "small")
+    button.rikLevel:SetPoint("TOPRIGHT", button, "TOPRIGHT", -COUNT_INSET, -COUNT_INSET)
+    button.rikLevel:SetTextColor(1, 1, 1)
     bags.CreateNewItem(button)
     button:SetHighlightTexture(media.highlight, "ADD")
 end
@@ -265,6 +269,18 @@ local function itemFeedback(button, info)
     button.rikItemIdentity, button.rikItemCount = identity, count
 end
 
+local function updateLevel(button, info)
+    button.rikLevel:SetText("")
+    if core.Profile.bags.itemLevels ~= true then return end
+    if button.rikClass ~= ITEM_WEAPON and button.rikClass ~= ITEM_ARMOR then return end
+    if not info or not plain(info.hyperlink, "string")
+        or not C_Item or type(C_Item.GetDetailedItemLevelInfo) ~= "function" then return end
+    local ok, level = pcall(C_Item.GetDetailedItemLevelInfo, info.hyperlink)
+    if ok and plain(level, "number") and level > 0 and level < math.huge and level % 1 == 0 then
+        button.rikLevel:SetText(tostring(level))
+    end
+end
+
 function bags.UpdateButton(button)
     clearChrome(button)
     local bag, slot = button:GetParent():GetID(), button:GetID()
@@ -285,6 +301,7 @@ function bags.UpdateButton(button)
     if info and plain(info.isFiltered, "boolean") then button.rikFiltered = info.isFiltered end
     bags.UpdateNewItem(button)
     classify(button, info, bag, slot)
+    updateLevel(button, info)
     updateCooldown(button, bag, slot)
     dim(button)
 end

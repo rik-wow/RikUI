@@ -154,6 +154,13 @@ bags.Options = { title = "Bags and vendors", settings = {
         min = 0, max = 20, step = 1,
         get = function() return bags.CapacityThreshold() end,
         set = function(value) return bags.SetCapacityThreshold(value) end },
+    { type = "checkbox", key = "itemLevels", label = "Show item levels on bag gear",
+        description = "Show readable weapon and armor levels in the upper-right corner.",
+        get = function() return core.Profile.bags.itemLevels == true end,
+        set = function(value)
+            core.Profile.bags.itemLevels = value == true
+            if bags.Holder and bags.Holder:IsShown() then bags.Refresh() end
+        end },
     { type = "slider", key = "columns", label = "Bag columns",
         description = "Wider bags show fewer rows. Layout changes wait until combat ends.",
         min = 10, max = 16, step = 1, get = bags.Columns, set = bags.SetColumns },
