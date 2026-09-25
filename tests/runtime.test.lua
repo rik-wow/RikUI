@@ -42,6 +42,23 @@ return function(check)
         check("module command lists modules deterministically", reported("feature: enabled"))
     end
 
+    do
+        local recovery = ready(fresh({ profiles = { Default = {}, ["Recovery Copy"] = { scale = 0.8 } } }))
+        SlashCmdList.RIKUI("profile Recovery Copy")
+        check("profile command selects names with spaces", recovery.CharDB.profile == "Recovery Copy" and recovery.Profile.scale == 0.8)
+        check("profile command explains reload requirement", reported("Reload UI to apply all profile settings."))
+        SlashCmdList.RIKUI("profile Missing")
+        check("unknown profile command preserves selection", recovery.CharDB.profile == "Recovery Copy" and reported("Unknown profile."))
+        env.inCombat = true
+        SlashCmdList.RIKUI("profile Default")
+        check("profile command refuses combat switch", recovery.CharDB.profile == "Recovery Copy" and reported("Cannot switch profiles in combat."))
+        env.inCombat = false
+        SlashCmdList.RIKUI("profile")
+        check("profile command identifies selected saved profile", reported("* Recovery Copy"))
+        SlashCmdList.RIKUI("profile Default")
+        check("profile command restores original profile", recovery.CharDB.profile == "Default")
+    end
+
     local core, calls = fresh(), {}
     local second = function() calls[#calls + 1] = "second" end
     local late = function() calls[#calls + 1] = "late" end

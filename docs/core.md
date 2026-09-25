@@ -1,5 +1,7 @@
 # Core module contract
 
+`/rik profile` lists saved profiles with `*` beside the current one. `/rik profile Exact Name` selects an existing profile, including names with spaces, without the settings window. Names are case-sensitive. Combat and pending setup operations refuse selection; frame positions apply immediately and the command reports when a reload is needed.
+
 `/rik module` lists module names, current runtime states and saved next-reload choices. `/rik module <name> [status|on|off]` inspects or changes one choice without needing the settings window. Enabling also selects its required providers; missing or cyclic dependencies reject the whole change. Disabling preserves other choices, whose dependency warnings remain visible in settings. Reload UI to apply changes.
 
 `/rik support` and **Setup and support > Copy support report** open selectable troubleshooting text: addon/client versions, startup and reload state, queued work, module states and next-reload choices, cached backup status, and retained errors. The report does not dump settings or query character identity. Review recorded error messages before sharing. Missing optional APIs are marked unavailable; reports are bounded and can be shown in chat when the copy dialog is unavailable.

@@ -50,6 +50,21 @@ local function showHelp()
     end
 end
 
+core:RegisterCommand("profile", function(name)
+    if not runtime.initialized then core:Print("Still loading."); return end
+    if name == "" then
+        core:Print("Saved profiles (* selected):")
+        for _, saved in ipairs(core:GetProfileNames()) do
+            core:Print((saved == core.CharDB.profile and "* " or "  ") .. saved)
+        end
+        return
+    end
+    local ok, reason = core:SetProfile(name)
+    if not ok then core:Print(reason); return end
+    core:Print("Selected profile: " .. core.CharDB.profile)
+    if core:ProfileNeedsReload() then core:Print("Reload UI to apply all profile settings.") end
+end, "List or select a saved profile: /rik profile [exact name]")
+
 local function moduleStatus(name)
     local state, reason = core:GetModuleState(name)
     if not state then core:Print("Unknown module: " .. name); return end
