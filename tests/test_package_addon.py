@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import sys
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -124,6 +125,65 @@ class PackageTests(unittest.TestCase):
                 archive.writestr(name, data)
         with self.assertRaises(ValueError):
             package_addon.verify(self.output)
+
+    def test_explicit_version_is_reproducible_and_source_is_unchanged(self):
+        toc = self.root / "RikUI.toc"
+        toc.write_bytes(b"\xef\xbb\xbf" + toc.read_bytes().replace(b"\n", b"\r\n"))
+        original = toc.read_bytes()
+        first = package_addon.build(self.root, self.output, version="0.2.0-beta.1+fixture")
+        archive_bytes = self.output.read_bytes()
+        second = package_addon.build(self.root, self.output, version="0.2.0-beta.1+fixture")
+        self.assertEqual(archive_bytes, self.output.read_bytes())
+        self.assertEqual(first, second)
+        self.assertEqual(toc.read_bytes(), original)
+        self.assertEqual(first["version"], "0.2.0-beta.1+fixture")
+        with zipfile.ZipFile(self.output) as archive:
+            self.assertEqual(archive.read("RikUI/RikUI.toc"),
+                             original.replace(b"0.1.0", b"0.2.0-beta.1+fixture"))
+
+    def test_invalid_version_preserves_existing_archive(self):
+        for version in ("", "01.0.0", "1.2", "1.0.0-01", "1.0.0-.", "1.0.0\n## Title: changed", "x" * 65):
+            with self.subTest(version=version):
+                self.output.write_bytes(b"previous")
+                with self.assertRaises(ValueError):
+                    package_addon.build(self.root, self.output, version=version)
+                self.assertEqual(self.output.read_bytes(), b"previous")
+
+    def test_archive_version_must_match_toc(self):
+        def change(files):
+            files["RikUI/RikUI.toc"] = files["RikUI/RikUI.toc"].replace(b"0.1.0", b"0.9.0")
+        self.rewrite_archive(change)
+        with self.assertRaises(ValueError):
+            package_addon.verify(self.output)
+
+    def test_missing_or_duplicate_toc_version_preserves_archive(self):
+        toc = self.root / "RikUI.toc"
+        original = toc.read_bytes()
+        for content in (original.replace(b"## Version: 0.1.0\n", b""),
+                        original + b"## Version: 0.1.0\n"):
+            with self.subTest(content=content):
+                toc.write_bytes(content)
+                self.output.write_bytes(b"previous")
+                with self.assertRaises(ValueError):
+                    package_addon.build(self.root, self.output, version="0.2.0")
+                self.assertEqual(self.output.read_bytes(), b"previous")
+
+    def test_verify_cli_rejects_version_override(self):
+        package_addon.build(self.root, self.output)
+        original = self.output.read_bytes()
+        result = subprocess.run([sys.executable, str(Path(package_addon.__file__)),
+            "--verify", str(self.output), "--version", "0.2.0"], text=True, capture_output=True, check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("cannot be combined", result.stderr)
+        self.assertEqual(self.output.read_bytes(), original)
+
+    def test_version_cli_stamps_candidate(self):
+        result = subprocess.run([sys.executable, str(Path(package_addon.__file__)),
+            "--root", str(self.root), "--output", str(self.output), "--version", "0.2.0-rc.1"],
+            text=True, capture_output=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["version"], "0.2.0-rc.1")
+        self.assertEqual(package_addon.verify(self.output)["version"], "0.2.0-rc.1")
 
     def test_missing_runtime_preserves_old_archive(self):
         self.output.write_bytes(b"previous")

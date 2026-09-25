@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path, PurePosixPath
 import sys
 import stat
@@ -52,6 +53,27 @@ def source_path(root, name):
     return target
 
 
+def validate_version(version):
+    if not isinstance(version, str) or len(version) > 64:
+        raise ValueError("Version must be a semantic version of at most 64 characters")
+    match = re.fullmatch(
+        r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)"
+        r"(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
+        r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?", version)
+    if not match or (match[4] and any(
+            part.isdigit() and len(part) > 1 and part.startswith("0") for part in match[4].split("."))):
+        raise ValueError("Invalid semantic version")
+    return version
+
+
+def toc_version(toc):
+    versions = [line.partition(":")[2].strip() for line in toc.splitlines()
+                if line.startswith("## Version:")]
+    if len(versions) != 1 or not versions[0]:
+        raise ValueError("TOC must contain exactly one nonempty version")
+    return versions[0]
+
+
 def inventory(root):
     toc = source_path(root, "RikUI.toc").read_text(encoding="utf-8-sig")
     names = set(REQUIRED)
@@ -64,16 +86,21 @@ def inventory(root):
         raise ValueError("\n".join(problems))
     if sum(path.stat().st_size for path in paths.values()) > MAX_BYTES:
         raise ValueError("Package inputs exceed the size limit")
-    version = next((line.partition(":")[2].strip() for line in toc.splitlines()
-                    if line.startswith("## Version:")), None)
-    if not version:
-        raise ValueError("TOC version is missing")
-    return paths, version
+    return paths, toc_version(toc)
 
 
-def payload(root):
-    paths, version = inventory(root)
+def payload(root, version=None):
+    paths, source_version = inventory(root)
+    selected_version = validate_version(source_version if version is None else version)
     files = {ROOT + name: path.read_bytes() for name, path in paths.items()}
+    if version is not None:
+        toc = files[ROOT + "RikUI.toc"].decode("utf-8")
+        toc, count = re.subn(r"(?m)^(\ufeff?## Version:)[^\r\n]*",
+                            lambda match: match[1] + " " + selected_version, toc)
+        if count != 1:
+            raise ValueError("Cannot stamp TOC version")
+        files[ROOT + "RikUI.toc"] = toc.encode("utf-8")
+    version = selected_version
     manifest = {"format": 1, "version": version, "files": {
         name: {"bytes": len(files[ROOT + name]), "sha256": hashlib.sha256(files[ROOT + name]).hexdigest()}
         for name in paths
@@ -117,6 +144,8 @@ def verify_inventory(archive, names):
     if set(names) != {ROOT + name for name in files} | {MANIFEST} or not REQUIRED <= files.keys():
         raise ValueError("Archive inventory differs from required manifest")
     toc = archive.read(ROOT + "RikUI.toc").decode("utf-8-sig")
+    if validate_version(manifest.get("version")) != validate_version(toc_version(toc)):
+        raise ValueError("Archive version differs from TOC")
     listed = [line.strip() for line in toc.splitlines() if line.strip() and not line.lstrip().startswith("#")]
     if not listed or len(listed) != len({name.casefold() for name in listed}):
         raise ValueError("Invalid archive TOC inventory")
@@ -151,14 +180,14 @@ def verify(output):
             "sha256": hashlib.sha256(output.read_bytes()).hexdigest(), "version": manifest.get("version")}
 
 
-def build(root, output):
+def build(root, output, version=None):
     root, output = Path(root).resolve(), Path(output).absolute()
     if output.suffix.lower() != ".zip" or output.is_symlink():
         raise ValueError("Output must be a regular .zip archive")
     resolved = output.resolve()
     if resolved.is_relative_to(root) and resolved.relative_to(root).parts[0] in {"src", "data", "presets", "media", "libs"}:
         raise ValueError("Output must be outside runtime input directories")
-    files = payload(root)
+    files = payload(root, version)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
@@ -185,9 +214,12 @@ def main():
     parser.add_argument("--root", type=Path, default=PROJECT)
     parser.add_argument("--output", type=Path, default=PROJECT / "dist" / "RikUI.zip")
     parser.add_argument("--verify", type=Path, help="Verify an existing archive instead of building")
+    parser.add_argument("--version", help="Stamp a semantic version into the archive without changing source")
     args = parser.parse_args()
+    if args.verify and args.version is not None:
+        parser.error("--version cannot be combined with --verify")
     try:
-        result = verify(args.verify) if args.verify else build(args.root, args.output)
+        result = verify(args.verify) if args.verify else build(args.root, args.output, args.version)
     except (OSError, ValueError, zipfile.BadZipFile) as error:
         print(str(error), file=sys.stderr)
         return 1
