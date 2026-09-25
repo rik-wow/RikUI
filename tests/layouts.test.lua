@@ -96,6 +96,22 @@ return function(check)
         check("HUD: player and target mirror each other about the screen centre", near(1365 - hudTarget.right, hudPlayer.left)
             and near(hudPlayer.bottom, hudTarget.bottom) and hudPlayer.bottom >= 300)
 
+        for _, name in ipairs(layouts.Order) do
+            for _, screen in ipairs({ SCREENS[4], SCREENS[5] }) do
+                local positions = layouts.Positions(name, screen)
+                local main = layouts.Rect(name, "main", screen, positions)
+                local pet = layouts.Rect(name, "pet", screen, positions)
+                for _, key in ipairs({ "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
+                    local rect = layouts.Rect(name, key, screen, positions)
+                    local left = key == "cooldownessential" or key == "cooldownutility"
+                    check(name .. " keeps " .. key .. " beside bars on " .. screen.name,
+                        rect.bottom >= main.bottom and rect.top <= pet.top
+                        and (left and near(rect.right + layouts.GAP, main.left)
+                            or not left and near(rect.left - layouts.GAP, main.right)))
+                end
+            end
+        end
+
         -- Check the fitted recipe too: the packer must not move the combat cluster back to centre.
         for _, screen in ipairs({ SCREENS[4], SCREENS[5] }) do
             local positions = layouts.Positions("hud", screen)
@@ -165,6 +181,12 @@ return function(check)
                 end
                 check(name .. " has no runtime collisions at 4K, layout scale " .. scale,
                     #issues == 0, table.concat(issues, "; "))
+                for _, key in ipairs({ "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
+                    local rect, main = layout.Rect(key), layout.Rect("main")
+                    check(name .. " keeps " .. key .. " near bars at scale " .. scale,
+                        rect.top <= layout.Rect("pet").top and rect.top < UIParent:GetHeight() / 2
+                        and rect.right >= main.left - 300 * scale and rect.left <= main.right + 300 * scale)
+                end
                 if name == "hud" then
                     local stackTop = layout.Rect("pet").top
                     for _, key in ipairs({ "player", "target", "focus", "petframe", "tot", "castplayer",

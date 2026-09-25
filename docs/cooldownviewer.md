@@ -8,6 +8,12 @@ once per character when this feature first initializes, including after updating
 After that, turning it off in RikUI or the game's settings keeps it off across
 reloads. Initialization waits until combat and Edit Mode have ended.
 
+All presets place Essential and Utility cooldowns beside the left of the action
+bars, with tracked buffs and buff timers beside the right. On smaller screens,
+the layout fits them around the other controls. After updating, reapply your
+preset (for example, `/rik layout hud`) to replace the old top-left positions.
+Custom positions stay saved until you choose a preset.
+
 - Click **Cooldowns: Off** to turn the native cooldown displays on; click
   **Cooldowns: On** to turn them off. The label reflects the actual setting.
 - Click **Move groups**, drag any of the four labeled group handles, then click
