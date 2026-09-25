@@ -165,6 +165,24 @@ return function(check)
         stub.process("Item", tip, { id = 2, hyperlink = "item:2" })
         check("a missing item level adds no line", #tip.lines == 1)
 
+        do
+            local oldInfo = C_Item.GetItemInfo
+            RikUI.Profile.tooltip.vendorValues = true
+            C_Item.GetItemInfo = function() return "Cloth", "", 1, 1, 1, "", "", 20, "", 1, 125 end
+            stub.setLines(tip, { "Cloth" })
+            stub.process("Item", tip, { id = 2 })
+            check("tooltip shows vendor unit and full stack values", lastLine(tip).text == "Vendor each: 1s 25c  Full stack (20): 25s 0c")
+            stub.process("Item", tip, { id = 2 })
+            check("vendor values do not duplicate", #tip.lines == 2)
+            C_Item.GetItemInfo = function() return "Cloth", "", 1, 1, 1, "", "", 20, "", 1, env.SECRET end
+            stub.setLines(tip, { "Cloth" }); stub.process("Item", tip, { id = 2 })
+            check("secret vendor price is omitted", #tip.lines == 1)
+            C_Item.GetItemInfo = function() error("uncached") end
+            stub.process("Item", tip, { id = 2 })
+            check("unavailable item information is contained", #tip.lines == 1)
+            RikUI.Profile.tooltip.vendorValues = false
+            C_Item.GetItemInfo = oldInfo
+        end
         local oldCount = C_Item.GetItemCount
         C_Item.GetItemCount = function(_, bank) return bank and 12 or 3 end
         stub.setLines(tip, { "Owned item" })

@@ -1,5 +1,9 @@
 # Tooltips
 
+**Show vendor unit and stack values** adds an item's vendor price and the value of a full stack at its maximum stack size. It defaults off, works without the bags module, and does not report auction prices or the currently hovered stack quantity. Missing, secret and zero prices are omitted; repeated tooltip processing updates one line.
+
+Source reviewed 2026-09-24: [69913 item information return fields](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua).
+
 **Show item IDs**, **Show spell IDs** and **Show item levels** independently control metadata on the next tooltip display. Item IDs default off; spell IDs and item levels preserve their existing on defaults. Shared profiles include these choices. Protected, missing, fractional or invalid IDs are omitted. Repeated processing updates an existing metadata row.
 
 Research reviewed 2026-09-24: [Forever addon discussion](https://www.reddit.com/r/WowUI/comments/1wkfntp/wow_forever_working_addons_addon/) lists TooltipID for item/spell lookup. This is community usage, not proof of API coverage. RikUI reuses its existing TooltipDataProcessor data and does not infer unknown IDs.

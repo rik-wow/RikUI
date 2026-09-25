@@ -141,11 +141,47 @@ local function metadata(frame, prefix, value)
     frame:AddLine(text, LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b)
 end
 
+local function moneyText(value)
+    local gold, silver, copper = math.floor(value / 10000), math.floor(value / 100) % 100, value % 100
+    if gold > 0 then return string.format("%dg %ds %dc", gold, silver, copper) end
+    if silver > 0 then return string.format("%ds %dc", silver, copper) end
+    return string.format("%dc", copper)
+end
+
+local function vendorText(data)
+    if core.Profile.tooltip.vendorValues ~= true or not C_Item or type(C_Item.GetItemInfo) ~= "function" then return end
+    local item = data.hyperlink
+    if not readable(item, "string") then item = data.id end
+    if not readable(item, "string") and not validCount(item) then return end
+    local ok, _, _, _, _, _, _, _, stack, _, _, price = core.Secret.Read(C_Item.GetItemInfo, item)
+    if not ok or not validCount(price) or price <= 0 or price > 1000000000000 then return end
+    local text = "Vendor each: " .. moneyText(price)
+    if validCount(stack) and stack > 1 and stack <= 100000 and price * stack <= 1000000000000 then
+        text = text .. "  Full stack (" .. stack .. "): " .. moneyText(price * stack)
+    end
+    return text
+end
+
+local function addVendorValue(frame, data)
+    local text = vendorText(data)
+    if not text then return end
+    for index = 1, frame:NumLines() do
+        local region = line(frame, index)
+        local current = region and region:GetText()
+        if readable(current, "string") and current:find("Vendor each: ", 1, true) == 1 then
+            region:SetText(text)
+            return
+        end
+    end
+    frame:AddLine(text, LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b)
+end
+
 local function onItem(frame, data)
     if type(data) ~= "table" then return end
     if core.Profile.tooltip.itemLevel ~= false then metadata(frame, "Item level ", itemLevel(data)) end
     if core.Profile.tooltip.itemID == true then metadata(frame, "Item ID ", data.id) end
     addOwnership(frame, data)
+    addVendorValue(frame, data)
 end
 
 local function onSpell(frame, data)
