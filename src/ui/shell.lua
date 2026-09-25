@@ -21,7 +21,8 @@ function shell.Button(parent, label, click)
     button.label:SetPoint("LEFT", button, "LEFT", 10, 0)
     button.label:SetPoint("RIGHT", button, "RIGHT", -10, 0)
     button.label:SetWordWrap(false)
-    button:SetHighlightTexture(media.highlight, "ADD")
+    core.Motion.BindHover(button)
+    core.Motion.BindPress(button)
     button:SetScript("OnClick", click)
     return button
 end

@@ -130,6 +130,7 @@ function motion.BindHover(owner)
     value.leave = motion.Tween(value.region, HOVER_ALPHA, 0, HOVER_SECONDS)
     owner.rikHover = value
     owner:HookScript("OnEnter", function()
+        if owner.IsEnabled and owner:IsEnabled() == false then return end
         motion.Stop(value.leave)
         value.region:SetAlpha(HOVER_ALPHA)
         motion.Play(value.enter)
@@ -158,7 +159,7 @@ function motion.BindPress(owner)
         value.region:SetAlpha(0)
     end
     owner:HookScript("OnMouseDown", function(_, button)
-        if button ~= "LeftButton" or (owner.IsEnabled and not owner:IsEnabled()) then return end
+        if button ~= "LeftButton" or (owner.IsEnabled and owner:IsEnabled() == false) then return end
         motion.Stop(value.release)
         value.down = true
         value.region:SetAlpha(PRESS_ALPHA)

@@ -14,6 +14,11 @@ return function(check)
         RikUI.Motion.BindHover(quiet)
         env.runScript(quiet, "OnEnter")
         check("reduced motion retains static hover feedback", quiet.rikHover.region.alpha == 0.12)
+        RikUI.Motion.BindPress(quiet)
+        env.runScript(quiet, "OnMouseDown", "LeftButton")
+        check("reduced motion retains static press feedback", quiet.rikPress.region.alpha == 0.24)
+        env.runScript(quiet, "OnMouseUp", "LeftButton")
+        check("reduced motion release clears immediately", quiet.rikPress.region.alpha == 0 and not quiet.rikPress.release)
         RikUI.Profile.reducedMotion = false
         local frame = CreateFrame("Frame")
         function frame:SetPoint() error("layout anchor must not move") end

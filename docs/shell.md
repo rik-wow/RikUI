@@ -1,5 +1,7 @@
 # Utility shell
 
+The launcher and utility actions have a soft gold hover wash and tactile press/release feedback. Disabled actions do not light up; reduced motion retains immediate static feedback.
+
 The compact **RikUI** button sits at the minimap's lower-right corner. It opens
 a grouped flyout and stays available when cooldowns are off. Without the RikUI
 minimap, it uses the screen's top-right corner.
