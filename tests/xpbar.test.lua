@@ -255,6 +255,24 @@ return function(check)
         hover(rep)
         check("hovering the reputation row shows the faction and its progress", GameTooltip.owner == rep
             and tooltipContains("Stormwind") and tooltipContains("1500 / 6000"))
+        check("watching a faction establishes a quiet baseline", rep.flashAnim.plays == 0)
+        stub.faction = { factionID = 72, name = "Stormwind", reaction = 6,
+            currentReactionThreshold = 3000, nextReactionThreshold = 9000, currentStanding = 4600 }
+        env.fire("UPDATE_FACTION")
+        check("reputation gains flash the watched bar", rep.flashAnim.plays == 1)
+        env.fire("UPDATE_FACTION")
+        stub.faction.currentStanding = 4550
+        env.fire("UPDATE_FACTION")
+        check("duplicate reputation events and losses stay quiet", rep.flashAnim.plays == 1)
+        RikUI.Profile.reducedMotion = true
+        stub.faction.currentStanding = 4700
+        env.fire("UPDATE_FACTION")
+        RikUI.Profile.reducedMotion = false
+        env.fire("UPDATE_FACTION")
+        check("reduced motion skips reputation gains without replay later", rep.flashAnim.plays == 1)
+        stub.faction.factionID, stub.faction.currentStanding = 47, 5000
+        env.fire("UPDATE_FACTION")
+        check("switching watched factions never celebrates a gain", rep.flashAnim.plays == 1)
         stub.faction = { factionID = 72, name = "Stormwind", reaction = 8, currentReactionThreshold = 42000,
             nextReactionThreshold = 42000, currentStanding = 42000 }
         env.fire("UPDATE_FACTION")
@@ -265,6 +283,10 @@ return function(check)
         check("secret reputation values reach the sinks without printing", rep.bar.value == env.SECRET
             and rep.bar.high == env.SECRET and #env.printed == 0)
 
+        check("unreadable reputation never produces a gain", rep.flashAnim.plays == 1)
+        stub.faction = HONORED
+        env.fire("UPDATE_FACTION")
+        check("readable reputation after a gap rebaselines quietly", rep.flashAnim.plays == 1)
         stub.capped, stub.faction = true, HONORED
         env.fire("PLAYER_LEVEL_UP", 60)
         check("level cap removes pace update callback", not xp:GetScript("OnUpdate"))

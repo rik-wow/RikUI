@@ -1,5 +1,7 @@
 # XP and reputation bar
 
+The watched reputation bar flashes mint when its readable standing increases. First observations, faction switches, losses, duplicate events and unreadable gaps do not flash. It follows the existing animation and reduced-motion preferences.
+
 Readable earned XP rises briefly above the right edge as `+N XP`. Duplicate events, login observations, corrections and unreadable gains do not celebrate. Compact mode, hidden labels and reduced motion suppress the floating text; disabling animations or hiding the row clears it.
 
 Enable **Experience > Show session pace in XP label** to display session XP/hour and approximate minutes to level directly on the bar. It updates once per second, including idle time, after at least one minute and a readable gain. Gathering XP, unavailable clocks and unreadable gaps have explicit labels; reset the session after a gap. Compact mode or disabled progress labels hide the pace and remove its update callback. The preference is per profile; the observed session is shared across profile switches and clears on reload.

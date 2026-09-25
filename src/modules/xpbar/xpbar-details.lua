@@ -73,6 +73,7 @@ function details.ShowGain(row, amount)
 end
 
 function details.Build(row, key)
+    row:HookScript("OnHide", function() motion.Stop(row.flashAnim); motion.Stop(row.levelAnim) end)
     row.caption = label(row.bar, "small")
     row.caption:SetPoint("LEFT", row, "LEFT", 6, 0)
     row.caption:SetPoint("RIGHT", row, "RIGHT", -6, 0)
@@ -142,7 +143,23 @@ local function paceTick(row, elapsed)
     local ok, text = pcall(xpText)
     row.caption:SetText(ok and text or "Pace unavailable")
 end
+local previousFaction
+local REP_GAIN_COLOR = { 0.3, 1, 0.6 }
+local function reputationGain(faction)
+    local row = xpbar.Rows.reputation
+    if not faction or not number(faction.factionID) or faction.factionID <= 0
+        or not number(faction.currentStanding) then previousFaction = nil; return end
+    local before = previousFaction
+    previousFaction = { id = faction.factionID, standing = faction.currentStanding }
+    if not before or before.id ~= faction.factionID or faction.currentStanding <= before.standing then return end
+    if row and row:IsShown() and details.Animated() then
+        row.flash:SetVertexColor(unpack(REP_GAIN_COLOR))
+        row.flash:SetAlpha(0)
+        motion.Play(row.flashAnim)
+    end
+end
 function details.Refresh(faction)
+    reputationGain(faction)
     startSession()
     if not last then local ok, value = pcall(snapshot); if ok then last = value end end
     for key, row in pairs(xpbar.Rows) do
