@@ -10,6 +10,7 @@ return function(check)
             Media = { Font = function() end }, UI = { Edges = function() return {} end },
             Layout = { Register = function(frame, key) frame.layoutKey = key end },
             RegisterEvent = function(_, event, callback) events[event] = callback end,
+            RegisterCommand = function() end, Changed = function() end, Print = function() end,
             RegisterModule = function() end }
         local chunk = loadfile("src/modules/combattimer/combattimer.lua")
         if not chunk then return nil end
@@ -43,6 +44,30 @@ return function(check)
         check("secret clock never fabricates duration", frame.label.text == "Combat --:--")
         timer.Options.settings[1].set(false)
         check("disabled timer removes update callback", not frame:IsShown() and frame:GetScript("OnUpdate") == nil)
+        local watch = timer.Stopwatch
+        check("stopwatch exists with separate layout and starts hidden", watch and watch.layoutKey == "stopwatch" and not watch:IsShown())
+        if not watch then return end
+        now = 200; timer.StopwatchAction("start")
+        now = 265; env.runScript(watch, "OnUpdate", 1)
+        check("stopwatch shows absolute elapsed time", watch.label.text == "Run 1:05" and watch:IsShown())
+        timer.StopwatchAction("start")
+        timer.StopwatchAction("pause")
+        now = 300; timer.RefreshStopwatch()
+        check("pause freezes duration and removes ticker", watch.label.text == "Paused 1:05" and not watch:GetScript("OnUpdate"))
+        env.runScript(watch, "OnClick", "LeftButton")
+        now = 310; timer.StopwatchAction("hide")
+        now = 315; timer.StopwatchAction("show")
+        check("hidden stopwatch keeps elapsed session time", watch.label.text == "Run 1:20")
+        now = 305; env.runScript(watch, "OnUpdate", 1)
+        check("backward clock marks stopwatch unavailable", watch.label.text == "Reset needed" and not watch:GetScript("OnUpdate"))
+        env.runScript(watch, "OnClick", "RightButton")
+        check("right click resets and pauses stopwatch", watch.label.text == "Paused 0:00")
+        now = env.SECRET; timer.StopwatchAction("start")
+        check("secret start cannot invent stopwatch time", watch.label.text == "Reset needed")
+        now = 400; timer.StopwatchAction("reset"); timer.StopwatchAction("start")
+        now = 400000; env.runScript(watch, "OnUpdate", 1)
+        check("stopwatch stops at bounded maximum", watch.label.text == "Paused 99:59:59" and not watch:GetScript("OnUpdate"))
+        check("stopwatch state never written to profile", RikUI.Profile.combattimer.started == nil and RikUI.Profile.combattimer.elapsed == nil)
     end)
     RikUI, GetTime, env.inCombat = savedCore, savedClock, false
     restore()

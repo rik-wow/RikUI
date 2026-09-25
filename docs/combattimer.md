@@ -1,4 +1,7 @@
-# Combat timer
+# Combat timer and stopwatch
+
+**Show session stopwatch** adds an independently movable timer. Use `/rik stopwatch start`, `pause`, `reset`, `show` or `hide`; left-click starts/pauses and right-click resets. Hiding does not pause it. The stopwatch survives zoning and profile changes within the session, but reload clears elapsed time. Only visibility and position are saved. It stops at 99:59:59. An unreadable or backwards clock requires a reset instead of fabricating time. It uses no animation, and removes its update callback when hidden or paused.
+
 
 Enable **Show combat timer** in /rik config > Combat timer. The movable pill shows elapsed player combat time and keeps the last duration for five seconds. **Keep final duration** changes that delay from 0 to 30 seconds. Move it with /rik move.
 

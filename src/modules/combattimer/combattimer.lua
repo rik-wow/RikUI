@@ -13,6 +13,93 @@ local function now()
         and value >= 0 and value < math.huge then return value end
 end
 
+local stopwatch, watchStart, watchLast, watchInvalid
+local watchElapsed, watchRunning = 0, false
+local WATCH_MAX = 359999 -- 99:59:59; session-only state, never saved.
+local function watchValue()
+    if watchRunning then
+        local at = now()
+        if not at or not watchStart or (watchLast and at < watchLast) then
+            watchInvalid, watchRunning = true, false
+        else
+            watchLast = at
+            local value = watchElapsed + at - watchStart
+            if value >= WATCH_MAX then watchElapsed, watchRunning = WATCH_MAX, false end
+            return math.min(WATCH_MAX, value)
+        end
+    end
+    return watchElapsed
+end
+
+local function watchTick(self, elapsed)
+    self.elapsed = (self.elapsed or 0) + elapsed
+    if self.elapsed < UPDATE_INTERVAL then return end
+    self.elapsed = 0
+    timer.RefreshStopwatch()
+end
+
+function timer.RefreshStopwatch()
+    if not stopwatch then return end
+    local value = math.floor(watchValue())
+    local visible = core.Profile and core.Profile.combattimer and core.Profile.combattimer.stopwatch == true
+    stopwatch:SetShown(visible)
+    stopwatch:SetScript("OnUpdate", visible and watchRunning and watchTick or nil)
+    if watchInvalid then stopwatch.label:SetText("Reset needed"); return end
+    local text = value >= 3600 and string.format("%d:%02d:%02d", math.floor(value / 3600), math.floor(value / 60) % 60, value % 60)
+        or string.format("%d:%02d", math.floor(value / 60), value % 60)
+    stopwatch.label:SetText((watchRunning and "Run " or "Paused ") .. text)
+end
+
+function timer.StopwatchAction(action)
+    if not stopwatch then return "Enable the Combat timer module first." end
+    if action == "reset" then
+        watchElapsed, watchRunning, watchStart, watchLast, watchInvalid = 0, false, nil, nil, false
+    elseif action == "start" then
+        if not watchRunning and not watchInvalid then
+            watchStart = now()
+            watchLast, watchRunning, watchInvalid = watchStart, watchStart ~= nil, watchStart == nil
+        end
+        core.Profile.combattimer.stopwatch = true
+    elseif action == "pause" then
+        watchElapsed = watchValue()
+        watchRunning = false
+    elseif action == "show" or action == "hide" then
+        core.Profile.combattimer.stopwatch = action == "show"
+    else return "Use /rik stopwatch start, pause, reset, show or hide. Left-click toggles; right-click resets." end
+    timer.RefreshStopwatch()
+    return watchInvalid and "Clock unavailable or moved backwards; reset the stopwatch." or nil
+end
+
+local function buildStopwatch()
+    stopwatch = CreateFrame("Button", "RikUIStopwatch", UIParent)
+    timer.Stopwatch = stopwatch
+    stopwatch:SetSize(110, 20)
+    stopwatch:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    stopwatch.background = stopwatch:CreateTexture(nil, "BACKGROUND")
+    stopwatch.background:SetAllPoints()
+    stopwatch.background:SetColorTexture(0.055, 0.065, 0.08, 0.9)
+    for _, edge in ipairs(core.UI.Edges(stopwatch, 1, "BORDER")) do edge:SetVertexColor(0.25, 0.28, 0.32, 1) end
+    stopwatch.label = stopwatch:CreateFontString(nil, "OVERLAY")
+    core.Media.Font(stopwatch.label, "small")
+    stopwatch.label:SetPoint("CENTER", stopwatch, "CENTER")
+    stopwatch.label:SetTextColor(1, 0.82, 0)
+    stopwatch:SetScript("OnClick", function(_, button)
+        timer.StopwatchAction(button == "RightButton" and "reset" or (watchRunning and "pause" or "start"))
+    end)
+    stopwatch:SetScript("OnEnter", function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:AddLine("Stopwatch")
+        GameTooltip:AddLine("Left-click: start/pause. Right-click: reset.")
+        GameTooltip:AddLine("Move with /rik move. Clears on reload.")
+        GameTooltip:Show()
+    end)
+    stopwatch:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+    core.Layout.Register(stopwatch, "stopwatch", { point = "TOP", relativePoint = "TOP", x = 66, y = -134 },
+        { label = "Stopwatch", onApply = timer.RefreshStopwatch })
+    timer.RefreshStopwatch()
+end
+
 local function enabled()
     return core.Profile and core.Profile.combattimer and core.Profile.combattimer.show == true
 end
@@ -72,6 +159,7 @@ local function finish()
 end
 
 function timer.Refresh()
+    timer.RefreshStopwatch()
     if not holder then return end
     if not enabled() then
         active, started, ended, duration = false, nil, nil, nil
@@ -87,6 +175,7 @@ local function world()
 end
 
 function timer:OnEnable()
+    buildStopwatch()
     holder = CreateFrame("Frame", "RikUICombatTimer", UIParent)
     timer.Holder = holder
     holder:SetSize(110, 20)
@@ -116,5 +205,13 @@ table.insert(timer.Options.settings, { type = "slider", key = "linger", label = 
         core.Profile.combattimer.linger = math.floor(value); timer.Refresh()
         return true
     end })
+table.insert(timer.Options.settings, { type = "checkbox", key = "stopwatch", label = "Show session stopwatch",
+    description = "Left-click starts or pauses; right-click resets. Move with /rik move; elapsed time clears on reload.",
+    get = function() return core.Profile.combattimer.stopwatch == true end,
+    set = function(value) core.Profile.combattimer.stopwatch = value == true; timer.RefreshStopwatch() end })
+core:RegisterCommand("stopwatch", function(input)
+    local message = timer.StopwatchAction(string.lower((input or ""):match("^%s*(.-)%s*$")))
+    if message then core:Print(message) end
+end, "Session stopwatch: start, pause, reset, show or hide", timer)
 core:RegisterModule("combattimer", timer)
 

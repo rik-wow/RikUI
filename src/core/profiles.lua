@@ -7,7 +7,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 
     chat = { mutedPhrases = "", highlightWords = "", fontSize = 14, timestamps = true, locked = true, panel = true, classColors = true, shortTags = true,
         mentions = true, collapseRepeats = true, jumpButton = true, history = true, arrowHistory = true,
         stickyChannels = true, channelStrip = true, editColor = true, tabsVisible = true, nameClicks = true },
-    combattimer = { show = false, linger = 5 },
+    combattimer = { show = false, linger = 5, stopwatch = false },
     panels = { questTextSize = 0 },
     bags = { searches = {}, protectFavorites = true, favorites = "", autoRepair = false, itemLevels = false, repairGuild = false, autoSellJunk = false, columns = 10, capacityHUD = true, capacityLowOnly = false, capacityThreshold = 4 },
     barFade = { bar3 = true },
