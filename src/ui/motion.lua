@@ -144,6 +144,34 @@ function motion.BindHover(owner)
     end)
 end
 
+local PRESS_ALPHA, RELEASE_SECONDS = 0.24, 0.18
+
+-- Region-only response: native click handlers and button geometry stay authoritative.
+function motion.BindPress(owner)
+    if owner.rikPress then return end
+    local value = { region = effectRegion(owner) }
+    value.release = motion.Tween(value.region, PRESS_ALPHA, 0, RELEASE_SECONDS)
+    owner.rikPress = value
+    local function clear()
+        value.down = false
+        motion.Stop(value.release)
+        value.region:SetAlpha(0)
+    end
+    owner:HookScript("OnMouseDown", function(_, button)
+        if button ~= "LeftButton" or (owner.IsEnabled and not owner:IsEnabled()) then return end
+        motion.Stop(value.release)
+        value.down = true
+        value.region:SetAlpha(PRESS_ALPHA)
+    end)
+    owner:HookScript("OnMouseUp", function()
+        local down = value.down
+        clear()
+        if down and not motion.Reduced() then motion.Play(value.release) end
+    end)
+    owner:HookScript("OnHide", clear)
+    owner:HookScript("OnDisable", clear)
+end
+
 function motion.Flash(owner)
     if motion.Reduced() then return end
     if not owner.rikFlash then

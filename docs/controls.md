@@ -1,5 +1,7 @@
 # Window controls
 
+Push buttons, check boxes, dropdowns and scroll steps now light gold while pressed, then release with a short fade. Hiding or disabling a button clears the feedback. Native click handlers and layout are preserved; reduced motion keeps the pressed cue without the fade.
+
 `src/modules/controls/controls.lua` flattens the controls inside Blizzard's windows: push buttons,
 check boxes, edit boxes, sliders, scrollbars and dropdown buttons. The
 [panel skin](panels.md) only does a window's chrome; this module does what is

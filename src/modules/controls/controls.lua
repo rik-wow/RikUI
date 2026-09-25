@@ -62,6 +62,7 @@ local function pushButton(button)
     skin.Strip(button, SLICES)
     box(button, skin.CONTROL, BUTTON_INSET)
     hover(button)
+    motion.BindPress(button)
     skin.ButtonFonts(button)
 end
 
@@ -70,6 +71,7 @@ local function checkBox(button)
     fadeStates(button)
     box(button, FIELD, CHECK_INSET)
     hover(button)
+    motion.BindPress(button)
 end
 
 local function paint(lines, color)
@@ -108,6 +110,7 @@ local function stepButton(button, glyph)
     fadeStates(button)
     box(button, skin.CONTROL, BUTTON_INSET)
     hover(button)
+    motion.BindPress(button)
     button.rikIcon = media.Icon(button, glyph, STEP_ICON_SIZE, "OVERLAY")
     button.rikIcon:SetPoint("CENTER", button, "CENTER", 0, 0)
 end
@@ -131,6 +134,7 @@ local function dropdown(button)
     skin.Strip(button, { "Background" })
     box(button, skin.CONTROL, BUTTON_INSET)
     hover(button)
+    motion.BindPress(button)
     skin.Typeface(button.Text)
 end
 

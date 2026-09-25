@@ -130,6 +130,23 @@ return function(check)
         check("nothing was moved, resized, reparented or rescripted", button.points == nil and button.width == 100
             and button.parent == ui.root.children[1] and ui.edit:GetScript("OnEditFocusGained") == nil)
 
+        env.runScript(button, "OnMouseDown", "LeftButton")
+        check("press lights only the addon overlay", button.rikPress and button.rikPress.region.alpha == 0.24)
+        env.runScript(button, "OnMouseUp", "LeftButton")
+        check("release fades the press overlay", button.rikPress and button.rikPress.region.alpha == 0
+            and button.rikPress.release:IsPlaying())
+        button:Hide()
+        check("hide cancels press feedback", button.rikPress and not button.rikPress.release:IsPlaying())
+        button:Show()
+        button:SetEnabled(false)
+        env.runScript(button, "OnMouseDown", "LeftButton")
+        check("disabled buttons never light on press", button.rikPress and button.rikPress.region.alpha == 0)
+        button:SetEnabled(true)
+        env.runScript(ui.check, "OnMouseDown", "LeftButton")
+        env.runScript(ui.dropdown, "OnMouseDown", "LeftButton")
+        check("checks and dropdowns share press feedback", ui.check.rikPress and ui.dropdown.rikPress
+            and ui.check.rikPress.region.alpha == 0.24 and ui.dropdown.rikPress.region.alpha == 0.24)
+
         local fill = button.rikFill
         local late = pushButton(ui.root)
         module.Walk(ui.root)
