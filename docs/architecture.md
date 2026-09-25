@@ -131,7 +131,7 @@ installing irreversible hooks.
   `UnregisterOwner` removes event subscriptions, not commands or queued jobs.
 - `Changed()` schedules persistence after modifying plain configuration.
   `SetProfile(name)` returns `true` or `nil, reason`, cancels dragging and
-  applies the chosen layout outside combat and pending setup operations.
+  applies the chosen layout outside combat and pending setup operations. Failed mover cleanup refuses the switch before changing selection; failed appearance refresh is recorded while preserving the selected profile and reset recovery copy.
 - `Secret.Read(reader, ...)` preserves all `pcall` return slots, including nil.
   `Secret.Apply(sink, reader, ...)` forwards successful results to a protected
   sink call. Neither turns unavailable data into zero. Inspect the success flag

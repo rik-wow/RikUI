@@ -136,6 +136,25 @@ return function(check)
         check("failed status is visible beside usable module toggle", brokenRow.enabled
             and brokenRow.description:GetText():find("Could not start", 1, true) ~= nil)
 
+        do
+            options = boot()
+            local previous = RikUI.Profile
+            previous.scale = 1.2
+            local stop, apply = RikUI.Layout.StopMoving, RikUI.Layout.Apply
+            RikUI.Layout.StopMoving = function() error("cleanup fixture failure") end
+            local ran, selected = pcall(RikUI.SetProfile, RikUI, "Default")
+            check("profile cleanup failure is returned before mutation", ran and not selected and RikUI.Profile == previous)
+            RikUI.Layout.StopMoving = stop
+            RikUI.Layout.Apply = function() error("refresh fixture failure") end
+            local resetRan, resetOK, backupName = pcall(options.ResetProfile)
+            check("profile reset survives failed appearance refresh", resetRan and resetOK and RikUI.Profile.scale == 1)
+            check("failed refresh retains reset recovery copy", backupName and RikUI.DB.profiles[backupName]
+                and RikUI.DB.profiles[backupName].scale == 1.2)
+            check("failed refresh is recorded for diagnosis", contains("refresh fixture failure"))
+            RikUI.Layout.Apply = apply
+            options = boot()
+        end
+
         -- Renderer with synthetic specs.
 
         check("configuration confines page content to a scrolling viewport", options.Panel().pages[1].scroll ~= nil)

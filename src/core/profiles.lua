@@ -89,12 +89,15 @@ function core:SetProfile(name)
         return nil, "Finish the pending Setup operation before switching profiles."
     end
     if not self:IsProfileName(name) or type(self.DB.profiles[name]) ~= "table" then return nil, "Unknown profile." end
-    if self.Layout and self.Layout.StopMoving then self.Layout.StopMoving() end
+    if self.Layout and self.Layout.StopMoving then
+        local ok = runtime.Invoke("Stop profile layout", self.Layout.StopMoving)
+        if not ok then return nil, "Could not stop the current layout. See /rik errors." end
+    end
     if self.Profile ~= self.DB.profiles[name] then runtime.profileRevision = (runtime.profileRevision or 0) + 1 end
     self.Profile = normalizeProfile(self.DB.profiles[name])
     self.DB.profiles[name] = self.Profile
     self.CharDB.profile = name
     self:Changed()
-    if self.Layout then self.Layout.Apply() end
+    if self.Layout and self.Layout.Apply then runtime.Invoke("Apply profile layout", self.Layout.Apply) end
     return true
 end
