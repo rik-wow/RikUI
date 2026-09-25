@@ -51,6 +51,21 @@ assign that key in **Key Bindings > RikUI**, use Ctrl+Alt+Shift.
 `/rik scale 0.8` makes the UI smaller. `/rik scale 1` returns it to normal.
 Moving and scaling need to be done out of combat.
 
+## Combat HUD
+
+Cooldowns, your current resource and cast bar sit together above the action bars.
+Swing and wand timing share that central stack. Class buffs and target effects sit beside it. The displays follow
+your class, learned abilities and form; you don't need to import a separate
+WeakAura pack for each character.
+
+This is part of every layout preset. If you're updating an existing profile,
+type `/rik hud` to arrange the combat area. It keeps your chat, other windows
+and keybinds. `/rik layout undo` puts the old positions back.
+
+Cooldown manager starts on by default. You can turn it off from the RikUI menu,
+and it will stay off. The [combat HUD notes](docs/combat-hud.md) cover what's
+tracked and where the beta client still limits it.
+
 ## What's included
 
 - Action bars, player and target frames, party and raid frames, cast bars,
@@ -76,6 +91,7 @@ Type `/rik` or `/rik help` for the full list available in your game.
 | `/rik setup` | Open the setup wizard. |
 | `/rik undo` | Undo the most recent setup. |
 | `/rik resync` | Update preset spell slots after learning abilities or ranks, keeping unrelated actions in place. |
+| `/rik hud` | Arrange the combat HUD above the action bars. |
 | `/rik move` | Unlock or lock frames. |
 | `/rik move reset` | Restore default frame positions. |
 | `/rik scale 0.8` | Set the overall UI scale. |

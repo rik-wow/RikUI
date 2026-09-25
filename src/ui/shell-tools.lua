@@ -21,6 +21,12 @@ end
 local function registerTools()
     add("settings", "Interface", "Settings", 10, function() optionsPage("general") end)
     add("profiles", "Interface", "Profiles", 20, function() optionsPage("profiles") end)
+    if core.Layout.ApplyCombatHUD then
+        add("combat-hud", "Interface", "Arrange combat HUD", 25, function()
+            local ok, reason = core.Layout.ApplyCombatHUD()
+            if not ok then core:Print(reason) end
+        end, outOfCombat)
+    end
     add("move", "Interface", function() return core.Layout.IsMoving() and "Finish moving frames" or "Move frames" end,
         30, function()
             if core.Layout.IsMoving() then core.Layout.LockAll() else core.Layout.UnlockAll() end

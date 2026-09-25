@@ -78,7 +78,8 @@ return function(check)
         local player, bar = layouts.Rect("centered", "player", SCREENS[1]), layouts.Rect("centered", "main", SCREENS[1])
         local target = layouts.Rect("centered", "target", SCREENS[1])
         local swing = layouts.Rect("centered", "swingtimer", SCREENS[1])
-        check("Centered weapon timers leave the upward target aura column clear",swing.right<target.left
+        check("Centered weapon timers join the central stack below target auras",
+            near((swing.left+swing.right)/2, SCREENS[1].width/2) and swing.top < target.bottom
             and swing.top-swing.bottom==76)
         check("Centered: player and target are flush with the ends of the bar stack", near(player.left, bar.left)
             and near(target.right, bar.right) and near(player.bottom, target.bottom))
@@ -99,15 +100,22 @@ return function(check)
         for _, name in ipairs(layouts.Order) do
             for _, screen in ipairs({ SCREENS[4], SCREENS[5] }) do
                 local positions = layouts.Positions(name, screen)
-                local main = layouts.Rect(name, "main", screen, positions)
                 local pet = layouts.Rect(name, "pet", screen, positions)
-                for _, key in ipairs({ "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
+                local previous = pet
+                for _, key in ipairs({ "swingtimer", "castplayer", "combatresource", "cooldownessential", "cooldownutility" }) do
                     local rect = layouts.Rect(name, key, screen, positions)
-                    local left = key == "cooldownessential" or key == "cooldownutility"
-                    check(name .. " keeps " .. key .. " beside bars on " .. screen.name,
-                        rect.bottom >= main.bottom and rect.top <= pet.top
-                        and (left and near(rect.right + layouts.GAP, main.left)
-                            or not left and near(rect.left - layouts.GAP, main.right)))
+                    check(name .. " centres " .. key .. " above bars on " .. screen.name,
+                        near((rect.left + rect.right) / 2, screen.width / 2)
+                        and near(rect.bottom, previous.top + layouts.GAP)
+                        and rect.top < screen.height / 2 - 100)
+                    previous = rect
+                end
+                for _, key in ipairs({ "cooldownbuffs", "cooldownbars" }) do
+                    local rect = layouts.Rect(name, key, screen, positions)
+                    check(name .. " keeps " .. key .. " beside combat column on " .. screen.name,
+                        rect.bottom >= pet.top and rect.top < screen.height / 2 - 100
+                        and (key == "cooldownbuffs" and near(rect.right, screen.width / 2 - 144)
+                            or key == "cooldownbars" and near(rect.left, screen.width / 2 + 144)))
                 end
             end
         end
@@ -184,8 +192,10 @@ return function(check)
                 for _, key in ipairs({ "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
                     local rect, main = layout.Rect(key), layout.Rect("main")
                     check(name .. " keeps " .. key .. " near bars at scale " .. scale,
-                        rect.top <= layout.Rect("pet").top and rect.top < UIParent:GetHeight() / 2
-                        and rect.right >= main.left - 300 * scale and rect.left <= main.right + 300 * scale)
+                        rect.bottom >= layout.Rect("pet").top and rect.top < UIParent:GetHeight() / 2 - 100
+                        and rect.right >= main.left - 120 * scale and rect.left <= main.right + 120 * scale
+                        and ((key ~= "cooldownessential" and key ~= "cooldownutility")
+                            or near((rect.left + rect.right) / 2, UIParent:GetWidth() / 2)))
                 end
                 if name == "hud" then
                     local stackTop = layout.Rect("pet").top
@@ -197,6 +207,16 @@ return function(check)
                             rect.bottom >= stackTop and rect.top < UIParent:GetHeight() / 2 - 100)
                     end
                 end
+                local essential = layout.Groups.cooldownessential.frames[1]
+                local beforeGrowth = layout.Rect("cooldownessential")
+                essential:SetSize(280, 90)
+                local grown, utility = layout.Rect("cooldownessential"), layout.Rect("cooldownutility")
+                check(name .. " keeps a growing essential row central at scale " .. scale,
+                    near((grown.left + grown.right) / 2, UIParent:GetWidth() / 2)
+                    and near(grown.bottom, beforeGrowth.bottom)
+                    and not RikUI.Geometry.Overlaps(grown, utility))
+                essential:SetSize(280, 50)
+                layout.ApplyPreset(name)
                 local foot = everything.ChatFootprint
                 local inputBottom = layout.Rect("chat").bottom
                     + (foot.bottom - 4 - 2 - 18 - 2 - 24) * scale

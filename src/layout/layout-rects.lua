@@ -6,9 +6,10 @@
 local core, layout, geometry = RikUI, RikUI.Layout, RikUI.Geometry
 
 -- The settle order: a group earlier in the list keeps its place, a later one gives way. Bars and
--- unit frames first, windows that come and go last. Groups not listed follow in alphabetical order.
-local ORDER = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar", "player", "target", "tot",
-    "petframe", "focus", "castplayer", "casttarget", "castfocus", "castpet", "chat", "party", "raid", "minimap", "buffs",
+-- the central combat column first, then unit frames and windows. Unlisted groups follow alphabetically.
+local ORDER = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar",
+    "swingtimer", "combatresource", "cooldownessential", "cooldownutility", "castplayer", "chat",
+    "player", "target", "tot", "petframe", "focus", "casttarget", "castfocus", "castpet", "party", "raid", "minimap", "buffs",
     "debuffs", "questtimers", "questtracker", "micromenu", "damagemeter", "bags", "loot" }
 local rank, settled, pending = {}, false, {}
 for index, key in ipairs(ORDER) do rank[key] = index end
@@ -191,8 +192,11 @@ end
 -- Without a key: the whole screen, in order, which also marks the layout as settled. With a key:
 -- only that group gives way, which is what a resize or a late registration asks for. Before the
 -- first full pass a keyed call does nothing: frames are still registering. Waits out combat.
-function layout.Settle(key)
+function layout.Settle(key, resized)
     if key and not settled then return end
+    -- Native cooldown rows can gain another line. Preserve their central anchor
+    -- and fit supporting groups around them instead of ejecting the resized row.
+    if resized and (key == "cooldownessential" or key == "cooldownutility") then key = nil end
     local token = key or true
     if pending[token] then return end
     pending[token] = true

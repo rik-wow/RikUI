@@ -118,7 +118,7 @@ function layout.Register(frame, key, defaults, opts)
     core.Combat.Queue(function()
         frame:HookScript("OnSizeChanged", function()
             if layout.RefreshMovers then layout.RefreshMovers() end
-            if layout.Settle then layout.Settle(key) end
+            if layout.Settle then layout.Settle(key, true) end
         end)
     end)
     layout.Apply()

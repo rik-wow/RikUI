@@ -185,8 +185,9 @@ return function(check)
             and widgets.printedContains(env, "Swing timer range check") and #env.printed == 1, table.concat(env.printed, " | "))
 
         module = load({ positions = { swingtimer = { point="BOTTOM", relativePoint="BOTTOM", x=0, y=336 } } })
-        check("old shipped timer position migrates clear of target auras",RikUI.Profile.positions.swingtimer.x==-139
-            and RikUI.Profile.positions.swingtimer.y==354)
+        check("old shipped timer position migrates clear of target auras",RikUI.Profile.positions.swingtimer.x==RikUI.Layouts.centered.positions.swingtimer.x
+            and RikUI.Profile.positions.swingtimer.y==RikUI.Layouts.centered.positions.swingtimer.y
+            and RikUI.Profile.positions.swingtimer.point=="BOTTOM")
         module = load({ positions = { swingtimer = { point="BOTTOM", relativePoint="BOTTOM", x=42, y=336 } } })
         check("custom weapon timer positions survive migration",RikUI.Profile.positions.swingtimer.x==42)
         module = load({ swingtimer = { kiting=false, stopLead=0.35 } })

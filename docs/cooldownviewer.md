@@ -8,11 +8,12 @@ once per character when this feature first initializes, including after updating
 After that, turning it off in RikUI or the game's settings keeps it off across
 reloads. Initialization waits until combat and Edit Mode have ended.
 
-All presets place Essential and Utility cooldowns beside the left of the action
-bars, with tracked buffs and buff timers beside the right. On smaller screens,
-the layout fits them around the other controls. After updating, reapply your
-preset (for example, `/rik layout hud`) to replace the old top-left positions.
-Custom positions stay saved until you choose a preset.
+All presets place Essential and Utility cooldowns in the central combat column
+above the action bars, with the resource strip and cast bar directly below.
+Tracked buffs and buff timers flank that column. Supporting windows fit around
+the main cooldowns. Use `/rik hud` to apply this to an existing profile, or
+`/rik layout hud` for the whole preset. Saved custom positions stay until you
+choose to arrange them. See the [combat HUD](combat-hud.md) for coverage.
 
 - Click **Cooldowns: Off** to turn the native cooldown displays on; click
   **Cooldowns: On** to turn them off. The label reflects the actual setting.
@@ -93,7 +94,9 @@ normally within 250 ms. Missing regions are skipped. Secret hierarchy results
 are not inspected. A rejected item or pool is skipped for the rest of the
 session, with one diagnostic per operation; other viewers continue.
 
-`/rik debug` reports `CooldownViewer viewers=<n> items=<n> failed=<n>`.
+`/rik debug` reports `CooldownViewer viewers=<n> items=<n> failed=<n>` and
+native configured entry/spell/override IDs for each category. It does not
+read live aura state. See [duplicate-icon evidence](combat-hud.md#native-duplicate-icons).
 
 ## Verification
 

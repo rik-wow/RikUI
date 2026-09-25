@@ -6,7 +6,7 @@ return function(check)
     local restore = widgets.install()
     local savedWidth, savedHeight = UIParent.GetWidth, UIParent.GetHeight
     local FILES = { "data/spells.lua", "data/cvars.lua", "presets/warrior.lua", "src/character/macros.lua", "src/character/macros-undo.lua", "src/character/bindings.lua",
-        "src/setup/setup-actions.lua", "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua", "data/layouts.lua", "src/layout/layout-audit.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/layout/layout-presets.lua" }
+        "src/setup/setup-actions.lua", "src/setup/setup-snapshot.lua", "src/setup/setup-undo.lua", "data/layouts.lua", "src/layout/layout-audit.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/layout/layout-presets.lua", "src/layout/layout-combat.lua" }
     local layout, player
     local function near(a, b) return type(a) == "number" and math.abs(a - b) < 0.01 end
     local function load(profile, width)
@@ -28,7 +28,36 @@ return function(check)
     local ok, reason = pcall(function()
         load()
         check("a group's default place is the Centered layout's", layout.Groups.player.defaults.point == "BOTTOM"
-            and near(layout.Groups.player.defaults.x, -139) and layout.MatchingPreset() == "centered")
+            and near(layout.Groups.player.defaults.x, layout.PresetPositions("centered").player.x) and layout.MatchingPreset() == "centered")
+        load({ positions = {
+            chat={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=25,y=25},
+            bags={point="BOTTOMRIGHT",relativePoint="BOTTOMRIGHT",x=-30,y=80},
+            player={point="BOTTOM",relativePoint="BOTTOM",x=-230,y=900} },
+            chat={size={width=500,height=220}}, modules={combatresource=false,cooldownviewer=false} })
+        local before = RikUI.Setup.CopyState(RikUI.Profile.positions)
+        local modules, chat = RikUI.Profile.modules, RikUI.Profile.chat
+        RikUI.CharDB.cooldownViewerInitialized = true
+        env.inCombat = true
+        check("combat refuses scoped HUD without mutation", not layout.ApplyCombatHUD()
+            and RikUI.Profile.positions.player.y == before.player.y and not RikUI.Profile.layoutUndo)
+        env.inCombat = false
+        SlashCmdList.RIKUI("hud")
+        check("HUD command repairs combat placement", RikUI.Profile.positions.player.y == layout.PresetPositions("hud").player.y
+            and RikUI.Profile.positions.cooldownessential.x == 0
+            and RikUI.Profile.positions.combatresource ~= nil)
+        check("HUD keeps noncombat geometry and chat size", RikUI.Profile.positions.chat.x == before.chat.x
+            and RikUI.Profile.positions.bags.y == before.bags.y and chat.size.width == 500)
+        check("HUD keeps explicit module and native-manager preferences", RikUI.Profile.modules == modules
+            and modules.combatresource == false and modules.cooldownviewer == false
+            and RikUI.CharDB.cooldownViewerInitialized == true)
+        check("scoped HUD shares layout undo", layout.UndoPreset()
+            and RikUI.Profile.positions.player.y == before.player.y and RikUI.Profile.positions.combatresource == nil
+            and RikUI.Profile.chat.size.width == 500)
+        env.printed = {}
+        SlashCmdList.RIKUI("hud nonsense")
+        check("invalid HUD arguments leave geometry alone", RikUI.Profile.positions.player.y == before.player.y
+            and widgets.printedContains(env, "Usage: /rik hud"))
+        load()
         local choices = layout.PresetChoices()
         check("the four layouts are offered in order with their labels", #choices == 4 and choices[1].value == "centered"
             and choices[2].text == "Classic" and choices[4].value == "healer")
@@ -104,7 +133,8 @@ return function(check)
             local rect = layout.Rect("player")
             check("HUD stays above the bars instead of following screen centre at height " .. height,
                 RikUI.Profile.positions.player.relativePoint == "BOTTOM"
-                and rect.bottom >= 300 and rect.top < 500)
+                and rect.bottom >= 244
+                and (height < 1440 or rect.top < height / 2 - 100))
             for _, key in ipairs({ "bagspace", "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
                 check("HUD places " .. key, type(RikUI.Profile.positions[key]) == "table")
             end

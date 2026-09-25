@@ -38,6 +38,7 @@ layouts.Sizes = {
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
     bags = { width = 394, height = 360 }, chat = { width = 344, height = 214 },
     damagemeter = { width = 260, height = 180 },
+    combatresource = { width = 280, height = 18 },
     cooldownessential = { width = 280, height = 50 }, cooldownutility = { width = 280, height = 30 },
     cooldownbuffs = { width = 220, height = 40 }, cooldownbars = { width = 220, height = 90 },
 }
@@ -176,8 +177,8 @@ local HUD_EDGE = HUD_SPREAD + UNIT_WIDTH
 local HUD_UNDER = HUD_Y - GAP - CAST_HEIGHT
 local HUD_CAST = HUD_SWING + layouts.Sizes.swingtimer.height + GAP
 
-layouts.hud = layout("HUD", "Player and target below your character, above the action bars, with the cast bar "
-    .. "between them and other controls around the edges.", {
+layouts.hud = layout("HUD", "A central stack of cooldowns, resources, casts and weapon timers above the action bars, "
+    .. "with unit frames and class effects nearby.", {
     classcooldowns = bottom(0, HUD_SWING - GAP - layouts.Sizes.classcooldowns.height),
     classbuffs = bottomLeftOfCentre(-HUD_EDGE, HUD_Y + UNIT_HEIGHT + GAP),
     classeffects = bottomLeftOfCentre(HUD_SPREAD, HUD_Y + UNIT_HEIGHT + GAP),
@@ -225,3 +226,47 @@ layouts.healer = layout("Healer", "Party and raid frames over the action bars, w
 -- On 16:10 the grid reaches under the tracker's column, so this layout keeps room for a header and one quest;
 -- the tracker caps itself at whatever is under it and says how many quests it hides.
 layouts.healer.sizes = { questtracker = { width = 240, height = 56 } }
+
+-- The same combat information belongs in the same viewing area for every class
+-- and every preset. Native cooldowns own the middle; supporting widgets flank it.
+local CORE_HALF = layouts.Sizes.cooldownessential.width / 2
+local CORE_SWING = STACK_TOP + GAP
+local CORE_CAST = CORE_SWING + layouts.Sizes.swingtimer.height + GAP
+local CORE_POWER = CORE_CAST + CAST_HEIGHT + GAP
+local CORE_ESSENTIAL = CORE_POWER + layouts.Sizes.combatresource.height + GAP
+local CORE_UTILITY = CORE_ESSENTIAL + layouts.Sizes.cooldownessential.height + GAP
+local CORE_EXTRA = CORE_UTILITY + layouts.Sizes.cooldownutility.height + GAP
+layouts.CombatPositions = {
+    castplayer = bottom(0, CORE_CAST),
+    combatresource = bottom(0, CORE_POWER),
+    cooldownessential = bottom(0, CORE_ESSENTIAL),
+    cooldownutility = bottom(0, CORE_UTILITY),
+    cooldownbuffs = bottomRightOfCentre(-CORE_HALF - GAP, CORE_CAST),
+    cooldownbars = bottomLeftOfCentre(CORE_HALF + GAP, CORE_CAST),
+    classcooldowns = bottomRightOfCentre(-CORE_HALF - GAP,
+        CORE_CAST + layouts.Sizes.cooldownbuffs.height + GAP),
+    classbuffs = bottomRightOfCentre(-CORE_HALF - GAP,
+        CORE_CAST + layouts.Sizes.cooldownbuffs.height + layouts.Sizes.classcooldowns.height + 2 * GAP),
+    classeffects = bottomLeftOfCentre(CORE_HALF + GAP,
+        CORE_CAST + layouts.Sizes.cooldownbars.height + GAP),
+    combopoints = bottom(0, CORE_EXTRA),
+    totems = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + GAP),
+    druidmana = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + layouts.Sizes.totems.height + 2 * GAP),
+    swingtimer = bottom(0, CORE_SWING),
+}
+local COMBAT_UNIT_ROW = layouts.CombatPositions.druidmana.y + layouts.Sizes.druidmana.height + GAP
+for _, name in ipairs({ "centered", "hud" }) do
+    local positions = layouts[name].positions
+    positions.player.y, positions.target.y = COMBAT_UNIT_ROW, COMBAT_UNIT_ROW
+    positions.casttarget.y = COMBAT_UNIT_ROW - CAST_HEIGHT - GAP
+    positions.tot = bottomLeftOfCentre(CORE_HALF + GAP + UNIT_WIDTH + GAP, COMBAT_UNIT_ROW)
+    positions.focus = bottomRightOfCentre(-CORE_HALF - GAP - UNIT_WIDTH - GAP, COMBAT_UNIT_ROW)
+    positions.castfocus = bottomRightOfCentre(-CORE_HALF - GAP - UNIT_WIDTH - GAP, COMBAT_UNIT_ROW - CAST_HEIGHT - GAP)
+    positions.petframe = bottomRightOfCentre(-CORE_HALF - GAP - UNIT_WIDTH - GAP, CORE_CAST)
+    positions.castpet = bottomRightOfCentre(-CORE_HALF - GAP - UNIT_WIDTH - 2 * GAP - SMALL_WIDTH, CORE_CAST)
+end
+for _, name in ipairs(layouts.Order) do
+    for key, place in pairs(layouts.CombatPositions) do
+        layouts[name].positions[key] = { point=place.point, relativePoint=place.relativePoint, x=place.x, y=place.y }
+    end
+end

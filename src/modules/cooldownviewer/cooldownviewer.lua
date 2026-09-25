@@ -174,6 +174,7 @@ end
 
 function viewer:Debug()
     core:Print("CooldownViewer viewers=" .. counts.viewers .. " items=" .. counts.items .. " failed=" .. counts.failed)
+    if viewer.DebugEntries then viewer.DebugEntries() end
 end
 
 core:RegisterModule("cooldownviewer", viewer)

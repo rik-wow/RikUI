@@ -63,8 +63,8 @@ end
 -- Fit complete presets before applying them. Combat frames keep their intended places;
 -- supporting windows yield as screen dimensions and widget footprints change.
 local PRIORITY = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar",
-    "player", "target", "tot", "petframe", "focus", "castplayer", "casttarget", "castfocus", "castpet",
-    "raid", "party", "chat", "minimap", "micromenu", "bagspace", "classcooldowns" }
+    "swingtimer", "combatresource", "cooldownessential", "cooldownutility", "castplayer",
+    "raid", "party", "chat", "minimap", "micromenu", "bagspace" }
 local rank = {}
 for index, key in ipairs(PRIORITY) do rank[key] = index end
 
@@ -80,10 +80,6 @@ local function orderedKeys(name, positions)
     local keys = sortedKeys(positions)
     table.sort(keys, function(a, b)
         local first, second = rank[a] or math.huge, rank[b] or math.huge
-        if name == "hud" then
-            if a == "questtimers" then first = rank.classcooldowns - 0.5 end
-            if b == "questtimers" then second = rank.classcooldowns - 0.5 end
-        end
         if first ~= second then return first < second end
         local sa, sb = layouts.Sizes[a], layouts.Sizes[b]
         local aa, ab = sa and sa.width*sa.height or 0, sb and sb.width*sb.height or 0

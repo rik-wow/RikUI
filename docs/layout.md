@@ -1,9 +1,14 @@
 # Moving and scaling frames
 
-After updating, use `/rik layout hud` to apply the revised HUD, or replace
-`hud` with `centered`, `classic` or `healer`. Your saved custom positions
-stay in place until you choose a preset. `/rik layout undo` restores the previous
-layout.
+After updating, use `/rik hud` to arrange the combat displays and supporting unit
+frames while keeping the surrounding UI. For a whole-screen layout, use
+`/rik layout hud`, or replace `hud` with `centered`, `classic` or `healer`.
+Your saved custom positions stay until you choose to arrange them.
+`/rik layout undo` restores the previous layout.
+
+Every preset includes the [core combat HUD](combat-hud.md): central cooldowns,
+a resource strip and cast bar, with class effects and supporting timers nearby.
+Its main column gets priority when fitting windows into the available space.
 
 All four presets now include bag capacity and the four native cooldown viewers.
 The micro menu wraps into a compact column, with room above it for bag capacity

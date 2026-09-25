@@ -220,6 +220,7 @@ src/modules/panels/interiors-social.lua
 src/modules/panels/interiors-misc.lua
 src/modules/personalresource/personalresource.lua
 src/modules/personalresource/druid-mana.lua
+src/modules/personalresource/combat-resource.lua
 src/ui/scroll.lua
 src/ui/shell.lua
 src/ui/shell-tools.lua
@@ -227,6 +228,7 @@ src/layout/layout-unlock.lua
 src/layout/layout-drag.lua
 src/layout/layout-resize.lua
 src/layout/layout-presets.lua
+src/layout/layout-combat.lua
 src/modules/controls/controls.lua
 src/modules/dialogs/dialogs.lua
 src/modules/lossofcontrol/lossofcontrol.lua
@@ -246,6 +248,7 @@ src/modules/cooldownviewer/cooldownviewer.lua
 src/modules/cooldownviewer/cooldownviewer-style.lua
 src/modules/cooldownviewer/cooldownviewer-layout.lua
 src/modules/cooldownviewer/cooldownviewer-controls.lua
+src/modules/cooldownviewer/cooldownviewer-diagnostics.lua
 src/modules/toasts/toasts.lua
 src/modules/banners/banners.lua
 src/modules/damagemeter/damagemeter.lua
