@@ -56,6 +56,11 @@ local function onLeave() GameTooltip:Hide() end
 local function createRow()
     local row = CreateFrame("Button", nil, holder)
     row:SetSize(ROW_WIDTH, ROW_HEIGHT)
+    row.rikQualityRail = row:CreateTexture(nil, "ARTWORK")
+    row.rikQualityRail:SetTexture(FLAT)
+    row.rikQualityRail:SetPoint("TOPLEFT", row, "TOPLEFT")
+    row.rikQualityRail:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT")
+    row.rikQualityRail:SetWidth(EDGE)
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(ICON, ICON)
     row.icon:SetPoint("LEFT", row, "LEFT", 2, 0)
@@ -81,7 +86,7 @@ end
 local function qualityColor(quality)
     if not readable(quality, "number") then return WHITE end
     local ok, r, g, b = pcall(C_Item.GetItemQualityColor, quality)
-    if not ok or not readable(r, "number") then return WHITE end
+    if not ok or not readable(r, "number") or not readable(g, "number") or not readable(b, "number") then return WHITE end
     return { r, g, b }
 end
 
@@ -92,7 +97,7 @@ local function fillRow(row, slot)
     if texture == nil and name == nil then return false end
     local publicQuantity = readable(quantity, "number") and quantity or nil
     if readable(name, "string") and (row.rikItemName ~= name or row.rikQuantity ~= publicQuantity) then
-        core.Motion.Flash(row)
+        row.rikReveal = true
     end
     row.rikItemName = readable(name, "string") and name or nil
     row.rikQuantity = readable(quantity, "number") and quantity or nil
@@ -100,7 +105,9 @@ local function fillRow(row, slot)
     row.icon:SetTexture(not core.Secret.IsSecret(texture) and texture or nil)
     -- Coin text arrives as one line per denomination.
     row.name:SetText(readable(name, "string") and name:gsub("\n", ", ") or "")
-    row.name:SetTextColor(unpack(qualityColor(quality)))
+    row.rikQualityColor = qualityColor(quality)
+    row.name:SetTextColor(unpack(row.rikQualityColor))
+    row.rikQualityRail:SetVertexColor(unpack(row.rikQualityColor))
     row.count:SetText(readable(quantity, "number") and quantity > 1 and tostring(quantity) or "")
     return true
 end
@@ -133,6 +140,11 @@ local function rowFor(slot)
     return loot.Rows[slot]
 end
 
+local function reveal(row)
+    if row.rikReveal and row:IsShown() then core.Motion.Flash(row, row.rikQualityColor) end
+    row.rikReveal = nil
+end
+
 function loot.Open()
     local ok, slots = pcall(GetNumLootItems)
     if not ok or not readable(slots, "number") or slots ~= slots or slots < 0
@@ -141,7 +153,10 @@ function loot.Open()
         slots = 0
     end
     sessionSlots = slots
-    for _, row in ipairs(loot.Rows) do row:Hide(); row.slot = nil end
+    for _, row in ipairs(loot.Rows) do
+        row:Hide()
+        row.slot, row.rikItemName, row.rikQuantity, row.rikReveal = nil, nil, nil, nil
+    end
     for slot = 1, slots do
         local row = loot.Rows[slot] or createRow()
         row.slot = slot
@@ -150,6 +165,7 @@ function loot.Open()
     stackRows()
     place()
     holder:Show()
+    for _, row in ipairs(loot.Rows) do reveal(row) end
 end
 
 function loot.Close()
@@ -171,6 +187,7 @@ function loot.SlotChanged(_, slot)
     local filled = fillRow(row, slot)
     if filled == nil then return end
     if filled then row:Show() else row:Hide() end
+    reveal(row)
     stackRows()
 end
 

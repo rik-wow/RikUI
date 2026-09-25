@@ -139,6 +139,11 @@ return function(check)
             and cloth.name.text == "Linen Cloth" and cloth.name.fontPath == RikUI.Media.font and cloth.count.text == "3")
         check("a single item and a coin row show no quantity", blade.count.text == "" and coin.count.text == "")
         check("names take the item quality colour", near(blade.name.color[1], 0.2) and near(cloth.name.color[1], 0.1))
+        check("loot reveal and rail use the item rarity colour", blade.rikQualityRail and blade.rikFlashRegion
+            and near(blade.rikQualityRail.color[1], 0.2) and near(blade.rikFlashRegion.color[1], 0.2))
+        local revealPlays = blade.rikFlash.plays
+        env.fire("LOOT_SLOT_CHANGED", 3)
+        check("unchanged loot does not replay reveal", blade.rikFlash.plays == revealPlays)
         check("the holder grows with the row count", holder.height > 3 * cloth.height and holder.width >= cloth.width)
 
         env.click(blade)
@@ -175,6 +180,12 @@ return function(check)
         stub.slots = { { 132889, "Linen Cloth", 1, nil, 1 } }
         env.fire("LOOT_OPENED", true)
         check("reopening reuses the row pool", #module.Rows == 3 and shownRows(module) == 1)
+        check("pooled rarity resets for the new item", near(module.Rows[1].rikQualityRail.color[1], 0.1)
+            and near(module.Rows[1].rikFlashRegion.color[1], 0.1))
+        local pooledPlays = module.Rows[1].rikFlash.plays
+        env.fire("LOOT_CLOSED")
+        env.fire("LOOT_OPENED", false)
+        check("same item reveals once in a new session", module.Rows[1].rikFlash.plays == pooledPlays + 1)
         stub.infoError = "loot unavailable"
         env.fire("LOOT_OPENED", false)
         env.fire("LOOT_OPENED", false)

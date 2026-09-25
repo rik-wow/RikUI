@@ -1,8 +1,10 @@
 # Loot
 
+Loot rows carry a slim rarity-coloured rail and a matching 450ms reveal flash. Each new loot session can reveal reused rows again; unchanged slot updates stay quiet. Reduced motion retains the rail without the flash. Item colour API reviewed 2026-09-24 against [69913 ItemDocumentation](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua).
+
 Loot slots now recover when their item data arrives late, including rows that were initially hidden. A failed update preserves an already visible row; readable empty slots still disappear. Late updates after closing and slots from an older session are ignored.
 
-The loot list fades and slides upward over 180ms; new or updated rows flash gold and have a soft hover wash. Native roll frames gain a fade entrance. Loot closing remains immediate, cancelling animation without postponing CloseLoot or slot updates. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
+The loot list fades and slides upward over 180ms; new or updated rows flash their rarity colour and have a soft hover wash. Native roll frames gain a fade entrance. Loot closing remains immediate, cancelling animation without postponing CloseLoot or slot updates. Motion is regression-tested; native acceptance is supplied by the user's standing policy.
 
 `src/modules/loot/loot.lua` replaces Blizzard's loot window with a compact flat list and
 `src/modules/loot/loot-rolls.lua` gives the group roll frames the same skin. The stock

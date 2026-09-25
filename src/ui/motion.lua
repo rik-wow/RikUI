@@ -173,13 +173,17 @@ function motion.BindPress(owner)
     owner:HookScript("OnDisable", clear)
 end
 
-function motion.Flash(owner)
+function motion.Flash(owner, color)
     if motion.Reduced() then return end
-    if not owner.rikFlash then
+    if not owner.rikFlashRegion then
         local region = effectRegion(owner)
+        owner.rikFlashRegion = region
         owner.rikFlash = motion.Tween(region, 0.32, 0, FLASH_SECONDS)
-        owner:HookScript("OnHide", function() motion.Stop(owner.rikFlash) end)
+        owner:HookScript("OnHide", function() motion.Stop(owner.rikFlash); region:SetAlpha(0) end)
     end
+    color = color or { 1, 0.82, 0 }
+    owner.rikFlashRegion:SetVertexColor(color[1], color[2], color[3])
+    owner.rikFlashRegion:SetAlpha(0)
     motion.Play(owner.rikFlash)
 end
 
