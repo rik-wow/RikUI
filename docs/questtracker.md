@@ -1,5 +1,7 @@
 # Quest tracker
 
+Finishing an objective flashes that line green once, including completion flags that change without changing the text. Ordinary progress stays white. Objective indexes preserve identity when completed lines are filtered, and hidden or reduced-motion rows do not animate.
+
 **Maximum visible quests** limits the tracker to 1–25 quests; 0 (default) shows all that fit. Pinned quests get priority. The header still counts every watched quest and `+N more` reports hidden entries. This composes with available screen room and never untracks a quest; use the quest log for hidden entries.
 
 Enable **Track newly accepted quests** to add future accepted quests to the native watch list. It defaults off and does not track the entire existing quest log. Combat requests wait until combat ends and recheck the active profile, setting and quest presence. Native refusal is reported. Both single-ID and Classic index-plus-ID acceptance payloads are handled; an unreadable second payload never falls back to the log index. API reviewed 2026-09-24: [69913 QUEST_ACCEPTED and AddQuestWatch](https://raw.githubusercontent.com/Gethe/wow-ui-source/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_APIDocumentationGenerated/QuestLogDocumentation.lua).

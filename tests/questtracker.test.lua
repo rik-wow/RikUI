@@ -142,6 +142,15 @@ return function(check)
         env.flushTimers()
         check("a burst of quest events renders once", stub.reads == reads + 1)
 
+        stub.quests[22].objectives[1][2] = true
+        update()
+        check("completed objective flashes green even when its text is unchanged",
+            second.lines[1].flashAnim.plays == 1 and second.lines[1].flash.color[1] == 0.3)
+        update()
+        check("unchanged completed objective stays quiet", second.lines[1].flashAnim.plays == 1)
+        stub.quests[22].objectives[1][2] = false
+        update()
+        check("reopened objective restores white progress feedback", second.lines[1].flash.color[1] == 1)
         stub.quests[11].complete = true
         stub.quests[11].objectives[1] = { "Wolves slain: 8/8", true }
         update()

@@ -132,6 +132,7 @@ local function createLine(frame, index)
     line.flash:SetAllPoints(line)
     line.flash:SetAlpha(0)
     line.flashAnim = motion.Tween(line.flash, FLASH_ALPHA, 0, FLASH_SECONDS)
+    line:HookScript("OnHide", function() motion.Stop(line.flashAnim) end)
     line.text = text(line, "small", "LEFT")
     line.text:SetAllPoints(line)
     return line
@@ -148,9 +149,10 @@ local function displayLines(quest)
         return { { text = label("QUEST_WATCH_QUEST_READY", "Ready to turn in"), color = COMPLETE_COLOR } }
     end
     local lines = {}
-    for _, objective in ipairs(quest.objectives) do
+    for index, objective in ipairs(quest.objectives) do
         if not objective.finished or not core.Profile.questtracker.hideCompleted then
-            lines[#lines + 1] = { text = "- " .. objective.text, color = objective.finished and FINISHED_COLOR or OBJECTIVE_COLOR }
+            lines[#lines + 1] = { text = "- " .. objective.text, color = objective.finished and FINISHED_COLOR or OBJECTIVE_COLOR,
+                key = index, finished = objective.finished == true }
         end
     end
     return lines
@@ -185,8 +187,14 @@ local function fillLines(frame, lines, previous, animate)
         line.text:SetText(entry.text)
         line.text:SetTextColor(unpack(entry.color))
         line:Show()
-        if animate and previous and previous[index] and previous[index] ~= entry.text then motion.Play(line.flashAnim) end
-        texts[index] = entry.text
+        local key = entry.key or index
+        local before = previous and previous[key]
+        line.flash:SetVertexColor(unpack(entry.finished and COMPLETE_COLOR or WHITE))
+        line.flash:SetAlpha(0)
+        if animate and before and (before.text ~= entry.text or before.finished ~= entry.finished) then
+            motion.Play(line.flashAnim)
+        end
+        texts[key] = { text = entry.text, finished = entry.finished }
     end
     for index = #lines + 1, #frame.lines do frame.lines[index]:Hide() end
     frame:SetHeight(TITLE_HEIGHT + #lines * LINE_HEIGHT)
@@ -197,7 +205,7 @@ local function fillBlock(frame, quest, visible)
     local previous, current = seen[quest.id], state(quest)
     local steady = previous ~= nil and previous.state == current
     fillTitle(frame, quest)
-    local texts = fillLines(frame, displayLines(quest), previous and previous.lines, visible and steady)
+    local texts = fillLines(frame, displayLines(quest), previous and previous.lines, visible and steady and frame:IsShown() and not motion.Reduced())
     if visible and previous and not steady and current == "complete" then motion.Play(frame.accentAnim) end
     return { state = current, lines = texts }, previous == nil
 end
