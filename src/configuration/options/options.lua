@@ -97,9 +97,22 @@ function options.DeleteProfile(name)
     if not core.DB then return nil, "Still loading." end
     if name == core.CharDB.profile then return nil, "Switch away from the active profile before deleting it." end
     if type(name) ~= "string" or not core.DB.profiles[name] then return nil, "Unknown profile." end
+    local copied, backup = pcall(copyTable, core.DB.profiles[name])
+    if not copied then return nil, backup end
+    state.deleted = { name = name, profile = backup }
     core.DB.profiles[name] = nil
     core:Changed()
     if state.deleteName == name then state.deleteName = nil end
+    return true
+end
+
+function options.UndoDeleteProfile()
+    if not core.DB then return nil, "Still loading." end
+    local deleted = state.deleted
+    if not deleted then return nil, "No profile deletion to undo in this session." end
+    if core.DB.profiles[deleted.name] ~= nil then return nil, "Profile name is already in use: " .. deleted.name end
+    core.DB.profiles[deleted.name], state.deleted = deleted.profile, nil
+    core:Changed()
     return true
 end
 
@@ -430,6 +443,13 @@ local function profileSpecs()
                 local ok, result = options.ResetProfile()
                 core:Print(ok and ("Profile reset. Previous settings: " .. result .. ". Reload UI to apply.") or result)
             end },
+        { type = "button", key = "undoDelete", label = "Recover deleted profile", text = "Undo delete",
+            description = "", disabled = function() return state.deleted == nil end,
+            getDescription = function()
+                return state.deleted and ("Restore " .. state.deleted.name .. ". Only the latest deletion is kept until reload.")
+                    or "No profile deletion to undo in this session."
+            end,
+            action = options.UndoDeleteProfile },
         { type = "heading", label = "Delete" },
         { type = "dropdown", key = "deleteName", label = "Profile to delete", values = function() return profileEntries(true) end,
             get = function() return state.deleteName end, set = function(value) state.deleteName = value end },

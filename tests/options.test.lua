@@ -730,6 +730,27 @@ return function(check)
         env.click(remove.widget)
         check("delete removes only the chosen profile", RikUIDB.profiles.Fresh == nil and RikUIDB.profiles.Alt and RikUIDB.profiles.Default
             and remove.enabled == false)
+        check("profile deletion recovery is available", type(options.UndoDeleteProfile) == "function")
+        if options.UndoDeleteProfile then
+            local activeBefore = RikUI.Profile
+            check("undo restores deleted profile without switching", options.UndoDeleteProfile()
+                and RikUIDB.profiles.Fresh and RikUI.Profile == activeBefore)
+            RikUIDB.profiles.Fresh.scale = 0.7
+            options.DeleteProfile("Fresh")
+            RikUIDB.profiles.Fresh = { scale = 1.2 }
+            check("undo deletion refuses reused names", not options.UndoDeleteProfile()
+                and RikUIDB.profiles.Fresh.scale == 1.2)
+            RikUIDB.profiles.Fresh = nil
+            local undoRow = rowByKey(profiles, "undoDelete")
+            options.RefreshList(profiles)
+            check("undo deletion control names the saved profile", undoRow and undoRow.enabled
+                and undoRow.description:GetText():find("Fresh", 1, true))
+            if undoRow then env.click(undoRow.widget) end
+            check("undo deletion retry restores exact settings", RikUIDB.profiles.Fresh
+                and RikUIDB.profiles.Fresh.scale == 0.7 and RikUI.Profile == activeBefore)
+            check("undo deletion is consumed once", not options.UndoDeleteProfile())
+            options.DeleteProfile("Fresh")
+        end
         check("empty and blank names are refused", options.CreateProfile("") == nil and options.CreateProfile("   ") == nil)
         env.inCombat = true
         nameRow.widget:SetText("Combat")

@@ -1,5 +1,7 @@
 # RikUI settings
 
+Profiles > **Undo delete** restores the most recently deleted profile without selecting it. The recovery copy lasts only until reload and is replaced by the next deletion. If its name has been reused, recovery refuses to overwrite the new profile; free that name before retrying.
+
 Profiles > **Saved profiles** lets you choose any saved profile and **Copy saved** or **Export saved** without activating it. Copy uses the Name field above and creates an independent profile; your current layout stays selected. Existing Create/Copy controls still select the newly created profile.
 
 Profile names use one rule for creation, import, restore and selection: 1–64 bytes, no control characters or markup, and no leading/trailing whitespace. Unicode names remain supported. Invalid stored names are omitted from pickers without deleting their records; an invalid active name falls back to Default.
