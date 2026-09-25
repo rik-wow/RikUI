@@ -40,36 +40,9 @@ local function mergeDefaults(target, defaults, ancestors)
     return target
 end
 
--- Restored data must obey the same supported values as the public settings controls.
-local LIMITS = {
-    { false, "scale", 0.25, 3 }, { false, "textScale", 0.85, 1.3 },
-    { "tooltip", "scale", 0.75, 1.5 }, { "bags", "columns", 10, 16, true },
-    { "bags", "capacityThreshold", 0, 20, true }, { "castbars", "widthScale", 0.75, 1.5 },
-    { "castbars", "height", 16, 36, true }, { "nameplates", "selectedScale", 1, 1.5 },
-    { "nameplates", "otherAlpha", 0.2, 1 },
-}
-local CHOICES = {
-    { false, "font", { bundled = true, game = true } },
-    { "unitframes", "healthText", { both = true, current = true, hidden = true } },
-    { "unitframes", "powerText", { both = true, current = true, hidden = true } },
-}
-
 local function normalizeProfile(profile)
-    profile = mergeDefaults(profile, PROFILE_DEFAULTS, { [RikUIDB] = true, [RikUIDB.profiles] = true })
-    for _, rule in ipairs(LIMITS) do
-        local target = rule[1] and profile[rule[1]] or profile
-        local defaults = rule[1] and PROFILE_DEFAULTS[rule[1]] or PROFILE_DEFAULTS
-        local value = target[rule[2]]
-        if value < rule[3] or value > rule[4] or (rule[5] and value % 1 ~= 0) then
-            target[rule[2]] = defaults[rule[2]]
-        end
-    end
-    for _, rule in ipairs(CHOICES) do
-        local target = rule[1] and profile[rule[1]] or profile
-        local defaults = rule[1] and PROFILE_DEFAULTS[rule[1]] or PROFILE_DEFAULTS
-        if not rule[3][target[rule[2]]] then target[rule[2]] = defaults[rule[2]] end
-    end
-    return profile
+    profile = core.ProfileSchema.Repair(profile, PROFILE_DEFAULTS)
+    return mergeDefaults(profile, PROFILE_DEFAULTS, { [RikUIDB] = true, [RikUIDB.profiles] = true })
 end
 
 function core:IsProfileName(name)

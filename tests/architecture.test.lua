@@ -15,7 +15,7 @@ return function(check)
     end
     local bootstrap, lifecycle = "src/core/core.lua", "src/core/lifecycle.lua"
     check("TOC starts with bootstrap", files[1] == bootstrap)
-    for _, name in ipairs({ "events", "profiles", "modules", "commands", "combat" }) do
+    for _, name in ipairs({ "events", "profile-schema", "profiles", "modules", "commands", "combat" }) do
         local path = "src/core/" .. name .. ".lua"
         before(bootstrap, path)
         before(path, lifecycle)
@@ -24,6 +24,8 @@ return function(check)
         if not path:match("^src/core/") then before(lifecycle, path) end
     end
     for _, edge in ipairs({
+        { "src/core/profile-schema.lua", "src/core/profiles.lua" },
+        { "src/core/profile-schema.lua", "src/configuration/options/profile-sharing.lua" },
         { "src/setup/setup.lua", "src/modules/bars/bars-ghosts.lua" },
         { "src/modules/bars/bars.lua", "src/modules/bars/bars-ghosts.lua" },
         { "src/modules/questplanner/quest-schema.lua", "src/modules/questplanner/quest-evidence.lua" },

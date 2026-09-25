@@ -71,6 +71,23 @@ return function(check)
         check("invalid direct profile selection refused", not namesCore:SetProfile("|bad"))
     end
 
+    do
+        local repaired = ready(loadCore({ profiles = { Default = {
+            chat = { fontSize = 999, size = { width = -5, height = 200 } },
+            panels = { questTextSize = 99 }, swingtimer = { stopLead = -1 },
+            nameplates = { healthHeight = 100, nameHeight = "wide" },
+            borderColor = { 2, 0.5, 0.5 }, customExtension = { retained = true },
+        } } }))
+        local profile = repaired.Profile
+        check("saved chat font obeys portable limits", profile.chat.fontSize == 14)
+        check("malformed optional chat size is removed", profile.chat.size == nil)
+        check("saved panel text and swing lead obey portable limits", profile.panels.questTextSize == 0
+            and profile.swingtimer.stopLead == 0.6)
+        check("malformed optional appearance is removed", profile.nameplates.healthHeight == nil
+            and profile.nameplates.nameHeight == nil and profile.borderColor == nil)
+        check("unknown profile extension survives shared repair", profile.customExtension.retained == true)
+    end
+
     local toc = assert(io.open("RikUI.toc", "r"))
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()

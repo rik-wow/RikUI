@@ -209,8 +209,7 @@ client transport does not provide an atomic transaction across multiple writes.
 
 Profile repair preserves valid false values and unknown settings, replacing
 wrong types, non-finite defaulted numbers and cycles through known schema fields.
-This is schema repair for known defaults, not a general migration engine or
-validator for every feature setting.
+The core profile-schema service supplies shared constraints for restored settings and portable imports. Repair resets invalid known values, retains valid false values and unknown extensions, and permits compatible partial saved anchors; portable imports require complete anchors. This is not a general migration engine.
 The existing settings names, dictionary and transport version remain compatible.
 
 ## Cost and verification

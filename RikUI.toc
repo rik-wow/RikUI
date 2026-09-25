@@ -9,6 +9,7 @@
 
 src/core/core.lua
 src/core/events.lua
+src/core/profile-schema.lua
 src/core/profiles.lua
 src/core/modules.lua
 src/core/commands.lua
