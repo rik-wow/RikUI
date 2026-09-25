@@ -3,7 +3,10 @@
 Click **RikUI** beside the minimap to open the shared [utility shell](shell.md).
 Its Tools section contains **Cooldowns: On/Off**, **Move groups/Done**, and
 **Tracked spells**. There is no permanent cooldown toolbar on the HUD.
-The launcher stays available when cooldowns are off.
+The launcher stays available when cooldowns are off. RikUI enables the manager
+once per character when this feature first initializes, including after updating.
+After that, turning it off in RikUI or the game's settings keeps it off across
+reloads. Initialization waits until combat and Edit Mode have ended.
 
 - Click **Cooldowns: Off** to turn the native cooldown displays on; click
   **Cooldowns: On** to turn them off. The label reflects the actual setting.

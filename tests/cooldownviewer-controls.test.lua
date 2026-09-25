@@ -128,6 +128,19 @@ return function(check)
     local ok, reason = pcall(function()
         local module = load()
         local dock = module.Controls
+        check("cooldown manager defaults on once for an existing native Off setting",
+            enabled and RikUI.CharDB.cooldownViewerInitialized == true and dock.toggle.label.text == "Cooldowns: On")
+        env.click(dock.toggle)
+        check("default On can be turned off", not enabled and RikUI.CharDB.cooldownViewerInitialized == true)
+        env.fire("PLAYER_REGEN_ENABLED"); event("EditMode.Exit")
+        check("later initialization events preserve an explicit Off", not enabled)
+        -- Reload the controls code with the persisted character table and native Off.
+        RikUI.Shell.Entries.cooldowns = nil
+        assert(dofile("tests/load_addon.lua").Loadfile("src/modules/cooldownviewer/cooldownviewer-controls.lua"))("RikUI", {})
+        module.CreateControls()
+        dock = module.Controls
+        check("reloaded controls preserve the character's Off choice", not enabled
+            and dock.toggle.label.text == "Cooldowns: Off")
         check("cooldown controls belong to closed shell while viewers are off", dock and dock:GetParent() == RikUI.Shell.Panel.scroll.content
             and not RikUI.Shell.Panel:IsShown() and not RikUI.Layout.Groups.cooldowncontrols
             and dock.toggle and dock.toggle.label.text == "Cooldowns: Off")
@@ -265,10 +278,27 @@ return function(check)
             healthy.points[1][2] == module.Holders[names[2]] and dock.toggle:IsEnabled())
         env.flushTimers(); env.flushTimers()
         check("root placement rejection warns once and scan continues", #env.printed == printed + 1 and #env.timers == 1)
+        enabled, reject = false, true
+        module = load()
+        check("rejected default does not claim initialization or On", not enabled
+            and not RikUI.CharDB.cooldownViewerInitialized and module.Controls.message.text ~= "")
+        reject = false
+        env.inCombat = true; env.fire("PLAYER_REGEN_ENABLED")
+        check("pending default never writes in combat", not enabled and not RikUI.CharDB.cooldownViewerInitialized)
+        env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
+        check("pending default enables after combat", enabled and RikUI.CharDB.cooldownViewerInitialized == true)
+        enabled, editing = false, true
+        module = load()
+        check("default waits for native Edit Mode", not enabled and not RikUI.CharDB.cooldownViewerInitialized)
+        editing = false; event("EditMode.Exit")
+        check("default enables after native Edit Mode", enabled and RikUI.CharDB.cooldownViewerInitialized == true)
+        enabled = false
         module = load(nil, true)
+        check("unsupported client does not change the native setting", not enabled and not RikUI.CharDB.cooldownViewerInitialized)
         check("unsupported client has no dead toolbar", not module.Controls and #env.timers == 0)
         module = load({ modules = { cooldownviewer = false } })
-        check("disabled module creates no toolbar or holders", not module.Controls and not RikUI.Layout.Groups.cooldownessential)
+        check("disabled module creates no toolbar or holders", not module.Controls and not RikUI.Layout.Groups.cooldownessential
+            and not enabled and not RikUI.CharDB.cooldownViewerInitialized)
         check("mouse flow completes without runtime failures", #env.printed == 0)
     end)
     restore()

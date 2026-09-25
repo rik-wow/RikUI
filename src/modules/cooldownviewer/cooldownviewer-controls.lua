@@ -2,7 +2,7 @@
 local core, viewer, skin, media = RikUI, RikUI.CooldownViewer, RikUI.Skin, RikUI.Media
 local CVAR, HEIGHT = "cooldownViewerEnabled", 28
 local ACCENT = { 0.3, 0.75, 1, 1 }
-local notice = ""
+local notice, initializing = "", false
 
 local function enabled()
     if type(C_CVar) ~= "table" or type(C_CVar.GetCVarBool) ~= "function" then return nil end
@@ -13,6 +13,24 @@ end
 
 local function available()
     return not InCombatLockdown() and not viewer.Editing()
+end
+
+local function rememberChoice()
+    if not core.CharDB or core.CharDB.cooldownViewerInitialized == true then return end
+    core.CharDB.cooldownViewerInitialized = true
+    core:Changed()
+end
+
+local function initializeDefault()
+    if not core.CharDB or core.CharDB.cooldownViewerInitialized == true or not available() then return end
+    local state = enabled()
+    if state == nil or type(C_CVar.SetCVar) ~= "function" then return end
+    initializing = true
+    local ok = state or pcall(C_CVar.SetCVar, CVAR, "1")
+    initializing = false
+    if ok and enabled() == true then rememberChoice()
+    else notice = "Cooldown setting unavailable on this character" end
+    viewer.RefreshControls()
 end
 
 local function button(dock, width, x, label, tip, click)
@@ -70,7 +88,8 @@ local function toggle()
     if state == nil or type(C_CVar.SetCVar) ~= "function" then return end
     local wanted = not state
     local ok = pcall(C_CVar.SetCVar, CVAR, wanted and "1" or "0")
-    if not ok or enabled() ~= wanted then notice = "Cooldown setting unavailable on this character" end
+    if ok and enabled() == wanted then rememberChoice()
+    else notice = "Cooldown setting unavailable on this character" end
 end
 
 local function settings()
@@ -106,7 +125,15 @@ function viewer.CreateControls()
         build = buildControls, refresh = viewer.RefreshControls })
     core:RegisterEvent("CVAR_UPDATE", function(_, name)
         if type(issecretvalue) == "function" and issecretvalue(name) then return end
-        if type(name) == "string" and name:lower() == CVAR:lower() then notice = ""; viewer.RefreshControls() end
+        if type(name) == "string" and name:lower() == CVAR:lower() then
+            if not initializing and enabled() ~= nil then rememberChoice() end
+            notice = ""; viewer.RefreshControls()
+        end
     end, viewer)
+    core:RegisterEvent("PLAYER_REGEN_ENABLED", initializeDefault, viewer)
+    if type(EventRegistry) == "table" and type(EventRegistry.RegisterCallback) == "function" then
+        EventRegistry:RegisterCallback("EditMode.Exit", initializeDefault, viewer)
+    end
+    initializeDefault()
     viewer.RefreshControls()
 end
