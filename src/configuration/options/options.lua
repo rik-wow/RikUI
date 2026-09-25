@@ -70,11 +70,23 @@ function options.CreateProfile(name, copyFrom)
     return true
 end
 
-local function recoveryName()
+local function recoveryName(prefix)
+    prefix = prefix or "Recovery"
     for index = 1, MAX_PROFILE_NODES do
-        local name = "Recovery " .. index
+        local name = prefix .. " " .. index
         if not core.DB.profiles[name] then return name end
     end
+end
+
+function options.CreateMinimalProfile()
+    if not core.DB then return nil, "Still loading." end
+    local name = recoveryName("Minimal")
+    if not name then return nil, "Remove an unused minimal profile first." end
+    local modules = {}
+    for moduleName in pairs(core.Modules) do modules[moduleName] = false end
+    core.DB.profiles[name] = { modules = modules }
+    core:Changed()
+    return true, name
 end
 
 function options.ResetProfile()
@@ -435,6 +447,14 @@ local function profileSpecs()
             end,
             action = function() return core.Layout.CopyProfile(state.layoutSource) end },
         { type = "heading", label = "Recovery" },
+        { type = "button", key = "minimalProfile", label = "Isolate module problems", text = "Create minimal",
+            description = "Create a new profile with every current module disabled. Select it above, then reload. Settings remain accessible.",
+            action = function()
+                local ok, name = options.CreateMinimalProfile()
+                if ok then core:Print("Created " .. name .. ". Select it in Active profile, then Reload UI.")
+                else return nil, name end
+                return true
+            end },
         { type = "button", key = "resetProfile", label = "Reset active UI profile", text = "Reset",
             description = "Keep a Recovery copy, then restore UI defaults. Character setup stays unchanged. Reload to apply.",
             disabled = function() return InCombatLockdown() end,

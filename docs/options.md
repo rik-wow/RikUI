@@ -1,5 +1,7 @@
 # RikUI settings
 
+Profiles > **Create minimal** creates a new `Minimal N` profile with every currently registered module disabled. Your active profile stays selected. Choose the minimal profile, reload, then enable modules gradually to isolate a problem; `/rik config` remains available. Modules installed later use their normal defaults.
+
 Profiles > **Undo delete** restores the most recently deleted profile without selecting it. The recovery copy lasts only until reload and is replaced by the next deletion. If its name has been reused, recovery refuses to overwrite the new profile; free that name before retrying.
 
 Profiles > **Saved profiles** lets you choose any saved profile and **Copy saved** or **Export saved** without activating it. Copy uses the Name field above and creates an independent profile; your current layout stays selected. Existing Create/Copy controls still select the newly created profile.

@@ -751,6 +751,28 @@ return function(check)
             check("undo deletion is consumed once", not options.UndoDeleteProfile())
             options.DeleteProfile("Fresh")
         end
+        check("minimal profile creation is available", type(options.CreateMinimalProfile) == "function")
+        if options.CreateMinimalProfile then
+            local previous, selected = RikUI.Profile, RikUI.CharDB.profile
+            local created, minimalName = options.CreateMinimalProfile()
+            local minimal = created and RikUIDB.profiles[minimalName]
+            local disabled = minimal ~= nil
+            for moduleName in pairs(RikUI.Modules) do
+                if not minimal or minimal.modules[moduleName] ~= false then disabled = false end
+            end
+            check("minimal profile disables all registered modules", disabled)
+            check("minimal profile leaves current selection and settings", RikUI.Profile == previous
+                and RikUI.CharDB.profile == selected and minimal.positions == nil)
+            local minimalRow = rowByKey(profiles, "minimalProfile")
+            local beforeCount = #RikUI:GetProfileNames()
+            if minimalRow then env.click(minimalRow.widget) end
+            check("minimal recovery control creates a unique second profile", minimalRow
+                and #RikUI:GetProfileNames() == beforeCount + 1)
+            RikUIDB.profiles[minimalName] = nil
+            for profileName in pairs(RikUIDB.profiles) do
+                if profileName:match("^Minimal ") then RikUIDB.profiles[profileName] = nil end
+            end
+        end
         check("empty and blank names are refused", options.CreateProfile("") == nil and options.CreateProfile("   ") == nil)
         env.inCombat = true
         nameRow.widget:SetText("Combat")
