@@ -241,6 +241,12 @@ local function showMore(holder, hidden, offset)
     return offset + MORE_HEIGHT + BLOCK_GAP
 end
 
+local function visibleLimit()
+    local value = core.Profile.questtracker.maxVisible
+    if type(value) ~= "number" or value ~= value or value < 1 or value > 25 then return math.huge end
+    return math.floor(value)
+end
+
 function view.Render(holder, quests, collapsed, expanding)
     local offset, current, hidden = HEADER_HEIGHT + GAP, {}, 0
     local guidance = core.QuestPlanner and core.QuestPlanner.View
@@ -251,7 +257,7 @@ function view.Render(holder, quests, collapsed, expanding)
         view.Blocks[index] = frame
         local snapshot, isNew = fillBlock(frame, quest, not collapsed)
         current[quest.id] = snapshot
-        local shown = not collapsed and hidden == 0 and fits(offset + frame:GetHeight(), #quests - index)
+        local shown = not collapsed and index <= visibleLimit() and hidden == 0 and fits(offset + frame:GetHeight(), #quests - index)
         if not collapsed and not shown then hidden = hidden + 1 end
         frame:SetShown(shown)
         if shown then

@@ -358,6 +358,25 @@ return function(check)
         env.fire("QUEST_ACCEPTED", 33)
         check("quest removed before processing is not tracked", #watched == 3)
 
+        module = load({ questtracker = { maxVisible = 1, pins = "22" } })
+        check("visible quest cap preserves pinned priority", module.View.Blocks[1].questID == 22
+            and module.View.Blocks[1].shown and not module.View.Blocks[2].shown)
+        check("quest cap reports hidden count without untracking", module.View.More.text == "+1 more"
+            and module.View.Header.count.text == "2" and #stub.watches == 2)
+        local limitSetting
+        for _, setting in ipairs(module.Options.settings) do
+            if setting.key == "maxVisible" then limitSetting = setting end
+        end
+        check("visible cap setting exists", limitSetting ~= nil)
+        if limitSetting then
+            limitSetting.set(0)
+            check("zero cap restores all quest blocks", module.View.Blocks[2].shown and not module.View.More.shown)
+            limitSetting.set(1)
+            env.click(module.View.Header)
+            check("collapse hides overflow line", not module.View.More.shown and module.Holder.height == 18)
+        end
+        check("out of bounds cap rejected in sharing", not pcall(RikUI.ProfileSchema.Project, {questtracker={maxVisible=26}}))
+
         module = load({ modules = { questtracker = false } })
         check("a disabled module leaves the stock tracker untouched", module.Holder == nil
             and ObjectiveTrackerFrame.parent == UIParent and RikUI.Layout.Groups.questtracker == nil)

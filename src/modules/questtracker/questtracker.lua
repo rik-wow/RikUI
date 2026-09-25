@@ -244,6 +244,15 @@ tracker.Options = { title = "Quest tracker", group = "Gameplay", settings = {
         description = "Keep unfinished steps in the list. Hover a quest to see every objective.",
         get = function() return core.Profile.questtracker.hideCompleted == true end,
         set = function(value) core.Profile.questtracker.hideCompleted = value == true; tracker.Refresh() end },
+    { type = "slider", key = "maxVisible", label = "Maximum visible quests (0 = all)",
+        description = "Keep the tracker short without untracking quests. Pinned quests appear first; hidden quests remain in the quest log.",
+        min = 0, max = 25, step = 1,
+        get = function() return core.Profile.questtracker.maxVisible end,
+        set = function(value)
+            if type(value) ~= "number" or value ~= value or value < 0 or value > 25 or value % 1 ~= 0 then return end
+            core.Profile.questtracker.maxVisible = value
+            tracker.Refresh()
+        end },
     { type = "checkbox", key = "autoWatch", label = "Track newly accepted quests",
         description = "Add accepted quests to the native watch list. Existing quests and manual untracking are unchanged.",
         get = function() return core.Profile.questtracker.autoWatch == true end,
