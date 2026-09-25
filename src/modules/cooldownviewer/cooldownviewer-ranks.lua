@@ -43,10 +43,23 @@ local function rankOf(info, index)
 end
 
 -- Per character: HIDDEN for entries RikUI hid, KEPT for entries the player chose to keep.
+-- The first release kept one flag per handled entry and hid the highest catalogue rank's
+-- siblings, rank 1 included; carry those over as RikUI-hidden so they can be shown again.
+local function migrate(db)
+    local old = db.cooldownRanksHandled
+    db.cooldownRanksHandled = nil
+    if type(old) ~= "table" then return end
+    for id, handled in pairs(old) do
+        if handled == true and db.cooldownRankMarks[id] == nil then db.cooldownRankMarks[id] = HIDDEN end
+    end
+end
+
 local function marks()
     local db = core.CharDB
-    if db and type(db.cooldownRankMarks) ~= "table" then db.cooldownRankMarks = {} end
-    return db and db.cooldownRankMarks or {}
+    if not db then return {} end
+    if type(db.cooldownRankMarks) ~= "table" then db.cooldownRankMarks = {} end
+    if db.cooldownRanksHandled ~= nil then migrate(db) end
+    return db.cooldownRankMarks
 end
 
 local function categoriesOf(group)
@@ -64,21 +77,28 @@ local function collect(data, group, index, marked)
         local info = data.cooldownInfoByID[id]
         local category = readable(info, "table") and info.category
         local visible = readable(category, "number") and categories[category] == true
-        local rank = (visible or (category == group.hiddenID and marked[id] == HIDDEN)) and rankOf(info, index)
+        local rank = (visible or category == group.hiddenID) and rankOf(info, index)
         if rank then
             byName[rank.name] = byName[rank.name] or {}
-            table.insert(byName[rank.name], { id = id, rank = rank.rank, category = category, visible = visible })
+            table.insert(byName[rank.name], { id = id, rank = rank.rank, category = category,
+                visible = visible, ours = marked[id] == HIDDEN })
         end
     end
     return byName
 end
 
+-- A hidden entry is a candidate when RikUI hid it, or when every visible entry is a rank the
+-- player has not learned (a lost record must not strand an unusable rank on screen).
 local function keeperOf(name, entries)
     local _, _, learned = core.Spells.HighestKnownRank(name)
     if type(learned) ~= "number" then return nil end
     table.sort(entries, function(a, b) return a.rank > b.rank end)
+    local usableShown = false
     for _, entry in ipairs(entries) do
-        if entry.rank <= learned then return entry end
+        if entry.visible and entry.rank <= learned then usableShown = true end
+    end
+    for _, entry in ipairs(entries) do
+        if entry.rank <= learned and (entry.visible or entry.ours or not usableShown) then return entry end
     end
 end
 

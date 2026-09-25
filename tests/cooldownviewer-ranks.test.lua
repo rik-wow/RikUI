@@ -103,6 +103,29 @@ return function(check)
         check("marks follow the swap", RikUICharDB.cooldownRankMarks[199803] == nil
             and RikUICharDB.cooldownRankMarks[199797] == "hidden")
 
+        viewer = fresh()
+        learned.Immolate = 1
+        entry(199797, 348, CATEGORY.HiddenActive) -- hidden by the first release
+        entry(199803, 11668, CATEGORY.Essential)
+        RikUICharDB.cooldownRanksHandled = { [199797] = true }
+        start(viewer)
+        check("rank 1 hidden by the first release is offered back", #popups == 1)
+        click("OnAccept")
+        check("the repair shows rank 1 and hides rank 7", #writes == 2
+            and writes[1].id == 199797 and writes[1].category == CATEGORY.Essential
+            and writes[2].id == 199803 and writes[2].category == CATEGORY.HiddenActive)
+        check("the old flag table is retired", RikUICharDB.cooldownRanksHandled == nil
+            and RikUICharDB.cooldownRankMarks[199797] == nil and RikUICharDB.cooldownRankMarks[199803] == "hidden")
+
+        viewer = fresh()
+        learned.Immolate = 1
+        entry(199797, 348, CATEGORY.HiddenActive) -- hidden, record lost
+        entry(199803, 11668, CATEGORY.Essential)
+        start(viewer)
+        click("OnAccept")
+        check("a learned rank is shown when only unlearned ranks are visible, even without a record",
+            #writes == 2 and writes[1].id == 199797 and writes[2].id == 199803)
+
         viewer = immolate(2)
         start(viewer)
         click("OnAccept")
