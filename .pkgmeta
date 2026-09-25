@@ -1,0 +1,29 @@
+package-as: RikUI
+enable-nolib-creation: no
+# No externals: serialization is implemented in src/persistence/codec.lua.
+ignore:
+  - .agents
+  - .claude
+  - .codex
+  - .cursor
+  - .github
+  - .magistr
+  - .think-and-ship
+  - .workbench
+  - .release
+  - AGENTS.md
+  - CLAUDE.md
+  - CONTRIBUTING.md
+  - README.md
+  - SDD.md
+  - workbench.toml
+  - RikProbe
+  - docs
+  - tests
+  - tools
+  - dist
+  - media/build_icons.py
+  - media/build_textures.py
+  - "media/icons/*.svg"
+  - presets/community/README.md
+  - presets/community/template.lua.example

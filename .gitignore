@@ -13,5 +13,6 @@ Thumbs.db
 
 # Reproducible local release output and Python caches.
 /dist/
+/.release/
 __pycache__/
 *.pyc

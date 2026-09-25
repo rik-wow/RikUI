@@ -1,0 +1,61 @@
+name: Package and release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full history and annotated tags
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Require a version tag
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          [[ "$RELEASE_REF" == refs/tags/v* ]] || { echo "Select a v* tag when dispatching."; exit 1; }
+          python3 -c 'import sys; sys.path.insert(0, "tools"); from package_addon import validate_version; import os; validate_version(os.environ["RELEASE_REF"].removeprefix("refs/tags/v"))'
+          test "$(git cat-file -t "$RELEASE_REF")" = tag || { echo "Use an annotated tag."; exit 1; }
+
+      - name: Install Lua compiler
+        run: sudo apt-get update && sudo apt-get install -y luajit
+
+      - name: Check runtime inputs and packaging
+        run: |
+          python3 tests/check_manifest.py
+          python3 tests/test_package_addon.py
+          python3 tests/test_verify_release.py
+
+      - name: Build without uploading
+        uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
+        with:
+          args: -d -e -l -u
+          pandoc: "false"
+
+      - name: Verify the release archive
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: python3 tools/verify_release.py --version "$RELEASE_VERSION" .release/*.zip
+
+      - name: Upload the verified package
+        uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
+        with:
+          args: -c -e -l -u
+          pandoc: "false"
+        env:
+          # ID 0 in RikUI.toc disables CurseForge until a project exists.
+          CF_API_TOKEN: ${{ secrets.CF_API_KEY }}
+          GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}

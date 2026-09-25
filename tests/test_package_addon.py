@@ -141,6 +141,23 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(archive.read("RikUI/RikUI.toc"),
                              original.replace(b"0.1.0", b"0.2.0-beta.1+fixture"))
 
+    def test_packager_token_requires_explicit_local_version(self):
+        toc = self.root / "RikUI.toc"
+        toc.write_bytes(toc.read_bytes().replace(b"0.1.0", b"@project-version@"))
+        self.output.write_bytes(b"previous")
+        with self.assertRaisesRegex(ValueError, "--version"):
+            package_addon.build(self.root, self.output)
+        self.assertEqual(self.output.read_bytes(), b"previous")
+
+    def test_packager_token_can_be_stamped_without_changing_source(self):
+        toc = self.root / "RikUI.toc"
+        toc.write_bytes(toc.read_bytes().replace(b"0.1.0", b"@project-version@"))
+        original = toc.read_bytes()
+        result = package_addon.build(self.root, self.output, version="0.0.1-test")
+        self.assertEqual(result["version"], "0.0.1-test")
+        self.assertEqual(package_addon.verify(self.output)["version"], "0.0.1-test")
+        self.assertEqual(toc.read_bytes(), original)
+
     def test_invalid_version_preserves_existing_archive(self):
         for version in ("", "01.0.0", "1.2", "1.0.0-01", "1.0.0-.", "1.0.0\n## Title: changed", "x" * 65):
             with self.subTest(version=version):

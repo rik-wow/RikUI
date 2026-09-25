@@ -2,7 +2,8 @@
 ## Title: RikUI
 ## Notes: A Classic UI and character setup for WoW: Forever.
 ## Author: Alrik Olson
-## Version: 0.1.0
+## Version: @project-version@
+## X-Curse-Project-ID: 0
 ## SavedVariables: RikUIDB
 ## SavedVariablesPerCharacter: RikUICharDB
 ## IconTexture: Interface\Icons\INV_Misc_QuestionMark

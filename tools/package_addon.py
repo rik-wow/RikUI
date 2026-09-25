@@ -91,6 +91,8 @@ def inventory(root):
 
 def payload(root, version=None):
     paths, source_version = inventory(root)
+    if source_version == "@project-version@" and version is None:
+        raise ValueError("Unstamped checkout: pass --version (for example 0.1.0-dev) to build locally")
     selected_version = validate_version(source_version if version is None else version)
     files = {ROOT + name: path.read_bytes() for name, path in paths.items()}
     if version is not None:
