@@ -19,6 +19,29 @@ return function(check)
         return false
     end
 
+    do
+        local recovery = fresh()
+        recovery:RegisterModule("base", {})
+        recovery:RegisterModule("feature", {}, { dependencies = { "base" } })
+        recovery:RegisterModule("missing", {}, { dependencies = { "absent" } })
+        ready(recovery)
+        SlashCmdList.RIKUI("module base off")
+        check("module command saves disabled preference without live teardown",
+            recovery.Profile.modules.base == false and recovery:GetModuleState("base") == "enabled")
+        SlashCmdList.RIKUI("module feature on")
+        check("module command enables required providers", recovery.Profile.modules.base == true)
+        SlashCmdList.RIKUI("module base status")
+        check("module command shows runtime and saved state", reported("base: enabled; next reload=on"))
+        local before = recovery.Profile.modules.base
+        SlashCmdList.RIKUI("module base delete")
+        check("invalid module command does not mutate", recovery.Profile.modules.base == before and reported("Usage: /rik module"))
+        recovery.Profile.modules.missing = false
+        SlashCmdList.RIKUI("module missing on")
+        check("module command reports dependency errors", recovery.Profile.modules.missing == false and reported("Missing required module"))
+        SlashCmdList.RIKUI("module")
+        check("module command lists modules deterministically", reported("feature: enabled"))
+    end
+
     local core, calls = fresh(), {}
     local second = function() calls[#calls + 1] = "second" end
     local late = function() calls[#calls + 1] = "late" end

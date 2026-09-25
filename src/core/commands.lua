@@ -50,6 +50,35 @@ local function showHelp()
     end
 end
 
+local function moduleStatus(name)
+    local state, reason = core:GetModuleState(name)
+    if not state then core:Print("Unknown module: " .. name); return end
+    core:Print(name .. ": " .. state .. "; next reload=" .. (core.Profile.modules[name] ~= false and "on" or "off")
+        .. (reason and ("; " .. reason) or ""))
+end
+
+core:RegisterCommand("module", function(args)
+    if not runtime.initialized then core:Print("Still loading."); return end
+    if args == "" then
+        local names = {}
+        for name in pairs(core.Modules) do names[#names + 1] = name end
+        table.sort(names)
+        for _, name in ipairs(names) do moduleStatus(name) end
+        return
+    end
+    local name, action = args:match("^(%S+)%s+(%S+)$")
+    if not name then name, action = args:match("^(%S+)$"), "status" end
+    if not name or (action ~= "status" and action ~= "on" and action ~= "off") then
+        core:Print("Usage: /rik module [name [status|on|off]]"); return
+    end
+    if action ~= "status" then
+        local ok, reason = core:SetModuleEnabled(name, action == "on")
+        if not ok then core:Print(reason); return end
+        core:Print("Module choices saved. Reload UI to apply.")
+    end
+    moduleStatus(name)
+end, "List modules or change next-reload choices: /rik module [name [status|on|off]]")
+
 core:RegisterCommand("errors", function(args)
     if args == "clear" then core:ClearErrors(); core:Print("Session errors cleared."); return end
     if args ~= "" then core:Print("Usage: /rik errors [clear]"); return end
