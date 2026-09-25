@@ -52,6 +52,7 @@ return function(check)
         function f:Clear() self.duration = nil; self.clears = (self.clears or 0) + 1 end
         function f:SetHideCountdownNumbers(v) self.hideNumbers = v end
         function f:SetDrawSwipe(v) self.drawSwipe = v end
+        function f:SetSwipeTexture(v) self.swipeTexture = v end
         local texture, font = f.CreateTexture, f.CreateFontString
         function f:CreateTexture(...) return region(texture(self, ...), self) end
         function f:CreateFontString(...) return region(font(self, ...), self) end
@@ -156,6 +157,8 @@ return function(check)
         for _, bar in pairs(bars.Frames) do if bar.positionKey == "main" then bar:Hide() end end
         check("action button has native cooldown and charge widgets", first.cooldown and first.chargeCooldown)
         assert(first.cooldown and first.chargeCooldown, "cooldown state missing")
+        check("main cooldown draws a textured pie swipe", first.cooldown.drawSwipe == true
+            and first.cooldown.swipeTexture == "Interface\\HUD\\UI-HUD-CoolDownManager-Icon-Swipe")
         check("slot duration objects feed widgets untouched", first.cooldown.duration == actions[1].cooldown
             and first.chargeCooldown.duration == actions[1].charge and first.cooldown.hideNumbers == false)
         check("text and flash share a visual frame above both cooldowns", first.stateOverlay

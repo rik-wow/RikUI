@@ -6,6 +6,10 @@ local PREFIXES = { main = "ACTIONBUTTON", bar2 = "MULTIACTIONBAR1BUTTON",
 local NATIVE_BARS = { MultiBarBottomLeft = "bar2", MultiBarBottomRight = "bar3",
     MultiBarRight = "bar4", MultiBarLeft = "bar5" }
 local WHITE, RED, BLUE, GREY = { 1, 1, 1 }, { 1, 0.2, 0.2 }, { 0.2, 0.4, 1 }, { 0.4, 0.4, 0.4 }
+-- A template-less Cooldown has no swipe texture, so a swipe colour alone draws no pie.
+-- These are the textures the native cooldown manager's icons declare.
+local SWIPE = "Interface\\HUD\\UI-HUD-CoolDownManager-Icon-Swipe"
+local EDGE = "Interface\\Cooldown\\UI-HUD-ActionBar-SecondaryCooldown"
 local warnings, pressed, rangeSlots = {}, {}, {}
 local stateEnabled = false
 
@@ -82,7 +86,9 @@ local function cooldown(button, charge)
     widget:SetHideCountdownNumbers(false)
     widget:SetMinimumCountdownDuration(0)
     widget:SetCountdownFont(charge and "NumberFontNormalSmall" or "NumberFontNormal")
-    widget:SetSwipeColor(0, 0, 0, 0.8)
+    widget:SetSwipeTexture(SWIPE)
+    widget:SetSwipeColor(0, 0, 0, 0.7)
+    widget:SetEdgeTexture(EDGE)
     if charge then
         local font = widget:GetCountdownFontString()
         font:ClearAllPoints()
