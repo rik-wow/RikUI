@@ -1,5 +1,7 @@
 # Window controls
 
+Slider and legacy scrollbar thumbs turn blue under the cursor and gold while dragging, including when the pointer leaves the track. Release and hide restore their idle colour; values and drag handlers remain native.
+
 Keyboard focus brings in a subtle blue field halo over 160ms. Focus loss and hiding clear it; reduced motion displays the same cue immediately.
 
 Push buttons, check boxes, dropdowns and scroll steps now light gold while pressed, then release with a short fade. Hiding or disabling a button clears the feedback. Native click handlers and layout are preserved; reduced motion keeps the pressed cue without the fade.

@@ -109,12 +109,29 @@ local function editBox(edit)
     edit:HookScript("OnEditFocusLost", function(self) paint(self.rikBorder, skin.LINE) end)
 end
 
+local function thumbFeedback(slider, thumb)
+    local hovering, pressed = false, false
+    local function paintThumb()
+        local color = pressed and { 1, 0.82, 0, 1 } or hovering and ACCENT or THUMB
+        thumb:SetVertexColor(unpack(color))
+    end
+    slider:HookScript("OnEnter", function() hovering = true; paintThumb() end)
+    slider:HookScript("OnLeave", function() hovering = false; paintThumb() end)
+    slider:HookScript("OnMouseDown", function(_, button)
+        if button ~= "LeftButton" then return end
+        pressed = true; paintThumb()
+    end)
+    slider:HookScript("OnMouseUp", function() pressed = false; paintThumb() end)
+    slider:HookScript("OnHide", function() hovering, pressed = false, false; paintThumb() end)
+end
+
 local function flatThumb(slider, width, height)
     local thumb = type(slider.GetThumbTexture) == "function" and slider:GetThumbTexture() or nil
     if not skin.IsRegion(thumb) or type(thumb.SetTexture) ~= "function" then return end
     thumb:SetTexture(skin.FLAT)
     thumb:SetVertexColor(unpack(THUMB))
     thumb:SetSize(width, height)
+    thumbFeedback(slider, thumb)
 end
 
 local function slider(frame)

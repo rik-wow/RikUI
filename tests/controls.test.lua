@@ -125,6 +125,17 @@ return function(check)
         check("a slider gets a thin flat track and a flat thumb", ui.slider.Left.alpha == 0
             and ui.slider.rikTrack.texture == RikUI.Skin.FLAT and ui.slider.rikTrack.height ~= nil
             and ui.slider.thumb.texture == RikUI.Skin.FLAT and ui.slider.thumb.width ~= nil)
+        env.runScript(ui.slider, "OnEnter")
+        check("slider thumb highlights on hover", ui.slider.thumb.color[3] == 1)
+        env.runScript(ui.slider, "OnMouseDown", "LeftButton")
+        env.runScript(ui.slider, "OnLeave")
+        check("dragged thumb stays bright outside slider", ui.slider.thumb.color[1] == 1)
+        env.runScript(ui.slider, "OnMouseUp", "LeftButton")
+        check("release outside restores idle thumb", ui.slider.thumb.color[3] == 0.45)
+        env.runScript(ui.slider, "OnEnter")
+        ui.slider:Hide()
+        check("hiding slider clears interaction state", ui.slider.thumb.color[3] == 0.45
+            and ui.slider:GetScript("OnValueChanged") == nil)
         local thumb = ui.scroll.Track.Thumb
         check("a scrollbar loses its track and thumb art and gets a flat thumb with a hover fade",
             ui.scroll.Track.Middle.alpha == 0 and thumb.Begin.alpha == 0 and thumb.rikFill.texture == RikUI.Skin.FLAT
