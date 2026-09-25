@@ -10,6 +10,9 @@ local WHITE, RED, BLUE, GREY = { 1, 1, 1 }, { 1, 0.2, 0.2 }, { 0.2, 0.4, 1 }, { 
 -- These are the textures the native cooldown manager's icons declare.
 local SWIPE = "Interface\\HUD\\UI-HUD-CoolDownManager-Icon-Swipe"
 local EDGE = "Interface\\Cooldown\\UI-HUD-ActionBar-SecondaryCooldown"
+-- Countdown text rounds up, so a 1.5 s global cooldown read "2". The pie alone shows the global
+-- cooldown (1 s or 1.5 s); numbers start with cooldowns longer than that, by total duration.
+local GCD_MAX_MS = 1510
 local warnings, pressed, rangeSlots = {}, {}, {}
 local stateEnabled = false
 
@@ -84,7 +87,7 @@ local function cooldown(button, charge)
     widget:SetDrawEdge(charge)
     widget:SetDrawBling(false)
     widget:SetHideCountdownNumbers(false)
-    widget:SetMinimumCountdownDuration(0)
+    widget:SetMinimumCountdownDuration(GCD_MAX_MS)
     widget:SetCountdownFont(charge and "NumberFontNormalSmall" or "NumberFontNormal")
     widget:SetSwipeTexture(SWIPE)
     widget:SetSwipeColor(0, 0, 0, 0.7)

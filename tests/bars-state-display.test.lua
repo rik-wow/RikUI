@@ -53,6 +53,7 @@ return function(check)
         function f:SetHideCountdownNumbers(v) self.hideNumbers = v end
         function f:SetDrawSwipe(v) self.drawSwipe = v end
         function f:SetSwipeTexture(v) self.swipeTexture = v end
+        function f:SetMinimumCountdownDuration(v) self.minimumCountdown = v end
         local texture, font = f.CreateTexture, f.CreateFontString
         function f:CreateTexture(...) return region(texture(self, ...), self) end
         function f:CreateFontString(...) return region(font(self, ...), self) end
@@ -159,6 +160,9 @@ return function(check)
         assert(first.cooldown and first.chargeCooldown, "cooldown state missing")
         check("main cooldown draws a textured pie swipe", first.cooldown.drawSwipe == true
             and first.cooldown.swipeTexture == "Interface\\HUD\\UI-HUD-CoolDownManager-Icon-Swipe")
+        check("global cooldowns of 1 s and 1.5 s show the pie without rounded-up numbers",
+            first.cooldown.minimumCountdown > 1500 and first.cooldown.minimumCountdown < 2000
+            and first.chargeCooldown.minimumCountdown == first.cooldown.minimumCountdown)
         check("slot duration objects feed widgets untouched", first.cooldown.duration == actions[1].cooldown
             and first.chargeCooldown.duration == actions[1].charge and first.cooldown.hideNumbers == false)
         check("text and flash share a visual frame above both cooldowns", first.stateOverlay
