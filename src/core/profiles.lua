@@ -19,7 +19,7 @@ local PROFILE_DEFAULTS = { modules = {}, positions = {}, scale = 1, textScale = 
     unitframes = { healthText = "both", powerText = "both" },
     castbars = { widthScale = 1, height = 22, timeText = true },
     worldmap = { fog = true },
-    xpbar = { compact = false, text = true, animations = true, ticks = true } }
+    xpbar = { compact = false, text = true, animations = true, ticks = true, pace = false } }
 local ACCOUNT_DEFAULTS = { version = 1, profiles = { Default = PROFILE_DEFAULTS }, community = {} }
 local CHARACTER_DEFAULTS = { profile = DEFAULT_PROFILE, askRole = true, wizardDone = false, autoPlacement = true }
 core.Defaults = { account = ACCOUNT_DEFAULTS, profile = PROFILE_DEFAULTS, character = CHARACTER_DEFAULTS }

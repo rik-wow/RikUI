@@ -177,6 +177,27 @@ return function(check)
         hover(xp)
         check("XP tooltip shows observed session total and hourly pace", tooltipContains("Session: 170 XP")
             and tooltipContains("5100 XP/hour") and tooltipContains("About 7 minutes"))
+        check("session pace is opt-in without idle callbacks", not RikUI.Profile.xpbar.pace and not xp:GetScript("OnUpdate"))
+        module.SetOption("pace", true)
+        check("visible session pace includes rate and ETA", xp.caption:GetText():find("5100 XP/h", 1, true)
+            and xp.caption:GetText():find("~7m to level", 1, true))
+        stub.now = 240; env.runScript(xp, "OnUpdate", 1)
+        RikUI.DB.profiles.PaceOff = { xpbar = { pace = false } }
+        RikUI:SetProfile("PaceOff")
+        check("profile switch turns pace off live", not xp:GetScript("OnUpdate") and xp.caption:GetText():find("550 to level", 1, true))
+        RikUI:SetProfile("Default")
+        check("profile switch restores pace without resetting session", xp:GetScript("OnUpdate") and xp.caption:GetText():find("2550 XP/h", 1, true))
+        check("pace updates during idle time without XP events", xp.caption:GetText():find("2550 XP/h", 1, true)
+            and xp.caption:GetText():find("~13m to level", 1, true))
+        module.SetOption("compact", true)
+        check("compact mode removes pace callback", not xp:GetScript("OnUpdate") and not xp.caption.shown)
+        module.SetOption("compact", false)
+        module.SetOption("text", false)
+        check("hidden labels remove pace callback", not xp:GetScript("OnUpdate"))
+        module.SetOption("text", true)
+        module.SetOption("pace", false)
+        check("normal label returns when pace disabled", xp.caption:GetText():find("550 to level", 1, true) and not xp:GetScript("OnUpdate"))
+        module.SetOption("pace", true)
         local resetSession
         for _, option in ipairs(module.Options.settings) do if option.key == "resetSession" then resetSession = option end end
         check("XP session reset is available", resetSession ~= nil)
@@ -185,7 +206,10 @@ return function(check)
             hover(xp)
             check("reset removes old gains without changing XP", tooltipContains("Session: 0 XP")
                 and not tooltipContains("XP/hour") and stub.xp == 450)
+            check("fresh pace label explicitly waits for data", xp.caption:GetText():find("Pace: gathering XP", 1, true))
             stub.now = -1
+            env.runScript(xp, "OnUpdate", 1)
+            check("backward clock displays unavailable pace", xp.caption:GetText():find("Pace unavailable", 1, true))
             hover(xp)
             check("clock rollback never produces invalid rate", not tooltipContains("XP/hour"))
         end
@@ -205,6 +229,8 @@ return function(check)
         stub.now = 300
         hover(xp)
         check("unreadable XP gaps suppress session rate", tooltipContains("unreadable gaps") and not tooltipContains("XP/hour"))
+        module.Refresh()
+        check("visible pace identifies incomplete observations", xp.caption:GetText():find("Pace: gaps; reset session", 1, true))
         GetTime = function() error("clock unavailable") end
         hover(xp)
         check("missing clock does not abort XP tooltip", tooltipContains("Session:"))
@@ -231,6 +257,7 @@ return function(check)
 
         stub.capped, stub.faction = true, HONORED
         env.fire("PLAYER_LEVEL_UP", 60)
+        check("level cap removes pace update callback", not xp:GetScript("OnUpdate"))
         check("at the level cap only the reputation row remains", xp.shown == false and rep.shown == true
             and holder.shown == true and holder.height == 12)
         stub.faction = { factionID = 0 }

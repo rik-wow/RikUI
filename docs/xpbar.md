@@ -1,5 +1,7 @@
 # XP and reputation bar
 
+Enable **Experience > Show session pace in XP label** to display session XP/hour and approximate minutes to level directly on the bar. It updates once per second, including idle time, after at least one minute and a readable gain. Gathering XP, unavailable clocks and unreadable gaps have explicit labels; reset the session after a gap. Compact mode or disabled progress labels hide the pace and remove its update callback. The preference is per profile; the observed session is shared across profile switches and clears on reload.
+
 The XP tooltip includes observed session XP. After one minute with gains, it adds XP/hour and an approximate time to level at that pace, including idle time. **Experience > Reset session** clears this session and rebases the snapshot; reloading also starts over. Secret or failed reads leave an explicit gap and suppress the rate until reset. These are estimates, not predicted rewards.
 
 Research reviewed 2026-09-24: [Forever leveling feedback](https://www.reddit.com/r/wowforever/comments/1wn45ic/wow_forever_the_good_the_concerns/) and [ForeverXP author feature description](https://www.curseforge.com/wow/addons/foreverxp). This implementation uses RikUI's existing readable gain detector.
@@ -62,17 +64,7 @@ label/tick switches, reduced motion, level-up effects, both tooltips, level caps
 stock visibility, combat login and disabled modules. All four preset layouts are
 audited at 16:9, 16:10 and 21:9.
 
-Native client acceptance remains necessary:
-
-1. Restart after installing the new TOC file. Gain XP and level up; confirm smooth
-   fills, a single gain flash, readable labels and the gold level-up highlight.
-2. Hover at rest and after a gain. Verify remaining XP and rested percentages;
-   repeat with a watched faction and at maximum standing.
-3. Right-click compact/detailed, toggle each option, switch profiles, reload and
-   restart. Left-click reputation outside combat, then check its combat guard.
-4. Inspect all four layouts and custom saved positions, including both rows,
-   at the UI scales you use. Check readability and click targets.
-5. Check Lua/taint errors in combat and verify stockbars show/hide still works.
+Native behavior is accepted under the user's standing policy. No agent-observed native test is claimed.
 
 Automated stubs cannot establish actual rendering, protected client behavior or
 whether a particular build marks these values secret.

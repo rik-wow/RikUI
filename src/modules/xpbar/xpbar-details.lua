@@ -76,10 +76,28 @@ function details.Build(row, key)
         end
     end)
 end
+local function sessionRate()
+    if sessionIncomplete then return nil, "Pace: gaps; reset session" end
+    local at = clock()
+    if not at or not sessionStart or at < sessionStart then return nil, "Pace unavailable" end
+    if at - sessionStart < RATE_MIN_SECONDS or sessionGain <= 0 then return nil, "Pace: gathering XP" end
+    local rate = sessionGain / (at - sessionStart) * SECONDS_PER_HOUR
+    if not number(rate) or rate <= 0 then return nil, "Pace unavailable" end
+    return rate
+end
 local function xpText()
     local value = snapshot()
-    if not value then return "Experience" end
+    if not value then return settings().pace and "Pace unavailable" or "Experience" end
     local remaining = math.max(0, value.maximum - value.current)
+    if settings().pace then
+        local rate, status = sessionRate()
+        if not rate then return string.format("Level %d   |   %s", value.level, status) end
+        local minutes = remaining / rate * 60
+        if not number(minutes) then return "Pace unavailable" end
+        local eta = minutes > 9999 and ">9999m" or "~" .. math.ceil(minutes) .. "m"
+        local hourly = rate > 1000000000 and ">1B" or string.format("%.0f", rate)
+        return string.format("Level %d   |   %s XP/h   |   %s to level", value.level, hourly, eta)
+    end
     return string.format("Level %d   |   XP %.0f%%   |   %d to level", value.level,
         value.current / value.maximum * 100, remaining)
 end
@@ -92,13 +110,25 @@ local function repText(faction)
     return string.format("%s  |  %.0f%%", faction.name,
         (faction.currentStanding - faction.currentReactionThreshold) / total * 100)
 end
+local function paceTick(row, elapsed)
+    row.paceElapsed = (row.paceElapsed or 0) + elapsed
+    if row.paceElapsed < 1 then return end
+    row.paceElapsed = 0
+    local ok, text = pcall(xpText)
+    row.caption:SetText(ok and text or "Pace unavailable")
+end
 function details.Refresh(faction)
     startSession()
     if not last then local ok, value = pcall(snapshot); if ok then last = value end end
     for key, row in pairs(xpbar.Rows) do
         if row.caption then
             local ok, value = pcall(key == "xp" and xpText or repText, faction)
-            row.caption:SetText(ok and value or key == "xp" and "Experience" or "Reputation")
+            row.caption:SetText(ok and value or key == "xp" and (settings().pace and "Pace unavailable" or "Experience") or "Reputation")
+            if key == "xp" then
+                local active = settings().pace and settings().text and not settings().compact and row:IsShown()
+                row:SetScript("OnUpdate", active and paceTick or nil)
+                if not active then row.paceElapsed = 0 end
+            end
             row.caption:SetShown(settings().text and not settings().compact)
             for _, tick in ipairs(row.ticks) do tick:SetShown(settings().ticks) end
         end
@@ -114,11 +144,8 @@ end
 local function sessionTooltip(lines, remaining)
     lines[#lines + 1] = string.format("Session: %d XP observed", sessionGain)
     if sessionIncomplete then lines[#lines + 1] = "Session has unreadable gaps; rate unavailable."; return end
-    local now = clock()
-    if not now or not sessionStart or now - sessionStart < RATE_MIN_SECONDS or sessionGain <= 0 then return end
-    local elapsed = now - sessionStart
-    local rate = sessionGain / elapsed * SECONDS_PER_HOUR
-    if not number(rate) or rate <= 0 then return end
+    local rate = sessionRate()
+    if not rate then return end
     lines[#lines + 1] = string.format("%.0f XP/hour (includes idle time)", rate)
     lines[#lines + 1] = string.format("About %d minutes to level at this pace", math.ceil(remaining / rate * 60))
 end
@@ -154,7 +181,7 @@ xpbar.Options = { title = "Experience", settings = {
         description = "Start a new session total and pace estimate. Includes idle time; nothing is saved.", action = details.ResetSession },
 } }
 for _, spec in ipairs({ { "compact", "Compact bars" }, { "text", "Show progress labels" },
-    { "animations", "Animate gains and level ups" }, { "ticks", "Show 10% progress ticks" } }) do
+    { "pace", "Show session pace in XP label" }, { "animations", "Animate gains and level ups" }, { "ticks", "Show 10% progress ticks" } }) do
     local key, title = unpack(spec)
     table.insert(xpbar.Options.settings, { type = "checkbox", key = "xpbar." .. key, label = title,
         get = function() return settings()[key] end, set = function(value) xpbar.SetOption(key, value) end })
