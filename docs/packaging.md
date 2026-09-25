@@ -60,6 +60,9 @@ classify a plain `-test` or `-rc.1` suffix as a prerelease.
 The job checks the runtime manifest and package tests, builds with the pinned
 BigWigs 2.6.1 action without uploading, and compares the ZIP with the checkout
 using `tools/verify_release.py`. Only then does BigWigs upload to GitHub Releases.
+The upload invocation preserves the checked staging directory with `-c -o`.
+A final step downloads and verifies the published ZIP; BigWigs also attaches
+its separate `release.json` metadata asset.
 The single `RikUI/` root contains runtime sources, media, bindings, required
 licenses and the generated release changelog. Development assets, tools, tests,
 agent files and the separate RikProbe addon are excluded by `.pkgmeta`.
