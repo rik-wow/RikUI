@@ -10,3 +10,8 @@ Thumbs.db
 *.swo
 *~
 # ── end magistr ──
+
+# Reproducible local release output and Python caches.
+/dist/
+__pycache__/
+*.pyc
