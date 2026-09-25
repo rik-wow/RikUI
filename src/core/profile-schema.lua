@@ -30,6 +30,7 @@ local schema = {
         skins={ character=boolean, spells=boolean, quests=boolean, professions=boolean, commerce=boolean, maps=boolean } },
     bags={ autoRepair=boolean, itemLevels=boolean, repairGuild=boolean, autoSellJunk=boolean, columns=number(10,16,true), capacityHUD=boolean,
         capacityLowOnly=boolean, capacityThreshold=number(0,20,true) },
+    combattimer={ show=boolean, linger=number(0,30,true) },
     durability={ showPercent=boolean },
     questtracker={ collapsed=boolean, collapseInCombat=boolean, hideCompleted=boolean, readyFirst=boolean },
     minimap={ performance=boolean, serverTime=boolean, coordinates=boolean, dayNight=boolean },

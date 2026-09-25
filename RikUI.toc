@@ -81,6 +81,7 @@ src/modules/unitframes/unitframes-motion.lua
 src/modules/unitframes/unitframes-party.lua
 src/modules/unitframes/unitframes-raid.lua
 src/modules/combopoints/combopoints.lua
+src/modules/combattimer/combattimer.lua
 src/modules/castbars/castbars.lua
 src/modules/castbars/castbars-status.lua
 src/modules/auras/auras.lua

@@ -30,6 +30,7 @@ layouts.Sizes = {
     micromenu = { width = 118, height = 22 }, durability = { width = 132, height = 18 },
     mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 76 },
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
+    combattimer = { width = 110, height = 20 },
     druidmana = { width = 121, height = 18 },
     classcooldowns = { width = 188, height = 60 },
     classbuffs = { width = 212, height = 68 }, classeffects = { width = 212, height = 68 },
@@ -94,6 +95,7 @@ local function shared()
         minimap = topRight(-MARGIN, MINIMAP_Y), buffs = topRight(AURAS_X, -MARGIN),
         debuffs = topRight(AURAS_X, -MARGIN - layouts.Sizes.buffs.height - GAP),
         questtimers = topRight(COLUMN, TIMERS_Y), questtracker = topRight(COLUMN, TRACKER_Y),
+        combattimer = at("TOP", "TOP", 66, -110),
         durability = at("TOP", "TOP", 0, -MARGIN),
         mirrortimers = at("TOP", "TOP", 0, -MARGIN - layouts.Sizes.durability.height - 2 * GAP),
         classcooldowns = bottom(-340, 418),
@@ -140,6 +142,7 @@ local CLASS_ROW = CAST_ROW + CAST_HEIGHT + GAP
 
 layouts.classic = layout("Classic", "Blizzard's arrangement: player and target in the top left corner, the party "
     .. "under them, your cast bar over the action bars.", {
+    combattimer = at("TOP", "TOP", 66, -190),
     classcooldowns = bottom(16, 598),
     classbuffs = bottomLeftOfCentre(-316, 296), classeffects = bottomLeftOfCentre(104, 280),
     player = topLeft(MARGIN, -MARGIN), target = topLeft(TARGET_X, -MARGIN),
@@ -192,6 +195,7 @@ local THIRD_X = SECOND_X + UNIT_WIDTH + GAP
 
 layouts.healer = layout("Healer", "Party and raid frames over the action bars, where a healer looks, with your own "
     .. "frames in rows above them.", {
+    combattimer = topLeft(MARGIN, -MARGIN),
     classcooldowns = bottom(-208, 686),
     classbuffs = bottomLeftOfCentre(-328, 612), classeffects = bottomLeftOfCentre(-520, 488),
     raid = bottom(0, GRID_Y), party = bottom(0, GRID_Y),
