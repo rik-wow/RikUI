@@ -353,7 +353,9 @@ local function itemFeedback(button, info)
         return
     end
     if button.rikObserved and (button.rikItemIdentity ~= identity or button.rikItemCount ~= count) then
-        core.Motion.Flash(button)
+        local quality = info.quality
+        local color = plain(quality, "number") and quality >= MIN_BORDER_QUALITY and { borderColor(quality) } or nil
+        core.Motion.Flash(button, color)
     end
     button.rikItemIdentity, button.rikItemCount = identity, count
 end

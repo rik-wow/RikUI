@@ -243,12 +243,23 @@ return function(check)
             and cloth.rikCount.fontPath == media.font)
         check("empty slots show no icon or count", empty.rikIcon.texture == nil and empty.rikCount.text == "")
         check("initial inventory does not flash every slot", cloth.rikFlash == nil)
+        stub.items["0:1"].quality = 2
         stub.items["0:1"].stackCount = 6
         module.UpdateButton(cloth)
         check("changed item stacks flash once", cloth.rikFlash.plays == 1)
+        check("inventory highlight follows item rarity", cloth.rikFlashRegion and color(cloth.rikFlashRegion.color, { 0.12, 1, 0 }))
+        stub.items["0:1"].quality = 1
         module.UpdateButton(cloth)
         check("unchanged refresh does not replay the flash", cloth.rikFlash.plays == 1)
         stub.items["0:1"].stackCount = 5
+        module.UpdateButton(cloth)
+        check("common replacement resets the flash to gold", color(cloth.rikFlashRegion.color, { 1, 0.82, 0 }))
+        local flashes = cloth.rikFlash.plays
+        local knownCount = stub.items["0:1"].stackCount
+        stub.items["0:1"].stackCount = env.SECRET
+        module.UpdateButton(cloth)
+        check("unknown stack count adds no inventory flash", cloth.rikFlash.plays == flashes)
+        stub.items["0:1"].stackCount = knownCount
         module.UpdateButton(cloth)
         check("uncommon and better items get a quality-coloured border", color(blade.rikBorder[1].color, { 0.12, 1, 0 })
             and color(blade.rikBorder[4].color, { 0.12, 1, 0 }))
