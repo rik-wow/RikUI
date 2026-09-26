@@ -94,6 +94,7 @@ function interiors.Item(frame)
     local state = states[frame]
     if not state.edge then state.edge = skin.Outline(frame, nil, 0, icon, "OVERLAY") end
     if not state.hover then hover(frame, state) end
+    motion.BindPress(frame, state)
     interiors.Labels(frame)
     interiors.Quality(frame)
 end

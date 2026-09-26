@@ -157,11 +157,12 @@ end
 local PRESS_ALPHA, RELEASE_SECONDS = 0.24, 0.18
 
 -- Region-only response: native click handlers and button geometry stay authoritative.
-function motion.BindPress(owner)
-    if owner.rikPress then return end
+function motion.BindPress(owner, storage)
+    storage = storage or owner
+    if storage.rikPress then return end
     local value = { region = effectRegion(owner) }
     value.release = motion.Tween(value.region, PRESS_ALPHA, 0, RELEASE_SECONDS)
-    owner.rikPress = value
+    storage.rikPress = value
     local function clear()
         value.down = false
         motion.Stop(value.release)
@@ -179,7 +180,7 @@ function motion.BindPress(owner)
         if down and not motion.Reduced() then motion.Play(value.release) end
     end)
     owner:HookScript("OnHide", clear)
-    owner:HookScript("OnDisable", clear)
+    if not owner.HasScript or owner:HasScript("OnDisable") ~= false then owner:HookScript("OnDisable", clear) end
 end
 
 function motion.Flash(owner, color)

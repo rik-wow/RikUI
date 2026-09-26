@@ -112,6 +112,28 @@ return function(check)
         skin.NotificationCard(notice, firstIcon)
         check("hidden native icon also hides its shelf", not shelf:IsShown())
         firstIcon:Show()
+        local item = CreateFrame("Button")
+        item.Icon = item:CreateTexture()
+        local presses = 0
+        item:SetScript("OnMouseDown", function() presses = presses + 1 end)
+        RikUI.Interiors.Item(item)
+        local itemState = RikUI.Interiors.State(item)
+        env.runScript(item, "OnMouseDown", "LeftButton")
+        local press = itemState.rikPress
+        check("interior item has pressed feedback with native handler intact",
+            press and press.region.alpha == 0.24 and presses == 1 and item.rikPress == nil)
+        env.runScript(item, "OnMouseUp", "LeftButton")
+        check("interior item release clears feedback", press and press.region.alpha == 0)
+        RikUI.Profile.reducedMotion = true
+        env.runScript(item, "OnMouseDown", "LeftButton")
+        item:Hide()
+        check("hidden pressed item resets", press and press.region.alpha == 0 and not press.down)
+        item:Show(); item:SetEnabled(false)
+        env.runScript(item, "OnMouseDown", "LeftButton")
+        check("disabled item does not press", press and press.region.alpha == 0)
+        RikUI.Profile.reducedMotion = false
+        RikUI.Interiors.Item(item)
+        check("repeated item skin installs press hooks once", item.hooks.OnMouseDown and #item.hooks.OnMouseDown == 1)
         -- More visual regressions are added below.
     end)
     restore()
