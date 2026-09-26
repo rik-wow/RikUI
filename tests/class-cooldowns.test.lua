@@ -13,6 +13,7 @@ return function(check)
             self.duration, self.clearWhenDone = value, clear
         end
         function frame:Clear() self.duration = nil end
+        function frame:SetScale(value) self.scale = value end
         function frame:GetCountdownFontString()
             self.font = self.font or self:CreateFontString()
             return self.font
@@ -114,6 +115,30 @@ return function(check)
         RikUI.ClassCooldownProfiles.WARRIOR = {}
         env.fire("SPELLS_CHANGED")
         check("empty profile hides the panel", not panel.Frame:IsShown() and #panel.Buttons == 0)
+        -- Standing in for a native middle the client left empty (the level 4 paladin case).
+        RikUI.ClassCooldownProfiles.WARRIOR = { "Shield Bash", "Shield Wall", "Pummel" }
+        known = { ["Shield Bash"] = 1671, ["Shield Wall"] = 871 }
+        local empty = { Essential = true, Utility = true }
+        RikUI.CooldownViewer = { NativeEmpty = function(name) return empty[name] end }
+        RikUI.Layout.Register(CreateFrame("Frame"), "cooldownessential",
+            { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 414 })
+        env.fire("SPELLS_CHANGED")
+        local point = panel.Frame.points[1]
+        check("empty native middle: the row stands in at the Essential place, scaled, rows centred",
+            panel.standingIn == true and point[1] == "BOTTOM" and point[4] == 0 and point[5] == 414
+            and panel.Frame.scale == 1.4 and panel.Buttons[1].points[1][4] == (188 - 60) / 2
+            and panel.Buttons[2].points[1][4] == (188 - 60) / 2 + 32)
+        empty.Utility = false
+        env.fire("SPELLS_CHANGED")
+        local own = RikUI.Layout.GetPosition("classcooldowns")
+        point = panel.Frame.points[1]
+        check("native entries present: the row keeps its own place, left-aligned, unscaled",
+            panel.standingIn == false and point[4] == own.x and point[5] == own.y and panel.Frame.scale == 1
+            and panel.Buttons[1].points[1][4] == 0)
+        empty.Utility = nil
+        env.fire("SPELLS_CHANGED")
+        check("unreadable native configuration never stands in", panel.standingIn == false)
+        RikUI.CooldownViewer = nil
         panel = load(false, true)
         check("combat login defers construction", panel.Frame == nil)
         env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")

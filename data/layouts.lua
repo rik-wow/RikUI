@@ -176,16 +176,12 @@ local HUD_X = HUD_SPREAD + UNIT_WIDTH / 2
 local HUD_EDGE = HUD_SPREAD + UNIT_WIDTH
 local HUD_UNDER = HUD_Y - GAP - CAST_HEIGHT
 local HUD_CAST = HUD_SWING + layouts.Sizes.swingtimer.height + GAP
--- The class row: your class buffs (seals, shields, aspects) directly left of the class cooldowns,
--- one strip on the bottom of the stack. Target effects stay above the target frame; a third row
--- on the right would meet the damage-meter column on 16:10 and 4:3 screens.
-local HUD_CLASS_ROW = HUD_SWING - GAP - layouts.Sizes.classcooldowns.height
-local HUD_CLASS_SIDE = layouts.Sizes.classcooldowns.width / 2 + GAP
 
+-- The class rows here are placeholders: layouts.CombatPositions below overrides them in every layout.
 layouts.hud = layout("HUD", "A central stack of cooldowns, resources, casts and weapon timers above the action bars, "
-    .. "your class buffs beside your class cooldowns, with unit frames and target effects nearby.", {
-    classcooldowns = bottom(0, HUD_CLASS_ROW),
-    classbuffs = bottomRightOfCentre(-HUD_CLASS_SIDE, HUD_CLASS_ROW),
+    .. "with unit frames and class effects nearby.", {
+    classcooldowns = bottom(0, HUD_SWING - GAP - layouts.Sizes.classcooldowns.height),
+    classbuffs = bottomLeftOfCentre(-HUD_EDGE, HUD_Y + UNIT_HEIGHT + GAP),
     classeffects = bottomLeftOfCentre(HUD_SPREAD, HUD_Y + UNIT_HEIGHT + GAP),
     player = bottom(-HUD_X, HUD_Y), target = bottom(HUD_X, HUD_Y),
     swingtimer = bottom(0, HUD_SWING), castplayer = bottom(0, HUD_CAST),

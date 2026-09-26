@@ -9,13 +9,26 @@ RikUI's combat HUD brings the information you act on into one area above the act
 | Essential and Utility cooldowns | Main central icon rows | The native manager owns spell selection, charges, cooldowns and visibility |
 | Primary resource | A narrow strip below the central rows | Current client power type, including Druid form changes |
 | Player cast/channel | Directly below the resource strip | Existing native duration and cast events |
-| Important personal buffs and target effects | Class buffs directly left of the class cooldown row at the bottom of the stack; target effects above the target frame | The character's verified class catalogue and native aura filtering |
-| Learned class cooldowns | Bottom of the central stack, under the weapon timer | Learned ranks, talents and spellbook changes across nine classes |
+| Important personal buffs and target effects | Class buffs above the class cooldown row, left of the central column; target effects right of it | The character's verified class catalogue and native aura filtering |
+| Learned class cooldowns | Left of the central column above the tracked buffs; stands in for the Essential row when the client configures no central cooldowns | Learned ranks, talents and spellbook changes across nine classes |
 | Combo points, totems and form mana | Small supporting displays | Relevant class, form and native state |
 | Weapon timers | Bottom of the central resource/cast stack | Native melee, ranged and wand events; existing kiting cues |
 | Proc and loss-of-control alerts | Brief attention cues | Client-owned activation and lifetime |
 
 Health, target/focus casts and pet status remain close enough to support the HUD. Party/raid frames have their own job, especially for healers. Chat, bags, quests and damage meters should not displace the main cooldown/resource column.
+
+The middle belongs to Blizzard's cooldown manager, and the client decides what
+it holds: on 2026-09-25 a level 4 paladin's `/rik debug` showed zero configured
+entries in Essential, Utility and both tracked categories, while a level 3
+warlock had Immolate in Essential. RikUI cannot add spells to Blizzard's rows.
+When the Essential and Utility categories are both empty for the character, or
+the manager is off, RikUI's own class cooldown row takes the Essential row's
+place, scaled to fill the Essential and Utility band with each row of icons
+centred, so the class still sees its cooldowns where every other class does.
+The row reads the settings provider's entry lists (`CooldownViewer.NativeEmpty`),
+never live cooldown state, and returns to its own saved place as soon as the
+client configures central entries. The class rows' positions are the shared
+`CombatPositions` block in `data/layouts.lua`, applied to every preset.
 
 This composition is part of all four presets and the default interface. It reuses the addon's working class systems instead of requiring WeakAura imports for each character. Individual modules and the native cooldown On/Off preference remain optional.
 

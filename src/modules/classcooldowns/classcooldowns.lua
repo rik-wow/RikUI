@@ -5,6 +5,9 @@ core.ClassCooldowns = panel
 core.ClassCooldownProfiles = core.ClassCooldownProfiles or {}
 local SIZE, GAP, COLUMNS, MAX_BUTTONS = 28, 4, 6, 12
 local WIDTH, HEIGHT = COLUMNS * (SIZE + GAP) - GAP, 2 * (SIZE + GAP) - GAP
+-- Standing in for the native Essential row: 188x60 scaled into the Essential and Utility band
+-- (50 + 4 + 30 in data/layouts.lua).
+local STAND_IN_KEY, STAND_IN_SCALE, NATIVE_ADDON = "cooldownessential", 1.4, "Blizzard_CooldownViewer"
 local warnings, pool = {}, {}
 
 local function warn(key, reason)
@@ -98,11 +101,50 @@ local function tooltip(button)
     if not ok then warn("tooltip", reason) end
 end
 
+-- Blizzard's Essential and Utility rows own the middle of the HUD. When the client configures
+-- nothing there for this character (a level 4 paladin: zero entries in every category) or the
+-- manager is off, this row takes the Essential row's place so the class still has its cooldowns
+-- where every other class sees them.
+local function standsIn()
+    local viewer = core.CooldownViewer
+    if not viewer or type(viewer.NativeEmpty) ~= "function" then return false end
+    return viewer.NativeEmpty("Essential") == true and viewer.NativeEmpty("Utility") == true
+end
+
+local function standInPosition()
+    if core.Layout.Groups[STAND_IN_KEY] then return core.Layout.GetPosition(STAND_IN_KEY) end
+    local combat = core.Layouts and core.Layouts.CombatPositions
+    return combat and combat[STAND_IN_KEY] or nil
+end
+
+-- Rows are left-aligned in the panel's own place and centred when standing in, as the native row is.
+local function arrange()
+    local count = #panel.Buttons
+    for index, button in ipairs(panel.Buttons) do
+        local row, column = math.floor((index - 1) / COLUMNS), (index - 1) % COLUMNS
+        local inRow = math.min(COLUMNS, count - row * COLUMNS)
+        local lead = panel.standingIn and (WIDTH - (inRow * (SIZE + GAP) - GAP)) / 2 or 0
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", panel.Frame, "TOPLEFT", lead + column * (SIZE + GAP), -row * (SIZE + GAP))
+    end
+end
+
+-- Layout applies the saved place; standing in re-anchors to the Essential row's place afterwards,
+-- and leaving it restores the saved place outside a layout pass.
+local function place(frame)
+    if not core.Profile then return end
+    local target = standsIn() and standInPosition() or nil
+    panel.standingIn = target ~= nil
+    local saved = target or core.Layout.GetPosition("classcooldowns")
+    frame:ClearAllPoints()
+    frame:SetPoint(saved.point, UIParent, saved.relativePoint, saved.x, saved.y)
+    frame:SetScale(core.Layout.GetScale() * (target and STAND_IN_SCALE or 1))
+    arrange()
+end
+
 local function createButton(index)
     local button = CreateFrame("Frame", nil, panel.Frame)
     button:SetSize(SIZE, SIZE)
-    button:SetPoint("TOPLEFT", panel.Frame, "TOPLEFT",
-        ((index - 1) % COLUMNS) * (SIZE + GAP), -math.floor((index - 1) / COLUMNS) * (SIZE + GAP))
     button:EnableMouse(true)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetAllPoints()
@@ -129,7 +171,7 @@ local function createFrame()
     panel.Frame:SetSize(WIDTH, HEIGHT)
     panel.Frame:EnableMouse(false)
     core.Layout.Register(panel.Frame, "classcooldowns",
-        { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 560 }, { label = "Class cooldowns" })
+        { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 560 }, { label = "Class cooldowns", onApply = place })
 end
 
 local function icon(button, entry)
@@ -156,7 +198,7 @@ local function apply(entries)
         pool[index].recharge:Clear()
         pool[index]:Hide()
     end
-    if panel.Frame then panel.Frame:SetShown(#entries > 0) end
+    if panel.Frame then panel.Frame:SetShown(#entries > 0); place(panel.Frame) end
     panel.Refresh()
 end
 
@@ -187,10 +229,13 @@ function panel:OnEnable()
         "BAG_UPDATE_DELAYED" }) do
         core:RegisterEvent(event, panel.Refresh)
     end
+    -- The native settings provider (what the middle will hold) exists once Blizzard's viewer loads.
+    core:RegisterEvent("ADDON_LOADED", function(_, name) if name == NATIVE_ADDON then schedule() end end)
 end
 
 function panel:Debug()
-    core:Print("Class cooldowns: " .. #panel.Buttons .. " learned abilities; native durations, no readiness inference")
+    core:Print("Class cooldowns: " .. #panel.Buttons .. " learned abilities; native durations, no readiness inference"
+        .. (panel.standingIn and "; standing in for the empty native Essential row" or ""))
 end
 
 core:RegisterModule("classcooldowns", panel)

@@ -41,7 +41,8 @@ return function(check)
         widgets.loadAddon(env, { "src/ui/skin.lua", "src/ui/scroll.lua", "src/ui/shell.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua",
             "src/platform/editmode.lua", "src/modules/cooldownviewer/cooldownviewer.lua",
             "src/modules/cooldownviewer/cooldownviewer-style.lua", "src/modules/cooldownviewer/cooldownviewer-layout.lua",
-            "src/modules/cooldownviewer/cooldownviewer-controls.lua" }, profile, combat, function()
+            "src/modules/cooldownviewer/cooldownviewer-controls.lua",
+            "src/modules/cooldownviewer/cooldownviewer-diagnostics.lua" }, profile, combat, function()
             C_CVar = {
                 GetCVarBool = function(name) assert(name == "cooldownViewerEnabled"); return enabled end,
                 SetCVar = function(name, value)
@@ -130,8 +131,24 @@ return function(check)
         local dock = module.Controls
         check("cooldown manager defaults on once for an existing native Off setting",
             enabled and RikUI.CharDB.cooldownViewerInitialized == true and dock.toggle.label.text == "Cooldowns: On")
+        -- NativeEmpty reads the settings provider's configured entries, never live state.
+        local provider = { lists = { Essential = {}, Utility = { 7 } } }
+        function provider:GetOrderedCooldownIDsForCategory(category)
+            for name, list in pairs(self.lists) do
+                if Enum.CooldownViewerCategory[name] == category then return list end
+            end
+        end
+        local savedCategories = Enum.CooldownViewerCategory
+        Enum.CooldownViewerCategory = { Essential = 0, Utility = 1, TrackedBuff = 2, TrackedBar = 3 }
+        check("native categories read as unreadable without a settings provider", module.NativeEmpty("Essential") == nil)
+        CooldownViewerSettings.GetDataProvider = function() return provider end
+        check("native entry counts come from the settings provider", module.ManagerEnabled() == true
+            and module.NativeEmpty("Essential") == true and module.NativeEmpty("Utility") == false
+            and module.NativeEmpty("TrackedBar") == nil)
+        Enum.CooldownViewerCategory = savedCategories
         env.click(dock.toggle)
         check("default On can be turned off", not enabled and RikUI.CharDB.cooldownViewerInitialized == true)
+        check("a manager switched off reads every category as empty", module.NativeEmpty("Utility") == true)
         env.fire("PLAYER_REGEN_ENABLED"); event("EditMode.Exit")
         check("later initialization events preserve an explicit Off", not enabled)
         -- Reload the controls code with the persisted character table and native Off.

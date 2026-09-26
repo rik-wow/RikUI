@@ -19,6 +19,13 @@ cooldown/count events continue updating the displayed spells. An incomplete
 spellbook scan preserves the last complete list. A successful unlearning removes
 the old icon. Unsupported classes and empty profiles create no visible panel.
 
+When the native Cooldown Manager has no Essential or Utility entries for the
+character (the client ships none for some classes; a level 4 paladin had zero in
+every category) or is switched off, this panel stands in for the Essential row:
+it takes that row's saved place, scales 1.4x to fill the Essential and Utility
+band and centres each row of icons. It returns to its own place when the client
+configures central entries. `/rik debug` says when it is standing in.
+
 The module does not need a native Cooldown Manager spell list and does not edit
 that manager's settings, action slots or macros. It does not infer aura procs,
 reset timing, missing buffs or rotations, and never calculates remaining time

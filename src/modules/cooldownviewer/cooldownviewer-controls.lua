@@ -10,6 +10,8 @@ local function enabled()
     if not ok or (type(issecretvalue) == "function" and issecretvalue(value)) then return nil end
     if type(value) == "boolean" then return value end
 end
+-- The manager's own On/Off state: true, false, or nil when unreadable (viewer.NativeEmpty uses it).
+viewer.ManagerEnabled = enabled
 
 local function available()
     return not InCombatLockdown() and not viewer.Editing()

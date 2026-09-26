@@ -34,3 +34,24 @@ function viewer.DebugEntries()
     local ok, reason = pcall(report)
     if not ok then core:Print("Cooldown entries unavailable: " .. tostring(reason)) end
 end
+
+local function configured(name)
+    if not CooldownViewerSettings or type(CooldownViewerSettings.GetDataProvider) ~= "function" then return nil end
+    local provider = CooldownViewerSettings:GetDataProvider()
+    local categories = Enum and Enum.CooldownViewerCategory
+    if not provider or not categories or not readable(categories[name], "number") then return nil end
+    local ids = provider:GetOrderedCooldownIDsForCategory(categories[name])
+    if not readable(ids, "table") then return nil end
+    return #ids
+end
+
+-- Whether the client configures nothing for a category (Essential, Utility, TrackedBuff,
+-- TrackedBar) on this character: true, false, or nil when it cannot be read. A manager
+-- switched off shows nothing either. This reads the settings data provider's entry list,
+-- never live cooldown or aura state; the class cooldown row stands in when the middle is empty.
+function viewer.NativeEmpty(name)
+    if type(viewer.ManagerEnabled) == "function" and viewer.ManagerEnabled() == false then return true end
+    local ok, count = pcall(configured, name)
+    if not ok or type(count) ~= "number" then return nil end
+    return count == 0
+end
