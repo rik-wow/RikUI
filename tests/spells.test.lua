@@ -211,6 +211,30 @@ return function(check)
     SlashCmdList.RIKUI("spells Test Ability")
     check("failed spellbook scan is reported instead of a false unknown result",
         contains("Spellbook lookup failed") and not contains("highest:"))
+
+    -- KnownIDs: the whole learned spellbook as a set, for uncatalogued native entries.
+    reset()
+    items[3] = { spellID = 9999, actionID = 900, itemType = 71 }
+    local ids = spells.KnownIDs()
+    check("known IDs collect spell and base action IDs of learned player spells",
+        ids ~= nil and ids[9999] and ids[900] and ids[1000] and not ids[200])
+    lines[2] = { itemIndexOffset = 8, numSpellBookItems = 6, offSpecID = 123 }
+    items[9] = { spellID = 200, itemType = 71 }
+    check("known IDs skip offspec lines", not spells.KnownIDs()[200])
+    reset()
+    failure = "item"
+    local failedIDs, failedReason = spells.KnownIDs()
+    check("failed scan yields no partial known set", failedIDs == nil and type(failedReason) == "string")
+    failure = nil
+    C_SpellBook = nil
+    local missingIDs, missingReason = spells.KnownIDs()
+    check("missing spellbook API yields an explicit diagnostic for known IDs",
+        missingIDs == nil and type(missingReason) == "string")
+    reset()
+    local family, rank = spells.FamilyOf(900)
+    check("family lookup maps a rank ID to its catalogue name and rank", family == "Test Ability" and rank == 2)
+    check("family lookup returns nil for uncatalogued or invalid IDs",
+        spells.FamilyOf(424242) == nil and spells.FamilyOf("900") == nil)
     data["Test Ability"] = nil
     C_SpellBook, C_Spell, Enum, GetSpellInfo = oldBook, oldSpell, oldEnum, oldGlobal
 end

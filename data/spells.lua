@@ -66,16 +66,19 @@ end
 
 local function entryFor(name, class) return spells.Entry(name, class) end
 
-local function scanLine(line, ranksByID, known)
-    if line.offSpecID then return end
-    local bank = Enum.SpellBookSpellBank.Player
-    local spellType = Enum.SpellBookItemType.Spell
-    for slot = line.itemIndexOffset + 1, line.itemIndexOffset + line.numSpellBookItems do
-        local item = C_SpellBook.GetSpellBookItemInfo(slot, bank)
-        assert(item, "Missing spellbook item")
-        if item.itemType == spellType and not item.isOffSpec then
-            local rank = ranksByID[item.spellID] or ranksByID[item.actionID]
-            if rank then known[rank] = item.spellID or item.actionID end
+-- Every learned player spell item, skipping off-spec lines and non-spell items. A missing
+-- line or item raises so a caller never works from a partial walk.
+local function forEachSpellBookItem(visit)
+    local bank, spellType = Enum.SpellBookSpellBank.Player, Enum.SpellBookItemType.Spell
+    for lineIndex = 1, C_SpellBook.GetNumSpellBookSkillLines() do
+        local line = C_SpellBook.GetSpellBookSkillLineInfo(lineIndex)
+        assert(line, "Missing spellbook skill line")
+        if not line.offSpecID then
+            for slot = line.itemIndexOffset + 1, line.itemIndexOffset + line.numSpellBookItems do
+                local item = C_SpellBook.GetSpellBookItemInfo(slot, bank)
+                assert(item, "Missing spellbook item")
+                if item.itemType == spellType and not item.isOffSpec then visit(item) end
+            end
         end
     end
 end
@@ -83,26 +86,59 @@ end
 local function scanKnown(entry)
     local ranksByID, known = {}, {}
     for rank, id in ipairs(entry.ranks) do ranksByID[id] = rank end
-    for lineIndex = 1, C_SpellBook.GetNumSpellBookSkillLines() do
-        local line = C_SpellBook.GetSpellBookSkillLineInfo(lineIndex)
-        assert(line, "Missing spellbook skill line")
-        scanLine(line, ranksByID, known)
-    end
+    forEachSpellBookItem(function(item)
+        local rank = ranksByID[item.spellID] or ranksByID[item.actionID]
+        if rank then known[rank] = item.spellID or item.actionID end
+    end)
     return known
 end
 
-local function knownRanks(entry)
+local function scanAll()
+    local ids = {}
+    forEachSpellBookItem(function(item)
+        if item.spellID then ids[item.spellID] = true end
+        if item.actionID then ids[item.actionID] = true end
+    end)
+    return ids
+end
+
+local function spellbookUnavailable()
     if not C_SpellBook or type(C_SpellBook.GetNumSpellBookSkillLines) ~= "function"
         or type(C_SpellBook.GetSpellBookSkillLineInfo) ~= "function"
         or type(C_SpellBook.GetSpellBookItemInfo) ~= "function"
         or not Enum or not Enum.SpellBookSpellBank or Enum.SpellBookSpellBank.Player == nil
         or not Enum.SpellBookItemType or Enum.SpellBookItemType.Spell == nil then
-        return nil, "Spellbook lookup unavailable"
+        return "Spellbook lookup unavailable"
     end
+end
+
+local function knownRanks(entry)
+    local reason = spellbookUnavailable()
+    if reason then return nil, reason end
     -- Discard the whole scan on failure; a partial result could downgrade a bar.
     local ok, known = pcall(scanKnown, entry)
     if not ok then return nil, "Spellbook lookup failed" end
     return known
+end
+
+-- Every learned player spell ID (spell and base action IDs) as a set, or nil and why. One scan;
+-- a failed scan yields nothing rather than a partial set.
+function spells.KnownIDs()
+    local reason = spellbookUnavailable()
+    if reason then return nil, reason end
+    local ok, ids = pcall(scanAll)
+    if not ok then return nil, "Spellbook lookup failed" end
+    return ids
+end
+
+-- The catalogue family a spell ID belongs to: its name and rank, or nil for an uncatalogued ID.
+function spells.FamilyOf(id, class)
+    if type(id) ~= "number" then return nil end
+    for name, entry in pairs(spells.Catalog(class)) do
+        for rank, rankID in ipairs(entry.ranks or {}) do
+            if rankID == id then return name, rank end
+        end
+    end
 end
 
 local function highestRank(entry, known)

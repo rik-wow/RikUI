@@ -79,6 +79,17 @@ function stub.installContainer(container)
         table.insert(self.groupOrder, key)
         self.updates = self.updates + 1
     end
+    -- Blizzard_CustomAuraContainer (69977): filters change in place; groups are never removed.
+    function container:SetAuraGroupCandidateFilters(key, filters)
+        local group = assert(self.groups[key], "aura group '" .. tostring(key) .. "' does not exist.")
+        assert(type(filters) == "table", "candidateFilters must be a table.")
+        group.options.candidateFilters = filters
+        self.updates = self.updates + 1
+    end
+    function container:SetAuraGroupEnabled(key, enabled)
+        local group = assert(self.groups[key], "aura group '" .. tostring(key) .. "' does not exist.")
+        group.enabled = enabled ~= false
+    end
     function container:GetAuraGroupFrame(key, index)
         local group = self.groups[key]
         return group and group.frames[index] or nil
