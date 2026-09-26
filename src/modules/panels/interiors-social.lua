@@ -24,11 +24,7 @@ local function social(frame)
     end
     if row then interiors.Row(frame); skin.Strip(frame, ART) end
     if skin.IsRegion(interiors.Icon(frame)) then interiors.Item(frame) end
-    for _, key in ipairs({ "Description", "HiddenDescription" }) do
-        if skin.IsRegion(frame[key]) and type(frame[key].SetTextColor) == "function" then
-            frame[key]:SetTextColor(0.9, 0.92, 0.96)
-        end
-    end
+    skin.Typeface(frame.HiddenDescription)
     calendar(frame)
 end
 interiors.Register("social", { "FriendsFrame", "GuildFrame", "CommunitiesFrame", "PVEFrame", "LFGParentFrame",

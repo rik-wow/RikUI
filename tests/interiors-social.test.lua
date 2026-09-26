@@ -29,6 +29,7 @@ return function(check)
         achievement.Title, achievement.Description, achievement.Background = achievement:CreateFontString(),
             achievement:CreateFontString(), achievement:CreateTexture()
         achievement.ProgressBar = CreateFrame("StatusBar")
+        achievement.Description:SetTextColor(0.2, 0.2, 0.2)
         RikUI.Interiors.Walk(achievement, "social")
         check("achievement card flat with progress retained", achievement.Background.alpha == 0
             and achievement.Description.fontPath == RikUI.Media.font and achievement.Description.textColor[1] > 0.8

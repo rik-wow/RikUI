@@ -78,6 +78,7 @@ function stub.region(value)
     end
     function value:SetTexCoord(...) self.coords = { ... } end
     function value:SetTextColor(...) self.textColor = { ... } end
+    function value:GetTextColor() return unpack(rawget(self, "textColor") or { 1, 1, 1, 1 }) end
     function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
     function value:SetWordWrap(wrap) self.wordWrap = wrap end
     function value:SetJustifyH(justify) self.justify = justify end

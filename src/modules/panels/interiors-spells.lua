@@ -72,7 +72,7 @@ local function spells(frame)
     end
     connection(frame)
     interiors.Labels(frame)
-    for _, key in ipairs({ "SubName", "RequiredLevel", "SpendText", "UnspentLabel", "CurrencyAmount" }) do
+    for _, key in ipairs({ "SubName", "RequiredLevel", "SpendText", "UnspentLabel", "CurrencyAmount", "PageText" }) do
         skin.Typeface(frame[key])
     end
 end

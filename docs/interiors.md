@@ -10,6 +10,17 @@ asks for more readable quest windows. [Blizzard QuestInfo source](https://github
 identifies the three named prose regions. Missing variants remain unchanged;
 community feedback is motivation, not confirmed client behavior.
 
+## Ink
+
+Every label the skin retypes also gets a readable colour. Blizzard's parchment
+windows (spellbook, talents, quests, achievements and others) set their text
+dark brown or black in XML, which vanishes on the dark backing; a colour whose
+brightest channel is below 0.5 becomes the skin's ink (0.9, 0.92, 0.96). Red
+requirements, green and gold states, the 0.5 greys of disabled text and any
+colour that cannot be read (secret in combat) are left as Blizzard set them.
+The rule lives in `skin.Typeface`, so a new window adapter gets it by retyping
+its labels; the spellbook fixture checks brown, green, grey and secret colours.
+
 ## Selective windows
 
 Settings > Windows can independently retain native character/inspect, spellbook/talents,
@@ -79,8 +90,8 @@ repeat refresh, and checks money and disabled overlays.
 
 ## Quest and map content
 
-Quest, gossip and detail parchment is replaced with dark surfaces; dark neutral
-prose becomes pale text while requirement/status colours remain native. Refresh
+Quest, gossip and detail parchment is replaced with dark surfaces; dark prose
+becomes ink (see above) while requirement/status colours remain native. Refresh
 events are deferred and coalesced; QuestInfo_Display and quest-list global
 post-hooks cover text rebuilt while the window stays open. Reward icons reuse
 the quality-strip decorator.

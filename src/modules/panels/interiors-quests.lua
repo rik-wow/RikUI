@@ -22,18 +22,12 @@ local function proseFont(region)
     region:SetFont(core.Media.font, size == 0 and proseSizes[region] or size, "OUTLINE")
 end
 
+-- Typeface lifts dark parchment prose to ink and preserves red requirements and coloured quest
+-- states; the named prose strings then take the profile's size.
 local function readable(region)
     if not skin.IsRegion(region) or region:GetObjectType() ~= "FontString" then return end
-    proseFont(region)
     skin.Typeface(region)
-    if type(region.GetTextColor) ~= "function" then return end
-    local ok, r, g, b = pcall(region.GetTextColor, region)
-    if not ok or type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then return end
-    if type(issecretvalue) == "function" and (issecretvalue(r) or issecretvalue(g) or issecretvalue(b)) then return end
-    -- Neutral parchment prose only; preserve red requirements and coloured quest states.
-    if r < 0.5 and g < 0.5 and b < 0.5 and math.max(r, g, b) - math.min(r, g, b) < 0.15 then
-        region:SetTextColor(0.9, 0.92, 0.96)
-    end
+    proseFont(region)
 end
 
 local function quest(frame)

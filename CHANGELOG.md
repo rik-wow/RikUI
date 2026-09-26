@@ -8,6 +8,10 @@ tagging.
 
 ## Unreleased
 
+- Readable window text. Labels Blizzard colours dark brown or black for its
+  parchment windows (spellbook names and subtexts, the page counter, talent
+  and achievement text) now take the skin's pale ink; red, green, gold and
+  grey states keep their colours.
 - One cooldown strip. The new Cooldowns module draws the game's configured
   cooldown entries (the order and hidden choices you save in Blizzard's
   Tracked spells window) followed by RikUI's own list of learned class

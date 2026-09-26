@@ -17,6 +17,14 @@ return function(check)
         local spell = frame("Button")
         spell.Icon, spell.Border = spell:CreateTexture(), spell:CreateTexture()
         spell.DisabledOverlay = spell:CreateTexture()
+        -- SPELLBOOK_FONT_COLOR: dark brown on parchment, set once in XML.
+        spell.Name, spell.SubName, spell.RequiredLevel = spell:CreateFontString(), spell:CreateFontString(), spell:CreateFontString()
+        spell.Name:SetTextColor(0.25, 0.15, 0.05)
+        spell.SubName:SetTextColor(0.1, 0.8, 0.1)
+        spell.RequiredLevel:SetTextColor(0.5, 0.5, 0.5)
+        local secretName = spell:CreateFontString()
+        function secretName:GetTextColor() return env.SECRET, env.SECRET, env.SECRET end
+        spell.PageText = secretName
         local clicks, drags = 0, 0
         spell:SetScript("OnClick", function() clicks = clicks + 1 end)
         spell:SetScript("OnDragStart", function() drags = drags + 1 end)
@@ -27,6 +35,12 @@ return function(check)
         check("secure spell handlers and overlays preserved in combat", clicks == 1 and drags == 1
             and spell.Icon.coords[1] == 0.08 and spell.Border.alpha == 0
             and rawget(spell.DisabledOverlay, "alpha") == nil)
+        check("parchment-brown spell names become ink in the RikUI face", spell.Name.textColor[1] == RikUI.Skin.INK[1]
+            and spell.Name.textColor[3] == RikUI.Skin.INK[3] and spell.Name.fontPath == RikUI.Media.font)
+        check("coloured and grey spell subtexts keep their meaning", spell.SubName.textColor[2] == 0.8
+            and spell.RequiredLevel.textColor[1] == 0.5 and spell.RequiredLevel.fontPath == RikUI.Media.font)
+        check("a secret text colour is left alone", rawget(secretName, "textColor") == nil
+            and secretName.fontPath == RikUI.Media.font)
         local talent = frame()
         talent.Icon, talent.StateBorder, talent.SpendText = talent:CreateTexture(), talent:CreateTexture(), talent:CreateFontString()
         function talent.SpendText:GetTextColor() return 0.2, 1, 0.3 end

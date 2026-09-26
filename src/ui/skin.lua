@@ -9,6 +9,11 @@ RikUI.Skin = skin
 skin.FLAT = "Interface\\BUTTONS\\WHITE8X8"
 skin.BACKING, skin.CONTROL = { 0.06, 0.07, 0.09, 0.95 }, { 0.1, 0.11, 0.14, 1 }
 skin.LINE, skin.GOLD = { 0.25, 0.28, 0.32, 1 }, { 1, 0.82, 0 }
+-- Body text on the dark skin. Blizzard's parchment windows colour their labels dark brown or
+-- black (SPELLBOOK_FONT_COLOR and kin); anything whose brightest channel stays under the limit
+-- becomes ink, while red, green, gold and the 0.5 greys keep their meaning.
+skin.INK = { 0.9, 0.92, 0.96 }
+local DARK_LIMIT = 0.5
 skin.FADE_SECONDS = 0.15
 local EDGE, ICON_CROP = 1, 0.08
 local BUTTON_FONT_PREFIX = "RikUIControlFont"
@@ -77,12 +82,31 @@ function skin.Font(region, role)
     if skin.IsRegion(region) and type(region.SetFont) == "function" then media.Font(region, role) end
 end
 
--- The RikUI typeface at the string's own size, leaving the colour Blizzard gave it.
+local function isSecret(value)
+    local secret = RikUI.Secret
+    return secret ~= nil and secret.IsSecret(value)
+end
+
+-- Dark text (parchment ink) becomes skin.INK; any other colour, or one that cannot be read, is
+-- left as Blizzard set it.
+function skin.Ink(region)
+    if not skin.IsRegion(region) or type(region.GetTextColor) ~= "function" then return false end
+    local ok, r, g, b = pcall(region.GetTextColor, region)
+    if not ok or isSecret(r) or isSecret(g) or isSecret(b) then return false end
+    if type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then return false end
+    if math.max(r, g, b) >= DARK_LIMIT then return false end
+    region:SetTextColor(unpack(skin.INK))
+    return true
+end
+
+-- The RikUI typeface at the string's own size; dark parchment text takes the ink colour and any
+-- other colour Blizzard gave it stays.
 function skin.Typeface(region, fallbackSize)
     if not skin.IsRegion(region) or type(region.SetFont) ~= "function" then return end
     local ok, _, size = pcall(region.GetFont, region)
     size = ok and type(size) == "number" and size > 0 and size or fallbackSize or media.sizes.label
     region:SetFont(media.font, size, "OUTLINE")
+    skin.Ink(region)
 end
 
 -- A button reapplies its font objects on every state change, so the typeface goes on shared font
