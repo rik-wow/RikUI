@@ -91,11 +91,13 @@ end
 -- left as Blizzard set it.
 function skin.Ink(region)
     if not skin.IsRegion(region) or type(region.GetTextColor) ~= "function" then return false end
-    local ok, r, g, b = pcall(region.GetTextColor, region)
-    if not ok or isSecret(r) or isSecret(g) or isSecret(b) then return false end
+    local ok, r, g, b, alpha = pcall(region.GetTextColor, region)
+    if not ok or isSecret(r) or isSecret(g) or isSecret(b) or isSecret(alpha) then return false end
     if type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then return false end
+    if r ~= r or g ~= g or b ~= b or math.min(r, g, b) < 0 then return false end
+    if alpha ~= nil and (type(alpha) ~= "number" or alpha ~= alpha or alpha < 0 or alpha > 1) then return false end
     if math.max(r, g, b) >= DARK_LIMIT then return false end
-    region:SetTextColor(unpack(skin.INK))
+    region:SetTextColor(skin.INK[1], skin.INK[2], skin.INK[3], alpha)
     return true
 end
 

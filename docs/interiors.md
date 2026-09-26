@@ -18,6 +18,8 @@ dark brown or black in XML, which vanishes on the dark backing; a colour whose
 brightest channel is below 0.5 becomes the skin's ink (0.9, 0.92, 0.96). Red
 requirements, green and gold states, the 0.5 greys of disabled text and any
 colour that cannot be read (secret in combat) are left as Blizzard set them.
+Recolouring preserves the original text opacity, including fully transparent labels;
+secret alpha and invalid colour channels are left untouched.
 The rule lives in `skin.Typeface`, so a new window adapter gets it by retyping
 its labels; the spellbook fixture checks brown, green, grey and secret colours.
 
