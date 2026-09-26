@@ -63,7 +63,7 @@ end
 -- Fit complete presets before applying them. Combat frames keep their intended places;
 -- supporting windows yield as screen dimensions and widget footprints change.
 local PRIORITY = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar",
-    "swingtimer", "combatresource", "cooldownessential", "cooldownutility", "castplayer",
+    "swingtimer", "combatresource", "cooldowns", "castplayer",
     "raid", "party", "chat", "minimap", "micromenu", "bagspace" }
 local rank = {}
 for index, key in ipairs(PRIORITY) do rank[key] = index end

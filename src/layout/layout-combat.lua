@@ -1,7 +1,6 @@
 -- Refresh the combat area of an existing profile without replacing its surrounding UI.
 local core, layout = RikUI, RikUI.Layout
-local KEYS = { "combatresource", "cooldownessential", "cooldownutility", "castplayer",
-    "cooldownbuffs", "cooldownbars", "classcooldowns", "classbuffs", "classeffects",
+local KEYS = { "combatresource", "cooldowns", "castplayer", "classbuffs", "classeffects",
     "combopoints", "totems", "druidmana", "swingtimer", "player", "target",
     "focus", "petframe", "tot", "casttarget", "castfocus", "castpet" }
 

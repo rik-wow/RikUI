@@ -6,31 +6,26 @@ RikUI's combat HUD brings the information you act on into one area above the act
 
 | Information | Role in the HUD | What adapts |
 | --- | --- | --- |
-| Essential and Utility cooldowns | Main central icon rows | The native manager owns spell selection, charges, cooldowns and visibility |
+| Cooldowns | One RikUI strip in the centre: the client's configured entries, then the learned class list | The client's order and hidden choices, learned ranks, spell overrides |
 | Primary resource | A narrow strip below the central rows | Current client power type, including Druid form changes |
 | Player cast/channel | Directly below the resource strip | Existing native duration and cast events |
-| Important personal buffs and target effects | Class buffs above the class cooldown row, left of the central column; target effects right of it | The character's verified class catalogue and native aura filtering |
-| Learned class cooldowns | Left of the central column above the tracked buffs; stands in for the Essential row when the client configures no central cooldowns | Learned ranks, talents and spellbook changes across nine classes |
+| Important personal buffs and target effects | Class effect rows either side of the cast bar and resource strip | The class catalogue plus the client's tracked and aura-backed entries, native aura filtering |
 | Combo points, totems and form mana | Small supporting displays | Relevant class, form and native state |
 | Weapon timers | Bottom of the central resource/cast stack | Native melee, ranged and wand events; existing kiting cues |
 | Proc and loss-of-control alerts | Brief attention cues | Client-owned activation and lifetime |
 
 Health, target/focus casts and pet status remain close enough to support the HUD. Party/raid frames have their own job, especially for healers. Chat, bags, quests and damage meters should not displace the main cooldown/resource column.
 
-The middle belongs to Blizzard's cooldown manager, and the client decides what
-it holds: on 2026-09-25 a level 4 paladin's `/rik debug` showed zero configured
-entries in Essential, Utility and both tracked categories, while a level 3
-warlock had Immolate in Essential. RikUI cannot add spells to Blizzard's rows.
-When the Essential and Utility categories are both empty for the character, or
-the manager is off, RikUI's own class cooldown row takes the Essential row's
-place, scaled to fill the Essential and Utility band with each row of icons
-centred, so the class still sees its cooldowns where every other class does.
-The row reads the settings provider's entry lists (`CooldownViewer.NativeEmpty`),
-never live cooldown state, and returns to its own saved place as soon as the
-client configures central entries. The class rows' positions are the shared
-`CombatPositions` block in `data/layouts.lua`, applied to every preset.
+The middle is RikUI's own cooldown strip. It draws the client's configured
+cooldown entries (the same list Blizzard's cooldown manager would show, in the
+order and with the hidden choices saved in its **Tracked spells** window) and
+then RikUI's learned class list, in one frame where the native Essential row
+used to be; Blizzard's four viewer frames stay hidden while the module runs.
+See [cooldowns](cooldowns.md) for the merge and dedupe rules. The class rows'
+positions are the shared `CombatPositions` block in `data/layouts.lua`, applied
+to every preset.
 
-This composition is part of all four presets and the default interface. It reuses the addon's working class systems instead of requiring WeakAura imports for each character. Individual modules and the native cooldown On/Off preference remain optional.
+This composition is part of all four presets and the default interface. It reuses the addon's working class systems instead of requiring WeakAura imports for each character. Individual modules remain optional.
 
 ## Applying it
 
@@ -46,8 +41,9 @@ Both actions have one step of undo through `/rik layout undo`.
 
 The resource strip is enabled by default. It follows the player's current power
 type; Druid mana remains a separate supporting display when shifted. Turn the
-strip off with `/rik module combatresource off`, then reload. Cooldown manager is
-also default On, but a later Off choice stays Off.
+strip off with `/rik module combatresource off`, then reload. Blizzard's cooldown
+manager is kept off while the Cooldowns module is on; disable that module to get
+Blizzard's viewers back.
 
 ## Coverage and limits
 
@@ -82,30 +78,16 @@ Primary code reviewed at pinned commit 70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e:
 
 The layout decision is a product inference from this evidence and the user's screenshots. Native behavior is accepted under the user's standing policy; automated tests do not constitute an observed game-client playtest.
 
-## Native duplicate icons
+## Rank twins
 
-The user's 2026-09-25 15:28 screenshot showed two Immolate icons inside
-**Essential cooldowns**. `/rik debug` identified them as two configured entries,
-spell 348 (Immolate rank 1) and spell 11668 (rank 7) on a level 3 character.
-The native manager marks both entries known, so its `isKnown` flag cannot tell
-which rank the player has. The 70009 build adds a `SelectHighestLevelLinkedSpell`
-cooldown flag, so Blizzard may fold ranks server-side later; RikUI does not
-assume it has.
-
-`cooldownviewer-ranks.lua` groups entries in the same row group (Essential and
-Utility, or the two buff rows) that are ranks of one spell in RikUI's class
-catalogue. It keeps the entry for the highest rank the spellbook holds
-(`Spells.HighestKnownRank`) and hides the others; when a later rank is learned it
-shows an entry RikUI hid earlier and hides the old one. It never shows an entry
-the player hid, and changes nothing when the spellbook is unreadable or no entry
-is at or below the learned rank. It asks **Update and reload**, **Not now** or
-**Keep as is**, once per set of changes. Detection only reads the provider's
-built display data. Changes call the provider's `SetCooldownToCategory`, save with
-the layout manager's `SaveLayouts` (`C_CooldownViewer.SetLayoutData`) and reloads
-immediately. The reload matters: the viewer keeps aura instance IDs in tables
-that refuse tainted access, so layout state written by addon code must not
-survive into play. Choices are remembered per character; `/rik cooldownranks`
-asks again. Uncatalogued spells and unreadable entries are left alone.
+The user's 2026-09-25 15:28 screenshot showed two Immolate icons in the native
+**Essential cooldowns** row: configured entries for spell 348 (rank 1) and 11668
+(rank 7) on a level 3 character, both marked known by the client. The strip
+collapses such twins itself: a native entry whose spell is in RikUI's class
+catalogue is drawn as the highest rank the spellbook holds, in the client's
+slot, and later entries of the same family are skipped; an uncatalogued entry is
+drawn only when its spell ID is in the spellbook. Nothing is written to the
+client's cooldown layout and no reload is needed.
 
 ## Verification
 

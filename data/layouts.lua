@@ -12,6 +12,8 @@ local BAR_WIDTH, BAR_HEIGHT, BAR_GAP = 498, 36, 6
 local BAR_LEFT = -BAR_WIDTH / 2
 local UNIT_WIDTH, UNIT_HEIGHT, SMALL_WIDTH, SMALL_HEIGHT, FOCUS_WIDTH, FOCUS_HEIGHT = 220, 44, 110, 30, 160, 36
 local CAST_HEIGHT, ROW_HEIGHT = 22, 30
+-- The cooldown strip (src/modules/cooldowns/cooldowns-strip.lua): 280 wide, two rows of 36 px icons at rest.
+local STRIP_WIDTH, STRIP_HEIGHT = 280, 2 * (36 + GAP) - GAP
 
 -- Nominal footprints. A frame whose size is not fixed (tracker, bags, chat, damage meter, loot list)
 -- gets the room a layout keeps free for it; the rest are the frames' real sizes, which the suite pins.
@@ -32,15 +34,13 @@ layouts.Sizes = {
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
     combattimer = { width = 110, height = 20 }, stopwatch = { width = 110, height = 20 },
     druidmana = { width = 121, height = 18 },
-    classcooldowns = { width = 188, height = 60 },
+    cooldowns = { width = STRIP_WIDTH, height = STRIP_HEIGHT },
     classbuffs = { width = 188, height = 60 }, classeffects = { width = 188, height = 60 },
     questtracker = { width = 240, height = 120 }, questtimers = { width = 220, height = 38 },
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
     bags = { width = 394, height = 360 }, chat = { width = 344, height = 214 },
     damagemeter = { width = 260, height = 180 },
     combatresource = { width = 280, height = 18 },
-    cooldownessential = { width = 280, height = 50 }, cooldownutility = { width = 280, height = 30 },
-    cooldownbuffs = { width = 220, height = 40 }, cooldownbars = { width = 220, height = 90 },
 }
 -- Room outside the frame: the minimap's zone line above and clock below, the reputation row under the
 -- experience row.
@@ -96,12 +96,6 @@ local function shared()
         bar4 = bottomRight(-MARGIN, MARGIN), bar5 = bottomRight(SIDE_BAR_2, MARGIN),
         micromenu = bottomRight(COLUMN, MARGIN), bagspace = bottomRight(COLUMN, BAGSPACE_Y),
         damagemeter = bottomRight(COLUMN, METER_Y),
-        cooldownessential = bottomRightOfCentre(BAR_LEFT - GAP, MAIN_Y),
-        cooldownutility = bottomRightOfCentre(BAR_LEFT - GAP,
-            MAIN_Y + layouts.Sizes.cooldownessential.height + GAP),
-        cooldownbuffs = bottomLeftOfCentre(-BAR_LEFT + GAP, MAIN_Y),
-        cooldownbars = bottomLeftOfCentre(-BAR_LEFT + GAP,
-            MAIN_Y + layouts.Sizes.cooldownbuffs.height + GAP),
         tooltip = bottomRight(COLUMN, METER_TOP + GAP), bags = bottomRight(COLUMN, METER_TOP + GAP),
         minimap = topRight(-MARGIN, MINIMAP_Y), buffs = topRight(AURAS_X, -MARGIN),
         debuffs = topRight(AURAS_X, -MARGIN - layouts.Sizes.buffs.height - GAP),
@@ -109,7 +103,6 @@ local function shared()
         combattimer = at("TOP", "TOP", 66, -110), stopwatch = at("TOP", "TOP", 66, -134),
         durability = at("TOP", "TOP", 0, -MARGIN),
         mirrortimers = at("TOP", "TOP", 0, -MARGIN - layouts.Sizes.durability.height - 2 * GAP),
-        classcooldowns = bottom(-340, 418),
         classbuffs = bottomLeftOfCentre(-328, 652), classeffects = bottomLeftOfCentre(-544, 652),
         chat = CHAT, loot = at("TOPLEFT", "CENTER", 20, 162),
         party = topLeft(MARGIN, -120), raid = topLeft(MARGIN, -120),
@@ -154,7 +147,6 @@ local CLASS_ROW = CAST_ROW + CAST_HEIGHT + GAP
 layouts.classic = layout("Classic", "Blizzard's arrangement: player and target in the top left corner, the party "
     .. "under them, your cast bar over the action bars.", {
     combattimer = at("TOP", "TOP", 66, -190), stopwatch = topLeft(MARGIN, -136),
-    classcooldowns = bottom(16, 598),
     classbuffs = bottomLeftOfCentre(-316, 296), classeffects = bottomLeftOfCentre(104, 280),
     player = topLeft(MARGIN, -MARGIN), target = topLeft(TARGET_X, -MARGIN),
     petframe = topLeft(MARGIN, UNDER_UNITS), castpet = topLeft(MARGIN, UNDER_UNITS - SMALL_HEIGHT - GAP),
@@ -170,7 +162,7 @@ layouts.classic = layout("Classic", "Blizzard's arrangement: player and target i
 
 -- HUD: a bottom-anchored combat cluster above the bars, leaving the character clear.
 local HUD_SPREAD = 120
-local HUD_SWING = STACK_TOP + GAP + layouts.Sizes.classcooldowns.height + GAP
+local HUD_SWING = STACK_TOP + GAP + layouts.Sizes.classbuffs.height + GAP
 local HUD_Y = HUD_SWING + UNIT_HEIGHT + CAST_HEIGHT - GAP
 local HUD_X = HUD_SPREAD + UNIT_WIDTH / 2
 local HUD_EDGE = HUD_SPREAD + UNIT_WIDTH
@@ -180,7 +172,6 @@ local HUD_CAST = HUD_SWING + layouts.Sizes.swingtimer.height + GAP
 -- The class rows here are placeholders: layouts.CombatPositions below overrides them in every layout.
 layouts.hud = layout("HUD", "A central stack of cooldowns, resources, casts and weapon timers above the action bars, "
     .. "with unit frames and class effects nearby.", {
-    classcooldowns = bottom(0, HUD_SWING - GAP - layouts.Sizes.classcooldowns.height),
     classbuffs = bottomLeftOfCentre(-HUD_EDGE, HUD_Y + UNIT_HEIGHT + GAP),
     classeffects = bottomLeftOfCentre(HUD_SPREAD, HUD_Y + UNIT_HEIGHT + GAP),
     player = bottom(-HUD_X, HUD_Y), target = bottom(HUD_X, HUD_Y),
@@ -210,7 +201,6 @@ local THIRD_X = SECOND_X + UNIT_WIDTH + GAP
 layouts.healer = layout("Healer", "Party and raid frames over the action bars, where a healer looks, with your own "
     .. "frames in rows above them.", {
     combattimer = topLeft(MARGIN, -MARGIN), stopwatch = topLeft(MARGIN, -MARGIN - 20 - GAP),
-    classcooldowns = bottom(-208, 686),
     classbuffs = bottomLeftOfCentre(-328, 612), classeffects = bottomLeftOfCentre(-520, 488),
     raid = bottom(0, GRID_Y), party = bottom(0, GRID_Y),
     player = bottomLeftOfCentre(GRID_LEFT, ROW_A), target = bottomLeftOfCentre(SECOND_X, ROW_A),
@@ -229,27 +219,20 @@ layouts.healer = layout("Healer", "Party and raid frames over the action bars, w
 layouts.healer.sizes = { questtracker = { width = 240, height = 56 } }
 
 -- The same combat information belongs in the same viewing area for every class
--- and every preset. Native cooldowns own the middle; supporting widgets flank it.
-local CORE_HALF = layouts.Sizes.cooldownessential.width / 2
+-- and every preset. The cooldown strip owns the middle; the class effect rows flank
+-- the cast bar and the resource strip on either side.
+local CORE_HALF = layouts.Sizes.cooldowns.width / 2
 local CORE_SWING = STACK_TOP + GAP
 local CORE_CAST = CORE_SWING + layouts.Sizes.swingtimer.height + GAP
 local CORE_POWER = CORE_CAST + CAST_HEIGHT + GAP
-local CORE_ESSENTIAL = CORE_POWER + layouts.Sizes.combatresource.height + GAP
-local CORE_UTILITY = CORE_ESSENTIAL + layouts.Sizes.cooldownessential.height + GAP
-local CORE_EXTRA = CORE_UTILITY + layouts.Sizes.cooldownutility.height + GAP
+local CORE_COOLDOWNS = CORE_POWER + layouts.Sizes.combatresource.height + GAP
+local CORE_EXTRA = CORE_COOLDOWNS + layouts.Sizes.cooldowns.height + GAP
 layouts.CombatPositions = {
     castplayer = bottom(0, CORE_CAST),
     combatresource = bottom(0, CORE_POWER),
-    cooldownessential = bottom(0, CORE_ESSENTIAL),
-    cooldownutility = bottom(0, CORE_UTILITY),
-    cooldownbuffs = bottomRightOfCentre(-CORE_HALF - GAP, CORE_CAST),
-    cooldownbars = bottomLeftOfCentre(CORE_HALF + GAP, CORE_CAST),
-    classcooldowns = bottomRightOfCentre(-CORE_HALF - GAP,
-        CORE_CAST + layouts.Sizes.cooldownbuffs.height + GAP),
-    classbuffs = bottomRightOfCentre(-CORE_HALF - GAP,
-        CORE_CAST + layouts.Sizes.cooldownbuffs.height + layouts.Sizes.classcooldowns.height + 2 * GAP),
-    classeffects = bottomLeftOfCentre(CORE_HALF + GAP,
-        CORE_CAST + layouts.Sizes.cooldownbars.height + GAP),
+    cooldowns = bottom(0, CORE_COOLDOWNS),
+    classbuffs = bottomRightOfCentre(-CORE_HALF - GAP, CORE_CAST),
+    classeffects = bottomLeftOfCentre(CORE_HALF + GAP, CORE_CAST),
     combopoints = bottom(0, CORE_EXTRA),
     totems = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + GAP),
     druidmana = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + layouts.Sizes.totems.height + 2 * GAP),

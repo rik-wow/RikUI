@@ -102,7 +102,7 @@ return function(check)
                 local positions = layouts.Positions(name, screen)
                 local pet = layouts.Rect(name, "pet", screen, positions)
                 local previous = pet
-                for _, key in ipairs({ "swingtimer", "castplayer", "combatresource", "cooldownessential", "cooldownutility" }) do
+                for _, key in ipairs({ "swingtimer", "castplayer", "combatresource", "cooldowns" }) do
                     local rect = layouts.Rect(name, key, screen, positions)
                     check(name .. " centres " .. key .. " above bars on " .. screen.name,
                         near((rect.left + rect.right) / 2, screen.width / 2)
@@ -110,12 +110,12 @@ return function(check)
                         and rect.top < screen.height / 2 - 100)
                     previous = rect
                 end
-                for _, key in ipairs({ "cooldownbuffs", "cooldownbars" }) do
+                for _, key in ipairs({ "classbuffs", "classeffects" }) do
                     local rect = layouts.Rect(name, key, screen, positions)
                     check(name .. " keeps " .. key .. " beside combat column on " .. screen.name,
                         rect.bottom >= pet.top and rect.top < screen.height / 2 - 100
-                        and (key == "cooldownbuffs" and near(rect.right, screen.width / 2 - 144)
-                            or key == "cooldownbars" and near(rect.left, screen.width / 2 + 144)))
+                        and (key == "classbuffs" and near(rect.right, screen.width / 2 - 144)
+                            or key == "classeffects" and near(rect.left, screen.width / 2 + 144)))
                 end
             end
         end
@@ -126,7 +126,7 @@ return function(check)
             local stackTop = layouts.Rect("hud", "pet", screen, positions).top
             for _, key in ipairs({ "player", "target", "focus", "petframe", "tot", "castplayer",
                 "casttarget", "castfocus", "castpet", "swingtimer", "combopoints", "totems",
-                "druidmana", "classbuffs", "classeffects", "classcooldowns" }) do
+                "druidmana", "classbuffs", "classeffects", "cooldowns" }) do
                 local rect = layouts.Rect("hud", key, screen, positions)
                 check("HUD " .. key .. " leaves character clear on " .. screen.name,
                     rect.bottom >= stackTop and rect.top < screen.height / 2 - 100)
@@ -189,33 +189,32 @@ return function(check)
                 end
                 check(name .. " has no runtime collisions at 4K, layout scale " .. scale,
                     #issues == 0, table.concat(issues, "; "))
-                for _, key in ipairs({ "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
+                for _, key in ipairs({ "cooldowns", "classbuffs", "classeffects" }) do
                     local rect, main = layout.Rect(key), layout.Rect("main")
                     check(name .. " keeps " .. key .. " near bars at scale " .. scale,
                         rect.bottom >= layout.Rect("pet").top and rect.top < UIParent:GetHeight() / 2 - 100
                         and rect.right >= main.left - 120 * scale and rect.left <= main.right + 120 * scale
-                        and ((key ~= "cooldownessential" and key ~= "cooldownutility")
-                            or near((rect.left + rect.right) / 2, UIParent:GetWidth() / 2)))
+                        and (key ~= "cooldowns" or near((rect.left + rect.right) / 2, UIParent:GetWidth() / 2)))
                 end
                 if name == "hud" then
                     local stackTop = layout.Rect("pet").top
                     for _, key in ipairs({ "player", "target", "focus", "petframe", "tot", "castplayer",
                         "casttarget", "castfocus", "castpet", "swingtimer", "combopoints", "totems",
-                        "druidmana", "classbuffs", "classeffects", "classcooldowns" }) do
+                        "druidmana", "classbuffs", "classeffects", "cooldowns" }) do
                         local rect = layout.Rect(key)
                         check("HUD " .. key .. " stays above bars and below character at scale " .. scale,
                             rect.bottom >= stackTop and rect.top < UIParent:GetHeight() / 2 - 100)
                     end
                 end
-                local essential = layout.Groups.cooldownessential.frames[1]
-                local beforeGrowth = layout.Rect("cooldownessential")
-                essential:SetSize(280, 90)
-                local grown, utility = layout.Rect("cooldownessential"), layout.Rect("cooldownutility")
-                check(name .. " keeps a growing essential row central at scale " .. scale,
+                local strip = layout.Groups.cooldowns.frames[1]
+                local beforeGrowth = layout.Rect("cooldowns")
+                strip:SetSize(280, 116)
+                local grown, above = layout.Rect("cooldowns"), layout.Rect("combopoints")
+                check(name .. " keeps a growing cooldown strip central at scale " .. scale,
                     near((grown.left + grown.right) / 2, UIParent:GetWidth() / 2)
                     and near(grown.bottom, beforeGrowth.bottom)
-                    and not RikUI.Geometry.Overlaps(grown, utility))
-                essential:SetSize(280, 50)
+                    and not RikUI.Geometry.Overlaps(grown, above))
+                strip:SetSize(280, 76)
                 layout.ApplyPreset(name)
                 local foot = everything.ChatFootprint
                 local inputBottom = layout.Rect("chat").bottom

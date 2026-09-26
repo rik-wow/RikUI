@@ -235,7 +235,10 @@ src/modules/dialogs/dialogs.lua
 src/modules/lossofcontrol/lossofcontrol.lua
 src/modules/extrabuttons/extrabuttons.lua
 src/modules/extrabuttons/proc-overlay.lua
-src/modules/classcooldowns/classcooldowns.lua
+src/modules/cooldowns/cooldowns.lua
+src/modules/cooldowns/cooldowns-strip.lua
+src/modules/cooldowns/cooldowns-native.lua
+src/modules/cooldowns/cooldowns-controls.lua
 data/class-cooldowns-warlock.lua
 data/class-cooldowns-mage.lua
 data/class-cooldowns-priest.lua
@@ -245,12 +248,6 @@ data/class-cooldowns-paladin.lua
 data/class-cooldowns-hunter.lua
 data/class-cooldowns-rogue.lua
 data/class-cooldowns-warrior.lua
-src/modules/cooldownviewer/cooldownviewer.lua
-src/modules/cooldownviewer/cooldownviewer-style.lua
-src/modules/cooldownviewer/cooldownviewer-layout.lua
-src/modules/cooldownviewer/cooldownviewer-controls.lua
-src/modules/cooldownviewer/cooldownviewer-diagnostics.lua
-src/modules/cooldownviewer/cooldownviewer-ranks.lua
 src/modules/toasts/toasts.lua
 src/modules/banners/banners.lua
 src/modules/damagemeter/damagemeter.lua

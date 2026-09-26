@@ -10,13 +10,13 @@ Every preset includes the [core combat HUD](combat-hud.md): central cooldowns,
 a resource strip and cast bar, with class effects and supporting timers nearby.
 Its main column gets priority when fitting windows into the available space.
 
-All four presets now include bag capacity and the four native cooldown viewers.
-The micro menu wraps into a compact column, with room above it for bag capacity
-and the damage meter. Presets fit supporting widgets around the main controls
-before applying positions; the setup preview uses that same fitted arrangement.
-The HUD's combat frames sit above the action bars, anchored from the bottom so
-they stay below the character on larger usable screens. Empty native cooldown
-viewers keep a full-size mover instead of collapsing their labels at the edge.
+All four presets include bag capacity and the cooldown strip, which sits on the
+central stack above the resource strip and grows upward when it needs a third
+row. The micro menu wraps into a compact column, with room above it for bag
+capacity and the damage meter. Presets fit supporting widgets around the main
+controls before applying positions; the setup preview uses that same fitted
+arrangement. The HUD's combat frames sit above the action bars, anchored from
+the bottom so they stay below the character on larger usable screens.
 
 The chat channel strip and input now follow the chat window's effective scale.
 Opening the input restores its height and placement if the client changed them.

@@ -59,13 +59,17 @@ Swing and wand timing share that central stack. Class buffs and target effects s
 your class, learned abilities and form; you don't need to import a separate
 WeakAura pack for each character.
 
+The cooldown strip is RikUI's own. It shows the spells the game's cooldown
+manager lists for your class, in the order you set in its **Tracked spells**
+window, followed by RikUI's own list of learned class abilities, all in one
+place. Blizzard's cooldown viewer frames stay hidden while the Cooldowns module
+is on; turn the module off under Settings > Modules to get them back.
+
 This is part of every layout preset. If you're updating an existing profile,
 type `/rik hud` to arrange the combat area. It keeps your chat, other windows
-and keybinds. `/rik layout undo` puts the old positions back.
-
-Cooldown manager starts on by default. You can turn it off from the RikUI menu,
-and it will stay off. The [combat HUD notes](docs/combat-hud.md) cover what's
-tracked and where the beta client still limits it.
+and keybinds. `/rik layout undo` puts the old positions back. The
+[combat HUD notes](docs/combat-hud.md) and [cooldown notes](docs/cooldowns.md)
+cover what's tracked and where the beta client still limits it.
 
 ## What's included
 
@@ -132,7 +136,6 @@ Everyday tools:
 | `/rik bagsearch save\|use\|delete <name> [query]` | Save, use, delete or list named bag searches. |
 | `/rik favorite <item link or ID>` | Mark an item as a favorite so bulk junk selling leaves it alone. |
 | `/rik stopwatch start\|pause\|reset\|show\|hide` | A session stopwatch. |
-| `/rik cooldownranks` | Ask again about cooldown entries that track more than one rank of a spell. |
 | `/rik party test` | Fill the party frames with copies of you to check the layout. Run it again to leave. |
 | `/rik raid test` | The same for the forty raid frames. |
 

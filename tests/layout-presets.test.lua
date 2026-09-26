@@ -33,23 +33,21 @@ return function(check)
             chat={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=25,y=25},
             bags={point="BOTTOMRIGHT",relativePoint="BOTTOMRIGHT",x=-30,y=80},
             player={point="BOTTOM",relativePoint="BOTTOM",x=-230,y=900} },
-            chat={size={width=500,height=220}}, modules={combatresource=false,cooldownviewer=false} })
+            chat={size={width=500,height=220}}, modules={combatresource=false,cooldowns=false} })
         local before = RikUI.Setup.CopyState(RikUI.Profile.positions)
         local modules, chat = RikUI.Profile.modules, RikUI.Profile.chat
-        RikUI.CharDB.cooldownViewerInitialized = true
         env.inCombat = true
         check("combat refuses scoped HUD without mutation", not layout.ApplyCombatHUD()
             and RikUI.Profile.positions.player.y == before.player.y and not RikUI.Profile.layoutUndo)
         env.inCombat = false
         SlashCmdList.RIKUI("hud")
         check("HUD command repairs combat placement", RikUI.Profile.positions.player.y == layout.PresetPositions("hud").player.y
-            and RikUI.Profile.positions.cooldownessential.x == 0
+            and RikUI.Profile.positions.cooldowns.x == 0
             and RikUI.Profile.positions.combatresource ~= nil)
         check("HUD keeps noncombat geometry and chat size", RikUI.Profile.positions.chat.x == before.chat.x
             and RikUI.Profile.positions.bags.y == before.bags.y and chat.size.width == 500)
-        check("HUD keeps explicit module and native-manager preferences", RikUI.Profile.modules == modules
-            and modules.combatresource == false and modules.cooldownviewer == false
-            and RikUI.CharDB.cooldownViewerInitialized == true)
+        check("HUD keeps explicit module preferences", RikUI.Profile.modules == modules
+            and modules.combatresource == false and modules.cooldowns == false)
         check("scoped HUD shares layout undo", layout.UndoPreset()
             and RikUI.Profile.positions.player.y == before.player.y and RikUI.Profile.positions.combatresource == nil
             and RikUI.Profile.chat.size.width == 500)
@@ -135,7 +133,7 @@ return function(check)
                 RikUI.Profile.positions.player.relativePoint == "BOTTOM"
                 and rect.bottom >= 244
                 and (height < 1440 or rect.top < height / 2 - 100))
-            for _, key in ipairs({ "bagspace", "cooldownessential", "cooldownutility", "cooldownbuffs", "cooldownbars" }) do
+            for _, key in ipairs({ "bagspace", "cooldowns", "classbuffs", "classeffects" }) do
                 check("HUD places " .. key, type(RikUI.Profile.positions[key]) == "table")
             end
         end

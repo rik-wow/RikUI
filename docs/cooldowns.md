@@ -1,36 +1,59 @@
-# Class cooldowns
+# Cooldowns
 
-**Class cooldowns** shows up to twelve learned abilities in two rows of six icons.
-Use **Move frames** to place the group, or choose one of the four layouts.
-Disable the module under System → Modules and reload to remove it.
-Hover an icon for the learned spell's tooltip. The panel is a display; use your
-normal action bars and bindings to cast.
+**Cooldowns** is one strip above the resource strip and cast bar. It lists the
+client's configured cooldown entries first, in the order the client's cooldown
+manager keeps them (Essential, then Utility), then RikUI's own list of learned
+class abilities. Every icon is drawn by RikUI: 36 px, seven to a row, up to
+three rows, the first entries on the bottom row nearest the resource strip.
+Use **Move** in the RikUI menu (or **Move frames**) to place it, or choose one
+of the four layouts. Disable the module under System → Modules and reload to
+remove it. Hover an icon for the spell's tooltip. The strip is a display; use
+your normal action bars and bindings to cast.
+
+The client's four cooldown viewer frames stay hidden while this module is on:
+RikUI keeps the `cooldownViewerEnabled` setting off, says so once per session,
+and turns the setting back on if you disable the module. Their **Tracked
+spells** window is still the way to change the client's part of the list: RikUI
+reads that window's data provider (the order and hidden choices you save there)
+and rebuilds the strip whenever it reports a change. Before the window's saved
+layout has loaded, or when the window does not exist, the strip reads the
+client's default lists through `C_CooldownViewer`, minus unknown, invisible and
+hidden-by-default entries. Entries without a spell (equipment slots) are left
+out for now.
+
+Rank twins are collapsed without any prompt or reload. The client marks every
+rank of a spell as known, so a level 3 warlock's list held Immolate 348 and
+11668. A native entry whose spell is in RikUI's class catalogue becomes the
+highest rank the spellbook holds, in the client's slot, and later entries of the
+same family are skipped; an entry outside the catalogue shows only when its
+spell ID is in the spellbook. RikUI's class list then adds families the client
+did not list. The strip caps at 21 icons.
 
 The client supplies cooldown swipes, recharge edges, countdown text and charge
-or reagent counts. The global cooldown is excluded. Icons remain visible when
+or reagent counts through duration objects, which stay valid while their values
+are secret in combat. The global cooldown is excluded. Icons remain visible when
 there is no duration; that does not establish range, resources, stance,
 reagents or cast eligibility. A small **?** marks unavailable cooldown/count
 data. Failed calls clear stale presentation and report one diagnostic.
 
-Only learned player spells from the selected class's verified catalogue are
-shown, in a stable priority order. Training, unlearning, talents, forms and
-world changes refresh membership. Combat defers and coalesces those refreshes;
-cooldown/count events continue updating the displayed spells. An incomplete
-spellbook scan preserves the last complete list. A successful unlearning removes
-the old icon. Unsupported classes and empty profiles create no visible panel.
+Membership is resolved outside combat: training, unlearning, talents, forms,
+world changes, the client's data-changed callback and spell overrides refresh
+it; combat defers and coalesces those refreshes; cooldown/count events keep
+updating the displayed spells. An incomplete spellbook scan or an unreadable
+native entry preserves the last complete strip. Nothing learned hides the strip.
 
-When the native Cooldown Manager has no Essential or Utility entries for the
-character (the client ships none for some classes; a level 4 paladin had zero in
-every category) or is switched off, this panel stands in for the Essential row:
-it takes that row's saved place, scales 1.4x to fill the Essential and Utility
-band and centres each row of icons. It returns to its own place when the client
-configures central entries. `/rik debug` says when it is standing in.
+`/rik debug` prints the icon count, how many came from the client and from the
+class list, what was skipped (unlearned, duplicates, item-only, capped), which
+native source answered (`provider`, `provider-default-order`, `api`, `absent`)
+and whether the native viewers are hidden.
 
-The module does not need a native Cooldown Manager spell list and does not edit
-that manager's settings, action slots or macros. It does not infer aura procs,
-reset timing, missing buffs or rotations, and never calculates remaining time
-from secret values. Pets, item-use effects, racials and unpublished abilities
-are outside these curated player-spell profiles.
+The module never edits the client's cooldown settings, action slots or macros
+and never reads live aura state; aura-backed native entries (tracked buffs and
+bars, entries with an aura) are handed to the [class effect rows](class-effects.md),
+which show them through the client's secure aura containers. It does not infer
+aura procs, reset timing, missing buffs or rotations, and never calculates
+remaining time from secret values. Pets, item-use effects, racials and
+unpublished abilities are outside the curated class lists below.
 
 ## Research and verification
 
@@ -49,10 +72,22 @@ widgets, following the existing action-bar integration. No fixed cooldown
 length is stored. IDs and rank order reuse the [class catalogues](class-presets.md);
 source coverage remains pinned rather than claiming every beta build is known.
 
-Automated tests exercise membership, rank updates, unlearning, combat login,
-coalescing, invalid profiles, atomic scan failures, opaque native values,
-missing APIs, independent failures, tooltips, module disablement and layouts.
-Native behavior is accepted by the user; no agent-observed client result is claimed.
+Blizzard's 69977 source (extracted locally with `tools/extract_ui_source.py`)
+settles the native side: `CooldownViewerMixin:ShouldBeShown` checks the
+`cooldownViewerEnabled` setting before the settings window's visibility, so an
+off setting keeps the viewers hidden even while **Tracked spells** is open;
+`CooldownViewerSettings` never reads that setting, and its data provider
+answers before its layout data loads with the default order; every layout
+write, spec switch, `SPELLS_CHANGED` and the initial load fire the
+`CooldownViewerSettings.OnDataChanged` callback; and `Blizzard_CooldownViewer`
+is not load-on-demand, so the provider exists at login whatever the setting.
+
+Automated tests exercise the merge order and both dedupe rules, item-only and
+capped entries, provider and API reads, unreadable fields, the setting policy
+in and out of combat, the data-changed callback, aura ID sets, the flyout
+controls, membership updates, combat login, coalescing, opaque native values,
+module disablement and layouts (`tests/cooldowns*.test.lua`). Native behavior
+is accepted by the user; no agent-observed client result is claimed.
 
 ## Class profiles
 

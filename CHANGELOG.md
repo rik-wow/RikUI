@@ -8,13 +8,18 @@ tagging.
 
 ## Unreleased
 
-- The class cooldown row stands in for Blizzard's Essential row when the
-  client configures no central cooldowns for your character (or the manager
-  is off): it moves to the Essential row's place, scaled up, with each row of
-  icons centred. Paladins get Judgement there from level 4, since Judgement
-  now leads the paladin list. The Class buffs row (your active seal with its
-  timer) uses the same 28 px icons and sits above the class cooldown row's
-  own place, left of the column.
+- One cooldown strip. The new Cooldowns module draws the game's configured
+  cooldown entries (the order and hidden choices you save in Blizzard's
+  Tracked spells window) followed by RikUI's own list of learned class
+  abilities, in one 280 px strip above the resource strip, with rank twins
+  collapsed to the rank you know. Blizzard's four cooldown viewer frames stay
+  hidden while the module is on and come back when you disable it. This
+  replaces the separate Class cooldowns row, the cooldown viewer skin, its
+  On/Off toggle and the `/rik cooldownranks` prompt; saved settings for those
+  (module flags, the old layout positions, per-character rank choices) are
+  ignored. Paladins get Judgement there from level 4, since Judgement now
+  leads the paladin list. Run `/rik hud` on an existing profile to place the
+  strip and the class effect rows.
 - The locally built quest corpus and road networks now install inside the
   RikUI folder (`generated/`, pulled in by the committed `generated/index.xml`)
   and load with the addon. Only the mesh patches stay as separate

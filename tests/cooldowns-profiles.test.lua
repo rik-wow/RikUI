@@ -1,4 +1,4 @@
--- Source-ID fixtures exercise the shipped profiles through the real spellbook resolver.
+-- Source-ID fixtures exercise the shipped class profiles through the real spellbook resolver.
 return function(check)
     local env = require("wow_stub")
     local loader = dofile("tests/load_addon.lua").Loadfile
@@ -7,12 +7,15 @@ return function(check)
     local baseCreate = CreateFrame
     CreateFrame = function(...)
         local frame = baseCreate(...)
+        function frame:GetFrameLevel() return 1 end
         function frame:SetCooldownFromDurationObject(value) self.duration = value end
         function frame:Clear() self.duration = nil end
+        function frame:GetCountdownFontString()
+            self.font = self.font or self:CreateFontString()
+            return self.font
+        end
         return frame
     end
-    for _, event in ipairs({ "SPELL_UPDATE_COOLDOWN", "SPELL_UPDATE_CHARGES", "SPELL_UPDATE_USES",
-        "SPELL_UPDATE_ICON" }) do env.KNOWN_EVENTS[event] = true end
     local items, failScan = {}, false
     local cases = {
         { class = "WARRIOR", ids = { 72, 1671, 1672, 871, 6552, 6554 }, excluded = 78 },
@@ -49,13 +52,15 @@ return function(check)
             GetSpellTexture = function(id) return id end }
         for _, path in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/ui/media.lua",
             "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout.lua",
-            "src/modules/classcooldowns/classcooldowns.lua" }) do assert(loader(path))("RikUI", {}) end
+            "src/modules/cooldowns/cooldowns.lua", "src/modules/cooldowns/cooldowns-strip.lua" }) do
+            assert(loader(path))("RikUI", {})
+        end
         for _, path in ipairs(dofile("tests/load_addon.lua").Manifest()) do
             if path == "data/spells.lua" or path:match("^data/spells%-")
                 or path:match("^data/class%-cooldowns%-") then assert(loader(path))("RikUI", {}) end
         end
         env.fire("ADDON_LOADED", "RikUI"); env.fire("PLAYER_LOGIN")
-        return RikUI.ClassCooldowns
+        return RikUI.Cooldowns
     end
     local function verify(sample)
         items, failScan = {}, false
@@ -109,6 +114,5 @@ return function(check)
     CreateFrame = baseCreate
     restoreWidgets()
     env.inCombat = false
-    check("class cooldown profile integration suite completes", ok, reason)
+    check("cooldown profile integration suite completes", ok, reason)
 end
-

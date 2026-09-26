@@ -9,7 +9,7 @@ minimap, it uses the screen's top-right corner.
 | Section | Entries |
 | --- | --- |
 | Interface | Settings, Profiles, Move frames, party preview, setup wizard |
-| Tools | Cooldowns On/Off, Move groups, Tracked spells, quest planner |
+| Tools | Move (the cooldown strip and class effect rows), Tracked spells, quest planner |
 | Support | Report an issue, Setup and maintenance, Reload interface |
 
 Entries appear only when their tools exist. Setup and maintenance opens the
@@ -21,8 +21,8 @@ beside their content.
 The flyout starts closed. Escape, its close button or an outside click dismisses
 it. Dismissing it preserves active frame movement. While moving, the launcher
 reads **Done**, so there is no permanent toolbar in the middle of the HUD.
-Cooldown viewer roots remain independent of the flyout and continue displaying
-when it closes. Controls that write protected state recheck combat when clicked.
+The cooldown strip is independent of the flyout and keeps displaying when it
+closes. Controls that write protected state recheck combat when clicked.
 
 ## Adding a utility
 
@@ -57,6 +57,6 @@ Source: pinned Forever build
 `tests/shell.test.lua` covers launch and dismissal, fallback/late minimap,
 combat login and transitions, actual action dispatch, party preview, reporter
 readiness and payload forwarding, growing tool lists, replacement and provider
-failures. Cooldown integration also verifies that the old cooldowncontrols
-layout key is no longer registered. Native/game-client behavior is accepted
-under the user's standing policy; these results are automated model checks.
+failures. `tests/cooldowns-controls.test.lua` covers the cooldown tools.
+Native/game-client behavior is accepted under the user's standing policy;
+these results are automated model checks.

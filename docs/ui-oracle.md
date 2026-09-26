@@ -45,7 +45,7 @@ flat regions added; `font` = font objects only.
 | Extra, zone, flyout, possess buttons | `src/modules/extrabuttons/extrabuttons.lua` | skin | 2 | skin, bars colour | `bars-motion` |
 | Vehicle bar frame | `src/modules/extrabuttons/extrabuttons.lua` (buttons only) | skin | 0 | extrabuttons | `vehicle-bar` |
 | Proc overlay around the character | none | none | 0 | bars | `spell-activation-overlay` |
-| Cooldown viewer (4 viewers) | `src/modules/cooldownviewer/cooldownviewer*.lua` | skin with mouse controls, transparent saved holders, temporary move guides and icon accents | 2 | skin, motion, layout, editmode, bars colour | delivered (`cooldownviewer-clean-hud`) |
+| Cooldown strip (replaces the 4 native viewers) | `src/modules/cooldowns/cooldowns*.lua` | own: the client's configured entries and the class list in one RikUI strip, native viewers hidden by their setting | 1 | layout, spells, shell | `cooldowns-motion` |
 | Player, target, ToT, pet, focus frames | `src/modules/unitframes/unitframes.lua`, `src/modules/unitframes/unitframes-status.lua` | own | 1 | layout | `unitframes-motion` |
 | Party frames | `src/modules/unitframes/unitframes-party.lua` | own | 1 | unit frames | `party-raid-motion` |
 | Raid grid | `src/modules/unitframes/unitframes-raid.lua` | own | 1 | unit frames | `party-raid-motion` |
@@ -117,7 +117,7 @@ flat regions added; `font` = font objects only.
 
 ## Counts
 
-Tier 3: 9 surfaces. Tier 2: 14. Tier 1: 18. Tier 0: 16. The tier 0 rows are
+Tier 3: 9 surfaces. Tier 2: 13. Tier 1: 19. Tier 0: 16. The tier 0 rows are
 the ones the user's rule forbids; the tier 1 rows are full replacements that
 lack motion.
 
@@ -125,7 +125,8 @@ lack motion.
 
 The dependency edges above give this order; each step is one roadmap chunk.
 
-1. `cooldownviewer`, `personal-resource`: the last two whole systems still stock.
+1. `personal-resource`: the last whole system still stock (the cooldown viewer is
+   replaced by RikUI's own strip since 2026-09-25; `cooldowns-motion` is its polish chunk).
 2. `unitframes-motion` then `party-raid-motion`, `castbars-motion`,
    `auras-motion`, `bars-motion`: the pieces on screen every second of play.
 3. `spell-activation-overlay`, `vehicle-bar`: only if Forever shows them.

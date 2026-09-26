@@ -130,11 +130,11 @@ end
 
 local MODULE_TITLES = {
     chatbubbles = "Chat bubbles", combattext = "Combat text", combopoints = "Combo points",
-    cooldownviewer = "Cooldown viewer", damagemeter = "Damage meter", extrabuttons = "Extra action buttons",
+    cooldowns = "Cooldowns", damagemeter = "Damage meter", extrabuttons = "Extra action buttons",
     hudframes = "Small HUD frames", lossofcontrol = "Loss of control", micromenu = "Micro menu",
     mirrortimers = "Breath and fatigue", questplanner = "Quest planner", questtimers = "Quest timers",
     questtracker = "Quest tracker", screentext = "Screen messages", swingtimer = "Swing timer",
-    classcooldowns = "Class cooldowns", classauras = "Class effects", unitauras = "Unit auras", unitframes = "Unit frames", worldmap = "World map", xpbar = "Experience",
+    classauras = "Class effects", unitauras = "Unit auras", unitframes = "Unit frames", worldmap = "World map", xpbar = "Experience",
 }
 
 local function moduleTitle(name, module)
