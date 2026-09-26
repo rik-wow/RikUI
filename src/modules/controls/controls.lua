@@ -11,6 +11,7 @@ core.Controls = controls
 local MAX_DEPTH, HOVER_SECONDS = 8, 0.12
 local BUTTON_INSET, CHECK_INSET, CHECK_MAX_WIDTH = 1, 4, 32
 local TRACK_HEIGHT, THUMB_WIDTH, THUMB_HEIGHT, SCROLL_THUMB_WIDTH, SCROLL_THUMB_HEIGHT = 4, 10, 16, 8, 24
+local DISABLED_THUMB, DISABLED_ICON_ALPHA = { 0.2, 0.22, 0.25, 0.5 }, 0.35
 local FIELD, THUMB, ACCENT = { 0.03, 0.035, 0.045, 0.8 }, { 0.35, 0.39, 0.45, 1 }, { 0.3, 0.75, 1, 1 }
 local SLICES, TRACK_ART = { "Left", "Middle", "Right", "Center" }, { "Begin", "Middle", "End" }
 local FIELD_ART = { "Left", "Middle", "Right", "TopLeftTex", "TopRightTex", "TopTex", "BottomLeftTex",
@@ -42,14 +43,28 @@ local function fadeStates(button)
     end
 end
 
+local function disabled(frame)
+    return type(frame.IsEnabled) == "function" and frame:IsEnabled() == false
+end
+
 -- The HIGHLIGHT layer already shows only under the cursor; the tween makes it arrive, not pop.
 local function hover(button)
     button.rikHover = button:CreateTexture(nil, "HIGHLIGHT")
     button.rikHover:SetAllPoints(button)
     button.rikHover:SetTexture(media.highlight)
     button.rikHoverFade = motion.Tween(button.rikHover, 0, 1, HOVER_SECONDS)
-    if not button.rikHoverFade or type(button.HookScript) ~= "function" then return end
-    button:HookScript("OnEnter", function(self) motion.Play(self.rikHoverFade) end)
+    local function sync()
+        motion.Stop(button.rikHoverFade)
+        button.rikHover:SetAlpha(disabled(button) and 0 or 1)
+    end
+    sync()
+    core.Hooks.Script(button, "OnEnter", function()
+        if not disabled(button) then motion.Play(button.rikHoverFade) end
+    end)
+    core.Hooks.Script(button, "OnLeave", sync)
+    core.Hooks.Script(button, "OnHide", sync)
+    core.Hooks.Script(button, "OnDisable", sync)
+    core.Hooks.Script(button, "OnEnable", sync)
 end
 
 local function box(frame, color, inset)
@@ -112,17 +127,21 @@ end
 local function thumbFeedback(slider, thumb)
     local hovering, pressed = false, false
     local function paintThumb()
-        local color = pressed and { 1, 0.82, 0, 1 } or hovering and ACCENT or THUMB
+        local color = disabled(slider) and DISABLED_THUMB or pressed and { 1, 0.82, 0, 1 } or hovering and ACCENT or THUMB
         thumb:SetVertexColor(unpack(color))
     end
-    slider:HookScript("OnEnter", function() hovering = true; paintThumb() end)
+    local function reset() hovering, pressed = false, false; paintThumb() end
+    slider:HookScript("OnEnter", function() hovering = not disabled(slider); paintThumb() end)
     slider:HookScript("OnLeave", function() hovering = false; paintThumb() end)
     slider:HookScript("OnMouseDown", function(_, button)
-        if button ~= "LeftButton" then return end
+        if button ~= "LeftButton" or disabled(slider) then return end
         pressed = true; paintThumb()
     end)
     slider:HookScript("OnMouseUp", function() pressed = false; paintThumb() end)
-    slider:HookScript("OnHide", function() hovering, pressed = false, false; paintThumb() end)
+    slider:HookScript("OnHide", reset)
+    core.Hooks.Script(slider, "OnDisable", reset)
+    core.Hooks.Script(slider, "OnEnable", reset)
+    reset()
 end
 
 local function flatThumb(slider, width, height)
@@ -155,6 +174,10 @@ local function stepButton(button, glyph)
     motion.BindPress(button)
     button.rikIcon = media.Icon(button, glyph, STEP_ICON_SIZE, "OVERLAY")
     button.rikIcon:SetPoint("CENTER", button, "CENTER", 0, 0)
+    local function sync() button.rikIcon:SetAlpha(disabled(button) and DISABLED_ICON_ALPHA or 1) end
+    core.Hooks.Script(button, "OnDisable", sync)
+    core.Hooks.Script(button, "OnEnable", sync)
+    sync()
 end
 
 local function legacyScrollBar(bar)

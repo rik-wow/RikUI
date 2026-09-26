@@ -8,6 +8,14 @@ tagging.
 
 ## Unreleased
 
+- UI polish: faded panel text retains its opacity; panel and button fonts recover
+  if the selected font cannot load. Disabled controls clear stale hover and press
+  effects, scrollbar arrows and thumbs dim correctly, and vertical sliders keep
+  their native orientation. Panel item buttons regain visible pressed feedback.
+- Reduced motion now also covers cached effects and notification accents.
+  Hidden notifications stop animating, reused cards update their icon backings,
+  and resizing wrapped settings content preserves the current scroll position.
+
 - Readable window text. Labels Blizzard colours dark brown or black for its
   parchment windows (spellbook names and subtexts, the page counter, talent
   and achievement text) now take the skin's pale ink; red, green, gold and

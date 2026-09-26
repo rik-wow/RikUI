@@ -1,6 +1,9 @@
 # Window controls
 
 Slider and legacy scrollbar thumbs turn blue under the cursor and gold while dragging, including when the pointer leaves the track. Release and hide restore their idle colour; values and drag handlers remain native.
+Disabled thumbs dim and discard stale hover/press state. Scroll-step arrows dim at
+unavailable directions and regain contrast when enabled. Disabled controls do not
+play hover fades. Slider tracks and thumbs follow the native horizontal or vertical axis.
 
 Keyboard focus brings in a subtle blue field halo over 160ms. Focus loss and hiding clear it; reduced motion displays the same cue immediately.
 
