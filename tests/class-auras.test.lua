@@ -13,7 +13,7 @@ return function(check)
     C_UnitAuras = setmetatable({}, { __index = function()
         return function() reads = reads + 1; error("secret aura access") end
     end })
-    local function load(profile, combat, missing, invalid, class)
+    local function load(profile, combat, missing, invalid, class, bare)
         env.frames, env.printed, env.timers, env.inCombat = {}, {}, {}, false
         env.auraContainerMissing = missing == true
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile or { modules = { auras = false } } } }, nil
@@ -27,8 +27,9 @@ return function(check)
             if class == "WARRIOR" and name == "Battle Shout" then return { ranks = { 6673, 5242 } } end
             if class == "WARRIOR" and name == "Rend" then return { ranks = { 772, 6546 } } end
         end }
-        RikUI.ClassAuraProfiles = { WARRIOR = { player = { invalid and "Unknown" or "Battle Shout" },
-            harmful = { "Rend" }, helpful = { "Battle Shout" }, enchants = true } }
+        RikUI.ClassAuraProfiles = { WARRIOR = bare and { player = {}, harmful = {}, helpful = {}, enchants = false }
+            or { player = { invalid and "Unknown" or "Battle Shout" },
+                harmful = { "Rend" }, helpful = { "Battle Shout" }, enchants = true } }
         assert(loader("src/modules/auras/auras-class.lua"))("RikUI", {})
         if class then
             for _, path in ipairs(dofile("tests/load_addon.lua").Manifest()) do
@@ -132,6 +133,37 @@ return function(check)
         local reports = 0
         for _, line in ipairs(env.printed) do if line:find("Class auras refresh", 1, true) then reports = reports + 1 end end
         check("refused class refresh is diagnosed once", reports == 1)
+
+        -- The cooldown strip hands over the client's tracked and aura-backed entries.
+        module = load()
+        check("rows are labelled as buffs and target effects", RikUI.Layout.Groups.classbuffs.label == "Buffs"
+            and RikUI.Layout.Groups.classeffects.label == "Target effects")
+        local playerRow, targetRow = module.Rows.player, module.Rows.target
+        local playerUpdates, targetUpdates = playerRow.container.updates, targetRow.container.updates
+        check("native aura sets are validated", module.SetNativeAuraIDs(nil) == nil and module.SetNativeAuraIDs({ player = {} }) == nil)
+        check("native aura IDs are accepted", module.SetNativeAuraIDs({ player = { [9001] = true }, target = { [9002] = true } }) == true)
+        local function filter(row, key) return row.container.groups[key].options.candidateFilters.includeSpellIDs end
+        check("native aura IDs join the profile filters in place",
+            filter(playerRow, "player")[9001] and filter(playerRow, "player")[6673] and not filter(playerRow, "player")[9002]
+            and filter(targetRow, "harmful")[9002] and filter(targetRow, "helpful")[9002] and filter(targetRow, "harmful")[772]
+            and not filter(targetRow, "harmful")[9001]
+            and playerRow.container.updates == playerUpdates + 1 and targetRow.container.updates == targetUpdates + 2)
+        module.SetNativeAuraIDs({ target = { [9002] = true }, player = { [9001] = true } })
+        check("unchanged native sets touch nothing", playerRow.container.updates == playerUpdates + 1)
+        env.inCombat = true
+        module.SetNativeAuraIDs({ player = { [9003] = true }, target = {} })
+        check("a changed set waits for combat to end", not filter(playerRow, "player")[9003])
+        env.inCombat = false; env.fire("PLAYER_REGEN_ENABLED")
+        check("leaving combat applies the changed set and drops the old IDs",
+            filter(playerRow, "player")[9003] and not filter(playerRow, "player")[9001] and not filter(targetRow, "harmful")[9002])
+        check("native IDs never trigger aura reads", reads == 0)
+        module = load(nil, false, false, false, nil, true)
+        check("an empty profile builds no rows", next(module.Rows) == nil)
+        module.SetNativeAuraIDs({ player = { [9001] = true }, target = {} })
+        check("native entries alone create the row they need and no other", module.Rows.player ~= nil
+            and module.Rows.target == nil and filter(module.Rows.player, "player")[9001])
+        module.SetNativeAuraIDs({ player = { [9001] = true }, target = { [9002] = true } })
+        check("a later target set creates the target row", module.Rows.target ~= nil and filter(module.Rows.target, "harmful")[9002])
     end)
     UnitClass, C_UnitAuras, RikUI, CreateFrame = savedClass, savedAuras, savedCore, savedCreate
     env.auraContainerMissing, env.inCombat = false, false
