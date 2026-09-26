@@ -83,6 +83,20 @@ return function(check)
         RikUI.Profile.reducedMotion = false
         RikUI.Motion.Play(cached)
         check("restored motion reuses cached effects", cached.plays == 2 and cached:IsPlaying())
+        local notice = CreateFrame("Frame")
+        local card = skin.NotificationCard(notice)
+        check("notification starts its accent", card.enter and card.enter:IsPlaying())
+        notice:Hide()
+        check("hidden notification stops accent", not card.enter:IsPlaying())
+        notice:Show()
+        RikUI.Profile.reducedMotion = true
+        skin.NotificationCard(notice)
+        check("cached notification respects reduced motion", not card.enter:IsPlaying())
+        local quietNotice = skin.NotificationCard(CreateFrame("Frame"))
+        check("new notification respects reduced motion", not quietNotice.enter or not quietNotice.enter:IsPlaying())
+        RikUI.Profile.reducedMotion = false
+        skin.NotificationCard(notice)
+        check("notification accent can replay on reuse", card.enter:IsPlaying())
         -- More visual regressions are added below.
     end)
     restore()

@@ -151,12 +151,8 @@ function skin.NotificationCard(owner, icon, inset)
         card.accent:SetPoint("TOPLEFT", owner, "TOPLEFT", inset, -inset)
         card.accent:SetPoint("BOTTOMLEFT", owner, "BOTTOMLEFT", inset, inset)
         card.accent:SetWidth(2)
-        card.enter = card.accent:CreateAnimationGroup()
-        local alpha = card.enter:CreateAnimation("Alpha")
-        alpha:SetFromAlpha(0)
-        alpha:SetToAlpha(1)
-        alpha:SetDuration(0.24)
         cards[owner] = card
+        RikUI.Hooks.Script(owner, "OnHide", function() RikUI.Motion.Stop(card.enter) end)
     end
     if skin.IsRegion(icon) and not card.iconBlock then
         card.iconBlock = owner:CreateTexture(nil, "BACKGROUND")
@@ -165,8 +161,8 @@ function skin.NotificationCard(owner, icon, inset)
         card.iconBlock:SetPoint("TOPLEFT", icon, "TOPLEFT", -4, 4)
         card.iconBlock:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 4, -4)
     end
-    card.enter:Stop()
-    card.enter:Play()
+    card.enter = card.enter or RikUI.Motion.Tween(card.accent, 0, 1, 0.24)
+    if owner:IsShown() then RikUI.Motion.Play(card.enter) else RikUI.Motion.Stop(card.enter) end
     return card
 end
 
