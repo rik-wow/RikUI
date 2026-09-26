@@ -134,6 +134,35 @@ return function(check)
         RikUI.Profile.reducedMotion = false
         RikUI.Interiors.Item(item)
         check("repeated item skin installs press hooks once", item.hooks.OnMouseDown and #item.hooks.OnMouseDown == 1)
+        assert(loadfile("src/ui/scroll.lua"))("RikUI", {})
+        local pane = RikUI.Scroll.Create(UIParent)
+        pane:SetSize(400, 100)
+        RikUI.Scroll.SetContentHeight(pane, 300)
+        RikUI.Scroll.SetOffset(pane, 150)
+        local positions = {}
+        pane.OnScroll = function() positions[#positions + 1] = pane.offset end
+        pane.OnResize = function() RikUI.Scroll.SetContentHeight(pane, 600) end
+        pane:SetSize(200, 250)
+        check("reflow preserves reading position before final clamp", pane.offset == 150
+            and pane.view.scrollOffset == 150 and pane.range == 350)
+        check("reflow publishes only final geometry", #positions == 1 and positions[1] == 150
+            and pane.moreAbove:IsShown() and pane.moreBelow:IsShown())
+        positions = {}
+        pane.OnResize = function() RikUI.Scroll.SetContentHeight(pane, 100) end
+        pane:SetSize(500, 200)
+        check("shrinking reflow clears scroll and overflow cues", pane.offset == 0 and pane.range == 0
+            and not pane.bar:IsShown() and not pane.moreAbove:IsShown() and not pane.moreBelow:IsShown())
+        local callbacks = 0
+        function pane.bar:SetMinMaxValues(low, high)
+            self.low, self.high = low, high
+            env.runScript(self, "OnValueChanged", 0)
+        end
+        pane.OnScroll = function() callbacks = callbacks + 1 end
+        RikUI.Scroll.SetContentHeight(pane, 600)
+        RikUI.Scroll.SetOffset(pane, 120)
+        callbacks = 0
+        RikUI.Scroll.SetContentHeight(pane, 700)
+        check("range callbacks cannot reset the saved offset", pane.offset == 120 and callbacks == 1)
         -- More visual regressions are added below.
     end)
     restore()

@@ -18,7 +18,9 @@ end
 
 local function updateRange(pane)
     pane.range = math.max(0, (pane.contentHeight or 1) - (pane.height or 1))
+    pane.updating = true
     pane.bar:SetMinMaxValues(0, pane.range)
+    pane.updating = false
     pane.bar:SetShown(pane.range > 0)
     local height = pane.height or 1
     pane.thumbHeight = math.min(height, math.max(THUMB_HEIGHT, height * height / math.max(height, pane.contentHeight or 1)))
@@ -30,16 +32,18 @@ end
 function scroll.Resize(pane, width, height)
     width, height = math.max(1, width), math.max(1, height)
     pane.width, pane.height = width, height
+    pane.resizing = true
     pane.view:SetSize(math.max(1, width - BAR_WIDTH - BAR_GAP), height)
     pane.content:SetWidth(math.max(1, width - BAR_WIDTH - BAR_GAP))
-    updateRange(pane)
     if pane.OnResize then pane.OnResize(pane.content:GetWidth()) end
+    pane.resizing = false
+    updateRange(pane)
 end
 
 function scroll.SetContentHeight(pane, height)
     pane.contentHeight = math.max(1, height)
     pane.content:SetHeight(pane.contentHeight)
-    updateRange(pane)
+    if not pane.resizing then updateRange(pane) end
 end
 
 function scroll.Reveal(pane, top, height)
