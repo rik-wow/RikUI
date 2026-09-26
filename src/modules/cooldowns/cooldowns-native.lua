@@ -2,7 +2,8 @@
 -- data provider (the user's order and hidden choices) or, before that frame exists, from the
 -- C_CooldownViewer API. Its four viewer frames stay hidden through the cooldownViewerEnabled
 -- cvar while this module draws the strip; the Tracked spells window still edits the native part.
--- Nothing here reads live cooldown or aura state.
+-- Each entry carries the spell IDs its aura may use (base, override, linked) so the strip can
+-- watch it through a client aura slot. Nothing here reads live cooldown or aura state.
 local core, panel = RikUI, RikUI.Cooldowns
 local native = {}
 panel.Native = native
@@ -110,19 +111,6 @@ function native.Read()
     local ok, list = pcall(collect, source)
     if not ok then return nil, tostring(list) end
     return list, sourceLabel(source)
-end
-
--- Spell IDs whose auras the class effect rows should show: tracked categories and aura-backed
--- strip entries, split by whether the aura sits on the player or on the target.
-function native.AuraIDs(list)
-    local sets = { player = {}, target = {} }
-    for _, entry in ipairs(list or {}) do
-        if not entry.strip or (entry.hasAura and not entry.hideAura) then
-            local set = entry.selfAura and sets.player or sets.target
-            for _, id in ipairs(entry.auraIDs) do set[id] = true end
-        end
-    end
-    return sets
 end
 
 local function enabled()

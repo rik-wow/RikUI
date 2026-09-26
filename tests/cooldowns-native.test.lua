@@ -102,14 +102,15 @@ return function(check)
         local panel = load()
         check("login turns the native viewers off and remembers that RikUI did it", cvar == "0"
             and RikUI.CharDB.cooldownsHidNative == true and printed("replaces Blizzard's cooldown viewer"))
-        check("provider lists lead the strip in their order, catalogued ranks upgraded, aura entries left out",
-            ids(panel) == "1671,5000,6552" and panel.Source == "provider")
-        local sets = panel.Native.AuraIDs(select(1, panel.Native.Read()))
-        check("aura sets split tracked and aura-backed entries by unit, with overrides and linked spells",
-            sets.target[5000] and sets.target[5100] and not sets.target[72]
-            and sets.player[7000] and sets.player[7001] and not sets.player[5000])
+        check("provider lists lead the strip in their order, catalogued ranks upgraded, tracked entries as cells",
+            ids(panel) == "1671,5000,6552,7001" and panel.Source == "provider")
+        local function entry(index) return (panel.Native.Read())[index] end
+        check("entries carry every aura ID the client lists, with overrides and linked spells",
+            entry(2).auraIDs[1] == 5000 and entry(2).auraIDs[2] == 5100 and not entry(2).selfAura
+            and entry(4).selfAura and entry(4).spellID == 7001 and entry(4).auraIDs[1] == 7000 and entry(4).auraIDs[2] == 7001
+            and entry(1).hasAura == false and #entry(1).auraIDs == 1)
         infos[11].flags = 1
-        check("hidden-aura entries stay out of the aura sets", not panel.Native.AuraIDs(select(1, panel.Native.Read())).target[5000])
+        check("hidden-aura entries say so", entry(2).hideAura == true)
         infos[11].flags = 0
 
         env.printed = {}
@@ -124,9 +125,9 @@ return function(check)
 
         lists[0] = { 11, 10 }
         assert(callbacks["CooldownViewerSettings.OnDataChanged"], "data-changed callback registered")()
-        check("a data change rebuilds after the client's notify pass, not inside it", ids(panel) == "1671,5000,6552" and #env.timers == 1)
+        check("a data change rebuilds after the client's notify pass, not inside it", ids(panel) == "1671,5000,6552,7001" and #env.timers == 1)
         env.flushTimers()
-        check("the rebuild follows the provider's new order", ids(panel) == "5000,1671,6552")
+        check("the rebuild follows the provider's new order", ids(panel) == "5000,1671,6552,7001")
 
         layoutLoaded = false
         env.fire("COOLDOWN_VIEWER_DATA_LOADED")

@@ -237,6 +237,7 @@ src/modules/extrabuttons/extrabuttons.lua
 src/modules/extrabuttons/proc-overlay.lua
 src/modules/cooldowns/cooldowns.lua
 src/modules/cooldowns/cooldowns-strip.lua
+src/modules/cooldowns/cooldowns-cells.lua
 src/modules/cooldowns/cooldowns-native.lua
 src/modules/cooldowns/cooldowns-controls.lua
 data/class-cooldowns-warlock.lua

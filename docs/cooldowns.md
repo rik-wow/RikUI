@@ -29,6 +29,18 @@ same family are skipped; an entry outside the catalogue shows only when its
 spell ID is in the spellbook. RikUI's class list then adds families the client
 did not list. The strip caps at 21 icons.
 
+Some cells watch an aura instead of, or as well as, a cooldown. A native entry
+with an aura (Immolate, a tracked buff or bar) and a class **aura cell** (the
+paladin's single **Seal** cell, which stands for every seal) host one of the
+client's aura slots over the cell: while the aura is up the client draws its
+icon, timer and stacks there; when it is not, the cell's own icon shows dimmed
+(a tracked entry or class cell) or its cooldown state (a cooldown with an aura).
+The slot watches every spell ID the client lists for the entry (base, override
+and linked) or every rank of every family in the class cell, on the player for
+self auras and on the target for the rest. The client only lets an include
+list select helpful auras on the player and harmful auras on a hostile target,
+so a harmful aura on the player cannot be shown this way.
+
 The client supplies cooldown swipes, recharge edges, countdown text and charge
 or reagent counts through duration objects, which stay valid while their values
 are secret in combat. The global cooldown is excluded. Icons remain visible when
@@ -42,15 +54,15 @@ it; combat defers and coalesces those refreshes; cooldown/count events keep
 updating the displayed spells. An incomplete spellbook scan or an unreadable
 native entry preserves the last complete strip. Nothing learned hides the strip.
 
-`/rik debug` prints the icon count, how many came from the client and from the
-class list, what was skipped (unlearned, duplicates, item-only, capped), which
+`/rik debug` prints the icon count, how many came from the client, from class
+aura cells and from the class list, what was skipped (unlearned, duplicates,
+item-only, capped), which
 native source answered (`provider`, `provider-default-order`, `api`, `absent`)
 and whether the native viewers are hidden.
 
 The module never edits the client's cooldown settings, action slots or macros
-and never reads live aura state; aura-backed native entries (tracked buffs and
-bars, entries with an aura) are handed to the [class effect rows](class-effects.md),
-which show them through the client's secure aura containers. It does not infer
+and never reads live aura state; aura cells are the client's own secure aura
+slots, positioned and decorated by RikUI. It does not infer
 aura procs, reset timing, missing buffs or rotations, and never calculates
 remaining time from secret values. Pets, item-use effects, racials and
 unpublished abilities are outside the curated class lists below.
@@ -82,9 +94,16 @@ write, spec switch, `SPELLS_CHANGED` and the initial load fire the
 `CooldownViewerSettings.OnDataChanged` callback; and `Blizzard_CooldownViewer`
 is not load-on-demand, so the provider exists at login whatever the setting.
 
+Blizzard's 69977 `CustomAuraContainerTemplate` also offers aura slots
+(`AddAuraSlot`): one frame per key that the container shows with the aura's
+icon and duration while a matching aura is present and hides otherwise, left
+for the caller to position. The strip anchors each slot over its cell. Slots
+are never removed, only refiltered or disabled, so a rebuilt strip reuses them.
+
 Automated tests exercise the merge order and both dedupe rules, item-only and
-capped entries, provider and API reads, unreadable fields, the setting policy
-in and out of combat, the data-changed callback, aura ID sets, the flyout
+capped entries, aura cells (slot filters, placement, dimming, disabling and
+class cells), provider and API reads, unreadable fields, the setting policy
+in and out of combat, the data-changed callback, the flyout
 controls, membership updates, combat login, coalescing, opaque native values,
 module disablement and layouts (`tests/cooldowns*.test.lua`). Native behavior
 is accepted by the user; no agent-observed client result is claimed.

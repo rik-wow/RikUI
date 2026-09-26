@@ -6,8 +6,9 @@ panel.Strip = strip
 local SIZE, GAP, COLUMNS, WIDTH, MIN_ROWS, MAX_ROWS = 36, 4, 7, 280, 2, 3
 local PITCH = SIZE + GAP
 local TIMER_FONT, CHARGE_FONT, COUNT_FONT = 18, 12, 13
+local DIM_ALPHA = 0.55  -- a pure aura cell whose aura is not up
 local KEY, LABEL = "cooldowns", "Cooldowns"
-strip.MAX_ENTRIES, strip.WIDTH = COLUMNS * MAX_ROWS, WIDTH
+strip.MAX_ENTRIES, strip.WIDTH, strip.SIZE = COLUMNS * MAX_ROWS, WIDTH, SIZE
 local pool = {}
 
 function strip.Height(rows) return math.max(MIN_ROWS, rows) * PITCH - GAP end
@@ -107,6 +108,8 @@ local function icon(button, entry)
         if core.Secret.IsSecret(value) or value ~= nil then button.icon:SetTexture(value) end
     end, C_Spell and C_Spell.GetSpellTexture, entry.id)
     if not ok then panel.Warn("texture", reason) end
+    button.icon:SetDesaturated(entry.dim == true)
+    button.icon:SetAlpha(entry.dim and DIM_ALPHA or 1)
 end
 
 -- The first entries take the bottom row, nearest the resource strip; every row is centred.
@@ -138,6 +141,10 @@ function strip.Apply(entries)
     end
     strip.Frame:SetSize(WIDTH, strip.Height(rowsFor(#entries)))
     arrange(#entries)
+    if panel.Cells then
+        for index, entry in ipairs(entries) do panel.Cells.Attach(index, panel.Buttons[index], entry.aura) end
+        panel.Cells.Trim(#entries)
+    end
     strip.Frame:SetShown(#entries > 0)
     strip.Refresh()
 end

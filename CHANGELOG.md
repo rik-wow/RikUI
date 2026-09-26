@@ -20,10 +20,12 @@ tagging.
   ignored. Paladins get Judgement there from level 4, since Judgement now
   leads the paladin list. Run `/rik hud` on an existing profile to place the
   strip and the class effect rows.
-- The class effect rows, now labelled Buffs and Target effects, also show the
-  spells Blizzard's cooldown manager tracks as buffs, bars and aura-backed
-  entries, so its tracked buffs and your DoTs sit beside the strip instead of
-  in separate native rows.
+- Aura cells in the strip. Entries with an aura (Immolate, Blizzard's tracked
+  buffs and bars) show the aura's icon and timer in their cell while it is up,
+  the way the native rows did, and their own icon dimmed when it is not.
+  Paladins get one Seal cell next to Judgement: dim until a seal is active,
+  then whichever seal it is, with its timer. The seven seals leave the Buffs
+  row. The class effect rows are now labelled Buffs and Target effects.
 - The locally built quest corpus and road networks now install inside the
   RikUI folder (`generated/`, pulled in by the committed `generated/index.xml`)
   and load with the addon. Only the mesh patches stay as separate

@@ -90,6 +90,32 @@ function stub.installContainer(container)
         local group = assert(self.groups[key], "aura group '" .. tostring(key) .. "' does not exist.")
         group.enabled = enabled ~= false
     end
+    -- Aura slots: one frame bound to a spell set, shown by the client while the aura is present.
+    -- The caller positions the frame; slots are never removed, only refiltered or disabled.
+    container.slots = {}
+    function container:HasAuraSlot(key) return self.slots[key] ~= nil end
+    function container:AddAuraSlot(key, filter, options)
+        assert(type(key) == "string" and key ~= "", "slotKey must be a non-empty string.")
+        assert(validFilter(filter), "Unknown aura filter component: " .. tostring(filter))
+        assert(not self.slots[key], "aura slot '" .. key .. "' already exists with this key.")
+        options = validateGroupOptions(options)
+        local frame = createButton(self, options)
+        self.slots[key] = { key = key, filter = filter, options = options, frame = frame, enabled = true }
+        self.updates = self.updates + 1
+        return frame
+    end
+    function container:GetAuraSlotFrame(key) return self.slots[key] and self.slots[key].frame or nil end
+    function container:SetAuraSlotCandidateFilters(key, filters)
+        local slot = assert(self.slots[key], "aura slot '" .. tostring(key) .. "' was not found with this key.")
+        assert(type(filters) == "table", "candidateFilters must be a table.")
+        slot.options.candidateFilters = filters
+        self.updates = self.updates + 1
+    end
+    function container:SetAuraSlotEnabled(key, enabled)
+        local slot = assert(self.slots[key], "aura slot '" .. tostring(key) .. "' was not found with this key.")
+        assert(type(enabled) == "boolean", "enabled must be a boolean.")
+        slot.enabled = enabled
+    end
     function container:GetAuraGroupFrame(key, index)
         local group = self.groups[key]
         return group and group.frames[index] or nil

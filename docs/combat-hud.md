@@ -6,10 +6,10 @@ RikUI's combat HUD brings the information you act on into one area above the act
 
 | Information | Role in the HUD | What adapts |
 | --- | --- | --- |
-| Cooldowns | One RikUI strip in the centre: the client's configured entries, then the learned class list | The client's order and hidden choices, learned ranks, spell overrides |
+| Cooldowns | One RikUI strip in the centre: the client's configured entries, class aura cells (the paladin Seal cell), then the learned class list | The client's order and hidden choices, learned ranks, spell overrides, the client's aura slots over aura-backed cells |
 | Primary resource | A narrow strip below the central rows | Current client power type, including Druid form changes |
 | Player cast/channel | Directly below the resource strip | Existing native duration and cast events |
-| Important personal buffs and target effects | Class effect rows either side of the cast bar and resource strip | The class catalogue plus the client's tracked and aura-backed entries, native aura filtering |
+| Important personal buffs and target effects | Class effect rows either side of the cast bar and resource strip | The class catalogue, native aura filtering |
 | Combo points, totems and form mana | Small supporting displays | Relevant class, form and native state |
 | Weapon timers | Bottom of the central resource/cast stack | Native melee, ranged and wand events; existing kiting cues |
 | Proc and loss-of-control alerts | Brief attention cues | Client-owned activation and lifetime |

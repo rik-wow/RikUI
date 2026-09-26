@@ -16,3 +16,9 @@ RikUI.ClassCooldownProfiles.PALADIN = {
     "Exorcism",
     "Holy Strike",
 }
+-- One Seal cell in the strip: dim until a seal is up, then the client shows the active seal's
+-- icon and timer over it, whichever seal it is (user's choice, 2026-09-25).
+RikUI.ClassAuraCells.PALADIN = {
+    { label = "Seal", unit = "player", families = { "Seal of Righteousness", "Seal of the Crusader", "Seal of Fury",
+        "Seal of Command", "Seal of Light", "Seal of Wisdom", "Seal of Justice" } },
+}

@@ -5,6 +5,8 @@ local core = RikUI
 local panel = { title = "Cooldowns", Entries = {}, Stats = {}, Buttons = {} }
 core.Cooldowns = panel
 core.ClassCooldownProfiles = core.ClassCooldownProfiles or {}
+-- Per class: aura cells for the strip, e.g. { label = "Seal", unit = "player", families = { ... } }.
+core.ClassAuraCells = core.ClassAuraCells or {}
 local MAX_PROFILE, REBUILD_KEY, NATIVE_ADDON = 12, "cooldowns-rebuild", "Blizzard_CooldownViewer"
 local MEMBERSHIP_EVENTS = { "SPELLS_CHANGED", "LEARNED_SPELL_IN_SKILL_LINE", "PLAYER_TALENT_UPDATE",
     "TRAIT_CONFIG_UPDATED", "ACTIVE_COMBAT_CONFIG_CHANGED", "PLAYER_ENTERING_WORLD",
@@ -70,19 +72,80 @@ local function nativeEntry(entry, class, known, placed, stats)
     return { id = entry.spellID, source = "native" }
 end
 
--- Native strip entries in the client's order ahead of the profile; families appear once.
-function panel.Merge(native, profile, class, known)
-    local stats = { native = 0, profile = 0, unlearned = 0, duplicates = 0, itemOnly = 0, capped = 0 }
+-- The aura a cell watches: every ID the client lists for the entry, on the player or the target.
+local function auraOf(entry)
+    if entry.hideAura or (entry.strip and not entry.hasAura) then return nil end
+    local ids = {}
+    for _, id in ipairs(entry.auraIDs or {}) do ids[id] = true end
+    if next(ids) == nil then return nil end
+    return { unit = entry.selfAura and "player" or "target", ids = ids }
+end
+
+-- A tracked-category entry is a pure aura cell: its own icon, dim until the aura is up.
+local function trackedEntry(entry, class, placed, stats)
+    if not entry.spellID then stats.itemOnly = stats.itemOnly + 1; return nil end
+    local key = core.Spells.FamilyOf(entry.spellID, class) or ("id:" .. entry.spellID)
+    if placed[key] then stats.duplicates = stats.duplicates + 1; return nil end
+    placed[key] = true
+    return { id = entry.spellID, source = "native", dim = true, aura = auraOf(entry) }
+end
+
+-- A class cell (data/class-cooldowns-<class>.lua): one icon for a family set, e.g. "Seal" for
+-- every seal, drawn from the first learned family and watching every rank of every family.
+function panel.ResolveCells(class, list)
+    if type(list) ~= "table" then return {} end
+    local result = {}
+    for _, cell in ipairs(list) do
+        local ids, families, id, icon = {}, {}, nil, nil
+        for _, name in ipairs(cell.families or {}) do
+            local entry = core.Spells.Entry(name, class)
+            if not entry then return nil, "unknown class spell " .. tostring(name) end
+            for _, rank in ipairs(entry.ranks) do ids[rank] = true end
+            families[#families + 1] = name
+            if not id then
+                local known, reason = core.Spells.HighestKnownRank(name, class)
+                if reason then return nil, reason end
+                if known ~= nil and validID(known) then id, icon = known, entry.icon end
+            end
+        end
+        if id then
+            result[#result + 1] = { id = id, name = cell.label, icon = icon, families = families, source = "cell",
+                dim = true, aura = { unit = cell.unit == "target" and "target" or "player", ids = ids } }
+        end
+    end
+    return result
+end
+
+local function placeCell(cell, placed, stats)
+    for _, name in ipairs(cell.families) do
+        if placed[name] then stats.duplicates = stats.duplicates + 1; return nil end
+    end
+    for _, name in ipairs(cell.families) do placed[name] = true end
+    return cell
+end
+
+-- Native entries in the client's order (strip categories, then tracked ones as aura cells), the
+-- class aura cells, then the class cooldown profile; a family appears once.
+function panel.Merge(native, profile, cells, class, known)
+    local stats = { native = 0, cells = 0, profile = 0, unlearned = 0, duplicates = 0, itemOnly = 0, capped = 0 }
     local placed, result = {}, {}
+    local function add(entry, counter)
+        if entry then result[#result + 1] = entry; stats[counter] = stats[counter] + 1 end
+    end
     for _, entry in ipairs(native) do
         if entry.strip then
             local resolved = nativeEntry(entry, class, known, placed, stats)
-            if resolved then result[#result + 1] = resolved; stats.native = stats.native + 1 end
+            if resolved then resolved.aura = auraOf(entry) end
+            add(resolved, "native")
         end
     end
+    for _, entry in ipairs(native) do
+        if not entry.strip then add(trackedEntry(entry, class, placed, stats), "native") end
+    end
+    for _, cell in ipairs(cells) do add(placeCell(cell, placed, stats), "cells") end
     for _, entry in ipairs(profile) do
         if placed[entry.name] then stats.duplicates = stats.duplicates + 1
-        else placed[entry.name] = true; result[#result + 1] = entry; stats.profile = stats.profile + 1 end
+        else placed[entry.name] = true; add(entry, "profile") end
     end
     local limit = panel.Strip and panel.Strip.MAX_ENTRIES or #result
     while #result > limit do table.remove(result); stats.capped = stats.capped + 1 end
@@ -100,27 +163,26 @@ local function compose(class)
     if not known then return nil, reason end
     local profile, problem = panel.Resolve(class, core.ClassCooldownProfiles[class] or {})
     if not profile then return nil, problem end
+    local cells, trouble = panel.ResolveCells(class, core.ClassAuraCells[class])
+    if not cells then return nil, trouble end
     local native, source = {}, "absent"
     if panel.Native then
         native, source = panel.Native.Read()
         if not native then return nil, "native entries " .. tostring(source) end
     end
-    local entries, stats = panel.Merge(native, profile, class, known)
-    return entries, stats, native, source
+    local entries, stats = panel.Merge(native, profile, cells, class, known)
+    return entries, stats, source
 end
 
 function panel.Rebuild()
     if panel.enabled == false then return end
     local class = readClass()
     if not class then return end
-    local ok, entries, stats, native, source = pcall(compose, class)
+    local ok, entries, stats, source = pcall(compose, class)
     if not ok then panel.Warn("spellbook", entries); return end
     if not entries then panel.Warn("spellbook", stats); return end
     panel.Entries, panel.Stats, panel.Source = entries, stats, source
     if panel.Strip then panel.Strip.Apply(entries) end
-    if panel.Native and core.ClassAuras and core.ClassAuras.SetNativeAuraIDs then
-        core.ClassAuras.SetNativeAuraIDs(panel.Native.AuraIDs(native))
-    end
 end
 
 function panel.Schedule()
@@ -134,13 +196,14 @@ function panel:OnEnable()
     -- The client's settings provider (the native part of the list) exists once its viewer addon loads.
     core:RegisterEvent("ADDON_LOADED", function(_, name) if name == NATIVE_ADDON then panel.Schedule() end end)
     if panel.Native then panel.Native.Enable() end
+    if panel.Cells then panel.Cells.Enable() end
     if panel.Controls and core.Shell then panel.Controls.Create() end
 end
 
 function panel:Debug()
     local s = panel.Stats
-    core:Print(string.format("Cooldowns: %d icons (native=%d, profile=%d; skipped unlearned=%d, duplicates=%d, item-only=%d, capped=%d); provider=%s; native viewers=%s",
-        #panel.Entries, s.native or 0, s.profile or 0, s.unlearned or 0, s.duplicates or 0, s.itemOnly or 0, s.capped or 0,
+    core:Print(string.format("Cooldowns: %d icons (native=%d, cells=%d, profile=%d; skipped unlearned=%d, duplicates=%d, item-only=%d, capped=%d); provider=%s; native viewers=%s",
+        #panel.Entries, s.native or 0, s.cells or 0, s.profile or 0, s.unlearned or 0, s.duplicates or 0, s.itemOnly or 0, s.capped or 0,
         tostring(panel.Source or "absent"), panel.Native and panel.Native.ViewerState() or "unknown"))
 end
 
