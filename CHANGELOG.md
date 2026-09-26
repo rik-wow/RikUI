@@ -6,6 +6,16 @@ and carry no notes. The BigWigs packager ships this file in the release ZIP
 and uses it as the GitHub release text, so add the new version here before
 tagging.
 
+## Unreleased
+
+- The locally built quest corpus and road networks now install inside the
+  RikUI folder (`generated/`, pulled in by the committed `generated/index.xml`)
+  and load with the addon. Only the mesh patches stay as separate
+  load-on-demand folders, in 16 MiB packs: about sixteen folders instead of
+  the 697 companion addons the previous layout needed. Reinstall both with
+  `tools/quest_corpus.py install --rikui ...` and
+  `tools/terrain/install_roads.py install --addons ...`, then restart the client.
+
 ## 1.0.0
 
 First release, built for the WoW: Forever beta (interface 16001).

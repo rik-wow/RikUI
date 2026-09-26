@@ -12,6 +12,15 @@ corpus = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(corpus)
 
 
+def rikui_folder(addons):
+    """A minimal installed RikUI folder: the installer requires the committed include."""
+    rikui = addons / "RikUI"
+    (rikui / "generated").mkdir(parents=True)
+    (rikui / "RikUI.toc").write_text("## Title: RikUI\n")
+    (rikui / "generated" / "index.xml").write_text("<Ui/>\n")
+    return rikui
+
+
 def fixture():
     return {
         "schemaVersion": 1, "provider": {"revision": corpus.PIN, "flavor": "Forever"},
@@ -301,8 +310,13 @@ class CorpusTests(unittest.TestCase):
             catalog = json.loads((output / "catalog.json").read_text(encoding="utf8"))
             self.assertEqual(catalog["revision"], first["corpusRevision"])
             self.assertNotEqual(catalog["revision"], corpus.PIN)
-            lua_data = "\n".join(path.read_text(encoding="utf8") for path in (output / "addons").rglob("Data.lua"))
+            pages = sorted((output / "generated" / "corpus").glob("p*.lua"))
+            lua_data = "\n".join(path.read_text(encoding="utf8") for path in pages)
             self.assertIn('Register(0,"' + first["corpusRevision"] + '"', lua_data)
+            self.assertTrue(lua_data.startswith('RikUI.QuestPlanner.SemanticData.Page("P00000_S001",function()'))
+            include = (output / "generated" / "corpus" / "corpus.xml").read_text(encoding="utf8")
+            self.assertEqual(include.count("<Script file="), len(pages) + 1)
+            self.assertEqual(catalog["partitions"]["0"]["pages"][0], "P00000_S001")
             raw = json.loads((output / "audit/source-export.json").read_text(encoding="utf8"))
             self.assertEqual(raw["base"]["quests"]["1"]["unsupportedFutureField"], {"proof": 7})
             (output / "unexpected.txt").write_text("stale")
@@ -310,26 +324,31 @@ class CorpusTests(unittest.TestCase):
                 corpus.verify(output)
             (output / "unexpected.txt").unlink()
             addons = root / "AddOns"
-            addons.mkdir()
+            rikui = rikui_folder(addons)
             unrelated = addons / "UserAddon"
             unrelated.mkdir()
             (unrelated / "data.txt").write_text("keep")
-            corpus.install(output, addons)
-            corpus.verify_installed(output, addons)
-            before = (addons / "RikUIQuestCorpus" / "Catalog.lua").read_bytes()
+            with self.assertRaises(ValueError):
+                corpus.install(output, unrelated)
+            corpus.install(output, rikui)
+            corpus.verify_installed(output, rikui)
+            installed = rikui / "generated" / "corpus" / "catalog.lua"
+            before = installed.read_bytes()
             with mock.patch.object(corpus, "verify_installed", side_effect=ValueError("injected")):
                 with self.assertRaises(ValueError):
-                    corpus.install(output, addons)
-            self.assertEqual((addons / "RikUIQuestCorpus" / "Catalog.lua").read_bytes(), before)
+                    corpus.install(output, rikui)
+            self.assertEqual(installed.read_bytes(), before)
             stale = addons / "RikUIQuestCorpus_P99999"
             stale.mkdir()
             (stale / "old.lua").write_text("old")
             with self.assertRaises(ValueError):
-                corpus.install(output, addons)
+                corpus.install(output, rikui)
             corpus.write_json(stale, corpus.OWNERSHIP_FILE, {"owner": "RikUI quest_corpus", "files": corpus.owned_files(stale)})
-            result = corpus.install(output, addons)
-            self.assertEqual(result["removedStaleAddons"], [stale.name])
+            result = corpus.install(output, rikui)
+            self.assertEqual(result["removedLegacyAddons"], [stale.name])
+            self.assertFalse(stale.exists())
             self.assertTrue((unrelated / "data.txt").is_file())
+            self.assertEqual(sorted(p.name for p in (rikui / "generated").iterdir()), ["corpus", "index.xml"])
 
     def test_failed_restore_keeps_backup_for_recovery(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -337,9 +356,9 @@ class CorpusTests(unittest.TestCase):
             export = root / "export.json"
             export.write_text(corpus.canonical(fixture()), encoding="utf8")
             output, addons = root / "build", root / "AddOns"
-            addons.mkdir()
+            rikui = rikui_folder(addons)
             corpus.build(export, output)
-            corpus.install(output, addons)
+            corpus.install(output, rikui)
             original_replace = Path.replace
             def replacement(path, target):
                 if path.parent.name == "previous":
@@ -347,11 +366,11 @@ class CorpusTests(unittest.TestCase):
                 return original_replace(path, target)
             with mock.patch.object(corpus, "verify_installed", side_effect=ValueError("injected install failure")), mock.patch.object(Path, "replace", replacement):
                 with self.assertRaises(RuntimeError):
-                    corpus.install(output, addons)
-            retained = list(root.glob(".rikuicorpus-install-*"))
+                    corpus.install(output, rikui)
+            retained = list((rikui / "generated").glob(".rikuicorpus-install-*"))
             self.assertEqual(len(retained), 1)
             self.assertTrue((retained[0] / "RECOVERY.json").is_file())
-            self.assertTrue((retained[0] / "previous" / "RikUIQuestCorpus" / "Catalog.lua").is_file())
+            self.assertTrue((retained[0] / "previous" / "corpus" / "catalog.lua").is_file())
 
     def test_malformed_pin_and_duplicate_json_fail_closed(self):
         with tempfile.TemporaryDirectory() as temporary:

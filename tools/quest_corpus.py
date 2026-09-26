@@ -728,7 +728,37 @@ def write_json(root, relative, value):
 
 
 OWNERSHIP_FILE = ".rikui-corpus-owned.json"
-COMPANION_PATTERN = r"RikUIQuestCorpus_P[0-9]{5}(?:_S[0-9]{3})?"
+# Generated pages ship inside the RikUI addon folder; generated/index.xml
+# (committed) includes corpus/corpus.xml, so they load with the addon.
+EMBEDDED = "generated/corpus/"
+XML_HEAD = '<Ui xmlns="http://www.blizzard.com/wow/ui/">\n'
+# Folders of the retired companion layout, moved to a backup by install.
+LEGACY_PATTERN = r"RikUIQuestCorpus(?:_P[0-9]{5}(?:_S[0-9]{3})?)?"
+
+
+def lua_page(key, body):
+    """A partition page: the shard body deferred until the runtime asks for it."""
+    return f'RikUI.QuestPlanner.SemanticData.Page("{key}",function()\n{body}end)\n'
+
+
+def lua_include(names):
+    return XML_HEAD + "".join(f'\t<Script file="{name}"/>\n' for name in names) + "</Ui>\n"
+
+
+def rikui_root(path):
+    """The RikUI addon folder; a symlink or junction to a checkout is followed."""
+    root = Path(path).resolve()
+    if not (root / "RikUI.toc").is_file() or not (root / "generated" / "index.xml").is_file():
+        raise ValueError("installation target must be the RikUI addon folder with generated/index.xml")
+    return root
+
+
+def legacy_companions(path):
+    """Retired RikUIQuestCorpus* folders beside the (unresolved) RikUI folder."""
+    addons = Path(path).absolute().parent
+    if addons.name.lower() != "addons":
+        return addons, []
+    return addons, sorted(p.name for p in addons.iterdir() if p.is_dir() and re.fullmatch(LEGACY_PATTERN, p.name))
 
 
 def owned_files(folder):
@@ -939,19 +969,19 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
             catalog["eventMemberships"] = event_metadata
         if client_metadata:
             catalog["clientIndex"] = client_metadata
-        toc = "## Interface: 16001\n## Title: RikUI Forever Quest Corpus\n## Notes: Local generated QuestieDB data; provenance in build manifest\n## LoadOnDemand: 1\n"
-        write_bytes(stage, "addons/RikUIQuestCorpus/RikUIQuestCorpus.toc", (toc + "Catalog.lua\n").encode())
+        page_files = []
         for bucket, rows in sorted(partitions.items()):
-            partition_name = f"RikUIQuestCorpus_P{bucket:05d}"
             bodies = lua_partition(bucket, rows, revision)
             if len(bodies) > 999:
                 raise ValueError("partition exceeds 999 shard bound")
-            shard_names = [f"{partition_name}_S{index + 1:03d}" for index in range(len(bodies))]
-            names[bucket] = {"addons": shard_names}
-            for name, body in zip(shard_names, bodies):
-                write_bytes(stage, f"addons/{name}/{name}.toc", (toc + "## Dependencies: RikUI, RikUIQuestCorpus\nData.lua\n").encode())
-                write_bytes(stage, f"addons/{name}/Data.lua", body.encode("utf-8"))
-        write_bytes(stage, "addons/RikUIQuestCorpus/Catalog.lua", ("RikUIQuestCorpusCatalog=" + lua(catalog) + "\n").encode("utf-8"))
+            keys = [f"P{bucket:05d}_S{index + 1:03d}" for index in range(len(bodies))]
+            names[bucket] = {"pages": keys}
+            for key, body in zip(keys, bodies):
+                file = key.lower().replace("_", "-") + ".lua"
+                page_files.append(file)
+                write_bytes(stage, EMBEDDED + file, lua_page(key, body).encode("utf-8"))
+        write_bytes(stage, EMBEDDED + "catalog.lua", ("RikUIQuestCorpusCatalog=" + lua(catalog) + "\n").encode("utf-8"))
+        write_bytes(stage, EMBEDDED + "corpus.xml", lua_include(["catalog.lua", *page_files]).encode("utf-8"))
         write_json(stage, "catalog.json", catalog)
         write_json(stage, "coverage.json", compiler.report)
         write_bytes(stage, "audit/source-export.json", raw)
@@ -963,8 +993,8 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
             write_bytes(stage, "audit/QuestV2.csv", client_raw)
         write_json(stage, "audit/semantic-quests.json", records)
         write_bytes(stage, "LOCAL_ONLY.txt", b"Locally generated from QuestieDB. No upstream redistribution grant has been established. Do not commit or distribute generated data.\n")
-        for folder in (stage / "addons").iterdir():
-            write_json(folder, OWNERSHIP_FILE, {"owner": "RikUI quest_corpus", "sourceSHA256": sha(raw), "files": owned_files(folder)})
+        folder = stage / EMBEDDED
+        write_json(folder, OWNERSHIP_FILE, {"owner": "RikUI quest_corpus", "sourceSHA256": sha(raw), "files": owned_files(folder)})
         manifest = {"schemaVersion": 1, "compilerVersion": 1, "compilerSHA256": compiler_hash, "corpusRevision": revision, "provider": data["provider"], "identity": IDENTITY, "sourceSHA256": sha(raw), "partitionSize": partition_size, "terms": catalog["terms"], "counts": compiler.report["counts"], "files": manifest_files(stage)}
         if proof:
             manifest["providerProof"] = proof
@@ -1001,59 +1031,75 @@ def verify(output):
     return manifest
 
 
-def install(output, addons):
-    output, addons = safe_output(output), Path(addons).resolve()
+def install(output, rikui):
+    """Place generated/corpus inside the RikUI folder; move the previous pages and
+    any retired RikUIQuestCorpus* companion folders beside RikUI to a backup."""
+    output, target = safe_output(output), rikui_root(rikui)
     manifest = verify(output)
-    if not addons.is_dir() or addons.name.lower() != "addons":
-        raise ValueError("installation target must be an existing AddOns directory")
-    source = output / "addons"
-    generated = {path.name for path in source.iterdir() if path.is_dir()}
-    existing = {path.name for path in addons.iterdir() if path.is_dir() and (path.name == "RikUIQuestCorpus" or re.fullmatch(COMPANION_PATTERN, path.name))}
-    for name in sorted(existing):
+    source = output / EMBEDDED
+    corpus = target / EMBEDDED
+    addons, legacy = legacy_companions(rikui)
+    if corpus.exists():
+        verify_owned(corpus)
+    for name in legacy:
         verify_owned(addons / name)
-    staging = Path(tempfile.mkdtemp(prefix=".rikuicorpus-install-", dir=addons.parent))
+    # Renames must stay on one volume: the pages stage inside generated/ (the
+    # RikUI folder may be a junction to another drive), legacy folders beside AddOns.
+    staging = Path(tempfile.mkdtemp(prefix=".rikuicorpus-install-", dir=target / "generated"))
     backup = staging / "previous"
     backup.mkdir()
-    placed, moved, cleanup = [], [], True
+    legacy_backup = Path(tempfile.mkdtemp(prefix=".rikuicorpus-install-", dir=addons.parent)) / "previous" if legacy else None
+    if legacy_backup:
+        legacy_backup.mkdir()
+    placed, moved, cleanup = False, [], True
     try:
-        for name in sorted(generated):
-            shutil.copytree(source / name, staging / name)
-        for name in sorted(existing):
-            (addons / name).replace(backup / name)
+        shutil.copytree(source, staging / "corpus")
+        if corpus.exists():
+            corpus.replace(backup / "corpus")
+            moved.append("corpus")
+        for name in legacy:
+            (addons / name).replace(legacy_backup / name)
             moved.append(name)
-        for name in sorted(generated):
-            (staging / name).replace(addons / name)
-            placed.append(name)
-        verify_installed(output, addons)
+        (staging / "corpus").replace(corpus)
+        placed = True
+        verify_installed(output, target)
     except BaseException as original:
         try:
-            for name in placed:
-                shutil.rmtree(addons / name)
+            if placed:
+                shutil.rmtree(corpus)
             for name in moved:
-                (backup / name).replace(addons / name)
+                if name == "corpus":
+                    (backup / name).replace(corpus)
+                else:
+                    (legacy_backup / name).replace(addons / name)
         except BaseException as rollback_error:
             cleanup = False
-            write_json(staging, "RECOVERY.json", {"target": str(addons), "placed": placed, "moved": moved, "error": str(original), "rollbackError": str(rollback_error), "instruction": "Keep this directory; remaining prior companions are in previous/."})
+            write_json(staging, "RECOVERY.json", {"target": str(target), "placed": placed, "moved": moved, "legacyBackup": str(legacy_backup), "error": str(original), "rollbackError": str(rollback_error), "instruction": "Keep this directory; remaining prior data is in previous/."})
             raise RuntimeError(f"install rollback incomplete; backup retained at {staging}") from rollback_error
         raise
     finally:
         if cleanup:
             shutil.rmtree(staging)
-    return {"installedAddons": len(generated), "removedStaleAddons": sorted(existing - generated), "sourceSHA256": manifest["sourceSHA256"]}
+            if legacy_backup:
+                shutil.rmtree(legacy_backup.parent)
+    return {"installedFiles": len([k for k in manifest["files"] if k.startswith(EMBEDDED)]), "removedLegacyAddons": legacy, "sourceSHA256": manifest["sourceSHA256"]}
 
 
-def verify_installed(output, addons):
-    output, addons = Path(output), Path(addons).resolve()
+def verify_installed(output, rikui):
+    output, target = Path(output), rikui_root(rikui)
     manifest = verify(output)
-    expected = {key.removeprefix("addons/"): value for key, value in manifest["files"].items() if key.startswith("addons/")}
+    expected = {key: value for key, value in manifest["files"].items() if key.startswith(EMBEDDED)}
     actual = {}
-    for folder in addons.iterdir():
-        if folder.is_dir() and (folder.name == "RikUIQuestCorpus" or re.fullmatch(COMPANION_PATTERN, folder.name)):
-            for path in folder.rglob("*"):
-                if path.is_file():
-                    actual[path.relative_to(addons).as_posix()] = {"sha256": sha(path.read_bytes()), "bytes": path.stat().st_size}
+    corpus = target / EMBEDDED
+    if corpus.is_dir():
+        for path in corpus.rglob("*"):
+            if path.is_file():
+                actual[EMBEDDED + path.relative_to(corpus).as_posix()] = {"sha256": sha(path.read_bytes()), "bytes": path.stat().st_size}
     if actual != expected:
         raise ValueError("installed files differ from exact manifest, including stale files")
+    _, legacy = legacy_companions(rikui)
+    if legacy:
+        raise ValueError("retired companion folders remain beside RikUI: " + ", ".join(legacy))
     return {"verifiedFiles": len(expected)}
 
 
@@ -1071,7 +1117,7 @@ def main(argv=None):
         command = sub.add_parser(name)
         command.add_argument("--output", required=True, type=Path)
         if name != "verify":
-            command.add_argument("--addons", required=True, type=Path)
+            command.add_argument("--rikui", required=True, type=Path, help="the installed RikUI addon folder (Interface/AddOns/RikUI)")
     args = parser.parse_args(argv)
     try:
         if args.command == "build":
@@ -1082,9 +1128,9 @@ def main(argv=None):
         elif args.command == "verify":
             result = verify(args.output)
         elif args.command == "install":
-            result = install(args.output, args.addons)
+            result = install(args.output, args.rikui)
         else:
-            result = verify_installed(args.output, args.addons)
+            result = verify_installed(args.output, args.rikui)
         print(canonical({key: value for key, value in result.items() if key != "files"}))
     except (ValueError, OSError) as error:
         parser.exit(1, f"quest_corpus: {error}\n")

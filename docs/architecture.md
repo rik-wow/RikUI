@@ -56,8 +56,9 @@ and event-time context remain character observations; the bounded session journa
 records changes independently of replanning. Manual export preserves the current
 snapshot and discloses any older journal entries omitted to fit the wire limit.
 Missing corpus and native validation coverage remain explicit. Offline terrain tools
-produce a separate local companion addon; incremental mesh validation and A* own
-modeled corridor guidance. Observed map markers can request a bounded approach
+produce local data that installs inside the RikUI folder (`generated/`, loaded with
+the addon) plus LoadOnDemand mesh patch packs beside it; incremental mesh
+validation and A* own modeled corridor guidance. Observed map markers can request a bounded approach
 endpoint; routes stop on modeled ground and leave the final gap and interaction
 unverified. Player admission and explicit portal connectivity remain strict.
 Acquisition authenticity never certifies traversability,

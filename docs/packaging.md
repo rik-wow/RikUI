@@ -15,9 +15,12 @@ file count and the stamped TOC version. Source checkouts use the BigWigs
 `@project-version@` token, so local builds require an explicit `--version`.
 Extract its single `RikUI` folder into
 the Forever beta client's `Interface/AddOns` folder. Fully restart the client
-after installing files or media. Existing separately installed quest/terrain
-companion addons remain separate; the base archive does not contain extracted
-client assets or world datasets.
+after installing files or media. The archive carries `generated/index.xml`,
+the include through which the locally built quest corpus and road networks
+load, but not the data itself: `generated/roads/` and `generated/corpus/` are
+written by `tools/terrain/install_roads.py` and `tools/quest_corpus.py install`
+into the installed RikUI folder, and the mesh patch packs beside it. The base
+archive contains no extracted client assets or world datasets.
 
 To label a local release candidate without modifying the checkout:
 

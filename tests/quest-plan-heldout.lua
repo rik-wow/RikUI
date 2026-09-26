@@ -10,21 +10,8 @@ local function append(t,v)local o={}for i,x in ipairs(t)do o[i]=x end o[#o+1]=v 
 local function ids(rows)local o={}for i,a in ipairs(rows or {})do o[i]='|'..a.id end return table.concat(o)end
 GetTime=function()return 1 end
 RikUI={};RikUI['Secret']={IsSecret=function() return false end,Read=pcall}
-local loaded={}
 local activeContext
-C_AddOns={LoadAddOn=function(name)
- assert(type(name)=='string' and name:match('^[%w_]+$'),'Unsafe addon name')
- if loaded[name]then return true end
- local dir=addonRoot..'/'..name..'/';local toc=assert(io.open(dir..name..'.toc','r'));local namespace={}
- for line in toc:lines()do
-  line=line:gsub('\r',''):match('^%s*(.-)%s*$')
-  if line~='' and line:sub(1,1)~='#'then
-   assert(line:match('^[%w_.%-]+%.lua$'),'Expected bare Lua basename in corpus TOC: '..line)
-   assert(loadfile(dir..line))(name,namespace)
-  end
- end
- toc:close();loaded[name]=true;return true
-end}
+C_AddOns={LoadAddOn=function() error('embedded corpus never loads addons') end}
 local function module(name)dofile(repo..'/src/modules/questplanner/quest-'..name..'.lua')end
 module('schema');local p=assert(RikUI.QuestPlanner);local history={}
 p.Context={History=function(requested)
@@ -34,7 +21,8 @@ end,Call=function(fn,...)if type(fn)~='function'then return false end return pca
 for _,name in ipairs({'objectives','transfer','optimizer','area-optimizer','steps','step-bindings',
  'guide-data','observed-steps','semantic-data','semantic-guidance','hunts','targets','guidance',
  'preferences','plan-state','plan-graph','plan-transitions','plan-learning','plan-costs','plan-rewards','plan-search','evidence','eligibility','elevators','travel','actions','simulation','recommendations'})do module(name)end
-assert(C_AddOns.LoadAddOn('RikUIQuestCorpus'))
+local generated=dofile(repo..'/tests/generated_stub.lua')
+generated.Load(generated.Base(addonRoot),{'corpus'})
 local catalog=assert(RikUIQuestCorpusCatalog);local identity=assert(catalog.identity)
 local partitionSize=assert(tonumber(catalog.partitionSize));assert(partitionSize>0 and partitionSize%1==0)
 local flavors={'Balanced','Efficient','Story','Explorer','Relaxed','Challenge'}

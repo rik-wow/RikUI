@@ -6,24 +6,12 @@ for _,name in ipairs({"schema","objectives","transfer","optimizer","area-optimiz
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p=RikUI.QuestPlanner
-local loads,peak,total=0,0,0
-C_AddOns={LoadAddOn=function(name)
-    assert(name=="RikUIQuestCorpus" or name:match("^RikUIQuestCorpus_P%d+_S%d+$") or name:match("^RikUIQuestCorpus_P%d+$"))
-    local begin=os.clock()
-    local toc=assert(io.open(root.."/"..name.."/"..name..".toc"))
-    for line in toc:lines() do
-        line=line:gsub("\r",""):match("^%s*(.-)%s*$")
-        if line~="" and line:sub(1,1)~="#" then
-            assert(line:match("^[%w_-]+%.lua$"),"unsafe compiled file path")
-            assert(loadfile(root.."/"..name.."/"..line))()
-        end
-    end
-    toc:close()
-    local elapsed=(os.clock()-begin)*1000
-    loads=loads+1;peak=math.max(peak,elapsed);total=total+elapsed
-    return true
-end}
-assert(C_AddOns.LoadAddOn("RikUIQuestCorpus"))
+-- Pages ship inside RikUI and load with it; each runs on first request.
+C_AddOns={LoadAddOn=function() error("embedded corpus never loads addons") end}
+local generated=dofile("tests/generated_stub.lua")
+local families,stats=generated.Load(generated.Base(root),{"corpus"})
+local loads,peak,total=stats.files,stats.peakMS,stats.ms
+assert(families.corpus,"installed corpus include required")
 local catalog=assert(RikUIQuestCorpusCatalog)
 local identity=catalog.identity
 assert(catalog.eventMemberships and catalog.eventMemberships.sourceMemberships==1000,

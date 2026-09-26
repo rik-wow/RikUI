@@ -25,30 +25,18 @@ ctx.origin="live"
 local position={mapID=1426,x=tonumber(arg[6]) or .429,y=tonumber(arg[7]) or .472}
 local elapsed,requested=0,false
 local terrainCallback
--- ROADS_ROOT: load road addons from a compiled, not yet installed, network.
+-- ROADS_ROOT: load road data and patch packs from a compiled, not yet installed, network.
 local roadsRoot=(os.getenv("ROADS_ROOT") or root):gsub("\\","/")
-local function home(name) return name:match("^RikUIQuestRoads") and roadsRoot or root end
-assert(loadfile(roadsRoot.."/RikUIQuestRoads/index.lua"))()
+local generated=dofile("tests/generated_stub.lua")
+generated.Load(generated.Base(root),{"corpus"})
+generated.Load(generated.Base(roadsRoot),{"roads"})
 local world,_,view=p.Roads.Locate(position.mapID,position.x,position.y)
 assert(world,"start position has no road network")
 GetTime=function() return elapsed end
 debugprofilestop=function() return os.clock()*1000 end
 InCombatLockdown=function() return false end
 local addonLoads,loadMS={},0
-C_AddOns={LoadAddOn=function(name)
-    if addonLoads[name] then return true end
-    local began=os.clock()
-    local base=home(name)
-    local toc=io.open(base.."/"..name.."/"..name..".toc")
-    if not toc then return false end
-    for line in toc:lines() do
-        line=line:gsub("\r",""):match("^%s*(.-)%s*$")
-        if line~="" and line:sub(1,1)~="#" then assert(loadfile(base.."/"..name.."/"..line))() end
-    end
-    toc:close();addonLoads[name]=true
-    loadMS=math.max(loadMS,(os.clock()-began)*1000)
-    return true
-end}
+C_AddOns={LoadAddOn=generated.PatchLoader(roadsRoot,function(name,ms) addonLoads[name]=true;loadMS=math.max(loadMS,ms) end)}
 p.enabled=true
 p.GetSnapshot=function() return snapshot,{state="current"} end
 p.PeekSnapshot=p.GetSnapshot

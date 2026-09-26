@@ -21,7 +21,7 @@ if trace.source.searchRevision~=p.PlanSearch.REVISION then
     print("ARCHIVED REPLAY SKIPPED: source_mismatch; "..trace.source.searchRevision.." -> "..p.PlanSearch.REVISION)
 else
     -- Current-revision exports also require their actual travel index.
-    assert(loadfile(root.."/RikUIQuestRoads/index.lua"))()
+    dofile("tests/generated_stub.lua").Load(dofile("tests/generated_stub.lua").Base(root),{"roads"})
     local result=p.PlanRuntime.RerunReplay(trace,current)
     assert(result.status=="match","current-revision replay: "..tostring(result.reason or result.phase))
     print("ARCHIVED REPLAY MATCH")
@@ -42,22 +42,11 @@ local ctx={origin="live",identity=state.identity,characterKey="switch-regression
     history=state.completed,destinations={}}
 p.Context={Call=function(fn,...) if type(fn)=="function" then return pcall(fn,...) end return false end,
     History=function(ids) local out={};for _,id in ipairs(ids) do out[id]=state.completed[id] end;return out end}
-local loaded={}
-C_AddOns={LoadAddOn=function(name)
-    assert(name:match("^[%w_]+$"),"unsafe addon name")
-    if loaded[name] then return true end
-    local dir=root.."/"..name.."/";local toc=assert(io.open(dir..name..".toc","r"))
-    for line in toc:lines() do
-        line=line:gsub("\r",""):match("^%s*(.-)%s*$")
-        if line~="" and line:sub(1,1)~="#" then
-            assert(line:match("^[%w_.%-]+%.lua$"),"unsafe corpus filename")
-            assert(loadfile(dir..line))()
-        end
-    end
-    toc:close();loaded[name]=true;return true
-end}
-assert(C_AddOns.LoadAddOn("RikUIQuestCorpus"))
-assert(C_AddOns.LoadAddOn("RikUIQuestRoads"))
+local generated=dofile("tests/generated_stub.lua")
+if not RikUIQuestCorpusCatalog then generated.Load(generated.Base(root),{"corpus"}) end
+if not p.Roads.HasWorld(0) then generated.Load(generated.Base(root),{"roads"}) end
+C_AddOns={LoadAddOn=generated.PatchLoader(root)}
+assert(RikUIQuestCorpusCatalog,"installed corpus catalog required")
 p.SemanticData.Ensure(snapshot,ctx)
 local records
 for _=1,32 do

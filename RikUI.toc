@@ -202,6 +202,7 @@ src/modules/questplanner/quest-navigation.lua
 src/modules/questplanner/quest-transfer-view.lua
 src/modules/questplanner/quest-commands.lua
 src/modules/questplanner/questplanner.lua
+generated/index.xml
 src/modules/questtracker/questtracker.lua
 src/modules/questtracker/questtracker-blocks.lua
 src/modules/panels/panels.lua

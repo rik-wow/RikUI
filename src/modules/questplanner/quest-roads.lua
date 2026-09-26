@@ -1,5 +1,7 @@
--- Road walk-network registry, lazy loader and read-only graph accessors.
--- Networks are compiled offline (tools/terrain/road_network.py); nothing here
+-- Road walk-network registry, loader and read-only graph accessors.
+-- Networks are compiled offline (tools/terrain/road_network.py) and ship
+-- inside RikUI (generated/roads: index, catalogs and stream pages, installed
+-- at addon load); a world may instead name a LoadOnDemand addon. Nothing here
 -- adds walkable connections. Positions are navigation coordinates:
 -- x = game world Y, z = game world X, in yards.
 local planner=RikUI.QuestPlanner
@@ -38,7 +40,7 @@ function roads.InstallIndex(raw)
     local nextIndex={byMap={},worlds={}}
     for _,world in ipairs(value.worlds) do
         if not schema.Integer(world.worldMapID,0,100000) or not hash(world.revision)
-            or type(world.addon)~="string" or not schema.List(world.views,256) then return nil,"invalid road index world" end
+            or (world.addon~=nil and type(world.addon)~="string") or not schema.List(world.views,256) then return nil,"invalid road index world" end
         world.identity=value.identity
         nextIndex.worlds[world.worldMapID]=world
         for _,view in ipairs(world.views) do
@@ -241,12 +243,15 @@ function roads.Prepare(identity,world)
     local job=loading[entry.revision]
     if not job then
         if not catalogs[entry.revision] then
+            -- Embedded catalogs are installed at addon load; a missing one is
+            -- a broken install, unless the index names an addon to load.
+            if not entry.addon then return nil,"road-catalog-missing" end
             local ok,why=loadAddon(entry.addon)
             if not ok then return nil,why end
             if not catalogs[entry.revision] then return nil,"road-catalog-revision" end
             return nil,"loading"
         end
-        -- Stream pages ship in part addons; one synchronous load per call.
+        -- Stream pages may ship in part addons; one synchronous load per call.
         local done=partsLoaded[entry.revision] or 0
         if schema.List(entry.parts,64) and done<#entry.parts then
             local ok,why=loadAddon(entry.parts[done+1])

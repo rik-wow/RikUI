@@ -12,7 +12,7 @@ import zipfile
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "tests"))
-from check_manifest import check_icons, check_manifest
+from check_manifest import GENERATED_INCLUDE, check_icons, check_manifest
 
 ROOT = "RikUI/"
 MANIFEST = ROOT + "package-manifest.json"
@@ -153,7 +153,8 @@ def verify_inventory(archive, names):
         raise ValueError("Invalid archive TOC inventory")
     for name in listed:
         path = install_path(name)
-        if path.suffix != ".lua" or path.parts[0] not in {"src", "data", "presets"} or name not in files:
+        runtime = path.suffix == ".lua" and path.parts[0] in {"src", "data", "presets"}
+        if not (runtime or name == GENERATED_INCLUDE) or name not in files:
             raise ValueError(f"Missing or invalid TOC source: {name}")
     for name in files:
         path = install_path(name)

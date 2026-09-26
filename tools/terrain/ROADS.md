@@ -33,10 +33,14 @@ so the last stretch to an NPC, cave or building still follows real geometry.
      pieces inside each 128-yard cell and one ring of pieces connected by
      existing portals. This keeps open crossings and nearby approaches available
      instead of leaving thin routes to network nodes.
-4. **Install.** `install_roads.py install` swaps the addons in with an
-   ownership receipt; `retire` moves the legacy `RikUIQuestTerrain*`,
-   `RikUIQuestPaths*` and `RikUIQuestSeams*` folders out of AddOns into a
-   backup directory. Nothing is deleted.
+4. **Install.** `install_roads.py install --addons <AddOns> [--rikui <AddOns>/RikUI]`
+   copies `generated/roads/` into the RikUI folder (a junction to a checkout
+   is followed) and swaps the `RikUIQuestRoads_W<world>_P<nnn>` patch packs in
+   beside it, with an ownership receipt in AddOns. Whatever it replaces,
+   including the index, world and part addons of the pre-2026-09-25 layout,
+   goes to the stage's `previous/` directory. `retire` moves the legacy
+   `RikUIQuestTerrain*`, `RikUIQuestPaths*` and `RikUIQuestSeams*` folders
+   out of AddOns into a backup directory. Nothing is deleted.
 
 ## Water and open crossings
 
@@ -179,8 +183,18 @@ user's standing policy, not an agent-observed game traversal.
 
 ## Runtime
 
-`RikUIQuestRoads` (always loaded) maps each UI map to its world's network
-addon. `quest-roads.lua` loads a world's network on demand. When the player's
+The index, every world's catalog and its stream pages live in the RikUI
+folder as `generated/roads/` (listed by `roads.xml`; the committed
+`generated/index.xml` includes it) and load with the addon: about 12 MiB of
+page strings, roughly a third of a second at login. `quest-roads.lua` builds
+a world's graph from those pages on first use; nothing else is loaded for
+the network. The mesh patches are the only LoadOnDemand data: `quest_pockets.py`
+packs cells into `RikUIQuestRoads_W<world>_P<nnn>` folders of up to 16 MiB
+(about sixteen for both continents), so a pack is one synchronous load of
+roughly a third of a second the first time a region is needed, measured at
+about 20 ms per MiB with stock Lua 5.1 on the build host. Before 2026-09-25
+the same data was 278 folders (an always-loaded index, world and 1 MiB part
+addons, 1 MiB patch packs). When the player's
 map has a network, `quest-road-guidance.lua` owns walking guidance:
 `quest-road-navigate.lua` loads the patch cells around start and goal, walks
 mesh legs to the nearest gateway nodes where a patch covers an end, and runs
@@ -190,9 +204,8 @@ labelled as such. `quest-road-follow.lua` follows the resulting polyline and
 publishes the same display table as the corridor follower, so the arrow,
 tracker and map dots are unchanged.
 
-Loading never does more than one synchronous addon load per frame: the
-continent network (about 2 MB) loads alone, then one patch addon (at most
-1 MB) per frame, then patch cells decode 64 polygons at a time and the NavMesh
+Loading never does more than one synchronous addon load per frame: one patch
+pack per frame, then patch cells decode 64 polygons at a time and the NavMesh
 validates in slices. Recently decoded cells are cached for the next plan.
 
 Floor choices, learned hunting anchors and journey arrival receipts still
@@ -228,6 +241,37 @@ the Eastern Kingdoms network is one piece of 18,445 nodes from Silverpine to
 Booty Bay, Kalimdor one of 22,108 from Orgrimmar to Thousand Needles. What
 stays apart is joined by travel links (lifts, the Darnassus portal, boats) or
 is an interior with no way in on foot.
+
+## Embedded layout (2026-09-25)
+
+The same 70009 inputs (road input `76de59ef…`, forever-corpus-build semantic
+quests `b81414a1…`, travel links `b29e8e58…`, DB2 exports in
+`D:/RikUI-local/forever-db2-70009`) recompiled with the warm cache into
+`C:/RikUI-local/70009-road-network-embedded`, receipt SHA-256
+`cf74f9bbee976360bf71d75743d3d15d8148b26af044e7b1cf054a11cf2028eb`. Every
+world keeps its counts (Eastern Kingdoms 21,187 nodes and 1,701,596 patch
+polygons; Kalimdor 26,364 and 2,192,842); only the layout changed:
+
+| Part | Files | Size | Where |
+| --- | ---: | ---: | --- |
+| Index, 7 catalogs, stream pages | 53 | 12.3 MiB | `RikUI/generated/roads/` |
+| Patch packs (7 EK, 9 Kalimdor) | 16 folders | 246.4 MiB | beside RikUI, LoadOnDemand |
+
+`install_roads.py install` placed all 11,788 files, moved the 277 folders of
+the previous layout to `Interface/.rikui-road-stage-k0uoni4d/previous` and
+verified the result. Together with the corpus move the client's AddOns
+folder went from 700 entries to 19 (RikUI, RikProbe, Untethered and the 16
+packs). A full client restart is needed to discover the changed addon set.
+
+Host replays on the installed files with client build 70009: Eastern
+Kingdoms A* agrees with Dijkstra on the sampled pairs (one pair unreachable,
+as before, from retained disconnected components); the archived quest 315
+observation matches its decision across 596 candidates and arrives after
+559.5 yards with no route swaps. Under LuaJIT the first route appears at frame
+87 with the largest pack load at 94 ms; under stock Lua 5.1 at frame 175 with
+the largest pack load at 125 ms and largest callback 134 ms (the previous 1 MiB
+packs loaded in 17-24 ms). These are host checks; native acceptance follows
+the user's standing policy.
 
 ## Installed rebuild (2026-09-23)
 

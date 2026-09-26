@@ -13,7 +13,8 @@ local p=RikUI.QuestPlanner
 local file=assert(io.open(packet,"rb"))
 local wire=file:read("*a"):match("(RIKP1:[a-f0-9]+:[a-f0-9]+)");file:close()
 local archived=assert(p.Transfer.DecodePlan(assert(wire)))
-assert(loadfile(root.."/RikUIQuestRoads/index.lua"))()
+local generated=dofile("tests/generated_stub.lua")
+generated.Load(generated.Base(root),{"roads"})
 local state=p.Schema.Clone(archived.state);state.fresh=true
 local graph=p.Schema.Clone(archived.graph);graph.byID={};graph.byQuest={}
 -- The old packet predates the explicit coverage bit; recover it from its actual action graph.

@@ -374,47 +374,36 @@ def encode_streams(streams):
     return encoded, specs
 
 
-MAX_NETWORK_PART = 1024 * 1024  # bytes of stream pages per part addon; the runtime loads one per frame
+# Index, world catalogs and stream pages ship inside the RikUI addon folder and
+# load with it (generated/index.xml includes roads/roads.xml). Only the quest
+# patches (quest_pockets.py) stay LoadOnDemand.
+EMBEDDED = 'generated/roads/'
+XML_HEAD = '<Ui xmlns="http://www.blizzard.com/wow/ui/">\n'
 
 
-def part_addon(world, number):
-    return 'RikUIQuestRoads_W%d_N%02d' % (world, number)
+def lua_include(names):
+    """WoW XML include listing Lua files relative to its own directory."""
+    return XML_HEAD + ''.join('\t<Script file="%s"/>\n' % name for name in names) + '</Ui>\n'
 
 
-def addon_files(world, catalog, encoded):
-    """The world addon holds the catalog; stream pages go to part addons of at most
-    MAX_NETWORK_PART bytes so no single synchronous load stalls a frame for long.
-    Returns (files, part count)."""
-    addon = 'RikUIQuestRoads_W%d' % world
-    files, parts, size = {}, [[]], 0
+def embedded_files(world, catalog, encoded):
+    """One catalog file and one file per stream holding every Page call of that
+    stream. Pages stay CHUNK_CHARS long for the runtime's stream reader."""
+    files = {}
     for name, pages in sorted(encoded.items()):
-        for number, page in enumerate(pages, 1):
-            if not page:
-                continue
-            body = ('RikUI.QuestPlanner.Roads.Page(%s,%s,%d,[[%s]])\n' % (lua(catalog['revision']), lua(name), number, page)).encode()
-            if parts[-1] and size + len(body) > MAX_NETWORK_PART:
-                parts.append([]); size = 0
-            parts[-1].append(('stream-%s-%03d.lua' % (name, number), body)); size += len(body)
-    parts = [p for p in parts if p]
-    for number, rows in enumerate(parts, 1):
-        part = part_addon(world, number)
-        for file, body in rows:
-            files[part + '/' + file] = body
-        toc = ('## Interface: 16001\n## Title: RikUI Roads %d part %d\n## AllowLoadGameType: camelot\n## Dependencies: RikUI\n'
-               '## LoadOnDemand: 1\n\n' % (world, number)) + '\n'.join(file for file, _ in rows) + '\n'
-        files[part + '/' + part + '.toc'] = toc.encode()
-    files[addon + '/catalog.lua'] = ('RikUI.QuestPlanner.Roads.Install(' + lua(catalog) + ')\n').encode()
-    toc = ('## Interface: 16001\n## Title: RikUI Roads %d\n## AllowLoadGameType: camelot\n## Dependencies: RikUI\n'
-           '## LoadOnDemand: 1\n\ncatalog.lua\n' % world)
-    files[addon + '/' + addon + '.toc'] = toc.encode()
-    return files, len(parts)
+        calls = ['RikUI.QuestPlanner.Roads.Page(%s,%s,%d,[[%s]])\n' % (lua(catalog['revision']), lua(name), number, page)
+                 for number, page in enumerate(pages, 1) if page]
+        if calls:
+            files[EMBEDDED + 'w%d-stream-%s.lua' % (world, name)] = ''.join(calls).encode()
+    files[EMBEDDED + 'w%d-catalog.lua' % world] = ('RikUI.QuestPlanner.Roads.Install(' + lua(catalog) + ')\n').encode()
+    return files
 
 
 def index_files(worlds, source_directory, travel=None):
-    """Always-loaded index: which LoadOnDemand addon serves which map views, plus
-    travel stops and links (flights, transports, tram) across all worlds."""
-    rows = [dict(worldMapID=w['worldMapID'], revision=w['revision'], addon='RikUIQuestRoads_W%d' % w['worldMapID'],
-                 parts=[part_addon(w['worldMapID'], n) for n in range(1, w.get('networkParts', 0) + 1)],
+    """Embedded index: which world serves which map views, plus travel stops and
+    links (flights, transports, tram) across all worlds. Worlds name no addon:
+    their catalogs and pages are installed with RikUI."""
+    rows = [dict(worldMapID=w['worldMapID'], revision=w['revision'],
                  views=[dict(uiMapID=v['uiMapID'], projection=v['projection'], validUIRectangle=v['validUIRectangle'])
                         for v in views(source_directory, w['worldMapID'])]) for w in worlds]
     index = dict(format='rikui-road-index-v1', identity=graph.RUNTIME_IDENTITY, worlds=rows)
@@ -423,9 +412,15 @@ def index_files(worlds, source_directory, travel=None):
                                stops=[{k: s[k] for k in ('id', 'kind', 'name', 'world', 'point', 'factions', 'taxiNode', 'transport')
                                        if k in s} for s in travel['stops']],
                                links=travel['links'])
-    toc = '## Interface: 16001\n## Title: RikUI Roads\n## AllowLoadGameType: camelot\n## Dependencies: RikUI\n\nindex.lua\n'
-    return {'RikUIQuestRoads/index.lua': ('RikUI.QuestPlanner.Roads.InstallIndex(' + lua(index) + ')\n').encode(),
-            'RikUIQuestRoads/RikUIQuestRoads.toc': toc.encode()}
+    return {EMBEDDED + 'index.lua': ('RikUI.QuestPlanner.Roads.InstallIndex(' + lua(index) + ')\n').encode()}
+
+
+def include_files(files):
+    """generated/roads/roads.xml lists every embedded Lua file, catalogs and pages
+    before the index so the index installs over registered data."""
+    names = sorted(k[len(EMBEDDED):] for k in files if k.startswith(EMBEDDED) and k.endswith('.lua'))
+    names.sort(key=lambda n: (n == 'index.lua', n))
+    return {EMBEDDED + 'roads.xml': lua_include(names).encode()}
 
 
 def views(source_directory, world):
@@ -500,8 +495,7 @@ def finish_world(sources, world, source_directory, input_sha, quests, builder, p
     catalog['revision'] = sha(canonical(catalog))
     patch_addons, _ = quest_pockets.patch_files(world, catalog['revision'], patches, lua, b85)
     need(len(patch_addons) == len(placeholder_files), 'patch addon layout changed with revision')
-    files, parts = addon_files(world, catalog, encoded)
-    catalog['networkParts'] = parts  # set after the revision hash: the layout follows from the content
+    files = embedded_files(world, catalog, encoded)
     files.update(patch_addons)
     if candidates:  # review data, not shipped in any addon
         files['review/lift-candidates-W%d.json' % world] = canonical(dict(worldMapID=world, revision=catalog['revision'], candidates=candidates))
@@ -653,13 +647,16 @@ def main():
             continue
         _, _, catalog, world_files = result
         files.update(world_files)
+        packs = {k.split('/')[0] for k in world_files if k.startswith('RikUIQuestRoads_')}
         report['worlds'].append(dict(worldMapID=world, revision=catalog['revision'], counts=catalog['counts'],
-                                     networkParts=catalog['networkParts'],
-                                     addonBytes=sum(len(v) for v in world_files.values()),
+                                     patchPacks=len(packs),
+                                     embeddedBytes=sum(len(v) for k, v in world_files.items() if k.startswith(EMBEDDED)),
+                                     patchBytes=sum(len(v) for k, v in world_files.items() if not k.startswith(EMBEDDED)),
                                      rawBytes=sum(s['bytes'] for s in catalog['streams'].values()),
                                      seconds=round(time.monotonic() - started, 1)))
         print(json.dumps(report['worlds'][-1]), flush=True)
     files.update(index_files(report['worlds'], args.source_directory, travel_doc(args)))
+    files.update(include_files(files))
     report['files'] = [dict(path=k, bytes=len(v), sha256=sha(v)) for k, v in sorted(files.items())]
     output.mkdir(parents=True)
     for name, data in files.items():

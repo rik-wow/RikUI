@@ -13,14 +13,9 @@ for _, name in ipairs({"schema", "builds", "nav-geometry", "nav-funnel", "nav-fo
 end
 local p = RikUI.QuestPlanner
 local loaded = {}
-dofile(root .. "/RikUIQuestRoads/index.lua")
-C_AddOns = {LoadAddOn = function(addon)
-    loaded[#loaded + 1] = addon
-    for line in io.lines(root .. "/" .. addon .. "/" .. addon .. ".toc") do
-        if line:match("%.lua$") then dofile(root .. "/" .. addon .. "/" .. line) end
-    end
-    return true
-end}
+local generated = dofile("tests/generated_stub.lua")
+generated.Load(generated.Base(root), {"roads"})
+C_AddOns = {LoadAddOn = generated.PatchLoader(root, function(addon) loaded[#loaded + 1] = addon end)}
 local clientBuild = os.getenv("RIKUI_CLIENT_BUILD") or "1.60.1.69913"
 p.Builds.Observe(clientBuild)
 local identity = {product = "forever", build = p.Builds.DataBuild(clientBuild), locale = "enUS"}

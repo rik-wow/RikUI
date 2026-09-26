@@ -107,6 +107,34 @@ class Tests(unittest.TestCase):
         self.assertIn('RikUIQuestRoads_W0_P001/RikUIQuestRoads_W0_P001.toc', files)
         keys = [struct.unpack_from('<I', stream, k * 10)[0] for k in range(count)]
         self.assertEqual(keys, sorted(keys))
+        self.assertIn(b'## LoadOnDemand: 1', files['RikUIQuestRoads_W0_P001/RikUIQuestRoads_W0_P001.toc'])
+
+    def test_packs_split_only_at_the_size_cap(self):
+        polys = Fake()
+        cell = qp.encode_cell(polys, {0, 1}, {0, 1})
+        patches = {(x, 0): cell for x in range(6)}
+        original = qp.MAX_PATCH_ADDON
+        try:
+            qp.MAX_PATCH_ADDON = 16 * 1048576
+            files, _ = qp.patch_files(0, 'a' * 64, patches, net.lua, net.b85)
+            self.assertEqual({k.split('/')[0] for k in files}, {'RikUIQuestRoads_W0_P001'})
+            qp.MAX_PATCH_ADDON = 1
+            files, (stream, _, count) = qp.patch_files(0, 'a' * 64, patches, net.lua, net.b85)
+            self.assertEqual(len({k.split('/')[0] for k in files}), 6)
+            self.assertEqual([struct.unpack_from('<H', stream, k * 10 + 4)[0] for k in range(count)], [1, 2, 3, 4, 5, 6])
+        finally:
+            qp.MAX_PATCH_ADDON = original
+
+    def test_embedded_network_files_and_include(self):
+        catalog = dict(revision='b' * 64, format='rikui-road-network-v1')
+        files = net.embedded_files(1, catalog, {'nodes': ['abc', 'def'], 'patches': ['']})
+        self.assertEqual(set(files), {'generated/roads/w1-stream-nodes.lua', 'generated/roads/w1-catalog.lua'})
+        self.assertEqual(files['generated/roads/w1-stream-nodes.lua'].count(b'Roads.Page('), 2)
+        files.update({'generated/roads/index.lua': b'', 'RikUIQuestRoads_W1_P001/patch-001.lua': b''})
+        include = net.include_files(files)['generated/roads/roads.xml'].decode()
+        self.assertEqual(include.count('<Script file='), 3)
+        self.assertLess(include.index('w1-catalog.lua'), include.index('index.lua'))
+        self.assertNotIn('patch-001', include)
 
 
 if __name__ == '__main__':

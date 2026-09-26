@@ -68,12 +68,12 @@ return function(check)
         local future=p.Schema.Clone(record);future.id=901;future.title="Follow-up"
         future.planning.requirements={op="completed",questID=900};future.reward.baseXP=2000
         RikUIQuestCorpusCatalog={version=1,identity=identity,revision="fixture",partitionSize=128,
-            partitions={[7]="RikUIQuestCorpus_P00007"},planning={version=1,maps={[1426]={900,901}},links={[900]={901}},quests={
+            partitions={[7]={pages={"P00007_S001"}}},planning={version=1,maps={[1426]={900,901}},links={[900]={901}},quests={
                 [900]={semantic=true,minLevel=1},[901]={semantic=true,minLevel=1}}}}
-        C_AddOns={LoadAddOn=function()
+        C_AddOns={LoadAddOn=function() error("embedded corpus never loads addons") end}
+        assert(p.SemanticData.Page("P00007_S001",function()
             assert(p.SemanticData.Register(7,"fixture",{[900]={base=record,variants={}},[901]={base=future,variants={}}}))
-            return true
-        end}
+        end))
         local snapshot={identity=identity,order={900},generation=1,reportedCount=1,observedCount=1,coverage="log-complete",
             quests={[900]={id=900,title=record.title,level=10,failed=false,objectivesComplete=false,
                 objectives={{text="2/4 Field Token",type="item",numFulfilled=2,numRequired=4,finished=false}}}}}

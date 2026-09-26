@@ -7,12 +7,9 @@ require("wow_stub")
 RikUI={Secret={IsSecret=function() return false end}}
 for _,name in ipairs({"schema","path-codec","roads"}) do dofile("src/modules/questplanner/quest-"..name..".lua") end
 local p=RikUI.QuestPlanner
-C_AddOns={LoadAddOn=function(addon)
-    local toc=io.open(root.."/"..addon.."/"..addon..".toc");if not toc then return false end
-    for line in toc:lines() do line=line:gsub("\r","");if line:match("%.lua$") then dofile(root.."/"..addon.."/"..line) end end
-    toc:close();return true
-end}
-dofile(root.."/RikUIQuestRoads/index.lua")
+local generated=dofile("tests/generated_stub.lua")
+generated.Load(generated.Base(root),{"roads"})
+C_AddOns={LoadAddOn=generated.PatchLoader(root)}
 local g
 for _=1,1000000 do g=p.Roads.Prepare({product="forever",build="1.60.1.69913",locale="enUS"},world);if g then break end end
 local n=g:Nodes()

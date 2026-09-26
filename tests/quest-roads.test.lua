@@ -78,6 +78,21 @@ return function(check)
   local graph,state
   for _=1,50 do graph,state=p.Roads.Prepare(requestIdentity,0);if graph then break end end
   check('road graph loads through its addon',graph~=nil and loads==1,state)
+  -- Embedded layout: the index names no addon; the catalog is installed at addon load.
+  do
+   local embedded={product='forever',build=clientBuild,locale='enUS'}
+   local revision2=string.rep('b',64)
+   local catalog2=p.Schema.Clone(catalog);catalog2.revision=revision2;catalog2.worldMapID=1;catalog2.identity=embedded
+   for name,s in pairs(raw)do p.Roads.Page(revision2,name,1,b85(s[1]))end
+   check('road index accepts worlds without an addon',p.Roads.InstallIndex({format='rikui-road-index-v1',identity=identity,
+    worlds={{worldMapID=0,revision=revision,addon='RikUIQuestRoads_W0',views={view}},{worldMapID=1,revision=revision2,views={view}}}}))
+   local missing,why=p.Roads.Prepare(requestIdentity,1)
+   check('embedded world without its catalog reports a broken install',not missing and why=='road-catalog-missing' and loads==1,why)
+   check('embedded catalog installs at load',p.Roads.Install(catalog2))
+   local ready
+   for _=1,50 do ready=p.Roads.Prepare(requestIdentity,1);if ready then break end end
+   check('embedded world prepares without any addon load',ready~=nil and loads==1)
+  end
   check('road graph rejects other identities',not p.Roads.Prepare({product='x',build='1',locale='enUS'},0))
   local x,z,_,road=graph:Node(id(2,2));check('road node decodes position and road',x==150 and z==150 and road==1)
   check('road node maps to its patch polygon and back',graph:NodePolygon(4)==1004 and graph:PolygonNode(1004)==4 and graph:PolygonNode(5)==nil)

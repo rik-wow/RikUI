@@ -13,15 +13,17 @@ return function(check)
             methods={{kind="drop",targetKind="npc",targetID=7,name="Field Beast",areas={far,area}},
                      {kind="vendor",targetKind="npc",targetID=8,name="Trader",areas={{id="npc:8",mapID=1426,x=.1,y=.3}}}}}},
             ends={{kind="interact",targetKind="npc",targetID=10,name="Keeper",areas={{id="end",mapID=1426,x=.4,y=.3}}}}}
-        RikUIQuestCorpusCatalog={version=1,identity=identity,revision="fixture",partitionSize=128,partitions={[7]="RikUIQuestCorpus_P00007"},counts={quests=1}}
+        RikUIQuestCorpusCatalog={version=1,identity=identity,revision="fixture",partitionSize=128,partitions={[7]={pages={"P00007_S001"}},[8]={pages={"P00008_S001"}}},counts={quests=1}}
         local sharedQuest=p.Schema.Clone(quest);sharedQuest.id=901;sharedQuest.title="Shared collection"
         sharedQuest.objectives[1].methods={{kind="drop",targetKind="npc",targetID=7,name="Field Beast",areas={far}}}
         local loads=0
-        C_AddOns={LoadAddOn=function(name)
+        C_AddOns={LoadAddOn=function() error("embedded corpus never loads addons") end}
+        assert(p.SemanticData.Page("P00007_S001",function()
             loads=loads+1
-            if name=="RikUIQuestCorpus_P00007" then assert(p.SemanticData.Register(7,"fixture",{[900]={base=quest,variants={}},[901]={base=sharedQuest,variants={}}})) end
-            return true
-        end}
+            assert(p.SemanticData.Register(7,"fixture",{[900]={base=quest,variants={}},[901]={base=sharedQuest,variants={}}}))
+        end))
+        assert(p.SemanticData.Page("P00008_S001",function() loads=loads+1 end))
+        check("page registry rejects malformed keys and duplicates",not p.SemanticData.Page("bad",function() end) and not p.SemanticData.Page("P00008_S001",function() end))
         local snapshot={identity=identity,order={900},quests={[900]={id=900,title=quest.title,objectivesComplete=false,
             objectives={{text="2/8 Field Token",type="item",numFulfilled=2,numRequired=8,finished=false}}}}}
         local ctx={identity=identity,origin="live",position={mapID=1426,x=.19,y=.3},attributes={class=1,faction="Alliance"},
@@ -169,21 +171,31 @@ return function(check)
             and p.SemanticData.Status().reason=="corpus revision changed; restart required")
         dofile("src/modules/questplanner/quest-semantic-data.lua")
         RikUIQuestCorpusCatalog.revision="shards"
-        RikUIQuestCorpusCatalog.partitions[7]={addons={"RikUIQuestCorpus_P00007_S001","RikUIQuestCorpus_P00007_S002"}}
+        RikUIQuestCorpusCatalog.partitions[7]={pages={"P00007_S001","P00007_S002"}}
         local shardLoads={}
-        C_AddOns.LoadAddOn=function(name)
-            shardLoads[#shardLoads+1]=name
-            if name:match("_S002$") then assert(p.SemanticData.Register(7,"shards",{[900]={base=quest,variants={}},[901]={base=sharedQuest,variants={}}})) end
-            return true
+        for _,key in ipairs({"P00007_S001","P00007_S002"}) do
+            assert(p.SemanticData.Page(key,function()
+                shardLoads[#shardLoads+1]=key
+                if key:match("_S002$") then assert(p.SemanticData.Register(7,"shards",{[900]={base=quest,variants={}},[901]={base=sharedQuest,variants={}}})) end
+            end))
         end
         snapshot.origin="imported-untrusted";p.SemanticData.Ensure(snapshot,ctx);p.SemanticData.Step()
-        check("untrusted import cannot trigger companion loading",#shardLoads==0)
+        check("untrusted import cannot trigger page loading",#shardLoads==0)
         snapshot.origin=nil;p.SemanticData.Ensure(snapshot,ctx);p.SemanticData.Step()
-        check("first shard stays unpublished and bounded to one load",#shardLoads==1 and not p.SemanticData.Quest(identity,900))
+        check("first page stays unpublished and bounded to one run",#shardLoads==1 and not p.SemanticData.Quest(identity,900))
         p.SemanticData.Step()
-        check("final sequential shard publishes full partition",#shardLoads==2 and p.SemanticData.Quest(identity,900)==quest)
+        check("final sequential page publishes full partition",#shardLoads==2 and p.SemanticData.Quest(identity,900)==quest)
         ctx.attributes.faction="Unknown";p.SemanticData.Ensure(snapshot,ctx)
         check("unknown faction cannot fall back to base persona",not p.SemanticData.Quest(identity,900))
+        ctx.attributes.faction="Alliance"
+        RikUIQuestCorpusCatalog.partitions[9]={pages={"P00009_S001"}}
+        snapshot.order={900,9*128+1};p.SemanticData.Ensure(snapshot,ctx);p.SemanticData.Step()
+        check("missing page reports an install problem without stalling the queue",p.SemanticData.Status().reason:find("corpus page missing",1,true)
+            and p.SemanticData.Status().queuedPartitions==0)
+        dofile("src/modules/questplanner/quest-semantic-data.lua")
+        RikUIQuestCorpusCatalog=nil
+        snapshot.order={900};p.SemanticData.Ensure(snapshot,ctx);p.SemanticData.Step()
+        check("absent catalog reports uninstalled data",p.SemanticData.Status().reason=="corpus data not installed")
 
 
     end)

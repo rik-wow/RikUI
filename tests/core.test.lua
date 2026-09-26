@@ -199,7 +199,14 @@ return function(check)
     for line in tocText:gmatch("[^\r\n]+") do
         if not line:match("^%s*#") and line:match("%S") then
             files[#files + 1] = line
-            assert(_G.loadfile(line))("RikUI", {})
+            if line:match("%.lua$") then
+                assert(_G.loadfile(line))("RikUI", {})
+            else
+                -- The generated-data include: committed, and the only non-Lua entry.
+                local include = io.open(line, "r")
+                check("TOC include exists: " .. line, include ~= nil and line == "generated/index.xml")
+                if include then include:close() end
+            end
         end
     end
     core = RikUI

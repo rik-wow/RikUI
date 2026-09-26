@@ -1,12 +1,13 @@
 -- Fixture composition follows the production manifest; no duplicate service list.
 local loader = {}
 
+-- Lua entries only: generated/index.xml is the include for installer-written data.
 function loader.Manifest()
     local file = assert(io.open("RikUI.toc", "r"))
     local paths = {}
     for line in file:lines() do
         local path = line:match("^%s*(.-)%s*$")
-        if path ~= "" and not path:match("^#") then paths[#paths + 1] = path end
+        if path ~= "" and not path:match("^#") and path:match("%.lua$") then paths[#paths + 1] = path end
     end
     file:close()
     return paths

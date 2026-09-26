@@ -5,6 +5,8 @@ import re
 import subprocess
 import sys
 
+GENERATED_INCLUDE = "generated/index.xml"
+
 
 def check_manifest(root):
     failures = []
@@ -26,7 +28,8 @@ def check_manifest(root):
         path = PurePosixPath(entry)
         invalid = (
             "\\" in entry or ":" in entry or path.is_absolute()
-            or ".." in path.parts or path.as_posix() != entry or path.suffix != ".lua"
+            or ".." in path.parts or path.as_posix() != entry
+            or (path.suffix != ".lua" and entry != GENERATED_INCLUDE)
         )
         if invalid:
             failures.append(f"{location}: invalid runtime path: {entry}")
@@ -45,7 +48,8 @@ def check_manifest(root):
             continue
         if not target.is_file():
             failures.append(f"{location}: missing file: {entry}")
-        elif entry not in expected:
+        elif entry not in expected and entry != GENERATED_INCLUDE:
+            # The one XML entry is the committed include for installer-written data.
             failures.append(f"{location}: path is outside runtime inventory or has wrong case: {entry}")
     for entry in sorted(expected - listed):
         failures.append(f"Runtime file omitted from TOC: {entry}")

@@ -1,10 +1,12 @@
--- Local generated companions are references; only requested partitions enter memory.
+-- Generated corpus pages ship inside RikUI (generated/corpus) as deferred
+-- functions; only requested partitions are materialized, one page per frame.
 local planner,schema=RikUI.QuestPlanner,RikUI.QuestPlanner.Schema
 local data,pages,queued,queue={}, {}, {}, {}
 planner.SemanticData=data
 local wanted,persona,catalog,problem,loading,catalogRevision
 local revision,loaded,head,sliceAt=0,0,1,1
-local MAX_PARTITIONS,MAX_QUESTS=512,40
+local MAX_PARTITIONS,MAX_QUESTS,MAX_SLICES=512,40,512
+local shards={}  -- page key -> deferred page function, freed once run
 local CLASSES={[1]="WARRIOR",[2]="PALADIN",[3]="HUNTER",[4]="ROGUE",[5]="PRIEST",[7]="SHAMAN",[8]="MAGE",[9]="WARLOCK",[11]="DRUID"}
 local function same(a,b)
     return a and b and a.product==b.product and a.build==b.build and a.locale==b.locale
@@ -20,11 +22,19 @@ local function acceptCatalog()
         or not schema.PlainTable(raw.partitions) then return nil end
     return raw
 end
-local function loadAddon(name)
-    local api=type(C_AddOns)=="table" and C_AddOns.LoadAddOn or LoadAddOn
-    if type(api)~="function" then return nil,"addon loading API unavailable" end
-    local ok,value,reason=pcall(api,name)
-    if not ok or not value then return nil,tostring(reason or value or "load failed") end
+-- Called by generated/corpus page files at addon load; the body runs on demand.
+function data.Page(key,fn)
+    if type(key)~="string" or not key:match("^P%d+_S%d+$") or type(fn)~="function" then return nil,"invalid corpus page" end
+    if shards[key] then return nil,"duplicate corpus page" end
+    shards[key]=fn
+    return true
+end
+local function runPage(key)
+    local fn=shards[key]
+    if not fn then return nil,"corpus page missing: "..tostring(key) end
+    shards[key]=nil
+    local ok,reason=pcall(fn)
+    if not ok then return nil,tostring(reason) end
     return true
 end
 function data.Ensure(snapshot,ctx)
@@ -76,31 +86,28 @@ function data.Step()
     end
     if not catalog then
         if problem then return end
-        loading=true
-        local ok,reason=loadAddon("RikUIQuestCorpus")
-        loading=false;catalog=acceptCatalog()
+        catalog=acceptCatalog()
         catalogRevision=catalog and catalog.revision
-        if not ok or not catalog then problem=reason or "invalid corpus catalog";notify() end
-        if catalog then notify() end
+        if not catalog then problem="corpus data not installed" end
+        notify()
         return
     end
     if not same(wanted,catalog.identity) or head>#queue then return end
     if loaded>=MAX_PARTITIONS then problem="partition memory limit";return end
     local bucket=queue[head]
     local entry=catalog.partitions[bucket]
-    local addons=type(entry)=="table" and entry.addons or {entry}
-    local name=type(addons)=="table" and addons[sliceAt]
-    if not schema.List(addons,512) or not schema.Text(name)
-        or not (name:match("^RikUIQuestCorpus_P%d+$") or name:match("^RikUIQuestCorpus_P%d+_S%d+$")) then
-        problem="invalid partition addon";head=head+1;sliceAt=1;return
+    local slices=type(entry)=="table" and entry.pages
+    local key=type(slices)=="table" and slices[sliceAt]
+    if not schema.List(slices,MAX_SLICES) or not schema.Text(key) then
+        problem="invalid partition pages";head=head+1;sliceAt=1;return
     end
     loading=true
-    local ok,reason=loadAddon(name)
+    local ok,reason=runPage(key)
     loading=false
-    if not ok or (sliceAt==#addons and not pages[bucket]) then
+    if not ok or (sliceAt==#slices and not pages[bucket]) then
         problem=reason or "partition did not register"
         RikUIQuestCorpusPagePool=nil;head=head+1;sliceAt=1;notify()
-    elseif sliceAt==#addons then head=head+1;sliceAt=1
+    elseif sliceAt==#slices then head=head+1;sliceAt=1
     else sliceAt=sliceAt+1 end
 end
 -- Borrowed immutable records: no copying the world graph on planner refresh.

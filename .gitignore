@@ -14,5 +14,9 @@ Thumbs.db
 # Reproducible local release output and Python caches.
 /dist/
 /.release/
+# Installer-written quest corpus and road data (generated/index.xml is committed).
+/generated/roads/
+/generated/corpus/
+/generated/.rikui*
 __pycache__/
 *.pyc

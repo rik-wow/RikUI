@@ -10,18 +10,9 @@ for _, name in ipairs({"schema", "builds", "path-codec", "roads", "road-route", 
     dofile("src/modules/questplanner/quest-" .. name .. ".lua")
 end
 local p = RikUI.QuestPlanner
-local function readToc(addon)
-    local files = {}
-    for line in io.lines(root .. "/" .. addon .. "/" .. addon .. ".toc") do
-        if line:match("%.lua$") then files[#files + 1] = line end
-    end
-    return files
-end
-dofile(root .. "/RikUIQuestRoads/index.lua")
-C_AddOns = {LoadAddOn = function(addon)
-    for _, file in ipairs(readToc(addon)) do dofile(root .. "/" .. addon .. "/" .. file) end
-    return true
-end}
+local generated = dofile("tests/generated_stub.lua")
+generated.Load(generated.Base(root), {"roads"})
+C_AddOns = {LoadAddOn = generated.PatchLoader(root)}
 local clientBuild = arg[4] or "1.60.1.69913"
 p.Builds.Observe(clientBuild)
 local identity = {product = "forever", build = p.Builds.DataBuild(clientBuild), locale = "enUS"}

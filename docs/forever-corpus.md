@@ -112,6 +112,20 @@ The complete host replay admits all 7,311 records and 21,152 action transitions;
 4,323 of 4,463 synthetic source objectives bind. These counts preserve the
 documented source gaps. Restart the client to discard previously loaded pages.
 
+## Embedded install (2026-09-25)
+
+The same export, client index and holiday pin rebuilt with the page wrapper
+into `D:/RikUI-local/quest-corpus-embedded-20260925` (corpus revision
+`a3d8a6df152cc0367d73345de7882ae2ac02be356049325fbdbae4337b536843`; the
+compiler hash is a revision input, so it differs from the 2026-09-23 build
+while every record is the same). `install --rikui` placed 422 files under the
+installed RikUI folder's `generated/corpus/` and moved the 420
+`RikUIQuestCorpus*` companion folders out of AddOns. The full host replay over
+the installed pages admits all 7,311 records and 21,152 action transitions
+and binds 4,323 of 4,463 synthetic objectives, unchanged; compiling every page
+took 1.17 s in total under stock Lua 5.1 on the build host (12 ms at most for
+one page), which is the login cost of carrying the corpus in the addon.
+
 ## Compiler and artifact contracts
 
 The compiler joins every corrected quest to known NPC/object/item identities,
@@ -135,18 +149,28 @@ floor mappings do not become invented entrances or floor identities. A spawn
 cluster does not establish connected ground or current availability.
 
 The build contains 225 logical quest-ID partitions, interning repeated target
-graphs within each partition. Each load-on-demand shard contains at most 240 KiB
-of generated Lua. The runtime loads one shard per frame, sequentially, publishes
-only a completed partition and clears its temporary construction pool. Loading
-defers during combat. Only active-log partitions are requested; loaded partitions
-are retained for the session, capped at 512. The corpus revision hashes source,
-compiler, provider proof, client index, target identity and partition configuration.
-A changed catalog revision requires restart instead of mixing old and new pages.
+graphs within each partition. Each page holds at most 240 KiB of generated Lua,
+wrapped as `RikUI.QuestPlanner.SemanticData.Page("P<bucket>_S<n>", function() ... end)`.
+The pages ship inside the RikUI folder as `generated/corpus/` (listed by
+`corpus.xml`, which the committed `generated/index.xml` includes), so they
+compile with the addon at login (about 55 MiB of source, under a second and
+about 64 MB resident under stock Lua 5.1 on the build host) while their tables
+are only built when the runtime runs a page. The runtime runs one page per
+frame, sequentially, publishes only a completed partition and clears its
+temporary construction pool. Loading defers during combat. Only active-log
+partitions are requested; loaded partitions are retained for the session,
+capped at 512. The corpus revision hashes source, compiler, provider proof,
+client index, target identity and partition configuration. A changed catalog
+revision requires restart instead of mixing old and new pages.
 
 The build manifest binds every generated/audit file by size and SHA-256.
-Installation verifies ownership and exact file hashes, stages replacements,
-restores previous companions on failure, and preserves recovery files if rollback
-itself fails. Unrelated addons and terrain companions are outside its ownership.
+Installation (`install --rikui <Interface/AddOns/RikUI>`, a junction is followed)
+verifies ownership and exact file hashes, stages replacements inside
+`generated/`, moves the previous pages and any retired `RikUIQuestCorpus*`
+companion folders beside RikUI to the stage's `previous/` directory, restores
+them on failure, and preserves recovery files if rollback itself fails.
+Unrelated addons and the road data are outside its ownership. Before
+2026-09-25 the same pages were 420 load-on-demand companion addons.
 
 ## Runtime behavior and limits
 
@@ -216,8 +240,8 @@ git clone https://github.com/Questie/Questie D:/RikUI-local/Questie-consumer-rev
 git -C D:/RikUI-local/Questie-consumer-review checkout --detach 67c164d6e0aa4823ea26dad79a3ce54531b5b66c
 python -B tools/quest_corpus.py build --export D:/RikUI-local/forever-provider.json --client-index D:/RikUI-local/forever-inventory/QuestV2-1.60.1.69913.csv --event-source-root D:/RikUI-local/Questie-consumer-review --output D:/RikUI-local/forever-corpus-build
 python -B tools/quest_corpus.py verify --output D:/RikUI-local/forever-corpus-build
-python -B tools/quest_corpus.py install --output D:/RikUI-local/forever-corpus-build --addons "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
-python -B tools/quest_corpus.py verify-installed --output D:/RikUI-local/forever-corpus-build --addons "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
+python -B tools/quest_corpus.py install --output D:/RikUI-local/forever-corpus-build --rikui "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns/RikUI"
+python -B tools/quest_corpus.py verify-installed --output D:/RikUI-local/forever-corpus-build --rikui "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns/RikUI"
 ```
 
 For an existing source checkout, verify its revision and cleanliness rather than

@@ -14,12 +14,9 @@ C_TaxiMap={GetTaxiNodesForMap=function()
     if flights=="all" then for id=1,4000 do rows[#rows+1]={nodeID=id,isUndiscovered=false} end end
     return rows
 end}
-C_AddOns={LoadAddOn=function(addon)
-    local toc=io.open(root.."/"..addon.."/"..addon..".toc");if not toc then return false end
-    for line in toc:lines() do line=line:gsub("\r","");if line:match("%.lua$") then dofile(root.."/"..addon.."/"..line) end end
-    toc:close();return true
-end}
-dofile(root.."/RikUIQuestRoads/index.lua")
+local generated=dofile("tests/generated_stub.lua")
+generated.Load(generated.Base(root),{"roads"})
+C_AddOns={LoadAddOn=generated.PatchLoader(root)}
 local identity={product="forever",build="1.60.1.69913",locale="enUS"}
 local sw,start=p.Roads.Locate(tonumber(arg[4]),tonumber(arg[5]),tonumber(arg[6]))
 local gw,goal=p.Roads.Locate(tonumber(arg[7]),tonumber(arg[8]),tonumber(arg[9]))

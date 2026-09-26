@@ -1,0 +1,10 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<!--
+	Generated data installed beside this file by tools/quest_corpus.py and
+	tools/terrain/install_roads.py. Both includes are absent in a plain checkout
+	or release ZIP; the client skips a missing include (FrameXML.log notes it)
+	and the quest planner reports the data as not installed.
+	-->
+	<Include file="roads\roads.xml"/>
+	<Include file="corpus\corpus.xml"/>
+</Ui>

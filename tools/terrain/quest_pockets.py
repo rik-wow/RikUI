@@ -105,7 +105,10 @@ def connect_to_nodes(polys, chosen, reps):
 
 PATCH_UNITS = 1024.0  # vertex units per yard; well inside the loader's .002 yd tolerances
 MAX_PATCH_FILE = 131072      # soft size of one cell's file; a dense cell may reach 4x
-MAX_PATCH_ADDON = 1048576    # cells per LoadOnDemand addon, so both continents need ~150 addons
+# Cells per LoadOnDemand pack. Patches are the only data left outside the RikUI
+# folder, so packs are large: about 16 folders for both continents, each a
+# one-time synchronous load of roughly a third of a second (about 20 ms/MiB).
+MAX_PATCH_ADDON = 16 * 1048576
 NL = chr(10)
 TOC = ('## Interface: 16001' + NL + '## Title: RikUI Road Patches %d-%d' + NL + '## AllowLoadGameType: camelot' + NL
        + '## Dependencies: RikUI' + NL + '## LoadOnDemand: 1' + NL + NL)
@@ -161,7 +164,8 @@ def build_patches(polys, reps, rects):
 
 
 def patch_files(world, revision, patches, lua, encode):
-    """Group cell patches into LoadOnDemand addons; returns files and a cell index stream."""
+    """Group cell patches into LoadOnDemand packs of at most MAX_PATCH_ADDON
+    bytes; returns files and a cell index stream (cell key -> pack number)."""
     files, rows, addon, body, names = {}, [], 1, [], []
     def flush():
         nonlocal addon, body, names

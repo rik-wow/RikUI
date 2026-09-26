@@ -107,8 +107,10 @@ local function cellsAround(graph,points)
     return keys
 end
 
--- Loads at most one patch addon per call (each is a synchronous ~1 MB load);
--- returns nil,"loading" until every needed cell is registered.
+-- Loads at most one patch addon per call. Patches are the only LoadOnDemand
+-- data left: each pack holds up to 16 MiB of cells (quest_pockets.py), so a
+-- load is one synchronous stall per region, not per frame of walking.
+-- Returns nil,"loading" until every needed cell is registered.
 local function ensureLoaded(graph,keys)
     local have,loadedThisCall=registered[graph.revision] or {},false
     for _,key in ipairs(keys) do

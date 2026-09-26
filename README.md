@@ -199,8 +199,12 @@ are put back to RikUI's values when it closes.
 `/reload`. `/rik errors` keeps RikUI's own list of what it caught.
 
 The quest planner doesn't have complete data for every quest, floor or route.
-It shows when data is missing. Separate quest and terrain companion addons
-aren't included in the RikUI ZIP. See the [quest planner notes](docs/questplanner.md)
+It shows when data is missing. The generated quest corpus and road networks
+aren't in the RikUI ZIP (they're built locally from QuestieDB and client
+files); their installers write them into `RikUI/generated/`, which the addon
+picks up on the next full restart, plus about sixteen `RikUIQuestRoads_W*_P*`
+folders that hold the mesh patches and load on demand. See the
+[quest planner notes](docs/questplanner.md) and [corpus notes](docs/forever-corpus.md)
 for coverage details.
 
 ## Sharing and contributing
