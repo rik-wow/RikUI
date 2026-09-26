@@ -97,6 +97,21 @@ return function(check)
         RikUI.Profile.reducedMotion = false
         skin.NotificationCard(notice)
         check("notification accent can replay on reuse", card.enter:IsPlaying())
+        local firstIcon, secondIcon = notice:CreateTexture(), notice:CreateTexture()
+        skin.NotificationCard(notice, firstIcon)
+        local shelf = card.iconBlock
+        skin.NotificationCard(notice, secondIcon)
+        check("pooled notification shelf follows its new icon", shelf.points[1][2] == secondIcon
+            and #shelf.points == 2 and card.iconBlock == shelf)
+        skin.NotificationCard(notice)
+        check("iconless notification hides stale shelf", not shelf:IsShown())
+        skin.NotificationCard(notice, firstIcon)
+        check("returning icon restores the same shelf", shelf:IsShown() and shelf.points[1][2] == firstIcon
+            and card.iconBlock == shelf)
+        firstIcon:Hide()
+        skin.NotificationCard(notice, firstIcon)
+        check("hidden native icon also hides its shelf", not shelf:IsShown())
+        firstIcon:Show()
         -- More visual regressions are added below.
     end)
     restore()

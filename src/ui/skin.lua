@@ -139,6 +139,22 @@ end
 
 -- Animate addon chrome only; native frame fades, queues and clicks remain authoritative.
 local cards = setmetatable({}, { __mode = "k" })
+local function cardIcon(owner, card, icon)
+    if not skin.IsRegion(icon) or (type(icon.IsShown) == "function" and not icon:IsShown()) then
+        if card.iconBlock then card.iconBlock:Hide() end
+        return
+    end
+    if not card.iconBlock then
+        card.iconBlock = owner:CreateTexture(nil, "BACKGROUND")
+        card.iconBlock:SetTexture(skin.FLAT)
+        card.iconBlock:SetVertexColor(0.14, 0.12, 0.08, 1)
+    end
+    card.iconBlock:ClearAllPoints()
+    card.iconBlock:SetPoint("TOPLEFT", icon, "TOPLEFT", -4, 4)
+    card.iconBlock:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 4, -4)
+    card.iconBlock:Show()
+end
+
 function skin.NotificationCard(owner, icon, inset)
     local card = cards[owner]
     if not card then
@@ -154,13 +170,7 @@ function skin.NotificationCard(owner, icon, inset)
         cards[owner] = card
         RikUI.Hooks.Script(owner, "OnHide", function() RikUI.Motion.Stop(card.enter) end)
     end
-    if skin.IsRegion(icon) and not card.iconBlock then
-        card.iconBlock = owner:CreateTexture(nil, "BACKGROUND")
-        card.iconBlock:SetTexture(skin.FLAT)
-        card.iconBlock:SetVertexColor(0.14, 0.12, 0.08, 1)
-        card.iconBlock:SetPoint("TOPLEFT", icon, "TOPLEFT", -4, 4)
-        card.iconBlock:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 4, -4)
-    end
+    cardIcon(owner, card, icon)
     card.enter = card.enter or RikUI.Motion.Tween(card.accent, 0, 1, 0.24)
     if owner:IsShown() then RikUI.Motion.Play(card.enter) else RikUI.Motion.Stop(card.enter) end
     return card
