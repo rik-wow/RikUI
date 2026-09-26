@@ -107,7 +107,7 @@ function skin.Typeface(region, fallbackSize)
     if not skin.IsRegion(region) or type(region.SetFont) ~= "function" then return end
     local ok, _, size = pcall(region.GetFont, region)
     size = ok and type(size) == "number" and size > 0 and size or fallbackSize or media.sizes.label
-    region:SetFont(media.font, size, "OUTLINE")
+    media.SetFont(region, size, "OUTLINE")
     skin.Ink(region)
 end
 
@@ -120,7 +120,7 @@ local function buttonFonts()
     fonts = {}
     for state, color in pairs(BUTTON_FONT_COLORS) do
         local object = CreateFont(BUTTON_FONT_PREFIX .. state)
-        object:SetFont(media.font, media.Size("label"), "OUTLINE")
+        media.SetFont(object, media.Size("label"), "OUTLINE")
         object:SetTextColor(unpack(color))
         fonts[state] = object
     end

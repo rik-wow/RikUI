@@ -56,12 +56,13 @@ function media.Size(role)
     return math.floor((media.sizes[role] or media.sizes.label) * scale + 0.5)
 end
 
-function media.Font(region, role)
-    local size = media.Size(role)
-    local loaded = region:SetFont(media.font, size, "OUTLINE")
+-- Apply type without changing a native label's colour, shadow or size.
+function media.SetFont(region, size, flags)
+    local loaded = region:SetFont(media.font, size, flags)
     if loaded == false then
         local fallback = type(STANDARD_TEXT_FONT) == "string" and STANDARD_TEXT_FONT or FALLBACK_FONT
-        local recovered = region:SetFont(fallback, size, "OUTLINE") ~= false
+        local recovered = region:SetFont(fallback, size, flags) ~= false
+        loaded = recovered
         -- Share a working path with callers that use Media.font directly.
         if recovered then media.font = fallback end
         if not warned then
@@ -70,6 +71,11 @@ function media.Font(region, role)
                 or "Media font and game-font fallback could not load.")
         end
     end
+    return loaded ~= false
+end
+
+function media.Font(region, role)
+    media.SetFont(region, media.Size(role), "OUTLINE")
     region:SetTextColor(1, 1, 1, 1)
     region:SetShadowColor(0, 0, 0, 1)
     region:SetShadowOffset(1, -1)

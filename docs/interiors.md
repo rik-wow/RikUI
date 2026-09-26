@@ -22,6 +22,8 @@ Recolouring preserves the original text opacity, including fully transparent lab
 secret alpha and invalid colour channels are left untouched.
 The rule lives in `skin.Typeface`, so a new window adapter gets it by retyping
 its labels; the spellbook fixture checks brown, green, grey and secret colours.
+Native-sized labels and shared button fonts use the same game-font recovery as
+addon labels when the selected font cannot load.
 
 ## Selective windows
 
