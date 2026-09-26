@@ -69,6 +69,20 @@ return function(check)
         check("disable clears interior hover", rowState.hover.alpha == 0 and not rowState.enter:IsPlaying())
         row:Hide(); row:Show()
         check("recycled row starts with no hover", rowState.hover.alpha == 0)
+        local animated = CreateFrame("Frame")
+        local cached = RikUI.Motion.Tween(animated, 0, 1, 0.2)
+        RikUI.Motion.Play(cached)
+        RikUI.Motion.CloseOwned(animated)
+        RikUI.Motion.CancelClose(animated)
+        RikUI.Profile.reducedMotion = true
+        RikUI.Motion.Play(cached)
+        check("reduced motion stops cached effects without replay", not cached:IsPlaying() and cached.plays == 1)
+        RikUI.Motion.CloseOwned(animated)
+        check("reduced motion bypasses cached window exit", not animated:IsShown() and not animated.rikClosing
+            and not animated.rikExit:IsPlaying())
+        RikUI.Profile.reducedMotion = false
+        RikUI.Motion.Play(cached)
+        check("restored motion reuses cached effects", cached.plays == 2 and cached:IsPlaying())
         -- More visual regressions are added below.
     end)
     restore()

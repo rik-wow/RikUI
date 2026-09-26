@@ -55,6 +55,7 @@ end
 function motion.Play(group)
     if not group then return end
     group:Stop()
+    if motion.Reduced() then return end
     group:Play()
 end
 
@@ -83,7 +84,14 @@ end
 
 -- Only addon-owned surfaces may opt into a delayed hide.
 function motion.CloseOwned(owner)
-    if not owner or not owner:IsShown() or owner.rikClosing then return end
+    if not owner or not owner:IsShown() then return end
+    if motion.Reduced() then
+        motion.CancelClose(owner)
+        motion.Stop(owner.rikEntry)
+        owner:Hide()
+        return
+    end
+    if owner.rikClosing then return end
     motion.Stop(owner.rikEntry)
     local group = owner.rikExit
     if not group then
