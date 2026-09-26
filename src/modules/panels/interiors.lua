@@ -45,15 +45,20 @@ local function hover(frame, state)
     state.hover:SetDrawLayer("OVERLAY")
     state.enter = motion.Tween(state.hover, 0, HOVER_ALPHA, HOVER_SECONDS)
     state.leave = motion.Tween(state.hover, HOVER_ALPHA, 0, HOVER_SECONDS)
+    local function clear()
+        motion.Stop(state.enter); motion.Stop(state.leave); state.hover:SetAlpha(0)
+    end
+    local function disabled() return type(frame.IsEnabled) == "function" and frame:IsEnabled() == false end
     core.Hooks.Script(frame, "OnEnter", function()
+        if disabled() then clear(); return end
         motion.Stop(state.leave); state.hover:SetAlpha(HOVER_ALPHA); motion.Play(state.enter)
     end)
     core.Hooks.Script(frame, "OnLeave", function()
-        motion.Stop(state.enter); state.hover:SetAlpha(0); motion.Play(state.leave)
+        clear()
+        if not disabled() then motion.Play(state.leave) end
     end)
-    core.Hooks.Script(frame, "OnHide", function()
-        motion.Stop(state.enter); motion.Stop(state.leave); state.hover:SetAlpha(0)
-    end)
+    core.Hooks.Script(frame, "OnHide", clear)
+    core.Hooks.Script(frame, "OnDisable", clear)
 end
 
 function interiors.Labels(frame)

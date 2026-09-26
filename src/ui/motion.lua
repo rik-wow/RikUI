@@ -129,6 +129,10 @@ function motion.BindHover(owner)
     value.enter = motion.Tween(value.region, 0, HOVER_ALPHA, HOVER_SECONDS)
     value.leave = motion.Tween(value.region, HOVER_ALPHA, 0, HOVER_SECONDS)
     owner.rikHover = value
+    local function clear()
+        motion.Stop(value.enter); motion.Stop(value.leave); value.region:SetAlpha(0)
+    end
+    if not owner.HasScript or owner:HasScript("OnDisable") ~= false then owner:HookScript("OnDisable", clear) end
     owner:HookScript("OnEnter", function()
         if owner.IsEnabled and owner:IsEnabled() == false then return end
         motion.Stop(value.leave)
@@ -136,13 +140,10 @@ function motion.BindHover(owner)
         motion.Play(value.enter)
     end)
     owner:HookScript("OnLeave", function()
-        motion.Stop(value.enter)
-        value.region:SetAlpha(0)
-        motion.Play(value.leave)
+        clear()
+        if not owner.IsEnabled or owner:IsEnabled() ~= false then motion.Play(value.leave) end
     end)
-    owner:HookScript("OnHide", function()
-        motion.Stop(value.enter); motion.Stop(value.leave); value.region:SetAlpha(0)
-    end)
+    owner:HookScript("OnHide", clear)
 end
 
 local PRESS_ALPHA, RELEASE_SECONDS = 0.24, 0.18
