@@ -4,7 +4,8 @@ local core, auras = RikUI, RikUI.Auras
 local tracker = { title = "Class effects", Rows = {} }
 core.ClassAuras = tracker
 core.ClassAuraProfiles = core.ClassAuraProfiles or {}
-local SIZE, GAP, PER_LINE, MAX_PLAYER, MAX_TARGET = 32, 4, 6, 12, 6
+-- Icons match the class cooldown row (28 px) so the two read as one strip in the HUD.
+local SIZE, GAP, PER_LINE, MAX_PLAYER, MAX_TARGET = 28, 4, 6, 12, 6
 local WIDTH, HEIGHT = PER_LINE * (SIZE + GAP) - GAP, 2 * (SIZE + GAP) - GAP
 local FLOW = { anchor = "TOPLEFT", horizontal = "Right", vertical = "Down", lineSize = WIDTH }
 local warnings = {}

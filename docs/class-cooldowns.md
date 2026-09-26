@@ -113,7 +113,13 @@ Shared shock and totem cooldowns come from the client; no assumed shared-timer d
 
 ### Paladin — 2026-09-24
 
-Priorities: Hammer of Justice, Blessing of Protection, Blessing of Freedom, Lay on Hands, Divine Shield, Divine Protection, Holy Shield, Holy Shock, Repentance, Divine Favor, Exorcism, Holy Strike.
+Priorities: Judgement, Hammer of Justice, Blessing of Protection, Blessing of Freedom, Lay on Hands, Divine Shield, Divine Protection, Holy Shield, Holy Shock, Repentance, Exorcism, Holy Strike.
+
+Judgement leads since 2026-09-25: it is the seal cooldown, learned at level 4, and
+on the user's level 4 paladin the native cooldown manager configured no entries at
+all (Essential, Utility and both tracked rows empty), so without it the HUD
+showed no paladin cooldown until Hammer of Justice at level 8. Divine Favor, a
+deep Holy talent, left the list to stay within the row's twelve slots.
 
 [Current player feedback](https://us.forums.blizzard.com/en/wow/t/paladin-feedback-1-20-beta/2355823): Paladin feedback requests smoother utility blessings and more useful Protection/Holy Strike gameplay.
 These are community requests, not verified tuning or spell mechanics. The

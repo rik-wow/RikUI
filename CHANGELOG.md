@@ -8,6 +8,10 @@ tagging.
 
 ## Unreleased
 
+- Paladins: Judgement leads the class cooldown row (from level 4), and the
+  Class buffs row that shows your active seal now uses the same 28 px icons
+  as that row and sits directly left of it in the HUD layout. Run `/rik hud`
+  on an existing profile to pick up the placement.
 - The locally built quest corpus and road networks now install inside the
   RikUI folder (`generated/`, pulled in by the committed `generated/index.xml`)
   and load with the addon. Only the mesh patches stay as separate

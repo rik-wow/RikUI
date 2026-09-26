@@ -9,8 +9,8 @@ RikUI's combat HUD brings the information you act on into one area above the act
 | Essential and Utility cooldowns | Main central icon rows | The native manager owns spell selection, charges, cooldowns and visibility |
 | Primary resource | A narrow strip below the central rows | Current client power type, including Druid form changes |
 | Player cast/channel | Directly below the resource strip | Existing native duration and cast events |
-| Important personal buffs and target effects | Short rows beside the central displays | The character's verified class catalogue and native aura filtering |
-| Learned class cooldowns | Nearby defensive/control/utility coverage | Learned ranks, talents and spellbook changes across nine classes |
+| Important personal buffs and target effects | Class buffs directly left of the class cooldown row at the bottom of the stack; target effects above the target frame | The character's verified class catalogue and native aura filtering |
+| Learned class cooldowns | Bottom of the central stack, under the weapon timer | Learned ranks, talents and spellbook changes across nine classes |
 | Combo points, totems and form mana | Small supporting displays | Relevant class, form and native state |
 | Weapon timers | Bottom of the central resource/cast stack | Native melee, ranged and wand events; existing kiting cues |
 | Proc and loss-of-control alerts | Brief attention cues | Client-owned activation and lifetime |

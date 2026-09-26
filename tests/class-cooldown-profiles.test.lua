@@ -18,7 +18,7 @@ return function(check)
         { class = "WARRIOR", ids = { 72, 1671, 1672, 871, 6552, 6554 }, excluded = 78 },
         { class = "ROGUE", ids = { 1766, 1769, 2983, 11305, 14185 }, excluded = 1752 },
         { class = "HUNTER", ids = { 5384, 3045, 1293241, 1293527 }, excluded = 75 },
-        { class = "PALADIN", ids = { 853, 10308, 633, 10310, 1044 }, excluded = 21084 },
+        { class = "PALADIN", ids = { 20271, 853, 10308, 633, 10310, 1044 }, excluded = 21084 },
         { class = "SHAMAN", ids = { 8042, 10414, 17364, 408521, 1239243, 408490 }, excluded = 403 },
         { class = "DRUID", ids = { 5211, 8983, 1238122, 29166, 20484, 20748 }, excluded = 5176 },
         { class = "PRIEST", ids = { 17, 10901, 402174, 1316995, 1309595, 1309636 }, excluded = 585 },
