@@ -163,6 +163,21 @@ return function(check)
         callbacks = 0
         RikUI.Scroll.SetContentHeight(pane, 700)
         check("range callbacks cannot reset the saved offset", pane.offset == 120 and callbacks == 1)
+        assert(loadfile("src/modules/controls/controls.lua"))("RikUI", {})
+        local function slider(orientation)
+            local value = CreateFrame("Slider")
+            value.thumb = value:CreateTexture()
+            function value:GetOrientation() return orientation end
+            function value:GetThumbTexture() return self.thumb end
+            RikUI.Controls.Skin(value)
+            return value
+        end
+        local vertical, horizontal = slider("VERTICAL"), slider("HORIZONTAL")
+        check("vertical slider track follows its axis", vertical.rikTrack.width == 4
+            and vertical.rikTrack.points[1][1] == "TOP" and vertical.rikTrack.points[2][1] == "BOTTOM")
+        check("vertical slider thumb crosses its track", vertical.thumb.width == 16 and vertical.thumb.height == 10)
+        check("horizontal slider geometry stays horizontal", horizontal.rikTrack.height == 4
+            and horizontal.rikTrack.points[1][1] == "LEFT" and horizontal.thumb.width == 10 and horizontal.thumb.height == 16)
         -- More visual regressions are added below.
     end)
     restore()

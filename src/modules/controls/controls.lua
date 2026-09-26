@@ -139,10 +139,12 @@ local function slider(frame)
     frame.rikTrack = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
     frame.rikTrack:SetTexture(skin.FLAT)
     frame.rikTrack:SetVertexColor(unpack(skin.LINE))
-    frame.rikTrack:SetPoint("LEFT", frame, "LEFT", 0, 0)
-    frame.rikTrack:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
-    frame.rikTrack:SetHeight(TRACK_HEIGHT)
-    flatThumb(frame, THUMB_WIDTH, THUMB_HEIGHT)
+    local vertical = type(frame.GetOrientation) == "function" and frame:GetOrientation() == "VERTICAL"
+    local first, last = vertical and "TOP" or "LEFT", vertical and "BOTTOM" or "RIGHT"
+    frame.rikTrack:SetPoint(first, frame, first, 0, 0)
+    frame.rikTrack:SetPoint(last, frame, last, 0, 0)
+    if vertical then frame.rikTrack:SetWidth(TRACK_HEIGHT) else frame.rikTrack:SetHeight(TRACK_HEIGHT) end
+    flatThumb(frame, vertical and THUMB_HEIGHT or THUMB_WIDTH, vertical and THUMB_WIDTH or THUMB_HEIGHT)
 end
 
 local function stepButton(button, glyph)
