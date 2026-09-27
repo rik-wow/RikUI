@@ -102,10 +102,22 @@ local function pushButton(button)
     buttonSurface(button)
 end
 
--- Blizzard's tick is a glyph with no box around it, so it stays.
+-- Style the native checked regions; the client still decides when each mark is visible.
+local function checkMark(button, getter, color)
+    local mark = type(button[getter]) == "function" and button[getter](button) or nil
+    if not skin.IsRegion(mark) or type(mark.SetTexture) ~= "function" then return end
+    mark:SetTexture(media.checked)
+    mark:SetTexCoord(0, 1, 0, 1)
+    mark:ClearAllPoints()
+    mark:SetPoint("TOPLEFT", button, "TOPLEFT", CHECK_INSET + 2, -CHECK_INSET - 2)
+    mark:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -CHECK_INSET - 2, CHECK_INSET + 2)
+    mark:SetVertexColor(unpack(color))
+end
 local function checkBox(button)
     fadeStates(button)
     box(button, FIELD, CHECK_INSET)
+    checkMark(button, "GetCheckedTexture", skin.GOLD)
+    checkMark(button, "GetDisabledCheckedTexture", { 0.45, 0.48, 0.54, 1 })
     hover(button)
     motion.BindPress(button)
 end

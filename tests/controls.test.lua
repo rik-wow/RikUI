@@ -59,6 +59,9 @@ return function(check)
             legacy = legacyScrollBar(inner), dropdown = frame("Button", inner), item = frame("Button", inner),
             action = frame("CheckButton", inner, 36), secure = pushButton(inner), forbidden = pushButton(inner) }
         stateTextures(parts.check)
+        parts.check.tick, parts.check.disabledTick = parts.check:CreateTexture(), parts.check:CreateTexture()
+        function parts.check:GetCheckedTexture() return self.tick end
+        function parts.check:GetDisabledCheckedTexture() return self.disabledTick end
         art(parts.edit, { "Left", "Middle", "Right" })
         function parts.edit:GetFont() return "Fonts\\ARIALN.TTF", 12, "" end
         function parts.edit:SetFont(path, size) self.fontPath, self.fontSize = path, size end
@@ -103,6 +106,10 @@ return function(check)
         check("a check box keeps Blizzard's tick and trades its box art for an inset flat box",
             ui.check.states.Normal.alpha == 0 and ui.check.states.Pushed.alpha == 0
             and ui.check.rikFill.points[1][4] > 0 and #ui.check.rikBorder == 4 and ui.check.checkedTexture == nil)
+        check("checkbox marks are inset bundled glyphs with muted disabled ink",
+            ui.check.tick.texture == RikUI.Media.checked and ui.check.tick.points
+            and ui.check.tick.points[1][4] == 6 and ui.check.disabledTick.color
+            and ui.check.disabledTick.color[1] < ui.check.tick.color[1])
         check("an edit box loses its border pieces and gets a field, an edge and the typeface at its own size",
             ui.edit.Left.alpha == 0 and ui.edit.Right.alpha == 0 and ui.edit.rikFill ~= nil
             and ui.edit.fontPath == RikUI.Media.font and ui.edit.fontSize == 12)

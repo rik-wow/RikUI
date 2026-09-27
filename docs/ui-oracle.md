@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Native checkboxes now use crisp inset bundled checkmarks, with warm selected ink and a muted disabled mark. The client still controls checked visibility.
+
 - Native push buttons now have a subtle raised top edge, a recessed disabled face and quieter disabled borders; enabling restores the surface without replacing native handlers.
 
 - Castbars now separate long spell names from bounded countdown columns, with dark text backing. Hiding time text immediately returns its space to the name, and resizing recomputes the reservation.
