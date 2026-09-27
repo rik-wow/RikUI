@@ -9,6 +9,7 @@ local FRAME_NAME, KEY = "RikUIDurability", "durability"
 local WIDTH, HEIGHT, EDGE = 132, 18, 1
 local DEFAULTS = { point = "TOP", relativePoint = "TOP", x = 0, y = -94 }
 local BACKGROUND, BORDER = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }
+local HEALTHY_COLOR = { 0.5, 0.8, 0.7 }
 local WORN_COLOR, BROKEN_COLOR, WHITE = { 1, 0.82, 0.18 }, { 0.93, 0.07, 0.07 }, { 1, 1, 1 }
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local FADE_SECONDS, PULSE_SECONDS, PULSE_ALPHA = 0.15, 0.5, 0.35
@@ -108,7 +109,10 @@ local function show(worn, broken)
     setPulsing(broken > 0)
     if worn + broken == 0 and minimum == nil then return end
     pill.label:SetText(worn + broken > 0 and describe(worn, broken) or (minimum .. "% durability"))
-    pill.label:SetTextColor(unpack(broken > 0 and BROKEN_COLOR or WORN_COLOR))
+    local color = broken > 0 and BROKEN_COLOR or worn > 0 and WORN_COLOR or HEALTHY_COLOR
+    pill.label:SetTextColor(unpack(color))
+    pill.severity:SetVertexColor(unpack(color))
+    pill.icon:SetVertexColor(unpack(color))
     if not visible then motion.Play(durability.Fade) end
 end
 
@@ -142,7 +146,18 @@ end
 
 local function hideTooltip() GameTooltip:Hide() end
 
+local function severityChrome()
+    pill.severity = pill:CreateTexture(nil, "OVERLAY")
+    pill.severity:SetTexture(FLAT)
+    pill.severity:SetPoint("TOPLEFT", pill, "TOPLEFT", 1, -1)
+    pill.severity:SetPoint("BOTTOMLEFT", pill, "BOTTOMLEFT", 1, 1)
+    pill.severity:SetWidth(2)
+    pill.icon = media.Icon(pill, "profession", 12, "OVERLAY")
+    pill.icon:SetPoint("LEFT", pill, "LEFT", 7, 0)
+end
+
 local function decorate()
+    severityChrome()
     local background = pill:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints(pill)
     background:SetTexture(FLAT)
@@ -156,7 +171,10 @@ local function decorate()
     pill.alert:SetAlpha(0)
     pill.label = pill:CreateFontString(nil, "OVERLAY")
     media.Font(pill.label, "small")
-    pill.label:SetPoint("CENTER", pill, "CENTER", 0, 0)
+    pill.label:SetPoint("LEFT", pill, "LEFT", 24, 0)
+    pill.label:SetPoint("RIGHT", pill, "RIGHT", -5, 0)
+    pill.label:SetJustifyH("LEFT")
+    pill.label:SetWordWrap(false)
     pill.label:SetTextColor(unpack(WHITE))
 end
 

@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Durability now has a repair glyph, a steady severity rail and a bounded caption. Healthy percentages use a calm green; worn and broken gear keep yellow and red alerts.
+
 - Minimap status now sits in an inset two-row footer: clock and coordinates above day/night and optional performance. Queue and RikUI controls remain on the map; layout presets include the entire 200×270 card.
 
 - The minimap zone label now sits inside a layered header with a map glyph. Its layout bounds include the header, and native indicators remain aligned to the square map after Edit Mode changes.

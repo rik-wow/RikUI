@@ -59,6 +59,8 @@ return function(check)
         check("worn gear shows a yellow pill with the count and a fade", pill.shown == true
             and pill.label.text == "2 worn" and pill.label.textColor[2] > 0.5 and pill.label.textColor[3] < 0.5
             and module.Fade.plays == 1 and not module.Pulse.playing)
+        check("damage severity remains visible without pulse", pill.severity and pill.severity.color[2] > 0.5
+            and pill.icon and pill.label.wordWrap == false)
         stub.durability[1], stub.durability[5] = { 12, 60 }, { 5, 100 }
         hover(pill)
         check("hovering lists each worn slot with its percent", GameTooltip.owner == pill
@@ -128,6 +130,7 @@ return function(check)
         stub.durability[1], stub.durability[16] = { 90, 100 }, { 35, 50 }
         module.Refresh()
         check("optional durability HUD shows lowest gear percent", module.Pill.shown and module.Pill.label.text == "70% durability")
+        check("healthy percentage uses a calm color", module.Pill.severity.color[2] > module.Pill.severity.color[1])
         hover(module.Pill)
         check("durability summary tooltip includes healthy worn-down gear", tooltipContains("Head") and tooltipContains("90%"))
         GetInventoryAlertStatus = function(index) if index == WEAPON then return 2 end end
