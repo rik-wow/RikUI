@@ -1,5 +1,5 @@
-// Original UI reconstruction. Icon artwork is fetched unchanged from Blizzard's CDN.
-export const iconBase = "https://render.worldofwarcraft.com/icons/56/";
+// Original UI reconstruction. Icons decoded from the installed Forever client; see client-assets.json.
+export const iconBase = "/assets/forever-20260927/";
 const art = {
   stone: "inv_misc_rune_06", might: "spell_holy_righteousfury", devotion: "spell_holy_sealofprotection",
   light: "spell_holy_sealofmight", wisdom: "inv_misc_book_07", bolt: "spell_holy_searinglight",
@@ -11,14 +11,14 @@ const art = {
   watch: "inv_misc_pocketwatch_01", fortitude: "spell_holy_wordfortitude",
   regen: "spell_nature_rejuvenation", intellect: "spell_holy_magicalsentry", spirit: "spell_magic_magearmor",
 };
-export const assetUrls = Object.values(art).map(name => iconBase + name + ".jpg");
+export const assetUrls = Object.values(art).map(name => iconBase + name + ".png");
 const rect = (x, y, w, h, fill = "#101316", stroke = "#3c444e") =>
   '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1"/>';
 const text = (x, y, value, fill = "#c8c5bc", size = 10, anchor = "start", extra = "") =>
   '<text x="'+x+'" y="'+y+'" fill="'+fill+'" font-size="'+size+'" text-anchor="'+anchor+'" '+extra+'>'+value+'</text>';
 function slot(x, y, name, bind = "", size = 30, count = "") {
   return '<g class="game-slot">'+rect(x,y,size,size)+(name ?
-    '<image href="'+iconBase+art[name]+'.jpg" x="'+(x+1)+'" y="'+(y+1)+'" width="'+(size-2)+'" height="'+(size-2)+'"/>' : "")+
+    '<image href="'+iconBase+art[name]+'.png" x="'+(x+1)+'" y="'+(y+1)+'" width="'+(size-2)+'" height="'+(size-2)+'"/>' : "")+
     (bind ? text(x+size-2,y+9,bind,"#eee9df",10,"end",'class="outlined"') : "")+
     (count ? text(x+size-2,y+size-2,count,"#eee9df",10,"end",'class="outlined"') : "")+'</g>';
 }

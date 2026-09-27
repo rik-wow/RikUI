@@ -1,12 +1,13 @@
 import { page } from "./page.mjs";
 import { styles } from "./styles.mjs";
 import { catalog } from "./releases.mjs";
+import { assetUrls } from "./previews.mjs";
 import { clientScript } from "./client.mjs";
 
 const SECURITY = {
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: https://render.worldofwarcraft.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   "Strict-Transport-Security": "max-age=31536000",
 };
@@ -83,7 +84,8 @@ async function route(request, env) {
     return Response.redirect("https://rikwow.com" + url.pathname + url.search, 308);
   if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8",
     { "Cache-Control": "public, max-age=60, no-transform" });
-  if (url.pathname === "/assets/world-20260927-120706.jpg") return worldAsset(request, env);
+  if (new Set([...assetUrls, "/assets/world-20260927-120706.jpg",
+    "/assets/combat-20260927-122246.jpg", "/assets/combat-20260927-122242.jpg"]).has(url.pathname)) return worldAsset(request, env);
   if (url.pathname === "/site.js") return respond(clientScript, 200, "text/javascript; charset=utf-8");
   if (url.pathname === "/site.css") return respond(styles, 200, "text/css; charset=utf-8");
   if (url.pathname === "/healthz") return json({ status: "ok", service: "rik-wow-site" });

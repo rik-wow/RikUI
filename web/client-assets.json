@@ -1,0 +1,251 @@
+{
+  "reviewedAt": "2026-09-27",
+  "product": "wow_classic_beta",
+  "version": "1.60.1.70009",
+  "buildConfig": "05215079e3905ef5922ae0b03ffefb73",
+  "cdnConfig": "9b3c456dbb837d133a026d380c7c13e9",
+  "source": "Installed client CASC selected through .build.info; WowB.exe version cross-checked.",
+  "extractor": "TACTTool c12f9fa3c4ceeb619b0453947cee86fccad6774a",
+  "conversion": "Pillow 12.1.0 BLP to PNG, original 64x64 mip; no resizing or recoloring.",
+  "icons": [
+    {
+      "fileDataID": 134419,
+      "clientPath": "interface/icons/inv_misc_rune_06.blp",
+      "blpSha256": "2e75cf74ee6b1b5b4a7e9d87a48ff4915fc7fa4d2e11c2ccf8faa84f702f6b50",
+      "path": "/assets/forever-20260927/inv_misc_rune_06.png",
+      "sha256": "035f6393e8822f50e5d613881992d47958b3abc0ae414f0d9f763cb0f30e13a8",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135959,
+      "clientPath": "interface/icons/spell_holy_righteousfury.blp",
+      "blpSha256": "b5d7fabf3e8d53eae05d044d1282a676cee9121ce8cf344c92b59e67fc2a627d",
+      "path": "/assets/forever-20260927/spell_holy_righteousfury.png",
+      "sha256": "c316180198b3e13e6a291def7dec76b1b11d0aafb469c2ecbd4d056ba3240a19",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135964,
+      "clientPath": "interface/icons/spell_holy_sealofprotection.blp",
+      "blpSha256": "0b5846eb29284c665ee338a92f8725e85b98121eb3cb702de11a6c611490f58f",
+      "path": "/assets/forever-20260927/spell_holy_sealofprotection.png",
+      "sha256": "ab435dfde8bf6f5b2d2993175be098d28815635ac5ead5490bab694553789158",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135963,
+      "clientPath": "interface/icons/spell_holy_sealofmight.blp",
+      "blpSha256": "d4f0d405d7a5812ba99096da078eebb2df4c87fa50af46d6d3919ff176d15e2a",
+      "path": "/assets/forever-20260927/spell_holy_sealofmight.png",
+      "sha256": "a7d96322c5ef6711a33804df5ca11309d613ed24159a6c61bbc4e58cf4dd1d15",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 133739,
+      "clientPath": "interface/icons/inv_misc_book_07.blp",
+      "blpSha256": "14c8276436d41eb0281fab892081dc5a42b9b0279720471e3ec2ae379c7170db",
+      "path": "/assets/forever-20260927/inv_misc_book_07.png",
+      "sha256": "7a20d8e1a33694ad5121bef5d0249d67b3857892625aff6d0392f3645cd4d4b3",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135972,
+      "clientPath": "interface/icons/spell_holy_searinglight.blp",
+      "blpSha256": "b5e11ef908496a5a191d14fa1db9b05add6e2260a762a8bf21c9f2e895e44951",
+      "path": "/assets/forever-20260927/spell_holy_searinglight.png",
+      "sha256": "5420616ed709da77ed490f7cc354c799410642f9d1e9edcec17de31548649952",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135928,
+      "clientPath": "interface/icons/spell_holy_layonhands.blp",
+      "blpSha256": "0a1402f57b6e294f539a7d4e45b594ac8b3109c5c5bc4946b02d0238c14cb3dd",
+      "path": "/assets/forever-20260927/spell_holy_layonhands.png",
+      "sha256": "37edeb90da54cf5f0dcdc62ad0037f59669518ad42f5121c74c3fe98e938e4cd",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135882,
+      "clientPath": "interface/icons/spell_holy_blessingofstrength.blp",
+      "blpSha256": "f00a3074e6724059ae5ba37e74bbf1cd989df9b47b30fdccacb6b68ce6f1ba38",
+      "path": "/assets/forever-20260927/spell_holy_blessingofstrength.png",
+      "sha256": "616e4965f97cc8fcb0b6f7583a9c6bb7f25d4e02a87428abb38d305a0e14e8bf",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135893,
+      "clientPath": "interface/icons/spell_holy_devotionaura.blp",
+      "blpSha256": "7040de65d8053e5ee445cbcb562d7aeb589fecf1ce35753bf4598b049e0ad36b",
+      "path": "/assets/forever-20260927/spell_holy_devotionaura.png",
+      "sha256": "9389459cc4a08212b90d4635ef467668bd93400e8eb06cf89f858c2d12177eb5",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135967,
+      "clientPath": "interface/icons/spell_holy_sealofsalvation.blp",
+      "blpSha256": "25a2008366c161a1bed8935ab31daf787ffeb2f410142ccccdec48196b4703e2",
+      "path": "/assets/forever-20260927/spell_holy_sealofsalvation.png",
+      "sha256": "cd8e7ac55028480585eddb229a1927e048ecfc28fdf53e32cf338cecf176da85",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135949,
+      "clientPath": "interface/icons/spell_holy_purify.blp",
+      "blpSha256": "5fd93bf8921169164cee7ebbb305595f103a1d2bd345b8a2557613244469be9c",
+      "path": "/assets/forever-20260927/spell_holy_purify.png",
+      "sha256": "c584293c4403a0b1d01c0f9a64e684cc7e7d81d4dbb264ce63f19911efbcb6a6",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135924,
+      "clientPath": "interface/icons/spell_holy_holysmite.blp",
+      "blpSha256": "1a066b255f9fe1b2d29ce4efdb8efab9cb6684f3ac266ac43fa75ce394a23037",
+      "path": "/assets/forever-20260927/spell_holy_holysmite.png",
+      "sha256": "81d24b27daa6610ade99d1041257bee83b22724751de481c4db61ccbea34fa24",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135873,
+      "clientPath": "interface/icons/spell_holy_auraoflight.blp",
+      "blpSha256": "291da5a88550275111d090339182b09905df3fafb01b52fa6954edd5aff1c417",
+      "path": "/assets/forever-20260927/spell_holy_auraoflight.png",
+      "sha256": "bffd19da2525b13da120d170b9d82ff66bc94b647d061859fb4aef43adb2467c",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 133038,
+      "clientPath": "interface/icons/inv_hammer_01.blp",
+      "blpSha256": "cd1b682275f92d1433dfdb8e5cad082a94d521e8fcec7b49c6dcedde50267441",
+      "path": "/assets/forever-20260927/inv_hammer_01.png",
+      "sha256": "088145e17e76f9620a3bb4d8b6eda02b004b34fd54476777f505ea59d3650c94",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 134830,
+      "clientPath": "interface/icons/inv_potion_50.blp",
+      "blpSha256": "89d9f5abc62005a75ba6c6033c3b12eac71bf9f497f5b75e988133dbf466328d",
+      "path": "/assets/forever-20260927/inv_potion_50.png",
+      "sha256": "fc4be8e4bd2275676f20df916f3109f72d725b234fe8d44f31411c3b05382a1a",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 134829,
+      "clientPath": "interface/icons/inv_potion_49.blp",
+      "blpSha256": "448b451599b32f814e8ee1779fbfa23f2e55437b691bd80ff5fa9d21d609e037",
+      "path": "/assets/forever-20260927/inv_potion_49.png",
+      "sha256": "cd6b8fe68dcc5d5a14dc044b1387423bf0187506559a6d55e589c5ba25b593d3",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 133949,
+      "clientPath": "interface/icons/inv_misc_food_07.blp",
+      "blpSha256": "d641eddb75084f8e68a554846516b58a8dfcfaa5413e1345f9c75572aa41ea30",
+      "path": "/assets/forever-20260927/inv_misc_food_07.png",
+      "sha256": "82f8a28480f8ec6af588064c682a1f23d757187524a92efaad2776d7a367841d",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 133975,
+      "clientPath": "interface/icons/inv_misc_food_19.blp",
+      "blpSha256": "40bc76102b9c613e605d8d4c93e7bb1f25d8829f4bac3ee0af336f25b349068f",
+      "path": "/assets/forever-20260927/inv_misc_food_19.png",
+      "sha256": "3f4e2ea4b8214272e2376b56054b16d43eae491ddc14afafecfd9ec7bf763a1f",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 133741,
+      "clientPath": "interface/icons/inv_misc_book_09.blp",
+      "blpSha256": "f41b37ecd55678ba2dd75e82b05e06ac7d06fcb38c1bf34f86ced195690ff39a",
+      "path": "/assets/forever-20260927/inv_misc_book_09.png",
+      "sha256": "7372f35a07f36c82f64058e38a589ff6264d71a7dbd33b1b238b1215bba31aa7",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 134414,
+      "clientPath": "interface/icons/inv_misc_rune_01.blp",
+      "blpSha256": "1cb210d21ec12fb013389d5a2e5234cfd98059b33b205473ad548a2ce53db745",
+      "path": "/assets/forever-20260927/inv_misc_rune_01.png",
+      "sha256": "8cae2f6f1b3e725fec8c1aa6755da7ccc76dd816d3d7738bb4119e99097fb760",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 134376,
+      "clientPath": "interface/icons/inv_misc_pocketwatch_01.blp",
+      "blpSha256": "c048805f38d043db055d9eb4feb7732d395840467a9eb97c24809af03814e71c",
+      "path": "/assets/forever-20260927/inv_misc_pocketwatch_01.png",
+      "sha256": "31c8a11f0df83284cebc1661b10c40b27f90705838cc12038428d7131fdf24bf",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135987,
+      "clientPath": "interface/icons/spell_holy_wordfortitude.blp",
+      "blpSha256": "ff38a00809be3383e74c9b1e7bf2e9de3b6c3ddd5b41b4f90398ecf73ac586fa",
+      "path": "/assets/forever-20260927/spell_holy_wordfortitude.png",
+      "sha256": "3d3bf2c1fcb9dd7a4a1f60dd99c09d688b4099c0c7471dea5bc680cd9dd88e8a",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 136081,
+      "clientPath": "interface/icons/spell_nature_rejuvenation.blp",
+      "blpSha256": "3cc47b8628afd203e370fff5562e8b344a1a0f1d675751ba34483d17299b3993",
+      "path": "/assets/forever-20260927/spell_nature_rejuvenation.png",
+      "sha256": "d3571c15b3f6084784820c9c0664e5c34d2a077295519a32172f126e0303ee05",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135932,
+      "clientPath": "interface/icons/spell_holy_magicalsentry.blp",
+      "blpSha256": "9c5bc14cf519c13b7231c8ef4b430d95c9d058e0ced0f257958be35f90d43f92",
+      "path": "/assets/forever-20260927/spell_holy_magicalsentry.png",
+      "sha256": "4ffd0641ebb7f07aed8707cfcff7ecdc068ac8d9f88eeea0e66b131cce0846fa",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "fileDataID": 135995,
+      "clientPath": "interface/icons/spell_magic_magearmor.blp",
+      "blpSha256": "88b6fbfb2e079fd937ca5b51c415994d73e1b921229676258d7f9a502d6534ad",
+      "path": "/assets/forever-20260927/spell_magic_magearmor.png",
+      "sha256": "ad6bb98a9aea33ac86c0c0370cc6cd0bd02ed25e9692bba2a3718b6c08c26acf",
+      "width": 64,
+      "height": 64
+    }
+  ],
+  "screenshots": [
+    {
+      "source": "WoWScrnShot_092726_122242.jpg",
+      "path": "/assets/combat-20260927-122242.jpg",
+      "sha256": "aba20da9b440061ae1f03c2685a59c629b5c7bbd1e3f1294693b756da43c5b69",
+      "bytes": 7564615
+    },
+    {
+      "source": "WoWScrnShot_092726_122246.jpg",
+      "path": "/assets/combat-20260927-122246.jpg",
+      "sha256": "5b956709bdd2df392db6e752281a276158d61e5654fb8a627755f140ed6a28b1",
+      "bytes": 7055170
+    }
+  ]
+}

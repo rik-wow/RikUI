@@ -28,16 +28,18 @@ code{font:14px ui-monospace,Consolas,monospace;color:#e0d5b9}
 .install-link{flex-shrink:0;display:block;padding:9px 18px;border:1px solid #918361;background:#292c24;font-size:14px;text-decoration:none}
 .install-link:hover{background:#35392d}
 .showcase{margin-bottom:48px}
-.preview-stage{background:#111310;border:1px solid #4d5148;overflow:hidden}
-.game-scene{display:block;width:100%;height:auto;aspect-ratio:16/9;font-family:Arial,Helvetica,sans-serif;letter-spacing:.2px}
+.preview-stage{background:#111310;border:1px solid #4d5148;overflow:hidden;aspect-ratio:16/9}
+.game-scene{display:block;width:100%;height:100%;font-family:Arial,Helvetica,sans-serif;letter-spacing:.2px}
 .game-scene .outlined{paint-order:stroke;stroke:#101010;stroke-width:2;stroke-linejoin:round}
-.preview-stage[data-view=quests]{border:0;background:none}
-.preview-stage[data-view=quests] .game-scene{aspect-ratio:3/4;max-width:540px;margin-inline:auto;border:1px solid #4d5148}
+.combat-capture{display:none;width:100%;height:100%;object-fit:contain}
+.preview-stage[data-view=capture] .game-scene{display:none}
+.preview-stage[data-view=capture] .combat-capture{display:block}
+.preview-stage[data-view=combat] :is(.chat-panel,.damage-meter,.utility-bars,.minimap,.quest-tracker,.buffs){display:none}
 .ui-overlay{display:inline}
 .overlay-hidden .ui-overlay{display:none}
 .preview-toolbar{display:none;align-items:center;justify-content:space-between;gap:20px;margin-top:8px;border-bottom:1px solid var(--line)}
 .enhanced .preview-toolbar{display:flex}
-.preview-controls{display:flex;gap:24px}
+.preview-controls{display:flex;gap:20px;flex-wrap:wrap}
 .preview-controls button{border:0;border-bottom:2px solid transparent;background:none;padding:10px 0;font-size:14px;color:#b5bab0}
 .preview-controls button[aria-pressed=true]{color:#f1dfac;border-bottom-color:var(--link)}
 .preview-controls button:hover{color:#f1dfac}
@@ -68,6 +70,6 @@ footer{border-top:1px solid var(--line);padding-top:24px;padding-bottom:30px}
 #asset-notice a{color:#cfc5ac}
 @media(max-width:1100px){.wrap{width:calc(100% - 48px)}.project-info{gap:44px}.intro{gap:24px}.intro h1{font-size:29px}.intro p{font-size:14px}.desktop-break{display:none}}
 @media(max-width:780px){.site-header nav{gap:20px}.intro{align-items:start;flex-direction:column;gap:18px;padding-block:28px}.project-info{gap:34px;grid-template-columns:1fr}.module-list>div{grid-template-columns:136px minmax(0,1fr)}.showcase{margin-bottom:32px}.install-link{padding:8px 14px}.preview-caption{font-size:11px}.view-description{font-size:13px}}
-@media(max-width:480px){.wrap{width:calc(100% - 32px)}.site-header{height:65px;gap:15px}.brand{font-size:23px}.site-header nav{gap:14px;font-size:12px}.site-header nav a:nth-child(2){display:none}h1,.intro h1{font-size:26px}h2{font-size:22px}.intro{padding-block:24px}.intro p{font-size:14px}.preview-toolbar{gap:10px;flex-wrap:wrap;padding-bottom:10px}.preview-controls{gap:22px;width:100%}.preview-controls button{font-size:13px;min-height:44px}.overlay-control{font-size:12px;min-height:32px}.view-description{margin-top:12px}.preview-caption{line-height:1.65}.module-list>div{grid-template-columns:1fr;gap:3px;padding-block:14px}.module-list dd{font-size:14px}.project-info{padding-top:24px;padding-bottom:25px}.commands>div{grid-template-columns:105px minmax(0,1fr);gap:8px}.commands code{font-size:13px}.commands dd{font-size:13px}.footer-links{font-size:12px;gap:20px}.footer-links>span{font-size:17px}#asset-notice{font-size:11px}}
+@media(max-width:480px){.wrap{width:calc(100% - 32px)}.site-header{height:65px;gap:15px}.brand{font-size:23px}.site-header nav{gap:14px;font-size:12px}.site-header nav a:nth-child(2){display:none}h1,.intro h1{font-size:26px}h2{font-size:22px}.intro{padding-block:24px}.intro p{font-size:14px}.preview-toolbar{gap:10px;flex-wrap:wrap;padding-bottom:10px}.preview-controls{gap:16px;width:100%}.preview-controls button{font-size:13px;min-height:44px}.overlay-control{font-size:12px;min-height:32px}.view-description{margin-top:12px}.preview-caption{line-height:1.65}.module-list>div{grid-template-columns:1fr;gap:3px;padding-block:14px}.module-list dd{font-size:14px}.project-info{padding-top:24px;padding-bottom:25px}.commands>div{grid-template-columns:105px minmax(0,1fr);gap:8px}.commands code{font-size:13px}.commands dd{font-size:13px}.footer-links{font-size:12px;gap:20px}.footer-links>span{font-size:17px}#asset-notice{font-size:11px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 `;

@@ -14,14 +14,15 @@ export const page = `<!doctype html>
 <p>Unit frames, action bars, quest guidance, bags and chat in one addon.<br class="desktop-break"> Choose the modules you need and arrange them with <code>/rik move</code>.</p></div>
 <a class="install-link" href="https://github.com/rik-wow/RikUI/blob/main/installer/README.md">Installation guide</a></section>
 <section id="interface" class="showcase wrap" aria-label="RikUI interface preview">
-<div class="preview-stage" data-view="layout">${scene}</div>
+<div class="preview-stage" data-view="layout">${scene}<img class="combat-capture" src="/assets/combat-20260927-122242.jpg" width="3840" height="2160" loading="lazy" alt="RikUI in game during a fight with a Mangy Wolf in Elwynn Forest, captured September 27 at 12:22:42."></div>
 <div class="preview-toolbar"><div class="preview-controls" role="group" aria-label="Preview view">
 <button type="button" data-view="layout" aria-pressed="true">Full interface</button>
 <button type="button" data-view="combat" aria-pressed="false">Combat</button>
+<button type="button" data-view="capture" aria-pressed="false">In game</button>
 <button type="button" data-view="quests" aria-pressed="false">Quests</button></div>
 <button class="overlay-control" type="button" aria-pressed="true">Show UI overlay</button></div>
 <p class="view-description" id="view-description" aria-live="polite">Player frames and spells in the center; chat and quest tracking at the edges.</p>
-<p class="preview-caption">UI mockup over an in-game capture from the Cathedral of Light. Game artwork © Blizzard Entertainment. <a href="#asset-notice">Asset notice</a></p>
+<p class="preview-caption"><span id="capture-caption">UI mockup over a capture from the Cathedral of Light.</span> Game artwork © Blizzard Entertainment. <a href="#asset-notice">Asset notice</a></p>
 <noscript><p class="no-script">The full interface preview is shown above.</p></noscript></section>
 <div class="project-info wrap">
 <section id="modules" aria-labelledby="modules-heading"><h2 id="modules-heading">What’s included</h2>

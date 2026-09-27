@@ -10,7 +10,8 @@ follow directly. Public installer availability is stated plainly.
 
 The preview combines a real game capture with an SVG mock. It remains labeled
 as a mock and uses sample chat rather than private messages. Full interface,
-combat and quest views use the same geometry. The overlay can be hidden to
+combat and quest views use the same geometry. An In game view shows the second
+combat capture with its actual interface, without adding a second overlay. The overlay can be hidden to
 inspect the game backdrop. Without JavaScript, the full preview remains visible.
 
 ## Research and complete page audit
@@ -83,8 +84,23 @@ SHA-256:
 The browser applies a separate translucent shade beneath the SVG UI; no raster
 editing, inpainting or generated scenery is used.
 
-Spell/item icons load from Blizzard's official
-`https://render.worldofwarcraft.com/icons/56/` CDN. Notices below the preview,
+The latest two screenshots were then requested for combat:
+`WoWScrnShot_092726_122246.jpg` (UI hidden, 19:22:46 UTC) provides the combat
+mock's backdrop; `WoWScrnShot_092726_122242.jpg` (19:22:42 UTC) appears in the
+In game view with its baked-in UI. Both originals are preserved byte for byte.
+Every tab uses the same 16:9 preview frame, including Combat and Quests.
+The combat crop includes the player in the world and the complete action rows;
+peripheral panels are hidden in that crop. Browser checks assert identical frame
+height across tab changes at all five viewport widths.
+
+All 25 spell/item icons now come from the installed Forever client.
+[TACTTool](https://github.com/wowdev/TACTSharp) loaded the installation's local
+CASC indices and selected `wow_classic_beta` from `.build.info`; it reported
+`WOW-70009patch1.60.1_ForeverBeta`. `WowB.exe` independently reports
+1.60.1.70009. BLP textures were decoded to 64 × 64 PNGs without resizing or
+recoloring. [The asset receipt](../web/client-assets.json) records source IDs,
+build configuration and both BLP and PNG hashes. These are dated evidence,
+not a target build for future work. The website has no external icon requests. Notices below the preview,
 in the footer and in [the asset notice](../web/ASSET-NOTICE.md) identify Blizzard
 ownership and exclude artwork from the project's MIT code license.
 The [Blizzard Legal FAQ](https://www.blizzard.com/en-sg/legal/c1ae32ac-7ff9-4ac3-a03b-fc04b8697010/blizzard-legal-faq)
@@ -93,13 +109,13 @@ license, and this work does not resolve quest-corpus redistribution rights.
 
 ## Hosting and checks
 
-Cloudflare Workers Static Assets hosts the JPEG through an ASSETS binding.
-Only its exact public path is routed by the Worker. Existing private R2 and
+Cloudflare Workers Static Assets hosts the captures and icons through an ASSETS binding.
+Only their exact public paths are routed by the Worker. Existing private R2 and
 release allowlists remain intact. The image receives immutable caching;
 HTML retains no-transform and the same-origin script policy.
 
 Playwright checks five widths (320–1440px), real image loading, keyboard controls,
-overlay toggle, geometry, no-JS fallback and the screenshot's exact SHA-256.
+overlay toggle, geometry, no-JS fallback and the captures' and icons' exact SHA-256 hashes.
 Node tests cover asset security/conditional responses and download boundaries.
 Screenshots are resolved relative to the test module into repository `dist/`.
 

@@ -23,6 +23,7 @@ for (const width of [1440, 1024, 768, 390, 320]) {
       })));
     });
     expect(loaded.length).toBeGreaterThan(20);
+    expect(loaded.every(image => image.url.startsWith("/assets/"))).toBe(true);
     expect(loaded.filter(image => !image.width)).toEqual([]);
     expect(loaded.find(image => image.url.startsWith("/assets/")).width).toBeGreaterThanOrEqual(2048);
     await page.keyboard.press("Tab");
@@ -33,7 +34,7 @@ for (const width of [1440, 1024, 768, 390, 320]) {
     await layout.focus();
     await page.keyboard.press("ArrowRight");
     await expect(page.getByRole("button", { name: "Combat", exact: true })).toBeFocused();
-    await expect(page.locator(".game-scene")).toHaveAttribute("viewBox", "544 612 960 540");
+    await expect(page.locator(".game-scene")).toHaveAttribute("viewBox", "320 360 1408 792");
     await expect(layout).toHaveAttribute("aria-pressed", "false");
     await page.keyboard.press("End");
     await expect(page.locator("#view-description")).toContainText("share one column");
@@ -47,8 +48,24 @@ for (const width of [1440, 1024, 768, 390, 320]) {
     await overlay.click();
     await expect(page.locator(".ui-overlay")).toBeVisible();
     await expect(page.locator("#asset-notice")).toContainText("not affiliated with, endorsed by, or sponsored by Blizzard");
-    for (const view of ["layout", "combat", "quests"]) {
+    const frame = await page.locator(".preview-stage").boundingBox();
+    for (const view of ["layout", "combat", "capture", "quests"]) {
       await page.locator('button[data-view="' + view + '"]').click();
+      if (view === "combat") {
+        await expect(page.locator(".world-backdrop")).toHaveAttribute("href", "/assets/combat-20260927-122246.jpg");
+        await page.locator(".world-backdrop").evaluate(async element => {
+          const image = new Image(); image.src = element.getAttribute("href"); await image.decode();
+        });
+      }
+      if (view === "capture") {
+        await expect(page.locator(".game-scene")).toBeHidden();
+        await expect(page.locator(".combat-capture")).toBeVisible();
+        await expect(overlay).toBeHidden();
+        await page.locator(".combat-capture").evaluate(image => image.decode());
+      }
+      const box = await page.locator(".preview-stage").boundingBox();
+      expect(box.width / box.height, view + " uses 16:9").toBeCloseTo(16 / 9, 2);
+      expect(box.height, view + " preserves frame height").toBeCloseTo(frame.height, 1);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
         view + " must fit viewport").toBe(false);
       if (width === 1440 || width === 390)
@@ -96,4 +113,15 @@ test("content remains useful without browser JavaScript", async ({ browser }) =>
   await expect(page.getByRole("link", { name: "Read the installation guide", exact: true })).toBeVisible();
   await expect(page.locator("#asset-notice")).toBeVisible();
   await context.close();
+});
+
+test("client icons and both combat captures match their recorded bytes", async ({ request }) => {
+  const { readFile } = await import("node:fs/promises");
+  const manifest = JSON.parse(await readFile(new URL("./client-assets.json", import.meta.url), "utf8"));
+  for (const item of [...manifest.icons, ...manifest.screenshots]) {
+    const response = await request.get(item.path);
+    expect(response.status(), item.path).toBe(200);
+    expect(response.headers()["content-type"]).toContain(item.path.endsWith(".png") ? "image/png" : "image/jpeg");
+    expect(createHash("sha256").update(await response.body()).digest("hex"), item.path).toBe(item.sha256);
+  }
 });
