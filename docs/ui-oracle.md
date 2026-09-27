@@ -1,5 +1,7 @@
 # UI oracle
 
+- Mail inbox subjects now sit in warm reading bands with a fine left accent; duration labels have dark backing. Sender colors, native mail actions and row geometry remain intact, and reused rows clear hidden subjects.
+
 - Character stat values now sit in recessed numeric cells with right-aligned text. Native values and red/green modifiers remain visible, and empty values clear their backing.
 
 - Native lists now have inset separators and blue selection rails. Selection remains visible independently of hover and follows the client's own Show/Hide state on recycled rows.

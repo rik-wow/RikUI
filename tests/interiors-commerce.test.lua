@@ -28,6 +28,25 @@ return function(check)
             RikUI.Interiors.Discover()
             check(name .. " refresh reuses decoration", RikUI.Interiors.State(item) == state)
         end
+        local inbox = CreateFrame("Frame", "RikTestInbox")
+        function inbox:GetChildren() end
+        RikTestInboxSender, RikTestInboxSubject = inbox:CreateFontString(), inbox:CreateFontString()
+        RikTestInboxSender:SetText("Auction House")
+        RikTestInboxSubject:SetText("Auction successful")
+        RikUI.Interiors.Walk(inbox, "commerce")
+        local mailState = RikUI.Interiors.State(inbox)
+        check("legacy mail subject gains its own reading band", mailState.subjectPlate
+            and mailState.subjectPlate.points[1][2] == RikTestInboxSubject
+            and RikTestInboxSubject:GetText() == "Auction successful")
+        local subjectPlate = mailState.subjectPlate
+        RikTestInboxSubject:Hide()
+        RikUI.Interiors.Walk(inbox, "commerce")
+        check("hidden pooled mail subject clears its band", subjectPlate and not subjectPlate:IsShown())
+        RikTestInboxSubject:Show()
+        RikUI.Interiors.Walk(inbox, "commerce")
+        check("mail band reuses native bounds", mailState.subjectPlate == subjectPlate
+            and subjectPlate and subjectPlate:IsShown() and inbox.points == nil)
+        RikTestInboxSender, RikTestInboxSubject, RikTestInbox = nil, nil, nil
         local money = CreateFrame("Frame")
         function money:GetChildren() end
         money.Amount = money:CreateFontString()
