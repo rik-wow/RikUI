@@ -42,6 +42,34 @@ local function clampStep(spec, value)
     return math.min(spec.max, math.max(spec.min, value))
 end
 
+local function sliderProgress(row)
+    local slider, spec = row.widget, row.spec
+    if not slider or not slider.progress then return end
+    local span = spec.max - spec.min
+    local fraction = span > 0 and ((row.value or spec.min) - spec.min) / span or 0
+    slider.fraction = math.max(0, math.min(1, fraction))
+    local width = math.max(1, (slider:GetWidth() or metrics.controlWidth) - THUMB_WIDTH)
+    slider.progress:SetWidth(math.max(1, width * slider.fraction))
+    setShown(slider.progress, slider.fraction > 0)
+end
+
+local function sliderTrack(slider, row)
+    slider.background:SetAlpha(0)
+    for _, edge in ipairs(slider.border) do edge:Hide() end
+    slider.track = slider:CreateTexture(nil, "BACKGROUND")
+    slider.track:SetTexture(core.Skin.FLAT)
+    slider.track:SetVertexColor(0.22, 0.27, 0.33, 1)
+    slider.track:SetPoint("LEFT", THUMB_WIDTH / 2, 0)
+    slider.track:SetPoint("RIGHT", -THUMB_WIDTH / 2, 0)
+    slider.track:SetHeight(4)
+    slider.progress = slider:CreateTexture(nil, "ARTWORK")
+    slider.progress:SetTexture(core.Skin.FLAT)
+    slider.progress:SetVertexColor(0.3, 0.75, 1, 1)
+    slider.progress:SetPoint("LEFT", THUMB_WIDTH / 2, 0)
+    slider.progress:SetHeight(4)
+    slider:HookScript("OnSizeChanged", function() sliderProgress(row) end)
+end
+
 types.slider = {
     create = function(row)
         local slider = options.WidgetFrame(row, "Slider")
@@ -49,9 +77,14 @@ types.slider = {
         slider:SetMinMaxValues(row.spec.min, row.spec.max)
         slider:SetValueStep(row.spec.step)
         slider:SetObeyStepOnDrag(true)
-        slider:SetThumbTexture(media.checked)
+        slider:SetThumbTexture(core.Skin.FLAT)
         local thumb = slider:GetThumbTexture()
-        if thumb then thumb:SetSize(THUMB_WIDTH, metrics.controlHeight) end
+        if thumb then
+            thumb:SetSize(THUMB_WIDTH, metrics.controlHeight - 4)
+            thumb:SetVertexColor(0.85, 0.93, 1, 1)
+            thumb:SetDrawLayer("OVERLAY")
+        end
+        sliderTrack(slider, row)
         slider.text = options.Text(slider, "small")
         slider.text:SetPoint("LEFT", slider, "RIGHT", metrics.textInset, 0)
         slider:SetScript("OnValueChanged", function(_, value)
@@ -66,6 +99,7 @@ types.slider = {
         local text = row.spec.format and row.spec.format(value)
             or string.format("%.3f", value):gsub("0+$", ""):gsub("%.$", "")
         row.widget.text:SetText(text)
+        sliderProgress(row)
     end,
     adjust = function(row, delta)
         options.Commit(row, clampStep(row.spec, row.value + delta * row.spec.step))

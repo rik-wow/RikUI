@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Settings sliders use a slim filled track and a solid thumb; the fill follows value, endpoints and resize without changing saved settings.
+
 - Settings toggles pair a compact checkmark with On/Off text and a selected fill; narrow layouts reserve room for both the state and label.
 
 - Settings section headings have warm inset backing, rows have quiet separators, and keyboard focus has a persistent rail cleared on disable or hide.

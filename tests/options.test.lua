@@ -163,6 +163,21 @@ return function(check)
             and polishRow.widget.stateText.text == "On")
         disabledPolish = false; options.RefreshRow(polishRow)
         options.ResizeList(polishList, 440)
+        local sliderValue = 50
+        local progressList = options.Render(polishParent, {
+            { type = "slider", label = "Progress", min = 0, max = 100, step = 1,
+                get = function() return sliderValue end, set = function(value) sliderValue = value end },
+        })
+        local progressRow = progressList.rows[1]
+        local progress = progressRow.widget.progress
+        check("slider fill expresses the current fraction", progress and progressRow.widget.fraction == 0.5
+            and progress.width == (progressRow.widget.width - 12) * 0.5)
+        sliderValue = 0; options.RefreshRow(progressRow)
+        check("empty slider has no residual fill", progress and not progress:IsShown())
+        sliderValue = 100; options.RefreshRow(progressRow)
+        check("full slider reaches the end of its inset track", progress and progress.width == progressRow.widget.width - 12)
+        progressRow.widget:SetSize(100, 22)
+        check("slider resize updates fill without committing a new value", progress and progress.width == 88 and sliderValue == 100)
         local saves = 0
         RikUI.Store = { Touch = function() saves = saves + 1 end }
         check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)
