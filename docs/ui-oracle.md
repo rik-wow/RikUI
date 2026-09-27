@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Chat channel buttons now keep a persistent active-channel underline, stronger selected opacity and descriptive hover help while retaining native channel switching.
+
 - Loot item cards have larger cropped icons, room for two-line names, dark quantity backings and consistent inset spacing; reused rows clear old stack visuals.
 
 - Loot now has a layered title bar, remaining-item count, close glyph and an explicit empty state that follows slot updates.

@@ -170,6 +170,15 @@ return function(check)
         check("the box's art fades in when the box opens, on a frame of RikUI's own", art.fade.plays == beforeShow + 1
             and rawget(box, "fade") == nil)
         local selected = RikUI.Chat.Colors.selected
+        check("active channel has a persistent underline", button(chat, "G").rikSelected
+            and button(chat, "G").rikSelected:IsShown() and not button(chat, "2").rikSelected:IsShown()
+            and button(chat, "G").alpha == 1)
+        chat.RefreshStrip()
+        check("channel rebuild preserves the selected marker", button(chat, "G").rikSelected
+            and button(chat, "G").rikSelected:IsShown())
+        env.runScript(button(chat, "G"), "OnEnter")
+        check("channel tooltip explains the abbreviated control", GameTooltip.text == "Guild")
+        env.runScript(button(chat, "G"), "OnLeave")
         check("the active channel's button carries the selected border",
             button(chat, "G").rikBorder[1].color[1] == selected[1] and button(chat, "2").rikBorder[1].color[1] ~= selected[1])
         option(chat, "editColor").set(false)

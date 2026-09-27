@@ -11,7 +11,9 @@ chat.Strip = { Buttons = {} }
 
 local MAIN, HOLDER_NAME = "ChatFrame1", "RikUIChatStrip"
 local HEIGHT, BUTTON_WIDTH, GAP, PANEL_GAP, EDIT_GAP = 18, 20, 2, 2, 2
-local REST_ALPHA = 0.75
+local REST_ALPHA = 0.85
+local CHANNEL_NAMES = { SAY = "Say", YELL = "Yell", PARTY = "Party", RAID = "Raid",
+    GUILD = "Guild", OFFICER = "Officer", REPLY = "Reply to whisper" }
 local REPLY, CHANNEL = "REPLY", "CHANNEL"
 local REFRESH_EVENTS = { "GROUP_ROSTER_UPDATE", "PLAYER_GUILD_UPDATE", "CHAT_MSG_CHANNEL_NOTICE", "PLAYER_ENTERING_WORLD" }
 local holder, pool, hooked, activeBox = nil, {}, {}, nil
@@ -96,6 +98,15 @@ local function onClick(button)
     if type(ChatFrameUtil.ReplyTell) == "function" then pcall(ChatFrameUtil.ReplyTell, frame) end
 end
 
+local function channelTooltip(button)
+    if not GameTooltip or not button.entry then return end
+    local entry = button.entry
+    GameTooltip:SetOwner(button, "ANCHOR_TOP")
+    GameTooltip:SetText(CHANNEL_NAMES[entry.key] or ("Channel " .. tostring(entry.target)))
+    GameTooltip:AddLine("Click to choose where you type. Press Enter to send.", 0.8, 0.83, 0.88, true)
+    GameTooltip:Show()
+end
+
 local function createButton()
     local button = CreateFrame("Button", nil, holder)
     button:SetSize(BUTTON_WIDTH, HEIGHT)
@@ -106,6 +117,17 @@ local function createButton()
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(button)
     highlight:SetTexture(media.highlight)
+    button.rikSelected = button:CreateTexture(nil, "OVERLAY")
+    button.rikSelected:SetColorTexture(unpack(chat.Colors.selected))
+    button.rikSelected:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 2, 0)
+    button.rikSelected:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 0)
+    button.rikSelected:SetHeight(2)
+    button.rikSelected:Hide()
+    button:SetScript("OnEnter", channelTooltip)
+    button:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+    button:SetScript("OnHide", function(self)
+        if GameTooltip and GameTooltip:IsOwned(self) then GameTooltip:Hide() end
+    end)
     button:SetScript("OnClick", onClick)
     return button
 end
@@ -119,7 +141,10 @@ local function markActive()
     local kind, target
     if activeBox then kind, target = activeBox:GetChatType(), activeBox:GetChannelTarget() end
     for _, button in ipairs(chat.Strip.Buttons) do
-        local color = matches(button.entry, kind, target) and chat.Colors.selected or chat.Colors.border
+        local selected = matches(button.entry, kind, target)
+        local color = selected and chat.Colors.selected or chat.Colors.border
+        button.rikSelected:SetShown(selected)
+        button:SetAlpha(selected and 1 or REST_ALPHA)
         for _, line in ipairs(button.rikBorder) do line:SetVertexColor(color[1], color[2], color[3], 1) end
     end
 end
