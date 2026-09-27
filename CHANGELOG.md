@@ -9,6 +9,8 @@ tagging.
 
 ## Unreleased
 
+- Rebuilt the auction house layout with top navigation, a wide search bar, category sidebar, larger result tables, separate selling and comparison areas, and clearer auction/bid management. Dark cards, selection rails and readable status messages follow the native controls; search, prices, transactions and confirmations keep the game's existing backend.
+
 - Fixed dark NPC quest text when accepting or completing quests. Description, objectives, reward and turn-in prose now use light ink after native updates, including the turn-in progress page.
 
 - Collection and choice interiors now use warm section bands for direct and nested headings, with dark pagination badges. Hidden and late-created headings refresh cleanly; models, item names and native selection remain intact.

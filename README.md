@@ -78,6 +78,8 @@ cover what's tracked and where the beta client still limits it.
 - A square minimap, combined bags with search and sorting, and chat with
   timestamps, history and copyable text.
 - Matching styles for menus, tooltips, loot, the map and most game windows.
+- A [custom auction house](docs/auction-house.md) with wider search and result
+  tables, separate selling and comparison areas, and the game's auction backend.
 - Cooldown displays, swing timers, experience and reputation bars, and quest
   tracking.
 - A quest planner with map and route guidance where the supporting data is
