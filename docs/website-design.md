@@ -1,97 +1,76 @@
 # RikUI website design
 
-Research and implementation: 2026-09-27.
-User direction: addon first, large interface previews, crisp dark panels and
-class-color accents. The previous general project landing page was rejected.
+Updated 2026-09-27 after direct user review.
 
-## Research and decisions
+## Direction and reference
 
-- [ToxiUI](https://toxiui.com/): reviewed the live page and a rendered desktop
-  capture. Its UI imagery and feature-specific views make the product tangible;
-  installation and documentation have direct navigation. RikUI uses its own
-  compositions, copy, palette and code. No competitor screenshots or assets
-  are embedded.
-- [Dialogue UI](https://www.curseforge.com/wow/addons/dialogueui): the author's
-  page presents theme and quest-window images beside specific functions.
-  This supports separate combat, planner and setup views rather than one
-  image expected to explain every feature.
-- [NN/g: Photos as Web Content](https://www.nngroup.com/articles/photos-as-web-content/):
-  the eyetracking research distinguishes useful product imagery from decoration.
-  The interface explorer carries information about layout and feature behavior.
-- [NN/g: Homepage Usability](https://www.nngroup.com/articles/113-design-guidelines-homepage-usability/):
-  make product identity, purpose and important navigation evident.
-  RikUI and WoW Forever appear in the first screen; installation has its own
-  section and accurate release status.
-- [W3C tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/):
-  implemented selection state, panel associations, roving tab focus, arrow keys,
-  Home/End and keyboard activation. Content is already loaded, so switching is
-  immediate.
+The user rejected the previous illustrations and supplied a current RikUI
+screenshot as a visual reference. They explicitly requested a reconstructed
+mock, not an embedded screenshot, and then requested real WoW assets.
 
-These are design references and our interpretation, not evidence that the new
-website has been usability tested with players.
+The site now uses a single SVG scene with a 2048 × 1152 coordinate system.
+Combat detail, full layout and quest detail select different views of that
+same scene. The player frame, seven-icon resource strip, partly empty 12-column
+action rows, right-side bars, quest cards, chat and damage meter follow the
+reference's placement and proportions. The mock preserves paladin pink,
+royal-blue mana, green turn-in status and yellow active objectives.
 
-## RikUI's own visual foundation
+The screenshot is not copied, cropped or deployed. Chat contains sample addon
+messages, not private conversations. The minimap's room shapes are an original
+schematic rather than a reproduced game texture. Spell/item selections are
+visual examples; this is a labeled mock, not a live game client or proof of
+current spell behavior. No invented setup screen, target frame, reticle or
+class-color switcher remains.
 
-Reviewed `src/ui/skin.lua`, `src/ui/media.lua`, `src/ui/unit-colors.lua`,
-`src/ui/shell.lua`, `data/layouts.lua`, and the combat/setup/planner guides.
+## Asset ownership and delivery
 
-- Dark backing around RGB (0.06, 0.07, 0.09); slate header bands.
-- One-pixel edges, inset tracks and restrained gold labels.
-- Class colors on unit displays, with independent power coloring.
-- Existing spellbook, quest and settings glyph shapes from `media/icons/`.
-- A centered cooldown/resource/cast stack, edge furniture and movable frames.
-- Four documented layout presets and selective setup with undo.
+Real WoW spell and item icons load unchanged from Blizzard's official
+`https://render.worldofwarcraft.com/icons/56/` CDN. The explicit mapping lives
+in `web/previews.mjs`; artwork is not vendored into this public repository.
+The CSP allows images from that exact host, keeping scripts same-origin.
 
-The site adds an original R monogram, web typography and responsive composition.
-The class swatches change the website illustration's accent; they do not change
-an installed addon or claim to configure a game profile.
+A copyright notice is immediately below the mock. A fuller footer notice
+identifies Blizzard's artwork and trademarks, states that RikUI is independent
+and not endorsed, affiliated or sponsored, and excludes Blizzard artwork from
+the project's code license.
 
-## Interface illustrations
+Reviewed [Blizzard's Legal FAQ](https://www.blizzard.com/en-sg/legal/c1ae32ac-7ff9-4ac3-a03b-fc04b8697010/blizzard-legal-faq)
+on 2026-09-27. It describes limited noncommercial fansite display, retained
+ownership/notices, restrictions on modification and transfer, and revocation.
+This is not a blanket permission or a determination that every use qualifies;
+the project does not claim Blizzard approval. A notice alone does not grant
+rights. This asset-display decision does not resolve quest-corpus licensing.
 
-No game screenshot was available in the repository. The previews are authored
-HTML/CSS/SVG illustrations, explicitly labeled as such. They use sample content,
-simplified glyphs and responsive arrangements; they are not captures of the
-client or pixel-exact representations of every addon screen.
+## Design research carried forward
 
-The combat view explains placement and offers a larger HUD view. The quest
-view uses a schematic example route and keeps partial coverage visible. The
-setup view explains selective changes and undo. None consumes or republishes
-the quest corpus or Blizzard game imagery.
+- [ToxiUI](https://toxiui.com/): addon imagery and specific feature views.
+- [Dialogue UI](https://www.curseforge.com/wow/addons/dialogueui): interface
+  details beside descriptions of the actual features.
+- [NN/g product imagery](https://www.nngroup.com/articles/photos-as-web-content/):
+  use visuals that help visitors understand the product.
+- [NN/g homepage guidance](https://www.nngroup.com/articles/113-design-guidelines-homepage-usability/):
+  make identity, purpose and navigation evident.
 
-Replace or supplement these with current user-approved game captures when
-available. Keep the illustrations useful for explaining layout rather than
-presenting them as gameplay evidence.
+The new website takes its geometry and color cues from the user's reference.
+A compact wordmark, restrained typography and square edges leave the interface
+as the main visual. At narrow sizes, explanations move below the mock.
 
-## Implementation and verification
+## Architecture and verification
 
-No frontend framework, analytics, remote font service or image dependency.
-A small same-origin script handles tabs, class accents and combat enlargement.
-The Worker permits only same-origin scripts; no inline-script exception.
-Without JavaScript, the combat illustration, guides, FAQ and installation
-content remain available, while inactive preview controls are hidden.
-Reduced-motion preference disables smooth scrolling and transitions.
-Production checks found Cloudflare injecting a beacon that the same-origin
-script policy correctly blocked, despite the zone RUM setting being off.
-HTML responses use `Cache-Control: no-transform` to prevent that injection,
-as documented by [Cloudflare](https://developers.cloudflare.com/web-analytics/get-started/).
-Production is checked for browser/CSP errors as well as functional behavior.
+No frontend framework or remote font service. A same-origin script switches
+views with click, arrow keys, Home and End. Without JavaScript, combat detail,
+installation guidance, FAQ and attribution remain available. Reduced-motion
+preferences disable smooth scrolling.
 
-Node tests cover Worker responses and download boundaries. Playwright checks
-1440, 1024, 768, 390 and 320 pixel widths, keyboard tabs, accent selection,
-enlargement, FAQ operation, page overflow and browser/CSP errors. An additional
-test disables JavaScript. Desktop and mobile renders of all three panels,
-combat enlargement and the full page were visually reviewed. Fixed mobile
-panel crowding and inconsistent quest-view height during that review.
+Cloudflare Worker routes, private source storage and approved-download
+boundaries remain intact. HTML retains `Cache-Control: no-transform` to
+prevent Cloudflare from injecting a beacon blocked by the existing CSP.
 
-Run from `web/`:
-```
-npm ci
-npx playwright install chromium
-npm test
-npm run test:browser
-npm run check
-```
+Node tests cover responses and download boundaries. Playwright checks real
+icon loading, keyboard control, notices, FAQ, overflow and browser errors at
+1440, 1024, 768, 390 and 320 pixels, plus a JavaScript-disabled session.
+Full-page and all-view renders are saved only beneath the repository's
+ignored `dist/`, resolved from the test module rather than shell cwd.
 
-The Playwright configuration starts the local Worker when needed. Set
-`SITE_URL=https://rikwow.com` to run the same browser checks against production.
-Screenshot outputs go under ignored `dist/`; test reports stay ignored.
+Run in `web/`: `npm test`, `npm run test:browser`, `npm run check`.
+Set `SITE_URL=https://rikwow.com` to check production.
