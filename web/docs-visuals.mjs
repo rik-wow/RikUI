@@ -111,6 +111,6 @@ export function illustration(kind,title,index=0){
 export function gallery(page,visualPaths){
  if(!page)return "";
  const figures=page.surfaces.map((title,index)=>'<figure data-kind="'+page.kind+'" id="visual-'+index+'"><a class="enlarge-example" href="'+visualPaths.get(page.slug+":"+index)+'" aria-label="Open '+escapeHTML(title)+' mockup at full size">'+illustration(page.kind,title,index)+'</a><figcaption><strong>'+escapeHTML(title)+'</strong><span>Mockup · open full size</span></figcaption></figure>');
- return '<section class="visual-guide" aria-labelledby="visual-guide"><h2 id="visual-guide">Visual guide</h2><p>Reconstructed from RikUI’s documented layout and styling. Examples show individual surfaces; their appearance and availability depend on your settings and client.</p><div class="example-grid">'+figures.slice(0,4).join("")+'</div>'+
+ return '<section class="visual-guide" aria-labelledby="visual-guide"><h2 id="visual-guide">Visual guide</h2><div class="example-grid">'+figures.slice(0,4).join("")+'</div>'+
  (figures.length>4?'<details class="more-examples"><summary>Show all '+figures.length+' examples</summary><div class="example-grid">'+figures.slice(4).join("")+'</div></details>':"")+'</section>';
 }

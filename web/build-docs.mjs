@@ -5,6 +5,12 @@ import { Marked } from "marked";
 import { catalogue, modulePages } from "./docs-catalogue.mjs";
 import { createHash } from "node:crypto";
 import { illustration, gallery, escapeHTML as esc } from "./docs-visuals.mjs";
+import startGuides from "./guides-start.mjs";
+import combatGuides from "./guides-combat.mjs";
+import worldGuides from "./guides-world.mjs";
+import windowGuides from "./guides-windows.mjs";
+import extraGuides from "./guides-extra.mjs";
+const guides={...startGuides,...combatGuides,...worldGuides,...windowGuides,...extraGuides};
 const visualPaths=new Map();
 await mkdir(new URL("./public/assets/docs/",import.meta.url),{recursive:true});
 for(const page of catalogue)for(const [index,title] of page.surfaces.entries()){
@@ -16,7 +22,7 @@ for(const page of catalogue)for(const [index,title] of page.surfaces.entries()){
 }
 const root = fileURLToPath(new URL("../", import.meta.url));
 const git = "https://github.com/rik-wow/RikUI/blob/main/";
-const files = [];
+let files = [];
 async function scan(dir) {
  for (const entry of await readdir(path.join(root,dir), { withFileTypes:true })) {
   if (["node_modules","target",".venv","__pycache__"].includes(entry.name)) continue;
@@ -30,13 +36,14 @@ files.push("README.md","CONTRIBUTING.md","CHANGELOG.md","SDD.md","web/ASSET-NOTI
 const slugOf = file => file.startsWith("docs/") ? path.posix.basename(file,".md")
  : file==="README.md" ? "overview" : file==="installer/README.md" ? "installation"
  : file.toLowerCase().replace(/\.md$/,"").replaceAll("/","--");
-const sources = new Map(await Promise.all(files.map(async file=>[file,await readFile(path.join(root,file),"utf8")])));
+files = files.filter(file=>Object.hasOwn(guides,slugOf(file)));
+const sources = new Map(files.map(file=>[file,guides[slugOf(file)]]));
 const routes = new Map(files.map(file=>[file,"/docs/"+slugOf(file)]));
 const pages=files.map(file=>{
  const feature=catalogue.find(entry=>entry.slug===slugOf(file));
  const markdown=sources.get(file);
  return {file,slug:slugOf(file),title:feature?.title||markdown.match(/^#\s+(.+)/m)?.[1]||file,
- group:feature?.group||"Technical reference",summary:feature?.summary||"",feature};
+ group:feature?.group||"About RikUI",summary:feature?.summary||"",feature};
 });
 for(const guide of catalogue)if(!pages.some(page=>page.slug===guide.slug))throw Error("Missing Markdown guide: "+guide.slug);
 const sourceFiles=[];
@@ -56,9 +63,10 @@ for(const file of sourceFiles){
 const missing=registrations.filter(item=>!item.page);
 if(missing.length)throw Error("Missing module visual documentation: "+missing.map(x=>x.name).join(", "));
 const inventory={modules:registrations,surfaces:catalogue.flatMap(page=>page.surfaces.map(name=>({page:page.slug,name,kind:page.kind})))};
-const groups=[...new Set(pages.map(page=>page.group))].sort((a,b)=>a==="Getting started"?-1:b==="Getting started"?1:a==="Technical reference"?1:b==="Technical reference"?-1:0);
+const groupOrder=["Getting started","Combat","Questing","Everyday interface","Notifications","Windows and controls","About RikUI"];
+const groups=groupOrder.filter(group=>pages.some(page=>page.group===group));
 const sidebar=current=>'<aside class="docs-sidebar"><details class="docs-nav-toggle" open><summary>Browse documentation</summary><div class="nav-content"><label for="docs-search">Find a guide</label><input id="docs-search" type="search" placeholder="Nameplates, bags, profiles…" autocomplete="off"><p id="search-empty" hidden>No matching guides.</p><nav aria-label="Documentation">'+groups.map(group=>'<section class="nav-group"><h2>'+esc(group)+'</h2>'+pages.filter(p=>p.group===group).map(p=>'<a data-doc-link data-keywords="'+esc(p.slug+' '+p.summary)+'" href="/docs/'+p.slug+'"'+(p.slug===current?' aria-current="page"':"")+'>'+esc(p.title)+'</a>').join("")+'</section>').join("")+'</nav></div></details></aside>';
-const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license. Mockups are labeled illustrations, not game-client screenshots.</p></footer></body></html>';
+const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license.</p></footer></body></html>';
 function render(page){
  const headings=[],counts=new Map();
  const md=new Marked({gfm:true,renderer:{
@@ -84,15 +92,14 @@ function render(page){
  }});
  let markdown=sources.get(page.file).replace(/^# .+\r?\n/,"");
  const content=md.parse(markdown);
- const historical=page.slug==="ui-oracle"?'<p class="doc-note">This is a dated engineering audit. Its historical tiers and pending work do not describe all current features; use the module guides for current behavior.</p>':page.slug==="questiedb-license-request"?'<p class="doc-note">Draft only. This request has not been sent.</p>':"";
- const toc='<aside class="docs-toc"><nav aria-label="On this page"><h2>On this page</h2>'+(page.feature?'<a href="#visual-guide">Visual guide</a>':"")+headings.map(h=>'<a href="#'+h.id+'" class="toc-depth-'+h.depth+'">'+esc(h.text)+'</a>').join("")+'</nav></aside>';
- const header='<div class="doc-breadcrumb"><a href="/docs">Documentation</a><span>/</span>'+esc(page.group)+'</div><h1>'+esc(page.title)+'</h1>'+(page.summary?'<p class="doc-lead">'+esc(page.summary)+'</p>':"");
- const usage=page.feature?.modules.length?'<p class="doc-setting">Module controls: <code>/rik config</code> → System → Modules. Saved module changes apply after reload.</p>':"";
- return shell(page.title,page.slug,header+historical+usage+gallery(page.feature,visualPaths)+'<article class="doc-prose">'+content+'</article><p class="doc-source"><a href="'+git+page.file+'">View this page’s source</a></p>',toc);
+ const toc='<aside class="docs-toc"><nav aria-label="On this page"><h2>On this page</h2>'+headings.map(h=>'<a href="#'+h.id+'" class="toc-depth-'+h.depth+'">'+esc(h.text)+'</a>').join("")+(page.feature?'<a href="#visual-guide">Visual guide</a>':"")+'</nav></aside>';
+ const header='<div class="doc-breadcrumb"><a href="/docs">Documentation</a><span>/</span>'+esc(page.group)+'</div><h1>'+esc(page.title)+'</h1>'+(!page.feature&&page.summary?'<p class="doc-lead">'+esc(page.summary)+'</p>':"");
+ const usage="";
+ return shell(page.title,page.slug,header+usage+'<article class="doc-prose">'+content+'</article>'+gallery(page.feature,visualPaths),toc);
 }
 const all = Object.fromEntries(pages.map(page=>["/docs/"+page.slug,render(page)]));
-const featureGroups=groups.filter(g=>g!=="Technical reference");
-const index='<div class="doc-breadcrumb">RikUI / Documentation</div><h1>Using RikUI</h1><p class="doc-lead">Set up your interface, learn the controls and see what each module changes.</p><div class="docs-start"><a href="/docs/installation">Install RikUI</a><a href="/docs/wizard">First setup</a><a href="/docs/layout">Arrange your frames</a><a href="/docs/options">Settings and profiles</a></div><h2 id="interface-guides">Interface guides</h2>'+featureGroups.map(group=>'<section class="guide-group"><h3>'+esc(group)+'</h3><dl>'+catalogue.filter(p=>p.group===group).map(p=>'<div data-guide><dt><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></dt><dd>'+esc(p.summary)+'</dd></div>').join("")+'</dl></section>').join("")+'<section class="guide-group"><h2>Technical reference</h2><p>Architecture, data coverage, packaging and dated engineering evidence.</p><ul class="reference-list">'+pages.filter(p=>p.group==="Technical reference").map(p=>'<li><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></li>').join("")+'</ul></section>';
+const featureGroups=groups.filter(g=>g!=="About RikUI");
+const index='<div class="doc-breadcrumb">RikUI / Documentation</div><h1>Using RikUI</h1><p class="doc-lead">Set up your interface, learn the controls and see what each module changes.</p><div class="docs-start"><a href="/docs/installation">Install RikUI</a><a href="/docs/wizard">First setup</a><a href="/docs/layout">Arrange your frames</a><a href="/docs/options">Settings and profiles</a></div><h2 id="interface-guides">Interface guides</h2>'+featureGroups.map(group=>'<section class="guide-group"><h3>'+esc(group)+'</h3><dl>'+catalogue.filter(p=>p.group===group).map(p=>'<div data-guide><dt><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></dt><dd>'+esc(p.summary)+'</dd></div>').join("")+'</dl></section>').join("")+'<section class="guide-group"><h2>About RikUI</h2><p>Installation, support and artwork information.</p><ul class="reference-list">'+pages.filter(p=>p.group==="About RikUI").map(p=>'<li><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></li>').join("")+'</ul></section>';
 all["/docs"]=shell("Documentation","",index);
 await mkdir(new URL("./public/docs/",import.meta.url),{recursive:true});
 const documentation={};

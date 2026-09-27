@@ -6,11 +6,6 @@
       "title": "Alert toasts"
     },
     {
-      "slug": "architecture",
-      "file": "docs/architecture.md",
-      "title": "RikUI architecture"
-    },
-    {
       "slug": "auction-house",
       "file": "docs/auction-house.md",
       "title": "Auction house"
@@ -36,11 +31,6 @@
       "title": "Action bars"
     },
     {
-      "slug": "bindings",
-      "file": "docs/bindings.md",
-      "title": "Bindings service"
-    },
-    {
       "slug": "castbars",
       "file": "docs/castbars.md",
       "title": "Cast bars"
@@ -59,16 +49,6 @@
       "slug": "class-effects",
       "file": "docs/class-effects.md",
       "title": "Class effects"
-    },
-    {
-      "slug": "class-presets",
-      "file": "docs/class-presets.md",
-      "title": "Class presets and current research"
-    },
-    {
-      "slug": "cloudflare",
-      "file": "docs/cloudflare.md",
-      "title": "rikwow.com infrastructure"
     },
     {
       "slug": "combat-hud",
@@ -101,16 +81,6 @@
       "title": "Cooldowns"
     },
     {
-      "slug": "core",
-      "file": "docs/core.md",
-      "title": "Core module contract"
-    },
-    {
-      "slug": "corpus-licensing",
-      "file": "docs/corpus-licensing.md",
-      "title": "Quest corpus licensing review"
-    },
-    {
       "slug": "damagemeter",
       "file": "docs/damagemeter.md",
       "title": "Damage meter"
@@ -126,19 +96,9 @@
       "title": "Durability"
     },
     {
-      "slug": "editmode",
-      "file": "docs/editmode.md",
-      "title": "Edit Mode guard"
-    },
-    {
       "slug": "extrabuttons",
       "file": "docs/extrabuttons.md",
       "title": "Extra action buttons"
-    },
-    {
-      "slug": "forever-corpus",
-      "file": "docs/forever-corpus.md",
-      "title": "Local Forever quest corpus"
     },
     {
       "slug": "hudframes",
@@ -164,11 +124,6 @@
       "slug": "lossofcontrol",
       "file": "docs/lossofcontrol.md",
       "title": "Loss of control"
-    },
-    {
-      "slug": "macros",
-      "file": "docs/macros.md",
-      "title": "Macro service"
     },
     {
       "slug": "menus",
@@ -201,11 +156,6 @@
       "title": "Settings and profiles"
     },
     {
-      "slug": "packaging",
-      "file": "docs/packaging.md",
-      "title": "Local RikUI packages"
-    },
-    {
       "slug": "panels",
       "file": "docs/panels.md",
       "title": "Window chrome"
@@ -216,44 +166,14 @@
       "title": "Personal resource display"
     },
     {
-      "slug": "planner-stability-verification",
-      "file": "docs/planner-stability-verification.md",
-      "title": "Hook and planner stability verification"
-    },
-    {
       "slug": "popups",
       "file": "docs/popups.md",
       "title": "Confirmation popups"
     },
     {
-      "slug": "presets",
-      "file": "docs/presets.md",
-      "title": "Warrior preset"
-    },
-    {
       "slug": "proc-overlay",
       "file": "docs/proc-overlay.md",
       "title": "Proc indicators"
-    },
-    {
-      "slug": "quest-objective-waypoints",
-      "file": "docs/quest-objective-waypoints.md",
-      "title": "Detailed quest objectives and waypoints"
-    },
-    {
-      "slug": "quest-planner-acceptance",
-      "file": "docs/quest-planner-acceptance.md",
-      "title": "Adaptive planner acceptance and evidence"
-    },
-    {
-      "slug": "quest-planner-requirements",
-      "file": "docs/quest-planner-requirements.md",
-      "title": "Adaptive quest planning requirements"
-    },
-    {
-      "slug": "questiedb-license-request",
-      "file": "docs/questiedb-license-request.md",
-      "title": "Draft licensing clarification request"
     },
     {
       "slug": "questplanner",
@@ -271,19 +191,9 @@
       "title": "Quest tracker"
     },
     {
-      "slug": "roles",
-      "file": "docs/roles.md",
-      "title": "Talent-based role suggestions"
-    },
-    {
       "slug": "screentext",
       "file": "docs/screentext.md",
       "title": "Screen messages"
-    },
-    {
-      "slug": "setup",
-      "file": "docs/setup.md",
-      "title": "Applying a preset"
     },
     {
       "slug": "sharing",
@@ -294,11 +204,6 @@
       "slug": "shell",
       "file": "docs/shell.md",
       "title": "RikUI menu"
-    },
-    {
-      "slug": "spells",
-      "file": "docs/spells.md",
-      "title": "Warrior spell data and lookup"
     },
     {
       "slug": "swingtimer",
@@ -321,24 +226,9 @@
       "title": "Totems"
     },
     {
-      "slug": "ui-oracle",
-      "file": "docs/ui-oracle.md",
-      "title": "UI oracle"
-    },
-    {
       "slug": "unitframes",
       "file": "docs/unitframes.md",
       "title": "Unit frames"
-    },
-    {
-      "slug": "upstream-provider",
-      "file": "docs/upstream-provider.md",
-      "title": "Independent upstream quest provider"
-    },
-    {
-      "slug": "website-design",
-      "file": "docs/website-design.md",
-      "title": "RikUI website design"
     },
     {
       "slug": "widgets",
@@ -361,49 +251,9 @@
       "title": "Experience and reputation"
     },
     {
-      "slug": "tools--observations--readme",
-      "file": "tools/observations/README.md",
-      "title": "Offline observation archives"
-    },
-    {
-      "slug": "tools--terrain--map",
-      "file": "tools/terrain/MAP.md",
-      "title": "Dun Morogh regional terrain"
-    },
-    {
-      "slug": "tools--terrain--movement",
-      "file": "tools/terrain/MOVEMENT.md",
-      "title": "Movement profile and observed-marker approaches"
-    },
-    {
-      "slug": "tools--terrain--readme",
-      "file": "tools/terrain/README.md",
-      "title": "Local Forever terrain datasource tools"
-    },
-    {
-      "slug": "tools--terrain--region",
-      "file": "tools/terrain/REGION.md",
-      "title": "Kharanos two-source terrain region"
-    },
-    {
-      "slug": "tools--terrain--roads",
-      "file": "tools/terrain/ROADS.md",
-      "title": "Road network and quest patches"
-    },
-    {
-      "slug": "tools--terrain--stages",
-      "file": "tools/terrain/STAGES.md",
-      "title": "Terrain stage diagnostics"
-    },
-    {
-      "slug": "tools--terrain--west",
-      "file": "tools/terrain/WEST.md",
-      "title": "Western Dun Morogh terrain"
-    },
-    {
       "slug": "installation",
       "file": "installer/README.md",
-      "title": "RikUI Windows installer"
+      "title": "Install RikUI"
     },
     {
       "slug": "overview",
@@ -413,22 +263,12 @@
     {
       "slug": "contributing",
       "file": "CONTRIBUTING.md",
-      "title": "Contributing"
-    },
-    {
-      "slug": "changelog",
-      "file": "CHANGELOG.md",
-      "title": "Changelog"
-    },
-    {
-      "slug": "sdd",
-      "file": "SDD.md",
-      "title": "RikUI design doc"
+      "title": "Help improve RikUI"
     },
     {
       "slug": "web--asset-notice",
       "file": "web/ASSET-NOTICE.md",
-      "title": "Website artwork notice"
+      "title": "Artwork notice"
     }
   ],
   "modules": [
