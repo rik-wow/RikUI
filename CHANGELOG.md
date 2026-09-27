@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- The stopwatch now has separate Run, Pause and Reset states, a bright bounded clock, a state-colored rail and hover feedback. Its maximum duration fits in a dedicated column.
+
 - Combat timing now separates a warm Combat or muted Last label from a bright right-aligned clock, with a steady state rail and bounded columns.
 
 - Durability now has a repair glyph, a steady severity rail and a bounded caption. Healthy percentages use a calm green; worn and broken gear keep yellow and red alerts.

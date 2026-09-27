@@ -14,6 +14,26 @@ local function now()
         and value >= 0 and value < math.huge then return value end
 end
 
+local function clockFace(frame, clockWidth)
+    frame.label = frame:CreateFontString(nil, "OVERLAY")
+    core.Media.Font(frame.label, "small")
+    frame.label:SetPoint("RIGHT", frame, "RIGHT", -5, 0)
+    frame.label:SetWidth(clockWidth)
+    frame.label:SetWordWrap(false)
+    frame.label:SetJustifyH("RIGHT")
+    frame.label:SetTextColor(0.95, 0.97, 1)
+    frame.state = frame:CreateFontString(nil, "OVERLAY")
+    core.Media.Font(frame.state, "small")
+    frame.state:SetPoint("LEFT", frame, "LEFT", 7, 0)
+    frame.state:SetPoint("RIGHT", frame.label, "LEFT", -3, 0)
+    frame.state:SetJustifyH("LEFT")
+    frame.state:SetWordWrap(false)
+    frame.accent = frame:CreateTexture(nil, "ARTWORK")
+    frame.accent:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
+    frame.accent:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 1, 1)
+    frame.accent:SetWidth(2)
+end
+
 local stopwatch, watchStart, watchLast, watchInvalid
 local watchElapsed, watchRunning = 0, false
 local WATCH_MAX = 359999 -- 99:59:59; session-only state, never saved.
@@ -45,10 +65,14 @@ function timer.RefreshStopwatch()
     local visible = core.Profile and core.Profile.combattimer and core.Profile.combattimer.stopwatch == true
     stopwatch:SetShown(visible)
     stopwatch:SetScript("OnUpdate", visible and watchRunning and watchTick or nil)
-    if watchInvalid then stopwatch.label:SetText("Reset needed"); return end
+    local color = watchInvalid and { 1, 0.35, 0.25 } or watchRunning and { 0.4, 0.9, 0.65 } or IDLE_COLOR
+    stopwatch.state:SetText(watchInvalid and "Reset" or watchRunning and "Run" or "Pause")
+    stopwatch.state:SetTextColor(unpack(color))
+    stopwatch.accent:SetColorTexture(unpack(color))
+    if watchInvalid then stopwatch.label:SetText("--:--"); return end
     local text = value >= 3600 and string.format("%d:%02d:%02d", math.floor(value / 3600), math.floor(value / 60) % 60, value % 60)
         or string.format("%d:%02d", math.floor(value / 60), value % 60)
-    stopwatch.label:SetText((watchRunning and "Run " or "Paused ") .. text)
+    stopwatch.label:SetText(text)
 end
 
 function timer.StopwatchAction(action)
@@ -80,10 +104,10 @@ local function buildStopwatch()
     stopwatch.background:SetAllPoints()
     stopwatch.background:SetColorTexture(0.055, 0.065, 0.08, 0.9)
     for _, edge in ipairs(core.UI.Edges(stopwatch, 1, "BORDER")) do edge:SetVertexColor(0.25, 0.28, 0.32, 1) end
-    stopwatch.label = stopwatch:CreateFontString(nil, "OVERLAY")
-    core.Media.Font(stopwatch.label, "small")
-    stopwatch.label:SetPoint("CENTER", stopwatch, "CENTER")
-    stopwatch.label:SetTextColor(1, 0.82, 0)
+    clockFace(stopwatch, 62)
+    stopwatch.hover = stopwatch:CreateTexture(nil, "HIGHLIGHT")
+    stopwatch.hover:SetAllPoints(stopwatch)
+    stopwatch.hover:SetColorTexture(0.35, 0.5, 0.65, 0.2)
     stopwatch:SetScript("OnClick", function(_, button)
         timer.StopwatchAction(button == "RightButton" and "reset" or (watchRunning and "pause" or "start"))
     end)
@@ -188,23 +212,7 @@ function timer:OnEnable()
     holder.background:SetAllPoints()
     holder.background:SetColorTexture(0.055, 0.065, 0.08, 0.9)
     for _, edge in ipairs(core.UI.Edges(holder, 1, "BORDER")) do edge:SetVertexColor(0.25, 0.28, 0.32, 1) end
-    holder.label = holder:CreateFontString(nil, "OVERLAY")
-    core.Media.Font(holder.label, "small")
-    holder.label:SetPoint("RIGHT", holder, "RIGHT", -5, 0)
-    holder.label:SetWidth(52)
-    holder.label:SetWordWrap(false)
-    holder.label:SetJustifyH("RIGHT")
-    holder.label:SetTextColor(0.95, 0.97, 1)
-    holder.state = holder:CreateFontString(nil, "OVERLAY")
-    core.Media.Font(holder.state, "small")
-    holder.state:SetPoint("LEFT", holder, "LEFT", 7, 0)
-    holder.state:SetPoint("RIGHT", holder.label, "LEFT", -3, 0)
-    holder.state:SetJustifyH("LEFT")
-    holder.state:SetWordWrap(false)
-    holder.accent = holder:CreateTexture(nil, "ARTWORK")
-    holder.accent:SetPoint("TOPLEFT", holder, "TOPLEFT", 1, -1)
-    holder.accent:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT", 1, 1)
-    holder.accent:SetWidth(2)
+    clockFace(holder, 52)
     core.Layout.Register(holder, "combattimer", DEFAULT_POSITION, { label = "Combat timer", onApply = timer.Refresh })
     core:RegisterEvent("PLAYER_REGEN_DISABLED", function() start(false) end)
     core:RegisterEvent("PLAYER_REGEN_ENABLED", finish)
