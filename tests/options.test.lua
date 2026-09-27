@@ -142,6 +142,12 @@ return function(check)
         })
         local polishRow = polishList.rows[2]
         check("settings sections have distinct backing", polishList.rows[1].sectionBacking ~= nil)
+        check("section headers have a gold rail and regular rows have inset cards",
+            polishList.rows[1].sectionRail and polishRow.cardBacking and #polishRow.cardEdge == 4)
+        local rowBacking = polishRow.cardBacking
+        options.ResizeList(polishList, 300)
+        options.ResizeList(polishList, 440)
+        check("responsive settings preserve their existing card regions", polishRow.cardBacking == rowBacking)
         options.SetFocus(surface, polishRow)
         check("keyboard focus uses a persistent rail", polishRow.focusRail and polishRow.focusRail:IsShown())
         disabledPolish = true; options.RefreshRow(polishRow)

@@ -93,8 +93,15 @@ end
 
 local function rowFurniture(row, heading)
     if heading then
-        row.sectionBacking = core.Skin.Fill(row, { 0.13, 0.12, 0.095, 0.75 })
+        row.sectionBacking = core.Skin.Fill(row, { 0.13, 0.12, 0.095, 0.9 }, 1)
+        row.sectionRail = row:CreateTexture(nil, "BORDER")
+        row.sectionRail:SetTexture(core.Skin.FLAT)
+        row.sectionRail:SetVertexColor(0.85, 0.66, 0.28, 1)
+        row.sectionRail:SetPoint("TOPLEFT", 1, -6); row.sectionRail:SetPoint("BOTTOMLEFT", 1, 6)
+        row.sectionRail:SetWidth(2)
     else
+        row.cardBacking = core.Skin.Fill(row, { 0.075, 0.09, 0.115, 0.65 }, 1)
+        row.cardEdge = core.Skin.Outline(row, { 0.16, 0.19, 0.24, 0.55 }, 1)
         row.divider = row:CreateTexture(nil, "BORDER")
         row.divider:SetTexture(core.Skin.FLAT)
         row.divider:SetVertexColor(0.22, 0.26, 0.32, 0.45)
@@ -143,7 +150,7 @@ function options.CreateRow(parent, spec, list)
     if spec.description then
         row.description = options.Text(row, "small", spec.description)
         row.description:SetJustifyH("LEFT"); row.description:SetWordWrap(true)
-        row.description:SetTextColor(0.62, 0.7, 0.77)
+        row.description:SetTextColor(0.72, 0.79, 0.86)
     end
     if kind.create then row.widget = kind.create(row) end
     return row
