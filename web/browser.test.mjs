@@ -11,6 +11,10 @@ for (const width of [1440, 1024, 768, 390, 320]) {
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Rebuilt for Forever");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("#main")).toBeFocused();
     const combat = page.getByRole("tab", { name: "Combat HUD" });
     await combat.focus();
     await page.keyboard.press("ArrowRight");

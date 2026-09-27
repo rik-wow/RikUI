@@ -8,7 +8,7 @@ export const page = `<!doctype html>
 <body><a class="skip" href="#main">Skip to content</a>
 <header class="site-header"><a class="brand" href="/" aria-label="RikUI home">${mark}<span>Rik<span class="brand-ui">UI</span></span></a><span class="header-divider"></span><span class="for-forever">FOR WOW FOREVER</span>
 <nav aria-label="Main navigation"><a href="#interface">The interface</a><a href="#features">Features</a><a href="#install">Get started</a></nav><a class="source-link" href="https://github.com/rik-wow/RikUI">GitHub <span aria-hidden="true">↗</span></a></header>
-<main id="main"><section class="hero wrap" aria-labelledby="headline">
+<main id="main" tabindex="-1"><section class="hero wrap" aria-labelledby="headline">
 <div class="hero-copy"><div class="eyebrow"><span class="status-dot"></span> RIKUI <span class="slash">/</span> FOREVER BETA</div><h1 id="headline">Your interface.<br><span>Rebuilt for Forever.</span></h1></div>
 <div class="hero-intro"><p>A complete UI for your next adventure.<br>Combat, questing and the everyday details,<br class="desktop-break"> brought into one consistent interface.</p><div class="hero-actions"><a class="button primary" href="#interface">Explore the interface ${icon('arrow')}</a><a class="quiet-link" href="#install">Get started <span>↗</span></a></div></div>
 </section>
