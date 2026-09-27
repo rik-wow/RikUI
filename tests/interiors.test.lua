@@ -25,6 +25,9 @@ return function(check)
         item:SetScript("OnClick", function() clicks = clicks + 1 end)
         local row = frame("Frame", root)
         row.Label, row.Value, row.Background = row:CreateFontString(), row:CreateFontString(), row:CreateTexture()
+        row.Label:SetText("Strength")
+        row.Value:SetText("142")
+        row.Value:SetTextColor(0.2, 1, 0.2)
         row.SelectedBar = row:CreateTexture()
         row.SelectedBar:Hide()
         local service = RikUI.Interiors
@@ -51,6 +54,16 @@ return function(check)
         check("native click survives", clicks == 1)
         check("stat rows use flat backing and font", row.Background.alpha == 0 and rowState.fill
             and row.Label.fontPath == RikUI.Media.font)
+        local valuePlate = rowState.valuePlate
+        check("stats reserve a recessed numeric cell", valuePlate and valuePlate.points[1][2] == row.Value
+            and row.Value.justify == "RIGHT" and row.Value.textColor[2] == 1)
+        row.Value:SetText("")
+        service.Walk(root, "character")
+        check("empty stat clears numeric cell", valuePlate and not valuePlate:IsShown())
+        row.Value:SetText("150")
+        service.Walk(root, "character")
+        check("stat update keeps native text and reuses cell", rowState.valuePlate == valuePlate
+            and valuePlate and valuePlate:IsShown() and row.Value:GetText() == "150")
         check("row has inset separator and native selection rail", rowState.separator
             and row.SelectedBar.width == 3 and row.SelectedBar.texture == RikUI.Skin.FLAT
             and not row.SelectedBar:IsShown())

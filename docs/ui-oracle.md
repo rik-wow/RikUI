@@ -1,5 +1,7 @@
 # UI oracle
 
+- Character stat values now sit in recessed numeric cells with right-aligned text. Native values and red/green modifiers remain visible, and empty values clear their backing.
+
 - Native lists now have inset separators and blue selection rails. Selection remains visible independently of hover and follows the client's own Show/Hide state on recycled rows.
 
 - Native item counts now have dark inset badges above the icon art. Badges follow count visibility and clear on empty/reused slots; native quantities and quality colors remain intact.

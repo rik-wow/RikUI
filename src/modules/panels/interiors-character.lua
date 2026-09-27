@@ -19,6 +19,15 @@ local function paneArt(frame)
     end
 end
 
+local function statCell(frame)
+    if not skin.IsRegion(frame.Label) or not skin.IsRegion(frame.Value)
+        or type(frame.Value.GetText) ~= "function" then return end
+    local state = interiors.State(frame)
+    if not state then return end
+    frame.Value:SetJustifyH("RIGHT")
+    state.valuePlate = skin.TextPlate(frame, frame.Value, { 0.035, 0.05, 0.075, 1 }, 4)
+end
+
 local function character(frame)
     if interiors.SideTab(frame) then return end
     local kind = frame:GetObjectType()
@@ -29,6 +38,7 @@ local function character(frame)
         or (skin.IsRegion(frame.Title) and skin.IsRegion(frame.Background)) then
         interiors.Row(frame)
     end
+    statCell(frame)
     paneArt(frame)
     skin.Strip(frame, ART)
     interiors.Labels(frame)
