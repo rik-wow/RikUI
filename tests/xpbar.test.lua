@@ -25,6 +25,8 @@ return function(check)
         return group
     end
     local function region(value)
+        function value:SetSize(width, height) self.width, self.height = width, height end
+        function value:SetHeight(height) self.height = height end
         function value:SetPoint(...) self.point = { ... } end
         function value:SetTexture(texture) self.texture = texture end
         function value:SetVertexColor(...) self.color = { ... } end
@@ -145,11 +147,16 @@ return function(check)
         stub.xp = 450
         check("detailed XP labels include remaining experience", xp.caption:GetText():find("550 to level", 1, true))
         check("progress caption has its own contrast backing", xp.captionBacking and xp.captionBacking.shown)
+        check("progress edge renders on top of its fill", xp.rikBorder[1].parent == xp.bar)
+        check("detailed milestones stay below caption", xp.ticks[5].width == 2
+            and xp.ticks[5].height == 3 and xp.ticks[1].height == 2)
         env.runScript(xp, "OnSizeChanged", 996, 18)
         check("progress ticks follow resized row", xp.ticks[5].point[4] == 498)
         module.SetOption("compact", true)
         check("compact mode restores thin bars and hides labels", holder.height == 8 and not xp.caption.shown)
         check("compact mode clears caption backing", xp.captionBacking and not xp.captionBacking.shown)
+        check("compact milestones emphasize midpoint without text", xp.ticks[5].height == 6
+            and xp.ticks[2].height == 4 and xp.ticks[1].height == 3)
         check("compact mode clears the floating gain", xp.gainText.alpha == 0 and not xp.gainAnim.playing)
         check("XP rise uses cosmetic translation", xp.gainAnim.animation.offset[2] == 14
             and xp.gainAnim.animation.duration == 0.85 and xp.gainAnim.plays == 1)

@@ -48,10 +48,10 @@ local function createRow(key, color, tooltip)
     background:SetAllPoints(row)
     background:SetTexture(FLAT)
     background:SetVertexColor(unpack(BACKGROUND))
-    row.rikBorder = ui.Edges(row, EDGE, "BORDER")
-    for _, line in ipairs(row.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     if key == "xp" then row.rested = statusBar(row, RESTED_COLOR) end
     row.bar = statusBar(row, color)
+    row.rikBorder = ui.Edges(row.bar, EDGE, "OVERLAY")
+    for _, line in ipairs(row.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
     row.flash = row.bar:CreateTexture(nil, "OVERLAY")
     row.flash:SetAllPoints(row.bar)
     row.flash:SetTexture(FLAT)

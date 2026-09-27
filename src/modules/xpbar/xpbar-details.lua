@@ -95,8 +95,9 @@ function details.Build(row, key)
     for index = 1, 9 do
         local tick = row.bar:CreateTexture(nil, "OVERLAY")
         tick:SetTexture(media.border)
-        tick:SetVertexColor(0.02, 0.025, 0.035, 0.7)
-        tick:SetSize(1, 4)
+        local middle = index == 5
+        tick:SetVertexColor(middle and 1 or 0.78, middle and 0.85 or 0.86, middle and 0.52 or 0.94, middle and 0.9 or 0.65)
+        tick:SetSize(middle and 2 or 1, 3)
         row.ticks[index] = tick
     end
     row:HookScript("OnSizeChanged", placeTicks)
@@ -188,7 +189,12 @@ function details.Refresh(faction)
             end
             row.caption:SetShown(settings().text and not settings().compact)
             row.captionBacking:SetShown(settings().text and not settings().compact)
-            for _, tick in ipairs(row.ticks) do tick:SetShown(settings().ticks) end
+            for index, tick in ipairs(row.ticks) do
+                local major = index == 5 or index % 2 == 0
+                local height = settings().compact and (index == 5 and 6 or major and 4 or 3) or (major and 3 or 2)
+                tick:SetHeight(height)
+                tick:SetShown(settings().ticks)
+            end
         end
     end
 end
