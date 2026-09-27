@@ -103,7 +103,12 @@ A renamed or reformatted copy of QuestieDB is still derived from that source.
 Independent acquisition needs actual independent evidence, not an assertion
 that the transformation is large enough. See the Copyright Office's
 [compilation guidance](https://www.copyright.gov/circs/circ14.pdf).
-This is a proposed acquisition route; no replacement database has been built.
+The bulk CMaNGOS route has now been built independently: 4,245 quests share IDs
+with the 4,257 baseline semantic quests. Basic objective target sets differ for
+897 shared quests; explicit giver/turn-in sets differ for 126. Matching IDs
+do not establish parity. See the [build and comparison report](upstream-provider.md).
+This experimental provider coexists with the current corpus; it is not yet a
+runtime replacement or clearance for excluded game content.
 
 ## Current preservation and publication boundary
 
