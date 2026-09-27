@@ -92,6 +92,7 @@ return function(check)
         check("the tooltip gets a flat background and four edge lines", background and background.allPoints
             and background.layer == "BACKGROUND" and color(background.color, { 0.055, 0.065, 0.08 })
             and type(border) == "table" and #border == 4 and border[1].texture == media.border)
+        check("tooltip has an inset accent", rawget(tip, "rikAccent") and tip.rikAccent.height == 2)
         check("the NineSlice backdrop is hidden", tip.NineSlice.shown == false)
         SharedTooltip_SetBackdropStyle(tip)
         check("the backdrop stays hidden after Blizzard re-applies its style", tip.NineSlice.shown == false)
@@ -99,7 +100,7 @@ return function(check)
             and rawget(ShoppingTooltip1, "rikBackground") and rawget(ShoppingTooltip2, "rikBackground")
             and ShoppingTooltip2.NineSlice.shown == false)
         check("tooltip font objects carry the media font", GameTooltipText.fontPath == media.font
-            and GameTooltipText.fontSize == media.sizes.label and GameTooltipHeaderText.fontPath == media.font
+            and GameTooltipText.fontSize == media.sizes.label and GameTooltipHeaderText.fontPath == media.font and GameTooltipHeaderText.fontSize == media.sizes.heading
             and GameTooltipTextSmall.fontSize == media.sizes.small)
 
         tip:Hide()
@@ -116,6 +117,11 @@ return function(check)
         check("the health bar is watched by guid with our texture and colour", watched(bar) == "Creature-0-1"
             and bar.shown == true and bar.texture == media.statusbar and color(bar.color, FACTION_BAR_COLORS[5])
             and rawget(bar, "lockColor") == true)
+        check("tooltip health has an outlined dark track", rawget(bar, "rikBorder") and #bar.rikBorder == 4
+            and color(bar.rikBackground.color, { 0.025, 0.03, 0.04 }))
+        local healthBorder = rawget(bar, "rikBorder")
+        stub.process("Unit", tip, { guid = "Creature-0-1" })
+        check("health refresh reuses the outline", healthBorder and bar.rikBorder == healthBorder)
         check("the module never reads UnitHealth or writes the bar value", healthReads == 0
             and rawget(bar, "valueWrites") == nil)
         stub.process("Unit", tip, { guid = "Creature-0-1" })

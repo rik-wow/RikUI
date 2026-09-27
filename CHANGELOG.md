@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Tooltips now use larger headings, a quiet inset top accent and clearly outlined dark health tracks. Native GUID watching continues to own all health values.
+
 - Chat copy now has separate header, transcript and footer bands, a wider focused search field, styled actions and empty-result guidance outside the copied text.
 
 - Chat channel buttons now keep a persistent active-channel underline, stronger selected opacity and descriptive hover help while retaining native channel switching.

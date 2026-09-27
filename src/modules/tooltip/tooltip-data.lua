@@ -60,7 +60,9 @@ local function styleBar(bar)
     bar:SetStatusBarTexture(media.statusbar)
     bar.rikBackground = bar:CreateTexture(nil, "BACKGROUND")
     bar.rikBackground:SetAllPoints()
-    bar.rikBackground:SetColorTexture(0, 0, 0, 0.4)
+    bar.rikBackground:SetColorTexture(0.025, 0.03, 0.04, 1)
+    bar.rikBorder = ui.Edges(bar, 1, "OVERLAY")
+    for _, edge in ipairs(bar.rikBorder) do edge:SetVertexColor(0.3, 0.35, 0.42, 1) end
 end
 
 -- SetWatch is the sanctioned tainted entry: it stores the guid and the secure mixin fills the bar.

@@ -14,7 +14,7 @@ local TOOLTIPS = { "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "Shoppin
     "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2", "EmbeddedItemTooltip", "GameNoHeaderTooltip",
     "GameSmallHeaderTooltip", "BuffFrameTooltip", "AuraButtonTooltip", "PrivateAurasTooltip",
     "LootHistoryExtraTooltip", "QuickKeybindTooltip", "SettingsTooltip" }
-local FONT_OBJECTS = { GameTooltipHeaderText = "label", GameTooltipText = "label", GameTooltipTextSmall = "small" }
+local FONT_OBJECTS = { GameTooltipHeaderText = "heading", GameTooltipText = "label", GameTooltipTextSmall = "small" }
 local ANCHOR_FUNCTION, BACKDROP_FUNCTION = "GameTooltip_SetDefaultAnchor", "SharedTooltip_SetBackdropStyle"
 local EDGE = 1
 local BACKGROUND, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.25, 0.28, 0.32, 1 }
@@ -91,6 +91,11 @@ local function skin(frame)
     frame.rikBackground:SetColorTexture(unpack(BACKGROUND))
     frame.rikBorder = ui.Edges(frame, EDGE, "BORDER")
     for _, line in ipairs(frame.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
+    frame.rikAccent = frame:CreateTexture(nil, "BORDER")
+    frame.rikAccent:SetColorTexture(0.5, 0.6, 0.72, 0.85)
+    frame.rikAccent:SetPoint("TOPLEFT", frame, "TOPLEFT", 3, -2)
+    frame.rikAccent:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -3, -2)
+    frame.rikAccent:SetHeight(2)
     applyScale(frame)
     frame:HookScript("OnShow", applyScale)
     core.Motion.BindEntrance(frame)
