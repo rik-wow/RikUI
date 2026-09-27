@@ -31,6 +31,7 @@ return function(check)
         function value:SetTextColor(...) self.color = { ... } end
         function value:SetPoint(...) self.point = { ... } end
         function value:SetAlpha(alpha) self.alpha = alpha end
+        function value:SetShown(shown) self.shown = shown end
         function value:SetFont(path, size, flags) self.fontPath, self.fontSize, self.fontFlags = path, size, flags; return true end
         return value
     end
@@ -170,6 +171,10 @@ return function(check)
         ChatFrame2:AddMessage("other window")
         env.click(button)
         local window = RikUIChatCopy
+        check("copy window separates chrome and footer", window.rikChrome and window.count.point[1] == "BOTTOMLEFT")
+        env.runScript(window.search, "OnEditFocusGained")
+        check("copy search keeps a focused border", window.search.rikBorder[1].color[1] == 1)
+        env.runScript(window.search, "OnEditFocusLost")
         check("the copy button opens a window with that frame's lines as plain text", window and window:IsShown()
             and window.edit.text == "[Bob]: hello  world\nplain line\n[Sword]" and window == module.Window)
         check("the text is selected and the title names the window", window.edit.highlighted == true
@@ -179,6 +184,7 @@ return function(check)
         window.search:SetText("[");env.runScript(window.search,"OnTextChanged")
         check("copy search treats pattern characters literally",window.count.text=="2 / 3 lines")
         window.search:SetText("absent");env.runScript(window.search,"OnTextChanged")
+        check("copy empty guidance stays outside copied text", window.empty and window.empty:IsShown())
         check("copy search has an honest empty result",window.edit.text=="" and window.count.text=="0 / 3 lines")
         env.click(window.clear)
         check("clearing restores the cached transcript",window.edit.text=="[Bob]: hello  world\nplain line\n[Sword]")
@@ -272,6 +278,10 @@ return function(check)
 
         SetItemRef("addon:RikUI:" .. URL, "[" .. URL .. "]", "LeftButton", ChatFrame1)
         local window = RikUIChatCopy
+        check("copy window separates chrome and footer", window.rikChrome and window.count.point[1] == "BOTTOMLEFT")
+        env.runScript(window.search, "OnEditFocusGained")
+        check("copy search keeps a focused border", window.search.rikBorder[1].color[1] == 1)
+        env.runScript(window.search, "OnEditFocusLost")
         check("clicking an address link opens the box with the address selected", window:IsShown()
             and window.edit.text == URL and window.edit.highlighted == true and window.title.text == "Link"
             and ItemRefTooltip.shown == false)

@@ -1,11 +1,12 @@
 -- Copy window and clickable addresses for the chat module. Lines come from GetMessageInfo with
 -- secret strings skipped. Addresses become "addon" hyperlinks: on 69913 SetItemRef hands that link
 -- type to EventRegistry and stops, so a click never reaches the item tooltip.
-local core, media, ui = RikUI, RikUI.Media, RikUI.UI
+local core, media = RikUI, RikUI.Media
 local chat = core.Chat
 
-local WINDOW_NAME, WIDTH, HEIGHT, PAD, TITLE_HEIGHT, CLOSE_SIZE, EDGE = "RikUIChatCopy", 560, 400, 8, 24, 18, 1
-local BACKGROUND, BORDER = { 0.03, 0.035, 0.045, 0.97 }, { 0.25, 0.28, 0.32, 1 }
+local WINDOW_NAME, WIDTH, HEIGHT, PAD, CLOSE_SIZE = "RikUIChatCopy", 560, 400, 12, 24
+local HEADER_HEIGHT, FOOTER_HEIGHT = 68, 30
+local BACKGROUND = { 0.03, 0.035, 0.045, 0.97 }
 local SCROLL_STEP, TEXT_FLAGS = 40, ""
 local COPY_TITLE, LINK_TITLE = "Chat copy: ", "Link"
 local LINK_PREFIX, LINK_COLOR, LINK_EVENT = "addon:RikUI:", "|cff4e96f7", "SetItemRef"
@@ -182,6 +183,9 @@ function chat.ApplyCopySearch()
     local suffix=window.copyStatus and (" ("..window.copyStatus..")") or ""
     window.count:SetText(#lines.." / "..total.." lines"..suffix)
     window.scroll:SetVerticalScroll(0)
+    window.empty:SetText(query ~= "" and "No matching lines. Clear search to see the transcript." or "No readable chat lines.")
+    window.empty:SetShown(#lines == 0)
+    window.search.hint:SetShown(query == "")
 end
 
 function chat.RefreshCopy()
@@ -192,39 +196,67 @@ function chat.RefreshCopy()
     chat.ApplyCopySearch()
 end
 
+local function copyButton(label, width, callback)
+    local button = CreateFrame("Button", nil, window)
+    button:SetSize(width, 24)
+    chat.Flat(button, chat.Colors.field)
+    button:SetNormalFontObject(GameFontNormal)
+    core.Skin.ButtonFonts(button)
+    button:SetText(label)
+    button:SetHighlightTexture(media.highlight, "ADD")
+    button:SetScript("OnClick", callback)
+    return button
+end
+
+local function copyFocus(box, focused)
+    local color = focused and chat.Colors.selected or chat.Colors.border
+    for _, edge in ipairs(box.rikBorder) do edge:SetVertexColor(unpack(color)) end
+end
+
 local function createSearch()
-    local label=window:CreateFontString(nil,"OVERLAY")
-    media.Font(label,"label");label:SetText("Search")
-    label:SetPoint("TOPLEFT",window,"TOPLEFT",PAD,-32)
-    local search=CreateFrame("EditBox",nil,window)
-    search:SetSize(180,22);search:SetPoint("TOPLEFT",window,"TOPLEFT",64,-28)
-    search:SetAutoFocus(false);search:SetFont(media.font,media.Size("label"),TEXT_FLAGS)
+    local search = CreateFrame("EditBox", nil, window)
+    search:SetSize(300, 24)
+    search:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -36)
+    search:SetTextInsets(6, 6, 0, 0)
+    search:SetAutoFocus(false)
+    search:SetFont(media.font, media.Size("label"), TEXT_FLAGS)
     search:SetMaxLetters(128)
-    chat.Flat(search,BACKGROUND)
-    search:SetScript("OnTextChanged",chat.ApplyCopySearch)
-    search:SetScript("OnEscapePressed",chat.CloseCopy)
-    search:SetScript("OnEnterPressed",function() search:ClearFocus();window.edit:SetFocus();window.edit:HighlightText() end)
-    window.search=search
-    local clear=CreateFrame("Button",nil,window)
-    clear:SetSize(48,22);clear:SetPoint("LEFT",search,"RIGHT",8,0)
-    clear:SetNormalFontObject(GameFontNormal);clear:SetText("Clear")
-    clear:SetHighlightTexture(media.highlight,"ADD")
-    clear:SetScript("OnClick",function() search:SetText("");chat.ApplyCopySearch();search:SetFocus() end)
-    window.clear=clear
-    window.count=window:CreateFontString(nil,"OVERLAY");media.Font(window.count,"label")
-    window.count:SetPoint("LEFT",clear,"RIGHT",8,0)
-    local refresh=CreateFrame("Button",nil,window)
-    refresh:SetSize(70,22);refresh:SetPoint("TOPRIGHT",window,"TOPRIGHT",-PAD,-28)
-    refresh:SetNormalFontObject(GameFontNormal);refresh:SetText("Refresh")
-    refresh:SetHighlightTexture(media.highlight,"ADD")
-    refresh:SetScript("OnClick",chat.RefreshCopy)
-    window.refresh=refresh
+    chat.Flat(search, BACKGROUND)
+    search:SetScript("OnTextChanged", chat.ApplyCopySearch)
+    search:SetScript("OnEscapePressed", chat.CloseCopy)
+    search:SetScript("OnEnterPressed", function() search:ClearFocus(); window.edit:SetFocus(); window.edit:HighlightText() end)
+    search:HookScript("OnEditFocusGained", function(self) copyFocus(self, true) end)
+    search:HookScript("OnEditFocusLost", function(self) copyFocus(self, false) end)
+    search:HookScript("OnHide", function(self) copyFocus(self, false) end)
+    search.hint = search:CreateFontString(nil, "OVERLAY")
+    media.Font(search.hint, "small")
+    search.hint:SetPoint("LEFT", search, "LEFT", 6, 0)
+    search.hint:SetText("Search transcript")
+    search.hint:SetTextColor(0.6, 0.66, 0.74)
+    window.search = search
+    window.clear = copyButton("Clear", 64, function() search:SetText(""); chat.ApplyCopySearch(); search:SetFocus() end)
+    window.clear:SetPoint("LEFT", search, "RIGHT", PAD, 0)
+    window.refresh = copyButton("Refresh", 80, chat.RefreshCopy)
+    window.refresh:SetPoint("TOPRIGHT", window, "TOPRIGHT", -PAD, -36)
+end
+
+local function createFooter()
+    window.count = window:CreateFontString(nil, "OVERLAY")
+    media.Font(window.count, "small")
+    window.count:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", PAD, 10)
+    window.count:SetWidth(250)
+    window.count:SetJustifyH("LEFT")
+    window.hint = window:CreateFontString(nil, "OVERLAY")
+    media.Font(window.hint, "small")
+    window.hint:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, 10)
+    window.hint:SetText("Ctrl+A select all  |  Ctrl+C copy")
+    window.hint:SetTextColor(0.7, 0.75, 0.82)
 end
 
 local function createEdit()
     local scroll = CreateFrame("ScrollFrame", nil, window)
-    scroll:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -(PAD + TITLE_HEIGHT + 28))
-    scroll:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, PAD)
+    scroll:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -(HEADER_HEIGHT + PAD))
+    scroll:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, FOOTER_HEIGHT + PAD)
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", scrollWheel)
     local edit = CreateFrame("EditBox", nil, scroll)
@@ -243,17 +275,23 @@ local function createWindow()
     window:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     window:SetFrameStrata("DIALOG")
     window:EnableMouse(true)
-    window.rikBackground = window:CreateTexture(nil, "BACKGROUND")
-    window.rikBackground:SetAllPoints()
-    window.rikBackground:SetColorTexture(unpack(BACKGROUND))
-    window.rikBorder = ui.Edges(window, EDGE, "BORDER")
-    for _, line in ipairs(window.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
+    window.rikChrome = core.Skin.WindowChrome(window, HEADER_HEIGHT, FOOTER_HEIGHT)
+    window.rikBackground, window.rikBorder = window.rikChrome.fill, window.rikChrome.edge
+    window:SetClampedToScreen(true)
     window.title = window:CreateFontString(nil, "OVERLAY")
-    media.Font(window.title, "label")
+    media.Font(window.title, "heading")
+    window.title:SetPoint("TOPRIGHT", window, "TOPRIGHT", -PAD - CLOSE_SIZE - 8, -PAD)
+    window.title:SetJustifyH("LEFT")
     window.title:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -PAD)
     window.close = createClose()
     window.scroll, window.edit = createEdit()
     createSearch()
+    createFooter()
+    window.empty = window:CreateFontString(nil, "OVERLAY")
+    media.Font(window.empty, "label")
+    window.empty:SetPoint("TOPLEFT", window.scroll, "TOPLEFT", 0, -12)
+    window.empty:SetPoint("TOPRIGHT", window.scroll, "TOPRIGHT", 0, -12)
+    window.empty:SetTextColor(0.7, 0.75, 0.82)
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, WINDOW_NAME) end
     window:Hide()
     core.Motion.BindEntrance(window, true)

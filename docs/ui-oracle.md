@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Chat copy now has separate header, transcript and footer bands, a wider focused search field, styled actions and empty-result guidance outside the copied text.
+
 - Chat channel buttons now keep a persistent active-channel underline, stronger selected opacity and descriptive hover help while retaining native channel switching.
 
 - Loot item cards have larger cropped icons, room for two-line names, dark quantity backings and consistent inset spacing; reused rows clear old stack visuals.
