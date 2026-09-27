@@ -1,5 +1,9 @@
 # UI oracle
 
+## Additional visual polish — September 2026
+
+- Collection and choice interiors now use warm section bands for direct and nested headings, with dark pagination badges. Hidden and late-created headings refresh cleanly; models, item names and native selection remain intact.
+
 - Loss-of-control alerts now separate the ability name, countdown and icon with dark text backing and an inset icon compartment. A steady red side rail remains visible with reduced motion while native timing and fades remain in control.
 
 - Status and double-status widgets now give bar and heading labels dark contrast backing above colored fills. Empty or hidden labels clear their backing, while native progress, colors and sparks remain unchanged.
@@ -18,7 +22,6 @@
 
 - Native item counts now have dark inset badges above the icon art. Badges follow count visibility and clear on empty/reused slots; native quantities and quality colors remain intact.
 
-## Additional visual polish — September 2026
 
 - Static popups now separate secondary text with quieter ink and an inset top rule. Input fields show focus outlines; actions gain press feedback and recessed disabled surfaces, including pooled game-menu buttons.
 

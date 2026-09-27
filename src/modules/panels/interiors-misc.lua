@@ -5,6 +5,7 @@ local ART = { "BorderOverlay", "BackgroundTile", "Background", "Bg", "Background
 local TEXT = { "Title", "Text", "Header", "Label", "Description", "Name", "name",
     "GridSelectionHeader", "GridSelectionDescription", "GridNoSelectionHeader", "GridNoSelectionDescription",
     "UnspentPointsCount" }
+local HEADINGS = { "Title", "Header", "HeaderText", "GridSelectionHeader", "GridNoSelectionHeader" }
 local closed = setmetatable({}, { __mode = "k" })
 local ROOTS = { "PlayerChoiceFrame", "SplashFrame", "GenericTraitFrame", "CollectionsJournal",
     "MountJournal", "PetJournal", "ToyBox", "HeirloomsJournal", "WardrobeCollectionFrame",
@@ -22,6 +23,18 @@ local function misc(frame)
     for _, key in ipairs(ART) do if skin.IsRegion(frame[key]) then surface = true end end
     if surface then interiors.Surface(frame, ART) end
     for _, key in ipairs(TEXT) do skin.Typeface(frame[key]) end
+    for _, key in ipairs(HEADINGS) do
+        local heading = frame[key]
+        if skin.IsRegion(heading) and heading:GetObjectType() == "FontString" then
+            skin.SectionHeading(frame, heading)
+        elseif interiors.IsFrame(heading) then
+            skin.SectionHeading(heading, heading.Text)
+        end
+    end
+    if skin.IsRegion(frame.PageText) then
+        skin.Typeface(frame.PageText)
+        skin.TextPlate(frame, frame.PageText, nil, 4, "ARTWORK")
+    end
     if skin.IsRegion(interiors.Icon(frame)) then interiors.Item(frame) end
     if skin.IsRegion(frame.StateBorder) and skin.IsRegion(frame.Icon) then interiors.Spells(frame) end
     if frame == _G.PlayerChoiceFrame then

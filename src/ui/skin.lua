@@ -132,7 +132,8 @@ end
 
 local sections = setmetatable({}, { __mode = "k" })
 function skin.SectionHeading(owner, region)
-    if not skin.IsRegion(region) or type(region.GetText) ~= "function" then return end
+    if not skin.IsRegion(region) or type(region.GetObjectType) ~= "function"
+        or region:GetObjectType() ~= "FontString" then return end
     local section = sections[region]
     if not section then
         section = { rule = owner:CreateTexture(nil, "ARTWORK", nil, 0) }
