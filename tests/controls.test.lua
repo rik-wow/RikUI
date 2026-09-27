@@ -37,6 +37,8 @@ return function(check)
     local function scrollBar(parent)
         local bar = frame("Frame", parent)
         bar.Track, bar.Back, bar.Forward = frame("Frame", bar), frame("Button", bar), frame("Button", bar)
+        art(bar.Back, { "Texture" })
+        art(bar.Forward, { "Texture" })
         art(bar.Track, { "Begin", "Middle", "End" })
         bar.Track.Thumb = frame("Button", bar.Track)
         art(bar.Track.Thumb, { "Begin", "Middle", "End" })
@@ -173,9 +175,18 @@ return function(check)
         check("a legacy scrollbar gets a flat thumb and flat step buttons with a glyph",
             ui.legacy.ThumbTexture.texture == RikUI.Skin.FLAT and ui.legacy.ScrollUpButton.states.Normal.alpha == 0
             and ui.legacy.ScrollUpButton.rikIcon.rikIcon == "chevron-up" and ui.legacy.ScrollDownButton.rikIcon.rikIcon == "chevron-down")
-        check("a dropdown button loses its holder art, keeps its arrow and gets the typeface",
-            ui.dropdown.Background.alpha == 0 and rawget(ui.dropdown.Arrow, "alpha") == nil
+        check("a dropdown replaces stock holder and arrow art and keeps the typeface",
+            ui.dropdown.Background.alpha == 0 and ui.dropdown.Arrow.alpha == 0
             and ui.dropdown.rikFill ~= nil and ui.dropdown.Text.fontPath == RikUI.Media.font)
+        check("dropdown arrow has its own inset compartment", ui.dropdown.rikArrow
+            and ui.dropdown.rikArrow.rikIcon == "chevron-down" and ui.dropdown.rikArrowBacking)
+        ui.dropdown:SetEnabled(false)
+        env.runScript(ui.dropdown, "OnDisable")
+        check("disabled dropdown arrow is muted", ui.dropdown.rikArrow and ui.dropdown.rikArrow.alpha == 0.35)
+        ui.dropdown:SetEnabled(true)
+        env.runScript(ui.dropdown, "OnEnable")
+        check("dropdown restores its arrow on enable", ui.dropdown.rikArrow and ui.dropdown.rikArrow.alpha == 1)
+        check("native stepper atlas stays suppressed", ui.scroll.Back.Texture.alpha == 0)
         check("item buttons, action check buttons, secure and forbidden buttons stay stock",
             ui.item.rikFill == nil and ui.action.rikFill == nil and rawget(ui.action.states.Normal, "alpha") == nil
             and ui.secure.rikFill == nil and rawget(ui.secure.Left, "alpha") == nil and ui.forbidden.rikFill == nil)

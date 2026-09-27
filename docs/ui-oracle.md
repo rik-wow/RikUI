@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Native dropdowns now use crisp bundled chevrons in dark inset compartments, with muted disabled states. Modern scrollbar steps also suppress their atlas texture so only one arrow is visible.
+
 - Modern scrollbars now have recessed tracks, outlined thumbs and matching directional buttons. Thumb hover and drag states stay visible, and disabled step arrows dim.
 
 - Native sliders now show a slim blue value fill that follows horizontal or vertical geometry, range changes and resizing. Empty or invalid values clear the fill, and disabled tracks stay muted.

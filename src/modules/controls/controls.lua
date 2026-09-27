@@ -234,6 +234,7 @@ end
 local function stepButton(button, glyph)
     if not skin.IsRegion(button) or type(button.CreateTexture) ~= "function" then return end
     fadeStates(button)
+    skin.Strip(button, { "Texture" })
     box(button, skin.CONTROL, BUTTON_INSET)
     hover(button)
     motion.BindPress(button)
@@ -266,8 +267,27 @@ local function scrollBar(bar)
     hover(thumb)
 end
 
+local function dropdownArrow(button)
+    local arrow = media.Icon(button, "chevron-down", 10, "OVERLAY")
+    arrow:SetPoint("CENTER", button.Arrow, "CENTER", 0, 0)
+    button.rikArrow = arrow
+    local backing = button:CreateTexture(nil, "BORDER")
+    backing:SetTexture(skin.FLAT)
+    backing:SetVertexColor(0.035, 0.045, 0.065, 0.8)
+    backing:SetPoint("TOPLEFT", button.Arrow, "TOPLEFT", -4, 3)
+    backing:SetPoint("BOTTOMRIGHT", button.Arrow, "BOTTOMRIGHT", 4, -3)
+    button.rikArrowBacking = backing
+    local function sync()
+        arrow:SetAlpha(disabled(button) and DISABLED_ICON_ALPHA or 1)
+        backing:SetAlpha(disabled(button) and 0.4 or 1)
+    end
+    for _, event in ipairs({ "OnShow", "OnEnable", "OnDisable" }) do core.Hooks.Script(button, event, sync) end
+    sync()
+end
+
 local function dropdown(button)
-    skin.Strip(button, { "Background" })
+    skin.Strip(button, { "Background", "Arrow" })
+    dropdownArrow(button)
     box(button, skin.CONTROL, BUTTON_INSET)
     hover(button)
     motion.BindPress(button)
