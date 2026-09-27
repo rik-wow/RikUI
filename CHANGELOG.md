@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Bag search now retains a focus outline and shows a readable empty-result panel with reset guidance when a query or category finds nothing.
+
 - Bag filters now show a persistent gold underline and selected fill, with brighter inactive labels for easier scanning.
 
 - Bags have a layered window, larger controls and clearer separation between searching, filtering, inventory and equipment.

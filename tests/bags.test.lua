@@ -63,6 +63,8 @@ return function(check)
         function frame:StopMovingOrSizing() self.moving = false end
         function frame:GetCenter() return self.centerX, self.centerY end
         function frame:GetEffectiveScale() return 1 end
+        function frame:GetFrameLevel() return self.frameLevel or 1 end
+        function frame:SetFrameLevel(value) self.frameLevel = value end
         local texture, font = frame.CreateTexture, frame.CreateFontString
         function frame:CreateTexture(...) return region(texture(self, ...)) end
         function frame:CreateFontString(...) return region(font(self, ...)) end
@@ -183,6 +185,10 @@ return function(check)
             and holder.filters.all.point[5] == -66 and holder.grid.point[5] == -102)
         check("bag window has distinct reusable header and footer", holder.rikChrome ~= nil
             and holder.rikChrome.header ~= holder.rikChrome.footer)
+        env.runScript(holder.search, "OnEditFocusGained")
+        check("bag search focus brightens its outline", color(holder.search.rikBorder[1].color, { 1, 0.82, 0.3 }))
+        env.runScript(holder.search, "OnEditFocusLost")
+        check("bag search blur restores its outline", color(holder.search.rikBorder[1].color, { 0.25, 0.28, 0.32 }))
         local cooldownReads, cooldownAPI = 0, C_Container.GetContainerItemCooldown
         C_Container.GetContainerItemCooldown = function(...)
             cooldownReads = cooldownReads + 1
@@ -512,6 +518,8 @@ return function(check)
             and holder.filters.materials.rikSelected.visible)
         check("materials selects cloth and dims gear and empty slots", cloth.alpha == 1 and blade.alpha == 0.25 and empty.alpha == 0.25)
         typeSearch("Hearth")
+        check("empty search shows inventory guidance", holder.emptySearch and holder.emptySearch.visible
+            and holder.emptySearch.text:find("No matching items", 1, true))
         check("materials intersects text search", cloth.alpha == 0.25 and stone.alpha == 0.25)
         typeSearch("")
         env.click(holder.filters.gear)
@@ -537,6 +545,7 @@ return function(check)
         env.click(holder.filters.all)
         check("all filter clears the previous marker", holder.filters.all.rikSelected
             and holder.filters.all.rikSelected.visible and not holder.filters.quest.rikSelected.visible)
+        check("clearing the search hides empty guidance", holder.emptySearch and not holder.emptySearch.visible)
         check("all restores every slot", blade.alpha == 1 and empty.alpha == 1)
         C_Item.GetItemInfoInstant = function(link) return 1, "", "", "", 1, link:find("Blade") and 2 or 7 end
         module.Refresh()

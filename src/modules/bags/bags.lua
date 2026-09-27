@@ -120,6 +120,12 @@ local function plainSearchBox()
     return box
 end
 
+local function searchFocus(box, focused)
+    for _, edge in ipairs(box.rikBorder) do
+        edge:SetVertexColor(unpack(focused and { 1, 0.82, 0.3, 1 } or BORDER))
+    end
+end
+
 local function createSearch()
     local ok, box = pcall(CreateFrame, "EditBox", SEARCH_NAME, holder, SEARCH_TEMPLATE)
     if not ok then box = plainSearchBox() end
@@ -131,6 +137,9 @@ local function createSearch()
     box:SetFont(media.font, media.Size("small"), "")
     flat(box, FIELD)
     box:SetMaxLetters(256)
+    box:HookScript("OnEditFocusGained", function(self) searchFocus(self, true) end)
+    box:HookScript("OnEditFocusLost", function(self) searchFocus(self, false) end)
+    box:HookScript("OnHide", function(self) self:ClearFocus(); searchFocus(self, false) end)
     box:HookScript("OnEnter", function(self)
         if not GameTooltip then return end
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
@@ -176,6 +185,22 @@ local function createFilters()
     bags.SetFilter("all")
 end
 
+local function createEmptySearch()
+    local panel = CreateFrame("Frame", nil, holder)
+    panel:SetAllPoints(holder.grid)
+    panel:SetFrameLevel(holder:GetFrameLevel() + 10)
+    panel:EnableMouse(false)
+    panel.fill = core.Skin.Fill(panel, { 0.055, 0.065, 0.08, 0.94 })
+    holder.emptySearchPanel = panel
+    holder.emptySearch = panel:CreateFontString(nil, "OVERLAY")
+    media.Font(holder.emptySearch, "label")
+    holder.emptySearch:SetPoint("LEFT", panel, "LEFT", PAD, 0)
+    holder.emptySearch:SetPoint("RIGHT", panel, "RIGHT", -PAD, 0)
+    holder.emptySearch:SetText("No matching items\nClear search or choose All")
+    holder.emptySearch:SetTextColor(0.9, 0.92, 0.96)
+    panel:Hide()
+end
+
 local function createControls()
     holder.title = holder:CreateFontString(nil, "OVERLAY")
     media.Font(holder.title, "heading")
@@ -218,6 +243,7 @@ local function createControls()
     end)
     holder.grid = CreateFrame("Frame", nil, holder)
     holder.grid:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -(PAD + HEADER))
+    createEmptySearch()
 end
 
 function bags.Resize()
@@ -238,6 +264,11 @@ function bags.UpdateTitle()
         text = text .. (found == 1 and MATCH_ONE or MATCH_MANY:format(found))
     end
     holder.title:SetText(text)
+    if holder.emptySearch then
+        local empty = (search ~= "" or filter ~= "all") and bags.Total - dimmed == 0
+        holder.emptySearch:SetShown(empty)
+        holder.emptySearchPanel:SetShown(empty)
+    end
 end
 
 local function onShow()

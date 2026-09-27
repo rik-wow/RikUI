@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Bag search now retains a focus outline and shows a readable empty-result panel with reset guidance when a query or category finds nothing.
+
 - Bag filters now show a persistent gold underline and selected fill, with brighter inactive labels for easier scanning.
 
 - Bags now use a spacious layered header, 24px controls, a separate filter band and a recessed equipment/money footer.
