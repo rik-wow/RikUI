@@ -226,12 +226,37 @@ local function marker(canvas,index)
     pin.label:SetText(tostring(index))
     pin:SetScript("OnEnter",function()
         GameTooltip:SetOwner(pin,"ANCHOR_RIGHT"); GameTooltip:SetText(pin.title or "Quest destination")
-        GameTooltip:AddLine(pin.hunt and "Search approach; look for targets nearby. Click to open the quest."
+        GameTooltip:AddLine(pin.objectiveIndex and "Recorded objective location. Click to route here; live progress confirms completion."
+            or pin.hunt and "Search approach; look for targets nearby. Click to open the quest."
             or "Destination marker; follow verified paths. Click to open the quest.",1,1,1,true); GameTooltip:Show()
     end)
     pin:SetScript("OnLeave",function() GameTooltip:Hide() end)
-    pin:SetScript("OnClick",function() if pin.questID then planner.OpenQuest(pin.questID) end end)
+    pin:SetScript("OnClick",function()
+        if pin.objectiveIndex then
+            local ok,reason=planner.Controller.SelectObjective(pin.questID,pin.objectiveIndex)
+            if not ok then core:Print(reason) end
+        elseif pin.questID then planner.OpenQuest(pin.questID) end
+    end)
     return pin
+end
+local function mapRows(model)
+    local result,seen={},{}
+    local snapshot=planner.GetSnapshot and planner.GetSnapshot()
+    local entries=snapshot and planner.ObjectiveGuide and planner.ObjectiveGuide.Rows(snapshot,model.selected.questID) or {}
+    local function add(row)
+        local p=row.destination
+        if not p then return end
+        local position=table.concat({p.mapID,p.x,p.y,tostring(row.questID or "")},":")
+        if not row.objectiveIndex and seen[position] then return end
+        local key=position..":"..tostring(row.objectiveIndex or "")
+        if not seen[key] then result[#result+1]=row;seen[key]=true;seen[position]=true end
+    end
+    for _,entry in ipairs(entries) do
+        if not entry.finished then add({questID=entry.questID,objectiveIndex=entry.index,
+            title=planner.Guidance.Text(entry.text or "Turn in"),destination=entry.destination}) end
+    end
+    for _,row in ipairs(model.stops or {model.selected}) do add(row) end
+    return result
 end
 local function draw()
     hidePins()
@@ -244,15 +269,17 @@ local function draw()
     drawTerrain(canvas,width,height,mapID)
     local terrain=planner.Terrain and (planner.Terrain.PeekGuidance or planner.Terrain.Guidance)()
     local count=0
-    for _,row in ipairs(model.stops or {model.selected}) do
+    for _,row in ipairs(mapRows(model)) do
         local point=row.destination
-        if row.questID==model.selected.questID and terrain and terrain.huntEndpoint then point=terrain.huntEndpoint end
+        if not row.objectiveIndex and row.questID==model.selected.questID and terrain and terrain.huntEndpoint then point=terrain.huntEndpoint end
         if point and point.mapID==mapID and planner.Schema.Number(point.x,0,1) and planner.Schema.Number(point.y,0,1) then
-            count=count+1; if count>8 then break end
+            count=count+1; if count>40 then break end
             local pin=pins[count] or marker(canvas,count); pins[count]=pin
             if pin:GetParent()~=canvas then pin:SetParent(canvas) end
             pin:ClearAllPoints(); pin:SetPoint("CENTER",canvas,"TOPLEFT",point.x*width,-point.y*height)
             pin.title,pin.questID,pin.hunt=row.title,row.questID,row.hunt~=nil
+            pin.objectiveIndex=row.objectiveIndex
+            pin.label:SetText(row.objectiveIndex and (row.objectiveIndex==0 and "?" or tostring(row.objectiveIndex)) or tostring(count))
             pin:Show()
         end
     end

@@ -1,9 +1,11 @@
 # Forever quest planning
 
+Current objective guidance: [detailed waypoints, controls, source audit and coverage](quest-objective-waypoints.md) (2026-09-27).
+
 ## Current implementation
 
 The [local Forever corpus](forever-corpus.md) now supplies generic semantic
-reference guidance for all 4,257 corrected provider quests, with 7,311 IDs in
+reference guidance for all 4,257 corrected provider quests, with 7,316 IDs in
 the provider/client membership union. Live progress remains authoritative;
 unknown client-only targets and unverified travel/floors remain explicit.
 The linked document describes source coverage, installation and reproduction.

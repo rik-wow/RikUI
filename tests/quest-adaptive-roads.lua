@@ -10,7 +10,7 @@ local modules={"schema","builds","objectives","transfer","nav-geometry","nav-fun
     "path-codec","nav-attach","region-codec","terrain-packs","regions","navmesh",
     "roads","road-patches","road-route","road-follow","road-navigate","road-travel","road-guidance",
     "steps","step-bindings","guide-data","observed-steps","hunts","targets",
-    "optimizer","area-optimizer","semantic-data","semantic-guidance","recommendations","guidance",
+    "optimizer","area-optimizer","semantic-data","waypoints","objective-guide","semantic-guidance","recommendations","guidance",
     "preferences","plan-state","plan-graph","plan-transitions","plan-learning","plan-costs","plan-search",
     "bag-scan","plan-services","plan-rewards","plan-travel","plan-context","travel-estimate","plan-runtime","controller","terrain"}
 for _,name in ipairs(modules) do dofile("src/modules/questplanner/quest-"..name..".lua") end

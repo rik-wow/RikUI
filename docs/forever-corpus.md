@@ -1,5 +1,11 @@
 # Local Forever quest corpus
 
+**Current refresh (2026-09-27):** see [detailed objective waypoints](quest-objective-waypoints.md)
+for the current source audit, installed revision, controls and measured coverage.
+The refreshed corpus retains 74,153 exact source points and 7,316 quest IDs; general
+quest POIs no longer override objective locations. The figures below describe earlier
+acquisitions unless a section supplies a later date.
+
 RikUI now uses a generated QuestieDB reference corpus for the current character's
 quests. Hunting, drops, object collection, talking, events, exploration and turn-in
 locations no longer require an entry in the three-quest reviewed guide. Live

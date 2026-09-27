@@ -48,7 +48,7 @@ return function(check)
         GetProfessionInfo=function(index) return "Profession","icon",75,150,nil,nil,index==2 and 164 or 185 end
         GetFactionInfoByID=function() return "Faction","description",3,-3000,0,-1000 end
         for _,name in ipairs({"schema","objectives","optimizer","area-optimizer","context","steps","step-bindings",
-            "observed-steps","semantic-data","semantic-guidance","recommendations","guidance","preferences","plan-state","plan-graph",
+            "observed-steps","semantic-data","waypoints","objective-guide","semantic-guidance","recommendations","guidance","preferences","plan-state","plan-graph",
             "plan-transitions","plan-learning","plan-rewards","plan-costs","plan-search","transfer","bag-scan","plan-services","plan-travel","plan-context","plan-xp","plan-observer","roads","road-travel","travel-estimate","plan-runtime","controller","plan-controls","view","window-layout","window","commands"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
@@ -173,6 +173,32 @@ return function(check)
         check("deferred quest has real restore control",p.View.Window.selection.defer.label:GetText()=="Resume quest")
         env.click(p.View.Window.selection.defer);update("restore")
         check("defer restore widget resumes quest",not p.Controller.Policy().defers[900])
+        -- Exercise objective controls through the actual quest window and controller.
+        record.objectives[1].sourceItemID=nil
+        method.areas[1].spawns={{.2,.3},{.24,.3}}
+        record.objectives[2]={id="monster:88",type="monster",name="Camp Scout",targetID=88,
+            methods={{kind="kill",targetKind="npc",targetID=88,name="Camp Scout",
+                areas={{id="scout",mapID=1426,x=.6,y=.3}}}}}
+        snapshot.quests[900].objectives[2]={text="0/1 Camp Scout slain",type="monster",numRequired=1,numFulfilled=0,finished=false}
+        update("objective guide controls");p.View.Refresh()
+        local panel=p.View.Window.selection
+        check("quest window exposes objective selection and exact location count",
+            panel.objective:IsShown() and panel.body:GetText():find("2 known locations",1,true)
+            and panel.body:GetText():find("Camp Scout",1,true))
+        env.click(panel.location);update("alternate source location")
+        check("next location control routes to the alternate exact spawn",
+            p.Controller.Get().manual and p.Controller.Get().selected.destination.x==.24)
+        env.click(panel.objective);env.click(panel.route);update("choose second objective")
+        check("objective control selects that objective in production guidance",
+            p.Controller.Get().selected.step.active.objectiveID=="monster:88"
+            and p.Controller.Get().selected.destination.x==.6)
+        snapshot.quests[900].objectives[2].finished=true
+        update("selected objective completes")
+        check("manual quest guide automatically resumes another unfinished objective",
+            p.Controller.Get().selected.step.active.objectiveID=="item:9")
+        record.objectives[2]=nil;snapshot.quests[900].objectives[2]=nil
+        record.objectives[1].sourceItemID=55;method.areas[1].spawns=nil
+        p.Controller.Select(nil);update("restore automatic planning")
         p.Command("decline-exploration");update("decline")
         check("exploration decline persists without flavor changes",p.Controller.Policy().explorationMinutes==0
             and RikUI.CharDB.questPolicy.explorationMinutes==0 and p.Controller.Policy().flavor=="Challenge")

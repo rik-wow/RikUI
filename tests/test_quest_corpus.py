@@ -48,6 +48,33 @@ class CorpusTests(unittest.TestCase):
         records = compiler.compile()
         return compiler, records
 
+    def test_exact_spawn_waypoints_survive_clustering(self):
+        compiler, records = self.compile()
+        method = records[1]["base"]["objectives"][0]["methods"][0]
+        points = {(area["mapID"], x, y) for area in method["areas"] for x, y in area["spawns"]}
+        self.assertEqual(points, {(1429, .30, .40), (1429, .31, .40),
+                                  (1429, .90, .90), (1436, .10, .20)})
+        for area in method["areas"]:
+            self.assertEqual(len(area["spawns"]), area["spawnCount"])
+            self.assertIn([area["x"], area["y"]], area["spawns"])
+        self.assertGreater(compiler.report["waypointCoverage"]["exactSpawns"], 0)
+        self.assertTrue(any(row["code"] == "floor-map-unknown" for row in compiler.report["unknowns"]))
+
+    def test_current_client_membership_records_acquired_build_without_inventing_details(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "QuestV2.csv"
+            raw = b"ID,UniqueBitFlag,UiQuestDetailsThemeID\n99001,1,0\n"
+            path.write_bytes(raw)
+            rows, _ = corpus.load_client_index(path, corpus.sha(raw))
+            records, report = {}, {"counts": {}}
+            corpus.add_client_records(records, rows, report, "1.60.1.99999")
+            quest = records[99001]["base"]
+            self.assertEqual(quest["provenance"]["build"], "1.60.1.99999")
+            self.assertFalse(quest["known"]["semanticRecord"])
+            self.assertEqual(quest["objectives"], [])
+            with self.assertRaises(ValueError):
+                corpus.load_client_index(path, "0" * 64)
+
     def test_event_memberships_cover_ordinary_categories_and_all_personas(self):
         _, records = self.compile()
         variant = copy.deepcopy(records[1]["base"])
@@ -60,6 +87,8 @@ class CorpusTests(unittest.TestCase):
             self.assertEqual(quest["planning"]["seasonalEvent"], "ExampleEvent")
             self.assertEqual(quest["planning"]["seasonalProvenance"]["revision"], corpus.EVENT_PIN)
         inputs = ("source", "compiler", None, None, corpus.IDENTITY, 128)
+        self.assertNotEqual(corpus.corpus_revision(*inputs, client_build="1.60.1.1"),
+                            corpus.corpus_revision(*inputs, client_build="1.60.1.2"))
         self.assertNotEqual(corpus.corpus_revision(*inputs), corpus.corpus_revision(*inputs, event_hash="holiday-input"))
         self.assertNotEqual(corpus.corpus_revision(*inputs, event_hash="one"), corpus.corpus_revision(*inputs, event_hash="two"))
 

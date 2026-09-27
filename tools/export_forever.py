@@ -20,7 +20,7 @@ import subprocess
 import tempfile
 from typing import Any
 
-SUPPORTED_REVISION = "b6f5b07b0acf1c820993cbb0ce2521c912bb4c92"
+SUPPORTED_REVISION = "365537a340473291f5af3b7a53a5eca94e2a5f1a"
 LUPA_VERSION = "2.8"
 EXPECTED_COUNTS = {"Quest": 4257, "Npc": 10122, "Item": 14899, "Object": 6666}
 

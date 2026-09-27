@@ -28,6 +28,7 @@ return function(check)
         check("stale snapshot cannot plan",not p.PlanState.Build(snapshot,{state="stale"},ctx,{},preferences))
         snapshot.origin="imported-untrusted"
         check("untrusted import cannot plan",not p.PlanState.Build(snapshot,{state="current"},ctx,{},preferences))
+        dofile("src/modules/questplanner/quest-waypoints.lua")
         dofile("src/modules/questplanner/quest-plan-graph.lua")
         snapshot.origin=nil
         local method={kind="kill",targetKind="npc",targetID=99,name="Beast",areas={{id="field",mapID=1,x=.3,y=.3}}}
@@ -72,6 +73,20 @@ return function(check)
         record.ends[1].areas=method.areas
         graph=build({[11]=record},"11:turnin:1:committed")
         check("valid current giver survives nearest two pruning",graph.byID["11:turnin:1:committed"]~=nil)
+        method.areas={}
+        for index=1,20 do method.areas[index]={id="distant-"..index,mapID=1,x=.8+index/1000,y=.3} end
+        method.areas[21]={id="precise",mapID=1,x=.4,y=.3,spawns={{.21,.3},{.29,.3}}}
+        graph=build({[11]=record})
+        check("planner considers locations beyond the old first twelve source areas",
+            graph.byID["11:objective:kill:99:1:precise:spawn:1"]~=nil)
+        check("planner routes to an actual spawn within its source cluster",
+            graph.byID["11:objective:kill:99:1:precise:spawn:1"].destination.x==.21)
+        graph=build({[11]=record},"11:objective:kill:99:1:precise:spawn:2")
+        check("planner retains a chosen exact spawn when a nearer sibling exists",
+            graph.byID["11:objective:kill:99:1:precise:spawn:2"]~=nil)
+        method.areas={{id="near-a",mapID=1,x=.21,y=.3},{id="near-b",mapID=1,x=.22,y=.3},
+            {id="committed",mapID=1,x=.9,y=.3}}
+        record.ends[1].areas=method.areas
         local crowded={}
         for id=1,96 do
             local row=p.Schema.Clone(record);row.id=id;row.objectives={}

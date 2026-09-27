@@ -138,9 +138,22 @@ function controller.Select(id)
     end
     if manualQuest==id then return true end
     manualQuest=id
-    if not id then manualRow=nil end
+    if not id then manualRow=nil;if planner.ObjectiveGuide then planner.ObjectiveGuide.Clear() end end
     controller.Invalidate();planner.Request()
     return true
+end
+function controller.SelectObjective(id,index,cycle)
+    local snapshot,status=planner.GetSnapshot()
+    if not snapshot or not context or not status or status.state~="current" and status.state~="partial" then
+        return nil,"Current quest data required"
+    end
+    local ok,reason=planner.ObjectiveGuide.Select(snapshot,id,index,cycle)
+    if not ok then return nil,reason end
+    planner.SemanticGuidance.Observe(snapshot,context,policy,id)
+    ok,reason=controller.Select(id)
+    if ok then manualRow=nil;controller.Invalidate();planner.Request()
+    else planner.ObjectiveGuide.Clear();planner.SemanticGuidance.Observe(snapshot,context,policy) end
+    return ok,reason
 end
 function controller.Clear()
     policy.pins,policy.avoids,policy.skips,policy.defers,policy.questGoals,policy.zoneGoals={},{},{},{},{},{}

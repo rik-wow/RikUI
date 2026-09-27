@@ -6,7 +6,7 @@ local pathRoot=arg[6] and arg[6]:gsub("\\\\","/"):gsub("/$","")
 RikUI={CharDB={},Changed=function() end};RikUI["Secret"]={IsSecret=function() return false end}
 local modules={"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
     "path-codec","nav-attach","region-codec","terrain-packs","regions","navmesh","steps","step-bindings","guide-data","observed-steps","hunts","targets",
-    "optimizer","area-optimizer","semantic-data","semantic-guidance","recommendations","guidance",
+    "optimizer","area-optimizer","semantic-data","waypoints","objective-guide","semantic-guidance","recommendations","guidance",
     "preferences","plan-state","plan-graph","plan-transitions","plan-learning","plan-costs","plan-search",
     "bag-scan","plan-services","plan-rewards","plan-travel","plan-context","plan-runtime","controller","terrain"}
 for _,name in ipairs(modules) do dofile("src/modules/questplanner/quest-"..name..".lua") end

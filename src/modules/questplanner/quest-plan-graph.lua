@@ -2,7 +2,7 @@
 local planner=RikUI.QuestPlanner
 local schema,graphModel=planner.Schema,{}
 planner.PlanGraph=graphModel
-local MAX_QUESTS,MAX_ACTIONS,MAX_METHODS,MAX_AREAS=96,768,6,12
+local MAX_QUESTS,MAX_ACTIONS,MAX_METHODS=96,768,6
 -- QuestieDB baa0998d src/corrections/enum/constants.lua; categories, not quest IDs.
 -- Retain this check for installed corpus pages compiled before availability metadata.
 local SEASONAL_SORTS={[-21]=true,[-22]=true,[-41]=true,[-364]=true,[-366]=true,
@@ -14,7 +14,7 @@ local VERBS={kill="Defeat",drop="Collect from",loot="Loot",talk="Talk to",intera
 local function point(area)
     if not area or not schema.ID(area.mapID) or not schema.Number(area.x,0,1) or not schema.Number(area.y,0,1) then return end
     return {mapID=area.mapID,x=area.x,y=area.y,floor=area.floor,phase=area.phase,areaID=area.id,
-        floorKnown=area.floorKnown,access=area.access,source=area.source or "source-reference",scope="semantic-objective-area",api="QuestieDB"}
+        floorKnown=area.floorKnown,access=area.access,precision=area.precision,clusterID=area.clusterID,source=area.source or "source-reference",scope="semantic-objective-area",api="QuestieDB"}
 end
 local function usable(area,state,policy)
     if not point(area) or policy.avoids[area.mapID] then return false end
@@ -24,11 +24,13 @@ local function usable(area,state,policy)
         and not area.entrance then return false end
     return true
 end
-local function nearestAreas(method,state,policy)
+local function nearestAreas(method,state,policy,previousID)
     local areas={}
-    for n,area in ipairs(method.areas or {}) do
-        if n>MAX_AREAS then break end
-        if usable(area,state,policy) then areas[#areas+1]=area end
+    for _,source in ipairs(method.areas or {}) do
+        if usable(source,state,policy) then
+            local area=planner.Waypoints.Nearest(source,state.position,nil,previousID)
+            if area then areas[#areas+1]=area end
+        end
     end
     local origin=state.position
     table.sort(areas,function(a,b)
@@ -83,7 +85,7 @@ local function relationship(graph,record,kind,state,policy)
     local added=0
     for n,method in ipairs(methods or {}) do
         if n>MAX_METHODS then break end
-        for index,area in ipairs(nearestAreas(method,state,policy)) do
+        for index,area in ipairs(nearestAreas(method,state,policy,graph.previousID)) do
             local key=n..":"..tostring(area.id or (area.x..","..area.y))
             if index<=2 or graph.previousID==record.id..":"..kind..":"..key then
                 local action=baseAction(record,kind,key)
@@ -126,6 +128,7 @@ local function objectiveAction(record,objective,method,area,state,key)
     action.objectiveType=(objective.type=="monster" or objective.type=="kill-credit") and method.kind=="kill" and "kill" or objective.type
     action.activity=method.kind
     action.instruction=(VERBS[method.kind] or VERBS.unknown).." "..(method.name or objective.name or record.title)
+    if method.kind=="drop" then action.instruction=action.instruction.." for "..(objective.name or "the quest item") end
     action.progressText=info and info.text
     if method.viaItemID then
         action.stages={{interaction=method.kind,targetID=method.targetID},{interaction="open-container",itemID=method.viaItemID}}
@@ -152,7 +155,7 @@ local function objectives(graph,record,state,policy)
         local made=0
         for n,method in ipairs(objective.methods or {}) do
             if n>MAX_METHODS then break end
-            for index,area in ipairs(nearestAreas(method,state,policy)) do
+            for index,area in ipairs(nearestAreas(method,state,policy,graph.previousID)) do
                 local key=objective.id..":"..n..":"..tostring(area.id or (area.x..","..area.y))
                 if index<=2 or graph.previousID==record.id..":objective:"..key then
                     append(graph,objectiveAction(record,objective,method,area,state,key))

@@ -2,7 +2,7 @@
 local root=assert(arg[1],"addon directory required"):gsub("\\","/"):gsub("/$","")
 RikUI={Secret={IsSecret=function() return false end}}
 for _,name in ipairs({"schema","objectives","transfer","optimizer","area-optimizer","steps","step-bindings","guide-data",
-    "observed-steps","semantic-data","semantic-guidance","hunts","targets","guidance","preferences","plan-state","plan-graph"}) do
+    "observed-steps","semantic-data","waypoints","objective-guide","semantic-guidance","hunts","targets","guidance","preferences","plan-state","plan-graph"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local p=RikUI.QuestPlanner
@@ -130,11 +130,18 @@ for _,bucket in ipairs(buckets) do
                 if row and row.semantic and row.destination then
                     context.destinations[id]={mapID=row.destination.mapID,x=.51,y=.5,scope="current-map-quest-poi"}
                     local marked=p.Guidance.Observed(snapshot,context,policy)[1]
-                    if marked.semantic and marked.semantic.locationSource=="runtime-quest-marker" then
+                    if marked.semantic and marked.destination then
                         markerChecks=markerChecks+1
-                        assert(not marked.semantic.targetID and not marked.semantic.objectiveKey and not marked.semantic.areaID,
-                            "quest marker inherited unverified reference identity: "..id)
-                        assert(marked.detail=="Follow quest marker","marker action names an unverified target")
+                        assert(marked.destination.x==row.destination.x and marked.destination.y==row.destination.y,
+                            "generic quest marker displaced the objective location: "..id)
+                        assert(marked.semantic.authority=="reference","source location promoted to live evidence")
+                    end
+                    local guide=p.ObjectiveGuide.Rows(snapshot,id)
+                    assert(#guide==#observed,"guide dropped a live objective: "..id)
+                    for _,entry in ipairs(guide) do
+                        if entry.destination then
+                            assert(entry.objectiveID and entry.locations>0,"unbound objective waypoint")
+                        end
                     end
                     context.destinations[id]=nil
                 end
@@ -144,7 +151,7 @@ for _,bucket in ipairs(buckets) do
 end
 local zoneCount=0;for _ in pairs(zones) do zoneCount=zoneCount+1 end
 assert(markerChecks>1000,"quest marker identity regression coverage too narrow")
-print("MARKER IDENTITY",markerChecks,"quests")
+print("OBJECTIVE MARKER PRECEDENCE",markerChecks,"quests")
 assert(records>7000,"expected full provider plus exact client membership universe")
 assert(matched>1000 and located>1000 and zoneCount>20,"semantic integration too narrow")
 table.sort(callbackTimes)

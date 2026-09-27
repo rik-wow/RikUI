@@ -3,7 +3,7 @@ return function(check)
     local saved=RikUI
     RikUI={};RikUI["Secret"]={IsSecret=function() return false end}
     local ok,err=pcall(function()
-        for _,name in ipairs({"schema","preferences","recommendations","guidance","plan-state","plan-graph","plan-transitions",
+        for _,name in ipairs({"schema","preferences","recommendations","guidance","plan-state","waypoints","plan-graph","plan-transitions",
             "plan-learning","plan-rewards","plan-costs","plan-search","plan-runtime"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end

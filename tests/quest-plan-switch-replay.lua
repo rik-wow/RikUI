@@ -5,7 +5,7 @@ local root=assert(arg[1],"AddOns root required"):gsub("\\","/"):gsub("/$","")
 RikUI={CharDB={},Changed=function() end};RikUI["Secret"]={IsSecret=function() return false end}
 GetTime=function() return 0 end
 for _,name in ipairs({"schema","objectives","transfer","steps","step-bindings","guide-data","observed-steps","hunts","targets",
-    "optimizer","area-optimizer","semantic-data","semantic-guidance","recommendations","guidance","preferences",
+    "optimizer","area-optimizer","semantic-data","waypoints","objective-guide","semantic-guidance","recommendations","guidance","preferences",
     "plan-state","plan-graph","plan-transitions","plan-learning","plan-costs","plan-search","plan-rewards",
     "roads","road-travel","travel-estimate","plan-runtime"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")

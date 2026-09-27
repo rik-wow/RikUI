@@ -102,6 +102,10 @@ local function selection(parent)
     panel.scroll = core.Scroll.Create(panel); panel.scroll:SetPoint("TOPLEFT", 16, -114)
     panel.scroll:SetSize(430, 146)
     panel.body = ui.Text(panel.scroll.content, "", "label", 416, 1); panel.body:SetPoint("TOPLEFT")
+    panel.objective=ui.Button(panel,"Objective",211,view.CycleObjective)
+    panel.objective:SetPoint("TOPLEFT",16,-114);panel.objective:Hide()
+    panel.location=ui.Button(panel,"Next location",211,function() view.RouteObjective(true) end)
+    panel.location:SetPoint("TOPRIGHT",-16,-114);panel.location:Hide()
     selectedActions(panel)
     return panel
 end

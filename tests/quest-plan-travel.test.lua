@@ -5,7 +5,7 @@ return function(check)
     local ok,err=pcall(function()
         RikUI={}
         RikUI["Secret"]={IsSecret=function(v) return v=="secret" end,Read=function(fn,...) return pcall(fn,...) end}
-        for _,name in ipairs({"schema","preferences","plan-state","plan-graph","plan-transitions","plan-costs","plan-search","plan-context","plan-travel"}) do
+        for _,name in ipairs({"schema","preferences","plan-state","waypoints","plan-graph","plan-transitions","plan-costs","plan-search","plan-context","plan-travel"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         local p=RikUI.QuestPlanner

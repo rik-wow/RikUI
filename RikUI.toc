@@ -169,6 +169,8 @@ src/modules/questplanner/quest-dataset.lua
 src/modules/questplanner/quest-steps.lua
 src/modules/questplanner/quest-step-bindings.lua
 src/modules/questplanner/quest-semantic-data.lua
+src/modules/questplanner/quest-waypoints.lua
+src/modules/questplanner/quest-objective-guide.lua
 src/modules/questplanner/quest-semantic-guidance.lua
 src/modules/questplanner/quest-guide-data.lua
 src/modules/questplanner/quest-observed-steps.lua

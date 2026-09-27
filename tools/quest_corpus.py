@@ -16,7 +16,7 @@ import shutil
 import subprocess
 import tempfile
 
-PIN = "b6f5b07b0acf1c820993cbb0ce2521c912bb4c92"
+PIN = "365537a340473291f5af3b7a53a5eca94e2a5f1a"
 CLIENT_INDEX_SHA256 = "07353cb935ef0907a71c2e51f2aeed4d6460712d4011cb3873f759af5536df4a"
 IDENTITY = {"product": "forever", "build": "1.60.1.69913", "locale": "enUS"}
 KINDS = ("quests", "npcs", "items", "objects")
@@ -318,7 +318,7 @@ def planning_index(records):
 class Compiler:
     def __init__(self, data, source_hash):
         self.data = data
-        self.report = {"schemaVersion": 1, "sourceSHA256": source_hash, "provider": data["provider"], "unknowns": [], "conflicts": [], "coverage": {}, "zones": {}, "variants": {}, "methodKinds": {}, "areaPolicy": {"coordinates": "normalized percentages; no reprojection", "clustering": "6 percent grid cells, actual-spawn representative, enclosing radius", "phase": "third coordinate is phase, never floor", "unknownFloors": "legacy dungeon aliases never become navigation targets"}}
+        self.report = {"schemaVersion": 1, "sourceSHA256": source_hash, "provider": data["provider"], "unknowns": [], "conflicts": [], "coverage": {}, "zones": {}, "variants": {}, "methodKinds": {}, "areaPolicy": {"coordinates": "normalized percentages; no reprojection", "clustering": "6 percent cells with every exact spawn retained; representative and bounds support bounded search", "phase": "third coordinate is phase, never floor", "unknownFloors": "legacy dungeon aliases never become navigation targets"}}
         self.unknown_keys = set()
         self.context = "base"
         self.objective_first = data.get("objectiveFirst", {})
@@ -393,7 +393,7 @@ class Compiler:
                 avg_x, avg_y = sum(p[0] for p in points) / len(points), sum(p[1] for p in points) / len(points)
                 x, y = min(points, key=lambda p: ((p[0] - avg_x)**2 + (p[1] - avg_y)**2, p))
                 radius = max(math.hypot(px - x, py - y) for px, py in points)
-                area = {"id": f"{source}:{area_id}:{phase}:{cx}:{cy}", "areaID": area_id, "mapID": int(map_id), "x": x, "y": y, "radiusNormalized": round(radius, 7), "spawnCount": len(points), "floorKnown": False, "source": "QuestieDB", "precision": "spawn" if len(points) == 1 else "cluster", "bounds": {"minX": min(p[0] for p in points), "maxX": max(p[0] for p in points), "minY": min(p[1] for p in points), "maxY": max(p[1] for p in points)}}
+                area = {"id": f"{source}:{area_id}:{phase}:{cx}:{cy}", "areaID": area_id, "mapID": int(map_id), "x": x, "y": y, "radiusNormalized": round(radius, 7), "spawnCount": len(points), "spawns": [list(point) for point in points], "floorKnown": False, "source": "QuestieDB", "precision": "spawn" if len(points) == 1 else "cluster", "bounds": {"minX": min(p[0] for p in points), "maxX": max(p[0] for p in points), "minY": min(p[1] for p in points), "maxY": max(p[1] for p in points)}}
                 if phase is not None:
                     area["phase"] = phase
                 result.append(area)
@@ -715,6 +715,21 @@ class Compiler:
         self.report["zones"] = dict(sorted(zones.items()))
         self.report["methodKinds"] = dict(sorted(kinds.items()))
         self.report["questCoverage"] = {key: sum(zone[key] for zone in zones.values()) for key in ("quests", "objectives", "objectivesWithMethods", "objectivesWithAreas", "starts", "ends")}
+        areas = {}
+        for record in records.values():
+            quest = record["base"]
+            methods = [*quest["starts"], *quest["ends"]]
+            for objective in [*quest["objectives"], *quest.get("extraObjectives", [])]:
+                methods.extend(objective["methods"])
+            for method in methods:
+                for area in method.get("areas", []):
+                    areas[area["id"]] = area
+        self.report["waypointCoverage"] = {
+            "population": "unique baseline target clusters, including starts, ends and extra hints",
+            "clusters": len(areas),
+            "exactSpawns": sum(len(area["spawns"]) for area in areas.values()),
+            "policy": "All valid source points retained; phase/floor/access admission happens at runtime",
+        }
 
 
 def write_bytes(root, relative, data):
@@ -813,12 +828,12 @@ def atomic_publish(stage, destination):
         shutil.rmtree(backup)
 
 
-def load_client_index(path):
+def load_client_index(path, expected_sha=CLIENT_INDEX_SHA256):
     raw = Path(path).read_bytes()
     if len(raw) > 64 * 1024 * 1024:
         raise ValueError("client index exceeds 64 MiB bound")
-    if sha(raw) != CLIENT_INDEX_SHA256:
-        raise ValueError("QuestV2 CSV is not the audited exact-build 1.60.1.69913 index")
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_sha) or sha(raw) != expected_sha:
+        raise ValueError("QuestV2 CSV differs from the supplied acquisition hash")
     rows = {}
     reader = csv.DictReader(io.StringIO(raw.decode("utf-8-sig")))
     if reader.fieldnames != ["ID", "UniqueBitFlag", "UiQuestDetailsThemeID"]:
@@ -835,11 +850,11 @@ def load_client_index(path):
     return rows, raw
 
 
-def add_client_records(records, rows, report):
+def add_client_records(records, rows, report, client_build=IDENTITY["build"]):
     provider_ids, client_ids = set(records), set(rows)
     report["clientUniverse"] = {"clientIDs": len(client_ids), "providerIDs": len(provider_ids), "overlap": len(client_ids & provider_ids), "clientOnly": len(client_ids - provider_ids), "providerOnly": len(provider_ids - client_ids), "union": len(client_ids | provider_ids), "clientOnlyIDs": sorted(client_ids - provider_ids), "providerOnlyIDs": sorted(provider_ids - client_ids), "semantics": "membership only; no names, objectives, locations, or inferred rules"}
     for quest_id in sorted(client_ids - provider_ids):
-        records[quest_id] = {"base": {"id": quest_id, "title": "", "objectives": [], "extraObjectives": [], "starts": [], "ends": [], "eligibility": {}, "prerequisites": {}, "known": {"clientRecord": True, "semanticRecord": False}, "provenance": {"provider": "QuestV2", "build": IDENTITY["build"], "fields": rows[quest_id]}}, "variants": {}}
+        records[quest_id] = {"base": {"id": quest_id, "title": "", "objectives": [], "extraObjectives": [], "starts": [], "ends": [], "eligibility": {}, "prerequisites": {}, "known": {"clientRecord": True, "semanticRecord": False}, "provenance": {"provider": "QuestV2", "build": client_build, "fields": rows[quest_id]}}, "variants": {}}
     for quest_id in provider_ids:
         for quest in [records[quest_id].get("base"), *records[quest_id]["variants"].values()]:
             if isinstance(quest, dict):
@@ -923,15 +938,18 @@ def apply_event_memberships(records, events):
     return matched
 
 
-def corpus_revision(source_hash, compiler_hash, proof_hash, client_hash, identity, partition_size, event_hash=None):
+def corpus_revision(source_hash, compiler_hash, proof_hash, client_hash, identity, partition_size, event_hash=None, client_build=None):
     """Bind runtime cache identity to every input that can alter generated data."""
     inputs = {"schemaVersion": 1, "sourceSHA256": source_hash, "compilerSHA256": compiler_hash, "providerManifestSHA256": proof_hash, "clientIndexSHA256": client_hash, "identity": identity, "partitionSize": partition_size}
     if event_hash is not None:
         inputs["eventMembershipSHA256"] = event_hash
+    if client_build is not None:
+        inputs["clientBuild"] = client_build
     return sha(canonical(inputs).encode("utf-8"))
 
 
-def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None, provider_manifest=None, event_source_root=None):
+def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None, provider_manifest=None, event_source_root=None,
+          client_build=IDENTITY["build"], client_index_sha=CLIENT_INDEX_SHA256):
     if not 16 <= partition_size <= 256:
         raise ValueError("partition size must be 16..256")
     data, raw = load_export(export_path)
@@ -951,10 +969,12 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         compiler.report["providerProof"] = proof
     client_raw, client_metadata = None, None
     if client_index:
-        client_rows, client_raw = load_client_index(client_index)
-        add_client_records(records, client_rows, compiler.report)
-        client_metadata = {"sha256": sha(client_raw), "build": IDENTITY["build"], "table": "QuestV2", "records": len(client_rows)}
-    revision = corpus_revision(sha(raw), compiler_hash, proof["manifestSHA256"] if proof else None, client_metadata["sha256"] if client_metadata else None, IDENTITY, partition_size, sha(event_raw) if event_raw else None)
+        if not re.fullmatch(r"\d+\.\d+\.\d+\.\d+", client_build):
+            raise ValueError("client build must be the resolved full version")
+        client_rows, client_raw = load_client_index(client_index, client_index_sha)
+        add_client_records(records, client_rows, compiler.report, client_build)
+        client_metadata = {"sha256": sha(client_raw), "build": client_build, "table": "QuestV2", "records": len(client_rows)}
+    revision = corpus_revision(sha(raw), compiler_hash, proof["manifestSHA256"] if proof else None, client_metadata["sha256"] if client_metadata else None, IDENTITY, partition_size, sha(event_raw) if event_raw else None, client_build if client_metadata else None)
     output = safe_output(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=output.name + ".building-", dir=output.parent))
@@ -995,7 +1015,7 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         write_bytes(stage, "LOCAL_ONLY.txt", b"Locally generated from QuestieDB. No upstream redistribution grant has been established. Do not commit or distribute generated data.\n")
         folder = stage / EMBEDDED
         write_json(folder, OWNERSHIP_FILE, {"owner": "RikUI quest_corpus", "sourceSHA256": sha(raw), "files": owned_files(folder)})
-        manifest = {"schemaVersion": 1, "compilerVersion": 1, "compilerSHA256": compiler_hash, "corpusRevision": revision, "provider": data["provider"], "identity": IDENTITY, "sourceSHA256": sha(raw), "partitionSize": partition_size, "terms": catalog["terms"], "counts": compiler.report["counts"], "files": manifest_files(stage)}
+        manifest = {"schemaVersion": 1, "compilerVersion": 2, "compilerSHA256": compiler_hash, "corpusRevision": revision, "provider": data["provider"], "identity": IDENTITY, "sourceSHA256": sha(raw), "partitionSize": partition_size, "terms": catalog["terms"], "counts": compiler.report["counts"], "files": manifest_files(stage)}
         if proof:
             manifest["providerProof"] = proof
         if client_metadata:
@@ -1016,7 +1036,7 @@ def verify(output):
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     if manifest.get("schemaVersion") != 1 or manifest.get("provider", {}).get("revision") != PIN:
         raise ValueError("invalid corpus manifest")
-    revision = corpus_revision(manifest.get("sourceSHA256"), manifest.get("compilerSHA256"), manifest.get("providerProof", {}).get("manifestSHA256"), manifest.get("clientIndex", {}).get("sha256"), manifest.get("identity"), manifest.get("partitionSize"), manifest.get("eventMemberships", {}).get("sha256"))
+    revision = corpus_revision(manifest.get("sourceSHA256"), manifest.get("compilerSHA256"), manifest.get("providerProof", {}).get("manifestSHA256"), manifest.get("clientIndex", {}).get("sha256"), manifest.get("identity"), manifest.get("partitionSize"), manifest.get("eventMemberships", {}).get("sha256"), manifest.get("clientIndex", {}).get("build") if manifest.get("compilerVersion", 1) >= 2 else None)
     if manifest.get("corpusRevision") != revision:
         raise ValueError("corpus revision does not match build inputs")
     actual, expected = manifest_files(output), manifest.get("files", {})
@@ -1111,6 +1131,8 @@ def main(argv=None):
     make.add_argument("--output", required=True, type=Path)
     make.add_argument("--partition-size", default=PARTITION_SIZE, type=int)
     make.add_argument("--client-index", type=Path)
+    make.add_argument("--client-build", help="Current client version resolved before acquisition")
+    make.add_argument("--client-index-sha256", help="SHA-256 from the current QuestV2 acquisition")
     make.add_argument("--provider-manifest", type=Path)
     make.add_argument("--event-source-root", required=True, type=Path, help="Questie checkout containing the pinned holiday membership commit")
     for name in ("verify", "install", "verify-installed"):
@@ -1124,7 +1146,10 @@ def main(argv=None):
             provider_manifest = args.provider_manifest or args.export.with_suffix(".manifest.json")
             if not provider_manifest.is_file():
                 raise ValueError("build requires the exporter's provider provenance manifest")
-            result = build(args.export, args.output, args.partition_size, args.client_index, provider_manifest, args.event_source_root)
+            if args.client_index and (not args.client_build or not args.client_index_sha256):
+                raise ValueError("client index requires --client-build and --client-index-sha256")
+            result = build(args.export, args.output, args.partition_size, args.client_index, provider_manifest, args.event_source_root,
+                           args.client_build, args.client_index_sha256)
         elif args.command == "verify":
             result = verify(args.output)
         elif args.command == "install":

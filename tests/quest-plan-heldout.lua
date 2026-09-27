@@ -19,7 +19,7 @@ p.Context={History=function(requested)
 end,Call=function(fn,...)if type(fn)~='function'then return false end return pcall(fn,...)end,
  Frame=function()return{position=activeContext and activeContext.position,width=1000,height=1000}end}
 for _,name in ipairs({'objectives','transfer','optimizer','area-optimizer','steps','step-bindings',
- 'guide-data','observed-steps','semantic-data','semantic-guidance','hunts','targets','guidance',
+ 'guide-data','observed-steps','semantic-data','waypoints','objective-guide','semantic-guidance','hunts','targets','guidance',
  'preferences','plan-state','plan-graph','plan-transitions','plan-learning','plan-costs','plan-rewards','plan-search','evidence','eligibility','elevators','travel','actions','simulation','recommendations'})do module(name)end
 local generated=dofile(repo..'/tests/generated_stub.lua')
 generated.Load(generated.Base(addonRoot),{'corpus'})

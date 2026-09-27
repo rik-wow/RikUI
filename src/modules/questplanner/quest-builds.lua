@@ -15,8 +15,9 @@ local planner = RikUI.QuestPlanner
 local builds = {}
 planner.Builds = builds
 
--- 70009 retains every existing QuestV2 record; five new IDs remain outside
--- the compiled quest corpus. Its changed geometry requires a separate rebuild.
+-- 70009 retains every existing QuestV2 record; the refreshed membership index
+-- includes its five additional IDs without inventing objective details.
+-- Its changed geometry requires a separate rebuild.
 -- Exact source pins and coverage: tools/terrain/ROADS.md.
 local QUEST_DATA = {
     ["1.60.1.69977"] = "1.60.1.69913",

@@ -2,7 +2,7 @@ return function(check)
     local old,oldCatalog,oldAddons=RikUI,RikUIQuestCorpusCatalog,C_AddOns
     RikUI={};RikUI["Secret"]={IsSecret=function() return false end}
     local ok,err=pcall(function()
-        for _,name in ipairs({"schema","objectives","optimizer","area-optimizer","steps","step-bindings","observed-steps","semantic-data","semantic-guidance","guidance"}) do
+        for _,name in ipairs({"schema","objectives","optimizer","area-optimizer","steps","step-bindings","observed-steps","semantic-data","waypoints","objective-guide","semantic-guidance","guidance"}) do
             dofile("src/modules/questplanner/quest-"..name..".lua")
         end
         local p=RikUI.QuestPlanner
@@ -121,10 +121,10 @@ return function(check)
         p.SemanticGuidance.Observe(snapshot,ctx,policy)
         for _=1,20 do p.SemanticGuidance.Step() end
         p.SemanticGuidance.Observe(snapshot,ctx,policy)
-        check("unmodeled source areas retain usable live marker",row().destination.x==.6
-            and row().semantic.locationSource=="runtime-quest-marker")
-        check("unmodeled reference mob is never named at a live quest marker", row().semantic.targetID == nil
-            and row().detail == "Follow quest marker" and row().semantic.objectiveKey == nil)
+        check("objective location survives a same-map general quest marker",row().destination.x==.2
+            and row().destination.scope=="semantic-objective-area")
+        check("reference target keeps its own coordinates and objective identity",row().semantic.targetID==7
+            and row().semantic.objectiveKey=="item:9" and row().semantic.authority=="reference")
         p.Terrain=nil
         local originalMap,areaID,farID=area.mapID,area.id,far.id
         area.mapID=1437;far.mapID=1437;area.id="wetlands-near";far.id="wetlands-far"
@@ -165,6 +165,45 @@ return function(check)
         check("kill credit matches uniquely identified live monster objective",p.SemanticGuidance.Status().matched==1)
         quest.objectives[1].type=originalType;quest.objectives[1].name="Field Token"
         snapshot.quests[900].objectives[1].type="item";snapshot.quests[900].objectives[1].text="2/8 Field Token"
+        -- Every live objective gets its own guide row and exact source locations.
+        area.spawns={{.21,.3},{.23,.3}};area.spawnCount=2
+        quest.objectives[2]={id="monster:21",type="monster",targetID=21,name="Scout",
+            methods={{kind="kill",targetKind="npc",targetID=21,name="Scout",
+                areas={{id="scouts",mapID=1426,x=.4,y=.3}}}}}
+        snapshot.quests[900].objectives[2]={text="0/2 Scout slain",type="monster",numFulfilled=0,numRequired=2,finished=false}
+        snapshot.quests[900].objectives[3]={text="Investigate the hidden cache",type="log",numFulfilled=0,numRequired=1,finished=false}
+        p.SemanticGuidance.Observe(snapshot,ctx,policy)
+        local entries=p.ObjectiveGuide.Rows(snapshot,900)
+        check("guide retains every live objective including source gaps",#entries==3
+            and entries[1].destination.x==.21 and entries[2].destination.x==.4 and not entries[3].destination)
+        check("guide counts every exact source spawn without mutating the cluster",entries[1].locations==3 and area.x==.2)
+        check("collection guide names both source and requested item",entries[1].instruction:find("Field Beast",1,true)
+            and entries[1].instruction:find("Field Token",1,true))
+        assert(p.ObjectiveGuide.Select(snapshot,900,1,true))
+        p.SemanticGuidance.Observe(snapshot,ctx,policy,900)
+        check("alternate exact spawn selection reaches live guidance",row().destination.x==.23)
+        p.SemanticGuidance.Observe(snapshot,ctx,policy,900)
+        check("chosen spawn survives observation refresh",row().destination.x==.23)
+        assert(p.ObjectiveGuide.Select(snapshot,900,2))
+        p.SemanticGuidance.Observe(snapshot,ctx,policy,900)
+        check("explicit second objective drives step and waypoint together",row().destination.x==.4
+            and row().step.active.objectiveID=="monster:21")
+        check("unknown objective cannot borrow another objective waypoint",not p.ObjectiveGuide.Select(snapshot,900,3))
+        snapshot.quests[900].objectives[2].finished=true
+        p.SemanticGuidance.Observe(snapshot,ctx,policy,900)
+        check("completion advances to remaining objective without arrival credit",row().destination.x==.21
+            and row().step.active.objectiveID=="item:9")
+        local stale=p.Schema.Clone(snapshot);stale.generation=9
+        check("stale guide cannot select a current target",#p.ObjectiveGuide.Rows(stale,900)==0
+            and not p.ObjectiveGuide.Select(stale,900,1))
+        local imported=p.Schema.Clone(snapshot);imported.origin="imported-untrusted"
+        check("untrusted guide never exposes actionable waypoints",#p.ObjectiveGuide.Rows(imported,900)==0)
+        policy.avoids[1426]=true;p.SemanticGuidance.Observe(snapshot,ctx,policy)
+        check("avoid removes objective controls and destinations",not p.ObjectiveGuide.Rows(snapshot,900)[1].destination)
+        policy.avoids[1426]=nil
+        area.spawns=nil;area.spawnCount=nil;quest.objectives[2]=nil
+        snapshot.quests[900].objectives[2]=nil;snapshot.quests[900].objectives[3]=nil
+        p.ObjectiveGuide.Clear();p.SemanticGuidance.Observe(snapshot,ctx,policy)
         RikUIQuestCorpusCatalog.revision="changed"
         p.SemanticData.Ensure(snapshot,ctx)
         check("hot corpus replacement cannot retain stale semantic rows",not p.SemanticData.Quest(identity,900)

@@ -4,7 +4,7 @@ local h=dofile("tests/quest-region-replay.lua")
 local p,mesh=RikUI.QuestPlanner,h.mesh
 local root=arg[1]:gsub("\\","/"):gsub("/$","")
 local questID=assert(tonumber(arg[8]))
-for _,name in ipairs({"optimizer","area-optimizer","semantic-data","semantic-guidance"}) do
+for _,name in ipairs({"optimizer","area-optimizer","semantic-data","waypoints","objective-guide","semantic-guidance"}) do
     dofile("src/modules/questplanner/quest-"..name..".lua")
 end
 local regionalLoad=C_AddOns.LoadAddOn

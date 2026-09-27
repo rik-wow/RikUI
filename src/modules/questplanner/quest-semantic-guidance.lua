@@ -7,7 +7,7 @@ local comparison,comparisonKey,comparisonMesh,compared,provisional,revision=nil,
 local COMPARISON_MS,COMPARISON_BATCHES=1,16
 local metrics={matched=0,unknown=0,conflicts=0,areas=0,limited=false}
 local MAX_AREAS,MAX_METHODS,MAX_RECEIPTS=8192,2048,128
-local sourceRevision
+local sourceRevision,requestedLocation
 local function sameSnapshot(snapshot)
     return current==snapshot or (current and current.generation and snapshot.generation==current.generation
         and snapshot.identity.product==current.identity.product and snapshot.identity.build==current.identity.build
@@ -99,15 +99,17 @@ local function candidates(methods,index,ctx,policy,frame,list)
         metrics.methods=(metrics.methods or 0)+1
         if metrics.methods>MAX_METHODS then metrics.limited=true;break end
         if methodAllowed(method,ctx) then
-            local localAreas=method.areasByMap and ctx.position and method.areasByMap[ctx.position.mapID]
-            local areas=localAreas or method.areas
+            local areas=method.areas
             for _,area in ipairs(areas or {}) do
                 metrics.areas=metrics.areas+1
                 if metrics.areas>MAX_AREAS then metrics.limited=true;return end
                 if admissible(area,ctx,policy) then
-                    local distance=cost(area,ctx,frame)
-                    list[#list+1]={area=area,method=method,index=index,distance=distance,
-                        costBasis=distance==math.huge and "travel distance unknown" or nil}
+                    local point=planner.Waypoints.Nearest(area,ctx.position,frame,requestedLocation)
+                    if point then
+                        local distance=cost(point,ctx,frame)
+                        list[#list+1]={area=point,sourceArea=area,method=method,index=index,distance=distance,
+                            costBasis=distance==math.huge and "travel distance unknown" or nil}
+                    end
                 end
             end
         end
@@ -207,13 +209,16 @@ local function questCandidates(snapshot,id,ctx,policy,frame,itemCount)
     if not binding then return {} end
     local list={}
     advice[id]=itemAdvice(record,live,ctx,policy,frame,list,itemCount)
+    local guideList=list
     if live.objectivesComplete==true then candidates(record.ends,0,ctx,policy,frame,list)
-    elseif #list==0 then
-        objectiveCandidates(live,binding,ctx,policy,frame,list,itemCount,advice[id])
-        extraCandidates(record,live,binding,ctx,policy,frame,list)
+    else
+        guideList={}
+        objectiveCandidates(live,binding,ctx,policy,frame,guideList,itemCount,advice[id])
+        extraCandidates(record,live,binding,ctx,policy,frame,guideList)
+        if #list==0 then list=guideList end
     end
     for _,value in ipairs(list) do value.questZone=value.area.areaID==record.zoneOrSort and record.zoneOrSort~=nil end
-    return list
+    return list,guideList
 end
 local function huntBindings(binding)
     for _,expected in pairs(binding and binding.semantic or {}) do
@@ -253,6 +258,9 @@ local function compareAreas(snapshot,ctx,policy,previous,pending,shared)
     if not selected or not planner.Optimizer or not planner.Optimizer.BeginAreas then
         comparison,comparisonKey,compared=nil,nil,nil;return
     end
+    if planner.ObjectiveGuide.Choice(selected) then
+        comparison,comparisonKey,compared=nil,nil,nil;return
+    end
     local key=choiceKey(snapshot,selected,ctx,policy,pending[selected],shared)
     local meshRevision=planner.Terrain and planner.Terrain.AreaRevision and planner.Terrain.AreaRevision()
     if comparisonKey~=key or comparisonMesh~=meshRevision then
@@ -265,14 +273,17 @@ local function compareAreas(snapshot,ctx,policy,previous,pending,shared)
 end
 function guidance.Observe(snapshot,ctx,policy,previous)
     current=snapshot;bindings={};choices={};advice={}
+    planner.ObjectiveGuide.Reset(snapshot)
     metrics={matched=0,unknown=0,conflicts=0,areas=0,limited=false}
     local frame=planner.Context and planner.Context.Frame and planner.Context.Frame()
     sourceRevision=planner.SemanticData.Status().revision
     if snapshot.origin=="imported-untrusted" or ctx.origin~="live" then comparison,comparisonKey,compared=nil,nil,nil;return end
-    local pending,shared,itemCount={},{},beginInventory(ctx)
+    local pending,guideLists,shared,itemCount={},{},{},beginInventory(ctx)
     for index,id in ipairs(snapshot.order or {}) do
         if index>40 then metrics.limited=true;break end
-        local list=questCandidates(snapshot,id,ctx,policy,frame,itemCount)
+        requestedLocation=planner.ObjectiveGuide.Requested(id)
+        local list,guideList=questCandidates(snapshot,id,ctx,policy,frame,itemCount)
+        guideLists[id]=guideList
         if list then
             pending[id]=list
             local seen={}
@@ -281,7 +292,13 @@ function guidance.Observe(snapshot,ctx,policy,previous)
             end
         end
     end
-    for id,list in pairs(pending) do choices[id]=pick(list,shared);huntBindings(bindings[id]) end
+    for _,id in ipairs(snapshot.order or {}) do
+        planner.ObjectiveGuide.Observe(id,snapshot.quests[id],bindings[id],guideLists[id] or {},metrics.limited)
+    end
+    for id,list in pairs(pending) do
+        choices[id]=planner.ObjectiveGuide.Choice(id) or pick(list,shared)
+        huntBindings(bindings[id])
+    end
     compareAreas(snapshot,ctx,policy,previous,pending,shared)
     metrics.conflicts=#receipts
 end
@@ -291,28 +308,19 @@ function guidance.Preferred(snapshot,id)
     local value=sameSnapshot(snapshot) and choices[id]
     return value and value.index
 end
-local VERBS={kill="Kill ",drop="Hunt ",loot="Collect from ",interact="Interact with ",explore="Explore ",vendor="Buy from ",use="Use ",talk="Talk to ",event="Complete the event near ",finish="Turn in to ",start="Speak to ",fish="Fish near ",herb="Gather herbs near ",mine="Mine near ",mount="Mount near ",["pet-battle"]="Battle near "}
 function guidance.Apply(snapshot,id,point,step)
     local value=sameSnapshot(snapshot) and choices[id]
     if not value or (point and point.scope=="current-waypoint") then return point end
     local method,area=value.method,value.area
-    local action=(VERBS[method.kind] or "Check ")..(method.name or "quest target")
+    local action=planner.ObjectiveGuide.Instruction(value,bindings[id] and bindings[id].semantic[value.index])
     if value.prerequisiteItemID then action=action.." for required item "..value.prerequisiteItemID end
     local semantic={authority="reference",source="QuestieDB",method=method.kind,targetKind=method.targetKind,targetID=method.targetID,
         objectiveKey=bindings[id] and bindings[id].ids[value.index],
         areaID=area.id,sharedQuests=value.shared,prerequisiteItemID=value.prerequisiteItemID,costBasis=value.costBasis or "map-distance estimate",floorKnown=area.floorKnown==true,
-        action=action,instructions=action..". "..(value.sourceHint and ("Source hint: "..value.sourceHint..". ") or "").."Confirm progress in the quest log.",basis=value.distance==math.huge and "Source location; travel between zones, access and floor are unverified."
+        action=action,instructions=action..". Confirm progress in the quest log.",basis=value.distance==math.huge and "Source location; travel between zones, access and floor are unverified."
             or "Forever provider reference; current spawn availability, access and floor are unverified."}
     semantic.comparison=value.comparison and schema.Clone(value.comparison)
-    if point and point.mapID==area.mapID and not value.modeledMeters then
-        -- A quest-scoped marker establishes no particular mob, objective or turn-in identity.
-        -- Cross-zone source coordinates must never be relabeled as a nearby marker.
-        return point,nil,{authority="reference",source="client quest marker",locationSource="runtime-quest-marker",
-            action="Follow quest marker",instructions="Follow the quest marker and check the quest log for the objective.",
-            costBasis="live quest marker; target unverified",comparison=semantic.comparison,
-            basis="This marker identifies the quest vicinity, not a confirmed creature or objective location."}
-    end
-    local target={mapID=area.mapID,x=area.x,y=area.y,scope="semantic-objective-area",api="QuestieDB",areaID=area.id}
+    local target=planner.Waypoints.Destination(area)
     local radius=area.radius
     if area.radiusNormalized and planner.Context and planner.Context.Frame then
         local frame=planner.Context.Frame()

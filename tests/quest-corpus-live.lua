@@ -4,7 +4,7 @@ local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={};RikUI["Secret"]={IsSecret=function() return false end}
 local modules={"schema","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
     "region-codec","terrain-packs","regions","navmesh","steps","step-bindings","guide-data","observed-steps","hunts","targets",
-    "optimizer","area-optimizer","semantic-data","semantic-guidance","recommendations","guidance","controller","terrain"}
+    "optimizer","area-optimizer","semantic-data","waypoints","objective-guide","semantic-guidance","recommendations","guidance","controller","terrain"}
 for _,name in ipairs(modules) do dofile("src/modules/questplanner/quest-"..name..".lua") end
 local p=RikUI.QuestPlanner
 local file=assert(io.open(assert(arg[2]),"rb"));local wire=file:read(131073);file:close()
