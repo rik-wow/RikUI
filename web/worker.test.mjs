@@ -8,7 +8,7 @@ test("site, CSS, manifest, redirects, and method boundaries", async () => {
   const home = await worker.fetch(request("/"), {});
   assert.equal(home.status, 200);
   assert.match(home.headers.get("Cache-Control"), /no-transform/);
-  assert.match(await home.text(), /Your interface\./);
+  assert.match(await home.text(), /RikUI for WoW Forever/);
   const script = await worker.fetch(request("/site.js"), {});
   assert.match(script.headers.get("Content-Type"), /text\/javascript/);
   assert.match(await script.text(), /ArrowRight/);
@@ -23,6 +23,34 @@ test("site, CSS, manifest, redirects, and method boundaries", async () => {
   const redirect = await worker.fetch(new Request("https://www.rikwow.com/?a=1"), {});
   assert.equal(redirect.headers.get("Location"), "https://rikwow.com/?a=1");
   assert.equal((await (await worker.fetch(request("/api/v1/releases"), {})).json()).product, "RikUI");
+});
+
+
+test("world asset preserves conditional responses, security and method boundaries", async () => {
+  let reads = 0;
+  const env = { ASSETS: { fetch: async req => {
+    reads++;
+    if (req.headers.get("If-None-Match") === '"world"')
+      return new Response(null, { status: 304, headers: { ETag: '"world"' } });
+    return new Response(req.method === "HEAD" ? null : "jpeg fixture",
+      { headers: { "Content-Type": "image/jpeg", ETag: '"world"' } });
+  } } };
+  const path = "/assets/world-20260927-120706.jpg";
+  const image = await worker.fetch(request(path), env);
+  assert.equal(await image.text(), "jpeg fixture");
+  assert.match(image.headers.get("Cache-Control"), /immutable/);
+  assert.equal(image.headers.get("X-Content-Type-Options"), "nosniff");
+  const cached = await worker.fetch(request(path, { headers: { "If-None-Match": '"world"' } }), env);
+  assert.equal(cached.status, 304);
+  assert.equal(cached.headers.get("ETag"), '"world"');
+  const head = await worker.fetch(request(path, { method: "HEAD" }), env);
+  assert.equal(head.status, 200);
+  assert.equal(await head.text(), "");
+  assert.equal((await worker.fetch(request(path, { method: "POST" }), env)).status, 405);
+  assert.equal((await worker.fetch(request("/assets/private.jpg"), env)).status, 404);
+  assert.equal(reads, 3);
+  env.ASSETS.fetch = async () => new Response("missing", { status: 404 });
+  assert.equal((await worker.fetch(request(path), env)).headers.get("Cache-Control"), "no-store");
 });
 
 test("unapproved keys are never read from storage", async () => {

@@ -1,76 +1,107 @@
 # RikUI website design
 
-Updated 2026-09-27 after direct user review.
+Reviewed and updated 2026-09-27.
 
-## Direction and reference
+## Current page
 
-The user rejected the previous illustrations and supplied a current RikUI
-screenshot as a visual reference. They explicitly requested a reconstructed
-mock, not an embedded screenshot, and then requested real WoW assets.
+The page opens with the addon name, supported client and actual modules, followed
+by the full interface preview. Module documentation and installation instructions
+follow directly. Public installer availability is stated plainly.
 
-The site now uses a single SVG scene with a 2048 × 1152 coordinate system.
-Combat detail, full layout and quest detail select different views of that
-same scene. The player frame, seven-icon resource strip, partly empty 12-column
-action rows, right-side bars, quest cards, chat and damage meter follow the
-reference's placement and proportions. The mock preserves paladin pink,
-royal-blue mana, green turn-in status and yellow active objectives.
+The preview combines a real game capture with an SVG mock. It remains labeled
+as a mock and uses sample chat rather than private messages. Full interface,
+combat and quest views use the same geometry. The overlay can be hidden to
+inspect the game backdrop. Without JavaScript, the full preview remains visible.
 
-The screenshot is not copied, cropped or deployed. Chat contains sample addon
-messages, not private conversations. The minimap's room shapes are an original
-schematic rather than a reproduced game texture. Spell/item selections are
-visual examples; this is a labeled mock, not a live game client or proof of
-current spell behavior. No invented setup screen, target frame, reticle or
-class-color switcher remains.
+## Research and complete page audit
 
-## Asset ownership and delivery
+The sources below are design commentary and usability guidance, not a reliable
+test of whether a human or AI authored a site.
 
-Real WoW spell and item icons load unchanged from Blizzard's official
-`https://render.worldofwarcraft.com/icons/56/` CDN. The explicit mapping lives
-in `web/previews.mjs`; artwork is not vendored into this public repository.
-The CSP allows images from that exact host, keeping scripts same-origin.
+- [Designpixil: AI design patterns](https://designpixil.com/blog/ai-slop-design),
+  updated September 2026: recurring decorative treatments, generic feature
+  structures and interchangeable writing. Applied as a visual checklist.
+- [InterfaceKit: what makes a website look AI-generated](https://blog.interfacekit.io/what-makes-a-website-look-ai-generated),
+  updated September 7, 2026: judge product specificity, meaningful decoration,
+  consistent rules and behavior beyond the happy path. A particular font or
+  color alone does not establish authorship.
+- [NN/g: concise, scannable, objective web writing](https://www.nngroup.com/articles/concise-scannable-and-objective-how-to-write-for-the-web/):
+  use factual text that readers can scan.
+- [ToxiUI](https://toxiui.com/): a real addon reference for showing the interface
+  and linking directly to installation and feature documentation. Its branding
+  and marketing language are not reused.
 
-A copyright notice is immediately below the mock. A fuller footer notice
-identifies Blizzard's artwork and trademarks, states that RikUI is independent
-and not endorsed, affiliated or sponsored, and excludes Blizzard artwork from
-the project's code license.
+| Audited area | Decision |
+| --- | --- |
+| Oversized two-tone wordmark and decorative terminal dot | Replaced with a compact, single-color RikUI name. |
+| Hero slogans and interchangeable promises | Removed; the opening names the client and modules. |
+| Tiny tracked capitals, section eyebrows and decorative status dot | Removed. Development status is readable body text. |
+| Numbered view controls and feature rows | Removed numbering; controls say Full interface, Combat and Quests. |
+| Forced three-part feature composition | Replaced with a documentation list of actual modules, with descriptions of different lengths. |
+| Framed marketing CTA panel and repeated arrows | Removed; installation links name their destination. |
+| Slogan-like section titles and repeated short fragments | Replaced with What’s included, Installing RikUI and In game. |
+| FAQ accordion used to extend the page | Removed; client, keybinding and coverage constraints appear with the relevant information. |
+| Every item inside a card | No decorative cards; dividers group documentation where useful. |
+| Excess blank space and disconnected UI islands | Compact opening; common centerline, edges and spacing in the mock. |
+| Tiny, low-contrast website text | Body text is 14–16px, captions 11–12px; controls have visible focus states. Game text scales with the mock. |
+| Artificial glows, gradient words, glass panels, stock line icons | Absent; game artwork supplies the visual identity. |
+| Fabricated metrics, testimonials, partner marks and download counts | Absent. |
+| Fake or unavailable actions | No download button until a release exists. Guide/source links are real; view and overlay controls work. |
+| Mobile treated as a shrunken desktop page | Text reflows, documentation stacks, controls wrap, and detail views remain available. |
+| Motion and accessibility | No decorative motion. Keyboard arrows/Home/End, skip link, no-JS fallback and reduced-motion support remain. |
 
-Reviewed [Blizzard's Legal FAQ](https://www.blizzard.com/en-sg/legal/c1ae32ac-7ff9-4ac3-a03b-fc04b8697010/blizzard-legal-faq)
-on 2026-09-27. It describes limited noncommercial fansite display, retained
-ownership/notices, restrictions on modification and transfer, and revocation.
-This is not a blanket permission or a determination that every use qualifies;
-the project does not claim Blizzard approval. A notice alone does not grant
-rights. This asset-display decision does not resolve quest-corpus licensing.
+This is a documented design review, not a claim that aesthetic judgment can be
+exhaustively automated.
 
-## Design research carried forward
+## Overlay alignment
 
-- [ToxiUI](https://toxiui.com/): addon imagery and specific feature views.
-- [Dialogue UI](https://www.curseforge.com/wow/addons/dialogueui): interface
-  details beside descriptions of the actual features.
-- [NN/g product imagery](https://www.nngroup.com/articles/photos-as-web-content/):
-  use visuals that help visitors understand the product.
-- [NN/g homepage guidance](https://www.nngroup.com/articles/113-design-guidelines-homepage-usability/):
-  make identity, purpose and navigation evident.
+All positions use a 2048 × 1152 scene.
 
-The new website takes its geometry and color cues from the user's reference.
-A compact wordmark, restrained typography and square edges leave the interface
-as the main visual. At narrow sizes, explanations move below the mock.
+- Player frame, cooldown strip and action rows share x=1024.
+- Player and cooldown widths are both 234 units; seven 30-unit icons use
+  consistent 4-unit gaps. Twelve action slots span 404 units.
+- Minimap and quest tracker share x=1788 and width=228.
+- Chat, XP bar, utility bars and micromenu end at y=1120.
+- Outer screen inset is 32 units. The bottom chat and meter begin at y=936.
+- The minimap room diagram remains a schematic. Spell icons are visual examples,
+  not evidence about current spell behavior.
 
-## Architecture and verification
+Geometry assertions accompany visual review so these alignments cannot drift
+silently.
 
-No frontend framework or remote font service. A same-origin script switches
-views with click, arrow keys, Home and End. Without JavaScript, combat detail,
-installation guidance, FAQ and attribution remain available. Reduced-motion
-preferences disable smooth scrolling.
+## Game backdrop and ownership
 
-Cloudflare Worker routes, private source storage and approved-download
-boundaries remain intact. HTML retains `Cache-Control: no-transform` to
-prevent Cloudflare from injecting a beacon blocked by the existing CSP.
+The user explicitly requested the newest screenshot from the Classic Beta
+Screenshots folder. At selection, this was
+`WoWScrnShot_092726_120706.jpg`, modified 2026-09-27 19:07:06 UTC.
+It shows the Cathedral of Light with the UI hidden.
 
-Node tests cover responses and download boundaries. Playwright checks real
-icon loading, keyboard control, notices, FAQ, overflow and browser errors at
-1440, 1024, 768, 390 and 320 pixels, plus a JavaScript-disabled session.
-Full-page and all-view renders are saved only beneath the repository's
-ignored `dist/`, resolved from the test module rather than shell cwd.
+The original JPEG is copied unchanged to
+`web/public/assets/world-20260927-120706.jpg` (4,144,668 bytes).
+SHA-256:
+`212b21a4c6745595bbb84f1bb2e84845c851bfcf4ff39221f71bd6ec687edd7d`.
+The browser applies a separate translucent shade beneath the SVG UI; no raster
+editing, inpainting or generated scenery is used.
+
+Spell/item icons load from Blizzard's official
+`https://render.worldofwarcraft.com/icons/56/` CDN. Notices below the preview,
+in the footer and in [the asset notice](../web/ASSET-NOTICE.md) identify Blizzard
+ownership and exclude artwork from the project's MIT code license.
+The [Blizzard Legal FAQ](https://www.blizzard.com/en-sg/legal/c1ae32ac-7ff9-4ac3-a03b-fc04b8697010/blizzard-legal-faq)
+describes limited fansite use and its conditions. Attribution is not a blanket
+license, and this work does not resolve quest-corpus redistribution rights.
+
+## Hosting and checks
+
+Cloudflare Workers Static Assets hosts the JPEG through an ASSETS binding.
+Only its exact public path is routed by the Worker. Existing private R2 and
+release allowlists remain intact. The image receives immutable caching;
+HTML retains no-transform and the same-origin script policy.
+
+Playwright checks five widths (320–1440px), real image loading, keyboard controls,
+overlay toggle, geometry, no-JS fallback and the screenshot's exact SHA-256.
+Node tests cover asset security/conditional responses and download boundaries.
+Screenshots are resolved relative to the test module into repository `dist/`.
 
 Run in `web/`: `npm test`, `npm run test:browser`, `npm run check`.
-Set `SITE_URL=https://rikwow.com` to check production.
+Use `SITE_URL=https://rikwow.com` for production browser checks.

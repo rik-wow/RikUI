@@ -66,6 +66,15 @@ async function download(request, env, path) {
   return respond(content.body, range ? 206 : 200, artifact.contentType, headers);
 }
 
+async function worldAsset(request, env) {
+  const asset = await env.ASSETS.fetch(request);
+  const headers = new Headers(asset.headers);
+  for (const [name, value] of Object.entries(SECURITY)) headers.set(name, value);
+  headers.set("Cache-Control", asset.ok || asset.status === 304
+    ? "public, max-age=31536000, immutable" : "no-store");
+  return new Response(asset.body, { status: asset.status, headers });
+}
+
 async function route(request, env) {
   if (!["GET", "HEAD"].includes(request.method))
     return respond(null, 405, "text/plain", { Allow: "GET, HEAD", "Cache-Control": "no-store" });
@@ -74,6 +83,7 @@ async function route(request, env) {
     return Response.redirect("https://rikwow.com" + url.pathname + url.search, 308);
   if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8",
     { "Cache-Control": "public, max-age=60, no-transform" });
+  if (url.pathname === "/assets/world-20260927-120706.jpg") return worldAsset(request, env);
   if (url.pathname === "/site.js") return respond(clientScript, 200, "text/javascript; charset=utf-8");
   if (url.pathname === "/site.css") return respond(styles, 200, "text/css; charset=utf-8");
   if (url.pathname === "/healthz") return json({ status: "ok", service: "rik-wow-site" });

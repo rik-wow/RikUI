@@ -30,7 +30,7 @@ flowchart LR
 
 One small Worker serves HTML/CSS, a small same-origin script for interactive
 interface previews, and a versioned release catalog. The [website design
-notes](website-design.md) record the research and addon-specific visual direction. It binds only the releases bucket. The source bucket has no
+notes](website-design.md) record the research and addon-specific visual direction. It binds the releases bucket and a Workers Static Assets service for the selected game screenshot. The source bucket has no
 public route or Worker binding. No database, queue or always-on server is
 needed for the current workload. Add D1 for collaborative fact review only
 when there is an actual write workflow; static provider snapshots belong in R2.
@@ -65,6 +65,7 @@ npm run deploy
 
 The production deployment was made through authenticated Cloudflare MCP
 multipart Worker upload, using the same checked-in modules and configuration.
+The game screenshot is uploaded through the documented Workers asset manifest and base64 multipart API; its completion token is attached to the Worker deployment. Future MCP code-only uploads must set `keep_assets: true` and retain the `ASSETS` binding. Wrangler deploys use `web/public` automatically. The Worker routes only the approved screenshot path and adds immutable caching and security headers.
 Wrangler's local cached login had expired. CI verifies source and bundle
 generation; automatic deployment is not configured.
 
