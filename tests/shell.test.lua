@@ -45,7 +45,10 @@ return function(check)
         check("launcher opens grouped tools with a clipped viewport", shell.Panel:IsShown() and shell.Panel.scroll.view.clips == true)
         local groupIcon = shell.Panel.groupIcons and shell.Panel.groupIcons.Interface
         check("utility groups have stable icon identities", groupIcon and groupIcon.rikIcon == "settings")
+        local groupSurface = shell.Panel.groupSurfaces and shell.Panel.groupSurfaces.Interface
+        check("utility groups have backing and visible entry counts", groupSurface and groupSurface.count:GetText() ~= "")
         shell.Rebuild()
+        check("utility rebuild reuses group furniture", groupSurface and shell.Panel.groupSurfaces.Interface == groupSurface)
         check("utility rebuild reuses group icons", groupIcon and shell.Panel.groupIcons.Interface == groupIcon)
         check("action rows have direction cues but launcher stays compact",
             shell.Entries.profiles.frame.chevron and not shell.Launcher.chevron)

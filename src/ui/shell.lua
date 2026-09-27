@@ -90,15 +90,43 @@ local function placeEntry(entry, parent, y)
     return y + (entry.height or ROW_HEIGHT) + 4
 end
 
+local function groupSurface(panel, group, y, bottom, count)
+    local surface = panel.groupSurfaces[group]
+    if not surface then
+        local parent = panel.scroll.content
+        surface = { fill = skin.Fill(parent, { 0.07, 0.09, 0.12, 0.7 }) }
+        surface.rule = parent:CreateTexture(nil, "BORDER")
+        surface.rule:SetTexture(skin.FLAT); surface.rule:SetVertexColor(0.25, 0.36, 0.43, 0.7)
+        surface.rule:SetHeight(1)
+        surface.count = shell.Text(parent, "", "small")
+        surface.count:SetTextColor(0.64, 0.74, 0.81); surface.count:SetJustifyH("RIGHT")
+        surface.count:SetSize(30, 16)
+        panel.groupSurfaces[group] = surface
+    end
+    surface.fill:ClearAllPoints()
+    surface.fill:SetPoint("TOPLEFT", panel.scroll.content, "TOPLEFT", 0, -y)
+    surface.fill:SetPoint("TOPRIGHT", panel.scroll.content, "TOPRIGHT", 0, -y)
+    surface.fill:SetHeight(bottom - y)
+    surface.rule:ClearAllPoints(); surface.rule:SetPoint("BOTTOMLEFT", surface.fill, "BOTTOMLEFT")
+    surface.rule:SetPoint("BOTTOMRIGHT", surface.fill, "BOTTOMRIGHT")
+    surface.count:ClearAllPoints(); surface.count:SetPoint("TOPRIGHT", surface.fill, "TOPRIGHT", -4, -2)
+    surface.count:SetText(tostring(count))
+    surface.fill:Show(); surface.rule:Show(); surface.count:Show()
+end
+
 function shell.Rebuild()
     local panel, y = shell.Panel, 0
     if not panel then return end
     for _, entry in pairs(shell.Entries) do if entry.frame then entry.frame:Hide() end end
     for _, title in pairs(panel.headings) do title:Hide() end
     for _, icon in pairs(panel.groupIcons) do icon:Hide() end
+    for _, surface in pairs(panel.groupSurfaces) do
+        surface.fill:Hide(); surface.rule:Hide(); surface.count:Hide()
+    end
     for _, group in ipairs(shell.Groups) do
         local entries = sortedEntries(group)
         if #entries > 0 then
+            local start = y
             local title = panel.headings[group] or shell.Text(panel.scroll.content, group, "small")
             panel.headings[group] = title
             title:ClearAllPoints(); title:SetPoint("TOPLEFT", 24, -y - 2); title:SetTextColor(unpack(ACCENT)); title:Show()
@@ -107,6 +135,7 @@ function shell.Rebuild()
             icon:ClearAllPoints(); icon:SetPoint("TOPLEFT", 2, -y); icon:SetVertexColor(unpack(ACCENT)); icon:Show()
             y = y + 24
             for _, entry in ipairs(entries) do y = placeEntry(entry, panel.scroll.content, y) end
+            groupSurface(panel, group, start, y, #entries)
             y = y + 10
         end
     end
@@ -164,14 +193,18 @@ local function createPanel()
     panel:EnableMouse(true)
     panel.chrome = skin.WindowChrome(panel, HEADER_HEIGHT)
     panel.title = shell.Text(panel, "RikUI", "heading")
-    panel.title:SetPoint("TOPLEFT", PAD, -PAD)
+    panel.title:SetPoint("TOPLEFT", 46, -7)
+    panel.brand = media.Icon(panel, "settings", 22, "OVERLAY")
+    panel.brand:SetPoint("TOPLEFT", PAD, -11); panel.brand:SetVertexColor(unpack(ACCENT))
+    panel.subtitle = shell.Text(panel, "Utilities", "small")
+    panel.subtitle:SetPoint("TOPLEFT", 46, -26); panel.subtitle:SetTextColor(0.65, 0.75, 0.82)
     panel.close = shell.Button(panel, "", shell.Close)
     panel.close.icon = media.Icon(panel.close, "close", 10, "OVERLAY")
     panel.close.icon:SetPoint("CENTER")
     panel.close:SetSize(28, 24); panel.close:SetPoint("TOPRIGHT", -PAD, -10)
     panel.scroll = core.Scroll.Create(panel)
     panel.scroll:SetPoint("TOPLEFT", PAD, -HEADER_HEIGHT)
-    panel.headings, panel.groupIcons = {}, {}
+    panel.headings, panel.groupIcons, panel.groupSurfaces = {}, {}, {}
     core.Motion.BindEntrance(panel, true)
     panel:SetScript("OnShow", shell.Rebuild)
     panel:SetScript("OnHide", function() if shell.Dismiss then shell.Dismiss:Hide() end end)
