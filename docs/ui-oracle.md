@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- XP and reputation captions now have dark backing above an exposed progress edge. The backing follows compact/text settings, and 10% ticks follow the row width when resized.
+
 - Timed quests now use recessed countdown badges with room for hours, bounded quest titles and steady urgency rails that remain visible with reduced motion.
 
 - Breath and fatigue bars now reserve a dark countdown badge, constrain long labels and soften the fill behind text. A steady severity rail keeps low time visible between pulses.

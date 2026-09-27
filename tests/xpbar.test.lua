@@ -25,6 +25,7 @@ return function(check)
         return group
     end
     local function region(value)
+        function value:SetPoint(...) self.point = { ... } end
         function value:SetTexture(texture) self.texture = texture end
         function value:SetVertexColor(...) self.color = { ... } end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
@@ -45,6 +46,7 @@ return function(check)
         end
         function frame:GetParent() return self.parent end
         function frame:SetSize(w, h) self.width, self.height = w, h end
+        function frame:GetWidth() return self.width or 0 end
         function frame:SetHeight(h) self.height = h end
         function frame:SetPoint(...) self.point = { ... } end
         function frame:SetShown(shown) if shown then self:Show() else self:Hide() end end
@@ -142,8 +144,12 @@ return function(check)
         check("other units do not update the player XP bar", xp.bar.value == 450 and xp.flashAnim.plays == 1)
         stub.xp = 450
         check("detailed XP labels include remaining experience", xp.caption:GetText():find("550 to level", 1, true))
+        check("progress caption has its own contrast backing", xp.captionBacking and xp.captionBacking.shown)
+        env.runScript(xp, "OnSizeChanged", 996, 18)
+        check("progress ticks follow resized row", xp.ticks[5].point[4] == 498)
         module.SetOption("compact", true)
         check("compact mode restores thin bars and hides labels", holder.height == 8 and not xp.caption.shown)
+        check("compact mode clears caption backing", xp.captionBacking and not xp.captionBacking.shown)
         check("compact mode clears the floating gain", xp.gainText.alpha == 0 and not xp.gainAnim.playing)
         check("XP rise uses cosmetic translation", xp.gainAnim.animation.offset[2] == 14
             and xp.gainAnim.animation.duration == 0.85 and xp.gainAnim.plays == 1)

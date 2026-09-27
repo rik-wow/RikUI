@@ -72,8 +72,21 @@ function details.ShowGain(row, amount)
     motion.Play(row.gainAnim)
 end
 
+local function placeTicks(row, width)
+    width = width or row:GetWidth()
+    if width <= 0 then width = row:GetParent():GetWidth() end
+    for index, tick in ipairs(row.ticks) do
+        tick:ClearAllPoints()
+        tick:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", width * index / 10, 0)
+    end
+end
+
 function details.Build(row, key)
     row:HookScript("OnHide", function() motion.Stop(row.flashAnim); motion.Stop(row.levelAnim) end)
+    row.captionBacking = row.bar:CreateTexture(nil, "ARTWORK", nil, 1)
+    row.captionBacking:SetPoint("TOPLEFT", row, "TOPLEFT", 1, -1)
+    row.captionBacking:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -1, 3)
+    row.captionBacking:SetColorTexture(0.025, 0.03, 0.045, 0.6)
     row.caption = label(row.bar, "small")
     row.caption:SetPoint("LEFT", row, "LEFT", 6, 0)
     row.caption:SetPoint("RIGHT", row, "RIGHT", -6, 0)
@@ -84,9 +97,10 @@ function details.Build(row, key)
         tick:SetTexture(media.border)
         tick:SetVertexColor(0.02, 0.025, 0.035, 0.7)
         tick:SetSize(1, 4)
-        tick:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 498 * index / 10, 0)
         row.ticks[index] = tick
     end
+    row:HookScript("OnSizeChanged", placeTicks)
+    placeTicks(row)
     row.glint = row.bar:CreateTexture(nil, "OVERLAY")
     row.glint:SetTexture(media.highlight)
     row.glint:SetVertexColor(1, 0.82, 0.4, 0)
@@ -173,6 +187,7 @@ function details.Refresh(faction)
                 if not active then row.paceElapsed = 0 end
             end
             row.caption:SetShown(settings().text and not settings().compact)
+            row.captionBacking:SetShown(settings().text and not settings().compact)
             for _, tick in ipairs(row.ticks) do tick:SetShown(settings().ticks) end
         end
     end
