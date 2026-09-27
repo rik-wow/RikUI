@@ -4,6 +4,7 @@ local shell = { Entries = {}, Groups = { "Interface", "Tools", "Support" } }
 core.Shell = shell
 local WIDTH, PAD, ROW_HEIGHT, HEADER_HEIGHT = 320, 14, 30, 44
 local ACCENT = { 0.3, 0.75, 1, 1 }
+local GROUP_ICONS = { Interface = "settings", Tools = "menu", Support = "help" }
 
 function shell.Text(parent, text, role)
     local label = parent:CreateFontString(nil, "OVERLAY")
@@ -63,12 +64,18 @@ local function sortedEntries(group)
 end
 
 local function actionFrame(entry, parent)
-    return shell.Button(parent, "", function()
+    local button = shell.Button(parent, "", function()
         if entry.warned or not allowed(entry, "enabled") or not allowed(entry, "visible") then return end
         if not entry.keepOpen then shell.Close() end
         invoke(entry, "action")
         shell.Refresh()
     end)
+    button.label:ClearAllPoints()
+    button.label:SetPoint("LEFT", 12, 0); button.label:SetPoint("RIGHT", -30, 0)
+    button.chevron = media.Icon(button, "chevron-right", 10, "OVERLAY")
+    button.chevron:SetPoint("RIGHT", -10, 0)
+    button.chevron:SetVertexColor(0.55, 0.66, 0.76, 1)
+    return button
 end
 
 local function placeEntry(entry, parent, y)
@@ -88,12 +95,16 @@ function shell.Rebuild()
     if not panel then return end
     for _, entry in pairs(shell.Entries) do if entry.frame then entry.frame:Hide() end end
     for _, title in pairs(panel.headings) do title:Hide() end
+    for _, icon in pairs(panel.groupIcons) do icon:Hide() end
     for _, group in ipairs(shell.Groups) do
         local entries = sortedEntries(group)
         if #entries > 0 then
             local title = panel.headings[group] or shell.Text(panel.scroll.content, group, "small")
             panel.headings[group] = title
-            title:ClearAllPoints(); title:SetPoint("TOPLEFT", 0, -y); title:SetTextColor(unpack(ACCENT)); title:Show()
+            title:ClearAllPoints(); title:SetPoint("TOPLEFT", 24, -y - 2); title:SetTextColor(unpack(ACCENT)); title:Show()
+            local icon = panel.groupIcons[group] or media.Icon(panel.scroll.content, GROUP_ICONS[group], 16)
+            panel.groupIcons[group] = icon
+            icon:ClearAllPoints(); icon:SetPoint("TOPLEFT", 2, -y); icon:SetVertexColor(unpack(ACCENT)); icon:Show()
             y = y + 24
             for _, entry in ipairs(entries) do y = placeEntry(entry, panel.scroll.content, y) end
             y = y + 10
@@ -154,11 +165,13 @@ local function createPanel()
     panel.chrome = skin.WindowChrome(panel, HEADER_HEIGHT)
     panel.title = shell.Text(panel, "RikUI", "heading")
     panel.title:SetPoint("TOPLEFT", PAD, -PAD)
-    panel.close = shell.Button(panel, "X", shell.Close)
+    panel.close = shell.Button(panel, "", shell.Close)
+    panel.close.icon = media.Icon(panel.close, "close", 10, "OVERLAY")
+    panel.close.icon:SetPoint("CENTER")
     panel.close:SetSize(28, 24); panel.close:SetPoint("TOPRIGHT", -PAD, -10)
     panel.scroll = core.Scroll.Create(panel)
     panel.scroll:SetPoint("TOPLEFT", PAD, -HEADER_HEIGHT)
-    panel.headings = {}
+    panel.headings, panel.groupIcons = {}, {}
     core.Motion.BindEntrance(panel, true)
     panel:SetScript("OnShow", shell.Rebuild)
     panel:SetScript("OnHide", function() if shell.Dismiss then shell.Dismiss:Hide() end end)

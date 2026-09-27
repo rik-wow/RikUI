@@ -40,6 +40,13 @@ return function(check)
         env.runScript(shell.Launcher, "OnMouseUp", "LeftButton")
         env.click(shell.Launcher)
         check("launcher opens grouped tools with a clipped viewport", shell.Panel:IsShown() and shell.Panel.scroll.view.clips == true)
+        local groupIcon = shell.Panel.groupIcons and shell.Panel.groupIcons.Interface
+        check("utility groups have stable icon identities", groupIcon and groupIcon.rikIcon == "settings")
+        shell.Rebuild()
+        check("utility rebuild reuses group icons", groupIcon and shell.Panel.groupIcons.Interface == groupIcon)
+        check("action rows have direction cues but launcher stays compact",
+            shell.Entries.profiles.frame.chevron and not shell.Launcher.chevron)
+        check("utility close uses the bundled close glyph", shell.Panel.close.icon and shell.Panel.close.icon.rikIcon == "close")
         env.click(shell.Entries.profiles.frame)
         check("utility close waits for its fade", shell.Panel:IsShown() and shell.Panel.rikClosing)
         shell.Panel.rikExit:Finish()
