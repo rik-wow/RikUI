@@ -70,6 +70,11 @@ The Worker permits only same-origin scripts; no inline-script exception.
 Without JavaScript, the combat illustration, guides, FAQ and installation
 content remain available, while inactive preview controls are hidden.
 Reduced-motion preference disables smooth scrolling and transitions.
+Production checks found Cloudflare injecting a beacon that the same-origin
+script policy correctly blocked, despite the zone RUM setting being off.
+HTML responses use `Cache-Control: no-transform` to prevent that injection,
+as documented by [Cloudflare](https://developers.cloudflare.com/web-analytics/get-started/).
+Production is checked for browser/CSP errors as well as functional behavior.
 
 Node tests cover Worker responses and download boundaries. Playwright checks
 1440, 1024, 768, 390 and 320 pixel widths, keyboard tabs, accent selection,

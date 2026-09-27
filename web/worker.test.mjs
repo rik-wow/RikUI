@@ -7,6 +7,7 @@ const request = (path, options) => new Request("https://rikwow.com" + path, opti
 test("site, CSS, manifest, redirects, and method boundaries", async () => {
   const home = await worker.fetch(request("/"), {});
   assert.equal(home.status, 200);
+  assert.match(home.headers.get("Cache-Control"), /no-transform/);
   assert.match(await home.text(), /Your interface\./);
   const script = await worker.fetch(request("/site.js"), {});
   assert.match(script.headers.get("Content-Type"), /text\/javascript/);

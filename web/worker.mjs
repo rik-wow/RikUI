@@ -72,7 +72,8 @@ async function route(request, env) {
   const url = new URL(request.url);
   if (url.hostname === "www.rikwow.com")
     return Response.redirect("https://rikwow.com" + url.pathname + url.search, 308);
-  if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8");
+  if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8",
+    { "Cache-Control": "public, max-age=60, no-transform" });
   if (url.pathname === "/site.js") return respond(clientScript, 200, "text/javascript; charset=utf-8");
   if (url.pathname === "/site.css") return respond(styles, 200, "text/css; charset=utf-8");
   if (url.pathname === "/healthz") return json({ status: "ok", service: "rik-wow-site" });
