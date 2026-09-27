@@ -6,6 +6,8 @@ panel.Strip = strip
 local SIZE, GAP, COLUMNS, WIDTH, MIN_ROWS, MAX_ROWS = 36, 4, 7, 280, 2, 3
 local PITCH = SIZE + GAP
 local TIMER_FONT, CHARGE_FONT, COUNT_FONT = 18, 12, 13
+local FLAT = "Interface\\BUTTONS\\WHITE8X8"
+local CELL_EDGE = { 0.3, 0.36, 0.43, 1 }
 local DIM_ALPHA = 0.55  -- a pure aura cell whose aura is not up
 local KEY, LABEL = "cooldowns", "Cooldowns"
 strip.MAX_ENTRIES, strip.WIDTH, strip.SIZE = COLUMNS * MAX_ROWS, WIDTH, SIZE
@@ -23,13 +25,21 @@ local function duration(widget, api, id, ignoreGCD)
     return ok
 end
 
+local function setCount(button, value)
+    button.count:SetText(value)
+    if core.Secret.IsSecret(value) then button.countPlate:Show()
+    else button.countPlate:SetShown(value ~= nil and value ~= "") end
+end
+
 local function refreshButton(button)
     local cooldownOK = duration(button.cooldown, "GetSpellCooldownDuration", button.spellID, true)
     local chargeOK = duration(button.recharge, "GetSpellChargeDuration", button.spellID)
-    local countOK, reason = core.Secret.Apply(function(value) button.count:SetText(value) end,
+    local countOK, reason = core.Secret.Apply(function(value) setCount(button, value) end,
         C_Spell and C_Spell.GetSpellDisplayCount, button.spellID)
-    if not countOK then button.count:SetText(""); panel.Warn("count", reason) end
-    button.unknown:SetShown(not cooldownOK or not chargeOK or not countOK)
+    if not countOK then setCount(button, ""); panel.Warn("count", reason) end
+    local unavailable = not cooldownOK or not chargeOK or not countOK
+    button.unknown:SetShown(unavailable)
+    button.unknownPlate:SetShown(unavailable)
 end
 
 function strip.Refresh()
@@ -42,7 +52,7 @@ panel.Refresh = strip.Refresh
 
 local function cooldown(button, charge)
     local widget = CreateFrame("Cooldown", nil, button)
-    widget:SetAllPoints(button)
+    widget:SetAllPoints(button.icon)
     widget:EnableMouse(false)
     widget:SetDrawSwipe(not charge)
     widget:SetDrawEdge(charge)
@@ -69,25 +79,48 @@ local function tooltip(button)
     if not ok then panel.Warn("tooltip", reason) end
 end
 
+local function textPlate(parent, label, color)
+    local plate = parent:CreateTexture(nil, "ARTWORK")
+    plate:SetTexture(FLAT); plate:SetVertexColor(unpack(color))
+    plate:SetPoint("TOPLEFT", label, "TOPLEFT", -2, 1)
+    plate:SetPoint("BOTTOMRIGHT", label, "BOTTOMRIGHT", 2, -1)
+    plate:Hide()
+    return plate
+end
+
+local function decorateCounts(button)
+    local overlay = CreateFrame("Frame", nil, button)
+    overlay:SetAllPoints(button)
+    overlay:EnableMouse(false)
+    overlay:SetFrameLevel(math.max(button.cooldown:GetFrameLevel(), button.recharge:GetFrameLevel()) + 1)
+    button.border = core.UI.Edges(overlay, 1, "OVERLAY")
+    for _, edge in ipairs(button.border) do edge:SetVertexColor(unpack(CELL_EDGE)) end
+    button.count = overlay:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
+    button.count:SetPoint("BOTTOMRIGHT", -2, 2)
+    button.count:SetFont(core.Media.font, COUNT_FONT, "OUTLINE")
+    button.count:SetTextColor(0.95, 0.97, 1)
+    button.countPlate = textPlate(overlay, button.count, { 0.015, 0.025, 0.04, 0.92 })
+    button.unknown = overlay:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
+    button.unknown:SetPoint("TOPLEFT", 2, -2)
+    button.unknown:SetText("?")
+    button.unknown:SetFont(core.Media.font, CHARGE_FONT, "OUTLINE")
+    button.unknown:SetTextColor(1, 0.83, 0.38)
+    button.unknownPlate = textPlate(overlay, button.unknown, { 0.16, 0.09, 0.015, 0.96 })
+end
+
 local function createButton()
     local button = CreateFrame("Frame", nil, strip.Frame)
     button:SetSize(SIZE, SIZE)
     button:EnableMouse(true)
     button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetAllPoints()
+    button.backing = button:CreateTexture(nil, "BACKGROUND")
+    button.backing:SetAllPoints(button); button.backing:SetTexture(FLAT)
+    button.backing:SetVertexColor(0.015, 0.02, 0.03, 1)
+    button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+    button.icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
     button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     button.cooldown, button.recharge = cooldown(button, false), cooldown(button, true)
-    local overlay = CreateFrame("Frame", nil, button)
-    overlay:SetAllPoints(button)
-    overlay:EnableMouse(false)
-    overlay:SetFrameLevel(math.max(button.cooldown:GetFrameLevel(), button.recharge:GetFrameLevel()) + 1)
-    core.UI.Edges(overlay, 1, "OVERLAY")
-    button.count = overlay:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
-    button.count:SetPoint("BOTTOMRIGHT", -2, 2)
-    button.count:SetFont(core.Media.font, COUNT_FONT, "OUTLINE")
-    button.unknown = overlay:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
-    button.unknown:SetPoint("TOPLEFT", 2, -2)
-    button.unknown:SetText("?")
+    decorateCounts(button)
     button:SetScript("OnEnter", tooltip)
     button:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
     return button

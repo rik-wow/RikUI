@@ -9,6 +9,8 @@ tagging.
 
 ## Unreleased
 
+- Added a coordinated visual polish pass across ten areas: layered window chrome, inset utility and quest controls, clearer scrollbar grips, settings cards, utility sections, a recessed bag grid, compact quest guidance, separate clock readouts, stronger progress milestones, and cooldown icon/count badges. Existing layouts and interactions remain in place.
+
 - Individual auction listings now show an Item / enchantment column with each listing’s exact linked name and random suffix. Names wrap, retain quality colors and clear on recycled rows; missing client details are explicit. Native bidding, buying and tooltips keep their original auction data.
 
 - Removed the fade-in from native tooltips. Auction rows periodically hide and rebuild their tooltip while hovered; replaying the fade on each rebuild caused persistent flickering even with a stable layout.

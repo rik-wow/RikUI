@@ -130,6 +130,16 @@ return function(check)
         check("opaque durations go straight to native widgets and ignore GCD", first.cooldown.duration == env.SECRET
             and first.recharge.duration == env.SECRET and reads[1671] == true)
         check("secret counts go straight to text", first.count.text == env.SECRET)
+        check("opaque count retains contrast without inspecting its value", first.countPlate and first.countPlate:IsShown())
+        check("empty count has no stale badge", panel.Buttons[2].countPlate and not panel.Buttons[2].countPlate:IsShown())
+        local cooldownAPI = C_Spell.GetSpellCooldownDuration
+        C_Spell.GetSpellCooldownDuration = function() error("unavailable") end
+        panel.Refresh()
+        check("unavailable cooldown is a legible amber badge", first.unknownPlate and first.unknownPlate:IsShown() and first.unknown:IsShown())
+        C_Spell.GetSpellCooldownDuration = cooldownAPI
+        panel.Refresh()
+        check("recovered cooldown clears its unavailable badge", first.unknownPlate and not first.unknownPlate:IsShown())
+        local countPlate = first.countPlate
         check("buttons are display only", not first.attributes.type and not first.scripts.OnClick)
         env.runScript(first, "OnEnter")
         check("tooltip uses the resolved learned rank", GameTooltip.id == 1671)
@@ -146,6 +156,8 @@ return function(check)
         check("the strip caps at three rows of seven and grows a third row", #panel.Buttons == 21
             and panel.Stats.capped == 6 and panel.Frame:GetHeight() == 116
             and panel.Buttons[8].points[1][5] == 40 and panel.Buttons[15].points[1][4] == 2)
+        check("pooled cooldown decoration clears old counts", panel.Buttons[1] == first and first.countPlate == countPlate
+            and first.countPlate and not first.countPlate:IsShown())
         check("cells that lost their aura entry disable their slots without removing them",
             slot("target", 2) and not slot("target", 2).enabled and slot("player", 3) and not slot("player", 3).enabled)
 
