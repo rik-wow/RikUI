@@ -28,7 +28,7 @@ layouts.Sizes = {
     raid = { width = 604, height = 166 }, castplayer = { width = UNIT_WIDTH, height = CAST_HEIGHT },
     casttarget = { width = UNIT_WIDTH, height = CAST_HEIGHT }, castfocus = { width = FOCUS_WIDTH, height = CAST_HEIGHT },
     castpet = { width = SMALL_WIDTH, height = CAST_HEIGHT }, buffs = { width = 268, height = 132 },
-    debuffs = { width = 268, height = 64 }, minimap = { width = 200, height = 200 },
+    debuffs = { width = 268, height = 64 }, minimap = { width = 200, height = 226 },
     micromenu = { width = 238, height = 70 }, bagspace = { width = 210, height = 22 }, durability = { width = 132, height = 18 },
     mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 76 },
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
@@ -42,9 +42,9 @@ layouts.Sizes = {
     damagemeter = { width = 260, height = 180 },
     combatresource = { width = 280, height = 18 },
 }
--- Room outside the frame: the minimap's zone line above and clock below, the reputation row under the
+-- Room outside the frame: the minimap clock below, the reputation row under the
 -- experience row.
-layouts.Pads = { minimap = { top = 16, bottom = 16 }, xpbar = { bottom = 14 } }
+layouts.Pads = { minimap = { top = 0, bottom = 16 }, xpbar = { bottom = 14 } }
 -- The chat's rectangle is everything you see of it, not only the message area: the panel's border
 -- left and right, the tabs above, the channel strip and the input bar below. chat-move.lua sizes its
 -- holder with these, so the layout, the overlay and the audit all mean the same rectangle. The nominal
@@ -82,7 +82,7 @@ local METER_TOP = METER_Y + layouts.Sizes.damagemeter.height
 -- The top right corner: minimap under its zone line, aura rows to its left, timers and tracker under it.
 local MINIMAP_Y = -(MARGIN + layouts.Pads.minimap.top)
 local MINIMAP_BOTTOM = MINIMAP_Y - layouts.Sizes.minimap.height - layouts.Pads.minimap.bottom
-local AURAS_X = -(MARGIN + layouts.Sizes.minimap.width + GAP)
+local AURAS_X = COLUMN - layouts.Sizes.minimap.width - GAP
 local TIMERS_Y = MINIMAP_BOTTOM - GAP
 local TRACKER_Y = TIMERS_Y - layouts.Sizes.questtimers.height - GAP
 -- The chat's rectangle sits in the bottom left corner at the margin; it is anchored by its centre.
@@ -97,7 +97,7 @@ local function shared()
         micromenu = bottomRight(COLUMN, MARGIN), bagspace = bottomRight(COLUMN, BAGSPACE_Y),
         damagemeter = bottomRight(COLUMN, METER_Y),
         tooltip = bottomRight(COLUMN, METER_TOP + GAP), bags = bottomRight(COLUMN, METER_TOP + GAP),
-        minimap = topRight(-MARGIN, MINIMAP_Y), buffs = topRight(AURAS_X, -MARGIN),
+        minimap = topRight(COLUMN, MINIMAP_Y), buffs = topRight(AURAS_X, -MARGIN),
         debuffs = topRight(AURAS_X, -MARGIN - layouts.Sizes.buffs.height - GAP),
         questtimers = topRight(COLUMN, TIMERS_Y), questtracker = topRight(COLUMN, TRACKER_Y),
         combattimer = at("TOP", "TOP", 66, -110), stopwatch = at("TOP", "TOP", 66, -134),

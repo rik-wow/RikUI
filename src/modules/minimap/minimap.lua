@@ -2,15 +2,15 @@
 -- time and player coordinates below. Cluster art and buttons park through the shared hide helper;
 -- the mail, queue and tracking frames move into the holder so they stay reachable. Every parent
 -- and anchor write on a Blizzard frame runs through the combat queue.
-local core, media, layout, ui = RikUI, RikUI.Media, RikUI.Layout, RikUI.UI
+local core, media, layout = RikUI, RikUI.Media, RikUI.Layout
 local minimap = { Parked = {}, Adopted = {}, Options = { title = "Minimap", settings = {} } }
 core.Minimap = minimap
 
 local HOLDER_NAME, KEY = "RikUIMinimap", "minimap"
 local SIZE, EDGE, TEXT_GAP = 198, 1, 4
-local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -16, y = -16 }
+local HEADER_HEIGHT = 26
+local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -98, y = -16 }
 local SQUARE_MASK, ROTATE_CVAR = "Interface\\BUTTONS\\WHITE8X8", "rotateMinimap"
-local BORDER = { 0.25, 0.28, 0.32, 1 }
 local UPDATE_SECONDS, COORDS_FORMAT = 0.2, "%.1f, %.1f"
 local MILITARY_CVAR, MILITARY_FORMAT, CIVIL_FORMAT = "timeMgrUseMilitaryTime", "%H:%M", "%I:%M %p"
 local ZONE_EVENTS = { "ZONE_CHANGED", "ZONE_CHANGED_INDOORS", "ZONE_CHANGED_NEW_AREA", "PLAYER_ENTERING_WORLD" }
@@ -60,7 +60,7 @@ end
 local function attach(frame, point, x, y)
     frame:SetParent(holder)
     frame:ClearAllPoints()
-    frame:SetPoint(point, holder, point, x, y)
+    frame:SetPoint(point, holder, point, x, point:find("TOP", 1, true) and y - HEADER_HEIGHT or y)
 end
 
 local function label(role, point, relativePoint, y)
@@ -198,7 +198,8 @@ end
 
 local function zoneButton()
     local button=CreateFrame("Button",nil,holder)
-    button:SetSize(SIZE,22);button:SetPoint("BOTTOM",holder,"TOP",0,0)
+    button:SetSize(SIZE, HEADER_HEIGHT)
+    button:SetPoint("TOP", holder, "TOP", 0, -EDGE)
     button:RegisterForClicks("LeftButtonUp")
     button:SetScript("OnClick",minimap.OpenMap)
     button:SetScript("OnEnter",function(self)
@@ -211,8 +212,14 @@ local function zoneButton()
     button:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
     button:SetScript("OnHide",function(self) if GameTooltip and GameTooltip:IsOwned(self) then GameTooltip:Hide() end end)
     core.Motion.BindHover(button)
-    holder.zone:ClearAllPoints();holder.zone:SetPoint("CENTER",button,"CENTER",0,0)
-    holder.zone:SetWidth(SIZE-4);holder.zone:SetWordWrap(false)
+    holder.zoneIcon = media.Icon(holder, "quest", 12, "OVERLAY")
+    holder.zoneIcon:SetPoint("TOPLEFT", holder, "TOPLEFT", 8, -8)
+    holder.zoneIcon:SetVertexColor(0.7, 0.78, 0.9, 1)
+    holder.zone:ClearAllPoints()
+    holder.zone:SetPoint("LEFT", button, "LEFT", 26, 0)
+    holder.zone:SetWidth(SIZE - 34)
+    holder.zone:SetJustifyH("LEFT")
+    holder.zone:SetWordWrap(false)
     holder.zoneButton=button
 end
 
@@ -267,9 +274,9 @@ end
 
 local function createHolder()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
-    holder:SetSize(SIZE + 2 * EDGE, SIZE + 2 * EDGE)
-    holder.rikBorder = ui.Edges(holder, EDGE, "BORDER")
-    for _, line in ipairs(holder.rikBorder) do line:SetVertexColor(unpack(BORDER)) end
+    holder:SetSize(SIZE + 2 * EDGE, SIZE + 2 * EDGE + HEADER_HEIGHT)
+    holder.rikChrome = core.Skin.WindowChrome(holder, HEADER_HEIGHT, 0)
+    holder.rikBorder = holder.rikChrome.edge
     holder.zone = label("label", "BOTTOM", "TOP", TEXT_GAP)
     holder.rikZoneFade = core.Motion.Tween(holder.zone, 0, 1, 0.2)
     zoneButton()

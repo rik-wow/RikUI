@@ -67,7 +67,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/skin.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/platform/editmode.lua", "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/minimap/minimap.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -83,12 +83,15 @@ return function(check)
         check("the holder registers with the layout under key minimap with top-right defaults", holder and group
             and group.frames[1] == holder and group.defaults.point == "TOPRIGHT"
             and group.defaults.relativePoint == "TOPRIGHT" and group.defaults.x < 0 and group.defaults.y < 0)
-        check("the holder is a bordered square two pixels wider than the map", holder.width == 200 and holder.height == 200
+        check("the holder includes the header above its square map", holder.width == 200 and holder.height == 226
             and type(rawget(holder, "rikBorder")) == "table" and #holder.rikBorder == 4
             and holder.rikBorder[1].texture == media.border)
         check("the Minimap moves into the holder as a 198 square with the flat mask", map.parent == holder
             and map.width == 198 and map.height == 198 and map.mask == "Interface\\BUTTONS\\WHITE8X8"
             and map.point[1] == "TOPLEFT" and map.point[2] == holder)
+        check("minimap header is inside the card", holder.rikChrome and holder.zoneButton.point[3] == "TOP"
+            and holder.zoneIcon and holder.zoneIcon.rikIcon == "quest" and map.point[5] == -27)
+        check("native indicators clear the header", cluster.IndicatorFrame.point[5] == -28)
         -- Skin.lua's rotateMinimap callback puts the round mask back when the CVar changes.
         map:SetMaskTexture(stub.ROUND_MASK)
         env.fire("CVAR_UPDATE", "rotateMinimap")
@@ -132,7 +135,8 @@ return function(check)
         check("in combat the answer waits", cluster.IndicatorFrame.point[1] == "BOTTOMRIGHT")
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
-        check("and lands when combat ends", cluster.IndicatorFrame.point[2] == holder)
+        check("and lands when combat ends", cluster.IndicatorFrame.point[2] == holder
+            and cluster.IndicatorFrame.point[5] == -28 and map.point[5] == -27)
         module = load()
         holder, cluster, map = module.Holder, MinimapCluster, Minimap
 

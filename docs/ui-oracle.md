@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- The minimap zone label now sits inside a layered header with a map glyph. Its layout bounds include the header, and native indicators remain aligned to the square map after Edit Mode changes.
+
 - Tooltips now use larger headings, a quiet inset top accent and clearly outlined dark health tracks. Native GUID watching continues to own all health values.
 
 - Chat copy now has separate header, transcript and footer bands, a wider focused search field, styled actions and empty-result guidance outside the copied text.
