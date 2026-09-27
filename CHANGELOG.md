@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Quest tracking now uses padded cards, taller objective rows, completion checkmarks and an inset icon header. Long text stays bounded, and the existing height limit still reserves the overflow summary.
+
 - Group loot rolls now have layered card chrome, cropped item icons with inset backing and dark outlined countdown tracks. Repeated skinning reuses regions and preserves native roll handlers.
 
 - XP and reputation captions now have dark backing above an exposed progress edge. The backing follows compact/text settings, and 10% ticks follow the row width when resized.

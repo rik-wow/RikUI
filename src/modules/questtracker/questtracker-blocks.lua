@@ -7,8 +7,9 @@ local tracker = core.QuestTracker
 local view = tracker.View
 view.Blocks = {}
 
-local WIDTH, HEADER_HEIGHT, GAP, BLOCK_GAP = 240, 18, 4, 6
-local TITLE_HEIGHT, LINE_HEIGHT, ACCENT_WIDTH, PAD, EDGE = 14, 12, 2, 6, 1
+local WIDTH, HEADER_HEIGHT, GAP, BLOCK_GAP = 240, 24, 4, 6
+local TITLE_HEIGHT, LINE_HEIGHT, ACCENT_WIDTH, PAD, EDGE = 18, 16, 2, 8, 1
+local CARD_PAD = 4
 local BACKING, LINE_COLOR, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1, 1 }
 local TITLE_COLOR, COMPLETE_COLOR, FAILED_COLOR = { 1, 0.82, 0 }, { 0.3, 0.9, 0.4 }, { 0.9, 0.25, 0.2 }
 local OBJECTIVE_COLOR, FINISHED_COLOR = { 0.85, 0.85, 0.85 }, { 0.5, 0.5, 0.5 }
@@ -45,16 +46,20 @@ local function createHeader(holder)
     header:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, 0)
     header:SetPoint("TOPRIGHT", holder, "TOPRIGHT", 0, 0)
     header:SetHeight(HEADER_HEIGHT)
-    flatTexture(header, "BACKGROUND", BACKING):SetAllPoints(header)
+    flatTexture(header, "BACKGROUND", { 0.095, 0.115, 0.15, 0.97 }):SetAllPoints(header)
+    header.icon = media.Icon(header, "quest", 12, "OVERLAY")
+    header.icon:SetPoint("LEFT", header, "LEFT", PAD, 0)
     header.rikBorder = ui.Edges(header, EDGE, "BORDER")
     for _, line in ipairs(header.rikBorder) do line:SetVertexColor(unpack(LINE_COLOR)) end
     header.label = text(header, "small", "LEFT")
-    header.label:SetPoint("LEFT", header, "LEFT", PAD, 0)
+    header.label:SetPoint("LEFT", header.icon, "RIGHT", 6, 0)
     header.label:SetText(label("TRACKER_HEADER_QUESTS", "Quests"))
     header.glyph = media.Icon(header, EXPANDED_ICON, HEADER_ICON_SIZE, "OVERLAY")
     header.glyph:SetPoint("RIGHT", header, "RIGHT", -PAD, 0)
     header.count = text(header, "small", "RIGHT")
     header.count:SetPoint("RIGHT", header.glyph, "LEFT", -PAD, 0)
+    header.count:SetWidth(30)
+    header.label:SetPoint("RIGHT", header.count, "LEFT", -PAD, 0)
     local highlight = header:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(header)
     highlight:SetTexture(media.highlight)
@@ -96,6 +101,10 @@ end
 local function createBlock(holder)
     local frame = CreateFrame("Button", nil, holder)
     frame.lines = {}
+    frame.backing = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+    frame.backing:SetTexture(FLAT)
+    frame.backing:SetVertexColor(unpack(BACKING))
+    frame.backing:SetAllPoints(frame)
     frame.glow = flatTexture(frame, "BACKGROUND", COMPLETE_COLOR)
     frame.glow:SetAllPoints(frame)
     frame.glow:SetAlpha(0)
@@ -110,8 +119,8 @@ local function createBlock(holder)
     frame.highlight:SetAlpha(HIGHLIGHT_ALPHA)
     frame.highlight:Hide()
     frame.title = text(frame, "label", "LEFT")
-    frame.title:SetPoint("TOPLEFT", frame, "TOPLEFT", PAD, 0)
-    frame.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+    frame.title:SetPoint("TOPLEFT", frame, "TOPLEFT", PAD, -CARD_PAD)
+    frame.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PAD, -CARD_PAD)
     frame.title:SetHeight(TITLE_HEIGHT)
     frame.fade = motion.Tween(frame, 0, 1, FADE_SECONDS)
     frame:RegisterForClicks("LeftButtonUp")
@@ -124,9 +133,9 @@ end
 
 local function createLine(frame, index)
     local line = CreateFrame("Frame", nil, frame)
-    local top = -(TITLE_HEIGHT + (index - 1) * LINE_HEIGHT)
+    local top = -(CARD_PAD + TITLE_HEIGHT + (index - 1) * LINE_HEIGHT)
     line:SetPoint("TOPLEFT", frame, "TOPLEFT", PAD, top)
-    line:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, top)
+    line:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PAD, top)
     line:SetHeight(LINE_HEIGHT)
     line.flash = flatTexture(line, "BACKGROUND", WHITE)
     line.flash:SetAllPoints(line)
@@ -134,7 +143,11 @@ local function createLine(frame, index)
     line.flashAnim = motion.Tween(line.flash, FLASH_ALPHA, 0, FLASH_SECONDS)
     line:HookScript("OnHide", function() motion.Stop(line.flashAnim) end)
     line.text = text(line, "small", "LEFT")
-    line.text:SetAllPoints(line)
+    line.marker = line:CreateTexture(nil, "OVERLAY")
+    line.marker:SetSize(8, 8)
+    line.marker:SetPoint("LEFT", line, "LEFT", 0, 0)
+    line.text:SetPoint("LEFT", line.marker, "RIGHT", 5, 0)
+    line.text:SetPoint("RIGHT", line, "RIGHT", 0, 0)
     return line
 end
 
@@ -151,7 +164,7 @@ local function displayLines(quest)
     local lines = {}
     for index, objective in ipairs(quest.objectives) do
         if not objective.finished or not core.Profile.questtracker.hideCompleted then
-            lines[#lines + 1] = { text = "- " .. objective.text, color = objective.finished and FINISHED_COLOR or OBJECTIVE_COLOR,
+            lines[#lines + 1] = { text = objective.text, color = objective.finished and FINISHED_COLOR or OBJECTIVE_COLOR,
                 key = index, finished = objective.finished == true }
         end
     end
@@ -184,6 +197,9 @@ local function fillLines(frame, lines, previous, animate)
     for index, entry in ipairs(lines) do
         local line = frame.lines[index] or createLine(frame, index)
         frame.lines[index] = line
+        line.marker:SetTexture(entry.finished and media.checked or media.IconPath("minus"))
+        line.marker:SetVertexColor(unpack(entry.finished and COMPLETE_COLOR or FINISHED_COLOR))
+        line.marker:SetShown(entry.key ~= nil)
         line.text:SetText(entry.text)
         line.text:SetTextColor(unpack(entry.color))
         line:Show()
@@ -197,7 +213,7 @@ local function fillLines(frame, lines, previous, animate)
         texts[key] = { text = entry.text, finished = entry.finished }
     end
     for index = #lines + 1, #frame.lines do frame.lines[index]:Hide() end
-    frame:SetHeight(TITLE_HEIGHT + #lines * LINE_HEIGHT)
+    frame:SetHeight(CARD_PAD * 2 + TITLE_HEIGHT + #lines * LINE_HEIGHT)
     return texts
 end
 

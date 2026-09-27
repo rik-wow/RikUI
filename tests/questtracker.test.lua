@@ -107,14 +107,16 @@ return function(check)
             first.title.text == "[12] Wolves at the Door" and first.title.fontPath == RikUI.Media.font
             and first.title.textColor[1] == 0.12 and first.title.wordWrap == false)
         check("objectives render one truncated line each with finished ones dimmed",
-            first.lines[1].text.text == "- Wolves slain: 3/8" and first.lines[2].text.text == "- Pelts: 8/8"
+            first.lines[1].text.text == "Wolves slain: 3/8" and first.lines[2].text.text == "Pelts: 8/8"
             and first.lines[2].text.textColor[1] < first.lines[1].text.textColor[1]
             and first.lines[1].text.wordWrap == false)
         check("the holder is 240px wide and as tall as the header and both blocks", holder.width == 240
-            and holder.height == 92 and first.height == 38 and second.height == 26)
+            and holder.height == 134 and first.height == 58 and second.height == 42)
         check("the header shows the label, the quest count and the collapse glyph on the flat plaque",
             view.Header.label.text == "Quests" and view.Header.count.text == "2" and view.Header.glyph.rikIcon == "chevron-down"
             and #view.Header.rikBorder == 4 and view.Header.rikBorder[1].texture == RikUI.Media.border)
+        check("quest cards show completion markers", first.backing and first.lines[1].marker
+            and first.lines[2].marker.texture == RikUI.Media.checked)
         check("blocks fade in when they first appear", first.fade.plays == 1 and second.fade.plays == 1)
 
         local unfinished
@@ -123,17 +125,17 @@ return function(check)
         end
         check("unfinished objectives preference exists", unfinished ~= nil)
         unfinished.set(true)
-        check("completed lines are removed and height shrinks", first.height == 26 and first.lines[2].shown == false)
+        check("completed lines are removed and height shrinks", first.height == 42 and first.lines[2].shown == false)
         GameTooltip.lines = {}
         env.runScript(first, "OnEnter")
         check("completed objectives remain accessible on hover", tooltipContains("Pelts: 8/8"))
         env.runScript(first, "OnLeave")
         unfinished.set(false)
-        check("disabling compact objectives restores all lines", first.height == 38 and first.lines[2].shown)
+        check("disabling compact objectives restores all lines", first.height == 58 and first.lines[2].shown)
         stub.quests[11].objectives[1][1] = "Wolves slain: 4/8"
         update()
         check("progress rewrites the objective and flashes only that line",
-            first.lines[1].text.text == "- Wolves slain: 4/8" and first.lines[1].flashAnim.plays == 1
+            first.lines[1].text.text == "Wolves slain: 4/8" and first.lines[1].flashAnim.plays == 1
             and first.lines[2].flashAnim.plays == 0 and first.fade.plays == 1)
         local reads = stub.reads
         env.fire("QUEST_LOG_UPDATE")
@@ -150,13 +152,14 @@ return function(check)
         check("unchanged completed objective stays quiet", second.lines[1].flashAnim.plays == 1)
         stub.quests[22].objectives[1][2] = false
         update()
+        check("reopened objective resets pooled completion glyph", second.lines[1].marker.texture == RikUI.Media.IconPath("minus"))
         check("reopened objective restores white progress feedback", second.lines[1].flash.color[1] == 1)
         stub.quests[11].complete = true
         stub.quests[11].objectives[1] = { "Wolves slain: 8/8", true }
         update()
         check("a complete quest shrinks to a green title and a ready line", first.title.textColor[2] > 0.8
             and first.title.textColor[1] < 0.5 and first.lines[1].text.text == "Ready to turn in"
-            and first.lines[2].shown == false and first.height == 26 and holder.height == 80)
+            and first.lines[2].shown == false and first.height == 42 and holder.height == 118)
         check("completing a quest flashes its accent once", first.accentAnim.plays == 1
             and first.accent.color[2] > 0.8)
         update()
@@ -176,7 +179,7 @@ return function(check)
         stub.watches = { 22, 33 }
         update("QUEST_WATCH_LIST_CHANGED")
         check("an unwatched quest leaves and the list closes up", view.Blocks[1].questID == 22
-            and view.Blocks[2].questID == 33 and view.Blocks[3].shown == false and holder.height == 18 + 4 + 26 + 6 + 26)
+            and view.Blocks[2].questID == 33 and view.Blocks[3].shown == false and holder.height == 24 + 4 + 42 + 6 + 42)
 
         local ready
         for _, setting in ipairs(module.Options.settings) do
@@ -197,16 +200,16 @@ return function(check)
         local group = RikUI.Layout.Groups.questtracker
         check("the list registers as a frame that grows downward and listens for its room",
             group.grow == "DOWN" and type(group.onLimit) == "function" and group.label == "Quest tracker")
-        group.onLimit(70 - holder.height)
-        check("a list capped at 70 shows the quests that fit and says how many are hidden",
+        group.onLimit(92 - holder.height)
+        check("a list capped at 92 shows the quests that fit and says how many are hidden",
             view.Blocks[1].shown == true and view.Blocks[2].shown == false and view.More.shown == true
-            and view.More.text == "+1 more" and holder.height == 18 + 4 + 26 + 6 + 14
+            and view.More.text == "+1 more" and holder.height == 24 + 4 + 42 + 6 + 14
             and view.Header.count.text == "2")
         group.onLimit(200 - holder.height)
         check("with room again every quest shows and the line goes", view.Blocks[2].shown == true
-            and view.More.shown == false and holder.height == 80)
+            and view.More.shown == false and holder.height == 118)
         group.onLimit(nil)
-        check("a client that reports no room leaves the list uncapped", view.Blocks[2].shown == true and holder.height == 80)
+        check("a client that reports no room leaves the list uncapped", view.Blocks[2].shown == true and holder.height == 118)
 
         env.click(view.Blocks[1])
         check("clicking a quest opens it in the quest log", stub.opened[1] == 22 and #stub.removed == 0)
@@ -227,29 +230,29 @@ return function(check)
         local beforeExpand = view.Blocks[1].fade.plays
         env.click(view.Header)
         check("clicking the header collapses the list to the header and remembers it",
-            view.Blocks[1].shown == false and holder.height == 18 and view.Header.glyph.rikIcon == "chevron-right"
+            view.Blocks[1].shown == false and holder.height == 24 and view.Header.glyph.rikIcon == "chevron-right"
             and RikUI.Profile.questtracker.collapsed == true and view.Header.count.text == "2")
         env.click(view.Header)
         check("clicking it again expands the list with a fade", view.Blocks[1].shown == true
-            and holder.height > 18 and RikUI.Profile.questtracker.collapsed == false
+            and holder.height > 24 and RikUI.Profile.questtracker.collapsed == false
             and view.Blocks[1].fade.plays == beforeExpand + 1)
 
         local combatSetting = module.Options.settings[1]
         combatSetting.set(true)
         env.inCombat = true
         env.fire("PLAYER_REGEN_DISABLED")
-        check("combat collapse keeps header and saved preference", holder.height == 18 and not RikUI.Profile.questtracker.collapsed)
+        check("combat collapse keeps header and saved preference", holder.height == 24 and not RikUI.Profile.questtracker.collapsed)
         env.click(view.Header)
-        check("header can temporarily reveal quests during combat", holder.height > 18 and not RikUI.Profile.questtracker.collapsed)
+        check("header can temporarily reveal quests during combat", holder.height > 24 and not RikUI.Profile.questtracker.collapsed)
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
-        check("combat end restores expanded preference", holder.height > 18)
+        check("combat end restores expanded preference", holder.height > 24)
         RikUI.Profile.questtracker.collapsed = true
         env.inCombat = true
         env.fire("PLAYER_REGEN_DISABLED")
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
-        check("combat end preserves manual collapse", holder.height == 18 and RikUI.Profile.questtracker.collapsed)
+        check("combat end preserves manual collapse", holder.height == 24 and RikUI.Profile.questtracker.collapsed)
         RikUI.Profile.questtracker.collapsed = false
         combatSetting.set(false)
 
@@ -277,7 +280,7 @@ return function(check)
 
         module = load({ questtracker = { collapsed = true } })
         check("a collapsed list stays collapsed after a reload", module.View.Blocks[1].shown == false
-            and module.Holder.height == 18 and module.View.Header.glyph.rikIcon == "chevron-right")
+            and module.Holder.height == 24 and module.View.Header.glyph.rikIcon == "chevron-right")
 
         module = load(nil, true)
         check("a combat login builds nothing and parks nothing", module.Holder == nil
@@ -306,11 +309,11 @@ return function(check)
         assert(loadfile("src/modules/questplanner/quest-view.lua"))("RikUI", {})
         stub.watches={}
         update()
-        check("planner guidance remains available with no watched quests",module.Holder:IsShown() and module.Holder.height>18)
+        check("planner guidance remains available with no watched quests",module.Holder:IsShown() and module.Holder.height>24)
         env.click(module.View.Header)
-        check("collapsed planner keeps a clickable header with no watches",module.Holder:IsShown() and module.Holder.height==18)
+        check("collapsed planner keeps a clickable header with no watches",module.Holder:IsShown() and module.Holder.height==24)
         env.click(module.View.Header)
-        check("unwatched planner can expand again",module.Holder:IsShown() and module.Holder.height>18)
+        check("unwatched planner can expand again",module.Holder:IsShown() and module.Holder.height>24)
 
         module = load({ questtracker = { readyFirst = true } })
         stub.quests[11].complete = true
@@ -382,7 +385,7 @@ return function(check)
             check("zero cap restores all quest blocks", module.View.Blocks[2].shown and not module.View.More.shown)
             limitSetting.set(1)
             env.click(module.View.Header)
-            check("collapse hides overflow line", not module.View.More.shown and module.Holder.height == 18)
+            check("collapse hides overflow line", not module.View.More.shown and module.Holder.height == 24)
         end
         check("out of bounds cap rejected in sharing", not pcall(RikUI.ProfileSchema.Project, {questtracker={maxVisible=26}}))
 
