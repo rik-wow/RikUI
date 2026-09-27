@@ -123,6 +123,19 @@ function skin.WindowChrome(owner, headerHeight, footerHeight)
     return chrome
 end
 
+-- Decorative controls are cached separately from input and hover/press handlers.
+local buttons = setmetatable({}, { __mode = "k" })
+function skin.ButtonSurface(owner, primary)
+    local surface = buttons[owner]
+    if surface then return surface end
+    surface = { fill = skin.Fill(owner, primary and { 0.08, 0.24, 0.32, 1 } or skin.CONTROL, 1) }
+    surface.edge = skin.Outline(owner, primary and { 0.3, 0.58, 0.7, 1 } or skin.LINE)
+    surface.light = line(owner, owner, "TOPLEFT", "TOPRIGHT", 1, { 0.28, 0.34, 0.4, 0.75 }, "BORDER")
+    surface.shade = line(owner, owner, "BOTTOMLEFT", "BOTTOMRIGHT", 1, { 0.02, 0.03, 0.045, 1 }, "BORDER")
+    buttons[owner] = surface
+    return surface
+end
+
 -- Contrast plates follow the native string's bounds. Call again after native setup/reuse.
 local textPlates = setmetatable({}, { __mode = "k" })
 function skin.TextPlate(owner, region, color, padding, layer)

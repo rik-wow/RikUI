@@ -32,6 +32,7 @@ return function(check)
         local opened, reloads = nil, 0
         RikUI.Options = { Open = function(id) opened = id end }
         ReloadUI = function() reloads = reloads + 1 end
+        check("utility control has a reusable inset surface", shell.Launcher.surface and RikUI.Skin.ButtonSurface(shell.Launcher) == shell.Launcher.surface)
         check("one compact launcher and a closed flyout at login", shell.Launcher.width == 64 and not shell.Panel:IsShown())
         check("missing minimap uses a top-right fallback", shell.Launcher.point[1] == "TOPRIGHT" and shell.Launcher.point[2] == UIParent)
         check("only the flyout participates in Escape dismissal", UISpecialFrames[#UISpecialFrames] == "RikUIUtilityPanel")

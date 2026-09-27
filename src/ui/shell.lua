@@ -17,7 +17,7 @@ end
 function shell.Button(parent, label, click)
     local button = CreateFrame("Button", nil, parent)
     button:SetHeight(ROW_HEIGHT)
-    skin.Fill(button, skin.CONTROL)
+    button.surface = skin.ButtonSurface(button)
     button.label = shell.Text(button, label)
     button.label:SetPoint("LEFT", button, "LEFT", 10, 0)
     button.label:SetPoint("RIGHT", button, "RIGHT", -10, 0)
@@ -132,7 +132,7 @@ function shell.Refresh()
                 frame.label:SetText(entryLabel(entry))
                 local enabled = not entry.warned and allowed(entry, "enabled")
                 frame:SetEnabled(enabled)
-                frame:SetAlpha(enabled and 1 or 0.4)
+                frame:SetAlpha(enabled and 1 or 0.6)
             end
         end
     end
