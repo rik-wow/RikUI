@@ -29,8 +29,9 @@ The adapter handles the auction addon's delayed loading, native tab changes,
 recycled result rows and display-size changes. Repeated refreshes preserve
 unchanged control anchors and leave subsequent form layout to the native
 controllers, so showing a pooled row does not restart the whole layout.
-Visual updates defer during
-combat. Protected and forbidden frames are skipped.
+Visual updates defer during combat. Protected and forbidden frames are skipped.
+Native tooltips appear immediately: the auction controller periodically hides
+and rebuilds them while hovered, so a repeated entry fade would cause flicker.
 
 ## Implementation and evidence
 
@@ -48,6 +49,12 @@ The auction frame, Mainline item-list/table templates, selling layouts,
 category setup and
 [shared scroll implementation](https://github.com/Gethe/wow-ui-source/tree/forever/Interface/AddOns/Blizzard_SharedXML/Shared/Scroll)
 establish the native frame structure and lifecycle used here.
+
+The tooltip refresh fix follows the current
+[auction tooltip builder](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_AuctionHouseUI/Mainline/Blizzard_AuctionHouseUtil.lua)
+and [GameTooltip update handler](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_GameTooltip/Mainline/GameTooltip.lua):
+periodic owner updates hide and rebuild the tooltip. The regression replays
+this cycle and checks opacity, updated contents, ownership and actual hiding.
 
 The automated fixture checks anchor separation, small-screen scaling,
 preserved values and handlers, disabled controls, confirmation state, result

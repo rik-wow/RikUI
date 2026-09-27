@@ -47,7 +47,12 @@ end
 
 function stub.tooltip(name)
     local tip = CreateFrame("GameTooltip", name, UIParent)
-    function tip:CreateAnimationGroup() return require("widget_stub").animationGroup() end
+    tip.animationGroups = {}
+    function tip:CreateAnimationGroup()
+        local group = require("widget_stub").animationGroup()
+        self.animationGroups[#self.animationGroups + 1] = group
+        return group
+    end
     tip.scale = 1
     function tip:GetScale() return self.scale end
     function tip:SetScale(value) self.scale = value end
@@ -74,6 +79,16 @@ function stub.tooltip(name)
     local hide = tip.Hide
     function tip:Hide() hide(self); self.StatusBar:ClearWatch() end -- GameTooltip_OnHide clears the watch
     return tip
+end
+
+-- Sample the first rendered opacity after Show, including an active alpha animation.
+function stub.visibleAlpha(tip)
+    if not tip:IsShown() then return 0 end
+    local alpha = rawget(tip, "alpha") or 1
+    for _, group in ipairs(tip.animationGroups) do
+        if group:IsPlaying() and group.animation.kind == "Alpha" then alpha = group.animation.from end
+    end
+    return alpha
 end
 
 -- Replaces the tooltip's lines the way a native SetUnit/SetItem would before post-calls run.

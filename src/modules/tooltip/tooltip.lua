@@ -98,7 +98,8 @@ local function skin(frame)
     frame.rikAccent:SetHeight(2)
     applyScale(frame)
     frame:HookScript("OnShow", applyScale)
-    core.Motion.BindEntrance(frame)
+    -- Native refreshes (including auction owner.UpdateTooltip) hide/show the same tooltip.
+    -- An entry fade would restart from transparent on every refresh.
     tooltip.Skinned[frame] = true
     tooltip.HideBackdrop(frame)
 end

@@ -9,6 +9,8 @@ tagging.
 
 ## Unreleased
 
+- Removed the fade-in from native tooltips. Auction rows periodically hide and rebuild their tooltip while hovered; replaying the fade on each rebuild caused persistent flickering even with a stable layout.
+
 - Fixed auction tooltip flicker from repeated presentation refreshes. Stable control anchors stay attached, native forms are laid out once by the skin, and pooled-row shows no longer queue a whole-window refresh.
 
 - Rebuilt the auction house layout with top navigation, a wide search bar, category sidebar, larger result tables, separate selling and comparison areas, and clearer auction/bid management. Dark cards, selection rails and readable status messages follow the native controls; search, prices, transactions and confirmations keep the game's existing backend.

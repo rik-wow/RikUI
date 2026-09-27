@@ -105,10 +105,26 @@ return function(check)
 
         tip:Hide()
         tip:Show()
-        check("tooltips fade on show", tip.rikEntry.plays == 1)
+        check("native tooltips appear at full opacity", stub.visibleAlpha(tip) == 1)
+        -- Auction owner.UpdateTooltip hides and rebuilds periodically while the pointer is still.
+        local row, refreshes = CreateFrame("Button"), 0
+        row.UpdateTooltip = function(self)
+            refreshes = refreshes + 1
+            tip:Hide()
+            tip:SetOwner(self, "ANCHOR_RIGHT")
+            tip.lines = {}
+            tip:AddLine("Current price " .. refreshes, 1, 1, 1)
+            tip:Show()
+        end
+        local nativeUpdate = row.UpdateTooltip
+        for _ = 1, 6 do
+            row:UpdateTooltip()
+            check("periodic auction rebuild stays fully visible", stub.visibleAlpha(tip) == 1)
+        end
+        check("native tooltip refresh retains ownership and updated content", tip:GetOwner() == row
+            and lastLine(tip).text == "Current price 6" and row.UpdateTooltip == nativeUpdate)
         tip:Hide()
-        check("tooltip hiding cancels entry without delaying native hide", not tip.rikEntry:IsPlaying()
-            and not tip:IsShown())
+        check("native mouse leave still hides immediately", not tip:IsShown() and stub.visibleAlpha(tip) == 0)
         local bar = tip.StatusBar
         stub.setLines(tip, { "Boar", "Level 5 Beast" })
         stub.process("Unit", tip, { guid = "Creature-0-1" })
