@@ -23,6 +23,12 @@ jobs:
       - name: Test Worker request and storage boundaries
         working-directory: web
         run: npm test
+      - name: Install browser for interface checks
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+      - name: Verify responsive interface and keyboard controls
+        working-directory: web
+        run: npm run test:browser
       - name: Validate Worker bundle
         working-directory: web
         run: npm run check

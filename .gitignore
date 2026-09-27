@@ -26,3 +26,5 @@ __pycache__/
 /web/worker-configuration.d.ts
 /web/.dev.vars
 /web/.env
+/web/test-results/
+/web/playwright-report/

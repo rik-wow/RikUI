@@ -1,41 +1,36 @@
+import { mark, icon, combat, quests, setup, inspector } from "./previews.mjs";
 export const page = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="RikUI: a dark, modular interface for WoW Forever. Explore the project, read the guide, and follow its development.">
-<meta name="theme-color" content="#141916"><title>Rik — Tools for the long adventure</title>
-<link rel="canonical" href="https://rikwow.com/"><link rel="stylesheet" href="/site.css">
-</head>
-<body>
-<a class="skip" href="#main">Skip to content</a>
-<header><a class="wordmark" href="/" aria-label="Rik home">rik<span>•</span></a>
-<nav aria-label="Main navigation"><a href="#rikui">RikUI</a><a href="https://github.com/rik-wow/RikUI#readme">Guide</a><a href="https://github.com/rik-wow">GitHub ↗</a></nav></header>
-<main id="main">
-<section class="hero">
-<div class="eyebrow"><span class="dot"></span> INDEPENDENT TOOLS FOR WOW FOREVER</div>
-<h1>Make room<br>for the <em>adventure.</em></h1>
-<p class="intro">A considered interface. Useful tools.<br>Built for the world you keep coming back to.</p>
-<a class="button" href="#rikui">Explore RikUI <span aria-hidden="true">↓</span></a>
-<div class="terrain" aria-hidden="true"><svg viewBox="0 0 600 600" fill="none">
-<g stroke="currentColor"><path d="M-20 530C80 590 65 400 200 430S420 330 400 220 540 150 630 180"/><path d="M-20 505C65 555 60 370 200 405S450 350 428 222 530 178 630 155"/><path d="M-20 480C40 520 50 335 190 375S478 370 458 223 520 202 630 130"/><path d="M-20 455C20 480 50 300 180 345S500 360 483 215 525 228 630 105"/><path d="M-20 420C30 430 30 270 170 310S520 340 507 203 550 210 630 80"/><path d="M-20 385C25 375 20 235 160 275S535 300 530 185 575 185 630 55"/><path d="M-20 350C30 340 0 210 160 240S550 260 550 155 600 150 630 30"/><path d="M-20 315C35 315-20 180 160 205S555 220 570 115 620 110 630 5"/><path d="M-20 280C20 290-25 155 145 168S550 180 580 80 640 85 630-20"/></g>
-<path class="trail" d="M100 475 208 390 270 412 363 321 337 237 453 142" stroke="currentColor" stroke-width="2" stroke-dasharray="3 8"/>
-<circle cx="100" cy="475" r="5" fill="currentColor"/><circle cx="453" cy="142" r="7" fill="currentColor"/>
-</svg><span class="map-label">TAKE THE SCENIC ROUTE</span></div>
-<div class="hero-foot"><span>01 / THE PROJECT</span><span>Open source. Made for players.</span></div>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RikUI — Your interface for WoW Forever</title>
+<meta name="description" content="A complete, modular interface for WoW Forever. Explore RikUI’s combat HUD, quest planner and setup tools.">
+<meta name="theme-color" content="#0c1016"><link rel="canonical" href="https://rikwow.com/">
+<link rel="stylesheet" href="/site.css"><script src="/site.js" defer></script></head>
+<body><a class="skip" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="/" aria-label="RikUI home">${mark}<span>Rik<span class="brand-ui">UI</span></span></a><span class="header-divider"></span><span class="for-forever">FOR WOW FOREVER</span>
+<nav aria-label="Main navigation"><a href="#interface">The interface</a><a href="#features">Features</a><a href="#install">Get started</a></nav><a class="source-link" href="https://github.com/rik-wow/RikUI">GitHub <span aria-hidden="true">↗</span></a></header>
+<main id="main"><section class="hero wrap" aria-labelledby="headline">
+<div class="hero-copy"><div class="eyebrow"><span class="status-dot"></span> RIKUI <span class="slash">/</span> FOREVER BETA</div><h1 id="headline">Your interface.<br><span>Rebuilt for Forever.</span></h1></div>
+<div class="hero-intro"><p>A complete UI for your next adventure.<br>Combat, questing and the everyday details,<br class="desktop-break"> brought into one consistent interface.</p><div class="hero-actions"><a class="button primary" href="#interface">Explore the interface ${icon('arrow')}</a><a class="quiet-link" href="#install">Get started <span>↗</span></a></div></div>
 </section>
-<section id="rikui" class="product">
-<div class="section-label">OUR FIRST PROJECT</div>
-<div class="product-grid"><div><div class="product-title"><h2>RikUI</h2><span class="badge">FOREVER BETA</span></div>
-<p class="lead">Your interface, brought together.</p><p>A flat, dark UI for WoW Forever. Action bars, unit frames, bags, maps, and chat share one visual language. Turn modules on or off and make the layout your own.</p>
-<div class="actions"><a class="button" href="https://github.com/rik-wow/RikUI">View the project <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/rik-wow/RikUI#first-login">Read the guide →</a></div>
-<p class="download-note">The Windows installer is being prepared for public download. Source and local build instructions are available now.</p>
-</div><div class="features">
-<article><span>01</span><div><h3>One place to look</h3><p>Cooldowns, resources, and cast timing sit together above your action bars.</p></div></article>
-<article><span>02</span><div><h3>Settle into your setup</h3><p>Choose a preset, review the changes, and apply the parts you want. Undo is built in.</p></div></article>
-<article><span>03</span><div><h3>Plan the next step</h3><p>Quest tracking and route guidance, with explicit coverage where supporting data is available.</p></div></article>
-</div></div>
-</section>
-<section class="closing"><span class="section-label">BUILT IN THE OPEN</span><h2>Follow along.<br>Help shape what comes next.</h2><a class="text-link" href="https://github.com/rik-wow/RikUI/issues">Ideas &amp; issues ↗</a></section>
-</main>
-<footer><a class="wordmark" href="/">rik<span>•</span></a><p>Independent community project.<br>Not affiliated with Blizzard Entertainment.</p><a href="https://github.com/rik-wow/RikUI/blob/main/LICENSE">License ↗</a></footer>
-</body></html>`;
+<section class="showcase wrap" id="interface" aria-labelledby="preview-heading">
+<div class="showcase-top"><h2 id="preview-heading">${mark} THE RIKUI INTERFACE</h2><span class="preview-disclosure">Illustrated previews · sample content</span></div>
+<div class="toolbar"><div class="tabs" role="tablist" aria-label="Interface previews">
+<button id="tab-combat" type="button" role="tab" aria-selected="true" aria-controls="panel-combat" data-view="combat">${icon('target')} Combat HUD</button>
+<button id="tab-quests" type="button" role="tab" aria-selected="false" aria-controls="panel-quests" tabindex="-1" data-view="quests">${icon('quest')} Quest planner</button>
+<button id="tab-setup" type="button" role="tab" aria-selected="false" aria-controls="panel-setup" tabindex="-1" data-view="setup">${icon('settings')} Setup</button></div>
+<div class="accent-picker" role="group" aria-label="Preview class accent"><span>CLASS COLOR</span>
+<button class="swatch mage" type="button" data-accent="mage" aria-label="Mage accent" aria-pressed="true"><i></i></button><button class="swatch warlock" type="button" data-accent="warlock" aria-label="Warlock accent" aria-pressed="false"><i></i></button><button class="swatch druid" type="button" data-accent="druid" aria-label="Druid accent" aria-pressed="false"><i></i></button><button class="swatch warrior" type="button" data-accent="warrior" aria-label="Warrior accent" aria-pressed="false"><i></i></button></div></div>
+<div class="preview-area" data-theme="mage">
+<div id="panel-combat" class="preview-panel" role="tabpanel" aria-labelledby="tab-combat" tabindex="0">${combat}${inspector('combat')}</div>
+<div id="panel-quests" class="preview-panel" role="tabpanel" aria-labelledby="tab-quests" tabindex="0" hidden>${quests}${inspector('quests')}</div>
+<div id="panel-setup" class="preview-panel" role="tabpanel" aria-labelledby="tab-setup" tabindex="0" hidden>${setup}${inspector('setup')}</div></div>
+<div class="showcase-footer"><span><i></i> DESIGNED AROUND YOUR CHARACTER</span><span>Modular. Movable. Yours.</span></div>
+<noscript><p class="no-script">The combat preview is shown above. Explore the <a href="https://github.com/rik-wow/RikUI/blob/main/docs/questplanner.md">quest planner</a> and <a href="https://github.com/rik-wow/RikUI/blob/main/docs/wizard.md">setup guide</a>.</p></noscript></section>
+<section class="features-section wrap" id="features" aria-labelledby="features-heading"><div class="section-heading"><div><span class="eyebrow">BEYOND THE ACTION BARS</span><h2 id="features-heading">The whole interface.<br>The same attention to detail.</h2></div><p>From the first pull to your last bag slot.<br>Enable the modules you want and arrange<br class="desktop-break"> them around the way you play.</p></div>
+<div class="feature-lines"><a href="https://github.com/rik-wow/RikUI/blob/main/docs/unitframes.md"><span class="feature-number">01</span>${icon('shield')}<div><h3>Unit frames &amp; nameplates</h3><p>Player, target, party and raid frames with clear health, power and aura displays.</p></div><span class="feature-arrow">↗</span></a>
+<a href="https://github.com/rik-wow/RikUI/blob/main/docs/bags.md"><span class="feature-number">02</span>${icon('spell')}<div><h3>Bags, loot &amp; the auction house</h3><p>Combined bags with search, readable loot cards and a dedicated auction interface.</p></div><span class="feature-arrow">↗</span></a>
+<a href="https://github.com/rik-wow/RikUI/blob/main/docs/chat.md"><span class="feature-number">03</span>${icon('settings')}<div><h3>All the little things</h3><p>Chat history, timestamps, a square minimap and consistent menus, tooltips and windows.</p></div><span class="feature-arrow">↗</span></a></div></section>
+<section class="setup-section" id="install" aria-labelledby="start-heading"><div class="wrap start-grid"><div><span class="eyebrow">START YOUR NEXT SESSION</span><h2 id="start-heading">A place for everything.<br>A setup of your own.</h2><p>RikUI is open source and in active development for WoW Forever. Start with the guide and build it locally.</p><a class="button primary" href="https://github.com/rik-wow/RikUI/blob/main/installer/README.md">Open the installation guide ${icon('arrow')}</a><p class="release-note"><span class="status-dot"></span> Public Windows installer coming later.<br>Source and local build instructions are available now.</p></div>
+<ol class="start-steps"><li><span>01</span><div><h3>Install RikUI</h3><p>Use the complete local build instructions, then enable RikUI in your AddOns list.</p></div></li><li><span>02</span><div><h3>Choose your starting point</h3><p>Open <code>/rik setup</code>. Pick a preset and review exactly what it will change.</p></div></li><li><span>03</span><div><h3>Make room for your habits</h3><p>Use <code>/rik move</code> to arrange frames and <code>/rik config</code> to choose your modules.</p></div></li></ol></div></section>
+<section class="faq wrap" aria-labelledby="faq-heading"><div><span class="eyebrow">BEFORE YOU LOG IN</span><h2 id="faq-heading">A few good questions.</h2></div><div class="faq-list"><details><summary>Which version of WoW is this for?<span>+</span></summary><p>RikUI targets the WoW Forever beta. It is not advertised as compatible with Retail, Classic Era or other clients.</p></details><details><summary>Will it change my keybindings?<span>+</span></summary><p>Installing RikUI alone does not change your bindings. Setup lets you review and choose which changes to apply. The last setup can be undone with <code>/rik undo</code>.</p></details><details><summary>Can I turn individual parts off?<span>+</span></summary><p>Yes. Choose modules in <code>/rik config</code>, move frames with <code>/rik move</code> and save different profiles. Some changes require a UI reload.</p></details><details><summary>Does quest guidance cover everything?<span>+</span></summary><p>Coverage depends on the installed quest and road data. Missing or unverified objectives, locations and paths remain explicit. See the <a href="https://github.com/rik-wow/RikUI/blob/main/docs/questplanner.md">coverage guide</a>.</p></details></div></section>
+</main><footer class="wrap"><a class="brand" href="/" aria-label="RikUI home">${mark}<span>Rik<span class="brand-ui">UI</span></span></a><p>Made for the way you play.<br><small>Independent project. Not affiliated with Blizzard Entertainment.</small></p><div><a href="https://github.com/rik-wow/RikUI">Source ↗</a><a href="https://github.com/rik-wow/RikUI/issues">Feedback ↗</a><a href="https://github.com/rik-wow/RikUI/blob/main/LICENSE">License ↗</a></div></footer></body></html>`;

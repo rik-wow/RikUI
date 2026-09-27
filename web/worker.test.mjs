@@ -7,7 +7,10 @@ const request = (path, options) => new Request("https://rikwow.com" + path, opti
 test("site, CSS, manifest, redirects, and method boundaries", async () => {
   const home = await worker.fetch(request("/"), {});
   assert.equal(home.status, 200);
-  assert.match(await home.text(), /<h1>Make room/);
+  assert.match(await home.text(), /Your interface\./);
+  const script = await worker.fetch(request("/site.js"), {});
+  assert.match(script.headers.get("Content-Type"), /text\/javascript/);
+  assert.match(await script.text(), /ArrowRight/);
   assert.match(home.headers.get("Content-Security-Policy"), /default-src 'none'/);
   const css = await worker.fetch(request("/site.css"), {});
   assert.match(css.headers.get("Content-Type"), /text\/css/);

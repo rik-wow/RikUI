@@ -28,8 +28,9 @@ flowchart LR
     Build -. "publish after release review" .-> Releases
 ```
 
-One small Worker serves HTML/CSS without browser JavaScript and a versioned
-release catalog. It binds only the releases bucket. The source bucket has no
+One small Worker serves HTML/CSS, a small same-origin script for interactive
+interface previews, and a versioned release catalog. The [website design
+notes](website-design.md) record the research and addon-specific visual direction. It binds only the releases bucket. The source bucket has no
 public route or Worker binding. No database, queue or always-on server is
 needed for the current workload. Add D1 for collaborative fact review only
 when there is an actual write workflow; static provider snapshots belong in R2.
@@ -74,10 +75,11 @@ Verify GET, HEAD, ranges and digest against production. For a bad release,
 remove its catalog entry and redeploy; preserve artifacts for diagnosis.
 Roll back website code by deploying the preceding reviewed commit.
 
-Verification includes Node request/storage tests, Wrangler dry run, live HTTPS
-checks and rendered desktop/mobile screenshots. Logging samples 10% of Worker
-requests and emits sanitized structured errors. Response headers restrict
-scripts, framing and browser permissions. CPU limit is 10 ms per request.
+Verification includes Node request/storage tests, Playwright browser checks
+at five viewport widths, Wrangler dry run, live HTTPS checks and reviewed
+desktop/mobile screenshots. Logging samples 10% of Worker
+requests and emits sanitized structured errors. Response headers restrict scripts to the same origin and block framing and
+unneeded browser permissions. CPU limit is 10 ms per request.
 Domain cost does not include future metered Worker/R2 usage; no additional
 paid product subscription was purchased.
 

@@ -4,11 +4,13 @@
   "type": "module",
   "scripts": {
     "test": "node --test worker.test.mjs",
+    "test:browser": "playwright test",
     "check": "wrangler deploy --dry-run",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "wrangler": "4.142.0"
   }
 }
