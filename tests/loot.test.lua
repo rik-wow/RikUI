@@ -225,6 +225,11 @@ return function(check)
             and roll.IconFrame.Border.alpha == 0 and #roll.rikBorder == 4 and #module.SkinnedRolls == 4)
         check("the roll timer and item name take the skin media", roll.Timer.barTexture == RikUI.Media.statusbar
             and roll.Name.fontPath == RikUI.Media.font)
+        check("roll cards have layered chrome and a timer track", roll.rikChrome and roll.Timer.rikTrack)
+        local chrome, border = roll.rikChrome, roll.IconFrame.rikBorder
+        module.SkinRolls()
+        check("repeated roll skinning reuses regions and registry", roll.rikChrome == chrome
+            and roll.IconFrame.rikBorder == border and #module.SkinnedRolls == 4)
         env.click(roll.NeedButton)
         check("the roll buttons keep their handlers", stub.rolled == 1)
 

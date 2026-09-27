@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Group loot rolls now have layered card chrome, cropped item icons with inset backing and dark outlined countdown tracks. Repeated skinning reuses regions and preserves native roll handlers.
+
 - XP and reputation captions now have dark backing above an exposed progress edge. The backing follows compact/text settings, and 10% ticks follow the row width when resized.
 
 - Timed quests now use recessed countdown badges with room for hours, bounded quest titles and steady urgency rails that remain visible with reduced motion.
