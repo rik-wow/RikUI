@@ -13,6 +13,16 @@ return function(check)
         PTR_IssueReporter = nil
         widgets.loadAddon(env, files)
         local shell, layout = RikUI.Shell, RikUI.Layout
+        local chrome = shell.Panel.chrome
+        check("utility title has a separate inset header", chrome and chrome.header.height == 44)
+        if chrome then
+            local again = RikUI.Skin.WindowChrome(shell.Panel, 52, 20)
+            check("window chrome updates without accumulating regions", again == chrome
+                and chrome.header.height == 52 and chrome.footer.height == 20)
+            RikUI.Skin.WindowChrome(shell.Panel, 44)
+            check("removing a footer clears its backing and rule", not chrome.footer:IsShown()
+                and not chrome.footerRule:IsShown())
+        end
         local party = RikUI.UnitFrames.Party
         party.Holder = CreateFrame("Frame", nil, UIParent)
         RikUI.UnitFrames.enabled = true

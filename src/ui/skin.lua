@@ -78,6 +78,37 @@ function skin.Outline(owner, color, inset, target, layer)
     return lines
 end
 
+-- Layered furniture for addon-owned windows. Repeated layout calls reuse every region.
+local windows = setmetatable({}, { __mode = "k" })
+local HEADER_FILL, FOOTER_FILL = { 0.095, 0.115, 0.15, 1 }, { 0.045, 0.055, 0.075, 1 }
+local function windowBand(owner, color, top)
+    local band = owner:CreateTexture(nil, "BACKGROUND", nil, -7)
+    band:SetTexture(skin.FLAT)
+    band:SetVertexColor(unpack(color))
+    band:SetPoint(top and "TOPLEFT" or "BOTTOMLEFT", owner, top and "TOPLEFT" or "BOTTOMLEFT", 1, top and -1 or 1)
+    band:SetPoint(top and "TOPRIGHT" or "BOTTOMRIGHT", owner, top and "TOPRIGHT" or "BOTTOMRIGHT", -1, top and -1 or 1)
+    return band
+end
+
+function skin.WindowChrome(owner, headerHeight, footerHeight)
+    local chrome = windows[owner]
+    if not chrome then
+        chrome = { fill = skin.Fill(owner), edge = skin.Outline(owner) }
+        chrome.header = windowBand(owner, HEADER_FILL, true)
+        chrome.footer = windowBand(owner, FOOTER_FILL, false)
+        chrome.headerRule = line(owner, chrome.header, "BOTTOMLEFT", "BOTTOMRIGHT", 0, skin.LINE, "BORDER")
+        chrome.footerRule = line(owner, chrome.footer, "TOPLEFT", "TOPRIGHT", 0, skin.LINE, "BORDER")
+        windows[owner] = chrome
+    end
+    chrome.header:SetHeight(math.max(1, headerHeight or 1))
+    chrome.footer:SetHeight(math.max(1, footerHeight or 1))
+    chrome.header:SetShown((headerHeight or 0) > 0)
+    chrome.headerRule:SetShown((headerHeight or 0) > 0)
+    chrome.footer:SetShown((footerHeight or 0) > 0)
+    chrome.footerRule:SetShown((footerHeight or 0) > 0)
+    return chrome
+end
+
 function skin.Font(region, role)
     if skin.IsRegion(region) and type(region.SetFont) == "function" then media.Font(region, role) end
 end

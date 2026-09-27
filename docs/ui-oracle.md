@@ -1,5 +1,11 @@
 # UI oracle
 
+## Additional visual polish — September 2026
+
+- Utility windows use a distinct slate header, inset rules and reusable window chrome.
+  Native appearance is accepted by the user; automated geometry and lifecycle checks cover the changes.
+
+
 Every GUI surface a Forever player can see, how RikUI handles it today, how far
 it is from the target, what it depends on and which roadmap chunk moves it
 forward. The rule this file serves: nothing stays stock, and every surface ends
