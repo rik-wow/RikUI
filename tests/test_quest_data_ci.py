@@ -44,6 +44,20 @@ class RefreshTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 export_forever.verify_checkout(Path("."), "a" * 40)
 
+    def test_export_backend_failure_preserves_error_and_working_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            provider = root / "provider"
+            provider.mkdir()
+            before = Path.cwd()
+            with mock.patch.object(export_forever, "verify_checkout"), \
+                    mock.patch.object(export_forever, "source_manifest", return_value=[]), \
+                    mock.patch.object(export_forever, "execute_export", side_effect=RuntimeError("backend failure")):
+                with self.assertRaisesRegex(RuntimeError, "backend failure"):
+                    export_forever.export_provider(provider, root / "data.json", Path(__file__), lua_command="lua5.1")
+            self.assertEqual(Path.cwd(), before)
+            self.assertFalse((root / "data.json").exists())
+
     def test_dynamic_provider_provenance_is_retained(self):
         data = {"schemaVersion": 1, "provider": {"revision": "a" * 40, "flavor": "Forever"},
                 "base": {key: {} for key in quest_corpus.KINDS}, "variants": []}

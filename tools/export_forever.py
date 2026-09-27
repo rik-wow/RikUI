@@ -101,8 +101,27 @@ def replace_bytes(path: Path, data: bytes) -> None:
         candidate.unlink(missing_ok=True)
 
 
+def execute_export(root, exporter, candidate, revision, lua_command=None):
+    if lua_command:
+        subprocess.run([lua_command, "-e", "assert(_VERSION == 'Lua 5.1')"], check=True)
+        subprocess.run([lua_command, str(exporter), str(candidate), revision], cwd=root, check=True)
+        return
+    if importlib.metadata.version("lupa") != LUPA_VERSION:
+        raise RuntimeError(f"Reproducible export requires lupa=={LUPA_VERSION}")
+    from lupa.lua51 import LuaRuntime
+    lua = LuaRuntime()
+    lua.globals().arg = lua.table_from({0: str(exporter), 1: str(candidate), 2: revision})
+    initial_cwd = Path.cwd()
+    os.chdir(root)
+    try:
+        lua.execute("dofile(arg[0])")
+    finally:
+        os.chdir(initial_cwd)
+
+
 def export_provider(source_root: Path, output: Path, lua_exporter: Path,
-                    manifest_path: Path | None = None, reuse: bool = False, revision: str = SUPPORTED_REVISION) -> dict[str, Any]:
+                    manifest_path: Path | None = None, reuse: bool = False, revision: str = SUPPORTED_REVISION,
+                    lua_command: str | None = None) -> dict[str, Any]:
     root, output, lua_exporter = source_root.resolve(), output.resolve(), lua_exporter.resolve()
     manifest_path = (manifest_path or output.with_suffix(".manifest.json")).resolve()
     if output == manifest_path:
@@ -116,31 +135,22 @@ def export_provider(source_root: Path, output: Path, lua_exporter: Path,
     inputs = source_manifest(root)
     header = {"schemaVersion": 1, "repository": "https://github.com/Questie/QuestieDB",
               "revision": revision, "flavor": "Forever",
-              "luaImplementation": "stock Lua 5.1 via lupa.lua51", "lupaVersion": LUPA_VERSION,
+              "luaImplementation": "stock Lua 5.1 executable" if lua_command else "stock Lua 5.1 via lupa.lua51",
+              "lupaVersion": None if lua_command else LUPA_VERSION,
               "luaExporterSha256": digest(lua_exporter), "wrapperSha256": digest(Path(__file__)), "inputs": inputs}
     if reuse and output.is_file() and manifest_path.is_file():
         previous = json.loads(manifest_path.read_text(encoding="utf-8"))
         if (all(previous.get(key) == value for key, value in header.items())
                 and previous.get("exportSha256") == digest(output)):
             return previous
-    if importlib.metadata.version("lupa") != LUPA_VERSION:
-        raise RuntimeError(f"Reproducible export requires lupa=={LUPA_VERSION}")
-    from lupa.lua51 import LuaRuntime
     output.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=output.name + ".", suffix=".candidate", dir=output.parent)
     os.close(descriptor)
     candidate = Path(temporary)
     candidate.unlink()
-    initial_cwd = Path.cwd()
     try:
-        lua = LuaRuntime()
-        lua.globals().arg = lua.table_from({0: str(lua_exporter), 1: str(candidate), 2: revision})
-        os.chdir(root)
-        try:
-            lua.execute("dofile(arg[0])")
-        finally:
-            os.chdir(initial_cwd)
+        execute_export(root, lua_exporter, candidate, revision, lua_command)
         with candidate.open(encoding="utf-8") as stream:
             data = json.load(stream)
         if (set(data["counts"]) != set(EXPECTED_COUNTS) or any(not isinstance(n, int) or n <= 0 for n in data["counts"].values())
@@ -165,7 +175,6 @@ def export_provider(source_root: Path, output: Path, lua_exporter: Path,
         replace_bytes(manifest_path, stable_json(manifest))
         return manifest
     finally:
-        os.chdir(initial_cwd)
         candidate.unlink(missing_ok=True)
         Path(str(candidate) + ".tmp").unlink(missing_ok=True)
 
@@ -177,10 +186,11 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--lua-exporter", type=Path, default=Path(__file__).with_suffix(".lua"))
     parser.add_argument("--reuse", action="store_true")
+    parser.add_argument("--lua-command", help="Stock Lua 5.1 executable; otherwise use lupa.lua51")
     parser.add_argument("--revision", default=SUPPORTED_REVISION, help="Resolved provider HEAD for this acquisition")
     options = parser.parse_args()
     result = export_provider(options.source_root, options.output, options.lua_exporter,
-                             options.manifest, options.reuse, options.revision)
+                             options.manifest, options.reuse, options.revision, options.lua_command)
     print(json.dumps({"exportSha256": result["exportSha256"], "counts": result["counts"],
                       "inputFiles": len(result["inputs"]), "personaCount": result["personaCount"]}, sort_keys=True))
 

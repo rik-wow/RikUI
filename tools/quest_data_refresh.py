@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -138,7 +139,7 @@ def build(work, dist, previous):
     events = checkout(work, "events", inputs["events"])
     export = work / "provider.json"
     export_forever.export_provider(provider, export, Path(__file__).with_name("export_forever.lua"),
-                                   revision=inputs["provider"]["revision"])
+                                   revision=inputs["provider"]["revision"], lua_command=shutil.which("lua5.1"))
     folder = work / "corpus"
     manifest = corpus.build(export, folder, client_index=work / "QuestV2.csv",
                             provider_manifest=export.with_suffix(".manifest.json"),

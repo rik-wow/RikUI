@@ -42,8 +42,7 @@ jobs:
         if: steps.probe.outputs.changed == 'true'
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y luajit
-          python -m pip install --disable-pip-version-check lupa==2.8
+          sudo apt-get install -y luajit lua5.1
       - name: Check compiler and updater regressions
         if: steps.probe.outputs.changed == 'true'
         run: python -B -m unittest discover -s tests -p 'test_quest*.py'
