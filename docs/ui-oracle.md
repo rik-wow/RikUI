@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Castbars now separate long spell names from bounded countdown columns, with dark text backing. Hiding time text immediately returns its space to the name, and resizing recomputes the reservation.
+
 - Bag slots now show free capacity on dark inset badges. Full bags gain red counts and borders; absent, invalid or unreadable counts clear both the badge and warning.
 
 - Quest tracking now uses padded cards, taller objective rows, completion checkmarks and an inset icon header. Long text stays bounded, and the existing height limit still reserves the overflow summary.

@@ -20,6 +20,8 @@ return function(check)
             if key:match("^[A-Z]") then return methods(t, key) end
         end })
         function value:SetTexture(texture) self.texture = texture end
+        function value:SetWidth(width) self.width = width end
+        function value:SetWordWrap(wrap) self.wordWrap = wrap end
         function value:SetSize(width, height) self.width, self.height = width, height end
         function value:SetTexCoord(...) self.coords = { ... } end
         function value:SetColorTexture(...) self.color = { ... } end
@@ -43,6 +45,7 @@ return function(check)
             if key:match("^[A-Z]") then return methods(t, key) end
         end })
         function frame:SetAttribute(key, value) protected(); self.attributes[key] = value end
+        function frame:GetWidth() return self.width or 0 end
         function frame:SetSize(w, h) protected(); self.width, self.height = w, h end
         function frame:SetPoint(...) protected(); self.point = { ... } end
         function frame:ClearAllPoints() protected() end
@@ -143,6 +146,8 @@ return function(check)
         check("castbars are plain frames with a status bar child", player.template == nil
             and player.bar.kind == "StatusBar" and player.bar.texture == player.bar.fill
             and player.bar.fill.texture == RikUI.Media.statusbar)
+        check("cast name stays before its countdown", player.bar.text.point[2] == player.time
+            and player.bar.text.wordWrap == false and player.bar.timeBacking)
         local groups = RikUI.Layout.Groups
         check("castbars register with the shared layout", groups.castplayer.frames[1] == player
             and groups.casttarget.frames[1] == target)
@@ -393,7 +398,11 @@ return function(check)
         for _, option in ipairs(module.Options.settings) do
             if option.key == "timeText" then timeOption = option end
         end
+        check("hidden cast time returns name space and hides badge", player.bar.text.point[2] == player.bar
+            and not player.bar.timeBacking.shown)
         timeOption.set(true)
+        check("enabled cast time reserves name space again", player.bar.text.point[2] == player.time
+            and player.bar.timeBacking.shown)
         check("timer option updates running casts immediately", player.time.shown == true and player.shown)
         module = load({ castbars = { widthScale = -10, height = math.huge } })
         check("invalid restored castbar dimensions use profile defaults", module.Bars.castplayer.width == 220

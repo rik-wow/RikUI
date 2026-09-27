@@ -5,6 +5,7 @@ local castbars = { Bars = {}, Options = { title = "Castbars", settings = {} } }
 core.CastBars = castbars
 
 local HEIGHT, EDGE, TEXT_INSET, ICON_CROP = 22, 1, 4, 0.08
+local TIME_MIN_WIDTH, TIME_MAX_WIDTH, TIME_FRACTION = 28, 54, 0.38
 -- width is the matching unit frame's width.
 local UNITS = {
     { key = "castplayer", unit = "player", width = 220, shield = false },
@@ -55,6 +56,8 @@ local function text(parent, point, x)
     local region = parent:CreateFontString(nil, "OVERLAY")
     media.Font(region, "small")
     region:SetPoint(point, parent, point, x, 0)
+    region:SetWordWrap(false)
+    region:SetJustifyH(point == "LEFT" and "LEFT" or "RIGHT")
     return region
 end
 
@@ -68,9 +71,29 @@ local function statusBar(frame)
     bar.background = bar:CreateTexture(nil, "BACKGROUND")
     bar.background:SetAllPoints()
     bar.background:SetColorTexture(0, 0, 0, 0.4)
+    bar.scrim = bar:CreateTexture(nil, "ARTWORK", nil, 1)
+    bar.scrim:SetAllPoints(bar)
+    bar.scrim:SetColorTexture(0.015, 0.02, 0.03, 0.25)
+    bar.timeBacking = bar:CreateTexture(nil, "ARTWORK", nil, 2)
+    bar.timeBacking:SetPoint("TOPRIGHT", bar, "TOPRIGHT", 0, 0)
+    bar.timeBacking:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 0, 0)
+    bar.timeBacking:SetColorTexture(0.015, 0.02, 0.03, 0.65)
     bar.text = text(bar, "LEFT", TEXT_INSET)
     bar.time = text(bar, "RIGHT", -TEXT_INSET)
     return bar
+end
+
+local function layoutText(frame)
+    local bar, shown = frame.bar, core.Profile.castbars.timeText ~= false
+    local width = math.max(0, frame:GetWidth() - frame.castHeight - EDGE)
+    local timeWidth = math.min(TIME_MAX_WIDTH, math.max(TIME_MIN_WIDTH, math.floor(width * TIME_FRACTION)))
+    bar.time:SetWidth(timeWidth)
+    bar.time:SetShown(shown)
+    bar.timeBacking:SetWidth(timeWidth + TEXT_INSET * 2)
+    bar.timeBacking:SetShown(shown)
+    bar.text:ClearAllPoints()
+    bar.text:SetPoint("LEFT", bar, "LEFT", TEXT_INSET, 0)
+    bar.text:SetPoint("RIGHT", shown and bar.time or bar, shown and "LEFT" or "RIGHT", -TEXT_INSET, 0)
 end
 
 local function decorate(frame)
@@ -82,7 +105,8 @@ local function decorate(frame)
     frame.icon = icon(frame)
     frame.bar = statusBar(frame)
     frame.time = frame.bar.time
-    frame.time:SetShown(core.Profile.castbars.timeText ~= false)
+    layoutText(frame)
+    frame:HookScript("OnSizeChanged", layoutText)
 end
 
 local function decorateMotion(frame)
@@ -220,7 +244,7 @@ castbars.Options.settings = {
         get = function() return core.Profile.castbars.timeText ~= false end,
         set = function(value)
             core.Profile.castbars.timeText = value == true
-            for _, frame in pairs(castbars.Bars) do frame.time:SetShown(value == true) end
+            for _, frame in pairs(castbars.Bars) do layoutText(frame) end
         end },
 }
 
