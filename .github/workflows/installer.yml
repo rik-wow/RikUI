@@ -1,5 +1,6 @@
 name: Native installer checks
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths: ["installer/**", "tools/build_installer*.py", "tests/test_installer_bundle.py", ".github/workflows/installer.yml"]
