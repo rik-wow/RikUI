@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Static popups now separate secondary text with quieter ink and an inset top rule. Input fields show focus outlines; actions gain press feedback and recessed disabled surfaces, including pooled game-menu buttons.
+
 - Damage-meter names and values now sit on subtle dark contrast plates above the colored bars. Plates follow the native text bounds and are reused on refresh; native values, font sizes, bar colors and window opacity remain authoritative.
 
 - Chat bubbles now have an inset top highlight and a compact speech pointer, giving the dark cards a clearer silhouette. Pooled bubbles reuse their details, and chat text and colors remain client owned.

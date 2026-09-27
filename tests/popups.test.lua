@@ -93,6 +93,8 @@ return function(check)
             and #first.rikBorder == 4 and first.rikFade.plays == 1)
         check("popup text takes the RikUI font", first.Text.fontPath == RikUI.Media.font
             and first.SubText.fontPath == RikUI.Media.font and first.SubText.fontSize < first.Text.fontSize)
+        check("popup body has a quiet secondary caption and inset top rule",
+            first.SubText.textColor[1] < first.Text.textColor[1] and first.rikTopRule)
         local accept = first.ButtonContainer.Button1
         check("every popup button goes flat with a highlight", flatButton(accept)
             and flatButton(first.ButtonContainer.Button4) and flatButton(first.ExtraButton))
@@ -101,13 +103,31 @@ return function(check)
             and accept.fontObjects.highlight ~= accept.fontObjects.normal and accept.fontObjects.disabled ~= nil
             and first.ExtraButton.fontObjects.normal == accept.fontObjects.normal)
         check("the popup edit box goes flat", first.EditBox.NineSlice.alpha == 0 and #first.EditBox.rikBorder == 4)
+        env.runScript(first.EditBox, "OnEditFocusGained")
+        check("popup input has a visible focus outline", first.EditBox.rikBorder[1].color[3] == 1)
+        env.runScript(first.EditBox, "OnEditFocusLost")
+        check("popup input clears focus outline", first.EditBox.rikBorder[1].color[3] < 1)
+        accept:SetEnabled(false)
+        env.runScript(accept, "OnDisable")
+        check("popup disabled actions recede", accept.rikBacking.color[1] < 0.1 and accept.rikHighlight.alpha == 0)
+        accept:SetEnabled(true)
+        env.runScript(accept, "OnEnable")
+        check("popup enabled actions return", accept.rikBacking.color[1] == 0.1 and accept.rikHighlight.alpha == 1)
+        env.runScript(accept, "OnMouseDown", "LeftButton")
+        check("popup actions give press feedback", accept.rikPress and accept.rikPress.region.alpha > 0)
+        env.runScript(accept, "OnMouseUp", "LeftButton")
         check("the popup was not moved, resized, reparented or rescripted", first.points == nil and first.width == nil
             and first.parent == UIParent and first:GetScript("OnShow") == nil)
+        env.runScript(first.EditBox, "OnEditFocusGained")
+        first.EditBox:Hide()
+        check("hidden popup input clears focus", first.EditBox.rikBorder[1].color[3] < 1)
+        local topRule = first.rikTopRule
         local backdrop = first.rikBackdrop
         first:Hide()
         first:Show()
         check("a second show fades in again without a second skin", first.rikFade.plays == 2
             and first.rikBackdrop == backdrop)
+        check("reused popup keeps its existing top rule", first.rikTopRule == topRule)
         check("another popup stays stock until it shows", second.Border.alpha == nil)
         second:Show()
         check("each popup is skinned on its own first show", second.Border.alpha == 0 and module.Skinned.StaticPopup2)

@@ -74,6 +74,17 @@ local function applyFonts(button)
     end
 end
 
+local function buttonFeedback(button)
+    local function sync()
+        local inactive = type(button.IsEnabled) == "function" and button:IsEnabled() == false
+        button.rikBacking:SetVertexColor(unpack(inactive and FIELD or CONTROL))
+        button.rikHighlight:SetAlpha(inactive and 0 or 1)
+    end
+    for _, event in ipairs({ "OnShow", "OnEnable", "OnDisable" }) do core.Hooks.Script(button, event, sync) end
+    motion.BindPress(button)
+    sync()
+end
+
 function skin.Button(button)
     if skinned[button] or not isRegion(button) or type(button.CreateTexture) ~= "function" then return end
     skinned[button] = true
@@ -88,6 +99,7 @@ function skin.Button(button)
     button.rikHighlight:SetAllPoints(button)
     button.rikHighlight:SetTexture(media.highlight)
     applyFonts(button)
+    buttonFeedback(button)
 end
 
 local function skinEditBox(box)
@@ -95,11 +107,26 @@ local function skinEditBox(box)
     strip(box, { "NineSlice" })
     box.rikBackdrop = fill(box, FIELD, 0)
     box.rikBorder = outline(box)
+    local function paint(focused)
+        local color = focused and { 0.3, 0.75, 1, 1 } or LINE
+        for _, edge in ipairs(box.rikBorder) do edge:SetVertexColor(unpack(color)) end
+    end
+    core.Hooks.Script(box, "OnEditFocusGained", function() paint(true) end)
+    core.Hooks.Script(box, "OnEditFocusLost", function() paint(false) end)
+    core.Hooks.Script(box, "OnHide", function() paint(false) end)
+    paint(type(box.HasFocus) == "function" and box:HasFocus() == true)
 end
 
 local function skinPopup(frame)
     font(frame.Text, "label")
     font(frame.SubText, "small")
+    if isRegion(frame.SubText) then frame.SubText:SetTextColor(0.73, 0.78, 0.85) end
+    frame.rikTopRule = frame:CreateTexture(nil, "BORDER")
+    frame.rikTopRule:SetTexture(FLAT)
+    frame.rikTopRule:SetVertexColor(0.75, 0.57, 0.18, 0.7)
+    frame.rikTopRule:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -3)
+    frame.rikTopRule:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -3)
+    frame.rikTopRule:SetHeight(2)
     local container = isRegion(frame.ButtonContainer) and frame.ButtonContainer or frame
     for _, key in ipairs(POPUP_BUTTONS) do skin.Button(container[key]) end
     skin.Button(frame.ExtraButton)
