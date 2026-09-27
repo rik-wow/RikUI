@@ -505,6 +505,11 @@ return function(check)
         module.Refresh()
         check("materials filter is available", holder.filters.materials ~= nil)
         env.click(holder.filters.materials)
+        check("filter selection uses a persistent rail", holder.filters.materials.rikSelected
+            and holder.filters.materials.rikSelected.visible and not holder.filters.all.rikSelected.visible)
+        module.SetFilter("invalid")
+        check("invalid filter keeps the selected rail", holder.filters.materials.rikSelected
+            and holder.filters.materials.rikSelected.visible)
         check("materials selects cloth and dims gear and empty slots", cloth.alpha == 1 and blade.alpha == 0.25 and empty.alpha == 0.25)
         typeSearch("Hearth")
         check("materials intersects text search", cloth.alpha == 0.25 and stone.alpha == 0.25)
@@ -530,6 +535,8 @@ return function(check)
         check("quest category finds quest items", cloth.alpha == 1 and empty.alpha == 0.25)
         C_Item.GetItemInfoInstant = oldInstant
         env.click(holder.filters.all)
+        check("all filter clears the previous marker", holder.filters.all.rikSelected
+            and holder.filters.all.rikSelected.visible and not holder.filters.quest.rikSelected.visible)
         check("all restores every slot", blade.alpha == 1 and empty.alpha == 1)
         C_Item.GetItemInfoInstant = function(link) return 1, "", "", "", 1, link:find("Blade") and 2 or 7 end
         module.Refresh()

@@ -153,6 +153,12 @@ local function createFilters()
         local width = entry[3] or 38
         local button = textButton(entry[2], width, function() bags.SetFilter(key) end)
         button:SetPoint("TOPLEFT", holder, "TOPLEFT", offset, -66)
+        button.rikSelected = button:CreateTexture(nil, "OVERLAY")
+        button.rikSelected:SetColorTexture(1, 0.82, 0.3, 1)
+        button.rikSelected:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 2, 1)
+        button.rikSelected:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 1)
+        button.rikSelected:SetHeight(2)
+        button.rikSelected:Hide()
         offset = offset + width + CONTROL_GAP
         holder.filters[key] = button
         if key == "favorites" then

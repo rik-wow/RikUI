@@ -503,7 +503,11 @@ function bags.SetFilter(value)
         and value ~= "materials" and value ~= "new" and value ~= "favorites" then return end
     filter = value
     for key, button in pairs(bags.Holder.filters) do
-        button.label:SetTextColor(key == filter and 1 or 0.65, key == filter and 0.82 or 0.65, key == filter and 0 or 0.65)
+        local selected = key == filter
+        button.rikSelected:SetShown(selected)
+        button.rikBackground:SetColorTexture(selected and 0.22 or 0.1, selected and 0.19 or 0.11,
+            selected and 0.12 or 0.13, 1)
+        button.label:SetTextColor(selected and 1 or 0.8, selected and 0.9 or 0.83, selected and 0.65 or 0.88)
     end
     eachButton(dim)
     bags.UpdateTitle()

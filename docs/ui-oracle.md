@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Bag filters now show a persistent gold underline and selected fill, with brighter inactive labels for easier scanning.
+
 - Bags now use a spacious layered header, 24px controls, a separate filter band and a recessed equipment/money footer.
 
 - Setup uses numbered step cards with current-step underlines and reviewed-step checks, shared window bands and an accented primary button. Page content keeps its previous available height.
