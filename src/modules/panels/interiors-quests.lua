@@ -5,14 +5,17 @@ local MAP_SURFACES = { "SidePanelToggle", "Coordinates", "BountyBoard", "BountyB
     "ActionButton", "WorldMapActionButton", "ThreatFrame" }
 local mapHooks = setmetatable({}, { __mode = "k" })
 
-local PROSE = { QuestInfoDescriptionText = true, QuestInfoObjectivesText = true, QuestInfoRewardText = true }
+local PROSE = { QuestInfoDescriptionText = true, QuestInfoObjectivesText = true,
+    QuestInfoRewardText = true, QuestProgressText = true }
 local proseSizes = setmetatable({}, { __mode = "k" })
 local HEADINGS = { QuestInfoTitleHeader = true, QuestInfoDescriptionHeader = true,
     QuestInfoObjectivesHeader = true, QuestInfoRewardsHeader = true }
 
-local function proseFont(region)
+local function proseStyle(region)
     local name = type(region.GetName) == "function" and region:GetName()
     if not PROSE[name] then return end
+    -- Narrative text has no status color; material tints must not survive on the dark skin.
+    region:SetTextColor(unpack(skin.INK))
     local saved = core.Profile and core.Profile.panels
     local size = saved and saved.questTextSize or 0
     if type(size) ~= "number" or size < 12 or size > 24 or size % 1 ~= 0 then size = 0 end
@@ -25,11 +28,11 @@ local function proseFont(region)
 end
 
 -- Typeface lifts dark parchment prose to ink and preserves red requirements and coloured quest
--- states; the named prose strings then take the profile's size.
+-- states; named narrative strings always use light ink and take the profile's size.
 local function readable(region)
     if not skin.IsRegion(region) or region:GetObjectType() ~= "FontString" then return end
     skin.Typeface(region)
-    proseFont(region)
+    proseStyle(region)
 end
 
 local function quest(frame)
@@ -118,6 +121,7 @@ end
 interiors.Register("quests", { "QuestFrame", "GossipFrame", "QuestMapFrame", "QuestLogPopupDetailFrame" }, quest)
 interiors.Register("mapSurfaces", {}, overlay)
 interiors.RegisterRefresh("quests", { "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "GOSSIP_SHOW",
-    "QUEST_LOG_UPDATE", "ADDON_LOADED" }, { "QuestInfo_Display", "QuestInfo_ShowRewards", "QuestLogQuests_Update" },
+    "QUEST_LOG_UPDATE", "ADDON_LOADED" }, { "QuestInfo_Display", "QuestInfo_ShowRewards",
+        "QuestFrameProgressPanel_OnShow", "QuestLogQuests_Update" },
     function() interiors.MapSurfaces(WorldMapFrame) end)
 

@@ -1,6 +1,8 @@
 return function(check)
     local env, widgets = require("wow_stub"), require("widget_stub")
     local restore = widgets.install()
+    local saved = { QuestFrame = QuestFrame, QuestInfo_Display = QuestInfo_Display,
+        QuestFrameProgressPanel_OnShow = QuestFrameProgressPanel_OnShow }
     local ok, reason = pcall(function()
         widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/panels/interiors.lua",
             "src/modules/panels/interiors-quests.lua" })
@@ -40,6 +42,44 @@ return function(check)
         RikUI.Profile.panels.questTextSize = 100
         RikUI.Interiors.Walk(q, "quests")
         check("invalid quest size preserves native size", text.fontSize == 14)
+        -- Material-tinted prose can have a bright red channel and still be unreadable on dark panels.
+        for _, name in ipairs({ "QuestInfoDescriptionText", "QuestInfoObjectivesText",
+            "QuestInfoRewardText", "QuestProgressText" }) do
+            function text:GetName() return name end
+            text:SetText("Native quest prose")
+            text:SetTextColor(0.6, 0.3, 0.1)
+            text:SetWidth(275)
+            text:SetWordWrap(true)
+            RikUI.Profile.panels.questTextSize = 20
+            RikUI.Interiors.Walk(q, "quests")
+            check(name .. " uses explicit light prose ink", text.textColor[1] == RikUI.Skin.INK[1]
+                and text.textColor[2] == RikUI.Skin.INK[2] and text.textColor[3] == RikUI.Skin.INK[3])
+            check(name .. " keeps content and wrapping with configured size", text:GetText() == "Native quest prose"
+                and text.width == 275 and text.wordWrap and text.fontSize == 20)
+        end
+        function text:GetName() return "QuestInfoObjective1" end
+        text:SetTextColor(1, 0.2, 0.1)
+        RikUI.Interiors.Walk(q, "quests")
+        check("individual quest requirement keeps semantic red", text.textColor[2] == 0.2)
+        QuestFrame = q
+        QuestInfo_Display = function() text:SetTextColor(0.6, 0.3, 0.1) end
+        QuestFrameProgressPanel_OnShow = function() text:SetTextColor(0, 0, 0) end
+        RikUI.Interiors.Enable()
+        for _, name in ipairs({ "QuestInfoDescriptionText", "QuestInfoRewardText" }) do
+            function text:GetName() return name end
+            QuestInfo_Display()
+            check(name .. " restores ink after native display", text.textColor[1] == RikUI.Skin.INK[1])
+        end
+        function text:GetName() return "QuestProgressText" end
+        QuestFrameProgressPanel_OnShow()
+        check("turn-in progress restores ink after native setup", text.textColor[1] == RikUI.Skin.INK[1])
+        RikUI.Panels = { enabled = false }
+        QuestInfo_Display()
+        check("disabled panel skin leaves native prose alone", text.textColor[1] == 0.6)
+        RikUI.Panels = { FrameEnabled = function() return false end }
+        QuestInfo_Display()
+        check("quest family opt-out leaves native prose alone", text.textColor[1] == 0.6)
+        RikUI.Panels = nil
         local heading = q:CreateFontString()
         function heading:GetName() return "QuestInfoObjectivesHeader" end
         function heading:GetObjectType() return "FontString" end
@@ -93,6 +133,8 @@ return function(check)
         check("map canvas and pin art untouched", RikUI.Interiors.State(map) == nil
             and RikUI.Interiors.State(pin) == nil and rawget(pin.Background, "alpha") == nil)
     end)
+    QuestFrame, QuestInfo_Display = saved.QuestFrame, saved.QuestInfo_Display
+    QuestFrameProgressPanel_OnShow = saved.QuestFrameProgressPanel_OnShow
     restore()
     check("quest interiors suite completes", ok, reason)
 end

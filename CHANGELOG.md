@@ -9,6 +9,8 @@ tagging.
 
 ## Unreleased
 
+- Fixed dark NPC quest text when accepting or completing quests. Description, objectives, reward and turn-in prose now use light ink after native updates, including the turn-in progress page.
+
 - Collection and choice interiors now use warm section bands for direct and nested headings, with dark pagination badges. Hidden and late-created headings refresh cleanly; models, item names and native selection remain intact.
 
 - Loss-of-control alerts now separate the ability name, countdown and icon with dark text backing and an inset icon compartment. A steady red side rail remains visible with reduced motion while native timing and fades remain in control.
