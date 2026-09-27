@@ -431,6 +431,11 @@ return function(check)
         end
         check("tracker exposes arrow state directly",inline and inline.arrowToggle.label:GetText()=="Arrow: off")
         assert(inline,"tracker arrow control missing")
+        check("compact guidance separates title instructions and controls", inline.chrome and inline.instructionBacking
+            and inline.pause.surface and inline.chrome.footer.height == 44)
+        local chrome = inline.chrome
+        p.View.RenderInline(holder,22,200,false)
+        check("quest card reuses decoration through refresh", inline.chrome == chrome and inline.height == 110)
         env.click(inline.arrowToggle);env.flushTimers()
         check("tracker arrow toggle persists on and refreshes both views",p.Controller.Policy().arrow
             and RikUI.CharDB.questPolicy.arrow and inline.arrowToggle.label:GetText()=="Arrow: on"
