@@ -37,6 +37,7 @@ end
 
 local function setLow(bar, low)
     low = low == true
+    bar.severity:SetVertexColor(unpack(low and LOW_COLOR or COLORS[bar.timer] or DEFAULT_COLOR))
     if bar.isLow == low then return end
     bar.isLow = low
     if low then motion.Play(bar.pulse) return end
@@ -62,8 +63,25 @@ local function text(bar, justify, point, x)
     local value = bar.bar:CreateFontString(nil, "OVERLAY")
     media.Font(value, "small")
     value:SetJustifyH(justify)
+    value:SetWordWrap(false)
     value:SetPoint(point, bar.bar, point, x, 0)
     return value
+end
+
+local function timerChrome(bar)
+    bar.scrim = bar.bar:CreateTexture(nil, "ARTWORK", nil, 1)
+    bar.scrim:SetAllPoints(bar.bar)
+    bar.scrim:SetColorTexture(0.02, 0.025, 0.04, 0.25)
+    bar.timeBacking = bar.bar:CreateTexture(nil, "ARTWORK", nil, 2)
+    bar.timeBacking:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -1, -1)
+    bar.timeBacking:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", -1, 1)
+    bar.timeBacking:SetWidth(60)
+    bar.timeBacking:SetColorTexture(0.02, 0.025, 0.04, 0.75)
+    bar.severity = bar.bar:CreateTexture(nil, "OVERLAY")
+    bar.severity:SetTexture(FLAT)
+    bar.severity:SetPoint("TOPLEFT", bar, "TOPLEFT", 1, -1)
+    bar.severity:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", 1, 1)
+    bar.severity:SetWidth(2)
 end
 
 local function createBar(index)
@@ -83,7 +101,10 @@ local function createBar(index)
     bar.low:SetTexture(FLAT)
     bar.low:SetVertexColor(unpack(LOW_COLOR))
     bar.low:SetAlpha(0)
+    timerChrome(bar)
     bar.label, bar.time = text(bar, "LEFT", "LEFT", TEXT_INSET), text(bar, "RIGHT", "RIGHT", -TEXT_INSET)
+    bar.time:SetWidth(52)
+    bar.label:SetPoint("RIGHT", bar.time, "LEFT", -8, 0)
     bar.fade = motion.Tween(bar, 0, 1, FADE_SECONDS)
     bar.pulse = motion.Pulse(bar.low, 0, PULSE_ALPHA, PULSE_SECONDS)
     bar.sink = function(progress) feed(bar, progress) end

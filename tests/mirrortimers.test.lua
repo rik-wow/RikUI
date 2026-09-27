@@ -48,6 +48,9 @@ return function(check)
             breath.bar.texture == RikUI.Media.statusbar and #breath.rikBorder == 4
             and breath.bar.color[3] > breath.bar.color[1] and breath.fade.plays == 1
             and breath.label.fontPath == RikUI.Media.font)
+        check("long timer labels reserve a bounded countdown column", breath.time.width == 52
+            and breath.label.wordWrap == false and breath.label.points[2][2] == breath.time
+            and breath.scrim and breath.timeBacking)
         stub.progress.BREATH = 30000
         tick(breath)
         check("an update feeds the progress and the seconds left", breath.bar.value == 30000
@@ -62,6 +65,7 @@ return function(check)
             and offset(breath) == 0 and offset(fatigue) < 0 and fatigue.bar.color[1] > fatigue.bar.color[3])
         stub.progress.BREATH = 8000
         tick(breath)
+        check("low time has a steady warning rail", breath.severity and breath.severity.color[1] == 1)
         check("a draining timer under ten seconds pulses", breath.pulse.playing == true and breath.time.text == "8")
         tick(breath)
         check("the pulse is not restarted while it runs", breath.pulse.plays == 1)

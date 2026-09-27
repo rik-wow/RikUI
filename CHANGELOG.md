@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Breath and fatigue bars now reserve a dark countdown badge, constrain long labels and soften the fill behind text. A steady severity rail keeps low time visible between pulses.
+
 - The stopwatch now has separate Run, Pause and Reset states, a bright bounded clock, a state-colored rail and hover feedback. Its maximum duration fits in a dedicated column.
 
 - Combat timing now separates a warm Combat or muted Last label from a bright right-aligned clock, with a steady state rail and bounded columns.
