@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Settings use layered header/footer bands and a recessed navigation column that follows the responsive layout.
+
 - Utility groups have bundled icons, inset action labels, direction cues and a proper close glyph; rebuilds reuse their regions.
 
 - Utility windows use a distinct slate header, inset rules and reusable window chrome.

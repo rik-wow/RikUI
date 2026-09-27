@@ -104,6 +104,13 @@ return function(check)
         RikUI.Scroll.Reveal(earlyPane, 44, 22)
         check("reveal uses a resized viewport before its event", earlyPane.offset == 22 and earlyPane.range == 44)
         deferPaneSizeEvents = false
+        local surface = options.Panel()
+        local rail = surface.navBacking
+        check("settings separates navigation and footer surfaces", surface.chrome and rail
+            and surface.chrome.footer.height == 42)
+        options.Resize(420, 500)
+        check("settings navigation surface resizes with the column", rail and rail.width == math.min(140, 420 * 0.28) + 16)
+        options.Resize(760, 560)
         local saves = 0
         RikUI.Store = { Touch = function() saves = saves + 1 end }
         check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)
