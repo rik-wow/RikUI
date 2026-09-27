@@ -78,11 +78,13 @@ return function(check)
             and loot.rikCard.iconBlock.points[1][2] == loot.lootItem.Icon)
         local fill = loot.rikFill
         loot:Hide()
+        loot.ItemName:SetTextColor(0.2, 0.1, 0.1)
         loot.Background.alpha, loot.glow.texture = 1, "glow-art"
         AlertFrame_ShowNewAlert(loot)
         check("a reused toast is not filled twice but art a SetUp restored is removed again",
             loot.rikFill == fill and loot.Background.alpha == 0 and rawget(loot.glow, "texture") == nil)
 
+        check("pooled alert typography recovers overwritten dark ink", loot.ItemName.textColor[1] > 0.8)
         check("pooled card entrance replays without replacing chrome", loot.rikCard.enter.plays == 2)
         local money = toast({ "Background", "Icon", "IconBorder" }, { Label = 12, Amount = 16 })
         AlertFrame_ShowNewAlert(money)

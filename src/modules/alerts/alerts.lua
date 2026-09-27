@@ -2,7 +2,7 @@
 -- subsystem ends in the global AlertFrame_ShowNewAlert, so one post-hook sees them all and the
 -- skin is driven by the keys the templates share instead of by template names. Blizzard's intro and
 -- outro animations remain authoritative; the gold card accent has its own entrance. Fill, edge, crop and
--- typeface are written once per toast; art is removed on every show, because a SetUp may restore a
+-- typeface are refreshed on reuse; chrome is created once. Art is removed on every show because SetUp may restore a
 -- background and Blizzard animates the alpha of glow and shine.
 local core, skin = RikUI, RikUI.Skin
 local alerts = {}
@@ -55,13 +55,13 @@ local function decorate(frame)
         -- One pixel outside the icon: the lines are in a lower layer and the icon would cover them.
         frame.rikIconBorder = skin.Outline(frame, nil, ICON_EDGE_INSET, icon)
     end
-    typefaces(frame:GetRegions())
-    if skin.IsRegion(frame.lootItem) then typefaces(frame.lootItem:GetRegions()) end
 end
 
 local function apply(frame)
     removeArt(frame)
     frame.rikCard = skin.NotificationCard(frame, findIcon(frame), INSET)
+    typefaces(frame:GetRegions())
+    if skin.IsRegion(frame.lootItem) then typefaces(frame.lootItem:GetRegions()) end
     if skinned[frame] then return end
     decorate(frame)
     skinned[frame] = true

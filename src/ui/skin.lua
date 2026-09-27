@@ -215,6 +215,7 @@ local cards = setmetatable({}, { __mode = "k" })
 local function cardIcon(owner, card, icon)
     if not skin.IsRegion(icon) or (type(icon.IsShown) == "function" and not icon:IsShown()) then
         if card.iconBlock then card.iconBlock:Hide() end
+        for _, edge in ipairs(card.iconEdge or {}) do edge:Hide() end
         return
     end
     if not card.iconBlock then
@@ -226,6 +227,8 @@ local function cardIcon(owner, card, icon)
     card.iconBlock:SetPoint("TOPLEFT", icon, "TOPLEFT", -4, 4)
     card.iconBlock:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 4, -4)
     card.iconBlock:Show()
+    if not card.iconEdge then card.iconEdge = skin.Outline(owner, skin.LINE, 0, card.iconBlock) end
+    for _, edge in ipairs(card.iconEdge) do edge:Show() end
 end
 
 function skin.NotificationCard(owner, icon, inset)
@@ -234,6 +237,8 @@ function skin.NotificationCard(owner, icon, inset)
         inset = inset or 0
         card = { fill = skin.Fill(owner, skin.BACKING, inset) }
         card.edge = skin.Outline(owner, nil, inset)
+        card.topLight = line(owner, owner, "TOPLEFT", "TOPRIGHT", inset + 2,
+            { 0.2, 0.24, 0.3, 0.8 }, "BORDER")
         card.accent = owner:CreateTexture(nil, "BORDER")
         card.accent:SetTexture(skin.FLAT)
         card.accent:SetVertexColor(unpack(skin.GOLD))

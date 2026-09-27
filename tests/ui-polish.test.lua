@@ -85,6 +85,8 @@ return function(check)
         check("restored motion reuses cached effects", cached.plays == 2 and cached:IsPlaying())
         local notice = CreateFrame("Frame")
         local card = skin.NotificationCard(notice)
+        check("notification has an inset top highlight", card.topLight and card.topLight.height == 1
+            and card.topLight.points[1][2] == notice)
         check("notification starts its accent", card.enter and card.enter:IsPlaying())
         notice:Hide()
         check("hidden notification stops accent", not card.enter:IsPlaying())
@@ -105,6 +107,8 @@ return function(check)
             and #shelf.points == 2 and card.iconBlock == shelf)
         skin.NotificationCard(notice)
         check("iconless notification hides stale shelf", not shelf:IsShown())
+        check("iconless notification clears icon inset border", card.iconEdge and #card.iconEdge == 4
+            and not card.iconEdge[1]:IsShown())
         skin.NotificationCard(notice, firstIcon)
         check("returning icon restores the same shelf", shelf:IsShown() and shelf.points[1][2] == firstIcon
             and card.iconBlock == shelf)

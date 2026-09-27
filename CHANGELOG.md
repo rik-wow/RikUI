@@ -1,5 +1,7 @@
 # Changelog
 
+- Alert, banner and social notification cards now have inset top highlights and framed icon compartments. Reused alerts refresh their typeface and recover dark text restored by native setup.
+
 - Quest titles, description/objective headings and reward headers now use warm inset section bands with fine rules. They follow native wrapping and clear when hidden; quest prose sizing stays configurable.
 
 - Calendar days now have inset tile borders and dark date badges. Native event art and today/selection indicators stay visible; month refreshes reuse the same regions.
