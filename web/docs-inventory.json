@@ -1,0 +1,2038 @@
+{
+  "pages": [
+    {
+      "slug": "alerts",
+      "file": "docs/alerts.md",
+      "title": "Alert toasts"
+    },
+    {
+      "slug": "architecture",
+      "file": "docs/architecture.md",
+      "title": "RikUI architecture"
+    },
+    {
+      "slug": "auction-house",
+      "file": "docs/auction-house.md",
+      "title": "Auction house"
+    },
+    {
+      "slug": "auras",
+      "file": "docs/auras.md",
+      "title": "Buffs and debuffs"
+    },
+    {
+      "slug": "bags",
+      "file": "docs/bags.md",
+      "title": "Inventory"
+    },
+    {
+      "slug": "banners",
+      "file": "docs/banners.md",
+      "title": "Event banners"
+    },
+    {
+      "slug": "bars",
+      "file": "docs/bars.md",
+      "title": "Action bars"
+    },
+    {
+      "slug": "bindings",
+      "file": "docs/bindings.md",
+      "title": "Bindings service"
+    },
+    {
+      "slug": "castbars",
+      "file": "docs/castbars.md",
+      "title": "Cast bars"
+    },
+    {
+      "slug": "chat",
+      "file": "docs/chat.md",
+      "title": "Chat"
+    },
+    {
+      "slug": "chatbubbles",
+      "file": "docs/chatbubbles.md",
+      "title": "Chat bubbles"
+    },
+    {
+      "slug": "class-effects",
+      "file": "docs/class-effects.md",
+      "title": "Class effects"
+    },
+    {
+      "slug": "class-presets",
+      "file": "docs/class-presets.md",
+      "title": "Class presets and current research"
+    },
+    {
+      "slug": "cloudflare",
+      "file": "docs/cloudflare.md",
+      "title": "rikwow.com infrastructure"
+    },
+    {
+      "slug": "combat-hud",
+      "file": "docs/combat-hud.md",
+      "title": "Combat HUD"
+    },
+    {
+      "slug": "combattext",
+      "file": "docs/combattext.md",
+      "title": "Combat text"
+    },
+    {
+      "slug": "combattimer",
+      "file": "docs/combattimer.md",
+      "title": "Combat timer and stopwatch"
+    },
+    {
+      "slug": "combopoints",
+      "file": "docs/combopoints.md",
+      "title": "Combo points"
+    },
+    {
+      "slug": "controls",
+      "file": "docs/controls.md",
+      "title": "Shared controls"
+    },
+    {
+      "slug": "cooldowns",
+      "file": "docs/cooldowns.md",
+      "title": "Cooldowns"
+    },
+    {
+      "slug": "core",
+      "file": "docs/core.md",
+      "title": "Core module contract"
+    },
+    {
+      "slug": "corpus-licensing",
+      "file": "docs/corpus-licensing.md",
+      "title": "Quest corpus licensing review"
+    },
+    {
+      "slug": "damagemeter",
+      "file": "docs/damagemeter.md",
+      "title": "Damage meter"
+    },
+    {
+      "slug": "dialogs",
+      "file": "docs/dialogs.md",
+      "title": "Small dialogs"
+    },
+    {
+      "slug": "durability",
+      "file": "docs/durability.md",
+      "title": "Durability"
+    },
+    {
+      "slug": "editmode",
+      "file": "docs/editmode.md",
+      "title": "Edit Mode guard"
+    },
+    {
+      "slug": "extrabuttons",
+      "file": "docs/extrabuttons.md",
+      "title": "Extra action buttons"
+    },
+    {
+      "slug": "forever-corpus",
+      "file": "docs/forever-corpus.md",
+      "title": "Local Forever quest corpus"
+    },
+    {
+      "slug": "hudframes",
+      "file": "docs/hudframes.md",
+      "title": "Small HUD elements"
+    },
+    {
+      "slug": "interiors",
+      "file": "docs/interiors.md",
+      "title": "Window interiors"
+    },
+    {
+      "slug": "layout",
+      "file": "docs/layout.md",
+      "title": "Move and resize frames"
+    },
+    {
+      "slug": "loot",
+      "file": "docs/loot.md",
+      "title": "Loot and rolls"
+    },
+    {
+      "slug": "lossofcontrol",
+      "file": "docs/lossofcontrol.md",
+      "title": "Loss of control"
+    },
+    {
+      "slug": "macros",
+      "file": "docs/macros.md",
+      "title": "Macro service"
+    },
+    {
+      "slug": "menus",
+      "file": "docs/menus.md",
+      "title": "Context menus"
+    },
+    {
+      "slug": "micromenu",
+      "file": "docs/micromenu.md",
+      "title": "Micro menu and bag strip"
+    },
+    {
+      "slug": "minimap",
+      "file": "docs/minimap.md",
+      "title": "Minimap"
+    },
+    {
+      "slug": "mirrortimers",
+      "file": "docs/mirrortimers.md",
+      "title": "Breath and fatigue"
+    },
+    {
+      "slug": "nameplates",
+      "file": "docs/nameplates.md",
+      "title": "Nameplates"
+    },
+    {
+      "slug": "options",
+      "file": "docs/options.md",
+      "title": "Settings and profiles"
+    },
+    {
+      "slug": "packaging",
+      "file": "docs/packaging.md",
+      "title": "Local RikUI packages"
+    },
+    {
+      "slug": "panels",
+      "file": "docs/panels.md",
+      "title": "Window chrome"
+    },
+    {
+      "slug": "personalresource",
+      "file": "docs/personalresource.md",
+      "title": "Personal resource display"
+    },
+    {
+      "slug": "planner-stability-verification",
+      "file": "docs/planner-stability-verification.md",
+      "title": "Hook and planner stability verification"
+    },
+    {
+      "slug": "popups",
+      "file": "docs/popups.md",
+      "title": "Confirmation popups"
+    },
+    {
+      "slug": "presets",
+      "file": "docs/presets.md",
+      "title": "Warrior preset"
+    },
+    {
+      "slug": "proc-overlay",
+      "file": "docs/proc-overlay.md",
+      "title": "Proc indicators"
+    },
+    {
+      "slug": "quest-objective-waypoints",
+      "file": "docs/quest-objective-waypoints.md",
+      "title": "Detailed quest objectives and waypoints"
+    },
+    {
+      "slug": "quest-planner-acceptance",
+      "file": "docs/quest-planner-acceptance.md",
+      "title": "Adaptive planner acceptance and evidence"
+    },
+    {
+      "slug": "quest-planner-requirements",
+      "file": "docs/quest-planner-requirements.md",
+      "title": "Adaptive quest planning requirements"
+    },
+    {
+      "slug": "questiedb-license-request",
+      "file": "docs/questiedb-license-request.md",
+      "title": "Draft licensing clarification request"
+    },
+    {
+      "slug": "questplanner",
+      "file": "docs/questplanner.md",
+      "title": "Quest planner"
+    },
+    {
+      "slug": "questtimers",
+      "file": "docs/questtimers.md",
+      "title": "Quest timers"
+    },
+    {
+      "slug": "questtracker",
+      "file": "docs/questtracker.md",
+      "title": "Quest tracker"
+    },
+    {
+      "slug": "roles",
+      "file": "docs/roles.md",
+      "title": "Talent-based role suggestions"
+    },
+    {
+      "slug": "screentext",
+      "file": "docs/screentext.md",
+      "title": "Screen messages"
+    },
+    {
+      "slug": "setup",
+      "file": "docs/setup.md",
+      "title": "Applying a preset"
+    },
+    {
+      "slug": "sharing",
+      "file": "docs/sharing.md",
+      "title": "Import and export"
+    },
+    {
+      "slug": "shell",
+      "file": "docs/shell.md",
+      "title": "RikUI menu"
+    },
+    {
+      "slug": "spells",
+      "file": "docs/spells.md",
+      "title": "Warrior spell data and lookup"
+    },
+    {
+      "slug": "swingtimer",
+      "file": "docs/swingtimer.md",
+      "title": "Weapon timers"
+    },
+    {
+      "slug": "toasts",
+      "file": "docs/toasts.md",
+      "title": "Social notifications"
+    },
+    {
+      "slug": "tooltip",
+      "file": "docs/tooltip.md",
+      "title": "Tooltips"
+    },
+    {
+      "slug": "totems",
+      "file": "docs/totems.md",
+      "title": "Totems"
+    },
+    {
+      "slug": "ui-oracle",
+      "file": "docs/ui-oracle.md",
+      "title": "UI oracle"
+    },
+    {
+      "slug": "unitframes",
+      "file": "docs/unitframes.md",
+      "title": "Unit frames"
+    },
+    {
+      "slug": "upstream-provider",
+      "file": "docs/upstream-provider.md",
+      "title": "Independent upstream quest provider"
+    },
+    {
+      "slug": "website-design",
+      "file": "docs/website-design.md",
+      "title": "RikUI website design"
+    },
+    {
+      "slug": "widgets",
+      "file": "docs/widgets.md",
+      "title": "Objective widgets"
+    },
+    {
+      "slug": "wizard",
+      "file": "docs/wizard.md",
+      "title": "Setup wizard"
+    },
+    {
+      "slug": "worldmap",
+      "file": "docs/worldmap.md",
+      "title": "World map"
+    },
+    {
+      "slug": "xpbar",
+      "file": "docs/xpbar.md",
+      "title": "Experience and reputation"
+    },
+    {
+      "slug": "tools--observations--readme",
+      "file": "tools/observations/README.md",
+      "title": "Offline observation archives"
+    },
+    {
+      "slug": "tools--terrain--map",
+      "file": "tools/terrain/MAP.md",
+      "title": "Dun Morogh regional terrain"
+    },
+    {
+      "slug": "tools--terrain--movement",
+      "file": "tools/terrain/MOVEMENT.md",
+      "title": "Movement profile and observed-marker approaches"
+    },
+    {
+      "slug": "tools--terrain--readme",
+      "file": "tools/terrain/README.md",
+      "title": "Local Forever terrain datasource tools"
+    },
+    {
+      "slug": "tools--terrain--region",
+      "file": "tools/terrain/REGION.md",
+      "title": "Kharanos two-source terrain region"
+    },
+    {
+      "slug": "tools--terrain--roads",
+      "file": "tools/terrain/ROADS.md",
+      "title": "Road network and quest patches"
+    },
+    {
+      "slug": "tools--terrain--stages",
+      "file": "tools/terrain/STAGES.md",
+      "title": "Terrain stage diagnostics"
+    },
+    {
+      "slug": "tools--terrain--west",
+      "file": "tools/terrain/WEST.md",
+      "title": "Western Dun Morogh terrain"
+    },
+    {
+      "slug": "installation",
+      "file": "installer/README.md",
+      "title": "RikUI Windows installer"
+    },
+    {
+      "slug": "overview",
+      "file": "README.md",
+      "title": "RikUI"
+    },
+    {
+      "slug": "contributing",
+      "file": "CONTRIBUTING.md",
+      "title": "Contributing"
+    },
+    {
+      "slug": "changelog",
+      "file": "CHANGELOG.md",
+      "title": "Changelog"
+    },
+    {
+      "slug": "sdd",
+      "file": "SDD.md",
+      "title": "RikUI design doc"
+    },
+    {
+      "slug": "web--asset-notice",
+      "file": "web/ASSET-NOTICE.md",
+      "title": "Website artwork notice"
+    }
+  ],
+  "modules": [
+    {
+      "name": "wizard",
+      "file": "src/configuration/wizard/wizard.lua",
+      "page": "wizard"
+    },
+    {
+      "name": "alerts",
+      "file": "src/modules/alerts/alerts.lua",
+      "page": "alerts"
+    },
+    {
+      "name": "classauras",
+      "file": "src/modules/auras/auras-class.lua",
+      "page": "class-effects"
+    },
+    {
+      "name": "unitauras",
+      "file": "src/modules/auras/auras-units.lua",
+      "page": "auras"
+    },
+    {
+      "name": "auras",
+      "file": "src/modules/auras/auras.lua",
+      "page": "auras"
+    },
+    {
+      "name": "bags",
+      "file": "src/modules/bags/bags.lua",
+      "page": "bags"
+    },
+    {
+      "name": "banners",
+      "file": "src/modules/banners/banners.lua",
+      "page": "banners"
+    },
+    {
+      "name": "bars",
+      "file": "src/modules/bars/bars.lua",
+      "page": "bars"
+    },
+    {
+      "name": "castbars",
+      "file": "src/modules/castbars/castbars.lua",
+      "page": "castbars"
+    },
+    {
+      "name": "chat",
+      "file": "src/modules/chat/chat.lua",
+      "page": "chat"
+    },
+    {
+      "name": "chatbubbles",
+      "file": "src/modules/chatbubbles/chatbubbles.lua",
+      "page": "chatbubbles"
+    },
+    {
+      "name": "combattext",
+      "file": "src/modules/combattext/combattext.lua",
+      "page": "combattext"
+    },
+    {
+      "name": "combattimer",
+      "file": "src/modules/combattimer/combattimer.lua",
+      "page": "combattimer"
+    },
+    {
+      "name": "combopoints",
+      "file": "src/modules/combopoints/combopoints.lua",
+      "page": "combopoints"
+    },
+    {
+      "name": "controls",
+      "file": "src/modules/controls/controls.lua",
+      "page": "controls"
+    },
+    {
+      "name": "cooldowns",
+      "file": "src/modules/cooldowns/cooldowns.lua",
+      "page": "cooldowns"
+    },
+    {
+      "name": "damagemeter",
+      "file": "src/modules/damagemeter/damagemeter.lua",
+      "page": "damagemeter"
+    },
+    {
+      "name": "dialogs",
+      "file": "src/modules/dialogs/dialogs.lua",
+      "page": "dialogs"
+    },
+    {
+      "name": "durability",
+      "file": "src/modules/durability/durability.lua",
+      "page": "durability"
+    },
+    {
+      "name": "extrabuttons",
+      "file": "src/modules/extrabuttons/extrabuttons.lua",
+      "page": "extrabuttons"
+    },
+    {
+      "name": "procoverlay",
+      "file": "src/modules/extrabuttons/proc-overlay.lua",
+      "page": "proc-overlay"
+    },
+    {
+      "name": "hudframes",
+      "file": "src/modules/hudframes/hudframes.lua",
+      "page": "hudframes"
+    },
+    {
+      "name": "loot",
+      "file": "src/modules/loot/loot.lua",
+      "page": "loot"
+    },
+    {
+      "name": "lossofcontrol",
+      "file": "src/modules/lossofcontrol/lossofcontrol.lua",
+      "page": "lossofcontrol"
+    },
+    {
+      "name": "menus",
+      "file": "src/modules/menus/menus.lua",
+      "page": "menus"
+    },
+    {
+      "name": "micromenu",
+      "file": "src/modules/micromenu/micromenu.lua",
+      "page": "micromenu"
+    },
+    {
+      "name": "minimap",
+      "file": "src/modules/minimap/minimap.lua",
+      "page": "minimap"
+    },
+    {
+      "name": "mirrortimers",
+      "file": "src/modules/mirrortimers/mirrortimers.lua",
+      "page": "mirrortimers"
+    },
+    {
+      "name": "nameplates",
+      "file": "src/modules/nameplates/nameplates.lua",
+      "page": "nameplates"
+    },
+    {
+      "name": "panels",
+      "file": "src/modules/panels/panels.lua",
+      "page": "panels"
+    },
+    {
+      "name": "combatresource",
+      "file": "src/modules/personalresource/combat-resource.lua",
+      "page": "combat-hud"
+    },
+    {
+      "name": "druidmana",
+      "file": "src/modules/personalresource/druid-mana.lua",
+      "page": "combat-hud"
+    },
+    {
+      "name": "personalresource",
+      "file": "src/modules/personalresource/personalresource.lua",
+      "page": "personalresource"
+    },
+    {
+      "name": "popups",
+      "file": "src/modules/popups/popups.lua",
+      "page": "popups"
+    },
+    {
+      "name": "questplanner",
+      "file": "src/modules/questplanner/questplanner.lua",
+      "page": "questplanner"
+    },
+    {
+      "name": "questtimers",
+      "file": "src/modules/questtimers/questtimers.lua",
+      "page": "questtimers"
+    },
+    {
+      "name": "questtracker",
+      "file": "src/modules/questtracker/questtracker.lua",
+      "page": "questtracker"
+    },
+    {
+      "name": "screentext",
+      "file": "src/modules/screentext/screentext.lua",
+      "page": "screentext"
+    },
+    {
+      "name": "swingtimer",
+      "file": "src/modules/swingtimer/swingtimer.lua",
+      "page": "swingtimer"
+    },
+    {
+      "name": "toasts",
+      "file": "src/modules/toasts/toasts.lua",
+      "page": "toasts"
+    },
+    {
+      "name": "tooltip",
+      "file": "src/modules/tooltip/tooltip.lua",
+      "page": "tooltip"
+    },
+    {
+      "name": "totems",
+      "file": "src/modules/totems/totems.lua",
+      "page": "totems"
+    },
+    {
+      "name": "unitframes",
+      "file": "src/modules/unitframes/unitframes.lua",
+      "page": "unitframes"
+    },
+    {
+      "name": "widgets",
+      "file": "src/modules/widgets/widgets.lua",
+      "page": "widgets"
+    },
+    {
+      "name": "worldmap",
+      "file": "src/modules/worldmap/worldmap.lua",
+      "page": "worldmap"
+    },
+    {
+      "name": "xpbar",
+      "file": "src/modules/xpbar/xpbar.lua",
+      "page": "xpbar"
+    }
+  ],
+  "surfaces": [
+    {
+      "page": "wizard",
+      "name": "Welcome",
+      "kind": "wizard"
+    },
+    {
+      "page": "wizard",
+      "name": "Your role",
+      "kind": "wizard"
+    },
+    {
+      "page": "wizard",
+      "name": "Keybinds",
+      "kind": "wizard"
+    },
+    {
+      "page": "wizard",
+      "name": "Screen layout",
+      "kind": "wizard"
+    },
+    {
+      "page": "wizard",
+      "name": "Modules and settings",
+      "kind": "wizard"
+    },
+    {
+      "page": "wizard",
+      "name": "Review and apply",
+      "kind": "wizard"
+    },
+    {
+      "page": "options",
+      "name": "General",
+      "kind": "settings"
+    },
+    {
+      "page": "options",
+      "name": "Module selection",
+      "kind": "settings"
+    },
+    {
+      "page": "options",
+      "name": "Profiles",
+      "kind": "settings"
+    },
+    {
+      "page": "options",
+      "name": "Setup and support",
+      "kind": "settings"
+    },
+    {
+      "page": "options",
+      "name": "Settings search",
+      "kind": "settings"
+    },
+    {
+      "page": "options",
+      "name": "Pending reload",
+      "kind": "settings"
+    },
+    {
+      "page": "options",
+      "name": "Profile confirmation",
+      "kind": "settings"
+    },
+    {
+      "page": "layout",
+      "name": "Frame mover",
+      "kind": "layout"
+    },
+    {
+      "page": "layout",
+      "name": "Resize handle",
+      "kind": "layout"
+    },
+    {
+      "page": "layout",
+      "name": "Layout presets",
+      "kind": "layout"
+    },
+    {
+      "page": "layout",
+      "name": "Position nudges",
+      "kind": "layout"
+    },
+    {
+      "page": "layout",
+      "name": "Undo layout change",
+      "kind": "layout"
+    },
+    {
+      "page": "shell",
+      "name": "Minimap launcher",
+      "kind": "menu"
+    },
+    {
+      "page": "shell",
+      "name": "Interface actions",
+      "kind": "menu"
+    },
+    {
+      "page": "shell",
+      "name": "Tools actions",
+      "kind": "menu"
+    },
+    {
+      "page": "shell",
+      "name": "Support actions",
+      "kind": "menu"
+    },
+    {
+      "page": "shell",
+      "name": "Tracked spells",
+      "kind": "menu"
+    },
+    {
+      "page": "sharing",
+      "name": "Profile export",
+      "kind": "settings"
+    },
+    {
+      "page": "sharing",
+      "name": "Profile import",
+      "kind": "settings"
+    },
+    {
+      "page": "sharing",
+      "name": "Preset library",
+      "kind": "settings"
+    },
+    {
+      "page": "sharing",
+      "name": "Remove imported preset",
+      "kind": "settings"
+    },
+    {
+      "page": "bars",
+      "name": "Main action row",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Secondary action row",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Third action row",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Right action column",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Left action column",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Manual page overlay",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Stance page overlay",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Stance buttons",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Pet actions",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Empty preset slot",
+      "kind": "slots"
+    },
+    {
+      "page": "bars",
+      "name": "Cooldown and key labels",
+      "kind": "slots"
+    },
+    {
+      "page": "unitframes",
+      "name": "Player",
+      "kind": "unit"
+    },
+    {
+      "page": "unitframes",
+      "name": "Target",
+      "kind": "unit"
+    },
+    {
+      "page": "unitframes",
+      "name": "Target of target",
+      "kind": "unit"
+    },
+    {
+      "page": "unitframes",
+      "name": "Pet",
+      "kind": "unit"
+    },
+    {
+      "page": "unitframes",
+      "name": "Focus",
+      "kind": "unit"
+    },
+    {
+      "page": "unitframes",
+      "name": "Party",
+      "kind": "unit"
+    },
+    {
+      "page": "unitframes",
+      "name": "Raid grid",
+      "kind": "unit"
+    },
+    {
+      "page": "castbars",
+      "name": "Player cast",
+      "kind": "cast"
+    },
+    {
+      "page": "castbars",
+      "name": "Target cast",
+      "kind": "cast"
+    },
+    {
+      "page": "castbars",
+      "name": "Focus cast",
+      "kind": "cast"
+    },
+    {
+      "page": "castbars",
+      "name": "Pet cast",
+      "kind": "cast"
+    },
+    {
+      "page": "castbars",
+      "name": "Channel",
+      "kind": "cast"
+    },
+    {
+      "page": "castbars",
+      "name": "Interrupted cast",
+      "kind": "cast"
+    },
+    {
+      "page": "auras",
+      "name": "Player buffs",
+      "kind": "auras"
+    },
+    {
+      "page": "auras",
+      "name": "Player debuffs",
+      "kind": "auras"
+    },
+    {
+      "page": "auras",
+      "name": "Weapon enchants",
+      "kind": "auras"
+    },
+    {
+      "page": "auras",
+      "name": "Target auras",
+      "kind": "auras"
+    },
+    {
+      "page": "auras",
+      "name": "Pet auras",
+      "kind": "auras"
+    },
+    {
+      "page": "auras",
+      "name": "Focus auras",
+      "kind": "auras"
+    },
+    {
+      "page": "class-effects",
+      "name": "Player effects",
+      "kind": "auras"
+    },
+    {
+      "page": "class-effects",
+      "name": "Target effects",
+      "kind": "auras"
+    },
+    {
+      "page": "cooldowns",
+      "name": "Essential and utility entries",
+      "kind": "slots"
+    },
+    {
+      "page": "cooldowns",
+      "name": "Class cooldowns",
+      "kind": "slots"
+    },
+    {
+      "page": "cooldowns",
+      "name": "Additional rows",
+      "kind": "slots"
+    },
+    {
+      "page": "cooldowns",
+      "name": "Cooldown counter",
+      "kind": "slots"
+    },
+    {
+      "page": "cooldowns",
+      "name": "Tracked spell selection",
+      "kind": "slots"
+    },
+    {
+      "page": "combat-hud",
+      "name": "Primary resource",
+      "kind": "resource"
+    },
+    {
+      "page": "combat-hud",
+      "name": "Druid mana in forms",
+      "kind": "resource"
+    },
+    {
+      "page": "combat-hud",
+      "name": "HUD arrangement",
+      "kind": "resource"
+    },
+    {
+      "page": "personalresource",
+      "name": "Health",
+      "kind": "resource"
+    },
+    {
+      "page": "personalresource",
+      "name": "Power",
+      "kind": "resource"
+    },
+    {
+      "page": "personalresource",
+      "name": "Alternate power",
+      "kind": "resource"
+    },
+    {
+      "page": "nameplates",
+      "name": "Enemy plate",
+      "kind": "nameplate"
+    },
+    {
+      "page": "nameplates",
+      "name": "Target and focus",
+      "kind": "nameplate"
+    },
+    {
+      "page": "nameplates",
+      "name": "Friendly name",
+      "kind": "nameplate"
+    },
+    {
+      "page": "nameplates",
+      "name": "Elite and rare markers",
+      "kind": "nameplate"
+    },
+    {
+      "page": "nameplates",
+      "name": "Threat indication",
+      "kind": "nameplate"
+    },
+    {
+      "page": "nameplates",
+      "name": "Debuff row",
+      "kind": "nameplate"
+    },
+    {
+      "page": "nameplates",
+      "name": "Nameplate cast",
+      "kind": "nameplate"
+    },
+    {
+      "page": "combopoints",
+      "name": "Empty points",
+      "kind": "pips"
+    },
+    {
+      "page": "combopoints",
+      "name": "Three points",
+      "kind": "pips"
+    },
+    {
+      "page": "combopoints",
+      "name": "Full points",
+      "kind": "pips"
+    },
+    {
+      "page": "swingtimer",
+      "name": "Main hand",
+      "kind": "timer"
+    },
+    {
+      "page": "swingtimer",
+      "name": "Off hand",
+      "kind": "timer"
+    },
+    {
+      "page": "swingtimer",
+      "name": "Ranged cycle",
+      "kind": "timer"
+    },
+    {
+      "page": "swingtimer",
+      "name": "Move window",
+      "kind": "timer"
+    },
+    {
+      "page": "swingtimer",
+      "name": "Stop window",
+      "kind": "timer"
+    },
+    {
+      "page": "swingtimer",
+      "name": "Unknown range",
+      "kind": "timer"
+    },
+    {
+      "page": "combattimer",
+      "name": "Combat elapsed",
+      "kind": "timer"
+    },
+    {
+      "page": "combattimer",
+      "name": "Final duration",
+      "kind": "timer"
+    },
+    {
+      "page": "combattimer",
+      "name": "Session stopwatch",
+      "kind": "timer"
+    },
+    {
+      "page": "mirrortimers",
+      "name": "Breath",
+      "kind": "timer"
+    },
+    {
+      "page": "mirrortimers",
+      "name": "Fatigue",
+      "kind": "timer"
+    },
+    {
+      "page": "mirrortimers",
+      "name": "Feign death",
+      "kind": "timer"
+    },
+    {
+      "page": "totems",
+      "name": "Four totem slots",
+      "kind": "totems"
+    },
+    {
+      "page": "totems",
+      "name": "Active duration",
+      "kind": "totems"
+    },
+    {
+      "page": "totems",
+      "name": "Dismissal",
+      "kind": "totems"
+    },
+    {
+      "page": "lossofcontrol",
+      "name": "Control effect",
+      "kind": "notice"
+    },
+    {
+      "page": "lossofcontrol",
+      "name": "Remaining duration",
+      "kind": "notice"
+    },
+    {
+      "page": "proc-overlay",
+      "name": "Left and right cues",
+      "kind": "proc"
+    },
+    {
+      "page": "proc-overlay",
+      "name": "Upper and lower cues",
+      "kind": "proc"
+    },
+    {
+      "page": "proc-overlay",
+      "name": "Central cue",
+      "kind": "proc"
+    },
+    {
+      "page": "damagemeter",
+      "name": "Damage rows",
+      "kind": "meter"
+    },
+    {
+      "page": "damagemeter",
+      "name": "Meter header controls",
+      "kind": "meter"
+    },
+    {
+      "page": "damagemeter",
+      "name": "Session and display menus",
+      "kind": "meter"
+    },
+    {
+      "page": "combattext",
+      "name": "World damage",
+      "kind": "combattext"
+    },
+    {
+      "page": "combattext",
+      "name": "Healing",
+      "kind": "combattext"
+    },
+    {
+      "page": "combattext",
+      "name": "Resource gain",
+      "kind": "combattext"
+    },
+    {
+      "page": "combattext",
+      "name": "Combat warning",
+      "kind": "combattext"
+    },
+    {
+      "page": "extrabuttons",
+      "name": "Extra action",
+      "kind": "slots"
+    },
+    {
+      "page": "extrabuttons",
+      "name": "Zone ability",
+      "kind": "slots"
+    },
+    {
+      "page": "extrabuttons",
+      "name": "Spell flyout",
+      "kind": "slots"
+    },
+    {
+      "page": "extrabuttons",
+      "name": "Possess actions",
+      "kind": "slots"
+    },
+    {
+      "page": "extrabuttons",
+      "name": "Vehicle controls",
+      "kind": "slots"
+    },
+    {
+      "page": "questtracker",
+      "name": "Tracker header",
+      "kind": "quests"
+    },
+    {
+      "page": "questtracker",
+      "name": "Active objective",
+      "kind": "quests"
+    },
+    {
+      "page": "questtracker",
+      "name": "Completed quest",
+      "kind": "quests"
+    },
+    {
+      "page": "questtracker",
+      "name": "Failed quest",
+      "kind": "quests"
+    },
+    {
+      "page": "questtracker",
+      "name": "Overflow count",
+      "kind": "quests"
+    },
+    {
+      "page": "questplanner",
+      "name": "Guidance row",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Current objective",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Quest browser",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Objective details",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Direction arrow",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Map markers",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Route line",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Pin and skip controls",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Preferences",
+      "kind": "planner"
+    },
+    {
+      "page": "questplanner",
+      "name": "Partial data state",
+      "kind": "planner"
+    },
+    {
+      "page": "questtimers",
+      "name": "Timed objective",
+      "kind": "timer"
+    },
+    {
+      "page": "questtimers",
+      "name": "Thirty-second warning",
+      "kind": "timer"
+    },
+    {
+      "page": "questtimers",
+      "name": "Final ten seconds",
+      "kind": "timer"
+    },
+    {
+      "page": "worldmap",
+      "name": "Map canvas and pins",
+      "kind": "map"
+    },
+    {
+      "page": "worldmap",
+      "name": "Quest side panel",
+      "kind": "map"
+    },
+    {
+      "page": "worldmap",
+      "name": "Breadcrumbs",
+      "kind": "map"
+    },
+    {
+      "page": "worldmap",
+      "name": "Coordinates",
+      "kind": "map"
+    },
+    {
+      "page": "worldmap",
+      "name": "Quest-panel toggle",
+      "kind": "map"
+    },
+    {
+      "page": "worldmap",
+      "name": "Map filters",
+      "kind": "map"
+    },
+    {
+      "page": "minimap",
+      "name": "Square minimap",
+      "kind": "map"
+    },
+    {
+      "page": "minimap",
+      "name": "Zone heading",
+      "kind": "map"
+    },
+    {
+      "page": "minimap",
+      "name": "Clock and coordinates",
+      "kind": "map"
+    },
+    {
+      "page": "minimap",
+      "name": "Mail and queue indicators",
+      "kind": "map"
+    },
+    {
+      "page": "minimap",
+      "name": "Tracking menu",
+      "kind": "map"
+    },
+    {
+      "page": "minimap",
+      "name": "Performance readout",
+      "kind": "map"
+    },
+    {
+      "page": "bags",
+      "name": "Inventory grid",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Search field",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Quick filters",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Saved searches",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Quest-item marker",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Stack count and quality",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Capacity indicator",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Sell junk",
+      "kind": "bags"
+    },
+    {
+      "page": "bags",
+      "name": "Vendor repairs",
+      "kind": "bags"
+    },
+    {
+      "page": "loot",
+      "name": "Loot list",
+      "kind": "loot"
+    },
+    {
+      "page": "loot",
+      "name": "Currency row",
+      "kind": "loot"
+    },
+    {
+      "page": "loot",
+      "name": "Need and greed roll",
+      "kind": "loot"
+    },
+    {
+      "page": "loot",
+      "name": "Loot confirmation",
+      "kind": "loot"
+    },
+    {
+      "page": "chat",
+      "name": "Message history",
+      "kind": "chat"
+    },
+    {
+      "page": "chat",
+      "name": "Chat tabs",
+      "kind": "chat"
+    },
+    {
+      "page": "chat",
+      "name": "Input bar",
+      "kind": "chat"
+    },
+    {
+      "page": "chat",
+      "name": "Channel buttons",
+      "kind": "chat"
+    },
+    {
+      "page": "chat",
+      "name": "History scrolling",
+      "kind": "chat"
+    },
+    {
+      "page": "chat",
+      "name": "Copy window",
+      "kind": "chat"
+    },
+    {
+      "page": "chat",
+      "name": "Search history",
+      "kind": "chat"
+    },
+    {
+      "page": "chat",
+      "name": "Resize handle",
+      "kind": "chat"
+    },
+    {
+      "page": "chatbubbles",
+      "name": "Player speech",
+      "kind": "bubble"
+    },
+    {
+      "page": "chatbubbles",
+      "name": "NPC speech",
+      "kind": "bubble"
+    },
+    {
+      "page": "micromenu",
+      "name": "Micro menu",
+      "kind": "slots"
+    },
+    {
+      "page": "micromenu",
+      "name": "Backpack",
+      "kind": "slots"
+    },
+    {
+      "page": "micromenu",
+      "name": "Equipped bags",
+      "kind": "slots"
+    },
+    {
+      "page": "micromenu",
+      "name": "Empty bag slot",
+      "kind": "slots"
+    },
+    {
+      "page": "micromenu",
+      "name": "Keyring",
+      "kind": "slots"
+    },
+    {
+      "page": "xpbar",
+      "name": "Experience",
+      "kind": "progress"
+    },
+    {
+      "page": "xpbar",
+      "name": "Rested experience",
+      "kind": "progress"
+    },
+    {
+      "page": "xpbar",
+      "name": "Watched reputation",
+      "kind": "progress"
+    },
+    {
+      "page": "xpbar",
+      "name": "Experience gain",
+      "kind": "progress"
+    },
+    {
+      "page": "durability",
+      "name": "Lowest durability",
+      "kind": "durability"
+    },
+    {
+      "page": "durability",
+      "name": "Worn gear",
+      "kind": "durability"
+    },
+    {
+      "page": "durability",
+      "name": "Broken gear",
+      "kind": "durability"
+    },
+    {
+      "page": "durability",
+      "name": "Gear tooltip",
+      "kind": "durability"
+    },
+    {
+      "page": "tooltip",
+      "name": "Unit tooltip",
+      "kind": "tooltip"
+    },
+    {
+      "page": "tooltip",
+      "name": "Item tooltip",
+      "kind": "tooltip"
+    },
+    {
+      "page": "tooltip",
+      "name": "Spell tooltip",
+      "kind": "tooltip"
+    },
+    {
+      "page": "tooltip",
+      "name": "Comparison tooltips",
+      "kind": "tooltip"
+    },
+    {
+      "page": "tooltip",
+      "name": "Aura tooltip",
+      "kind": "tooltip"
+    },
+    {
+      "page": "tooltip",
+      "name": "Settings help",
+      "kind": "tooltip"
+    },
+    {
+      "page": "hudframes",
+      "name": "Queue status",
+      "kind": "notice"
+    },
+    {
+      "page": "hudframes",
+      "name": "Framerate label",
+      "kind": "notice"
+    },
+    {
+      "page": "hudframes",
+      "name": "Quest navigation marker",
+      "kind": "notice"
+    },
+    {
+      "page": "screentext",
+      "name": "Zone name",
+      "kind": "combattext"
+    },
+    {
+      "page": "screentext",
+      "name": "Subzone name",
+      "kind": "combattext"
+    },
+    {
+      "page": "screentext",
+      "name": "Error message",
+      "kind": "combattext"
+    },
+    {
+      "page": "screentext",
+      "name": "Raid warning",
+      "kind": "combattext"
+    },
+    {
+      "page": "alerts",
+      "name": "Loot alert",
+      "kind": "notice"
+    },
+    {
+      "page": "alerts",
+      "name": "Money alert",
+      "kind": "notice"
+    },
+    {
+      "page": "alerts",
+      "name": "Recipe alert",
+      "kind": "notice"
+    },
+    {
+      "page": "alerts",
+      "name": "Achievement alert",
+      "kind": "notice"
+    },
+    {
+      "page": "banners",
+      "name": "Level-up banner",
+      "kind": "notice"
+    },
+    {
+      "page": "banners",
+      "name": "Event toast",
+      "kind": "notice"
+    },
+    {
+      "page": "banners",
+      "name": "Boss banner",
+      "kind": "notice"
+    },
+    {
+      "page": "banners",
+      "name": "Objective banner",
+      "kind": "notice"
+    },
+    {
+      "page": "banners",
+      "name": "Side history",
+      "kind": "notice"
+    },
+    {
+      "page": "toasts",
+      "name": "Friend notification",
+      "kind": "notice"
+    },
+    {
+      "page": "toasts",
+      "name": "Play-time notice",
+      "kind": "notice"
+    },
+    {
+      "page": "toasts",
+      "name": "Voice notice",
+      "kind": "notice"
+    },
+    {
+      "page": "panels",
+      "name": "Title and accent rule",
+      "kind": "window"
+    },
+    {
+      "page": "panels",
+      "name": "Close button",
+      "kind": "window"
+    },
+    {
+      "page": "panels",
+      "name": "Selected tab",
+      "kind": "window"
+    },
+    {
+      "page": "panels",
+      "name": "Content inset",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Character equipment",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Character stats",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Reputation and skills",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Spellbook",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Talents",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Quest dialogue",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Gossip choices",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Merchant",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Bank",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Mail inbox",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Open mail",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Trade",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Class trainer",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Professions",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Guild bank",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Stable",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Friends",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Guild and communities",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Group finder",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Raid information",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "PvP results",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Inspect",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Calendar",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Achievements",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Collections",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Transmog",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Player choice",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Splash",
+      "kind": "window"
+    },
+    {
+      "page": "interiors",
+      "name": "Generic traits",
+      "kind": "window"
+    },
+    {
+      "page": "auction-house",
+      "name": "Buying and search",
+      "kind": "auction"
+    },
+    {
+      "page": "auction-house",
+      "name": "Results table",
+      "kind": "auction"
+    },
+    {
+      "page": "auction-house",
+      "name": "Item summary",
+      "kind": "auction"
+    },
+    {
+      "page": "auction-house",
+      "name": "Selling",
+      "kind": "auction"
+    },
+    {
+      "page": "auction-house",
+      "name": "Owned auctions",
+      "kind": "auction"
+    },
+    {
+      "page": "auction-house",
+      "name": "Enchantment details",
+      "kind": "auction"
+    },
+    {
+      "page": "dialogs",
+      "name": "Ready check",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Role poll",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Stack split",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Queue ready",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Colour picker",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Add friend",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Report",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Autocomplete",
+      "kind": "dialog"
+    },
+    {
+      "page": "dialogs",
+      "name": "Legacy dropdown",
+      "kind": "dialog"
+    },
+    {
+      "page": "popups",
+      "name": "Confirmation text",
+      "kind": "dialog"
+    },
+    {
+      "page": "popups",
+      "name": "Accept and cancel",
+      "kind": "dialog"
+    },
+    {
+      "page": "popups",
+      "name": "Text entry",
+      "kind": "dialog"
+    },
+    {
+      "page": "popups",
+      "name": "Item confirmation",
+      "kind": "dialog"
+    },
+    {
+      "page": "menus",
+      "name": "Context menu",
+      "kind": "menu"
+    },
+    {
+      "page": "menus",
+      "name": "Submenu",
+      "kind": "menu"
+    },
+    {
+      "page": "menus",
+      "name": "Checked row",
+      "kind": "menu"
+    },
+    {
+      "page": "menus",
+      "name": "Disabled row",
+      "kind": "menu"
+    },
+    {
+      "page": "widgets",
+      "name": "Status bar",
+      "kind": "widgets"
+    },
+    {
+      "page": "widgets",
+      "name": "Double status bar",
+      "kind": "widgets"
+    },
+    {
+      "page": "widgets",
+      "name": "Capture bar",
+      "kind": "widgets"
+    },
+    {
+      "page": "widgets",
+      "name": "Icon and text",
+      "kind": "widgets"
+    },
+    {
+      "page": "widgets",
+      "name": "Texture and text",
+      "kind": "widgets"
+    },
+    {
+      "page": "widgets",
+      "name": "Spell display",
+      "kind": "widgets"
+    },
+    {
+      "page": "widgets",
+      "name": "Resource row",
+      "kind": "widgets"
+    },
+    {
+      "page": "controls",
+      "name": "Button",
+      "kind": "controls"
+    },
+    {
+      "page": "controls",
+      "name": "Checkbox",
+      "kind": "controls"
+    },
+    {
+      "page": "controls",
+      "name": "Text field",
+      "kind": "controls"
+    },
+    {
+      "page": "controls",
+      "name": "Slider",
+      "kind": "controls"
+    },
+    {
+      "page": "controls",
+      "name": "Scrollbar",
+      "kind": "controls"
+    },
+    {
+      "page": "controls",
+      "name": "Dropdown",
+      "kind": "controls"
+    },
+    {
+      "page": "controls",
+      "name": "Colour control",
+      "kind": "controls"
+    },
+    {
+      "page": "controls",
+      "name": "Disabled control",
+      "kind": "controls"
+    }
+  ]
+}

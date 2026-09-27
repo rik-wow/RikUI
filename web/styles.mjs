@@ -31,10 +31,10 @@ code{font:14px ui-monospace,Consolas,monospace;color:#e0d5b9}
 .preview-stage{background:#111310;border:1px solid #4d5148;overflow:hidden;aspect-ratio:16/9}
 .game-scene{display:block;width:100%;height:100%;font-family:Arial,Helvetica,sans-serif;letter-spacing:.2px}
 .game-scene .outlined{paint-order:stroke;stroke:#101010;stroke-width:2;stroke-linejoin:round}
-.combat-capture{display:none;width:100%;height:100%;object-fit:contain}
-.preview-stage[data-view=capture] .game-scene{display:none}
-.preview-stage[data-view=capture] .combat-capture{display:block}
-.preview-stage[data-view=combat] :is(.chat-panel,.damage-meter,.utility-bars,.minimap,.quest-tracker,.buffs){display:none}
+.inactive-seal{filter:grayscale(1);opacity:.7}
+.combat-only{display:none}
+.preview-stage[data-view=combat] .combat-only{display:inline}
+.preview-stage[data-view=combat] :is(.minimap,.buffs){display:none}
 .ui-overlay{display:inline}
 .overlay-hidden .ui-overlay{display:none}
 .preview-toolbar{display:none;align-items:center;justify-content:space-between;gap:20px;margin-top:8px;border-bottom:1px solid var(--line)}

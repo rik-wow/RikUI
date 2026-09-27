@@ -22,7 +22,10 @@ for (const width of [1440, 1024, 768, 390, 320]) {
         image.src = url;
       })));
     });
-    expect(loaded.length).toBeGreaterThan(20);
+    expect(loaded.length).toBeGreaterThan(10);
+    await expect(page.locator('[data-action="Holy Strike"] image').first()).toHaveAttribute("href", "/assets/forever-20260927/classicon_paladin.png");
+    await expect(page.locator('[data-action="Holy Light"] image').first()).toHaveAttribute("href", "/assets/forever-20260927/spell_holy_holybolt.png");
+    await expect(page.locator(".combat-capture")).toHaveCount(0);
     expect(loaded.every(image => image.url.startsWith("/assets/"))).toBe(true);
     expect(loaded.filter(image => !image.width)).toEqual([]);
     expect(loaded.find(image => image.url.startsWith("/assets/")).width).toBeGreaterThanOrEqual(2048);
@@ -34,7 +37,7 @@ for (const width of [1440, 1024, 768, 390, 320]) {
     await layout.focus();
     await page.keyboard.press("ArrowRight");
     await expect(page.getByRole("button", { name: "Combat", exact: true })).toBeFocused();
-    await expect(page.locator(".game-scene")).toHaveAttribute("viewBox", "320 360 1408 792");
+    await expect(page.locator(".game-scene")).toHaveAttribute("viewBox", "0 0 2048 1152");
     await expect(layout).toHaveAttribute("aria-pressed", "false");
     await page.keyboard.press("End");
     await expect(page.locator("#view-description")).toContainText("share one column");
@@ -49,20 +52,18 @@ for (const width of [1440, 1024, 768, 390, 320]) {
     await expect(page.locator(".ui-overlay")).toBeVisible();
     await expect(page.locator("#asset-notice")).toContainText("not affiliated with, endorsed by, or sponsored by Blizzard");
     const frame = await page.locator(".preview-stage").boundingBox();
-    for (const view of ["layout", "combat", "capture", "quests"]) {
+    for (const view of ["layout", "combat", "quests"]) {
       await page.locator('button[data-view="' + view + '"]').click();
       if (view === "combat") {
+        await expect(page.locator(".target-frame")).toBeVisible();
+        const target = await page.locator(".target-frame > rect").first().evaluate(el => ({ x: el.x.baseVal.value, y: el.y.baseVal.value }));
+        expect(target).toEqual({ x: 1048, y: 690 });
         await expect(page.locator(".world-backdrop")).toHaveAttribute("href", "/assets/combat-20260927-122246.jpg");
         await page.locator(".world-backdrop").evaluate(async element => {
           const image = new Image(); image.src = element.getAttribute("href"); await image.decode();
         });
       }
-      if (view === "capture") {
-        await expect(page.locator(".game-scene")).toBeHidden();
-        await expect(page.locator(".combat-capture")).toBeVisible();
-        await expect(overlay).toBeHidden();
-        await page.locator(".combat-capture").evaluate(image => image.decode());
-      }
+
       const box = await page.locator(".preview-stage").boundingBox();
       expect(box.width / box.height, view + " uses 16:9").toBeCloseTo(16 / 9, 2);
       expect(box.height, view + " preserves frame height").toBeCloseTo(frame.height, 1);
@@ -88,7 +89,9 @@ test("UI groups share centerlines, column edges and bottom baseline", async ({ p
     })));
   const center = box => box.x + box.width/2;
   const bottom = box => box.y + box.height;
-  expect(center(boxes["player-frame"])).toBeCloseTo(1024, 0);
+  expect(boxes["player-frame"].x).toBe(822);
+  expect(boxes["player-frame"].y).toBe(690);
+  expect(center(boxes["player-frame"])).toBeLessThan(1024);
   expect(center(boxes.cooldowns)).toBeCloseTo(1024, 0);
   expect(center(boxes["action-bars"])).toBeCloseTo(1024, 0);
   expect(boxes.minimap.x).toBe(boxes["quest-tracker"].x);
@@ -118,7 +121,7 @@ test("content remains useful without browser JavaScript", async ({ browser }) =>
 test("client icons and both combat captures match their recorded bytes", async ({ request }) => {
   const { readFile } = await import("node:fs/promises");
   const manifest = JSON.parse(await readFile(new URL("./client-assets.json", import.meta.url), "utf8"));
-  for (const item of [...manifest.icons, ...manifest.screenshots]) {
+  for (const item of [...manifest.icons, ...manifest.maps, ...manifest.screenshots]) {
     const response = await request.get(item.path);
     expect(response.status(), item.path).toBe(200);
     expect(response.headers()["content-type"]).toContain(item.path.endsWith(".png") ? "image/png" : "image/jpeg");

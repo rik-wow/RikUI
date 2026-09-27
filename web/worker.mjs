@@ -1,7 +1,10 @@
+import { documentation, documentationImages } from "./docs-generated.mjs";
+import { docsStyles } from "./docs-styles.mjs";
+import { docsScript } from "./docs-client.mjs";
 import { page } from "./page.mjs";
 import { styles } from "./styles.mjs";
 import { catalog } from "./releases.mjs";
-import { assetUrls } from "./previews.mjs";
+import { clientAssetUrls as assetUrls } from "./icon-map.mjs";
 import { clientScript } from "./client.mjs";
 
 const SECURITY = {
@@ -84,8 +87,17 @@ async function route(request, env) {
     return Response.redirect("https://rikwow.com" + url.pathname + url.search, 308);
   if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8",
     { "Cache-Control": "public, max-age=60, no-transform" });
-  if (new Set([...assetUrls, "/assets/world-20260927-120706.jpg",
+  if (new Set([...assetUrls, ...documentationImages, "/assets/world-20260927-120706.jpg",
     "/assets/combat-20260927-122246.jpg", "/assets/combat-20260927-122242.jpg"]).has(url.pathname)) return worldAsset(request, env);
+  if (url.pathname.endsWith("/") && documentation[url.pathname.slice(0,-1)]) return Response.redirect(url.origin+url.pathname.slice(0,-1),308);
+  if (Object.hasOwn(documentation,url.pathname)) {
+    const source=new URL(documentation[url.pathname],url.origin);
+    const asset=await env.ASSETS.fetch(new Request(source,request));
+    if(!asset.ok && asset.status!==304)return json({error:"Documentation temporarily unavailable"},503);
+    return respond(asset.body,asset.status,"text/html; charset=utf-8",{"Cache-Control":"public, max-age=60, no-transform",...(asset.headers.has("ETag")?{ETag:asset.headers.get("ETag")}:{})});
+  }
+  if (url.pathname === "/docs.css") return respond(docsStyles,200,"text/css; charset=utf-8");
+  if (url.pathname === "/docs.js") return respond(docsScript,200,"text/javascript; charset=utf-8");
   if (url.pathname === "/site.js") return respond(clientScript, 200, "text/javascript; charset=utf-8");
   if (url.pathname === "/site.css") return respond(styles, 200, "text/css; charset=utf-8");
   if (url.pathname === "/healthz") return json({ status: "ok", service: "rik-wow-site" });

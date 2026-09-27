@@ -1,0 +1,106 @@
+import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { Marked } from "marked";
+import { catalogue, modulePages } from "./docs-catalogue.mjs";
+import { createHash } from "node:crypto";
+import { illustration, gallery, escapeHTML as esc } from "./docs-visuals.mjs";
+const visualPaths=new Map();
+await mkdir(new URL("./public/assets/docs/",import.meta.url),{recursive:true});
+for(const page of catalogue)for(const [index,title] of page.surfaces.entries()){
+ const svg=illustration(page.kind,title,index);
+ const hash=createHash("sha256").update(svg).digest("hex").slice(0,12);
+ const name=page.slug+"-"+index+"-"+hash+".svg";
+ visualPaths.set(page.slug+":"+index,"/assets/docs/"+name);
+ await writeFile(new URL("./public/assets/docs/"+name,import.meta.url),svg);
+}
+const root = fileURLToPath(new URL("../", import.meta.url));
+const git = "https://github.com/rik-wow/RikUI/blob/main/";
+const files = [];
+async function scan(dir) {
+ for (const entry of await readdir(path.join(root,dir), { withFileTypes:true })) {
+  if (["node_modules","target",".venv","__pycache__"].includes(entry.name)) continue;
+  const name=path.posix.join(dir,entry.name);
+  if(entry.isDirectory()) await scan(name);
+  else if(entry.name.endsWith(".md")) files.push(name);
+ }
+}
+await scan("docs"); await scan("tools"); await scan("installer");
+files.push("README.md","CONTRIBUTING.md","CHANGELOG.md","SDD.md","web/ASSET-NOTICE.md");
+const slugOf = file => file.startsWith("docs/") ? path.posix.basename(file,".md")
+ : file==="README.md" ? "overview" : file==="installer/README.md" ? "installation"
+ : file.toLowerCase().replace(/\.md$/,"").replaceAll("/","--");
+const sources = new Map(await Promise.all(files.map(async file=>[file,await readFile(path.join(root,file),"utf8")])));
+const routes = new Map(files.map(file=>[file,"/docs/"+slugOf(file)]));
+const pages=files.map(file=>{
+ const feature=catalogue.find(entry=>entry.slug===slugOf(file));
+ const markdown=sources.get(file);
+ return {file,slug:slugOf(file),title:feature?.title||markdown.match(/^#\s+(.+)/m)?.[1]||file,
+ group:feature?.group||"Technical reference",summary:feature?.summary||"",feature};
+});
+for(const guide of catalogue)if(!pages.some(page=>page.slug===guide.slug))throw Error("Missing Markdown guide: "+guide.slug);
+const sourceFiles=[];
+async function luaFiles(dir) {
+ for(const entry of await readdir(path.join(root,dir),{withFileTypes:true})){
+  const name=path.posix.join(dir,entry.name);
+  if(entry.isDirectory())await luaFiles(name);
+  else if(entry.name.endsWith(".lua"))sourceFiles.push(name);
+ }
+}
+await luaFiles("src");
+const registrations=[];
+for(const file of sourceFiles){
+ const source=await readFile(path.join(root,file),"utf8");
+ for(const match of source.matchAll(/RegisterModule\("([^"]+)"/g))registrations.push({name:match[1],file,page:modulePages[match[1]]});
+}
+const missing=registrations.filter(item=>!item.page);
+if(missing.length)throw Error("Missing module visual documentation: "+missing.map(x=>x.name).join(", "));
+const inventory={modules:registrations,surfaces:catalogue.flatMap(page=>page.surfaces.map(name=>({page:page.slug,name,kind:page.kind})))};
+const groups=[...new Set(pages.map(page=>page.group))].sort((a,b)=>a==="Getting started"?-1:b==="Getting started"?1:a==="Technical reference"?1:b==="Technical reference"?-1:0);
+const sidebar=current=>'<aside class="docs-sidebar"><details class="docs-nav-toggle" open><summary>Browse documentation</summary><div class="nav-content"><label for="docs-search">Find a guide</label><input id="docs-search" type="search" placeholder="Nameplates, bags, profiles…" autocomplete="off"><p id="search-empty" hidden>No matching guides.</p><nav aria-label="Documentation">'+groups.map(group=>'<section class="nav-group"><h2>'+esc(group)+'</h2>'+pages.filter(p=>p.group===group).map(p=>'<a data-doc-link data-keywords="'+esc(p.slug+' '+p.summary)+'" href="/docs/'+p.slug+'"'+(p.slug===current?' aria-current="page"':"")+'>'+esc(p.title)+'</a>').join("")+'</section>').join("")+'</nav></div></details></aside>';
+const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license. Mockups are labeled illustrations, not game-client screenshots.</p></footer></body></html>';
+function render(page){
+ const headings=[],counts=new Map();
+ const md=new Marked({gfm:true,renderer:{
+  html({text}){return esc(text);},
+  heading({tokens,depth}){
+   const text=this.parser.parseInline(tokens),plain=text.replace(/<[^>]*>/g,"");
+   const base="ref-"+plain.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+   const n=counts.get(base)||0;counts.set(base,n+1);const id=base+(n?"-"+n:"");
+   if(depth<=3)headings.push({id,text:plain,depth});
+   return '<h'+depth+' id="'+id+'">'+text+'</h'+depth+'>';
+  },
+  link({href,title,tokens}){
+   let target=href||"";
+   if(!/^(https?:|mailto:|#)/i.test(target)){
+    const [local,hash]=target.split("#");
+    const resolved=path.posix.normalize(path.posix.join(path.posix.dirname(page.file),local));
+    target=(routes.get(resolved)||git+resolved)+(hash?"#ref-"+hash:"");
+   }else if(target.startsWith("#"))target="#ref-"+target.slice(1);
+   if(!/^(https?:|mailto:|\/docs(?:\/|$)|#)/i.test(target))target="#";
+   return '<a href="'+esc(target)+'"'+(title?' title="'+esc(title)+'"':"")+'>'+this.parser.parseInline(tokens)+'</a>';
+  },
+  image({text}){return '<span class="image-reference">'+esc(text)+'</span>';}
+ }});
+ let markdown=sources.get(page.file).replace(/^# .+\r?\n/,"");
+ const content=md.parse(markdown);
+ const historical=page.slug==="ui-oracle"?'<p class="doc-note">This is a dated engineering audit. Its historical tiers and pending work do not describe all current features; use the module guides for current behavior.</p>':page.slug==="questiedb-license-request"?'<p class="doc-note">Draft only. This request has not been sent.</p>':"";
+ const toc='<aside class="docs-toc"><nav aria-label="On this page"><h2>On this page</h2>'+(page.feature?'<a href="#visual-guide">Visual guide</a>':"")+headings.map(h=>'<a href="#'+h.id+'" class="toc-depth-'+h.depth+'">'+esc(h.text)+'</a>').join("")+'</nav></aside>';
+ const header='<div class="doc-breadcrumb"><a href="/docs">Documentation</a><span>/</span>'+esc(page.group)+'</div><h1>'+esc(page.title)+'</h1>'+(page.summary?'<p class="doc-lead">'+esc(page.summary)+'</p>':"");
+ const usage=page.feature?.modules.length?'<p class="doc-setting">Module controls: <code>/rik config</code> → System → Modules. Saved module changes apply after reload.</p>':"";
+ return shell(page.title,page.slug,header+historical+usage+gallery(page.feature,visualPaths)+'<article class="doc-prose">'+content+'</article><p class="doc-source"><a href="'+git+page.file+'">View this page’s source</a></p>',toc);
+}
+const all = Object.fromEntries(pages.map(page=>["/docs/"+page.slug,render(page)]));
+const featureGroups=groups.filter(g=>g!=="Technical reference");
+const index='<div class="doc-breadcrumb">RikUI / Documentation</div><h1>Using RikUI</h1><p class="doc-lead">Set up your interface, learn the controls and see what each module changes.</p><div class="docs-start"><a href="/docs/installation">Install RikUI</a><a href="/docs/wizard">First setup</a><a href="/docs/layout">Arrange your frames</a><a href="/docs/options">Settings and profiles</a></div><h2 id="interface-guides">Interface guides</h2>'+featureGroups.map(group=>'<section class="guide-group"><h3>'+esc(group)+'</h3><dl>'+catalogue.filter(p=>p.group===group).map(p=>'<div data-guide><dt><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></dt><dd>'+esc(p.summary)+'</dd></div>').join("")+'</dl></section>').join("")+'<section class="guide-group"><h2>Technical reference</h2><p>Architecture, data coverage, packaging and dated engineering evidence.</p><ul class="reference-list">'+pages.filter(p=>p.group==="Technical reference").map(p=>'<li><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></li>').join("")+'</ul></section>';
+all["/docs"]=shell("Documentation","",index);
+await mkdir(new URL("./public/docs/",import.meta.url),{recursive:true});
+const documentation={};
+for(const [route,html] of Object.entries(all)){
+ const file=route==="/docs"?"index":route.slice("/docs/".length);
+ documentation[route]="/docs/"+file+".html";
+ await writeFile(new URL("./public/docs/"+file+".html",import.meta.url),html);
+}
+await writeFile(new URL("./docs-generated.mjs",import.meta.url),"// Generated by build-docs.mjs.\nexport const documentation = "+JSON.stringify(documentation,null,2)+";\nexport const documentationImages = "+JSON.stringify([...visualPaths.values()])+";\n");
+await writeFile(new URL("./docs-inventory.json",import.meta.url),JSON.stringify({pages:pages.map(({slug,file,title})=>({slug,file,title})),...inventory},null,2)+"\n");
+console.log("Built "+pages.length+" documentation pages, "+registrations.length+" modules, "+inventory.surfaces.length+" visual examples.");

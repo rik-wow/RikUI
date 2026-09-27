@@ -7,10 +7,17 @@
     "test:browser": "playwright test",
     "check": "wrangler deploy --dry-run",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "build:docs": "node build-docs.mjs",
+    "pretest": "npm run build:docs",
+    "pretest:browser": "npm run build:docs",
+    "precheck": "npm run build:docs",
+    "predev": "npm run build:docs",
+    "predeploy": "npm run build:docs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
+    "marked": "18.0.14",
     "wrangler": "4.142.0"
   }
 }

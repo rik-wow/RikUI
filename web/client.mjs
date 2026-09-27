@@ -2,11 +2,10 @@ export const clientScript = `document.documentElement.classList.add("enhanced");
 const controls = [...document.querySelectorAll('[data-view][aria-pressed]')];
 const stage = document.querySelector('.preview-stage');
 const scene = document.querySelector('.game-scene');
-const views = { layout: '0 0 2048 1152', combat: '320 360 1408 792', capture: '0 0 2048 1152', quests: '640 0 1408 792' };
+const views = { layout: '0 0 2048 1152', combat: '0 0 2048 1152', quests: '640 0 1408 792' };
 const descriptions = {
-  layout: 'Player frames and spells in the center; chat and quest tracking at the edges.',
-  combat: 'Paladin UI mockup over combat in Elwynn Forest. Captured September 27 at 12:22:46.',
-  capture: 'RikUI in game: fighting a Mangy Wolf in Elwynn Forest. Captured September 27 at 12:22:42.',
+  layout: 'Player left, target right in combat; cooldowns and action bars centered.',
+  combat: 'Combat mockup reconstructed from both 12:22 captures: player left, target right, cooldowns below.',
   quests: 'The square minimap, quest planner and turn-in status share one column.'
 };
 function activate(button) {
@@ -18,10 +17,7 @@ function activate(button) {
     : 'RikUI paladin interface mockup over the Cathedral of Light';
   scene.querySelector('.world-backdrop').setAttribute('href', view === 'combat'
     ? '/assets/combat-20260927-122246.jpg' : '/assets/world-20260927-120706.jpg');
-  document.querySelector('.overlay-control').hidden = view === 'capture';
-  document.getElementById('capture-caption').textContent = view === 'capture'
-    ? 'Original in-game capture; the interface is part of the screenshot.'
-    : view === 'combat' ? 'UI mockup over the latest capture with the game UI hidden.'
+  document.getElementById('capture-caption').textContent = view === 'combat' ? 'UI mockup over the latest capture with the game UI hidden.'
     : 'UI mockup over a capture from the Cathedral of Light.';
   document.getElementById('view-description').textContent = descriptions[view];
   for (const control of controls)

@@ -96,3 +96,19 @@ test("approved downloads support streams, conditional reads, HEAD and ranges", a
     assert.equal(unavailable.headers.get("Cache-Control"), "no-store");
   } finally { catalog.releases.pop(); }
 });
+
+test("documentation assets preserve cache validation and fail explicitly when missing",async()=>{
+ const paths=[];
+ const env={ASSETS:{fetch:async req=>{
+  paths.push(new URL(req.url).pathname);
+  return new Response(req.headers.has("If-None-Match")?null:"<h1>Inventory</h1>",{status:req.headers.has("If-None-Match")?304:200,headers:{ETag:'"docs-v1"'}});
+ }}};
+ const page=await worker.fetch(request("/docs/bags"),env);
+ assert.equal(page.status,200);assert.deepEqual(paths,["/docs/bags.html"]);
+ assert.match(page.headers.get("Cache-Control"),/max-age=60, no-transform/);
+ const cached=await worker.fetch(request("/docs/bags",{headers:{"If-None-Match":'"docs-v1"'}}),env);
+ assert.equal(cached.status,304);assert.equal(cached.headers.get("ETag"),'"docs-v1"');
+ assert.equal((await worker.fetch(request("/docs/not-listed"),env)).status,404);
+ env.ASSETS.fetch=async()=>new Response("missing",{status:404});
+ assert.equal((await worker.fetch(request("/docs/bags"),env)).status,503);
+});

@@ -28,3 +28,5 @@ __pycache__/
 /web/.env
 /web/test-results/
 /web/playwright-report/
+/web/public/docs/
+/web/public/assets/docs/

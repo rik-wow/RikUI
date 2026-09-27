@@ -1,46 +1,61 @@
-// Original UI reconstruction. Icons decoded from the installed Forever client; see client-assets.json.
+import { spellIcons, glyphs } from "./icon-map.mjs";
+// Spell identities come from RikUI’s catalogue; textures are decoded from the installed client.
 export const iconBase = "/assets/forever-20260927/";
-const art = {
-  stone: "inv_misc_rune_06", might: "spell_holy_righteousfury", devotion: "spell_holy_sealofprotection",
-  light: "spell_holy_sealofmight", wisdom: "inv_misc_book_07", bolt: "spell_holy_searinglight",
-  flash: "spell_holy_layonhands", fury: "spell_holy_blessingofstrength", protection: "spell_holy_devotionaura",
-  salvation: "spell_holy_sealofsalvation", hands: "spell_holy_purify", heal: "spell_holy_layonhands",
-  purify: "spell_holy_holysmite", wrath: "spell_holy_auraoflight", hammer: "inv_hammer_01",
-  potion: "inv_potion_50", elixir: "inv_potion_49", food: "inv_misc_food_07",
-  apple: "inv_misc_food_19", book: "inv_misc_book_09", rune: "inv_misc_rune_01",
-  watch: "inv_misc_pocketwatch_01", fortitude: "spell_holy_wordfortitude",
-  regen: "spell_nature_rejuvenation", intellect: "spell_holy_magicalsentry", spirit: "spell_magic_magearmor",
-};
-export const assetUrls = Object.values(art).map(name => iconBase + name + ".png");
+const art = Object.fromEntries(Object.entries(spellIcons).map(([name, icon]) => [name, icon.path]));
+Object.assign(art, { Hearthstone: iconBase+"inv_misc_rune_01.png" });
+export const assetUrls = Object.values(art);
+const glyph = (name,x,y,size=14) => glyphs[name].replace("<svg ", '<svg x="'+x+'" y="'+y+'" width="'+size+'" height="'+size+'" ');
 const rect = (x, y, w, h, fill = "#101316", stroke = "#3c444e") =>
   '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1"/>';
 const text = (x, y, value, fill = "#c8c5bc", size = 10, anchor = "start", extra = "") =>
   '<text x="'+x+'" y="'+y+'" fill="'+fill+'" font-size="'+size+'" text-anchor="'+anchor+'" '+extra+'>'+value+'</text>';
 function slot(x, y, name, bind = "", size = 30, count = "") {
-  return '<g class="game-slot">'+rect(x,y,size,size)+(name ?
-    '<image href="'+iconBase+art[name]+'.png" x="'+(x+1)+'" y="'+(y+1)+'" width="'+(size-2)+'" height="'+(size-2)+'"/>' : "")+
+  if(name && !art[name]) throw new Error("Unknown preview action: "+name);
+  return '<g class="game-slot"'+(name?' data-action="'+name+'"':"")+'>'+rect(x,y,size,size)+(name ?
+    '<title>'+name+'</title><svg x="'+(x+1)+'" y="'+(y+1)+'" width="'+(size-2)+'" height="'+(size-2)+'" viewBox="5.12 5.12 53.76 53.76"><image href="'+art[name]+'" width="64" height="64"/></svg>' : "")+
     (bind ? text(x+size-2,y+9,bind,"#eee9df",10,"end",'class="outlined"') : "")+
     (count ? text(x+size-2,y+size-2,count,"#eee9df",10,"end",'class="outlined"') : "")+'</g>';
 }
 
 const FRAME = { center: 1024, inset: 32, right: 2016, panelWidth: 228, bottom: 1120 };
-const COMBAT = { barX: 822, barY: 1000, barWidth: 404, hudX: 907, hudWidth: 234 };
+const COMBAT = { barX: 822, barY: 1000, barWidth: 404, hudX: 910, hudWidth: 228, playerX: 822, targetX: 1048, unitWidth: 178, unitY: 690 };
 const group = (name, body) => '<g class="'+name+'">'+body+'</g>';
 
 function player() {
-  const x = COMBAT.hudX, y = 854, w = COMBAT.hudWidth;
-  return group("player-frame", slot(x,822,"protection","",24)+
+  const x = COMBAT.playerX, y = COMBAT.unitY, w = COMBAT.unitWidth;
+  return group("player-frame",
     rect(x,y,w,36)+rect(x,y,w,23,"#ef8fbb","#b97494")+
     text(x+5,y+15,"Boo","#eee",12,"start",'class="outlined"')+
-    text(x+w-5,y+15,"290 / 290","#eee",11,"end",'class="outlined"')+
+    text(x+w-5,y+15,"212 / 220","#eee",11,"end",'class="outlined"')+
     rect(x,y+23,w,13,"#0800e9","#23294d")+text(x+5,y+33,"10","#eee69a",10)+
-    text(x+w-5,y+33,"437 / 437","#eee69a",10,"end"));
+    text(x+w-5,y+33,"287 / 287","#eee69a",10,"end"));
+}
+function target() {
+  const x=COMBAT.targetX, y=COMBAT.unitY, w=COMBAT.unitWidth;
+  return group("target-frame combat-only",rect(x,y,w,36,"#0b0e11","#a12c27")+
+    rect(x+1,y+1,100,22,"#bd4335","none")+
+    text(x+5,y+15,"Mangy Wolf","#eee",12,"start",'class="outlined"')+
+    text(x+w-5,y+15,"57 / 102","#eee",11,"end",'class="outlined"')+
+    text(x+5,y+33,"5","#e9db92",10)+text(x+w-5,y+33,"0 / 0","#aeb4b9",10,"end"))+
+    group("target-of-target combat-only",rect(1326,702,88,24)+rect(1326,702,88,15,"#ef8fbb")+
+    text(1329,713,"Boo","#eee",10,"start",'class="outlined"')+
+    rect(1326,717,88,9,"#0800e9")+text(1411,713,"212 / 220","#eee",8,"end",'class="outlined"'));
+}
+function combatDetails() {
+  return group("combat-details combat-only",
+    rect(958,486,138,14,"#101316")+text(1027,497,"Mangy Wolf","#ddd",11,"middle")+
+    rect(958,500,116,17,"#101316")+rect(959,501,65,15,"#bd4335","none")+
+    text(1016,513,"56%","#eee",11,"middle",'class="outlined"')+
+    rect(1074,500,22,17)+text(1085,513,"5","#55bb4a",10,"middle")+
+    text(1116,513,"Threat 100%","#ddd",11)+
+    rect(944,924,160,14,"#11161a")+rect(945,925,57,12,"#566a7d","none")+
+    text(948,934,"Main Hand","#ddd",9)+text(1100,934,"2.2","#ddd",9,"end"));
 }
 function actionBars() {
   const rows = [
-    ["salvation",null,null,null,"protection",null,null,null,null,"wrath","heal",null],
-    ["bolt","hands","flash",null,null,"devotion",null,null,null,"light",null,null],
-    ["wisdom","might","hammer","purify","bolt","light","flash","fury","heal","devotion","rune","watch"],
+    ["Blessing of Might",null,null,null,"Devotion Aura",null,null,null,null,null,null,null],
+    ["Divine Protection",null,"Lay on Hands",null,null,"Blessing of Protection",null,null,null,null,null,null],
+    ["Holy Strike","Judgement","Seal of Righteousness",null,null,"Hammer of Justice",null,"Purify","Holy Light",null,"Seal of Righteousness","Hearthstone"],
   ];
   const keys = ["1","2","3","4","5","Q","E","R","F","M4","M5","T"];
   let out = "";
@@ -53,11 +68,11 @@ function actionBars() {
   return group("action-bars",out);
 }
 function cooldowns() {
-  const x=COMBAT.hudX, y=906;
-  return group("cooldowns",["stone","might","light","devotion","flash","bolt","wisdom"]
-    .map((name,i)=>slot(x+i*34,y,name)).join("")+
+  const x=COMBAT.hudX, y=818;
+  return group("cooldowns",["Seal of Righteousness","Judgement","Hammer of Justice","Blessing of Protection","Lay on Hands","Divine Protection","Holy Strike"]
+    .map((name,i)=>i===0?'<g class="inactive-seal">'+slot(x+i*33,y,name)+'</g>':slot(x+i*33,y,name)).join("")+
     rect(x,y+34,COMBAT.hudWidth,12,"#0900f1","#263259")+
-    text(FRAME.center,y+43,"437 / 437","#fff4b8",10,"middle"));
+    text(FRAME.center,y+43,"287 / 287","#fff4b8",10,"middle"));
 }
 function minimap() {
   const x=FRAME.right-FRAME.panelWidth, y=FRAME.inset, w=FRAME.panelWidth;
@@ -107,31 +122,23 @@ function questTracker() {
 }
 function utilityBars() {
   let out="";
-  const items={"0:4":"potion","0:5":"elixir","0:7":"food","0:8":"book",
-    "1:0":"hammer","1:2":"purify","1:3":"wisdom","1:7":"apple"};
+  const items={"1:0":"Seal of Fury","1:2":"Seal of the Crusader","1:3":"Holy Strike"};
   for(let col=0;col<2;col++) for(let row=0;row<12;row++)
-    out+=slot(1952+col*34,716+row*34,items[col+":"+row],"",30,
-      col===0&&row===4?"2":col===0&&row===5?"3":"");
+    out+=slot(1952+col*34,716+row*34,items[col+":"+row],"",30);
   return group("utility-bars",out);
 }
 function meter() {
   const x=1624,y=936,w=312;
   let out=rect(x,y,w,128,"#090b0d","#292c30")+rect(x,y,w,24,"#19222c")+
-    text(x+8,y+16,"⌄  Damage Done","#efd300",11)+text(x+w-8,y+16,"0  ⚙  −","#efd300",11,"end")+
+    text(x+8,y+16,"⌄  Damage Done","#efd300",11)+text(x+w-53,y+16,"0","#efd300",11,"end")+glyph("settings",x+w-38,y+5,14)+glyph("minus",x+w-17,y+5,14)+
     rect(x+4,y+28,w-8,14,"#82616f","#42404a")+rect(x+4,y+28,234,14,"#c183a0","none")+
-    slot(x+5,y+28,"might","",14)+text(x+24,y+39,"1. Boo","#ded6dc",11,"start",'class="outlined"')+
+    slot(x+5,y+28,"Judgement","",14)+text(x+24,y+39,"1. Boo","#ded6dc",11,"start",'class="outlined"')+
     text(x+w-8,y+39,"12,135 (10.8)","#ded6dc",11,"end",'class="outlined"')+
     rect(x,1076,w,16,"#0d1215")+text(x+w/2,1087,"17 free (+1 special)","#8eb68c",9,"middle");
-  ["♙","↗","▤","♧","⌛","!","⚒","⌕","⊞","▣"].forEach((s,i)=>{
-    out+=rect(1740+i*20,1104,16,16,"#12171d")+text(1748+i*20,1116,s,"#b7bdc2",11,"middle");
+  ["character","profession","spellbook","talents","legacy","quest","guild","groupfinder","collections","store"].forEach((name,i)=>{
+    out+=rect(1740+i*20,1104,16,16,"#12171d")+glyph(name,1742+i*20,1106,12);
   });
   return group("damage-meter",out);
-}
-function buffs() {
-  let out="";
-  ["fortitude","intellect","spirit","regen"].forEach((n,i)=>
-    out+=slot(1652+i*32,32,n,["20m","28m","28m","34m"][i],24));
-  return group("buffs",out);
 }
 function chat() {
   const x=FRAME.inset,y=936,w=356;
@@ -152,7 +159,7 @@ function chat() {
 }
 export const scene = '<svg class="game-scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1152" role="img" aria-labelledby="scene-title scene-description">'+
   '<title id="scene-title">RikUI paladin interface mockup over the Cathedral of Light</title>'+
-  '<desc id="scene-description">A real in-game screenshot behind an aligned UI mockup. Player health and mana, cooldowns and action rows share a centerline. The minimap and quests share a right column; chat, utility bars and experience share a bottom edge. Blizzard game artwork; sample interface content.</desc>'+
+  '<desc id="scene-description">A real in-game screenshot behind an aligned UI mockup. The player frame is left of center, with a separate target frame to its right in combat. Cooldowns and action rows stay centered. The minimap and quests share a right column; chat, utility bars and experience share a bottom edge. Blizzard game artwork; sample interface content.</desc>'+
   '<image class="world-backdrop" href="/assets/world-20260927-120706.jpg" x="0" y="0" width="2048" height="1152"/>'+
   '<rect class="world-shade" width="2048" height="1152" fill="#0a0c10" opacity=".18"/>'+
-  group('ui-overlay',player()+cooldowns()+actionBars()+minimap()+questTracker()+utilityBars()+meter()+buffs()+chat())+'</svg>';
+  group('ui-overlay',player()+target()+combatDetails()+cooldowns()+actionBars()+minimap()+questTracker()+utilityBars()+meter()+chat())+'</svg>';

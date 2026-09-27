@@ -10,8 +10,8 @@ follow directly. Public installer availability is stated plainly.
 
 The preview combines a real game capture with an SVG mock. It remains labeled
 as a mock and uses sample chat rather than private messages. Full interface,
-combat and quest views use the same geometry. An In game view shows the second
-combat capture with its actual interface, without adding a second overlay. The overlay can be hidden to
+combat and quest views use the same 16:9 frame. The UI-visible capture is a
+reference for the reconstructed overlay. The overlay can be hidden to
 inspect the game backdrop. Without JavaScript, the full preview remains visible.
 
 ## Research and complete page audit
@@ -58,9 +58,9 @@ exhaustively automated.
 
 All positions use a 2048 × 1152 scene.
 
-- Player frame, cooldown strip and action rows share x=1024.
-- Player and cooldown widths are both 234 units; seven 30-unit icons use
-  consistent 4-unit gaps. Twelve action slots span 404 units.
+- Player frame starts at x=822, target at x=1048; each is 178 units wide.
+- Cooldowns and action rows are centered at x=1024. Seven 30-unit cooldown
+  icons use 3-unit gaps. Twelve action slots span 404 units.
 - Minimap and quest tracker share x=1788 and width=228.
 - Chat, XP bar, utility bars and micromenu end at y=1120.
 - Outer screen inset is 32 units. The bottom chat and meter begin at y=936.
@@ -86,14 +86,15 @@ editing, inpainting or generated scenery is used.
 
 The latest two screenshots were then requested for combat:
 `WoWScrnShot_092726_122246.jpg` (UI hidden, 19:22:46 UTC) provides the combat
-mock's backdrop; `WoWScrnShot_092726_122242.jpg` (19:22:42 UTC) appears in the
-In game view with its baked-in UI. Both originals are preserved byte for byte.
+mock's backdrop; `WoWScrnShot_092726_122242.jpg` (19:22:42 UTC) supplies the
+layout reference. Its baked-in UI is not pasted into a preview. Both originals
+are preserved byte for byte.
 Every tab uses the same 16:9 preview frame, including Combat and Quests.
-The combat crop includes the player in the world and the complete action rows;
-peripheral panels are hidden in that crop. Browser checks assert identical frame
+The combat view includes the whole scene, reconstructed player/target frames,
+nameplate, weapon timer, cooldowns and action rows. Browser checks assert identical frame
 height across tab changes at all five viewport widths.
 
-All 25 spell/item icons now come from the installed Forever client.
+Spell/item icons and Elwynn map tiles come from the installed Forever client.
 [TACTTool](https://github.com/wowdev/TACTSharp) loaded the installation's local
 CASC indices and selected `wow_classic_beta` from `.build.info`; it reported
 `WOW-70009patch1.60.1_ForeverBeta`. `WowB.exe` independently reports
@@ -121,3 +122,26 @@ Screenshots are resolved relative to the test module into repository `dist/`.
 
 Run in `web/`: `npm test`, `npm run test:browser`, `npm run check`.
 Use `SITE_URL=https://rikwow.com` for production browser checks.
+
+## Website documentation
+
+The build renders Markdown from docs, installer, tools and the root project
+guides into /docs pages. The navigation has keyword filtering, local guide
+links, heading anchors and a small-screen disclosure. Technical source links
+remain available. The draft licensing request is labeled as an unsent draft.
+
+A source registration check maps every named module to a visual guide. The
+catalogue currently includes 274 illustrative surface/state examples covering
+46 registered modules. Examples can be opened as standalone SVGs; sample values
+and conditional native surfaces are not evidence of a live client capture.
+The page inventory and module mapping are generated in web/docs-inventory.json.
+
+Named spell and item identities replace random icon selection. Spell identifiers
+come from RikUI catalogues; action placement also uses the selected preset and
+saved action snapshot. Glyphs come from media/icons. File IDs and texture hashes
+are retained in web/client-assets.json. Documentation map illustrations use
+Elwynn tiles extracted from the same installed client.
+
+Run npm run build:docs before direct Wrangler commands. npm test, check, dev and
+deploy build the documentation automatically. Generated HTML and SVG outputs
+stay under web/public; browser verification images stay under repository dist.
