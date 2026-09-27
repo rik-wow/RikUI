@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Window and dialog close controls now use a warm hover face, shared press feedback and muted disabled glyphs. Repeated skinning reuses regions and leaves native close handlers intact.
+
 - Selected native tabs now have a slate-blue face and brighter outline alongside their persistent underline. Selection changes restore the inactive surface. Horizontal scrollbar arrows follow the current client's orientation field.
 
 - Native dropdowns now use crisp bundled chevrons in dark inset compartments, with muted disabled states. Modern scrollbar steps also suppress their atlas texture so only one arrow is visible.

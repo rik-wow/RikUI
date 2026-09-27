@@ -65,8 +65,25 @@ local function skinTitle(chrome)
     chrome.rikTitleRule = rule
 end
 
+local closeSkins = setmetatable({}, { __mode = "k" })
+local CLOSE_HOVER = { 0.3, 0.105, 0.10, 1 }
+local function closeFeedback(button)
+    local hovered = false
+    local function sync()
+        local disabled = type(button.IsEnabled) == "function" and button:IsEnabled() == false
+        button.rikBacking:SetVertexColor(unpack(hovered and not disabled and CLOSE_HOVER or CONTROL))
+        button.rikIcon:SetAlpha(disabled and 0.35 or 1)
+    end
+    local function reset() hovered = false; sync() end
+    core.Hooks.Script(button, "OnEnter", function() hovered = true; sync() end)
+    for _, event in ipairs({ "OnLeave", "OnHide", "OnDisable", "OnEnable" }) do core.Hooks.Script(button, event, reset) end
+    motion.BindPress(button)
+    sync()
+end
+
 local function skinClose(button)
-    if not isRegion(button) or type(button.CreateTexture) ~= "function" then return end
+    if not isRegion(button) or type(button.CreateTexture) ~= "function" or closeSkins[button] then return end
+    closeSkins[button] = true
     for _, getter in ipairs(BUTTON_TEXTURES) do
         local texture = type(button[getter]) == "function" and button[getter](button) or nil
         if isRegion(texture) then texture:SetAlpha(0) end
@@ -78,6 +95,7 @@ local function skinClose(button)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(button)
     highlight:SetTexture(media.highlight)
+    closeFeedback(button)
 end
 
 -- Shared with src/modules/dialogs/dialogs.lua, which has close buttons but no window chrome.

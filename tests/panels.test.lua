@@ -126,6 +126,21 @@ return function(check)
         check("the close button loses its art and gains a flat box with an x", close.normal.alpha == 0
             and close.pushed.alpha == 0 and close.rikIcon.rikIcon == "close" and #close.rikBorder == 4
             and close.rikIcon.texture == RikUI.Media.IconPath("close") and rawget(close, "rikLabel") == nil)
+        env.runScript(close, "OnEnter")
+        check("close hover gets a warm warning face", close.rikBacking.color[1] > close.rikBacking.color[3])
+        env.runScript(close, "OnMouseDown", "LeftButton")
+        check("close press uses the shared overlay", close.rikPress and close.rikPress.region.alpha > 0)
+        env.runScript(close, "OnMouseUp", "LeftButton")
+        close:SetEnabled(false)
+        env.runScript(close, "OnDisable")
+        check("disabled close glyph is quiet", close.rikIcon.alpha == 0.35)
+        close:SetEnabled(true)
+        env.runScript(close, "OnEnable")
+        env.runScript(close, "OnLeave")
+        check("close returns to its neutral face", close.rikBacking.color[1] == 0.1 and close.rikIcon.alpha == 1)
+        local closeIcon = close.rikIcon
+        RikUI.Panels.Skin.Close(close)
+        check("shared close skin reuses regions", close.rikIcon == closeIcon)
         env.click(close)
         check("the close button keeps Blizzard's click handler", stub.closed == 1)
 
