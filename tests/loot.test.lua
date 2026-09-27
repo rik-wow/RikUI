@@ -16,6 +16,7 @@ return function(check)
         function value:SetVertexColor(...) self.color = { ... } end
         function value:SetTextColor(...) self.color = { ... } end
         function value:SetAlpha(alpha) self.alpha = alpha end
+        function value:SetShown(value) self.visible = value end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         return value
     end
@@ -95,7 +96,7 @@ return function(check)
         profile.modules = profile.modules or {}
         profile.modules.unitframes = false
         RikUI, RikUIDB, RikUICharDB = nil, { profiles = { Default = profile } }, nil
-        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
+        for _, file in ipairs({ "src/core/core.lua", "src/platform/hooks.lua", "src/platform/hide.lua", "src/ui/media.lua", "src/ui/skin.lua", "src/ui/motion.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua",
             "src/modules/unitframes/unitframes.lua", "src/modules/unitframes/unitframes-status.lua", "src/modules/loot/loot.lua", "src/modules/loot/loot-rolls.lua" }) do
             assert(loadfile(file))("RikUI", {})
         end
@@ -121,6 +122,9 @@ return function(check)
             and LootFrame.eventsDropped == true and RikUI.Hide.IsHidden(LootFrame))
 
         env.fire("LOOT_OPENED", false)
+        check("loot header counts remaining rows", holder.title and holder.title.text == "Loot  |  3 items")
+        check("loot window has header chrome and close glyph", holder.rikChrome and holder.close
+            and holder.close.icon.rikIcon == "close")
         check("opening loot shows one row per slot", holder:IsShown() and shownRows(module) == 3)
         check("loot entrance fades and slides", holder.rikEntry.plays == 1
             and holder.rikEntry.animation.kind == "Translation")
@@ -156,6 +160,7 @@ return function(check)
         check("hovering a row shows the stock loot tooltip", GameTooltip.owner == cloth and GameTooltip.lootSlot == 2)
 
         env.fire("LOOT_SLOT_CLEARED", 3)
+        check("cleared loot updates the header", holder.title and holder.title.text == "Loot  |  2 items")
         check("a cleared slot hides its row and shrinks the list", not blade:IsShown() and shownRows(module) == 2)
         stub.slots[2][3] = 5
         env.fire("LOOT_SLOT_CHANGED", 2)
@@ -174,7 +179,7 @@ return function(check)
         check("closing loot hides the list", holder:IsShown() == false)
         local closed = stub.closed
         env.fire("LOOT_OPENED", false)
-        holder:Hide()
+        if holder.close then env.click(holder.close) else holder:Hide() end
         check("hiding the list by hand closes the loot session", stub.closed == closed + 1)
 
         stub.slots = { { 132889, "Linen Cloth", 1, nil, 1 } }
@@ -199,6 +204,8 @@ return function(check)
         stub.infoError = nil
         stub.slots[1] = {}
         env.fire("LOOT_SLOT_CHANGED", 1)
+        check("empty loot shows guidance", holder.empty and holder.empty.visible
+            and holder.title.text == "Loot  |  Empty")
         check("readable empty slot disappears", shownRows(module) == 0)
         stub.slots[1] = {132889, "Recovered cloth", 2, nil, 1}
         env.fire("LOOT_SLOT_CHANGED", 1)

@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Loot now has a layered title bar, remaining-item count, close glyph and an explicit empty state that follows slot updates.
+
 - Bag search now retains a focus outline and shows a readable empty-result panel with reset guidance when a query or category finds nothing.
 
 - Bag filters now show a persistent gold underline and selected fill, with brighter inactive labels for easier scanning.

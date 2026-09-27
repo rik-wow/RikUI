@@ -11,6 +11,7 @@ local ROW_WIDTH, ROW_HEIGHT, ROW_GAP, PAD, EDGE, ICON = 220, 26, 2, 4, 1, 22
 -- Right of the screen centre, anchored by its top so the list grows downward, clear of the unit frames.
 local DEFAULTS = { point = "TOPLEFT", relativePoint = "CENTER", x = 200, y = 140 }
 local CURSOR_X, CURSOR_Y = -30, 20
+local HEADER, CLOSE_SIZE = 30, 22
 local BACKGROUND, BORDER, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1 }
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local EVENTS = { "LOOT_OPENED", "LOOT_CLOSED", "LOOT_SLOT_CLEARED", "LOOT_SLOT_CHANGED" }
@@ -117,12 +118,14 @@ local function stackRows()
     for _, row in ipairs(loot.Rows) do
         if row:IsShown() then
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -PAD - shown * (ROW_HEIGHT + ROW_GAP))
+            row:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -HEADER - PAD - shown * (ROW_HEIGHT + ROW_GAP))
             shown = shown + 1
         end
     end
     local rows = math.max(shown, 1)
-    holder:SetSize(ROW_WIDTH + 2 * PAD, rows * (ROW_HEIGHT + ROW_GAP) - ROW_GAP + 2 * PAD)
+    holder:SetSize(ROW_WIDTH + 2 * PAD, rows * (ROW_HEIGHT + ROW_GAP) - ROW_GAP + 2 * PAD + HEADER)
+    holder.title:SetText(shown == 0 and "Loot  |  Empty" or ("Loot  |  " .. shown .. (shown == 1 and " item" or " items")))
+    holder.empty:SetShown(shown == 0)
 end
 
 local function place()
@@ -194,11 +197,33 @@ end
 local HANDLERS = { LOOT_OPENED = loot.Open, LOOT_CLOSED = loot.Close, LOOT_SLOT_CLEARED = loot.SlotCleared,
     LOOT_SLOT_CHANGED = loot.SlotChanged }
 
+local function createHeader()
+    holder.rikChrome = core.Skin.WindowChrome(holder, HEADER, 0)
+    holder.title = holder:CreateFontString(nil, "OVERLAY")
+    media.Font(holder.title, "label")
+    holder.title:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD + 4, -8)
+    holder.title:SetPoint("TOPRIGHT", holder, "TOPRIGHT", -CLOSE_SIZE - PAD * 2, -8)
+    holder.title:SetJustifyH("LEFT")
+    holder.close = CreateFrame("Button", nil, holder)
+    holder.close:SetSize(CLOSE_SIZE, CLOSE_SIZE)
+    holder.close:SetPoint("TOPRIGHT", holder, "TOPRIGHT", -PAD, -PAD)
+    holder.close.icon = media.Icon(holder.close, "close", 12, "OVERLAY")
+    holder.close.icon:SetPoint("CENTER")
+    holder.close:SetHighlightTexture(media.highlight, "ADD")
+    holder.close:SetScript("OnClick", function() holder:Hide() end)
+    holder.empty = holder:CreateFontString(nil, "OVERLAY")
+    media.Font(holder.empty, "small")
+    holder.empty:SetPoint("TOP", holder, "TOP", 0, -HEADER - PAD - 6)
+    holder.empty:SetText("Nothing left to loot")
+    holder.empty:SetTextColor(0.7, 0.75, 0.82)
+end
+
 local function createHolder()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
     holder:SetFrameStrata("HIGH")
     holder:SetSize(ROW_WIDTH + 2 * PAD, ROW_HEIGHT + 2 * PAD)
-    flat(holder, "BACKGROUND")
+    createHeader()
+    holder:SetClampedToScreen(true)
     holder:Hide()
     -- Escape and a manual hide end the loot session the way the stock frame's OnHide does.
     holder:SetScript("OnHide", function() if not closing then CloseLoot() end end)
