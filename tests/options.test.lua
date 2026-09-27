@@ -178,6 +178,29 @@ return function(check)
         check("full slider reaches the end of its inset track", progress and progress.width == progressRow.widget.width - 12)
         progressRow.widget:SetSize(100, 22)
         check("slider resize updates fill without committing a new value", progress and progress.width == 88 and sliderValue == 100)
+        local dropdownValue = "one"
+        local dropdownList = options.Render(polishParent, {
+            { type = "dropdown", label = "Choice", get = function() return dropdownValue end,
+                set = function(value) dropdownValue = value end,
+                values = { { value = "one", text = "One" }, { value = "two", text = "Two" } } },
+        })
+        local dropdownRow = dropdownList.rows[1]
+        options.Activate(dropdownRow)
+        local popupDesign = dropdownRow.widget.list
+        check("open dropdown turns its disclosure upward", dropdownRow.widget.arrow.rikIcon == "chevron-up")
+        check("committed dropdown choice has a texture checkmark", popupDesign.buttons[1].mark.texture == RikUI.Media.checked)
+        options.DropdownKey("DOWN")
+        check("keyboard preview preserves committed checkmark", popupDesign.buttons[1].mark:IsShown()
+            and not popupDesign.buttons[2].mark:IsShown() and popupDesign.buttons[2].selected:IsShown()
+            and dropdownValue == "one")
+        options.DropdownKey("ESCAPE")
+        check("cancelled dropdown restores closed disclosure", dropdownRow.widget.arrow.rikIcon == "chevron-down"
+            and dropdownValue == "one")
+        options.Activate(dropdownRow); options.DropdownKey("DOWN"); options.DropdownKey("ENTER")
+        options.Activate(dropdownRow)
+        check("committed dropdown moves its checkmark on reopen", not popupDesign.buttons[1].mark:IsShown()
+            and popupDesign.buttons[2].mark:IsShown() and dropdownValue == "two")
+        options.CloseDropdown()
         local saves = 0
         RikUI.Store = { Touch = function() saves = saves + 1 end }
         check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)

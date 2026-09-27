@@ -127,7 +127,15 @@ local function valueText(spec, value)
 end
 
 function options.CloseDropdown()
-    if activeDropdown then activeDropdown:Hide(); activeDropdown.dismiss:Hide(); activeDropdown = nil end
+    if not activeDropdown then return end
+    local list = activeDropdown
+    activeDropdown = nil
+    if list.row then
+        local widget = list.row.widget
+        media.SetIcon(widget.arrow, DROPDOWN_ICON)
+        for _, edge in ipairs(widget.openEdge) do edge:Hide() end
+    end
+    list:Hide(); list.dismiss:Hide()
 end
 
 local function closeList(row)
@@ -140,7 +148,9 @@ local function listButton(row, list, index)
     button:SetPoint("TOPLEFT", 0, -(index - 1) * metrics.controlHeight)
     core.Motion.BindHover(button)
     button.selected = options.Flat(button, "BACKGROUND", { 0.12, 0.27, 0.34, 0.9 })
-    button.mark = options.Text(button, "small", ">")
+    button.mark = button:CreateTexture(nil, "OVERLAY")
+    button.mark:SetTexture(media.checked); button.mark:SetSize(12, 12)
+    button.mark:SetVertexColor(unpack(ACTIVE_TINT))
     button.mark:SetPoint("RIGHT", -4, 0)
     button.text = options.Text(button, "label")
     button.text:SetPoint("LEFT", metrics.textInset, 0); button.text:SetPoint("RIGHT", -18, 0)
@@ -207,6 +217,8 @@ local function openList(row)
     core.Scroll.Reveal(list.scroll, (selected - 1) * metrics.controlHeight, metrics.controlHeight)
     list.row, list.count, list.cursor = row, #values, selected
     activeDropdown = list
+    media.SetIcon(widget.arrow, "chevron-up")
+    for _, edge in ipairs(widget.openEdge) do edge:Show() end
     list.dismiss:Show(); list:Show()
 end
 
@@ -253,6 +265,12 @@ types.dropdown = {
         widget.text:SetJustifyH("LEFT"); widget.text:SetWordWrap(false)
         widget.arrow = media.Icon(widget, DROPDOWN_ICON, DROPDOWN_ICON_SIZE, "OVERLAY")
         widget.arrow:SetPoint("RIGHT", widget, "RIGHT", -metrics.textInset, 0)
+        widget.openEdge = core.Skin.Outline(widget, { 0.4, 0.8, 1, 1 }, 0, nil, "OVERLAY")
+        for _, edge in ipairs(widget.openEdge) do edge:Hide() end
+        widget.divider = widget:CreateTexture(nil, "BORDER")
+        widget.divider:SetTexture(core.Skin.FLAT); widget.divider:SetVertexColor(unpack(BORDER_TINT))
+        widget.divider:SetPoint("TOPRIGHT", -24, -4); widget.divider:SetPoint("BOTTOMRIGHT", -24, 4)
+        widget.divider:SetWidth(1)
         widget:SetScript("OnClick", function() toggleList(row) end)
         widget:SetScript("OnHide", function() closeList(row) end)
         return widget
