@@ -9,7 +9,11 @@ local function calendar(frame)
     local name = type(frame.GetName) == "function" and frame:GetName()
     if type(name) ~= "string" or not name:match("^CalendarDayButton%d+$") then return end
     interiors.Row(frame)
-    skin.Typeface(_G[name .. "DateFrameDate"])
+    local date = _G[name .. "DateFrameDate"]
+    skin.Typeface(date)
+    local state = interiors.State(frame)
+    if not state.calendarEdge then state.calendarEdge = skin.Outline(frame, skin.LINE, 1) end
+    state.datePlate = skin.TextPlate(frame, date, { 0.04, 0.055, 0.08, 0.95 }, 4, "ARTWORK")
     local background = _G[name .. "EventBackgroundTexture"]
     if skin.IsRegion(background) then background:SetAlpha(0) end
     local normal = type(frame.GetNormalTexture) == "function" and frame:GetNormalTexture()

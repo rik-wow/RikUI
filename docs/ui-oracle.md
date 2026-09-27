@@ -1,5 +1,7 @@
 # UI oracle
 
+- Calendar days now have inset tile borders and dark date badges. Native event art and today/selection indicators stay visible; month refreshes reuse the same regions.
+
 - Mail inbox subjects now sit in warm reading bands with a fine left accent; duration labels have dark backing. Sender colors, native mail actions and row geometry remain intact, and reused rows clear hidden subjects.
 
 - Character stat values now sit in recessed numeric cells with right-aligned text. Native values and red/green modifiers remain visible, and empty values clear their backing.

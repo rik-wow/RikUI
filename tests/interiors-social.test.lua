@@ -18,6 +18,7 @@ return function(check)
             and friend.name.fontPath == RikUI.Media.font and rawget(friend.status, "alpha") == nil)
         local day = frame("CalendarDayButton42")
         CalendarDayButton42DateFrameDate = day:CreateFontString()
+        CalendarDayButton42DateFrameDate:SetText("27")
         CalendarDayButton42EventBackgroundTexture = day:CreateTexture()
         local event = day:CreateTexture()
         day.EventTexture = event
@@ -25,6 +26,17 @@ return function(check)
         check("calendar dates styled without erasing events", RikUI.Interiors.State(day).fill
             and CalendarDayButton42DateFrameDate.fontPath == RikUI.Media.font
             and CalendarDayButton42EventBackgroundTexture.alpha == 0 and rawget(event, "alpha") == nil)
+        local dayState = RikUI.Interiors.State(day)
+        check("calendar days have inset tiles and date badges", dayState.calendarEdge and #dayState.calendarEdge == 4
+            and dayState.datePlate and dayState.datePlate.points[1][2] == CalendarDayButton42DateFrameDate)
+        local datePlate = dayState.datePlate
+        CalendarDayButton42DateFrameDate:Hide()
+        RikUI.Interiors.Walk(day, "social")
+        check("hidden calendar date clears its badge", datePlate and not datePlate:IsShown())
+        CalendarDayButton42DateFrameDate:Show()
+        RikUI.Interiors.Walk(day, "social")
+        check("calendar reuse keeps event art and date badge", dayState.datePlate == datePlate
+            and datePlate and datePlate:IsShown() and rawget(event, "alpha") == nil)
         local achievement = frame()
         achievement.Title, achievement.Description, achievement.Background = achievement:CreateFontString(),
             achievement:CreateFontString(), achievement:CreateTexture()
