@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Combat timing now separates a warm Combat or muted Last label from a bright right-aligned clock, with a steady state rail and bounded columns.
+
 - Durability now has a repair glyph, a steady severity rail and a bounded caption. Healthy percentages use a calm green; worn and broken gear keep yellow and red alerts.
 
 - Minimap status now sits in an inset two-row footer: clock and coordinates above day/night and optional performance. Queue and RikUI controls remain on the map; layout presets include the entire 200×270 card.

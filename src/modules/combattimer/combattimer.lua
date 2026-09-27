@@ -4,6 +4,7 @@ local timer = { Options = { title = "Combat timer", settings = {} } }
 core.CombatTimer = timer
 local holder, active, started, ended, duration, partial
 local DEFAULT_LINGER, UPDATE_INTERVAL = 5, 0.2
+local ACTIVE_COLOR, IDLE_COLOR = { 1, 0.65, 0.25 }, { 0.6, 0.7, 0.8 }
 local DEFAULT_POSITION = { point = "TOP", relativePoint = "TOP", x = 66, y = -110 }
 
 local function now()
@@ -129,10 +130,14 @@ local function paint()
     if not enabled() then stopDisplay(); return end
     local at = now()
     if active then
-        holder.label:SetText("Combat " .. clock(seconds(at)))
+        holder.label:SetText(clock(seconds(at)))
     elseif ended and at and at - ended < linger() then
-        holder.label:SetText("Last " .. clock(duration))
+        holder.label:SetText(clock(duration))
     else stopDisplay(); return end
+    local color = active and ACTIVE_COLOR or IDLE_COLOR
+    holder.state:SetText(active and "Combat" or "Last")
+    holder.state:SetTextColor(unpack(color))
+    holder.accent:SetColorTexture(unpack(color))
     holder:Show()
 end
 
@@ -185,8 +190,21 @@ function timer:OnEnable()
     for _, edge in ipairs(core.UI.Edges(holder, 1, "BORDER")) do edge:SetVertexColor(0.25, 0.28, 0.32, 1) end
     holder.label = holder:CreateFontString(nil, "OVERLAY")
     core.Media.Font(holder.label, "small")
-    holder.label:SetPoint("CENTER", holder, "CENTER")
-    holder.label:SetTextColor(1, 0.82, 0)
+    holder.label:SetPoint("RIGHT", holder, "RIGHT", -5, 0)
+    holder.label:SetWidth(52)
+    holder.label:SetWordWrap(false)
+    holder.label:SetJustifyH("RIGHT")
+    holder.label:SetTextColor(0.95, 0.97, 1)
+    holder.state = holder:CreateFontString(nil, "OVERLAY")
+    core.Media.Font(holder.state, "small")
+    holder.state:SetPoint("LEFT", holder, "LEFT", 7, 0)
+    holder.state:SetPoint("RIGHT", holder.label, "LEFT", -3, 0)
+    holder.state:SetJustifyH("LEFT")
+    holder.state:SetWordWrap(false)
+    holder.accent = holder:CreateTexture(nil, "ARTWORK")
+    holder.accent:SetPoint("TOPLEFT", holder, "TOPLEFT", 1, -1)
+    holder.accent:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT", 1, 1)
+    holder.accent:SetWidth(2)
     core.Layout.Register(holder, "combattimer", DEFAULT_POSITION, { label = "Combat timer", onApply = timer.Refresh })
     core:RegisterEvent("PLAYER_REGEN_DISABLED", function() start(false) end)
     core:RegisterEvent("PLAYER_REGEN_ENABLED", finish)
