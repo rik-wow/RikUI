@@ -1,0 +1,385 @@
+diff --git a/src/bin/wow_sim/gui_commands.rs b/src/bin/wow_sim/gui_commands.rs
+index 38c5046..b92a3c0 100644
+--- a/src/bin/wow_sim/gui_commands.rs
++++ b/src/bin/wow_sim/gui_commands.rs
+@@ -285,8 +285,8 @@ fn prepare_screenshot_env(env: &WowLuaEnv, command: &ScreenshotCommand<'_>) {
+     env.set_screen_size(command.width as f32, command.height as f32);
+     wow_ui_sim::debug_helpers::debug_show_game_menu(env);
+     run_screenshot_exec_lua(env, command);
+-    run_extra_update_ticks(env, 3);
+     apply_delay(command.delay);
++    run_extra_update_ticks(env, 3);
+ }
+ 
+ fn run_screenshot_exec_lua(env: &WowLuaEnv, command: &ScreenshotCommand<'_>) {
+@@ -429,7 +429,7 @@ fn apply_crop(img: image::RgbaImage, crop_str: &str) -> image::RgbaImage {
+ fn save_screenshot(img: &image::RgbaImage, output: &Path) {
+     let output = output.with_extension("webp");
+     let encoder = webp::Encoder::from_rgba(img.as_raw(), img.width(), img.height());
+-    let mem = encoder.encode(15.0);
++    let mem = encoder.encode_lossless();
+     if let Err(e) = std::fs::write(&output, &*mem) {
+         eprintln!("Failed to save WebP: {}", e);
+         std::process::exit(1);
+diff --git a/src/iced_app/quad_builders_button.rs b/src/iced_app/quad_builders_button.rs
+index 8824df3..258afba 100644
+--- a/src/iced_app/quad_builders_button.rs
++++ b/src/iced_app/quad_builders_button.rs
+@@ -549,8 +549,8 @@ fn emit_editbox_text(
+             text: txt,
+             bounds: text_bounds,
+             justify_h: TextJustify::Left,
+-            justify_v: TextJustify::Center,
+-            word_wrap: false,
++            justify_v: if f.editbox_multi_line { TextJustify::Left } else { TextJustify::Center },
++            word_wrap: f.editbox_multi_line,
+             max_lines: 0,
+             alpha,
+         },
+diff --git a/src/iced_app/strata_emit.rs b/src/iced_app/strata_emit.rs
+index dba5eee..0d0429c 100644
+--- a/src/iced_app/strata_emit.rs
++++ b/src/iced_app/strata_emit.rs
+@@ -535,6 +535,9 @@ pub fn build_quad_batch_with_cache(
+ 
+ fn build_background_batch(screen_size: (f32, f32)) -> QuadBatch {
+     let mut batch = QuadBatch::with_capacity(1000);
++    if std::env::var("WOW_SIM_PLAIN_BACKGROUND").ok().as_deref() == Some("1") {
++        return batch;
++    }
+     let size = Size::new(screen_size.0, screen_size.1);
+ 
+     batch.push_tiled_path(
+diff --git a/src/loader/xml_frame/setup.rs b/src/loader/xml_frame/setup.rs
+index 5dadf1d..1fe4a46 100644
+--- a/src/loader/xml_frame/setup.rs
++++ b/src/loader/xml_frame/setup.rs
+@@ -362,7 +362,7 @@ fn apply_xml_properties_direct(
+     direct::apply_xml_propagate_mouse_input(state, frame_id, frame, inherits);
+     direct::apply_xml_clips_children(state, frame_id, frame, inherits);
+     direct::apply_xml_hit_rect_insets(state, frame_id, frame);
+-    direct::apply_xml_text_insets(state, frame_id, frame);
++    direct::apply_xml_text_insets(state, frame_id, frame, inherits);
+     direct::apply_xml_clamped_to_screen(state, frame_id, frame, inherits);
+     direct::apply_xml_protected(state, frame_id, frame, inherits);
+     direct::apply_xml_id(state, frame_id, frame);
+diff --git a/src/lua_api/frame/methods/text_attribute_event/text.rs b/src/lua_api/frame/methods/text_attribute_event/text.rs
+index c770662..3acc711 100644
+--- a/src/lua_api/frame/methods/text_attribute_event/text.rs
++++ b/src/lua_api/frame/methods/text_attribute_event/text.rs
+@@ -323,7 +323,8 @@ fn update_auto_text_height(state: &mut LuaState, id: u64) {
+ fn read_auto_text_height_state(state: &LuaState, id: u64) -> Option<AutoTextHeightState> {
+     let sim = borrow_state(state).ok()?;
+     sim.widgets.get(id).map(|frame| AutoTextHeightState {
+-        is_fontstring: frame.widget_type == WidgetType::FontString,
++        is_fontstring: frame.widget_type == WidgetType::FontString
++            || (frame.widget_type == WidgetType::EditBox && frame.editbox_multi_line),
+         has_text: frame.text.as_ref().is_some_and(|text| !text.is_empty()),
+         width: frame.width,
+         width_is_text_auto: frame.width_is_text_auto,
+@@ -345,7 +346,8 @@ pub(crate) fn refresh_auto_text_height_after_width_change(state: &mut LuaState,
+             return;
+         };
+         sim.widgets.get(id).is_some_and(|frame| {
+-            frame.widget_type == WidgetType::FontString
++            (frame.widget_type == WidgetType::FontString
++                || (frame.widget_type == WidgetType::EditBox && frame.editbox_multi_line))
+                 && (frame.height_is_text_auto
+                     || (frame.height.abs() <= f32::EPSILON
+                         && frame.text.as_ref().is_some_and(|text| !text.is_empty())))
+@@ -668,11 +670,9 @@ fn frame_text_measurement(state: &LuaState, id: u64) -> (String, Option<String>,
+     let Some(frame) = sim.widgets.get(id) else {
+         return (String::new(), None, 12.0);
+     };
+-    let measurement_frame = frame
+-        .children_keys
+-        .get("Text")
+-        .and_then(|&child_id| sim.widgets.get(child_id))
+-        .unwrap_or(frame);
++    let measurement_frame = if matches!(frame.widget_type, WidgetType::Button | WidgetType::CheckButton) {
++        frame.children_keys.get("Text").and_then(|&child_id| sim.widgets.get(child_id)).unwrap_or(frame)
++    } else { frame };
+     let text = frame_text_value(&sim, measurement_frame, true).unwrap_or_default();
+     (
+         text,
+diff --git a/src/lua_api/frame/methods/widgets/editbox.rs b/src/lua_api/frame/methods/widgets/editbox.rs
+index 27a97df..b9ddffd 100644
+--- a/src/lua_api/frame/methods/widgets/editbox.rs
++++ b/src/lua_api/frame/methods/widgets/editbox.rs
+@@ -221,6 +221,7 @@ pub(super) fn set_multi_line(state: &mut LuaState) -> LuaResult<u32> {
+     let mut sim = borrow_state_mut(state)?;
+     if let Some(f) = sim.widgets.get_mut_visual(id) {
+         f.editbox_multi_line = value;
++        f.word_wrap = value;
+     }
+     Ok(0)
+ }
+diff --git a/src/lua_api/frame/methods/widgets/mod.rs b/src/lua_api/frame/methods/widgets/mod.rs
+index 0d663eb..0ebcb77 100644
+--- a/src/lua_api/frame/methods/widgets/mod.rs
++++ b/src/lua_api/frame/methods/widgets/mod.rs
+@@ -17,7 +17,7 @@ mod model;
+ mod movie;
+ pub(super) mod shared;
+ mod slider;
+-mod statusbar;
++pub(crate) mod statusbar;
+ mod texture;
+ mod tooltip;
+ 
+diff --git a/src/lua_api/frame/methods/widgets/statusbar.rs b/src/lua_api/frame/methods/widgets/statusbar.rs
+index d903618..d0a8807 100644
+--- a/src/lua_api/frame/methods/widgets/statusbar.rs
++++ b/src/lua_api/frame/methods/widgets/statusbar.rs
+@@ -350,6 +350,7 @@ pub(super) fn set_timer_duration(state: &mut LuaState) -> LuaResult<u32> {
+     require_readable(state, secret)?;
+     let fields = get_or_create_frame_fields(state, id);
+     table_set_static(state, fields, TIMER_DURATION_FIELD, duration);
++    table_set_static(state, fields, "__statusbar_timer_direction", stack_val(state, 4));
+     if let Some(frame) = borrow_state_mut(state)?.widgets.get_mut(id) {
+         frame.secret_timing = secret;
+     }
+@@ -538,3 +539,30 @@ pub(super) fn register_statusbar(state: &mut LuaState, metatable: GcRef<Table>)
+     }
+     Ok(())
+ }
++
++/// Update timer-bound bars from the same duration clock used by text bindings.
++pub(crate) fn tick_duration_bars(state: &mut LuaState) -> LuaResult<()> {
++    let ids: Vec<u64> = {
++        let sim = borrow_state(state)?;
++        sim.widgets.iter_ids().filter(|id| sim.widgets.get(*id)
++            .is_some_and(|f| f.widget_type == WidgetType::StatusBar)).collect()
++    };
++    for id in ids {
++        let fields = get_or_create_frame_fields(state, id);
++        let duration = table_get_static(state, fields, TIMER_DURATION_FIELD);
++        if matches!(duration, Val::Nil) { continue; }
++        let direction = table_get_static(state, fields, "__statusbar_timer_direction");
++        let (span, elapsed) = crate::lua_api::globals::lua_duration_object::render_snapshot(state, duration)?;
++        let value = if direction == Val::Num(1.0) { span - elapsed } else { elapsed };
++        let mut sim = borrow_state_mut(state)?;
++        if let Some(frame) = sim.widgets.get_mut_visual(id) {
++            frame.statusbar_min = 0.0;
++            frame.statusbar_max = span;
++            frame.statusbar_value = value;
++            frame.statusbar_interpolated_value = value;
++            frame.statusbar_interpolation_target = None;
++        }
++        sim.widgets.mark_rect_dirty(id);
++    }
++    Ok(())
++}
+diff --git a/src/lua_api/globals/create_frame/template_chain/runtime.rs b/src/lua_api/globals/create_frame/template_chain/runtime.rs
+index 4600a03..10b1867 100644
+--- a/src/lua_api/globals/create_frame/template_chain/runtime.rs
++++ b/src/lua_api/globals/create_frame/template_chain/runtime.rs
+@@ -587,6 +587,7 @@ fn apply_runtime_child_direct_properties_with_inherits(
+     crate::lua_api::globals::template::direct::apply_xml_hidden(state, frame_id, frame, inherits);
+     crate::lua_api::globals::template::direct::apply_xml_alpha(state, frame_id, frame, inherits);
+     crate::lua_api::globals::template::direct::apply_xml_scale(state, frame_id, frame, inherits);
++    crate::lua_api::globals::template::direct::apply_xml_text_insets(state, frame_id, frame, inherits);
+     crate::lua_api::globals::template::direct::apply_xml_editbox_limits(
+         state, frame_id, frame, inherits,
+     );
+diff --git a/src/lua_api/globals/lua_duration_object.rs b/src/lua_api/globals/lua_duration_object.rs
+index 9e73d63..5383cad 100644
+--- a/src/lua_api/globals/lua_duration_object.rs
++++ b/src/lua_api/globals/lua_duration_object.rs
+@@ -551,3 +551,7 @@ fn create_string_static_owned(state: &mut LuaState, s: &str) -> Val {
+     let r = state.gc.intern_string(s.as_bytes());
+     Val::Str(r)
+ }
++
++pub(crate) fn render_snapshot(state: &mut LuaState, object: Val) -> LuaResult<(f64, f64)> {
++    core::render_snapshot(state, object)
++}
+diff --git a/src/lua_api/globals/lua_duration_object/core.rs b/src/lua_api/globals/lua_duration_object/core.rs
+index 3d80a08..7bfab18 100644
+--- a/src/lua_api/globals/lua_duration_object/core.rs
++++ b/src/lua_api/globals/lua_duration_object/core.rs
+@@ -383,3 +383,11 @@ pub(super) fn register(state: &mut LuaState, methods: Val) {
+         install_method(state, methods, name, name, function);
+     }
+ }
++
++/// Internal renderer snapshot; never returns timing through an addon-facing API.
++pub(super) fn render_snapshot(state: &mut LuaState, object: Val) -> LuaResult<(f64, f64)> {
++    let timing = validate(read_timing(state, object)?)?;
++    let span = timing.span();
++    let elapsed = (clock_time(state, object)? - timing.start).clamp(0.0, span);
++    Ok((span, elapsed))
++}
+diff --git a/src/lua_api/globals/template/direct.rs b/src/lua_api/globals/template/direct.rs
+index d75eec1..be090c4 100644
+--- a/src/lua_api/globals/template/direct.rs
++++ b/src/lua_api/globals/template/direct.rs
+@@ -600,11 +600,20 @@ pub fn apply_xml_hit_rect_insets(state: &Rc<RefCell<SimState>>, frame_id: u64, f
+ }
+ 
+ /// Apply text insets from instance XML.
+-pub fn apply_xml_text_insets(state: &Rc<RefCell<SimState>>, frame_id: u64, frame: &FrameXml) {
+-    if let Some(insets) = frame.text_insets()
+-        && let Some(frame) = state.borrow_mut().widgets.get_mut_visual(frame_id)
++pub fn apply_xml_text_insets(state: &Rc<RefCell<SimState>>, frame_id: u64, frame: &FrameXml, inherits: &str) {
++    let mut resolved = None;
++    for entry in &*crate::xml::get_template_chain(inherits) {
++        if let Some(insets) = entry.frame.text_insets() {
++            resolved = Some((insets.left(), insets.right(), insets.top(), insets.bottom()));
++        }
++    }
++    if let Some(insets) = frame.text_insets() {
++        resolved = Some((insets.left(), insets.right(), insets.top(), insets.bottom()));
++    }
++    if let Some(insets) = resolved
++        && let Some(widget) = state.borrow_mut().widgets.get_mut_visual(frame_id)
+     {
+-        frame.editbox_text_insets = (insets.left(), insets.right(), insets.top(), insets.bottom());
++        widget.editbox_text_insets = insets;
+     }
+ }
+ 
+diff --git a/src/lua_api/on_update.rs b/src/lua_api/on_update.rs
+index b293df3..6880956 100644
+--- a/src/lua_api/on_update.rs
++++ b/src/lua_api/on_update.rs
+@@ -1,7 +1,6 @@
+ //! rilua-backed OnUpdate bridge.
+ 
+ use super::state::SimState;
+-#[cfg(feature = "player-cast-durations")]
+ use rilua::LuaApiMut;
+ use std::cell::RefCell;
+ use std::rc::Rc;
+@@ -56,6 +55,7 @@ pub(crate) fn fire(
+     }
+ 
+     crate::c_api::duration_text_binding::tick(&mut env.rilua_mut(), elapsed)?;
++    super::frame::methods::widgets::statusbar::tick_duration_bars(env.rilua_mut().state_mut())?;
+ 
+     let started = Instant::now();
+     advance_animation_groups(env, elapsed)?;
+diff --git a/src/render/font.rs b/src/render/font.rs
+index 116f372..601ecd5 100644
+--- a/src/render/font.rs
++++ b/src/render/font.rs
+@@ -414,6 +414,8 @@ impl WowFontSystem {
+             timed_font_phase("system fonts loaded", || db.load_system_fonts());
+         }
+ 
++        load_addon_fonts(&mut db, &mut font_map);
++
+         let font_system = timed_font_phase("cosmic font system built", || {
+             cosmic_text::FontSystem::new_with_locale_and_db("en-US".to_string(), db)
+         });
+@@ -468,7 +470,7 @@ impl WowFontSystem {
+     /// Measure the pixel width of a text string using cosmic-text shaping.
+     ///
+     /// `font_path` is the WoW font path (e.g. `Fonts\\FRIZQT__.TTF`).
+-    /// Returns the width of the first layout line.
++    /// Returns the width of the widest layout line.
+     pub fn measure_text_width(
+         &mut self,
+         text: &str,
+@@ -484,7 +486,7 @@ impl WowFontSystem {
+         let metrics = cosmic_text::Metrics::new(font_size, line_height);
+         let attrs = self.attrs_owned(font_path);
+         let mut buffer = cosmic_text::Buffer::new(&mut self.font_system, metrics);
+-        buffer.set_size(&mut self.font_system, Some(10000.0), Some(line_height));
++        buffer.set_size(&mut self.font_system, Some(10000.0), Some(10000.0));
+         buffer.set_text(
+             &mut self.font_system,
+             text,
+@@ -496,9 +498,7 @@ impl WowFontSystem {
+ 
+         buffer
+             .layout_runs()
+-            .map(|run| run.line_w)
+-            .next()
+-            .unwrap_or(0.0)
++            .map(|run| run.line_w).fold(0.0, f32::max)
+     }
+ 
+     /// Measure the pixel height of text, accounting for word wrapping.
+@@ -599,6 +599,33 @@ fn load_wow_fonts(db: &mut fontdb::Database, font_map: &mut HashMap<String, Font
+     }
+ }
+ 
++// Addon fonts use the same Interface/AddOns paths as Lua SetFont.
++fn load_addon_fonts(db: &mut fontdb::Database, font_map: &mut HashMap<String, FontEntry>) {
++    for root in crate::paths::default_addons_paths() {
++        let mut pending = vec![root.clone()];
++        while let Some(dir) = pending.pop() {
++            let Ok(entries) = std::fs::read_dir(dir) else { continue };
++            for entry in entries.flatten() {
++                let Ok(kind) = entry.file_type() else { continue };
++                let path = entry.path();
++                if kind.is_dir() { pending.push(path); continue; }
++                if !kind.is_file() { continue; }
++                let extension = path.extension().and_then(|v| v.to_str()).unwrap_or("");
++                if !extension.eq_ignore_ascii_case("ttf") && !extension.eq_ignore_ascii_case("otf") { continue; }
++                let Ok(relative) = path.strip_prefix(&root) else { continue };
++                let wow_path = format!("Interface/AddOns/{}", relative.to_string_lossy());
++                let key = normalize_wow_path(&wow_path);
++                if font_map.contains_key(&key) { continue; }
++                let Ok(bytes) = std::fs::read(&path) else { continue };
++                let Some(family) = fontdb_family_name(&bytes) else { continue };
++                db.load_font_data(bytes);
++                register_font_aliases(&[&wow_path], &family, font_map);
++                tracing::debug!("Registered addon font {wow_path} -> {family}");
++            }
++        }
++    }
++}
++
+ fn timed_font_phase<T>(label: &str, action: impl FnOnce() -> T) -> T {
+     let phase_start = std::time::Instant::now();
+     let result = action();
+diff --git a/src/render/headless.rs b/src/render/headless.rs
+index 85b9c98..61ff3c3 100644
+--- a/src/render/headless.rs
++++ b/src/render/headless.rs
+@@ -334,7 +334,11 @@ fn clear_headless_render_target(
+         &mut encoder,
+         render_view,
+         &clip_bounds_u32,
+-        [0.05, 0.05, 0.08, 1.0],
++        if std::env::var("WOW_SIM_PLAIN_BACKGROUND").ok().as_deref() == Some("1") {
++            [0.003676507, 0.005605392, 0.008568126, 1.0]
++        } else {
++            [0.05, 0.05, 0.08, 1.0]
++        },
+     );
+     encoder
+ }
+diff --git a/src/render/shader/quad.wgsl b/src/render/shader/quad.wgsl
+index ce2cb88..92b7d6d 100644
+--- a/src/render/shader/quad.wgsl
++++ b/src/render/shader/quad.wgsl
+@@ -81,7 +81,8 @@ fn vs_main(in: VertexInput) -> VertexOutput {
+ 
+     // Pass through to fragment shader
+     out.tex_coords = in.tex_coords;
+-    out.color = in.color;
++    let rgb = select(in.color.rgb / 12.92, pow((in.color.rgb + vec3f(0.055)) / 1.055, vec3f(2.4)), in.color.rgb > vec3f(0.04045));
++    out.color = vec4f(rgb, in.color.a);
+     out.tex_index = in.tex_index;
+     out.flags = in.flags;
+     out.local_uv = in.local_uv;
+@@ -202,15 +203,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+         color.a *= mask_color.a;
+     }
+ 
+-    // Brightness boost — the simulator has no 3D game world behind the UI,
+-    // so dark/semi-transparent textures (borders, backgrounds) are harder to
+-    // see against the black clear color. Additive overlays already brighten the
+-    // destination; boosting them also makes near-transparent atlas edge pixels
+-    // visible as stripes.
+-    if blend_mode != BLEND_ADDITIVE {
+-        color = vec4f(pow(color.rgb, vec3f(1.0 / 1.5)), color.a);
+-    }
+-
+     // Premultiplied alpha output: pipeline uses src + dst * (1 - src.a).
+     // Standard alpha: premultiply color by alpha for correct blending.
+     // Additive: premultiply then zero alpha so dst is fully preserved (src + dst).
+

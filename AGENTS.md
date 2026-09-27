@@ -26,6 +26,16 @@ Continue meaningful automated checks and code review for changed behavior. Recor
 
 Never pin a Forever build or Blizzard UI commit for new work. Before reading Blizzard UI source, resolve the latest Forever build: the head of the `forever` branch of Gethe/wow-ui-source (its commit message names the build, e.g. `1.60.1 (NNNNN)`; `version.txt` holds the full version), cross-checked against the user's `WowB.exe` file version when available. Read source from that head. Build numbers and commit SHAs in docs, data and code comments are evidence of what was reviewed at the time, not a target; when one disagrees with the current build, re-check against the current source before relying on it.
 
+For active work, never use source, extracted data, caches or tool paths labeled with an older client build. Resolve the current build first and use verified current inputs. If versions disagree or current provenance cannot be established, stop the dependent operation and refresh its inputs. Do not silently fall back to older material or treat an older path label as harmless. Preserve historical evidence and user data without using it as current evidence.
+
+## UI verification policy
+
+The Lua renderer in tools/site-renders is the required visual system for addon UI changes. Use the current Forever client inputs and unchanged addon source. Exercise actual controls and distinct states through fixtures; do not replace addon output with hand-drawn graphics to pass a check. Add or extend the affected scenario when changing a UI element. Keep unsupported renderer behaviour explicit in development notes.
+
+Run the capture checks, inspect changed images at full size, and compare them with the reviewed baselines before promotion. Baseline promotion requires the exact reviewed image hashes. Tests and builds must never update baselines automatically. Source, fixture or asset changes invalidate the prior render evidence. A failed or missing render blocks the related UI check.
+
+The required project check, website builds and tests, and release workflows run tools/site-renders/check.py. Keep browser layout, keyboard and accessibility checks alongside the Lua renders. Installer window checks remain necessary for the Rust interface. Render evidence does not replace the user's standing acceptance of native gameplay, and no native playtest sign-off is required.
+
 ## Class research policy
 
 Always research current online WoW Forever player feedback and class-specific requests before planning or implementing class work. Record dated source links and separate community requests from confirmed client behavior. Verify spell IDs, ranks, form pages and APIs against current primary sources or exact-build client data; preserve unknown coverage explicitly.

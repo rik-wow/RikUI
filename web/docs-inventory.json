@@ -1874,5 +1874,189 @@
       "name": "Disabled control",
       "kind": "controls"
     }
+  ],
+  "renders": [
+    {
+      "id": "options-general",
+      "page": "options",
+      "title": "General",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-modules",
+      "page": "options",
+      "title": "Module selection",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-profiles",
+      "page": "options",
+      "title": "Profiles",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-setup",
+      "page": "options",
+      "title": "Setup and support",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-castbars",
+      "page": "options",
+      "title": "Cast-bar settings",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "units-player",
+      "page": "unitframes",
+      "title": "Player",
+      "width": 472,
+      "height": 120
+    },
+    {
+      "id": "units-low-health",
+      "page": "unitframes",
+      "title": "Low health",
+      "width": 472,
+      "height": 120
+    },
+    {
+      "id": "units-target",
+      "page": "unitframes",
+      "title": "Target",
+      "width": 472,
+      "height": 120
+    },
+    {
+      "id": "units-focus",
+      "page": "unitframes",
+      "title": "Focus",
+      "width": 352,
+      "height": 104
+    },
+    {
+      "id": "cast-player",
+      "page": "castbars",
+      "title": "Remaining time hidden",
+      "width": 472,
+      "height": 80
+    },
+    {
+      "id": "cast-interrupted",
+      "page": "castbars",
+      "title": "Interrupted cast",
+      "width": 472,
+      "height": 80
+    },
+    {
+      "id": "wizard-1",
+      "page": "wizard",
+      "title": "Welcome",
+      "width": 860,
+      "height": 624
+    },
+    {
+      "id": "wizard-2",
+      "page": "wizard",
+      "title": "Your role",
+      "width": 860,
+      "height": 624
+    },
+    {
+      "id": "wizard-3",
+      "page": "wizard",
+      "title": "Keybinds",
+      "width": 860,
+      "height": 624
+    },
+    {
+      "id": "wizard-4",
+      "page": "wizard",
+      "title": "Screen layout",
+      "width": 860,
+      "height": 624
+    },
+    {
+      "id": "wizard-5",
+      "page": "wizard",
+      "title": "Modules and settings",
+      "width": 860,
+      "height": 624
+    },
+    {
+      "id": "wizard-6",
+      "page": "wizard",
+      "title": "Review and apply",
+      "width": 860,
+      "height": 624
+    },
+    {
+      "id": "bags-inventory",
+      "page": "bags",
+      "title": "Inventory and item stacks",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-search",
+      "page": "bags",
+      "title": "Searching for a potion",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-empty-search",
+      "page": "bags",
+      "title": "No matching items",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "shell-menu",
+      "page": "shell",
+      "title": "RikUI menu",
+      "width": 360,
+      "height": 680
+    },
+    {
+      "id": "sharing-export",
+      "page": "sharing",
+      "title": "Exporting a profile",
+      "width": 700,
+      "height": 480
+    },
+    {
+      "id": "sharing-import",
+      "page": "sharing",
+      "title": "Importing a profile",
+      "width": 700,
+      "height": 480
+    },
+    {
+      "id": "chat-copy",
+      "page": "chat",
+      "title": "Copying a conversation",
+      "width": 600,
+      "height": 440
+    },
+    {
+      "id": "chat-search",
+      "page": "chat",
+      "title": "Finding a line in chat",
+      "width": 600,
+      "height": 440
+    },
+    {
+      "id": "loot-list",
+      "page": "loot",
+      "title": "Looting items",
+      "width": 360,
+      "height": 220
+    }
   ]
 }

@@ -180,6 +180,11 @@ return function(check)
         env.click(mage.following)
         check("displaced Ctrl-G utility is visibly unbound", mage.bar.slots[8].key.text == "")
         local preview, savedKnown = RikUI.WizardPreview, RikUI.Spells.HighestKnownRank
+        for _, item in ipairs({ 6948, "Hearthstone" }) do
+            local icon, label, ready = preview.Details({ item = item }, {}, 1)
+            check("Hearthstone item preview accepts " .. tostring(item), icon == 134414
+                and label == "Hearthstone · Item" and ready)
+        end
         local current = RikUI.Setup.Resolve("MAGE", "frost")
         RikUI.Spells.HighestKnownRank = function() return nil end
         local _, description, ready = preview.Details({ spell = "Ice Block" }, current, 60)

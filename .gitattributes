@@ -1,0 +1,4 @@
+tools/site-renders/** text eol=lf
+web/ui-renders/*.json text eol=lf
+web/ui-renders/*.webp -text
+

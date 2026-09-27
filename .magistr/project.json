@@ -13,7 +13,7 @@
     "formatter": "none"
   },
   "quality_gate": {
-    "check": "python tests/check_manifest.py",
+    "check": "python tests/check_project.py",
     "test": "luajit tests/run_tests.lua",
     "lint": "echo 'no lint configured'"
   },

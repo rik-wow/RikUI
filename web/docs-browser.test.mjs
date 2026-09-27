@@ -1,6 +1,36 @@
 import { test, expect } from "@playwright/test";
 import { documentation } from "./docs-generated.mjs";
 import { catalogue } from "./docs-catalogue.mjs";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+const renders=JSON.parse(readFileSync(new URL("./ui-renders/manifest.json",import.meta.url),"utf8")).renders;
+const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
+// Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
+const placements={
+ wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
+ options:{"options-castbars":"ref-open-settings","options-general":"ref-appearance","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
+ sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile"},
+ unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text"},
+ castbars:{"cast-interrupted":"ref-reading-a-cast-bar","cast-player":"ref-change-the-size"},
+ bags:{"bags-inventory":"ref-open-your-inventory","bags-search":"ref-search-and-filters","bags-empty-search":"ref-search-and-filters"},
+ chat:{"chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history"},
+ loot:{"loot-list":"ref-loot-an-item"},
+ shell:{"shell-menu":"ref-the-rikui-button"}
+};
+const mockupPlacements={
+ interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Inspect":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},
+ nameplates:{"Threat indication":"ref-threat","Friendly name":"ref-size-and-visibility"},
+ layout:{"Layout presets":"ref-scale-and-presets","Undo layout change":"ref-reset-or-undo"}
+};
+const figureSections=()=>{
+ const article=document.querySelector("article.doc-prose");
+ let heading=null;const result=[];
+ for(const node of article.querySelectorAll("h2,h3,figure")){
+  if(node.tagName==="FIGURE")result.push({render:node.dataset.render||null,caption:node.querySelector("figcaption strong").textContent,heading,inParagraph:!!node.closest("p")});
+  else heading=node.id;
+ }
+ return result;
+};
 
 test("every documentation route and internal guide link resolves",async({request,page})=>{
  test.setTimeout(120000);
@@ -21,6 +51,13 @@ test("every documentation route and internal guide link resolves",async({request
     if(!parsed[url.pathname]){result.push(route+" -> "+url.pathname);continue;}
     if(url.hash&&!parsed[url.pathname].getElementById(decodeURIComponent(url.hash.slice(1)))) result.push(route+" -> "+url.pathname+url.hash);
    }
+   if(doc.querySelector(".visual-guide,#visual-guide,.more-examples")||/Visual guide/.test(doc.body.textContent))result.push(route+" still has a detached gallery");
+   const figures=doc.querySelectorAll("figure");
+   if(doc.querySelectorAll("article.doc-prose figure").length!==figures.length)result.push(route+" has figures outside the article");
+   for(const figure of figures){
+    if(figure.closest("p"))result.push(route+" places a figure inside a paragraph");
+    if(!figure.closest(".example-grid"))result.push(route+" has an ungrouped figure");
+   }
   }
   return [...new Set(result)];
  },pages);
@@ -29,7 +66,24 @@ test("every documentation route and internal guide link resolves",async({request
  expect((await request.get("/docs/bags/",{maxRedirects:0})).status()).toBe(308);
  for(const guide of catalogue){
   expect(pages["/docs/"+guide.slug]).toContain('class="ui-example"');
-  expect(pages["/docs/"+guide.slug].match(/<figure /g)?.length).toBe(guide.surfaces.length);
+  expect(pages["/docs/"+guide.slug].match(/<figure /g)?.length,guide.slug).toBe(renders.filter(render=>render.page===guide.slug).length||guide.surfaces.length);
+ }
+});
+
+test("examples sit beside the instructions they illustrate",async({page})=>{
+ for(const [slug,expected] of Object.entries(placements)){
+  await page.goto("/docs/"+slug);
+  const figures=await page.evaluate(figureSections);
+  const actual=Object.fromEntries(figures.map(figure=>[figure.render,figure.heading]));
+  expect(actual,slug).toEqual(expected);
+  const captions=figures.map(figure=>figure.caption);
+  expect(new Set(captions).size,slug+" repeats an example").toBe(captions.length);
+  for(const render of renders.filter(render=>render.page===slug))await expect(page.locator('figure[data-render="'+render.id+'"] img')).toHaveAttribute("src",/\/assets\/docs\//);
+ }
+ for(const [slug,expected] of Object.entries(mockupPlacements)){
+  await page.goto("/docs/"+slug);
+  const figures=await page.evaluate(figureSections);
+  for(const [caption,heading] of Object.entries(expected))expect(figures.find(figure=>figure.caption===caption)?.heading,slug+": "+caption).toBe(heading);
  }
 });
 
@@ -49,18 +103,17 @@ for(const width of [1440,768,390,320]){
   await page.getByLabel("Find a guide").fill("inventory");
   await page.locator('[data-doc-link]:visible').click();
   await expect(page.locator("h1")).toHaveText("Inventory");
-  await page.getByText("Show all 9 examples",{exact:true}).click();
+  await page.locator("#ref-search-and-filters").scrollIntoViewIfNeeded();
+  await expect(page.locator('figure[data-render="bags-search"] img')).toBeVisible();
   await expect(page.locator("figure").last()).toBeVisible();
+  await page.keyboard.press("Tab");
+  expect(await page.evaluate(()=>document.activeElement?.tagName)).toBeTruthy();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   expect(errors).toEqual([]);
  });
 }
 
 test("spell and item examples load the correct named images",async({page})=>{
- await page.goto("/docs/castbars");
- await expect(page.locator('[data-action="Holy Light"] image').first()).toHaveAttribute("href",/spell_holy_holybolt.png$/);
- await page.goto("/docs/loot");
- await expect(page.locator('[data-action="Minor Healing Potion"] image').first()).toHaveAttribute("href",/inv_potion_49.png$/);
  await page.goto("/docs/micromenu");
  await expect(page.locator("figure").first().locator("image")).toHaveCount(0);
  await page.goto("/docs/totems");
@@ -75,5 +128,33 @@ test("documentation works without JavaScript",async({browser})=>{
  await page.goto((process.env.SITE_URL||"http://127.0.0.1:8787")+"/docs/castbars");
  await expect(page.getByRole("heading",{name:"Cast bars",exact:true})).toBeVisible();
  await expect(page.getByRole("navigation",{name:"Documentation",exact:true})).toBeVisible();
+ await expect(page.locator('figure[data-render="cast-interrupted"] img')).toBeVisible();
  await context.close();
+});
+test("Lua examples serve the reviewed images with their original proportions",async({request,page})=>{
+ for(const render of renders){
+  const asset="/assets/docs/"+render.id+"-"+render.sha256.slice(0,12)+".webp";
+  const response=await request.get(asset);
+  expect(response.status(),asset).toBe(200);
+  expect(createHash("sha256").update(await response.body()).digest("hex"),asset).toBe(render.reviewedSha256);
+ }
+ await page.goto("/docs/wizard");
+ const images=page.locator("figure img.ui-example");
+ await expect(images).toHaveCount(6);
+ for(const img of await images.all()){
+  await img.scrollIntoViewIfNeeded();
+  await expect(img).toHaveJSProperty("naturalWidth",WIZARD_WIDTH);
+  const geometry=await img.evaluate(node=>({w:node.getBoundingClientRect().width,h:node.getBoundingClientRect().height,filter:getComputedStyle(node).filter}));
+  expect(geometry.w/geometry.h).toBeCloseTo(WIZARD_WIDTH/WIZARD_HEIGHT,2);
+  expect(geometry.filter).toBe("none");
+  expect(geometry.w).toBeLessThanOrEqual(WIZARD_WIDTH);
+ }
+ for(const slug of ["bags","unitframes"]){
+  await page.goto("/docs/"+slug);
+  for(const img of await page.locator("figure img.ui-example").all()){
+   await img.scrollIntoViewIfNeeded();
+   const size=await img.evaluate(node=>({display:node.getBoundingClientRect().width,natural:node.naturalWidth}));
+   expect(size.display).toBeLessThanOrEqual(size.natural);
+  }
+ }
 });

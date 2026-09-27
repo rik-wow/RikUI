@@ -1,19 +1,33 @@
-import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
+import { readFile, readdir, writeFile, mkdir, copyFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { Marked } from "marked";
 import { catalogue, modulePages } from "./docs-catalogue.mjs";
 import { createHash } from "node:crypto";
-import { illustration, gallery, escapeHTML as esc } from "./docs-visuals.mjs";
+import { illustration, renderFigure, mockupFigure, escapeHTML as esc } from "./docs-visuals.mjs";
 import startGuides from "./guides-start.mjs";
 import combatGuides from "./guides-combat.mjs";
 import worldGuides from "./guides-world.mjs";
 import windowGuides from "./guides-windows.mjs";
 import extraGuides from "./guides-extra.mjs";
+import { execFileSync } from "node:child_process";
+execFileSync(process.env.PYTHON || "python", [fileURLToPath(new URL("../tools/site-renders/check.py",import.meta.url))], {stdio:"inherit"});
 const guides={...startGuides,...combatGuides,...worldGuides,...windowGuides,...extraGuides};
 const visualPaths=new Map();
+const renderManifest=JSON.parse(await readFile(new URL("./ui-renders/manifest.json",import.meta.url),"utf8"));
+const liveRenders=new Map();
+for(const capture of renderManifest.renders){
+ const list=liveRenders.get(capture.page)||[];list.push(capture);liveRenders.set(capture.page,list);
+}
 await mkdir(new URL("./public/assets/docs/",import.meta.url),{recursive:true});
+for(const capture of renderManifest.renders){
+ const name=capture.id+"-"+capture.sha256.slice(0,12)+".webp";
+ capture.url="/assets/docs/"+name;
+ await copyFile(new URL("./ui-renders/"+capture.filename,import.meta.url),new URL("./public/assets/docs/"+name,import.meta.url));
+ visualPaths.set("render:"+capture.id,capture.url);
+}
 for(const page of catalogue)for(const [index,title] of page.surfaces.entries()){
+ if(liveRenders.has(page.slug))continue;
  const svg=illustration(page.kind,title,index);
  const hash=createHash("sha256").update(svg).digest("hex").slice(0,12);
  const name=page.slug+"-"+index+"-"+hash+".svg";
@@ -62,13 +76,41 @@ for(const file of sourceFiles){
 }
 const missing=registrations.filter(item=>!item.page);
 if(missing.length)throw Error("Missing module visual documentation: "+missing.map(x=>x.name).join(", "));
-const inventory={modules:registrations,surfaces:catalogue.flatMap(page=>page.surfaces.map(name=>({page:page.slug,name,kind:page.kind})))};
+const inventory={modules:registrations,surfaces:catalogue.flatMap(page=>page.surfaces.map(name=>({page:page.slug,name,kind:page.kind}))),renders:renderManifest.renders.map(({id,page,title,width,height})=>({id,page,title,width,height}))};
 const groupOrder=["Getting started","Combat","Questing","Everyday interface","Notifications","Windows and controls","About RikUI"];
 const groups=groupOrder.filter(group=>pages.some(page=>page.group===group));
 const sidebar=current=>'<aside class="docs-sidebar"><details class="docs-nav-toggle" open><summary>Browse documentation</summary><div class="nav-content"><label for="docs-search">Find a guide</label><input id="docs-search" type="search" placeholder="Nameplates, bags, profiles…" autocomplete="off"><p id="search-empty" hidden>No matching guides.</p><nav aria-label="Documentation">'+groups.map(group=>'<section class="nav-group"><h2>'+esc(group)+'</h2>'+pages.filter(p=>p.group===group).map(p=>'<a data-doc-link data-keywords="'+esc(p.slug+' '+p.summary)+'" href="/docs/'+p.slug+'"'+(p.slug===current?' aria-current="page"':"")+'>'+esc(p.title)+'</a>').join("")+'</section>').join("")+'</nav></div></details></aside>';
 const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license.</p></footer></body></html>';
+const RENDER_REFERENCE="render:", MOCKUP_REFERENCE="mockup";
+function placeFigure(page,href,caption,used){
+ if(href.startsWith(RENDER_REFERENCE)){
+  const id=href.slice(RENDER_REFERENCE.length);
+  const capture=(liveRenders.get(page.slug)||[]).find(item=>item.id===id);
+  if(!capture)throw Error(page.slug+": unknown Lua render reference "+id);
+  used.add("render:"+id);
+  return renderFigure(page.feature,capture,caption);
+ }
+ if(href===MOCKUP_REFERENCE){
+  const index=page.feature?.surfaces.indexOf(caption)??-1;
+  if(index<0||liveRenders.has(page.slug))throw Error(page.slug+": unknown mockup reference "+caption);
+  used.add("mockup:"+index);
+  return mockupFigure(page.feature,caption,index,visualPaths.get(page.slug+":"+index));
+ }
+ throw Error(page.slug+": unsupported image reference "+href);
+}
+function expectedFigures(page){
+ if(!page.feature)return [];
+ const captures=liveRenders.get(page.slug);
+ return captures?captures.map(capture=>"render:"+capture.id):page.feature.surfaces.map((_,index)=>"mockup:"+index);
+}
+function verifyPlacement(page,used){
+ const expected=expectedFigures(page);
+ const missing=expected.filter(key=>!used.has(key));
+ if(missing.length)throw Error(page.slug+": examples not placed in the guide: "+missing.join(", "));
+}
+const groupFigures=html=>html.replace(/<p>((?:\s*<figure[\s\S]*?<\/figure>)+\s*)<\/p>/g,(_,figures)=>'<div class="example-grid">'+figures.trim()+'</div>');
 function render(page){
- const headings=[],counts=new Map();
+ const headings=[],counts=new Map(),used=new Set();
  const md=new Marked({gfm:true,renderer:{
   html({text}){return esc(text);},
   heading({tokens,depth}){
@@ -88,14 +130,18 @@ function render(page){
    if(!/^(https?:|mailto:|\/docs(?:\/|$)|#)/i.test(target))target="#";
    return '<a href="'+esc(target)+'"'+(title?' title="'+esc(title)+'"':"")+'>'+this.parser.parseInline(tokens)+'</a>';
   },
-  image({text}){return '<span class="image-reference">'+esc(text)+'</span>';}
+  image({href,text}){
+   const key=(href||"").startsWith(RENDER_REFERENCE)?"render:"+href.slice(RENDER_REFERENCE.length):"mockup:"+page.feature?.surfaces.indexOf(text);
+   if(used.has(key))throw Error(page.slug+": example placed twice: "+text);
+   return placeFigure(page,href||"",text,used);
+  }
  }});
- let markdown=sources.get(page.file).replace(/^# .+\r?\n/,"");
- const content=md.parse(markdown);
- const toc='<aside class="docs-toc"><nav aria-label="On this page"><h2>On this page</h2>'+headings.map(h=>'<a href="#'+h.id+'" class="toc-depth-'+h.depth+'">'+esc(h.text)+'</a>').join("")+(page.feature?'<a href="#visual-guide">Visual guide</a>':"")+'</nav></aside>';
+ const markdown=sources.get(page.file).replace(/^# .+\r?\n/,"");
+ const content=groupFigures(md.parse(markdown));
+ verifyPlacement(page,used);
+ const toc='<aside class="docs-toc"><nav aria-label="On this page"><h2>On this page</h2>'+headings.map(h=>'<a href="#'+h.id+'" class="toc-depth-'+h.depth+'">'+esc(h.text)+'</a>').join("")+'</nav></aside>';
  const header='<div class="doc-breadcrumb"><a href="/docs">Documentation</a><span>/</span>'+esc(page.group)+'</div><h1>'+esc(page.title)+'</h1>'+(!page.feature&&page.summary?'<p class="doc-lead">'+esc(page.summary)+'</p>':"");
- const usage="";
- return shell(page.title,page.slug,header+usage+'<article class="doc-prose">'+content+'</article>'+gallery(page.feature,visualPaths),toc);
+ return shell(page.title,page.slug,header+'<article class="doc-prose">'+content+'</article>',toc);
 }
 const all = Object.fromEntries(pages.map(page=>["/docs/"+page.slug,render(page)]));
 const featureGroups=groups.filter(g=>g!=="About RikUI");
@@ -110,4 +156,4 @@ for(const [route,html] of Object.entries(all)){
 }
 await writeFile(new URL("./docs-generated.mjs",import.meta.url),"// Generated by build-docs.mjs.\nexport const documentation = "+JSON.stringify(documentation,null,2)+";\nexport const documentationImages = "+JSON.stringify([...visualPaths.values()])+";\n");
 await writeFile(new URL("./docs-inventory.json",import.meta.url),JSON.stringify({pages:pages.map(({slug,file,title})=>({slug,file,title})),...inventory},null,2)+"\n");
-console.log("Built "+pages.length+" documentation pages, "+registrations.length+" modules, "+inventory.surfaces.length+" visual examples.");
+console.log("Built "+pages.length+" documentation pages, "+registrations.length+" modules, "+inventory.surfaces.length+" UI elements, "+inventory.renders.length+" Lua renders.");

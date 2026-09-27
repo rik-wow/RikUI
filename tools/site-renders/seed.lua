@@ -1,0 +1,20 @@
+-- Synthetic character, isolated from the player's WTF and SavedVariables.
+A_Admin.SetPlayerName("Rik")
+A_Admin.SetPlayerClass(2)
+A_Admin.SetPlayerRace(0)
+A_Admin.SetPlayerLevel(10)
+A_Admin.SetPlayerHealth(212, 220)
+A_Admin.SetPlayerPower(287, 287, 0)
+A_Admin.SetZone("Elwynn Forest", 37)
+A_Admin.SetSubZone("Goldshire")
+A_Admin.SetMoney(17342)
+A_Admin.ClearActionBars()
+for slot, spell in pairs({ [1]=679, [2]=20271, [3]=20287, [6]=853, [8]=1152, [9]=635, [11]=20287 }) do
+    A_Admin.SetActionSlot(slot, spell)
+end
+A_Admin.SetTarget("Mangy Wolf", 5, 1, true)
+A_Admin.SetTargetHealth(57, 102)
+A_Admin.SetTargetPower(0, 0, 1)
+A_Admin.SetFocus("Mira", 10, 5, false)
+A_Admin.SetFocusHealth(176, 210)
+A_Admin.SetFocusPower(240, 300, 0)

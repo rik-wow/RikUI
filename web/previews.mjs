@@ -25,7 +25,7 @@ function player() {
   const x = COMBAT.playerX, y = COMBAT.unitY, w = COMBAT.unitWidth;
   return group("player-frame",
     rect(x,y,w,36)+rect(x,y,w,23,"#ef8fbb","#b97494")+
-    text(x+5,y+15,"Boo","#eee",12,"start",'class="outlined"')+
+    text(x+5,y+15,"Rik","#eee",12,"start",'class="outlined"')+
     text(x+w-5,y+15,"212 / 220","#eee",11,"end",'class="outlined"')+
     rect(x,y+23,w,13,"#0800e9","#23294d")+text(x+5,y+33,"10","#eee69a",10)+
     text(x+w-5,y+33,"287 / 287","#eee69a",10,"end"));
@@ -38,7 +38,7 @@ function target() {
     text(x+w-5,y+15,"57 / 102","#eee",11,"end",'class="outlined"')+
     text(x+5,y+33,"5","#e9db92",10)+text(x+w-5,y+33,"0 / 0","#aeb4b9",10,"end"))+
     group("target-of-target combat-only",rect(1326,702,88,24)+rect(1326,702,88,15,"#ef8fbb")+
-    text(1329,713,"Boo","#eee",10,"start",'class="outlined"')+
+    text(1329,713,"Rik","#eee",10,"start",'class="outlined"')+
     rect(1326,717,88,9,"#0800e9")+text(1411,713,"212 / 220","#eee",8,"end",'class="outlined"'));
 }
 function combatDetails() {
@@ -132,7 +132,7 @@ function meter() {
   let out=rect(x,y,w,128,"#090b0d","#292c30")+rect(x,y,w,24,"#19222c")+
     text(x+8,y+16,"⌄  Damage Done","#efd300",11)+text(x+w-53,y+16,"0","#efd300",11,"end")+glyph("settings",x+w-38,y+5,14)+glyph("minus",x+w-17,y+5,14)+
     rect(x+4,y+28,w-8,14,"#82616f","#42404a")+rect(x+4,y+28,234,14,"#c183a0","none")+
-    slot(x+5,y+28,"Judgement","",14)+text(x+24,y+39,"1. Boo","#ded6dc",11,"start",'class="outlined"')+
+    slot(x+5,y+28,"Judgement","",14)+text(x+24,y+39,"1. Rik","#ded6dc",11,"start",'class="outlined"')+
     text(x+w-8,y+39,"12,135 (10.8)","#ded6dc",11,"end",'class="outlined"')+
     rect(x,1076,w,16,"#0d1215")+text(x+w/2,1087,"17 free (+1 special)","#8eb68c",9,"middle");
   ["character","profession","spellbook","talents","legacy","quest","guild","groupfinder","collections","store"].forEach((name,i)=>{
@@ -146,7 +146,7 @@ function chat() {
     text(x+5,y+13,"General","#e5c646",10)+rect(x+62,y,76,18,"#111615","#303329")+
     text(x+67,y+13,"Combat Log","#a38328",10);
   const messages=[
-    ["RikUI: Welcome back, Boo.","#d7bf6e"],["RikUI: Profile loaded. Your interface is ready.","#bdc8d0"],
+    ["RikUI: Welcome back, Rik.","#d7bf6e"],["RikUI: Profile loaded. Your interface is ready.","#bdc8d0"],
     ["RikUI: Use /rik move to arrange your frames.","#bdc8d0"],["RikUI: Use /rik config to choose your modules.","#bdc8d0"],
     ["12:07 [Quest] Elmore’s Task is ready for turn-in.","#51c941"],
     ["12:07 [Quest] Cloth and Leather Armor is ready for turn-in.","#51c941"],

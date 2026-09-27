@@ -35,11 +35,13 @@ export const docsStyles = `
 .doc-prose th{background:#252c20;color:#ddcfac}
 .doc-prose img{max-width:100%;height:auto}
 .doc-source{border-top:1px solid var(--line);padding-top:20px;margin-top:40px;font-size:13px}
-.visual-guide>p{font-size:13px;color:#aebba0;margin-block:12px 20px;max-width:75ch}
+.doc-prose .example-grid{margin-block:18px 28px}
 .example-grid{display:grid;grid-template-columns:1fr;gap:24px}
-@media(min-width:1100px){.example-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .example-grid figure:is([data-kind=window],[data-kind=map],[data-kind=planner],[data-kind=bags],[data-kind=settings],[data-kind=wizard],[data-kind=auction]){grid-column:1/-1}
+.example-grid figure[data-wide=true]{grid-column:1/-1}
+.example-grid figure[data-render][data-wide=false]{grid-column:auto}
+.example-grid figure[data-render] img{width:auto;max-width:100%;margin-inline:auto}
 .enlarge-example{display:block}
 .enlarge-example:focus-visible{outline:2px solid var(--link);outline-offset:3px}
 .example-grid figure{margin:0;min-width:0;border:1px solid #3c4533;background:#0c1117}
@@ -47,9 +49,6 @@ export const docsStyles = `
 .example-grid figcaption{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:11px 14px;background:#1c2218;border-top:1px solid #394232}
 .example-grid figcaption strong{font-size:13px;font-weight:500}
 .example-grid figcaption span{color:#9cab90;font-size:11px;text-align:right}
-.more-examples{margin-top:20px}
-.more-examples summary{cursor:pointer;color:var(--link);font-size:14px;padding-block:12px;border-top:1px solid var(--line)}
-.more-examples .example-grid{padding-top:12px}
 .docs-start{display:flex;flex-wrap:wrap;gap:12px 24px;padding-block:20px;border-block:1px solid var(--line);font-size:14px}
 .guide-group h3{color:#aebb9f;font-size:14px;letter-spacing:0;margin-top:32px}
 .guide-group dl>div{display:grid;grid-template-columns:170px minmax(0,1fr);gap:20px;padding-block:14px;border-bottom:1px solid #333c2c}
@@ -64,7 +63,7 @@ export const docsStyles = `
 @media(max-width:1200px){.docs-layout{grid-template-columns:190px minmax(0,1fr);gap:30px}.docs-toc{display:none}}
 @media(max-width:780px){.docs-layout{display:block;padding-top:20px}.docs-sidebar{position:static;max-height:none;padding:0;margin-bottom:28px}.docs-nav-toggle>summary{display:block;cursor:pointer;font-size:14px;color:var(--link);border-bottom:1px solid var(--line);padding:8px 0 12px}.docs-nav-toggle .nav-content{max-height:60vh;overflow:auto;padding-block:14px}.docs-sidebar input{max-width:420px}.docs-page h1{font-size:29px}.doc-lead{font-size:16px}.reference-list{columns:1}.docs-layout main{max-width:100%}.docs-page .site-header nav a:nth-child(2){display:inline}}
 @media(max-width:480px){.docs-page h1{font-size:26px}.docs-page h2{font-size:21px;margin-top:30px}.doc-prose{font-size:14px}.doc-lead{font-size:15px}.guide-group dl>div{grid-template-columns:1fr;gap:4px}.example-grid figcaption{display:block;padding:9px 12px}.example-grid figcaption span{display:block;text-align:left;margin-top:3px}.docs-start{gap:12px 20px;font-size:13px}.doc-prose pre{padding:12px}.docs-page .site-header nav{gap:10px;font-size:11px}}
-@media print{.site-header,.docs-sidebar,.docs-toc,.doc-source,footer{display:none}.docs-layout{display:block;width:100%;padding:0}.docs-page{background:white;color:#111}.doc-prose,.doc-lead{color:#111}.more-examples>div{display:block}.ui-example{max-height:230px}.example-grid figure:is([data-kind=window],[data-kind=map],[data-kind=planner],[data-kind=bags],[data-kind=settings],[data-kind=wizard],[data-kind=auction]){grid-column:1/-1}
+@media print{.site-header,.docs-sidebar,.docs-toc,.doc-source,footer{display:none}.docs-layout{display:block;width:100%;padding:0}.docs-page{background:white;color:#111}.doc-prose,.doc-lead{color:#111}.ui-example{max-height:230px}.example-grid figure:is([data-kind=window],[data-kind=map],[data-kind=planner],[data-kind=bags],[data-kind=settings],[data-kind=wizard],[data-kind=auction]){grid-column:1/-1}
 .enlarge-example{display:block}
 .enlarge-example:focus-visible{outline:2px solid var(--link);outline-offset:3px}
 .example-grid figure{break-inside:avoid}a{color:inherit}}

@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["web/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
+    paths: ["src/**", "media/**", "data/**", "presets/**", "RikUI.toc", "Bindings.xml", "web/**", "tools/site-renders/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
   pull_request:
-    paths: ["web/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
+    paths: ["src/**", "media/**", "data/**", "presets/**", "RikUI.toc", "Bindings.xml", "web/**", "tools/site-renders/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
 permissions:
   contents: read
 jobs:
@@ -15,6 +15,11 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+      - name: Verify reviewed Lua renders and failure checks
+        run: |
+          python -m pip install Pillow==12.3.0
+          python -B -m unittest discover -s tools/site-renders -p 'test_*.py'
+          python tools/site-renders/check.py
       - name: Test independent normalization and comparison
         run: python3 -B -m unittest discover -s tools/upstream -p 'test_*.py'
       - name: Install website dependencies

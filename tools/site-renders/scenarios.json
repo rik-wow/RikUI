@@ -1,0 +1,292 @@
+[
+  {
+    "id": "wizard-1",
+    "page": "wizard",
+    "title": "Welcome",
+    "frame": "RikUIWizard",
+    "crop": "860x624+594+264",
+    "lua": "RikUI.Wizard.Open()\nfor step=1,1 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "expectText": [
+      "Welcome to RikUI"
+    ]
+  },
+  {
+    "id": "wizard-2",
+    "page": "wizard",
+    "title": "Your role",
+    "frame": "RikUIWizard",
+    "crop": "860x624+594+264",
+    "lua": "RikUI.Wizard.Open()\nfor step=1,2 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "expectText": [
+      "Retribution",
+      "Protection",
+      "Holy"
+    ],
+    "assertLua": "assert(RikUI.WizardPreview.Details({item=\"Hearthstone\"}, {}, 10) == 134414, \"Wrong Hearthstone icon\")"
+  },
+  {
+    "id": "wizard-3",
+    "page": "wizard",
+    "title": "Keybinds",
+    "frame": "RikUIWizard",
+    "crop": "860x624+594+264",
+    "lua": "RikUI.Wizard.Open()\nfor step=1,3 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "expectText": [
+      "Mouse 4/5"
+    ]
+  },
+  {
+    "id": "wizard-4",
+    "page": "wizard",
+    "title": "Screen layout",
+    "frame": "RikUIWizard",
+    "crop": "860x624+594+264",
+    "lua": "RikUI.Wizard.Open()\nfor step=1,4 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "expectText": [
+      "Screen layout"
+    ]
+  },
+  {
+    "id": "wizard-5",
+    "page": "wizard",
+    "title": "Modules and settings",
+    "frame": "RikUIWizard",
+    "crop": "860x624+594+264",
+    "lua": "RikUI.Wizard.Open()\nfor step=1,5 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "expectText": [
+      "Modules and settings"
+    ]
+  },
+  {
+    "id": "wizard-6",
+    "page": "wizard",
+    "title": "Review and apply",
+    "frame": "RikUIWizard",
+    "crop": "860x624+594+264",
+    "lua": "RikUI.Wizard.Open()\nfor step=1,6 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "expectText": [
+      "Summary",
+      "Apply"
+    ]
+  },
+  {
+    "id": "options-general",
+    "page": "options",
+    "title": "General",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "lua": "RikUI.Options.Open(\"general\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "General"
+    ]
+  },
+  {
+    "id": "options-modules",
+    "page": "options",
+    "title": "Module selection",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "lua": "RikUI.Options.Open(\"modules\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "Enabled modules"
+    ]
+  },
+  {
+    "id": "options-profiles",
+    "page": "options",
+    "title": "Profiles",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "lua": "RikUI.Options.Open(\"profiles\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "Profiles"
+    ]
+  },
+  {
+    "id": "options-setup",
+    "page": "options",
+    "title": "Setup and support",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "lua": "RikUI.Options.Open(\"setup\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "Open wizard"
+    ]
+  },
+  {
+    "id": "options-castbars",
+    "page": "options",
+    "title": "Cast-bar settings",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "lua": "RikUI.Options.Open(\"castbars\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "Show remaining cast time"
+    ]
+  },
+  {
+    "id": "units-player",
+    "page": "unitframes",
+    "title": "Player",
+    "frame": "RikUIUnit_player",
+    "crop": "472x120+788+516",
+    "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_player,2)\n",
+    "expectText": [
+      "Rik",
+      "212"
+    ]
+  },
+  {
+    "id": "units-low-health",
+    "page": "unitframes",
+    "title": "Low health",
+    "frame": "RikUIUnit_player",
+    "crop": "472x120+788+516",
+    "lua": "A_Admin.SetPlayerHealth(46,220)\nA_Admin.SetPlayerPower(87,287,0)\nRikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_player,2)\n",
+    "expectText": [
+      "Rik",
+      "46"
+    ]
+  },
+  {
+    "id": "units-target",
+    "page": "unitframes",
+    "title": "Target",
+    "frame": "RikUIUnit_target",
+    "crop": "472x120+788+516",
+    "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_target,2)\n",
+    "expectText": [
+      "Mangy Wolf",
+      "57"
+    ]
+  },
+  {
+    "id": "units-focus",
+    "page": "unitframes",
+    "title": "Focus",
+    "frame": "RikUIUnit_focus",
+    "crop": "352x104+848+524",
+    "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_focus,2)\n",
+    "expectText": [
+      "Mira",
+      "176"
+    ]
+  },
+  {
+    "id": "cast-player",
+    "page": "castbars",
+    "title": "Remaining time hidden",
+    "frame": "RikUICast_player",
+    "crop": "472x80+788+536",
+    "lua": "A_Admin.SetCasting(635,\"Holy Light\",\"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\",2.5)\nlocal clock = C_DurationUtil.CreateManualClock(1)\nlocal duration = C_DurationUtil.CreateDuration()\nduration:SetClock(clock)\nduration:SetTimeFromStart(0,2.5)\nlocal reader = UnitCastingDuration\nUnitCastingDuration = function(unit) if unit == \"player\" then return duration end return reader(unit) end\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\",\"player\")\nRikRenderCenter(RikUICast_player,2)\nfor _, option in ipairs(RikUI.CastBars.Options.settings) do if option.key == \"timeText\" then option.set(false) end end\n",
+    "expectText": [
+      "Holy Light"
+    ],
+    "assertLua": "assert(math.abs(RikUICast_player.bar:GetValue() - 1) < 0.001, \"Cast fill must show elapsed time\")"
+  },
+  {
+    "id": "cast-interrupted",
+    "page": "castbars",
+    "title": "Interrupted cast",
+    "frame": "RikUICast_player",
+    "crop": "472x80+788+536",
+    "lua": "A_Admin.SetCasting(635,\"Holy Light\",\"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\",2.5)\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\",\"player\")\nA_Admin.FireEvent(\"UNIT_SPELLCAST_INTERRUPTED\",\"player\")\nRikRenderCenter(RikUICast_player,2)\n",
+    "expectText": [
+      "Interrupted"
+    ]
+  },
+  {
+    "id": "bags-inventory",
+    "page": "bags",
+    "title": "Inventory and item stacks",
+    "frame": "RikUIBags",
+    "crop": "434x288+807+432",
+    "lua": "RikRenderItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderCenter(RikUIBags)\nassert(RikUIBag0Slot2.rikIcon:GetTexture() == 134829, \"Wrong potion icon\")\nassert(RikUIBag0Slot2.rikCount:GetText() == \"5\", \"Missing stack count\")\n",
+    "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")"
+  },
+  {
+    "id": "bags-search",
+    "page": "bags",
+    "title": "Searching for a potion",
+    "frame": "RikUIBags",
+    "crop": "434x288+807+432",
+    "lua": "RikRenderItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderCenter(RikUIBags)\nRikUIBags.search:SetText(\"potion\")\nassert(RikUIBag0Slot2.rikIcon:GetTexture() == 134829, \"Wrong potion icon\")\nassert(RikUIBag0Slot2.rikCount:GetText() == \"5\", \"Missing stack count\")\n",
+    "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")",
+    "expectText": [
+      "potion"
+    ]
+  },
+  {
+    "id": "bags-empty-search",
+    "page": "bags",
+    "title": "No matching items",
+    "frame": "RikUIBags",
+    "crop": "434x288+807+432",
+    "lua": "RikRenderItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderCenter(RikUIBags)\nRikUIBags.search:SetText(\"mithril\")\nassert(RikUIBag0Slot2.rikIcon:GetTexture() == 134829, \"Wrong potion icon\")\nassert(RikUIBag0Slot2.rikCount:GetText() == \"5\", \"Missing stack count\")\n",
+    "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")",
+    "expectText": [
+      "mithril"
+    ]
+  },
+  {
+    "id": "shell-menu",
+    "page": "shell",
+    "title": "RikUI menu",
+    "frame": "RikUIUtilityPanel",
+    "crop": "360x680+844+236",
+    "lua": "RikUI.Shell.Open()\nRikRenderCenter(RikUIUtilityPanel)\nRikRenderResize(RikUIUtilityPanel)\n"
+  },
+  {
+    "id": "sharing-export",
+    "page": "sharing",
+    "title": "Exporting a profile",
+    "frame": "RikUISharing",
+    "crop": "700x480+674+336",
+    "lua": "assert(RikUI.Sharing.OpenProfileExport())\nRikRenderCenter(RikUISharing)\n"
+  },
+  {
+    "id": "sharing-import",
+    "page": "sharing",
+    "title": "Importing a profile",
+    "frame": "RikUISharing",
+    "crop": "700x480+674+336",
+    "lua": "assert(RikUI.Sharing.OpenProfileImport())\nRikRenderCenter(RikUISharing)\n"
+  },
+  {
+    "id": "chat-copy",
+    "page": "chat",
+    "title": "Copying a conversation",
+    "frame": "RikUIChatCopy",
+    "crop": "600x440+724+356",
+    "lua": "RikUI.Chat.OpenCopy(ChatFrame1,\"Mira: Meet at the Goldshire inn?\\nRik: On my way.\\nMira: I have the linen for your quest.\\nRik: Thanks, see you there.\")\nRikRenderCenter(RikUIChatCopy)\nRikUIChatCopy.edit:ClearFocus()\nRikRenderResize(RikUIChatCopy)\n",
+    "expectText": [
+      "linen",
+      "Ctrl+C"
+    ]
+  },
+  {
+    "id": "chat-search",
+    "page": "chat",
+    "title": "Finding a line in chat",
+    "frame": "RikUIChatCopy",
+    "crop": "600x440+724+356",
+    "lua": "RikUI.Chat.OpenCopy(ChatFrame1,\"Mira: Meet at the Goldshire inn?\\nRik: On my way.\\nMira: I have the linen for your quest.\\nRik: Thanks, see you there.\")\nRikUIChatCopy.search:SetText(\"linen\")\nRikRenderCenter(RikUIChatCopy)\nRikUIChatCopy.edit:ClearFocus()\nRikRenderResize(RikUIChatCopy)\n",
+    "expectText": [
+      "linen",
+      "Ctrl+C"
+    ]
+  },
+  {
+    "id": "loot-list",
+    "page": "loot",
+    "title": "Looting items",
+    "frame": "RikUILoot",
+    "crop": "360x220+844+466",
+    "lua": "RikRenderItems()\nRikUI.Loot.Open()\nRikRenderCenter(RikUILoot)\nassert(RikUI.Loot.Rows[2].icon:GetTexture() == 134829, \"Wrong potion icon\")\n",
+    "expectText": [
+      "Hearthstone",
+      "Minor Healing Potion"
+    ]
+  }
+]
+

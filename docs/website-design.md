@@ -130,11 +130,17 @@ guides into /docs pages. The navigation has keyword filtering, local guide
 links, heading anchors and a small-screen disclosure. Technical source links
 remain available. The draft licensing request is labeled as an unsent draft.
 
-A source registration check maps every named module to a visual guide. The
-catalogue currently includes 274 illustrative surface/state examples covering
-46 registered modules. Examples can be opened as standalone SVGs; sample values
-and conditional native surfaces are not evidence of a live client capture.
-The page inventory and module mapping are generated in web/docs-inventory.json.
+A source registration check maps every named module to a guide page. Examples
+sit inside the guide text beside the instruction they illustrate: a Markdown
+image whose address is `render:<scenario-id>` places a reviewed Lua capture from
+web/ui-renders, and one whose address is `mockup` places the catalogued SVG
+illustration named by its alt text. The build fails when a page's captures (or,
+for pages without captures, its catalogued surfaces) are not each placed exactly
+once, so there is no detached gallery. Nine guides currently use the 26 Lua
+captures; the other 41 feature guides still use the 218 illustrative SVGs, whose
+sample values and conditional native surfaces are not evidence of a live client
+capture. The page inventory and module mapping are generated in
+web/docs-inventory.json.
 
 Named spell and item identities replace random icon selection. Spell identifiers
 come from RikUI catalogues; action placement also uses the selected preset and

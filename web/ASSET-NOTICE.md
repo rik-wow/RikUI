@@ -5,7 +5,8 @@ Blizzard Entertainment, Inc. All rights reserved. World of Warcraft and
 Blizzard Entertainment are trademarks or registered trademarks of Blizzard
 Entertainment, Inc. in the U.S. and/or other countries.
 
-Blizzard artwork, including all game captures and icons in `public/assets/`, is
+Blizzard artwork, including game captures, icons and Lua-rendered examples in
+`public/assets/` and `ui-renders/`, is
 excluded from this repository's MIT code license. No sublicense or transfer
 of Blizzard's rights is granted by this repository.
 

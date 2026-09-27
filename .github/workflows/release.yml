@@ -36,6 +36,7 @@ jobs:
       - name: Check runtime inputs and packaging
         run: |
           python3 tests/check_manifest.py
+          python3 tools/site-renders/check.py
           python3 tests/test_package_addon.py
           python3 tests/test_verify_release.py
 

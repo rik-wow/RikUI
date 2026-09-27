@@ -94,7 +94,7 @@ end
 
 function preview.Name(entry)
     if not entry then return "Empty slot" end
-    return entry.spell or entry.macro or (entry.item == 6948 and "Hearthstone") or "Item"
+    return entry.spell or entry.macro or ((entry.item == 6948 or entry.item == "Hearthstone") and "Hearthstone") or "Item"
 end
 
 local function spellReadiness(names, class, level)
@@ -128,7 +128,7 @@ function preview.Details(entry, preset, level)
         local macro = preset.macros[entry.macro]
         icon, names = macro and macro.icon, macro and macro.spells or {}
     elseif entry.item then
-        return entry.item == 6948 and 134414 or 134400, preview.Name(entry) .. " · Item", true
+        return (entry.item == 6948 or entry.item == "Hearthstone") and 134414 or 134400, preview.Name(entry) .. " · Item", true
     end
     local ready, status = true, "Macro"
     if names and #names > 0 then ready, status = spellReadiness(names, preset.class, level) end
