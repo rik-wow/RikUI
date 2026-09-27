@@ -21,6 +21,7 @@ local TAB_ART = { "Left", "Middle", "Right", "LeftActive", "MiddleActive", "Righ
     "LeftHighlight", "MiddleHighlight", "RightHighlight" }
 local BUTTON_TEXTURES = { "GetNormalTexture", "GetPushedTexture", "GetHighlightTexture", "GetDisabledTexture" }
 local tabs = {}
+local SELECTED_TAB, SELECTED_EDGE = { 0.10, 0.19, 0.26, 1 }, { 0.3, 0.58, 0.72, 1 }
 
 local function isRegion(value)
     local kind = type(value)
@@ -96,6 +97,8 @@ local function setAccent(tab, selected)
     if state.selected == selected then return end
     motion.Stop(state.enter); motion.Stop(state.leave)
     state.selected = selected
+    tab.rikBacking:SetVertexColor(unpack(selected and SELECTED_TAB or CONTROL))
+    for _, edge in ipairs(tab.rikBorder) do edge:SetVertexColor(unpack(selected and SELECTED_EDGE or LINE)) end
     tab.rikAccent:Show()
     tab.rikAccent:SetAlpha(selected and 1 or 0)
     motion.Play(selected and state.enter or state.leave)

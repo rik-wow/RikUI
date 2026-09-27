@@ -255,7 +255,7 @@ end
 local function scrollBar(bar)
     skin.Strip(bar.Track, TRACK_ART)
     bar.Track.rikFill = skin.Fill(bar.Track, FIELD, 0)
-    local horizontal = type(bar.IsHorizontal) == "function" and bar:IsHorizontal() == true
+    local horizontal = bar.isHorizontal == true
     stepButton(bar.Back, horizontal and "chevron-left" or "chevron-up")
     stepButton(bar.Forward, horizontal and "chevron-right" or "chevron-down")
     local thumb = bar.Track.Thumb

@@ -136,11 +136,15 @@ return function(check)
             and #first.rikBorder == 4 and first.Text.fontPath == RikUI.Media.font)
         check("the selected tab shows the accent at first", first.rikAccent.shown == true
             and second.rikAccent.alpha == 0)
+        check("selected tab has a brighter surface and edge", first.rikBacking.color[3] > second.rikBacking.color[3]
+            and first.rikBorder[1].color[3] > second.rikBorder[1].color[3])
         PanelTemplates_DeselectTab(first)
         PanelTemplates_SelectTab(second)
         check("the accent follows Blizzard's tab selection", first.rikAccent.alpha == 0
             and second.rikAccent.shown == true and second.selected == true)
 
+        check("tab surfaces follow selection changes", second.rikBacking.color[3] > first.rikBacking.color[3]
+            and first.rikBacking.color[1] == 0.1)
         WorldMapFrame:Show()
         check("world map has no competing panel alpha animation", rawget(WorldMapFrame, "rikFade") == nil)
         check("the map window strips the chrome on its border frame and takes no fill",

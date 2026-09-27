@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Selected native tabs now have a slate-blue face and brighter outline alongside their persistent underline. Selection changes restore the inactive surface. Horizontal scrollbar arrows follow the current client's orientation field.
+
 - Native dropdowns now use crisp bundled chevrons in dark inset compartments, with muted disabled states. Modern scrollbar steps also suppress their atlas texture so only one arrow is visible.
 
 - Modern scrollbars now have recessed tracks, outlined thumbs and matching directional buttons. Thumb hover and drag states stay visible, and disabled step arrows dim.

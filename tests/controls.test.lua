@@ -227,6 +227,11 @@ return function(check)
         SlashCmdList.RIKUI("debug")
         check("debug reports the controls", widgets.printedContains(env, "Controls skinned=8 failed=0"))
 
+        local sideways = scrollBar(nil)
+        sideways.isHorizontal = true
+        module.Skin(sideways)
+        check("horizontal scrollbar arrows follow native orientation", sideways.Back.rikIcon
+            and sideways.Back.rikIcon.rikIcon == "chevron-left" and sideways.Forward.rikIcon.rikIcon == "chevron-right")
         local vertical = frame("Slider")
         vertical:SetSize(20, 160)
         function vertical:GetOrientation() return "VERTICAL" end
