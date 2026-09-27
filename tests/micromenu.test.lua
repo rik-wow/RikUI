@@ -16,6 +16,8 @@ return function(check)
         function value:CreateAnimationGroup() return require("widget_stub").animationGroup() end
         function value:SetTexture(texture) self.texture = texture end
         function value:SetVertexColor(...) self.color = { ... } end
+        function value:SetShown(value) self.shown = value end
+        function value:SetTextColor(...) self.textColor = { ... } end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         return value
     end
@@ -115,6 +117,11 @@ return function(check)
             and module.Bags[2].count.text == "4" and module.Bags[1].count.text == "9")
         check("an empty bag slot shows no icon and no count", rawget(module.Bags[3].icon, "texture") == nil
             and module.Bags[3].count.text == "")
+        check("available bag count has contrast backing", module.Bags[2].countBacking and module.Bags[2].countBacking.shown)
+        check("missing bag has no capacity badge", module.Bags[3].countBacking and not module.Bags[3].countBacking.shown)
+        stub.free[1] = 0
+        env.fire("BAG_UPDATE_DELAYED")
+        check("full bag uses red count and edge", module.Bags[2].count.textColor[2] < 0.5 and module.Bags[2].rikBorder[1].color[1] > 0.8)
         stub.free[1], stub.bagTextures[32] = 2, 133634
         env.fire("BAG_UPDATE_DELAYED")
         check("a bag update refreshes icons and counts", module.Bags[2].count.text == "2"
@@ -123,6 +130,8 @@ return function(check)
         env.fire("BAG_UPDATE_DELAYED")
         check("a secret free-slot count clears the text without printing", module.Bags[2].count.text == ""
             and #env.printed == 0)
+        check("opaque count clears badge and full warning", not module.Bags[2].countBacking.shown
+            and module.Bags[2].rikBorder[1].color[1] == 0.25)
         stub.freeError = "bags unavailable"
         env.fire("BAG_UPDATE_DELAYED")
         env.fire("BAG_UPDATE_DELAYED")

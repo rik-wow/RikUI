@@ -9,6 +9,7 @@ local HOLDER_NAME, KEY = "RikUIMicroMenu", "micromenu"
 local SIZE, GAP, EDGE, ICON_INSET, COLUMNS = 22, 2, 1, 2, 10
 local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -16, y = 16 }
 local BACKGROUND, BORDER = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }
+local FULL_COLOR, SPACE_COLOR = { 1, 0.35, 0.25 }, { 0.85, 0.95, 0.9 }
 local FLAT = "Interface\\BUTTONS\\WHITE8X8"
 local BACKPACK_ICON, KEYRING_ICON = "Interface\\Icons\\INV_Misc_Bag_08", "Interface\\Icons\\INV_Misc_Key_14"
 local BACKPACK, LAST_BAG, KEYRING_FALLBACK = 0, 4, -2
@@ -98,7 +99,17 @@ local function createBag(bag, tooltip, offset)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", ICON_INSET, -ICON_INSET)
     button.icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -ICON_INSET, ICON_INSET)
+    button.countBacking = button:CreateTexture(nil, "ARTWORK", nil, 1)
+    button.countBacking:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+    button.countBacking:SetSize(18, 12)
+    button.countBacking:SetTexture(FLAT)
+    button.countBacking:SetVertexColor(0.015, 0.02, 0.03, 0.92)
     button.count = text(button, "small", "BOTTOMRIGHT")
+    button.count:ClearAllPoints()
+    button.count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 1)
+    button.count:SetWidth(18)
+    button.count:SetJustifyH("RIGHT")
+    button.count:SetWordWrap(false)
     button:SetScript("OnClick", toggleBag)
     button:SetScript("OnEnter", showTooltip)
     button:SetScript("OnLeave", hideTooltip)
@@ -130,6 +141,11 @@ local function refreshBag(button)
     if core.Secret.IsSecret(icon) then icon = nil end
     button.icon:SetTexture(icon)
     local readable = not core.Secret.IsSecret(free) and type(free) == "number"
+        and free >= 0 and free < math.huge and free == math.floor(free)
+    local full = readable and free == 0
+    button.countBacking:SetShown(readable)
+    button.count:SetTextColor(unpack(full and FULL_COLOR or SPACE_COLOR))
+    for _, edge in ipairs(button.rikBorder) do edge:SetVertexColor(unpack(full and FULL_COLOR or BORDER)) end
     button.count:SetText(readable and tostring(free) or "")
 end
 
