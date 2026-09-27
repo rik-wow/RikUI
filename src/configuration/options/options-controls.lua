@@ -12,16 +12,27 @@ types.heading = { refresh = function() end }
 types.checkbox = {
     create = function(row)
         local box = options.WidgetFrame(row)
-        box:SetSize(metrics.controlHeight, metrics.controlHeight)
+        box:SetSize(metrics.toggleWidth, metrics.controlHeight)
         box.mark = box:CreateTexture(nil, "ARTWORK")
-        box.mark:SetAllPoints()
+        box.mark:SetSize(16, 16)
+        box.mark:SetPoint("LEFT", 5, 0)
         box.mark:SetTexture(media.checked)
         box.mark:SetVertexColor(ACTIVE_TINT[1], ACTIVE_TINT[2], ACTIVE_TINT[3], ACTIVE_TINT[4])
-        -- Hover wash is provided by WidgetFrame.
+        box.stateText = options.Text(box, "small")
+        box.stateText:SetPoint("LEFT", 28, 0); box.stateText:SetPoint("RIGHT", -5, 0)
+        box.stateText:SetJustifyH("LEFT"); box.stateText:SetWordWrap(false)
+        core.Motion.BindPress(box)
         box:SetScript("OnClick", function() options.Commit(row, not row.value) end)
         return box
     end,
-    refresh = function(row, value) setShown(row.widget.mark, value == true) end,
+    refresh = function(row, value)
+        local checked, box = value == true, row.widget
+        setShown(box.mark, checked)
+        box.stateText:SetText(checked and "On" or "Off")
+        box.stateText:SetTextColor(checked and 0.9 or 0.65, checked and 0.95 or 0.7, checked and 1 or 0.76)
+        box.background:SetColorTexture(checked and 0.1 or BACKGROUND[1],
+            checked and 0.23 or BACKGROUND[2], checked and 0.3 or BACKGROUND[3], 1)
+    end,
     activate = function(row) options.Commit(row, not row.value) end,
 }
 

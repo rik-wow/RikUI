@@ -1,7 +1,7 @@
 -- Data-driven option rows with shared media and keyboard focus. Control types live in
 -- src/configuration/options/options-controls.lua; pages live in src/configuration/options/options.lua.
 local core, media = RikUI, RikUI.Media
-local options = { Types = {}, Metrics = { controlWidth = 180, controlHeight = 22, textInset = 6 } }
+local options = { Types = {}, Metrics = { controlWidth = 180, controlHeight = 22, toggleWidth = 68, textInset = 6 } }
 core.Options = options
 local ROW_HEIGHT, ROW_GAP, LABEL_WIDTH, DISABLED_ALPHA = 38, 4, 240, 0.4
 local STACK_WIDTH, STACK_HEIGHT, CONTROL_GAP = 390, 62, 18
@@ -180,7 +180,7 @@ end
 
 local function placeRow(row, width, y)
     local kind = row.spec.type
-    local narrow = kind == "checkbox" and metrics.controlHeight or (kind == "colour" and metrics.controlHeight * 2)
+    local narrow = kind == "checkbox" and metrics.toggleWidth or (kind == "colour" and metrics.controlHeight * 2)
     local stacked = width < STACK_WIDTH and row.widget ~= nil and not narrow
     local baseHeight = stacked and STACK_HEIGHT or ROW_HEIGHT
     local descriptionHeight = 0

@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Settings toggles pair a compact checkmark with On/Off text and a selected fill; narrow layouts reserve room for both the state and label.
+
 - Settings section headings have warm inset backing, rows have quiet separators, and keyboard focus has a persistent rail cleared on disable or hide.
 
 - Settings search keeps a bright outline while focused and places wrapped empty-result guidance inside the content column.

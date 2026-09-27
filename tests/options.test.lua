@@ -151,6 +151,18 @@ return function(check)
         options.SetFocus(surface, polishRow); polishRow:Hide()
         check("hidden row clears its focus rail", polishRow.focusRail and not polishRow.focusRail:IsShown())
         polishRow:Show(); options.SetFocus(surface, nil)
+        check("unchecked toggle spells out its state", polishRow.widget.stateText and polishRow.widget.stateText.text == "Off"
+            and not polishRow.widget.mark:IsShown())
+        options.Activate(polishRow)
+        check("keyboard toggle updates text and mark together", togglePolish and polishRow.widget.stateText
+            and polishRow.widget.stateText.text == "On" and polishRow.widget.mark:IsShown())
+        options.ResizeList(polishList, 300)
+        check("toggle label reserves room in narrow rows", polishRow.widget.width >= 60 and polishRow.label.width <= 222)
+        disabledPolish = true; options.RefreshRow(polishRow); options.Activate(polishRow)
+        check("disabled toggle keeps its state visible and unchanged", togglePolish and polishRow.widget.stateText
+            and polishRow.widget.stateText.text == "On")
+        disabledPolish = false; options.RefreshRow(polishRow)
+        options.ResizeList(polishList, 440)
         local saves = 0
         RikUI.Store = { Touch = function() saves = saves + 1 end }
         check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)
