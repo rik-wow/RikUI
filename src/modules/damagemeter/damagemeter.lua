@@ -89,11 +89,28 @@ local function entryIcon(entry, record)
     record.iconEdge = skin.Outline(holder, nil, 0, icon, "OVERLAY")
 end
 
+local function entryText(entry, record)
+    local bar = part(entry, "GetStatusBar")
+    record.textBacking = {}
+    for _, getter in ipairs(ENTRY_TEXT) do
+        local label = part(entry, getter)
+        skin.Typeface(label)
+        if skin.IsRegion(bar) and skin.IsRegion(label) and type(bar.CreateTexture) == "function" then
+            local backing = bar:CreateTexture(nil, "OVERLAY", nil, -8)
+            backing:SetTexture(skin.FLAT)
+            backing:SetVertexColor(0.025, 0.03, 0.045, 0.55)
+            backing:SetPoint("TOPLEFT", label, "TOPLEFT", -2, 1)
+            backing:SetPoint("BOTTOMRIGHT", label, "BOTTOMRIGHT", 2, -1)
+            record.textBacking[#record.textBacking + 1] = backing
+        end
+    end
+end
+
 local function applyEntry(entry)
     local record = {}
     entryBar(entry, record)
     entryIcon(entry, record)
-    for _, getter in ipairs(ENTRY_TEXT) do skin.Typeface(part(entry, getter)) end
+    entryText(entry, record)
     hoverTween(entry, record)
     record.fade = motion.Tween(entry, 0, 1, skin.FADE_SECONDS)
     meter.Entries[entry] = record

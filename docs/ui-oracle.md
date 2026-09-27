@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Damage-meter names and values now sit on subtle dark contrast plates above the colored bars. Plates follow the native text bounds and are reused on refresh; native values, font sizes, bar colors and window opacity remain authoritative.
+
 - Chat bubbles now have an inset top highlight and a compact speech pointer, giving the dark cards a clearer silhouette. Pooled bubbles reuse their details, and chat text and colors remain client owned.
 
 - Window and dialog close controls now use a warm hover face, shared press feedback and muted disabled glyphs. Repeated skinning reuses regions and leaves native close handlers intact.

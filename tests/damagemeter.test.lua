@@ -130,6 +130,10 @@ return function(check)
             row.parts.bar.barTexture == RikUI.Media.statusbar and record.track.layer == "BACKGROUND" and #record.edge == 4
             and row.parts.name.fontPath == RikUI.Media.font and row.parts.value.fontSize == 12
             and row.parts.icon.coords[1] > 0 and rawget(row.parts.bar, "color") == nil)
+        check("meter text has independent inset contrast plates", record.textBacking
+            and #record.textBacking == 2 and record.textBacking[1].points[1][2] == row.parts.name
+            and record.textBacking[2].points[1][2] == row.parts.value)
+        local textBacking = record.textBacking
         check("its icon edge is drawn over the icon inside its bounds, because the entry clips its children",
             record.iconEdge[1].layer == "OVERLAY" and record.iconEdge[1].points[1][2] == row.parts.icon
             and record.iconEdge[1].points[1][4] == 0)
@@ -139,6 +143,7 @@ return function(check)
         watch.callback(watch.owner, row, {}, false)
         check("and faded again when the row is handed out after Blizzard's UpdateBackground put it back",
             row.parts.background.alpha == 0 and row.parts.edge.alpha == 0)
+        check("meter row reuse keeps the same contrast plates", module.Entries[row].textBacking == textBacking)
         check("the local player entry is skinned too", module.Entries[container.LocalPlayerEntry] ~= nil)
         check("both scroll boxes are watched once for rows handed out later", #container.ScrollBox.callbacks == 1
             and #container.SourceWindow.ScrollBox.callbacks == 1
