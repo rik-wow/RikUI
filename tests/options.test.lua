@@ -133,6 +133,24 @@ return function(check)
         env.runScript(surface.search, "OnEditFocusGained"); surface.search:Hide()
         check("hidden search clears stale focus", focusBorder and not focusBorder[1]:IsShown())
         surface.search:Show(); options.Search("")
+        local disabledPolish, togglePolish = false, false
+        local polishParent = CreateFrame("Frame"); polishParent:SetSize(440, 300)
+        local polishList = options.Render(polishParent, {
+            { type = "heading", label = "Visual states" },
+            { type = "checkbox", label = "Example", get = function() return togglePolish end,
+                set = function(value) togglePolish = value end, disabled = function() return disabledPolish end },
+        })
+        local polishRow = polishList.rows[2]
+        check("settings sections have distinct backing", polishList.rows[1].sectionBacking ~= nil)
+        options.SetFocus(surface, polishRow)
+        check("keyboard focus uses a persistent rail", polishRow.focusRail and polishRow.focusRail:IsShown())
+        disabledPolish = true; options.RefreshRow(polishRow)
+        check("disabled row releases stale focus cues", polishRow.focusRail and not polishRow.focusRail:IsShown()
+            and not polishRow.focus:IsShown() and surface.focused == nil)
+        disabledPolish = false; options.RefreshRow(polishRow)
+        options.SetFocus(surface, polishRow); polishRow:Hide()
+        check("hidden row clears its focus rail", polishRow.focusRail and not polishRow.focusRail:IsShown())
+        polishRow:Show(); options.SetFocus(surface, nil)
         local saves = 0
         RikUI.Store = { Touch = function() saves = saves + 1 end }
         check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)

@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Settings section headings have warm inset backing, rows have quiet separators, and keyboard focus has a persistent rail cleared on disable or hide.
+
 - Settings search keeps a bright outline while focused and places wrapped empty-result guidance inside the content column.
 
 - Settings navigation has a persistent selected-page rail and directional group disclosures; empty searches clear the selection marker.

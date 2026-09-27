@@ -83,12 +83,38 @@ function options.Activate(row)
     if row.enabled and not (row.spec.disabled and row.spec.disabled()) and kind.activate then kind.activate(row) end
 end
 
+local function resetFocus(row)
+    core.Motion.Stop(row.focusEnter); core.Motion.Stop(row.focusLeave)
+    row.focusActive, row.keyboardFocused, row.editFocused = false, false, false
+    row.focus:Hide(); row.focusRail:Hide()
+    local panel = row.list.keyboardPanel
+    if panel and panel.focused == row then panel.focused = nil end
+end
+
+local function rowFurniture(row, heading)
+    if heading then
+        row.sectionBacking = core.Skin.Fill(row, { 0.13, 0.12, 0.095, 0.75 })
+    else
+        row.divider = row:CreateTexture(nil, "BORDER")
+        row.divider:SetTexture(core.Skin.FLAT)
+        row.divider:SetVertexColor(0.22, 0.26, 0.32, 0.45)
+        row.divider:SetPoint("BOTTOMLEFT", 6, 0); row.divider:SetPoint("BOTTOMRIGHT", -6, 0)
+        row.divider:SetHeight(1)
+    end
+    row.focusRail = row:CreateTexture(nil, "OVERLAY")
+    row.focusRail:SetTexture(core.Skin.FLAT)
+    row.focusRail:SetVertexColor(0.5, 0.85, 1, 1)
+    row.focusRail:SetPoint("TOPLEFT", 0, -4); row.focusRail:SetPoint("BOTTOMLEFT", 0, 4)
+    row.focusRail:SetWidth(2); row.focusRail:Hide()
+end
+
 function options.CreateRow(parent, spec, list)
     local kind = types[spec.type]
     assert(kind, "Unknown option control type: " .. tostring(spec.type))
     local row = CreateFrame("Frame", nil, parent)
     row.spec, row.list, row.enabled = spec, list, true
     row:SetSize(LABEL_WIDTH + metrics.controlWidth, ROW_HEIGHT)
+    rowFurniture(row, spec.type == "heading")
     row.focus = row:CreateTexture(nil, "BACKGROUND")
     row.focus:SetAllPoints()
     row.focus:SetTexture(media.highlight)
@@ -99,11 +125,7 @@ function options.CreateRow(parent, spec, list)
     if row.focusLeave then row.focusLeave:SetScript("OnFinished", function()
         if not row.focusActive then row.focus:Hide() end
     end) end
-    row:HookScript("OnHide", function()
-        core.Motion.Stop(row.focusEnter); core.Motion.Stop(row.focusLeave)
-        row.focusActive, row.keyboardFocused, row.editFocused = false, false, false
-        row.focus:Hide()
-    end)
+    row:HookScript("OnHide", function() resetFocus(row) end)
     local role = spec.type == "heading" and "heading" or "label"
     row.label = options.Text(row, role, spec.label)
     row.label:SetJustifyH("LEFT")
@@ -140,6 +162,7 @@ function options.RefreshRow(row)
     row.pending = spec.reload and (spec.pending and spec.pending() or (not spec.pending and row.value ~= row.initial)) or false
     local enabled = not (spec.disabled and spec.disabled())
     row.enabled = enabled
+    if not enabled then resetFocus(row) end
     row:SetAlpha(enabled and 1 or DISABLED_ALPHA)
     if row.widget then
         if enabled then row.widget:Enable() else row.widget:Disable() end
@@ -211,6 +234,7 @@ end
 local function focusEffect(row, active)
     if row.focusActive == active then return end
     row.focusActive = active
+    options.SetShown(row.focusRail, active)
     core.Motion.Stop(row.focusEnter); core.Motion.Stop(row.focusLeave)
     row.focus:Show()
     row.focus:SetAlpha(active and 0.6 or 0)
