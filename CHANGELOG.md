@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Modern scrollbars now have recessed tracks, outlined thumbs and matching directional buttons. Thumb hover and drag states stay visible, and disabled step arrows dim.
+
 - Native sliders now show a slim blue value fill that follows horizontal or vertical geometry, range changes and resizing. Empty or invalid values clear the fill, and disabled tracks stay muted.
 
 - Native checkboxes now use crisp inset bundled checkmarks, with warm selected ink and a muted disabled mark. The client still controls checked visibility.

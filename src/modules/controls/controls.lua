@@ -253,10 +253,16 @@ end
 -- Blizzard swaps the thumb's atlases for hover and press; faded pieces stay faded through that.
 local function scrollBar(bar)
     skin.Strip(bar.Track, TRACK_ART)
+    bar.Track.rikFill = skin.Fill(bar.Track, FIELD, 0)
+    local horizontal = type(bar.IsHorizontal) == "function" and bar:IsHorizontal() == true
+    stepButton(bar.Back, horizontal and "chevron-left" or "chevron-up")
+    stepButton(bar.Forward, horizontal and "chevron-right" or "chevron-down")
     local thumb = bar.Track.Thumb
     if not skin.IsRegion(thumb) or type(thumb.CreateTexture) ~= "function" then return end
     skin.Strip(thumb, TRACK_ART)
     thumb.rikFill = skin.Fill(thumb, THUMB, BUTTON_INSET)
+    thumb.rikBorder = skin.Outline(thumb, nil, BUTTON_INSET)
+    thumbFeedback(thumb, thumb.rikFill)
     hover(thumb)
 end
 

@@ -162,6 +162,14 @@ return function(check)
         check("a scrollbar loses its track and thumb art and gets a flat thumb with a hover fade",
             ui.scroll.Track.Middle.alpha == 0 and thumb.Begin.alpha == 0 and thumb.rikFill.texture == RikUI.Skin.FLAT
             and thumb.rikHoverFade ~= nil)
+        check("modern scrollbars have recessed tracks and directional glyphs",
+            ui.scroll.Track.rikFill and ui.scroll.Back.rikIcon and ui.scroll.Forward.rikIcon
+            and ui.scroll.Back.rikIcon.rikIcon == "chevron-up" and ui.scroll.Forward.rikIcon.rikIcon == "chevron-down")
+        ui.scroll.Back:SetEnabled(false)
+        env.runScript(ui.scroll.Back, "OnDisable")
+        check("disabled modern scroll steps mute their glyph", ui.scroll.Back.rikIcon
+            and ui.scroll.Back.rikIcon.alpha == 0.35)
+        check("modern thumb has an inset edge", thumb.rikBorder and #thumb.rikBorder == 4)
         check("a legacy scrollbar gets a flat thumb and flat step buttons with a glyph",
             ui.legacy.ThumbTexture.texture == RikUI.Skin.FLAT and ui.legacy.ScrollUpButton.states.Normal.alpha == 0
             and ui.legacy.ScrollUpButton.rikIcon.rikIcon == "chevron-up" and ui.legacy.ScrollDownButton.rikIcon.rikIcon == "chevron-down")
