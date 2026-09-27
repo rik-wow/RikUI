@@ -25,6 +25,7 @@ ignore:
   - docs
   - tests
   - tools
+  - installer
   - dist
   # Installer-written quest corpus and road data: local only, never packaged.
   - generated/roads

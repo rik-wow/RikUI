@@ -8,9 +8,13 @@ and includes an optional setup wizard for your action bars, keybinds and layout.
 
 ## Install
 
-1. Download the `RikUI-…-forever.zip` file from
-   [Releases](https://github.com/AlrikOlson/wowforever-classicui/releases).
-   Use the addon ZIP, not GitHub's “Source code” download.
+The source is public. The complete installer is built and tested locally;
+public distribution of its quest and road datasets is pending the
+[licensing review](docs/corpus-licensing.md). No quest data has been removed.
+
+1. Build a local addon ZIP using the [packaging guide](docs/packaging.md), or
+   use the [complete native installer build](installer/README.md).
+   GitHub's “Source code” download is not an installable addon ZIP.
 2. Close the game and extract the `RikUI` folder into your Forever beta
    installation's `Interface/AddOns` folder.
 3. Check that the file is at `Interface/AddOns/RikUI/RikUI.toc`.
@@ -19,6 +23,13 @@ and includes an optional setup wizard for your action bars, keybinds and layout.
 
 This is built for the Forever beta, currently interface `16001`. What changed
 in each version is in [CHANGELOG.md](CHANGELOG.md).
+
+### Native Windows installer
+
+The [Rust installer](installer/README.md) uses native Windows controls and can
+carry RikUI, the quest corpus and road data in one executable. Complete local
+builds are available; public distribution of the generated data is pending the
+[licensing review](docs/corpus-licensing.md). Existing data is preserved.
 
 ## First login
 
@@ -224,7 +235,7 @@ If you want to contribute a preset, start with the
 `/rik preset validate`, and send a pull request with your preset and its TOC
 entry.
 
-For bugs, [open an issue](https://github.com/AlrikOlson/wowforever-classicui/issues)
+For bugs, [open an issue](https://github.com/rik-wow/RikUI/issues)
 with what happened, what you expected, your client build and a `/rik support`
 report. A screenshot helps with layout problems.
 

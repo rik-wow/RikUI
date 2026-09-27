@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public CASC encoding content identifiers, not access credentials"
+condition = "AND"
+paths = ['^tools/terrain/acquisition-profile\.json$']
+regexTarget = "line"
+regexes = ['"encodingKey": "[0-9a-f]{32}"']

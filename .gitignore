@@ -20,3 +20,4 @@ Thumbs.db
 /generated/.rikui*
 __pycache__/
 *.pyc
+/installer/target/
