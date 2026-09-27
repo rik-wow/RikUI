@@ -40,7 +40,11 @@ return function(check)
         check("a character that was never set up gets the wizard on entering the world", wizard.IsOpen() and window ~= nil
             and window:IsShown() and window.strata == "DIALOG" and window.fade.plays == 1)
         check("it opens on the first page and says where you are", wizard.Index == 1 and window.title.text == "Page one"
-            and window.step.text == "Step 1 of 3" and #window.dots == 3)
+            and window.step.text == "Step 1 of 3" and #window.stepBackings == 3)
+        check("wizard has numbered step labels", window.stepLabels and window.stepLabels[1].text == "1  Page one")
+        check("current wizard step has an underline", window.stepRails and window.stepRails[1]:IsShown()
+            and not window.stepRails[2]:IsShown())
+        check("wizard primary action has its own accent", window.next.primary ~= nil and window.chrome ~= nil)
         check("Escape closes it", UISpecialFrames[1] == "RikUIWizard")
         check("Back is disabled on the first page and Next reads Next", window.back.disabled == true
             and window.next.label.text == "Next" and window.skip:IsShown())
@@ -55,7 +59,11 @@ return function(check)
         check("Next shows the second page with the same state and fades it in", wizard.Index == 2 and second.built == 1
             and second.state == wizard.State and second.state.role == "tank" and second:IsShown() and not first:IsShown()
             and second.fade.plays == 1 and window.back.disabled == false)
+        check("visited wizard steps retain a completion mark", window.stepChecks and window.stepChecks[1]:IsShown()
+            and not window.stepChecks[2]:IsShown() and window.stepRails[2]:IsShown())
         env.click(window.back)
+        check("returning to a step clears its completion mark", window.stepChecks and not window.stepChecks[1]:IsShown()
+            and window.stepRails[1]:IsShown() and not window.stepRails[2]:IsShown())
         check("Back returns without rebuilding and refreshes the page", wizard.Index == 1 and first.built == 1
             and first.refreshed == 2 and first:IsShown())
         env.click(window.back)
@@ -77,6 +85,8 @@ return function(check)
         env.click(window.next)
         check("a second click while setup runs does nothing", #applied == 1 and window.next.disabled == true)
         complete("applied")
+        check("finished setup marks all steps reviewed and clears current marker",
+            window.stepChecks[3]:IsShown() and not window.stepRails[3]:IsShown())
         check("a finished setup marks the wizard done and offers Close", RikUICharDB.wizardDone == true
             and window.next.label.text == "Close" and window.next.disabled == false and window.back.disabled == true
             and not window.skip:IsShown() and window.status.text:find("/rik undo", 1, true) ~= nil)
@@ -136,6 +146,7 @@ return function(check)
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
         check("it returns on the same page after combat", wizard.Window:IsShown() and wizard.Index == 2)
+        check("combat resume retains current progress cue", wizard.Window.stepRails and wizard.Window.stepRails[2]:IsShown())
 
         load()
         wizard.Open()

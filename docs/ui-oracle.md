@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Setup uses numbered step cards with current-step underlines and reviewed-step checks, shared window bands and an accented primary button. Page content keeps its previous available height.
+
 - Dropdowns distinguish the committed choice with a checkmark, keyboard preview with a row wash, and the open control with an upward arrow and outline.
 
 - Settings sliders use a slim filled track and a solid thumb; the fill follows value, endpoints and resize without changing saved settings.

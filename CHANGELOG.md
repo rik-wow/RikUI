@@ -8,6 +8,12 @@ tagging.
 
 ## Unreleased
 
+- Redesigned utility and settings chrome with layered headers, recessed navigation,
+  group icons, selection rails and clearer keyboard focus. Settings now show explicit
+  On/Off toggles, filled slider tracks and distinct dropdown selection states.
+- Setup now has a numbered progress track, reviewed-step checks and a clearer
+  primary action; its page content retains the same available height.
+
 - UI polish: faded panel text retains its opacity; panel and button fonts recover
   if the selected font cannot load. Disabled controls clear stale hover and press
   effects, scrollbar arrows and thumbs dim correctly, and vertical sliders keep

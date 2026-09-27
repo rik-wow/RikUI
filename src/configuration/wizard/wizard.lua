@@ -7,9 +7,10 @@ local controls = core.WizardControls
 local wizard = { Pages = {}, Index = 1, title = "Wizard" }
 core.Wizard = wizard
 
-local WINDOW_NAME, WIDTH, HEIGHT, PAD = "RikUIWizard", 820, 540, 20
-local HEADER_HEIGHT, FOOTER_HEIGHT, RULE_HEIGHT, DOT, DOT_GAP = 44, 44, 2, 8, 6
-local PAGE_FADE, DOT_PULSE = 0.18, 0.4
+local WINDOW_NAME, WIDTH, HEIGHT, PAD = "RikUIWizard", 820, 584, 20
+local HEADER_HEIGHT, FOOTER_HEIGHT, RULE_HEIGHT = 88, 44, 2
+local PAGE_FADE, STEP_GAP, STEP_HEIGHT = 0.18, 6, 30
+local STEP_LABELS = { welcome = "Welcome", role = "Role", keys = "Keybinds", layout = "Layout", modules = "Modules", summary = "Review" }
 local STEPS = { "macros", "bars", "binds", "cvars", "layout" }
 local TEXT = { next = "Next", apply = "Apply", close = "Close", reload = "Reload UI", back = "Back", skip = "Skip setup" }
 local SKIPPED = "Setup skipped. /rik setup opens it again; /rik apply sets up without it."
@@ -75,12 +76,15 @@ function wizard.Options()
     return opts
 end
 
-local function paintDots()
-    for index, dot in ipairs(window.dots) do
-        local color = index == wizard.Index and controls.ACCENT or skin.LINE
-        dot:SetVertexColor(color[1], color[2], color[3], 1)
+local function paintSteps()
+    for index, dot in ipairs(window.stepBackings) do
+        local active, reviewed = not finished and index == wizard.Index, finished or index < wizard.Index
+        dot:SetVertexColor(active and 0.1 or 0.065, active and 0.23 or 0.08, active and 0.3 or 0.11, 1)
+        window.stepRails[index]:SetShown(active)
+        window.stepChecks[index]:SetShown(reviewed)
+        local color = (active or reviewed) and skin.INK or controls.MUTED
+        window.stepLabels[index]:SetTextColor(unpack(color))
     end
-    motion.Play(window.dots[wizard.Index].pulse)
 end
 
 local function paintFooter()
@@ -115,7 +119,7 @@ function wizard.Go(index)
     motion.Play(frame.fade)
     window.title:SetText(page.title)
     window.step:SetText("Step " .. index .. " of " .. #wizard.Pages)
-    paintDots()
+    paintSteps()
     paintFooter()
     return true
 end
@@ -157,6 +161,7 @@ local function onComplete(result)
     applying = false
     if result.status == "applied" then
         finished = true
+        paintSteps()
         core.CharDB.wizardDone = true
         window.status:SetText(DONE .. "\n" .. stepLine(result) .. (reloadNeeded and "\nSwitched modules need a reload." or ""))
     else
@@ -191,7 +196,9 @@ local function header()
     window.title = controls.Text(window, "heading", "", skin.GOLD)
     window.title:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -14)
     window.step = controls.Text(window, "small", "", controls.MUTED)
-    window.step:SetPoint("TOPRIGHT", window, "TOPRIGHT", -PAD, -12)
+    window.step:SetPoint("TOPRIGHT", window, "TOPRIGHT", -PAD, -16)
+    window.title:SetPoint("TOPRIGHT", window, "TOPRIGHT", -160, -14)
+    window.title:SetJustifyH("LEFT"); window.title:SetWordWrap(false)
     local rule = window:CreateTexture(nil, "ARTWORK")
     rule:SetTexture(skin.FLAT)
     rule:SetVertexColor(controls.ACCENT[1], controls.ACCENT[2], controls.ACCENT[3], 1)
@@ -201,15 +208,24 @@ local function header()
     window.rule = rule
 end
 
-local function dots()
-    window.dots = {}
-    for index = 1, #wizard.Pages do
-        local dot = window:CreateTexture(nil, "ARTWORK")
-        dot:SetTexture(skin.FLAT)
-        dot:SetSize(DOT, DOT)
-        dot:SetPoint("TOPRIGHT", window, "TOPRIGHT", -PAD - (#wizard.Pages - index) * (DOT + DOT_GAP), -28)
-        dot.pulse = motion.Tween(dot, 0.3, 1, DOT_PULSE)
-        window.dots[index] = dot
+local function stepTrack()
+    window.stepBackings, window.stepLabels, window.stepRails, window.stepChecks = {}, {}, {}, {}
+    local width = (WIDTH - PAD * 2 - (#wizard.Pages - 1) * STEP_GAP) / #wizard.Pages
+    for index, page in ipairs(wizard.Pages) do
+        local item = CreateFrame("Frame", nil, window)
+        item:SetSize(width, STEP_HEIGHT)
+        item:SetPoint("TOPLEFT", PAD + (index - 1) * (width + STEP_GAP), -42)
+        window.stepBackings[index] = skin.Fill(item)
+        local label = controls.Text(item, "small", index .. "  " .. (STEP_LABELS[page.key] or page.title))
+        label:SetPoint("LEFT", 8, 0); label:SetPoint("RIGHT", -24, 0)
+        label:SetJustifyH("LEFT"); label:SetWordWrap(false)
+        local rail = item:CreateTexture(nil, "OVERLAY")
+        rail:SetTexture(skin.FLAT); rail:SetVertexColor(unpack(controls.ACCENT))
+        rail:SetPoint("BOTTOMLEFT"); rail:SetPoint("BOTTOMRIGHT"); rail:SetHeight(2)
+        local mark = item:CreateTexture(nil, "OVERLAY")
+        mark:SetTexture(core.Media.checked); mark:SetSize(12, 12); mark:SetPoint("RIGHT", -6, 0)
+        mark:SetVertexColor(unpack(controls.ACCENT))
+        window.stepLabels[index], window.stepRails[index], window.stepChecks[index] = label, rail, mark
     end
 end
 
@@ -217,6 +233,9 @@ local function footer()
     window.skip = controls.Button(window, TEXT.skip, wizard.Skip)
     window.skip:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", PAD, 12)
     window.next = controls.Button(window, TEXT.next, wizard.Next)
+    window.next.primary = skin.Fill(window.next, { 0.1, 0.27, 0.36, 1 }, 1)
+    window.next.primary:SetDrawLayer("BACKGROUND", -7)
+    for _, edge in ipairs(window.next.edge) do edge:SetVertexColor(unpack(controls.ACCENT)) end
     window.next:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, 12)
     window.back = controls.Button(window, TEXT.back, wizard.Back)
     window.back:SetPoint("RIGHT", window.next, "LEFT", -8, 0)
@@ -232,14 +251,14 @@ local function build()
     window:SetPoint("CENTER", UIParent, "CENTER", 0, 20)
     window:SetFrameStrata("DIALOG")
     window:EnableMouse(true)
-    skin.Fill(window, skin.BACKING)
-    skin.Outline(window)
+    window:SetClampedToScreen(true)
+    window.chrome = skin.WindowChrome(window, HEADER_HEIGHT, FOOTER_HEIGHT)
     window.fade = motion.Tween(window, 0, 1, PAGE_FADE)
     window.content = CreateFrame("Frame", nil, window)
     window.content:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -HEADER_HEIGHT - 12)
     window.content:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, FOOTER_HEIGHT + 8)
     header()
-    dots()
+    stepTrack()
     footer()
     window:SetScript("OnHide", function() if not paused then open = false end end)
     if type(UISpecialFrames) == "table" then UISpecialFrames[#UISpecialFrames + 1] = WINDOW_NAME end
