@@ -49,6 +49,29 @@ local function typefaces(frame)
     skin.Typeface(timeLeft.SecondsText)
 end
 
+local function contrast(frame)
+    frame.rikNamePlate = skin.TextPlate(frame, frame.AbilityName, nil, 4)
+    local timer = frame.TimeLeft
+    if not skin.IsRegion(timer) then return end
+    timer.rikNumberPlate = skin.TextPlate(timer, timer.NumberText, nil, 3)
+end
+
+local function details(frame)
+    frame.rikSteady = frame:CreateTexture(nil, "BORDER")
+    frame.rikSteady:SetTexture(skin.FLAT)
+    frame.rikSteady:SetVertexColor(unpack(ACCENT_COLOR))
+    frame.rikSteady:SetPoint("TOPLEFT", frame.rikPanel, "TOPLEFT", 2, -4)
+    frame.rikSteady:SetPoint("BOTTOMLEFT", frame.rikPanel, "BOTTOMLEFT", 2, 4)
+    frame.rikSteady:SetWidth(3)
+    if skin.IsRegion(frame.Icon) then
+        frame.rikIconBacking = skin.Fill(frame, { 0.16, 0.045, 0.055, 0.95 })
+        frame.rikIconBacking:ClearAllPoints()
+        frame.rikIconBacking:SetPoint("TOPLEFT", frame.Icon, "TOPLEFT", -4, 4)
+        frame.rikIconBacking:SetPoint("BOTTOMRIGHT", frame.Icon, "BOTTOMRIGHT", 4, -4)
+    end
+    contrast(frame)
+end
+
 -- The art goes first: if the client refuses that write nothing else has been added.
 local function apply(frame)
     skin.Strip(frame, ART)
@@ -65,10 +88,12 @@ local function apply(frame)
         frame.rikIconBorder = skin.Outline(frame, nil, ICON_EDGE_INSET, frame.Icon)
     end
     typefaces(frame)
+    details(frame)
     loc.Fade = motion.Tween(frame.rikPanel, 0, 1, skin.FADE_SECONDS)
 end
 
-local function onShow()
+local function onShow(frame)
+    contrast(frame)
     motion.Play(loc.Fade)
     for _, pulse in ipairs(loc.Pulses) do motion.Play(pulse) end
 end
@@ -85,7 +110,7 @@ function loc:OnEnable()
     skinned = true
     frame:HookScript("OnShow", onShow)
     frame:HookScript("OnHide", onHide)
-    if frame:IsShown() then onShow() end
+    if frame:IsShown() then onShow(frame) end
 end
 
 function loc:Debug()

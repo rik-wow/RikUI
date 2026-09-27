@@ -1,5 +1,7 @@
 # Changelog
 
+- Loss-of-control alerts now separate the ability name, countdown and icon with dark text backing and an inset icon compartment. A steady red side rail remains visible with reduced motion while native timing and fades remain in control.
+
 - Status and double-status widgets now give bar and heading labels dark contrast backing above colored fills. Empty or hidden labels clear their backing, while native progress, colors and sparks remain unchanged.
 
 - Alert, banner and social notification cards now have inset top highlights and framed icon compartments. Reused alerts refresh their typeface and recover dark text restored by native setup.

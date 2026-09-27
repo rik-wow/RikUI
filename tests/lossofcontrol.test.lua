@@ -46,7 +46,15 @@ return function(check)
             and frame.TimeLeft.NumberText.fontSize == 20 and frame.TimeLeft.SecondsText.fontPath == RikUI.Media.font
             and rawget(frame.AbilityName, "textColor") == nil)
 
+        frame.AbilityName:SetText("Stunned")
+        frame.TimeLeft.NumberText:SetText("8.8")
+        frame.TimeLeft.SecondsText:SetText("seconds")
         frame:Show()
+        check("control alert separates its text and icon", frame.rikNamePlate and frame.rikNamePlate:IsShown()
+            and frame.TimeLeft.rikNumberPlate and frame.TimeLeft.rikNumberPlate:IsShown()
+            and frame.rikIconBacking and frame.rikIconBacking.points[1][2] == frame.Icon)
+        check("steady warning survives outside pulse animation", frame.rikSteady and frame.rikSteady.width == 3
+            and frame.rikSteady.alpha == 1)
         check("showing the alert fades the panel in and starts the red pulse", module.Fade.plays == 1
             and module.Fade.animation.to == 1 and module.Pulses[1].playing == true and module.Pulses[2].looping == "BOUNCE")
         check("the frame's own alpha, position, size and scripts are never written", rawget(frame, "alpha") == nil
@@ -57,6 +65,11 @@ return function(check)
         frame:Show()
         check("the next alert fades in again without a second panel", module.Fade.plays == 2
             and #frame.rikAccents == 2)
+        RikUI.Profile.reducedMotion = true
+        frame:Hide(); frame:Show()
+        check("reduced motion keeps the steady control warning", frame.rikSteady and frame.rikSteady:IsShown()
+            and frame.rikSteady.alpha == 1 and not module.Pulses[1]:IsPlaying())
+        RikUI.Profile.reducedMotion = false
         SlashCmdList.RIKUI("debug")
         check("debug reports the skin", widgets.printedContains(env, "LossOfControl skinned=true"))
 
