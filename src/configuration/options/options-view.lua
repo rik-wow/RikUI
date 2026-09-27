@@ -175,6 +175,11 @@ function options.Resize(width, height)
     local navWidth = math.min(NAV_WIDTH, width * 0.28)
     panel.nav:SetSize(navWidth, math.max(1, height - HEADER - FOOTER))
     panel.navBacking:SetWidth(navWidth + PAD)
+    if panel.empty then
+        panel.empty:ClearAllPoints()
+        panel.empty:SetPoint("TOPLEFT", navWidth + GAP + PAD + 12, -HEADER - 48)
+        panel.empty:SetWidth(math.max(1, width - navWidth - GAP - PAD * 2 - 24))
+    end
     for _, page in ipairs(panel.pages) do
         page.tab:SetWidth(math.max(1, navWidth - 24))
         page.frame:ClearAllPoints()
@@ -255,6 +260,17 @@ local function movePage(delta)
     return false
 end
 
+local function searchFocus(box)
+    box.focusBorder = core.Skin.Outline(box, { 0.5, 0.85, 1, 1 }, 0, nil, "OVERLAY")
+    local function paint(active)
+        for _, edge in ipairs(box.focusBorder) do shown(edge, active) end
+    end
+    box:HookScript("OnEditFocusGained", function() paint(true) end)
+    box:HookScript("OnEditFocusLost", function() paint(false) end)
+    box:HookScript("OnHide", function() paint(false) end)
+    paint(false)
+end
+
 local function createSearch()
     local box = CreateFrame("EditBox", nil, panel)
     box:SetAutoFocus(false); box:SetMaxLetters(100); box:SetText("")
@@ -262,6 +278,7 @@ local function createSearch()
     box:SetTextInsets(8, 8, 0, 0); core.Media.Font(box, "label")
     options.Flat(box, "BACKGROUND", { 0.07, 0.09, 0.12, 1 })
     options.Border(box, { 0.25, 0.4, 0.5, 1 })
+    searchFocus(box)
     box.placeholder = options.Text(box, "small", "Search settings")
     box.placeholder:SetPoint("LEFT", 8, 0)
     box:SetScript("OnTextChanged", function(self)
@@ -280,7 +297,8 @@ local function createSearch()
     end)
     panel.pendingOnly:SetPoint("TOPRIGHT", -PAD, -60)
     panel.empty = options.Text(panel, "label", "No settings match. Try a shorter search.")
-    panel.empty:SetPoint("CENTER"); panel.empty:Hide()
+    panel.empty:SetHeight(72); panel.empty:SetJustifyH("CENTER"); panel.empty:SetWordWrap(true)
+    panel.empty:SetTextColor(0.72, 0.8, 0.88); panel.empty:Hide()
 end
 
 local function register()

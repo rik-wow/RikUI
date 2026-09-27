@@ -122,6 +122,17 @@ return function(check)
         options.Search("no_matching_settings_98765")
         check("empty search clears every selection rail", surface.pages[2].tab.rail and not surface.pages[2].tab.rail:IsShown())
         options.Search(""); options.ShowPage(1)
+        env.runScript(surface.search, "OnEditFocusGained")
+        local focusBorder = surface.search.focusBorder
+        check("search focus has a persistent outline", focusBorder and focusBorder[1]:IsShown())
+        options.Search("no_matching_settings_98765")
+        check("empty search is bounded to the content column", surface.empty.width
+            and surface.empty.width < 600 and surface.empty:IsShown())
+        env.runScript(surface.search, "OnEditFocusLost")
+        check("search blur clears its outline", focusBorder and not focusBorder[1]:IsShown())
+        env.runScript(surface.search, "OnEditFocusGained"); surface.search:Hide()
+        check("hidden search clears stale focus", focusBorder and not focusBorder[1]:IsShown())
+        surface.search:Show(); options.Search("")
         local saves = 0
         RikUI.Store = { Touch = function() saves = saves + 1 end }
         check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)

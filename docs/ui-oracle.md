@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Settings search keeps a bright outline while focused and places wrapped empty-result guidance inside the content column.
+
 - Settings navigation has a persistent selected-page rail and directional group disclosures; empty searches clear the selection marker.
 
 - Settings use layered header/footer bands and a recessed navigation column that follows the responsive layout.
