@@ -111,6 +111,17 @@ return function(check)
         options.Resize(420, 500)
         check("settings navigation surface resizes with the column", rail and rail.width == math.min(140, 420 * 0.28) + 16)
         options.Resize(760, 560)
+        options.ShowPage(2)
+        check("selected settings page has a persistent rail", surface.pages[2].tab.rail and surface.pages[2].tab.rail:IsShown()
+            and not surface.pages[1].tab.rail:IsShown())
+        local group = surface.groups[surface.pages[2].group]
+        env.click(group)
+        check("collapsed group uses a right disclosure", group.disclosure and group.disclosure.rikIcon == "chevron-right")
+        options.ShowPage(2)
+        check("page selection expands its disclosure", group.disclosure and group.disclosure.rikIcon == "chevron-down")
+        options.Search("no_matching_settings_98765")
+        check("empty search clears every selection rail", surface.pages[2].tab.rail and not surface.pages[2].tab.rail:IsShown())
+        options.Search(""); options.ShowPage(1)
         local saves = 0
         RikUI.Store = { Touch = function() saves = saves + 1 end }
         check("profile creation schedules a save", options.CreateProfile("Saved") and saves == 1)

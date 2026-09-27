@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Settings navigation has a persistent selected-page rail and directional group disclosures; empty searches clear the selection marker.
+
 - Settings use layered header/footer bands and a recessed navigation column that follows the responsive layout.
 
 - Utility groups have bundled icons, inset action labels, direction cues and a proper close glyph; rebuilds reuse their regions.

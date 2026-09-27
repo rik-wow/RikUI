@@ -47,7 +47,8 @@ local function navigationLayout()
     for _, group in ipairs(GROUPS) do
         local header = panel.groups[group]
         header:ClearAllPoints(); header:SetPoint("TOPLEFT", 0, -y)
-        header.label:SetText((header.collapsed and "+  " or "-  ") .. group)
+        header.label:SetText(group)
+        core.Media.SetIcon(header.disclosure, header.collapsed and "chevron-right" or "chevron-down")
         y = y + NAV_ROW
         for _, page in ipairs(panel.pages) do
             if page.group == group then
@@ -68,6 +69,7 @@ function options.ShowPage(index, skipRefresh)
     if options.CloseDropdown then options.CloseDropdown() end
     for position, page in ipairs(panel.pages) do
         shown(page.frame, position == index); shown(page.tab.selected, position == index)
+        shown(page.tab.rail, position == index)
         page.tab.text:SetTextColor(position == index and 0.4 or 0.8, position == index and 0.8 or 0.83, 1)
     end
     panel.current = index
@@ -119,7 +121,7 @@ applySearch = function()
             options.ShowPage(target, true)
         end
     else
-        for _, page in ipairs(panel.pages) do page.frame:Hide(); page.tab.selected:Hide() end
+        for _, page in ipairs(panel.pages) do page.frame:Hide(); page.tab.selected:Hide(); page.tab.rail:Hide() end
     end
     navigationLayout()
     shown(panel.clearSearch, query ~= "")
@@ -137,6 +139,11 @@ local function navigationButton(index, page)
     local button = CreateFrame("Button", nil, panel.nav.content)
     button:SetSize(NAV_WIDTH - 24, NAV_ROW)
     button.selected = options.Flat(button, "BACKGROUND", { 0.1, 0.23, 0.3, 0.8 })
+    button.rail = button:CreateTexture(nil, "OVERLAY")
+    button.rail:SetTexture(core.Skin.FLAT)
+    button.rail:SetVertexColor(0.4, 0.8, 1, 1)
+    button.rail:SetPoint("TOPLEFT", 0, -4); button.rail:SetPoint("BOTTOMLEFT", 0, 4)
+    button.rail:SetWidth(3)
     core.Motion.BindHover(button)
     button.badge = options.Text(button, "small")
     button.badge:SetPoint("RIGHT", -4, 0); button.badge:SetTextColor(1, 0.78, 0.3); button.badge:Hide()
@@ -186,7 +193,10 @@ local function createNavigation()
         button:SetSize(NAV_WIDTH - 14, NAV_ROW)
         core.Motion.BindHover(button)
         button.label = options.Text(button, "small")
-        button.label:SetPoint("LEFT"); button.label:SetTextColor(0.4, 0.75, 0.9)
+        button.label:SetPoint("LEFT", 20, 0); button.label:SetTextColor(0.4, 0.75, 0.9)
+        button.disclosure = core.Media.Icon(button, "chevron-down", 10, "OVERLAY")
+        button.disclosure:SetPoint("LEFT", 3, 0)
+        button.disclosure:SetVertexColor(0.4, 0.75, 0.9, 1)
         button:SetScript("OnClick", function() button.collapsed = not button.collapsed; navigationLayout() end)
         panel.groups[group] = button
     end
