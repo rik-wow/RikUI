@@ -66,6 +66,10 @@ return function(check)
         function parts.edit:GetFont() return "Fonts\\ARIALN.TTF", 12, "" end
         function parts.edit:SetFont(path, size) self.fontPath, self.fontSize = path, size end
         art(parts.slider, { "Left", "Middle", "Right" })
+        parts.slider:SetSize(200, 20)
+        parts.slider.low, parts.slider.high, parts.slider.value = 0, 100, 25
+        function parts.slider:GetMinMaxValues() return self.low, self.high end
+        function parts.slider:GetValue() return self.value end
         parts.slider.thumb = parts.slider:CreateTexture()
         function parts.slider:GetThumbTexture() return self.thumb end
         art(parts.dropdown, { "Background", "Arrow" })
@@ -132,6 +136,17 @@ return function(check)
         check("a slider gets a thin flat track and a flat thumb", ui.slider.Left.alpha == 0
             and ui.slider.rikTrack.texture == RikUI.Skin.FLAT and ui.slider.rikTrack.height ~= nil
             and ui.slider.thumb.texture == RikUI.Skin.FLAT and ui.slider.thumb.width ~= nil)
+        check("native slider fill shows its fraction", ui.slider.rikProgress and ui.slider.rikProgress.width == 50)
+        ui.slider:SetSize(300, 20)
+        check("native slider fill resizes", ui.slider.rikProgress and ui.slider.rikProgress.width == 75)
+        ui.slider.value = 200
+        env.runScript(ui.slider, "OnValueChanged")
+        check("native slider clamps overrange values", ui.slider.rikProgress and ui.slider.rikProgress.width == 300)
+        ui.slider.low, ui.slider.high = 100, 100
+        env.runScript(ui.slider, "OnMinMaxChanged")
+        check("empty slider range hides progress", ui.slider.rikProgress and not ui.slider.rikProgress:IsShown())
+        ui.slider.low, ui.slider.high, ui.slider.value = 0, 100, 25
+        env.runScript(ui.slider, "OnValueChanged")
         env.runScript(ui.slider, "OnEnter")
         check("slider thumb highlights on hover", ui.slider.thumb.color[3] == 1)
         env.runScript(ui.slider, "OnMouseDown", "LeftButton")
@@ -192,6 +207,22 @@ return function(check)
             and late.rikFill ~= nil)
         SlashCmdList.RIKUI("debug")
         check("debug reports the controls", widgets.printedContains(env, "Controls skinned=8 failed=0"))
+
+        local vertical = frame("Slider")
+        vertical:SetSize(20, 160)
+        function vertical:GetOrientation() return "VERTICAL" end
+        function vertical:GetMinMaxValues() return 10, 50 end
+        function vertical:GetValue() return self.sample end
+        vertical.sample = 30
+        module.Skin(vertical)
+        check("vertical progress follows the top-to-bottom native axis", vertical.rikProgress
+            and vertical.rikProgress.height == 80 and vertical.rikProgress.points[1][1] == "TOP")
+        vertical.sample = 0 / 0
+        env.runScript(vertical, "OnValueChanged")
+        check("invalid slider samples clear stale progress", not vertical.rikProgress:IsShown())
+        vertical.sample = 10
+        env.runScript(vertical, "OnValueChanged")
+        check("minimum value has no residual fill", not vertical.rikProgress:IsShown())
 
         local deep, parent = nil, frame("Frame", UIParent)
         local top = parent

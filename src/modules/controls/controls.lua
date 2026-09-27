@@ -186,6 +186,37 @@ local function flatThumb(slider, width, height)
     thumbFeedback(slider, thumb)
 end
 
+local function finite(value)
+    return not core.Secret.IsSecret(value) and type(value) == "number"
+        and value == value and math.abs(value) < math.huge
+end
+
+local function sliderProgress(frame, vertical)
+    local fill = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
+    fill:SetTexture(skin.FLAT)
+    fill:SetVertexColor(unpack(ACCENT))
+    fill:SetPoint(vertical and "TOP" or "LEFT", frame, vertical and "TOP" or "LEFT", 0, 0)
+    frame.rikProgress = fill
+    local function sync()
+        fill:Hide()
+        if type(frame.GetMinMaxValues) ~= "function" or type(frame.GetValue) ~= "function" then return end
+        local ok, low, high = pcall(frame.GetMinMaxValues, frame)
+        local read, value = pcall(frame.GetValue, frame)
+        local extent = vertical and frame:GetHeight() or frame:GetWidth()
+        if not ok or not read or not finite(low) or not finite(high) or not finite(value)
+            or not finite(extent) or high <= low or extent <= 0 then return end
+        local fraction = math.max(0, math.min(1, (value - low) / (high - low)))
+        if fraction <= 0 then return end
+        fill:SetSize(vertical and TRACK_HEIGHT or extent * fraction, vertical and extent * fraction or TRACK_HEIGHT)
+        fill:SetAlpha(disabled(frame) and 0.25 or 0.75)
+        fill:Show()
+    end
+    for _, event in ipairs({ "OnValueChanged", "OnMinMaxChanged", "OnSizeChanged", "OnShow", "OnEnable", "OnDisable" }) do
+        core.Hooks.Script(frame, event, sync)
+    end
+    sync()
+end
+
 local function slider(frame)
     skin.Strip(frame, FIELD_ART)
     frame.rikTrack = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
@@ -197,6 +228,7 @@ local function slider(frame)
     frame.rikTrack:SetPoint(last, frame, last, 0, 0)
     if vertical then frame.rikTrack:SetWidth(TRACK_HEIGHT) else frame.rikTrack:SetHeight(TRACK_HEIGHT) end
     flatThumb(frame, vertical and THUMB_HEIGHT or THUMB_WIDTH, vertical and THUMB_WIDTH or THUMB_HEIGHT)
+    sliderProgress(frame, vertical)
 end
 
 local function stepButton(button, glyph)

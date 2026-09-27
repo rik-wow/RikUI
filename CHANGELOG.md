@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Native sliders now show a slim blue value fill that follows horizontal or vertical geometry, range changes and resizing. Empty or invalid values clear the fill, and disabled tracks stay muted.
+
 - Native checkboxes now use crisp inset bundled checkmarks, with warm selected ink and a muted disabled mark. The client still controls checked visibility.
 
 - Native push buttons now have a subtle raised top edge, a recessed disabled face and quieter disabled borders; enabling restores the surface without replacing native handlers.
