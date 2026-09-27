@@ -6,8 +6,7 @@
 -- are decimal strings, nil fields are omitted, and empty tables remain {}.
 local outputPath = assert(arg[1], 'output JSON path required')
 local expectedCommit = assert(arg[2], 'expected QuestieDB commit required')
-assert(expectedCommit == '365537a340473291f5af3b7a53a5eca94e2a5f1a',
-  'This adapter audits dynamic dependencies only at its pinned revision')
+-- The caller resolves and verifies this acquisition revision; never silently fall back.
 local stagingPath = outputPath .. '.tmp'
 assert(expectedCommit:match('^[0-9a-f]+$') and #expectedCommit == 40, 'invalid commit')
 local config = dofile('src/config.lua')
@@ -113,7 +112,7 @@ local provider = {
   flavor='Forever', gameType='camelot', interface='16001', reader='Source Get',
   runtimeLocale='enUS', dynamicAxes=array({'faction','classFile'}),
   baseline={faction='Alliance',classFile='WARRIOR',classId=1},
-  characterPolicy='All 18 faction/class combinations; current owned Forever callbacks read only faction and class. Race, level, realm, season and spell state are not correction axes at this pin.',
+  characterPolicy='All 18 faction/class combinations; current owned Forever callbacks read only faction and class. Race, level, realm, season and spell state are not correction axes in this adapter; new correction axes require an adapter update.',
   tableEncoding='objects with stringified Lua keys; nil omitted; empty table preserved',
   sourceFiles=array(selectedFiles), supportFiles=array(config.supportFiles(flavor)),
   contractVersion=db.contractVersion, rawCounts=rawCounts,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export all pinned Forever provider data with stock Lua 5.1 and an input manifest.
+"""Export resolved Forever provider data with stock Lua 5.1 and an input manifest.
 
 Install the isolated build dependency with: python -m pip install lupa==2.8
 Example:
@@ -15,6 +15,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -35,9 +36,9 @@ def git(root: Path, *args: str) -> str:
                           capture_output=True, text=True).stdout.strip()
 
 
-def verify_checkout(root: Path) -> None:
-    if git(root, "rev-parse", "HEAD") != SUPPORTED_REVISION:
-        raise ValueError("QuestieDB revision differs from the audited Forever pin")
+def verify_checkout(root: Path, revision: str = SUPPORTED_REVISION) -> None:
+    if not re.fullmatch(r"[0-9a-f]{40}", revision) or git(root, "rev-parse", "HEAD") != revision:
+        raise ValueError("QuestieDB revision differs from the resolved source revision")
     if git(root, "status", "--porcelain=v1", "--untracked-files=no"):
         raise ValueError("QuestieDB has tracked modifications; a clean pinned checkout is required")
 
@@ -101,7 +102,7 @@ def replace_bytes(path: Path, data: bytes) -> None:
 
 
 def export_provider(source_root: Path, output: Path, lua_exporter: Path,
-                    manifest_path: Path | None = None, reuse: bool = False) -> dict[str, Any]:
+                    manifest_path: Path | None = None, reuse: bool = False, revision: str = SUPPORTED_REVISION) -> dict[str, Any]:
     root, output, lua_exporter = source_root.resolve(), output.resolve(), lua_exporter.resolve()
     manifest_path = (manifest_path or output.with_suffix(".manifest.json")).resolve()
     if output == manifest_path:
@@ -111,10 +112,10 @@ def export_provider(source_root: Path, output: Path, lua_exporter: Path,
     # Protect the pinned provider from accidental output selection.
     if output.is_relative_to(root) or manifest_path.is_relative_to(root):
         raise ValueError("Export and manifest must be outside the provider checkout")
-    verify_checkout(root)
+    verify_checkout(root, revision)
     inputs = source_manifest(root)
     header = {"schemaVersion": 1, "repository": "https://github.com/Questie/QuestieDB",
-              "revision": SUPPORTED_REVISION, "flavor": "Forever",
+              "revision": revision, "flavor": "Forever",
               "luaImplementation": "stock Lua 5.1 via lupa.lua51", "lupaVersion": LUPA_VERSION,
               "luaExporterSha256": digest(lua_exporter), "wrapperSha256": digest(Path(__file__)), "inputs": inputs}
     if reuse and output.is_file() and manifest_path.is_file():
@@ -134,7 +135,7 @@ def export_provider(source_root: Path, output: Path, lua_exporter: Path,
     initial_cwd = Path.cwd()
     try:
         lua = LuaRuntime()
-        lua.globals().arg = lua.table_from({0: str(lua_exporter), 1: str(candidate), 2: SUPPORTED_REVISION})
+        lua.globals().arg = lua.table_from({0: str(lua_exporter), 1: str(candidate), 2: revision})
         os.chdir(root)
         try:
             lua.execute("dofile(arg[0])")
@@ -142,15 +143,16 @@ def export_provider(source_root: Path, output: Path, lua_exporter: Path,
             os.chdir(initial_cwd)
         with candidate.open(encoding="utf-8") as stream:
             data = json.load(stream)
-        if data["counts"] != EXPECTED_COUNTS or len(data["variants"]) != 18:
+        if (set(data["counts"]) != set(EXPECTED_COUNTS) or any(not isinstance(n, int) or n <= 0 for n in data["counts"].values())
+                or len(data["variants"]) != 18):
             raise ValueError("Incomplete Forever entity/persona inventory")
-        if data["provider"]["revision"] != SUPPORTED_REVISION:
+        if data["provider"]["revision"] != revision:
             raise ValueError("Unexpected export revision")
         exported_paths = set(data["provider"]["sourceFiles"])
         inventoried = {item["path"] for item in inputs}
         if exported_paths - inventoried:
             raise ValueError("Uninventoried source inputs: " + ", ".join(sorted(exported_paths - inventoried)))
-        verify_checkout(root)
+        verify_checkout(root, revision)
         if source_manifest(root) != inputs:
             raise ValueError("Provider inputs changed during extraction")
         manifest = {**header, "exportSha256": digest(candidate), "exportBytes": candidate.stat().st_size,
@@ -175,9 +177,10 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--lua-exporter", type=Path, default=Path(__file__).with_suffix(".lua"))
     parser.add_argument("--reuse", action="store_true")
+    parser.add_argument("--revision", default=SUPPORTED_REVISION, help="Resolved provider HEAD for this acquisition")
     options = parser.parse_args()
     result = export_provider(options.source_root, options.output, options.lua_exporter,
-                             options.manifest, options.reuse)
+                             options.manifest, options.reuse, options.revision)
     print(json.dumps({"exportSha256": result["exportSha256"], "counts": result["counts"],
                       "inputFiles": len(result["inputs"]), "personaCount": result["personaCount"]}, sort_keys=True))
 

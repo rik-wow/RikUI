@@ -1,5 +1,8 @@
 # Detailed quest objectives and waypoints
 
+Scheduled source refresh and private releases are documented in
+[the quest-data automation guide](../automation/quest-data/README.md).
+
 Research and implementation checked on **2026-09-27**. This supersedes the older
 marker-precedence and installed-corpus figures in the historical quest documents.
 
