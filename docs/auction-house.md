@@ -18,6 +18,20 @@ Use the auctioneer normally. After updating RikUI, use `/reload`.
 The Panels module's commerce setting controls this presentation; changes to
 native window styling take effect after reloading.
 
+## Individual item enchantments
+
+Select an item in search results to open its individual auctions. The purchase
+table's **Item / enchantment** column shows each auction's full linked item
+name, including any random suffix supplied by the client (for example,
+“of the Bear”). Names retain item-quality colors and wrap over two lines.
+Hover the row for the native tooltip with that listing's details.
+
+Grouped search results describe an item group; compare variants in the
+individual purchase table. A missing or unnamed link reads **Item details
+unavailable** until native results supply it. RikUI does not infer an
+enchantment from a base item ID or another listing. Additional server-specific
+enchantments absent from the supplied link/name cannot be identified here.
+
 ## Native behavior
 
 The layout uses the actual Blizzard controls and data providers. It retains
@@ -35,10 +49,14 @@ and rebuilds them while hovered, so a repeated entry fade would cause flicker.
 
 ## Implementation and evidence
 
-The three files in `src/modules/auctionhouse/` split the shell and refresh
-lifecycle, layout, and control styling. They register a dedicated auction
-adapter after the shared interiors and use their pooled-row callbacks.
-Native table builders still size and populate their own columns.
+The four files in `src/modules/auctionhouse/` split the shell and refresh
+lifecycle, layout, control styling, and individual item variants. They register
+a dedicated auction adapter after the shared interiors and use their pooled-row callbacks.
+The purchase list wraps the native layout callback to add one unsortable
+column with an isolated frame pool. Native table builders size and populate
+all columns; price, quantity, socket and time cells remain native. Exact
+row data is never changed, and the added cells pass mouse interaction to the
+native row. Stable refreshes do not rebuild the table or its tooltips.
 
 Source reviewed on 2026-09-27: the then-current
 [Forever branch](https://github.com/Gethe/wow-ui-source/tree/forever/Interface/AddOns/Blizzard_AuctionHouseUI),
@@ -55,6 +73,15 @@ The tooltip refresh fix follows the current
 and [GameTooltip update handler](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_GameTooltip/Mainline/GameTooltip.lua):
 periodic owner updates hide and rebuild the tooltip. The regression replays
 this cycle and checks opacity, updated contents, ownership and actual hiding.
+
+The variant column follows the current
+[ItemSearchResultInfo API](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_APIDocumentationGenerated/AuctionHouseDocumentation.lua),
+[item purchase controller](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseItemBuyFrame.lua),
+[TableBuilder lifecycle](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_SharedXML/TableBuilder.lua)
+and [frame pool API](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_SharedXMLBase/Pools.lua).
+Tests cover distinct variants of the same item, localized and late names,
+missing links, virtual entries, recycled cells, native layout replacement,
+unchanged purchase data and hover handlers, combat deferral and panel opt-out.
 
 The automated fixture checks anchor separation, small-screen scaling,
 preserved values and handlers, disabled controls, confirmation state, result

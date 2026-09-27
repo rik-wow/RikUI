@@ -56,9 +56,10 @@ local function scroll(frame)
     local view = box:GetView()
     if type(view) ~= "table" or type(view.SetElementExtent) ~= "function" then return end
     local state = auction.State(box)
-    if state.view ~= view then
-        state.view = view
-        view:SetElementExtent(ROW_HEIGHT)
+    local height = auction.State(frame).variantLayout and 44 or ROW_HEIGHT
+    if state.view ~= view or state.rowHeight ~= height then
+        state.view, state.rowHeight = view, height
+        view:SetElementExtent(height)
         if type(box.FullUpdate) == "function" then box:FullUpdate() end
     end
 end
@@ -163,6 +164,7 @@ end
 
 function auction.Style(frame)
     if not auction.Allowed(frame) or InCombatLockdown() then return end
+    auction.Variants(frame)
     row(frame); scroll(frame); list(frame); itemDisplay(frame); itemCell(frame); fields(frame); dialogs(frame)
     for _, key in ipairs(TEXT_KEYS) do font(frame[key]) end
     for _, region in ipairs({ frame:GetRegions() }) do font(region) end

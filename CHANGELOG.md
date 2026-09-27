@@ -9,6 +9,8 @@ tagging.
 
 ## Unreleased
 
+- Individual auction listings now show an Item / enchantment column with each listing’s exact linked name and random suffix. Names wrap, retain quality colors and clear on recycled rows; missing client details are explicit. Native bidding, buying and tooltips keep their original auction data.
+
 - Removed the fade-in from native tooltips. Auction rows periodically hide and rebuild their tooltip while hovered; replaying the fade on each rebuild caused persistent flickering even with a stable layout.
 
 - Fixed auction tooltip flicker from repeated presentation refreshes. Stable control anchors stay attached, native forms are laid out once by the skin, and pooled-row shows no longer queue a whole-window refresh.

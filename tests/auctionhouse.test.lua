@@ -12,6 +12,7 @@ return function(check)
     local ok, reason = pcall(function()
         widgets.loadAddon(env, { "src/ui/skin.lua", "src/modules/panels/interiors.lua",
             "src/modules/auctionhouse/auctionhouse.lua", "src/modules/auctionhouse/auctionhouse-layout.lua",
+            "src/modules/auctionhouse/auctionhouse-variants.lua",
             "src/modules/auctionhouse/auctionhouse-style.lua" })
         local auction, root = RikUI.AuctionHouse, fixture.Root()
         UIParent = fixture.Frame()

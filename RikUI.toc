@@ -221,6 +221,7 @@ src/modules/panels/interiors-social.lua
 src/modules/panels/interiors-misc.lua
 src/modules/auctionhouse/auctionhouse.lua
 src/modules/auctionhouse/auctionhouse-layout.lua
+src/modules/auctionhouse/auctionhouse-variants.lua
 src/modules/auctionhouse/auctionhouse-style.lua
 src/modules/personalresource/personalresource.lua
 src/modules/personalresource/druid-mana.lua
