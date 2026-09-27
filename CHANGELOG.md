@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Loot item cards have larger cropped icons, room for two-line names, dark quantity backings and consistent inset spacing; reused rows clear old stack visuals.
+
 - Loot now has a layered title bar, remaining-item count, close glyph and an explicit empty state that follows slot updates.
 
 - Bag search now retains a focus outline and shows a readable empty-result panel with reset guidance when a query or category finds nothing.

@@ -7,7 +7,7 @@ local loot = { Rows = {}, SkinnedRolls = {}, Options = { title = "Loot", setting
 core.Loot = loot
 
 local HOLDER_NAME, KEY = "RikUILoot", "loot"
-local ROW_WIDTH, ROW_HEIGHT, ROW_GAP, PAD, EDGE, ICON = 220, 26, 2, 4, 1, 22
+local ROW_WIDTH, ROW_HEIGHT, ROW_GAP, PAD, EDGE, ICON = 280, 38, 4, 6, 1, 30
 -- Right of the screen centre, anchored by its top so the list grows downward, clear of the unit frames.
 local DEFAULTS = { point = "TOPLEFT", relativePoint = "CENTER", x = 200, y = 140 }
 local CURSOR_X, CURSOR_Y = -30, 20
@@ -57,6 +57,7 @@ local function onLeave() GameTooltip:Hide() end
 local function createRow()
     local row = CreateFrame("Button", nil, holder)
     row:SetSize(ROW_WIDTH, ROW_HEIGHT)
+    row.rikBacking = core.Skin.Fill(row, { 0.09, 0.105, 0.135, 1 })
     row.rikQualityRail = row:CreateTexture(nil, "ARTWORK")
     row.rikQualityRail:SetTexture(FLAT)
     row.rikQualityRail:SetPoint("TOPLEFT", row, "TOPLEFT")
@@ -64,15 +65,25 @@ local function createRow()
     row.rikQualityRail:SetWidth(EDGE)
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(ICON, ICON)
-    row.icon:SetPoint("LEFT", row, "LEFT", 2, 0)
+    row.icon:SetPoint("LEFT", row, "LEFT", 6, 0)
+    core.Skin.CropIcon(row.icon)
+    row.rikIconBorder = core.Skin.Outline(row, BORDER, -1, row.icon, "OVERLAY")
     row.name = row:CreateFontString(nil, "OVERLAY")
     media.Font(row.name, "label")
     row.name:SetPoint("LEFT", row.icon, "RIGHT", 6, 0)
     row.name:SetPoint("RIGHT", row, "RIGHT", -4, 0)
     row.name:SetJustifyH("LEFT")
+    row.name:SetWordWrap(true)
+    row.name:SetMaxLines(2)
     row.count = row:CreateFontString(nil, "OVERLAY")
     media.Font(row.count, "small")
-    row.count:SetPoint("BOTTOMRIGHT", row.icon, "BOTTOMRIGHT", 1, -1)
+    row.count:SetPoint("BOTTOMRIGHT", row.icon, "BOTTOMRIGHT", -1, 1)
+    row.rikCountBacking = row:CreateTexture(nil, "ARTWORK")
+    row.rikCountBacking:SetTexture(FLAT)
+    row.rikCountBacking:SetVertexColor(0.025, 0.03, 0.04, 0.95)
+    row.rikCountBacking:SetPoint("TOPLEFT", row.count, "TOPLEFT", -2, 1)
+    row.rikCountBacking:SetPoint("BOTTOMRIGHT", row.count, "BOTTOMRIGHT", 2, -1)
+    row.rikCountBacking:Hide()
     local highlight = row:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(row)
     highlight:SetTexture(media.highlight)
@@ -109,7 +120,9 @@ local function fillRow(row, slot)
     row.rikQualityColor = qualityColor(quality)
     row.name:SetTextColor(unpack(row.rikQualityColor))
     row.rikQualityRail:SetVertexColor(unpack(row.rikQualityColor))
-    row.count:SetText(readable(quantity, "number") and quantity > 1 and tostring(quantity) or "")
+    local stacked = readable(quantity, "number") and quantity > 1
+    row.count:SetText(stacked and tostring(quantity) or "")
+    row.rikCountBacking:SetShown(stacked)
     return true
 end
 

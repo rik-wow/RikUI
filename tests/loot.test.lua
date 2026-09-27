@@ -139,6 +139,10 @@ return function(check)
         check("a list at the cursor floats: it neither blocks other groups nor is settled",
             RikUI.Layout.Floats(group) == true)
         local coin, cloth, blade = module.Rows[1], module.Rows[2], module.Rows[3]
+        check("loot cards provide larger readable hit targets", cloth.width == 280 and cloth.height == 38)
+        check("loot quantity has a dark backing only for stacks", cloth.rikCountBacking
+            and cloth.rikCountBacking.visible and not blade.rikCountBacking.visible)
+        check("loot cards crop and frame their icons", cloth.rikIconBorder and #cloth.rikIconBorder == 4)
         check("a row shows the icon, the name in the RikUI font and the quantity", cloth.icon.texture == 132889
             and cloth.name.text == "Linen Cloth" and cloth.name.fontPath == RikUI.Media.font and cloth.count.text == "3")
         check("a single item and a coin row show no quantity", blade.count.text == "" and coin.count.text == "")
@@ -168,6 +172,7 @@ return function(check)
         check("loot item updates flash without altering slot clicks", cloth.rikFlash.plays == 2)
         stub.slots[2][3] = env.SECRET
         env.fire("LOOT_SLOT_CHANGED", 2)
+        check("secret quantity clears the count backing", cloth.rikCountBacking and not cloth.rikCountBacking.visible)
         check("secret quantity is not compared for animation", cloth.count.text == "")
         stub.slots[2][3] = 5
         stub.slots[2][2] = env.SECRET
