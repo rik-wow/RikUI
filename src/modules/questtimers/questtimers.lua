@@ -36,6 +36,7 @@ local function setLow(row, low, critical)
     if row.isLow == low and row.isCritical == critical and row.quiet == quiet then return end
     row.isLow, row.isCritical, row.quiet = low, critical, quiet
     row.time:SetTextColor(unpack(critical and LOW_COLOR or TIME_COLOR))
+    row.severity:SetVertexColor(unpack(critical and LOW_COLOR or low and TIME_COLOR or skin.LINE))
     motion.Stop(row.pulse)
     row.low:SetAlpha(low and quiet and QUIET_ALPHA or 0)
     if not low or quiet then return end
@@ -53,6 +54,19 @@ local function text(row, justify, point, x)
     return value
 end
 
+local function timerChrome(row)
+    row.timeBacking = row:CreateTexture(nil, "ARTWORK", nil, 1)
+    row.timeBacking:SetPoint("TOPRIGHT", row, "TOPRIGHT", -1, -1)
+    row.timeBacking:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -1, 1)
+    row.timeBacking:SetWidth(72)
+    row.timeBacking:SetColorTexture(0.025, 0.035, 0.05, 0.85)
+    row.severity = row:CreateTexture(nil, "OVERLAY")
+    row.severity:SetTexture(skin.FLAT)
+    row.severity:SetPoint("TOPLEFT", row, "TOPLEFT", 1, -1)
+    row.severity:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 1, 1)
+    row.severity:SetWidth(2)
+end
+
 local function createRow(index)
     local row = CreateFrame("Frame", nil, holder)
     row:SetHeight(HEIGHT)
@@ -65,7 +79,10 @@ local function createRow(index)
     row.low:SetTexture(skin.FLAT)
     row.low:SetVertexColor(unpack(LOW_COLOR))
     row.low:SetAlpha(0)
+    timerChrome(row)
     row.title, row.time = text(row, "LEFT", "LEFT", TEXT_INSET), text(row, "RIGHT", "RIGHT", -TEXT_INSET)
+    row.time:SetWidth(64)
+    row.title:SetPoint("RIGHT", row.time, "LEFT", -10, 0)
     row.time:SetTextColor(unpack(TIME_COLOR))
     row.fade = motion.Tween(row, 0, 1, skin.FADE_SECONDS)
     row.pulse = motion.Pulse(row.low, 0, PULSE_ALPHA, PULSE_SECONDS)

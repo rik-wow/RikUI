@@ -44,6 +44,8 @@ return function(check)
             row.shown == true and #row.rikBorder == 4 and row.title.text == "The Escort" and row.time.text == "2:05"
             and row.title.fontPath == RikUI.Media.font)
         check("the row fades in and the ticker starts", row.fade.plays == 1 and holder:GetScript("OnUpdate") ~= nil)
+        check("quest title ends before countdown badge", row.time.width == 64 and row.timeBacking
+            and row.title.points[2][2] == row.time and row.title.wordWrap == false)
         local reads = stub.reads
         tick(module, 0.4)
         check("the list is not re-read before a second has passed", stub.reads == reads)
@@ -66,6 +68,7 @@ return function(check)
         check("countdown ticks do not restart urgency pulse", row.pulse.plays == finalPlays)
         RikUI.Profile.reducedMotion = true
         update({ { questID = 101, questTimer = 8 } })
+        check("critical rail stays visible in reduced motion", row.severity and row.severity.color[2] == 0.15)
         check("reduced motion uses static warning", not row.pulse.playing and row.low.alpha == 0.12)
         RikUI.Profile.reducedMotion = false
         update({ { questID = 101, questTimer = 7 } })

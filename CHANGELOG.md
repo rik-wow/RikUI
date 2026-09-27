@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Timed quests now use recessed countdown badges with room for hours, bounded quest titles and steady urgency rails that remain visible with reduced motion.
+
 - Breath and fatigue bars now reserve a dark countdown badge, constrain long labels and soften the fill behind text. A steady severity rail keeps low time visible between pulses.
 
 - The stopwatch now has separate Run, Pause and Reset states, a bright bounded clock, a state-colored rail and hover feedback. Its maximum duration fits in a dedicated column.
