@@ -24,6 +24,8 @@ return function(check)
         check("combat timer module exists", timer ~= nil)
         if not timer then return end
         local frame = timer.Holder
+        check("combat time has an isolated number bay", frame.numberBay and frame.numberBay.width == 60
+            and frame.numberDivider and frame.width == 110 and frame.height == 20)
         check("timer starts hidden and has shared layout", not frame:IsShown() and frame.layoutKey == "combattimer")
         events.PLAYER_REGEN_DISABLED()
         now = 165; env.runScript(frame, "OnUpdate", 1)
@@ -47,6 +49,7 @@ return function(check)
         local watch = timer.Stopwatch
         check("stopwatch exists with separate layout and starts hidden", watch and watch.layoutKey == "stopwatch" and not watch:IsShown())
         if not watch then return end
+        check("stopwatch reserves its longer readout bay", watch.numberBay and watch.numberBay.width == 70)
         now = 200; timer.StopwatchAction("start")
         now = 265; env.runScript(watch, "OnUpdate", 1)
         check("stopwatch shows absolute elapsed time", watch.state.text == "Run" and watch.label.text == "1:05" and watch:IsShown())

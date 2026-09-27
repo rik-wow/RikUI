@@ -14,7 +14,26 @@ local function now()
         and value >= 0 and value < math.huge then return value end
 end
 
+local function clockChrome(frame, clockWidth)
+    frame.numberBay = frame:CreateTexture(nil, "BORDER")
+    frame.numberBay:SetColorTexture(0.025, 0.035, 0.055, 0.95)
+    frame.numberBay:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
+    frame.numberBay:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1)
+    frame.numberBay:SetWidth(clockWidth + 8)
+    frame.numberDivider = frame:CreateTexture(nil, "ARTWORK")
+    frame.numberDivider:SetColorTexture(0.25, 0.32, 0.4, 0.85)
+    frame.numberDivider:SetPoint("TOPLEFT", frame.numberBay, "TOPLEFT", 0, -3)
+    frame.numberDivider:SetPoint("BOTTOMLEFT", frame.numberBay, "BOTTOMLEFT", 0, 3)
+    frame.numberDivider:SetWidth(1)
+    frame.topLight = frame:CreateTexture(nil, "ARTWORK")
+    frame.topLight:SetColorTexture(0.28, 0.35, 0.43, 0.65)
+    frame.topLight:SetPoint("TOPLEFT", frame, "TOPLEFT", 4, -1)
+    frame.topLight:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
+    frame.topLight:SetHeight(1)
+end
+
 local function clockFace(frame, clockWidth)
+    clockChrome(frame, clockWidth)
     frame.label = frame:CreateFontString(nil, "OVERLAY")
     core.Media.Font(frame.label, "small")
     frame.label:SetPoint("RIGHT", frame, "RIGHT", -5, 0)
