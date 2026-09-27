@@ -169,6 +169,15 @@ return function(check)
         check("checks and dropdowns share press feedback", ui.check.rikPress and ui.dropdown.rikPress
             and ui.check.rikPress.region.alpha == 0.24 and ui.dropdown.rikPress.region.alpha == 0.24)
 
+        button:SetEnabled(false)
+        env.runScript(button, "OnDisable")
+        check("disabled push buttons have a recessed face and no top light", button.rikTopLight
+            and button.rikTopLight.alpha == 0 and button.rikFill.color[1] < 0.08)
+        button:SetEnabled(true)
+        env.runScript(button, "OnEnable")
+        check("enabled push buttons restore the raised face", button.rikTopLight
+            and button.rikTopLight.alpha == 1 and button.rikFill.color[1] == 0.1)
+
         local fill = button.rikFill
         local late = pushButton(ui.root)
         module.Walk(ui.root)

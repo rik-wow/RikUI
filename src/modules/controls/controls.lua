@@ -72,6 +72,26 @@ local function box(frame, color, inset)
     frame.rikBorder = skin.Outline(frame, nil, inset)
 end
 
+local function buttonSurface(button)
+    local light = button:CreateTexture(nil, "BORDER")
+    light:SetTexture(skin.FLAT)
+    light:SetVertexColor(0.42, 0.47, 0.56, 0.45)
+    light:SetPoint("TOPLEFT", button, "TOPLEFT", 2, -2)
+    light:SetPoint("TOPRIGHT", button, "TOPRIGHT", -2, -2)
+    light:SetHeight(1)
+    button.rikTopLight = light
+    local function sync()
+        local inactive = disabled(button)
+        button.rikFill:SetVertexColor(unpack(inactive and FIELD or skin.CONTROL))
+        light:SetAlpha(inactive and 0 or 1)
+        for _, edge in ipairs(button.rikBorder) do
+            edge:SetVertexColor(unpack(inactive and { 0.16, 0.18, 0.22, 1 } or skin.LINE))
+        end
+    end
+    for _, event in ipairs({ "OnShow", "OnEnable", "OnDisable" }) do core.Hooks.Script(button, event, sync) end
+    sync()
+end
+
 local function pushButton(button)
     fadeStates(button)
     skin.Strip(button, SLICES)
@@ -79,6 +99,7 @@ local function pushButton(button)
     hover(button)
     motion.BindPress(button)
     skin.ButtonFonts(button)
+    buttonSurface(button)
 end
 
 -- Blizzard's tick is a glyph with no box around it, so it stays.

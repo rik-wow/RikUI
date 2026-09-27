@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Native push buttons now have a subtle raised top edge, a recessed disabled face and quieter disabled borders; enabling restores the surface without replacing native handlers.
+
 - Castbars now separate long spell names from bounded countdown columns, with dark text backing. Hiding time text immediately returns its space to the name, and resizing recomputes the reservation.
 
 - Bag slots now show free capacity on dark inset badges. Full bags gain red counts and borders; absent, invalid or unreadable counts clear both the badge and warning.
