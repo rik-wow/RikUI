@@ -116,6 +116,13 @@ return function(check)
         end
         check("expanding tool registry grows scroll range instead of HUD footprint", shell.Panel.width == 320
             and shell.Panel.height < 720 and shell.Panel.scroll.range > 0)
+        local pane = shell.Panel.scroll
+        check("scroll grip stays attached to the native thumb", pane.bar.grip and #pane.bar.grip == 3
+            and pane.bar.grip[1].point[2] == pane.bar:GetThumbTexture())
+        RikUI.Scroll.Resize(pane, 290, 5)
+        check("tiny viewports hide the thumb grip", pane.bar.grip and not pane.bar.grip[1]:IsShown())
+        RikUI.Scroll.Resize(pane, 290, 300)
+        check("normal viewports restore the thumb grip", pane.bar.grip and pane.bar.grip[1]:IsShown())
         env.runScript(shell.Panel.scroll.view, "OnMouseWheel", -100)
         check("wheel clamps at final utility", shell.Panel.scroll.offset == shell.Panel.scroll.range)
         RikUI.Scroll.Resize(shell.Panel.scroll, 290, 3000)

@@ -26,6 +26,7 @@ local function updateRange(pane)
     pane.thumbHeight = math.min(height, math.max(THUMB_HEIGHT, height * height / math.max(height, pane.contentHeight or 1)))
     local thumb = pane.bar:GetThumbTexture()
     if thumb then thumb:SetHeight(pane.thumbHeight) end
+    for _, mark in ipairs(pane.bar.grip or {}) do mark:SetShown(pane.thumbHeight >= 12) end
     scroll.SetOffset(pane, pane.offset or 0)
 end
 
@@ -55,6 +56,19 @@ function scroll.Reveal(pane, top, height)
     elseif top + height > offset + pane.height then scroll.SetOffset(pane, top + height - pane.height) end
 end
 
+local function thumbGrip(bar, thumb)
+    bar.grip = {}
+    if not thumb then return end
+    for index = 1, 3 do
+        local mark = bar:CreateTexture(nil, "OVERLAY")
+        mark:SetTexture(skin.FLAT)
+        mark:SetVertexColor(0.72, 0.87, 0.94, 0.85)
+        mark:SetSize(4, 1)
+        mark:SetPoint("CENTER", thumb, "CENTER", 0, (index - 2) * 3)
+        bar.grip[index] = mark
+    end
+end
+
 local function createBar(pane)
     local bar = CreateFrame("Slider", nil, pane)
     bar:SetWidth(BAR_WIDTH)
@@ -65,7 +79,9 @@ local function createBar(pane)
     bar:SetThumbTexture(skin.FLAT)
     local thumb = bar:GetThumbTexture()
     if thumb then thumb:SetSize(BAR_WIDTH, THUMB_HEIGHT); thumb:SetVertexColor(0.3, 0.55, 0.68, 1) end
-    skin.Fill(bar, skin.CONTROL)
+    skin.Fill(bar, { 0.025, 0.035, 0.05, 1 })
+    skin.Outline(bar, { 0.16, 0.2, 0.26, 1 })
+    thumbGrip(bar, thumb)
     bar:SetScript("OnValueChanged", function(_, value)
         if not pane.updating then scroll.SetOffset(pane, value) end
     end)
@@ -74,7 +90,8 @@ end
 
 local function overflowCue(pane, edge)
     local cue = pane.view:CreateTexture(nil, "OVERLAY")
-    cue:SetColorTexture(0.35, 0.65, 0.8, 0.65)
+    cue:SetTexture(skin.FLAT)
+    cue:SetVertexColor(0.4, 0.72, 0.86, 0.5)
     cue:SetPoint(edge .. "LEFT", pane.view, edge .. "LEFT")
     cue:SetPoint(edge .. "RIGHT", pane.view, edge .. "RIGHT")
     cue:SetHeight(2); cue:Hide()

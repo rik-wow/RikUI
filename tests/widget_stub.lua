@@ -125,6 +125,11 @@ local function wrapFrame(frame)
         return region
     end
     function frame:CreateFontString(...) return stub.region(font(self, ...)) end
+    function frame:SetThumbTexture(path)
+        self.thumb = self.thumb or self:CreateTexture(nil, "ARTWORK")
+        self.thumb:SetTexture(path)
+    end
+    function frame:GetThumbTexture() return self.thumb end
     return frame
 end
 
