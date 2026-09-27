@@ -179,6 +179,10 @@ return function(check)
         end
         local module = load()
         local media, holder = RikUI.Media, module.Holder
+        check("bag header separates controls from inventory", holder.search.height == 24
+            and holder.filters.all.point[5] == -66 and holder.grid.point[5] == -102)
+        check("bag window has distinct reusable header and footer", holder.rikChrome ~= nil
+            and holder.rikChrome.header ~= holder.rikChrome.footer)
         local cooldownReads, cooldownAPI = 0, C_Container.GetContainerItemCooldown
         C_Container.GetContainerItemCooldown = function(...)
             cooldownReads = cooldownReads + 1
@@ -268,7 +272,7 @@ return function(check)
         check("slots flow ten to a row across bags", cloth.point[2] == holder.grid and cloth.point[4] == 0
             and cloth.point[5] == 0 and button(0, 10).point[4] == 342 and button(0, 11).point[4] == 0
             and button(0, 11).point[5] == -38 and button(1, 1).point[4] == 228 and button(1, 1).point[5] == -38)
-        check("the holder fits the grid and the title counts used slots", holder.width == 394 and holder.height == 260
+        check("the holder fits the grid and the title counts used slots", holder.width == 394 and holder.height == 286
             and holder.title.text == "Bags 3/22")
         check("the money line shows gold, silver and copper", holder.money.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
             == "12g 34s 56c")
@@ -670,7 +674,7 @@ return function(check)
         stub.slots[1] = 4
         env.fire("BAG_UPDATE_DELAYED")
         check("a smaller bag hides its surplus buttons", shownButtons() == 20 and not button(1, 5):IsShown()
-            and holder.title.text == "Bags 3/20" and holder.height == 222)
+            and holder.title.text == "Bags 3/20" and holder.height == 248)
         stub.items["0:2"] = env.SECRET
         env.fire("BAG_UPDATE_DELAYED")
         check("a secret item record draws an empty slot without printing", stone.rikIcon.texture == nil

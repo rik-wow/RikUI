@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Bags have a layered window, larger controls and clearer separation between searching, filtering, inventory and equipment.
+
 - Redesigned utility and settings chrome with layered headers, recessed navigation,
   group icons, selection rails and clearer keyboard focus. Settings now show explicit
   On/Off toggles, filled slider tracks and distinct dropdown selection states.

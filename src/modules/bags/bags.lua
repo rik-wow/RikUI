@@ -10,9 +10,9 @@ core.Bags = bags
 local HOLDER_NAME, SEARCH_NAME, KEY = "RikUIBags", "RikUIBagsSearch", "bags"
 -- Bottom right, above the tooltip anchor.
 local DEFAULTS = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -126, y = 350 }
-local PAD, HEADER, FOOTER, EDGE = 8, 68, 64, 1
-local CONTROL_HEIGHT, SEARCH_WIDTH, SORT_WIDTH, CLOSE_WIDTH, CONTROL_GAP = 18, 120, 40, 18, 4
-local BACKGROUND, FIELD, BORDER = { 0.055, 0.065, 0.08, 0.95 }, { 0.1, 0.11, 0.13, 1 }, { 0.25, 0.28, 0.32, 1 }
+local PAD, HEADER, FOOTER, EDGE = 8, 94, 64, 1
+local CONTROL_HEIGHT, SEARCH_WIDTH, SORT_WIDTH, CLOSE_WIDTH, CONTROL_GAP = 24, 120, 44, 24, 4
+local FIELD, BORDER = { 0.1, 0.11, 0.13, 1 }, { 0.25, 0.28, 0.32, 1 }
 local TITLE_FORMAT, SEARCH_HINT, SORT_LABEL, CLOSE_ICON = "Bags %d/%d", "Search", "Sort", "close"
 local MATCH_ONE, MATCH_MANY = "  1 match", "  %d matches"
 -- Blizzard's bag search box: its own handlers feed C_Container.SetItemSearch. SearchBoxTemplate art keys.
@@ -152,7 +152,7 @@ local function createFilters()
         local key = entry[1]
         local width = entry[3] or 38
         local button = textButton(entry[2], width, function() bags.SetFilter(key) end)
-        button:SetPoint("TOPLEFT", holder, "TOPLEFT", offset, -52)
+        button:SetPoint("TOPLEFT", holder, "TOPLEFT", offset, -66)
         offset = offset + width + CONTROL_GAP
         holder.filters[key] = button
         if key == "favorites" then
@@ -172,7 +172,9 @@ end
 
 local function createControls()
     holder.title = holder:CreateFontString(nil, "OVERLAY")
-    media.Font(holder.title, "label")
+    media.Font(holder.title, "heading")
+    holder.title:SetPoint("TOPRIGHT", holder, "TOPRIGHT", -(PAD + CLOSE_WIDTH + CONTROL_GAP), -PAD)
+    holder.title:SetJustifyH("LEFT")
     holder.title:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -PAD)
     holder.close = textButton("", CLOSE_WIDTH, function() holder:Hide() end)
     holder.close.icon = media.Icon(holder.close, CLOSE_ICON, 10, "OVERLAY")
@@ -181,11 +183,11 @@ local function createControls()
     holder.sort = textButton(SORT_LABEL, SORT_WIDTH, bags.Sort)
     holder.sort:SetScript("OnEnter", sortTooltip)
     holder.sort:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
-    holder.sort:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD + SEARCH_WIDTH + CONTROL_GAP, -30)
+    holder.sort:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD + SEARCH_WIDTH + CONTROL_GAP, -36)
     holder.search = createSearch()
-    holder.search:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -30)
+    holder.search:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -36)
     createFilters()
-    holder.junk = textButton("Sell junk", 114, bags.SellJunk)
+    holder.junk = textButton("Sell junk", 112, bags.SellJunk)
     holder.junk:SetPoint("LEFT", holder.sort, "RIGHT", CONTROL_GAP, 0)
     holder.junk:Hide()
     holder.repair = textButton("Repair all", 90, bags.Repair)
@@ -284,7 +286,8 @@ local function createHolder()
     holder:SetFrameStrata("MEDIUM")
     holder:SetClampedToScreen(true)
     holder:EnableMouse(true)
-    flat(holder, BACKGROUND)
+    holder.rikChrome = core.Skin.WindowChrome(holder, HEADER, FOOTER)
+    holder.rikBackground, holder.rikBorder = holder.rikChrome.fill, holder.rikChrome.edge
     createControls()
     bags.CreateEquipped(holder)
     enableDrag()
