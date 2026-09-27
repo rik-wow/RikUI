@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "rik-wow-site",
+  "main": "worker.mjs",
+  "account_id": "0b7cbcb39402bbbf829b621c3c748ca0",
+  "compatibility_date": "2026-09-27",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "rikwow.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.rikwow.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "api.rikwow.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "downloads.rikwow.com",
+      "custom_domain": true
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "RELEASES",
+      "bucket_name": "rik-wow-releases"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  },
+  "limits": {
+    "cpu_ms": 10
+  }
+}

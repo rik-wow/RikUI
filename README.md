@@ -243,6 +243,12 @@ Working on the code? See [CONTRIBUTING.md](CONTRIBUTING.md) and the
 [architecture guide](docs/architecture.md). The [packaging guide](docs/packaging.md)
 covers local builds and releases.
 
+## Project infrastructure
+
+Visit [rikwow.com](https://rikwow.com/) for the project home. See the
+[Cloudflare architecture](docs/cloudflare.md) and the
+[independent quest provider build](docs/upstream-provider.md) for development status.
+
 ## License
 
 The code, original textures and icons are [MIT licensed](LICENSE).

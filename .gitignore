@@ -21,3 +21,8 @@ Thumbs.db
 __pycache__/
 *.pyc
 /installer/target/
+/web/node_modules/
+/web/.wrangler/
+/web/worker-configuration.d.ts
+/web/.dev.vars
+/web/.env
