@@ -60,6 +60,9 @@ return function(check)
             isFlat(first.child) and first.child.rikFill.points[1][4] > 0 and first.child.rikBorder[1].points[1][4] > 0)
         check("the bubble fades in and its string is not written", first.child.rikFade.plays == 1
             and rawget(first.child.String, "fontPath") == nil)
+        check("bubble has an inset top light and compact pointer", first.child.rikTopLight and first.child.rikPointer
+            and first.child.rikPointer.rikIcon == "chevron-down" and first.child.rikPointer.width == 12)
+        local pointer = first.child.rikPointer
         local fill = first.child.rikFill
         tick(module, 0.1)
         check("a bubble is skinned once", first.child.rikFill == fill and first.child.rikFade.plays == 1)
@@ -67,6 +70,7 @@ return function(check)
         first.child:Show()
         check("a reused bubble fades in again when the engine shows it", first.child.rikFade.plays == 2)
 
+        check("pooled bubble keeps one pointer", first.child.rikPointer == pointer)
         local hidden = bubble(true)
         tick(module, 0.1)
         check("a forbidden bubble is never touched", hidden.child.rikFill == nil

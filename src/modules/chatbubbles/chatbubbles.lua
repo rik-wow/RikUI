@@ -30,10 +30,25 @@ end
 
 local function replayFade(frame) motion.Play(frame.rikFade) end
 
+local function cardDetails(frame)
+    local light = frame:CreateTexture(nil, "BORDER")
+    light:SetTexture(skin.FLAT)
+    light:SetVertexColor(0.45, 0.52, 0.63, 0.55)
+    light:SetPoint("TOPLEFT", frame, "TOPLEFT", INSET + 2, -INSET - 1)
+    light:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -INSET - 2, -INSET - 1)
+    light:SetHeight(1)
+    frame.rikTopLight = light
+    local pointer = media.Icon(frame, "chevron-down", 12, "OVERLAY")
+    pointer:SetVertexColor(0.45, 0.52, 0.63, 1)
+    pointer:SetPoint("CENTER", frame, "BOTTOM", 0, INSET - 3)
+    frame.rikPointer = pointer
+end
+
 local function apply(frame)
     skin.Strip(frame, ART)
     frame.rikFill = skin.Fill(frame, skin.BACKING, INSET)
     frame.rikBorder = skin.Outline(frame, nil, INSET)
+    cardDetails(frame)
     frame.rikFade = motion.Tween(frame, 0, 1, skin.FADE_SECONDS)
     frame:HookScript("OnShow", replayFade)
     replayFade(frame)

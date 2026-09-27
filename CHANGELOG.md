@@ -8,6 +8,8 @@ tagging.
 
 ## Unreleased
 
+- Chat bubbles now have an inset top highlight and a compact speech pointer, giving the dark cards a clearer silhouette. Pooled bubbles reuse their details, and chat text and colors remain client owned.
+
 - Window and dialog close controls now use a warm hover face, shared press feedback and muted disabled glyphs. Repeated skinning reuses regions and leaves native close handlers intact.
 
 - Selected native tabs now have a slate-blue face and brighter outline alongside their persistent underline. Selection changes restore the inactive surface. Horizontal scrollbar arrows follow the current client's orientation field.
