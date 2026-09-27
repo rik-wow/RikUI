@@ -90,12 +90,24 @@ local function windowBand(owner, color, top)
     return band
 end
 
+local function windowDepth(owner, chrome)
+    chrome.shadow = {}
+    for index, alpha in ipairs({ 0.55, 0.3, 0.12 }) do
+        chrome.shadow[index] = skin.Outline(owner, { 0, 0, 0, alpha }, -index, nil, "BACKGROUND")
+    end
+    chrome.inner = skin.Outline(owner, { 0.13, 0.16, 0.2, 0.8 }, 1)
+    chrome.accent = line(owner, owner, "TOPLEFT", "TOPRIGHT", 2, { 0.42, 0.58, 0.68, 0.85 }, "BORDER")
+    chrome.headerLight = line(owner, chrome.header, "TOPLEFT", "TOPRIGHT", 1,
+        { 0.23, 0.29, 0.36, 0.65 }, "BORDER")
+end
+
 function skin.WindowChrome(owner, headerHeight, footerHeight)
     local chrome = windows[owner]
     if not chrome then
         chrome = { fill = skin.Fill(owner), edge = skin.Outline(owner) }
         chrome.header = windowBand(owner, HEADER_FILL, true)
         chrome.footer = windowBand(owner, FOOTER_FILL, false)
+        windowDepth(owner, chrome)
         chrome.headerRule = line(owner, chrome.header, "BOTTOMLEFT", "BOTTOMRIGHT", 0, skin.LINE, "BORDER")
         chrome.footerRule = line(owner, chrome.footer, "TOPLEFT", "TOPRIGHT", 0, skin.LINE, "BORDER")
         windows[owner] = chrome
@@ -104,6 +116,8 @@ function skin.WindowChrome(owner, headerHeight, footerHeight)
     chrome.footer:SetHeight(math.max(1, footerHeight or 1))
     chrome.header:SetShown((headerHeight or 0) > 0)
     chrome.headerRule:SetShown((headerHeight or 0) > 0)
+    chrome.accent:SetShown((headerHeight or 0) > 0)
+    chrome.headerLight:SetShown((headerHeight or 0) > 0)
     chrome.footer:SetShown((footerHeight or 0) > 0)
     chrome.footerRule:SetShown((footerHeight or 0) > 0)
     return chrome

@@ -15,6 +15,8 @@ return function(check)
         local shell, layout = RikUI.Shell, RikUI.Layout
         local chrome = shell.Panel.chrome
         check("utility title has a separate inset header", chrome and chrome.header.height == 44)
+        check("window separates overlapping surfaces with three shadow rings", chrome and chrome.shadow and #chrome.shadow == 3)
+        check("window header accent follows header visibility", chrome and chrome.accent and chrome.accent:IsShown())
         if chrome then
             local again = RikUI.Skin.WindowChrome(shell.Panel, 52, 20)
             check("window chrome updates without accumulating regions", again == chrome
