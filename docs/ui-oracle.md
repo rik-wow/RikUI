@@ -2,6 +2,8 @@
 
 ## Additional visual polish — September 2026
 
+- Minimap status now sits in an inset two-row footer: clock and coordinates above day/night and optional performance. Queue and RikUI controls remain on the map; layout presets include the entire 200×270 card.
+
 - The minimap zone label now sits inside a layered header with a map glyph. Its layout bounds include the header, and native indicators remain aligned to the square map after Edit Mode changes.
 
 - Tooltips now use larger headings, a quiet inset top accent and clearly outlined dark health tracks. Native GUID watching continues to own all health values.

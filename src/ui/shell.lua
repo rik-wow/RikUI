@@ -148,7 +148,7 @@ function shell.Anchor()
     local minimap = core.Minimap and core.Minimap.Holder
     launcher:ClearAllPoints()
     if minimap then
-        launcher:SetPoint("BOTTOMRIGHT", minimap, "BOTTOMRIGHT", -4, 4)
+        launcher:SetPoint("BOTTOMRIGHT", minimap, "BOTTOMRIGHT", -4, 4 + (minimap.rikFooterHeight or 0))
         launcher:SetScale(minimap:GetEffectiveScale() / UIParent:GetEffectiveScale())
     else
         launcher:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -20, -32)

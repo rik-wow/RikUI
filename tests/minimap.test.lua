@@ -23,6 +23,8 @@ return function(check)
         function value:SetVertexColor(...) self.color = { ... } end
         function value:SetTextColor(...) self.color = { ... } end
         function value:SetPoint(...) self.point = { ... } end
+        function value:SetHeight(height) self.height = height end
+        function value:SetWidth(width) self.width = width end
         function value:SetFont(path, size) self.fontPath, self.fontSize = path, size; return true end
         return value
     end
@@ -83,7 +85,7 @@ return function(check)
         check("the holder registers with the layout under key minimap with top-right defaults", holder and group
             and group.frames[1] == holder and group.defaults.point == "TOPRIGHT"
             and group.defaults.relativePoint == "TOPRIGHT" and group.defaults.x < 0 and group.defaults.y < 0)
-        check("the holder includes the header above its square map", holder.width == 200 and holder.height == 226
+        check("the holder includes the header above its square map", holder.width == 200 and holder.height == 270
             and type(rawget(holder, "rikBorder")) == "table" and #holder.rikBorder == 4
             and holder.rikBorder[1].texture == media.border)
         check("the Minimap moves into the holder as a 198 square with the flat mask", map.parent == holder
@@ -92,6 +94,14 @@ return function(check)
         check("minimap header is inside the card", holder.rikChrome and holder.zoneButton.point[3] == "TOP"
             and holder.zoneIcon and holder.zoneIcon.rikIcon == "quest" and map.point[5] == -27)
         check("native indicators clear the header", cluster.IndicatorFrame.point[5] == -28)
+        check("status footer contains two inset rows", holder.rikChrome.footer.height == 44
+            and holder.clock.point[3] == "BOTTOMLEFT" and holder.clock.point[4] == 8 and holder.clock.point[5] == 36
+            and holder.performance.point[3] == "BOTTOMRIGHT" and holder.performance.point[5] == 20
+            and holder.clock.width == 88 and holder.coords.width == 88
+            and holder.diel.width + holder.performance.width + 16 < holder.width)
+        check("coordinate hit target stays inside footer", holder.coordsButton.point[3] == "BOTTOMRIGHT"
+            and holder.coordsButton.point[4] == -8 and holder.coordsButton.point[5] == 40)
+        check("native queue clears the footer", QueueStatusButton.point[5] == 46)
         -- Skin.lua's rotateMinimap callback puts the round mask back when the CVar changes.
         map:SetMaskTexture(stub.ROUND_MASK)
         env.fire("CVAR_UPDATE", "rotateMinimap")
@@ -136,7 +146,7 @@ return function(check)
         env.inCombat = false
         env.fire("PLAYER_REGEN_ENABLED")
         check("and lands when combat ends", cluster.IndicatorFrame.point[2] == holder
-            and cluster.IndicatorFrame.point[5] == -28 and map.point[5] == -27)
+            and cluster.IndicatorFrame.point[5] == -28 and map.point[5] == -27 and QueueStatusButton.point[5] == 46)
         module = load()
         holder, cluster, map = module.Holder, MinimapCluster, Minimap
 

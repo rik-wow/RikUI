@@ -8,7 +8,7 @@ core.Minimap = minimap
 
 local HOLDER_NAME, KEY = "RikUIMinimap", "minimap"
 local SIZE, EDGE, TEXT_GAP = 198, 1, 4
-local HEADER_HEIGHT = 26
+local HEADER_HEIGHT, FOOTER_HEIGHT = 26, 44
 local DEFAULTS = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -98, y = -16 }
 local SQUARE_MASK, ROTATE_CVAR = "Interface\\BUTTONS\\WHITE8X8", "rotateMinimap"
 local UPDATE_SECONDS, COORDS_FORMAT = 0.2, "%.1f, %.1f"
@@ -60,7 +60,9 @@ end
 local function attach(frame, point, x, y)
     frame:SetParent(holder)
     frame:ClearAllPoints()
-    frame:SetPoint(point, holder, point, x, point:find("TOP", 1, true) and y - HEADER_HEIGHT or y)
+    if point:find("TOP", 1, true) then y = y - HEADER_HEIGHT
+    elseif point:find("BOTTOM", 1, true) then y = y + FOOTER_HEIGHT end
+    frame:SetPoint(point, holder, point, x, y)
 end
 
 local function label(role, point, relativePoint, y)
@@ -257,7 +259,7 @@ end
 local function coordinateButton()
     local button = CreateFrame("Button", nil, holder)
     button:SetSize(96, 18)
-    button:SetPoint("TOPRIGHT", holder, "BOTTOMRIGHT", 0, -TEXT_GAP)
+    button:SetPoint("TOPRIGHT", holder, "BOTTOMRIGHT", -8, FOOTER_HEIGHT - 4)
     button:RegisterForClicks("LeftButtonUp")
     button:SetScript("OnClick", minimap.ShareCoordinates)
     button:SetScript("OnEnter", function(self)
@@ -272,19 +274,32 @@ local function coordinateButton()
     holder.coordsButton = button
 end
 
+local function footerLabel(side, y, width, secondary)
+    local point = "BOTTOM" .. side
+    local region = label("small", "TOP" .. side, point, y)
+    region:ClearAllPoints()
+    region:SetPoint("TOP" .. side, holder, point, side == "LEFT" and 8 or -8, y)
+    region:SetWidth(width)
+    region:SetWordWrap(false)
+    region:SetJustifyH(side)
+    if secondary then region:SetTextColor(0.65, 0.71, 0.8, 1) end
+    return region
+end
+
 local function createHolder()
     holder = CreateFrame("Frame", HOLDER_NAME, UIParent)
-    holder:SetSize(SIZE + 2 * EDGE, SIZE + 2 * EDGE + HEADER_HEIGHT)
-    holder.rikChrome = core.Skin.WindowChrome(holder, HEADER_HEIGHT, 0)
+    holder:SetSize(SIZE + 2 * EDGE, SIZE + 2 * EDGE + HEADER_HEIGHT + FOOTER_HEIGHT)
+    holder.rikFooterHeight = FOOTER_HEIGHT
+    holder.rikChrome = core.Skin.WindowChrome(holder, HEADER_HEIGHT, FOOTER_HEIGHT)
     holder.rikBorder = holder.rikChrome.edge
     holder.zone = label("label", "BOTTOM", "TOP", TEXT_GAP)
     holder.rikZoneFade = core.Motion.Tween(holder.zone, 0, 1, 0.2)
     zoneButton()
-    holder.clock = label("small", "TOPLEFT", "BOTTOMLEFT", -TEXT_GAP)
-    holder.coords = label("small", "TOPRIGHT", "BOTTOMRIGHT", -TEXT_GAP)
+    holder.clock = footerLabel("LEFT", FOOTER_HEIGHT - 8, 88)
+    holder.coords = footerLabel("RIGHT", FOOTER_HEIGHT - 8, 88)
     coordinateButton()
-    holder.diel = label("small", "TOPLEFT", "BOTTOMLEFT", -(TEXT_GAP + 16))
-    holder.performance = label("small", "TOPRIGHT", "BOTTOMRIGHT", -(TEXT_GAP + 16))
+    holder.diel = footerLabel("LEFT", FOOTER_HEIGHT - 24, 50, true)
+    holder.performance = footerLabel("RIGHT", FOOTER_HEIGHT - 24, 128, true)
     holder.elapsed = 0
     holder:SetScript("OnUpdate", minimap.Tick)
     layout.Register(holder, KEY, DEFAULTS, { onApply = function() minimap.UpdateCoordinates(); minimap.UpdateDiel(); minimap.UpdatePerformance() end })

@@ -56,9 +56,11 @@ return function(check)
         shell.Open(); env.click(shell.Entries["party-preview"].frame)
         check("party preview can be dismissed from the same entry", not party.Testing)
         local map = CreateFrame("Frame", nil, UIParent)
+        map.rikFooterHeight = 44
         RikUI.Minimap = { Holder = map }
         shell.Anchor()
-        check("late minimap becomes launcher anchor", shell.Launcher.point[2] == map and shell.Launcher.point[1] == "BOTTOMRIGHT")
+        check("late minimap becomes launcher anchor above status footer", shell.Launcher.point[2] == map
+            and shell.Launcher.point[1] == "BOTTOMRIGHT" and shell.Launcher.point[5] == 48)
         shell.Open()
         env.click(shell.Entries.move.frame)
         check("move starts existing editor and changes launcher to Done", layout.IsMoving() and shell.Launcher.label.text == "Done")
