@@ -1,5 +1,7 @@
 # UI oracle
 
+- Status and double-status widgets now give bar and heading labels dark contrast backing above colored fills. Empty or hidden labels clear their backing, while native progress, colors and sparks remain unchanged.
+
 - Alert, banner and social notification cards now have inset top highlights and framed icon compartments. Reused alerts refresh their typeface and recover dark text restored by native setup.
 
 - Quest titles, description/objective headings and reward headers now use warm inset section bands with fine rules. They follow native wrapping and clear when hidden; quest prose sizing stays configurable.

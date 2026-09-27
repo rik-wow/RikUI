@@ -77,6 +77,8 @@ return function(check)
     local ok, reason = pcall(function()
         local module = load()
         local status = statusWidget()
+        status.Bar.Label:SetText("75 / 100")
+        status.Label:SetText("Progress")
         status:Setup({}, nil)
         env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
         check("Blizzard's Setup still runs", status.setups == 1)
@@ -88,6 +90,19 @@ return function(check)
         check("both labels take the RikUI typeface at their own size with the colour untouched",
             status.Bar.Label.fontPath == RikUI.Media.font and status.Label.fontPath == RikUI.Media.font
             and status.Label.fontSize == 12 and rawget(status.Label, "textColor") == nil)
+        local labelPlate = status.Bar.rikLabelPlate
+        check("widget bar label has contrast above its fill", labelPlate and labelPlate:IsShown()
+            and labelPlate.layer == "OVERLAY" and labelPlate.points[1][2] == status.Bar.Label)
+        status.Bar.Label:Hide()
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
+        check("widget label visibility clears stale backing", labelPlate and not labelPlate:IsShown())
+        status.Bar.Label:Show(); status.Bar.Label:SetText("")
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
+        check("empty widget label has no contrast block", labelPlate and not labelPlate:IsShown())
+        status.Bar.Label:SetText("80 / 100")
+        env.fire("UPDATE_UI_WIDGET"); env.flushTimers()
+        check("widget value refresh reuses label backing", labelPlate and labelPlate:IsShown()
+            and status.Bar.rikLabelPlate == labelPlate and status.Bar.Label:GetText() == "80 / 100")
         local fill = status.Bar.rikFill
         status.Bar.BGCenter.alpha = 1
         status:Setup({}, nil)

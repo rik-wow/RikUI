@@ -14,10 +14,21 @@ local function warn(operation, reason)
     core:Print("Widgets " .. operation .. ": " .. tostring(reason))
 end
 
+local function labelContrast(owner)
+    local label = owner.Label
+    if not skin.IsRegion(label) or type(label.GetText) ~= "function" then
+        if owner.rikLabelPlate then owner.rikLabelPlate:Hide() end
+        return
+    end
+    label:SetDrawLayer("OVERLAY", 1)
+    owner.rikLabelPlate = skin.TextPlate(owner, label, nil, 4, "OVERLAY")
+end
+
 local function skinBar(bar)
     if not skin.IsRegion(bar) then return false end
     skin.Strip(bar, BAR_ART)
     skin.Typeface(bar.Label)
+    labelContrast(bar)
     if bar.rikFill then return true end
     bar.rikFill = skin.Fill(bar, skin.BACKING)
     bar.rikBorder = skin.Outline(bar)
@@ -26,11 +37,13 @@ end
 
 local function skinStatusBar(frame)
     skin.Typeface(frame.Label)
+    labelContrast(frame)
     return skinBar(frame.Bar)
 end
 
 local function skinDoubleStatusBar(frame)
     skin.Typeface(frame.Label)
+    labelContrast(frame)
     local left, right = skinBar(frame.LeftBar), skinBar(frame.RightBar)
     return left or right
 end
