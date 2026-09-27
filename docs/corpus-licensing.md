@@ -47,6 +47,42 @@ fair-use distribution; this review does not invent that conclusion.
    That alternative needs an actual supported local pipeline, not a silent
    omission disguised as a complete release.
 
+## Upstream sources behind Questie
+
+Primary-source review on 2026-09-27 confirms that gameplay reports are only
+one part of Questie's acquisition process:
+
+- [Merger instructions](https://github.com/Questie/Questie/blob/96cfdb0ac20953c1ef9e88d48a70b9bb913befbf/ExternalScripts%28DONOTINCLUDEINRELEASE%29/merger/README.md)
+  describe MaNGOS and Trinity imports for Cataclysm, reusing TBC/WotLK spawns,
+  and SQLua exports for MoP. This establishes the import approach, not the
+  provenance of every current Classic or Forever record.
+- [Item-drop extraction instructions](https://github.com/Questie/Questie/blob/96cfdb0ac20953c1ef9e88d48a70b9bb913befbf/ExternalScripts%28DONOTINCLUDEINRELEASE%29/scraper/item_drop/README.md)
+  document both Wowhead scraping and direct CMaNGOS/MaNGOS3 SQL extraction.
+- [Scraper instructions](https://github.com/Questie/Questie/blob/96cfdb0ac20953c1ef9e88d48a70b9bb913befbf/ExternalScripts%28DONOTINCLUDEINRELEASE%29/scraper/README.md)
+  document Wowhead quest, item, NPC and object imports, currently for SoD,
+  plus translations; item names can instead come from client ItemSparse data.
+- [Forever conversion metadata](https://github.com/Questie/QuestieDB/blob/365537a340473291f5af3b7a53a5eca94e2a5f1a/data/Forever/conversion.json)
+  records Era source tables and corrections converted to Forever geometry.
+  Its exclusions include runtime corrections, dungeon entrances, new Forever
+  content and race/class restrictions, and subzone/synthetic map routing.
+
+[CMaNGOS Classic-DB](https://github.com/cmangos/classic-db) is a plausible
+bulk input for an alternative provider. Its
+[README](https://github.com/cmangos/classic-db/blob/master/README.md)
+explicitly declares GPLv3, but also excludes some Blizzard material from that
+grant. Its [copyright notice](https://github.com/cmangos/classic-db/blob/master/COPYRIGHT.md)
+asserts its own intended fair use; that is not permission from Blizzard or a
+legal determination for RikUI. It targets original 1.12 content, so Forever
+coverage and coordinate compatibility cannot be assumed.
+
+The practical alternative is a bulk importer with recorded source and license,
+our own schema and conversion code, followed by targeted corrections and gap
+collection. This can avoid depending on QuestieDB's later contributions for
+records independently obtained from upstream. It does not automatically clear
+the upstream game content, permit Wowhead republication, or reproduce all of
+QuestieDB's corrections. Compare IDs, relationships and spatial coverage
+before considering a switch; retain the present provider and all its data.
+
 ## Independent database alternative
 
 RikUI can maintain its own schema and acquire observations independently:
