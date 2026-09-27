@@ -7,6 +7,8 @@ local mapHooks = setmetatable({}, { __mode = "k" })
 
 local PROSE = { QuestInfoDescriptionText = true, QuestInfoObjectivesText = true, QuestInfoRewardText = true }
 local proseSizes = setmetatable({}, { __mode = "k" })
+local HEADINGS = { QuestInfoTitleHeader = true, QuestInfoDescriptionHeader = true,
+    QuestInfoObjectivesHeader = true, QuestInfoRewardsHeader = true }
 
 local function proseFont(region)
     local name = type(region.GetName) == "function" and region:GetName()
@@ -46,7 +48,14 @@ local function quest(frame)
         end
     end
     if type(frame.GetRegions) == "function" then
-        for _, region in ipairs({ frame:GetRegions() }) do readable(region) end
+        for _, region in ipairs({ frame:GetRegions() }) do
+            readable(region)
+            local name = type(region.GetName) == "function" and region:GetName()
+            if HEADINGS[name] then skin.SectionHeading(frame, region) end
+        end
+    end
+    if frame == _G.QuestInfoRewardsFrame then
+        skin.SectionHeading(frame, frame.Header)
     end
 end
 

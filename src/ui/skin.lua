@@ -130,6 +130,27 @@ function skin.TextPlate(owner, region, color, padding, layer)
     return plate
 end
 
+local sections = setmetatable({}, { __mode = "k" })
+function skin.SectionHeading(owner, region)
+    if not skin.IsRegion(region) or type(region.GetText) ~= "function" then return end
+    local section = sections[region]
+    if not section then
+        section = { rule = owner:CreateTexture(nil, "ARTWORK", nil, 0) }
+        section.rule:SetTexture(skin.FLAT)
+        section.rule:SetVertexColor(0.65, 0.52, 0.25, 0.7)
+        section.rule:SetPoint("BOTTOMLEFT", region, "BOTTOMLEFT", -4, -1)
+        section.rule:SetPoint("BOTTOMRIGHT", region, "BOTTOMRIGHT", 4, -1)
+        section.rule:SetHeight(1)
+        sections[region] = section
+    end
+    skin.Typeface(region)
+    region:SetTextColor(unpack(skin.GOLD))
+    region:SetDrawLayer("ARTWORK", 1)
+    section.fill = skin.TextPlate(owner, region, { 0.14, 0.125, 0.085, 0.85 }, 4, "ARTWORK")
+    section.rule:SetShown(section.fill:IsShown())
+    return section
+end
+
 function skin.Font(region, role)
     if skin.IsRegion(region) and type(region.SetFont) == "function" then media.Font(region, role) end
 end

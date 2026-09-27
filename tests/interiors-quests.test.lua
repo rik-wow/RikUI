@@ -40,6 +40,25 @@ return function(check)
         RikUI.Profile.panels.questTextSize = 100
         RikUI.Interiors.Walk(q, "quests")
         check("invalid quest size preserves native size", text.fontSize == 14)
+        local heading = q:CreateFontString()
+        function heading:GetName() return "QuestInfoObjectivesHeader" end
+        function heading:GetObjectType() return "FontString" end
+        heading:SetText("Objectives")
+        q.regions = { text, heading }
+        RikUI.Interiors.Walk(q, "quests")
+        check("quest heading gains warm section emphasis", heading.textColor and heading.textColor[1] == 1
+            and heading.textColor[2] == 0.82 and heading:GetText() == "Objectives")
+        local section = RikUI.Skin.SectionHeading and RikUI.Skin.SectionHeading(q, heading)
+        check("section backing follows native header bounds", section and section.fill.points[1][2] == heading
+            and section.rule.height == 1 and rawget(heading, "points") == nil)
+        heading:Hide()
+        RikUI.Interiors.Walk(q, "quests")
+        check("hidden quest section clears its furniture", section and not section.fill:IsShown()
+            and not section.rule:IsShown())
+        heading:Show()
+        RikUI.Interiors.Walk(q, "quests")
+        check("quest section reuse restores the same furniture", section
+            and RikUI.Skin.SectionHeading(q, heading) == section and section.fill:IsShown())
         local border = frame()
         border:SetFrameLevel(100)
         border.TopDetail, border.Border, border.Shadow = border:CreateTexture(), border:CreateTexture(), border:CreateTexture()

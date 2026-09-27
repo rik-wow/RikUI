@@ -1,5 +1,7 @@
 # UI oracle
 
+- Quest titles, description/objective headings and reward headers now use warm inset section bands with fine rules. They follow native wrapping and clear when hidden; quest prose sizing stays configurable.
+
 - Calendar days now have inset tile borders and dark date badges. Native event art and today/selection indicators stay visible; month refreshes reuse the same regions.
 
 - Mail inbox subjects now sit in warm reading bands with a fine left accent; duration labels have dark backing. Sender colors, native mail actions and row geometry remain intact, and reused rows clear hidden subjects.
