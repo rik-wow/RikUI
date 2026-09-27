@@ -36,6 +36,10 @@ return function(check)
         check("late service row flattened", state.fill and row.Background.alpha == 0)
         check("availability colour and native selection retained", row.Label.textColor[2] == 0.7
             and rawget(row.SelectedHighlight, "alpha") == nil)
+        row.SelectedHighlight:Hide()
+        cb[1](cb[2], row)
+        check("recycled service selection clears through native visibility",
+            not row.SelectedHighlight:IsShown() and row.SelectedHighlight.width == 3)
         row.Background:SetAlpha(1)
         cb[1](cb[2], row)
         check("recycled rows refresh without duplicate hooks", row.Background.alpha == 0

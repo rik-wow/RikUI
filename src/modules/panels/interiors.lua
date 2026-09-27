@@ -117,6 +117,31 @@ function interiors.Item(frame)
     interiors.Count(frame)
 end
 
+local SELECTIONS = { "SelectedBar", "SelectedHighlight", "Selection" }
+local function rowDetails(frame, state)
+    if not state.separator then
+        state.separator = frame:CreateTexture(nil, "BORDER")
+        state.separator:SetTexture(skin.FLAT)
+        state.separator:SetVertexColor(0.25, 0.28, 0.32, 0.45)
+        state.separator:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 5, 1)
+        state.separator:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 1)
+        state.separator:SetHeight(1)
+    end
+    for _, key in ipairs(SELECTIONS) do
+        local selected = frame[key]
+        if skin.IsRegion(selected) and type(selected.SetTexture) == "function" then
+            selected:SetTexture(skin.FLAT)
+            selected:SetTexCoord(0, 1, 0, 1)
+            selected:SetBlendMode("BLEND")
+            selected:SetVertexColor(0.3, 0.75, 1)
+            selected:ClearAllPoints()
+            selected:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -2)
+            selected:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 1, 2)
+            selected:SetWidth(3)
+        end
+    end
+end
+
 function interiors.Row(frame)
     if not states[frame] then
         local state = { fill = skin.Fill(frame, skin.CONTROL, 1) }
@@ -128,6 +153,7 @@ function interiors.Row(frame)
     if not state.hover then hover(frame, state) end
     skin.Strip(frame, ROW_ART)
     interiors.Labels(frame)
+    rowDetails(frame, state)
 end
 
 -- LargeSideTabButtonTemplate is a Frame, with native mouse handlers and a mask.

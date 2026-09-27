@@ -25,6 +25,8 @@ return function(check)
         item:SetScript("OnClick", function() clicks = clicks + 1 end)
         local row = frame("Frame", root)
         row.Label, row.Value, row.Background = row:CreateFontString(), row:CreateFontString(), row:CreateTexture()
+        row.SelectedBar = row:CreateTexture()
+        row.SelectedBar:Hide()
         local service = RikUI.Interiors
         service.Walk(root, "character")
         local state, rowState = service.State(item), service.State(row)
@@ -49,6 +51,13 @@ return function(check)
         check("native click survives", clicks == 1)
         check("stat rows use flat backing and font", row.Background.alpha == 0 and rowState.fill
             and row.Label.fontPath == RikUI.Media.font)
+        check("row has inset separator and native selection rail", rowState.separator
+            and row.SelectedBar.width == 3 and row.SelectedBar.texture == RikUI.Skin.FLAT
+            and not row.SelectedBar:IsShown())
+        row.SelectedBar:Show()
+        service.Row(row)
+        check("native selection stays visible through refresh", row.SelectedBar:IsShown()
+            and row.SelectedBar.points[1][2] == row and row.SelectedBar.color[3] == 1)
         env.runScript(row, "OnEnter")
         check("row hover fades in", rowState.enter.playing and rowState.hover.alpha > 0)
         env.runScript(row, "OnLeave")
