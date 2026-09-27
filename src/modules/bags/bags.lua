@@ -60,7 +60,8 @@ end
 local function textButton(text, width, onClick)
     local button = CreateFrame("Button", nil, holder)
     button:SetSize(width, CONTROL_HEIGHT)
-    flat(button, FIELD)
+    button.surface = core.Skin.ButtonSurface(button)
+    button.rikBackground, button.rikBorder = button.surface.fill, button.surface.edge
     button.label = button:CreateFontString(nil, "OVERLAY")
     media.Font(button.label, "small")
     button.label:SetPoint("CENTER", button, "CENTER", 0, 0)
@@ -121,6 +122,7 @@ local function plainSearchBox()
 end
 
 local function searchFocus(box, focused)
+    box.rikBackground:SetColorTexture(unpack(focused and { 0.12, 0.15, 0.19, 1 } or FIELD))
     for _, edge in ipairs(box.rikBorder) do
         edge:SetVertexColor(unpack(focused and { 1, 0.82, 0.3, 1 } or BORDER))
     end
@@ -232,6 +234,7 @@ local function createControls()
     holder.money = holder:CreateFontString(nil, "OVERLAY")
     media.Font(holder.money, "small")
     holder.money:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", -PAD, PAD)
+    holder.money:SetTextColor(0.95, 0.84, 0.58)
     holder.moneyButton = CreateFrame("Button", nil, holder)
     holder.moneyButton:SetSize(160, CONTROL_HEIGHT)
     holder.moneyButton:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", -PAD, PAD)
@@ -243,6 +246,9 @@ local function createControls()
     end)
     holder.grid = CreateFrame("Frame", nil, holder)
     holder.grid:SetPoint("TOPLEFT", holder, "TOPLEFT", PAD, -(PAD + HEADER))
+    holder.grid.well = core.Skin.Fill(holder.grid, { 0.018, 0.025, 0.038, 1 }, -3)
+    holder.grid.wellEdge = core.Skin.Outline(holder.grid, { 0.16, 0.2, 0.25, 1 }, -4)
+    holder.grid.innerEdge = core.Skin.Outline(holder.grid, { 0, 0, 0, 0.8 }, -2)
     createEmptySearch()
 end
 

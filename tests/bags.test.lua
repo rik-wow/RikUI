@@ -185,6 +185,8 @@ return function(check)
             and holder.filters.all.point[5] == -66 and holder.grid.point[5] == -102)
         check("bag window has distinct reusable header and footer", holder.rikChrome ~= nil
             and holder.rikChrome.header ~= holder.rikChrome.footer)
+        check("bag inventory well stays attached to existing grid", holder.grid.well and holder.grid.well.point[2] == holder.grid)
+        check("bag toolbar uses shared control surfaces", holder.sort.surface and #holder.sort.surface.edge == 4)
         env.runScript(holder.search, "OnEditFocusGained")
         check("bag search focus brightens its outline", color(holder.search.rikBorder[1].color, { 1, 0.82, 0.3 }))
         env.runScript(holder.search, "OnEditFocusLost")
