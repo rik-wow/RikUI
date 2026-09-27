@@ -32,7 +32,7 @@ function interior(title){
  if(/Character equipment|Inspect|Transmog|Collections/.test(title))return window(title,Array.from({length:8},(_,i)=>I(i<4?148:612,103+(i%4)*46,null,36)).join("")+G(330,142,"character",106));
  if(/Character stats/.test(title))return window(title,rows(["Attributes","Strength                      34","Agility                          24","Stamina                        29","Intellect                        31","Spirit                            32"],149,94,502));
  if(/Reputation/.test(title))return window(title,bar(149,109,502,"Stormwind","Friendly","#529664",.43)+bar(149,150,502,"Ironforge","Neutral","#a6a453",.18)+T(149,217,"Skills","#e2c267",16)+bar(149,239,502,"Blacksmithing","12 / 75","#627d9b",.16));
- if(/Merchant|Bank|Trade/.test(title))return window(title,Array.from({length:20},(_,i)=>I(149+(i%10)*50,111+Math.floor(i/10)*50,i===0?"Hearthstone":i===1?"Minor Healing Potion":null,40)).join("")+T(150,276,"Available money","#b8c5cf",13)+T(643,276,"12g 8s 40c","#dec273",13,"end"));
+ if(/Merchant|Bank|bank|Trade/.test(title))return window(title,Array.from({length:20},(_,i)=>I(149+(i%10)*50,111+Math.floor(i/10)*50,i===0?"Hearthstone":i===1?"Minor Healing Potion":null,40)).join("")+T(150,276,"Available money","#b8c5cf",13)+T(643,276,"12g 8s 40c","#dec273",13,"end"));
  if(/Mail/.test(title))return window(title,rows(["Sender                    Subject","Auction House          Auction successful","Mira                         Supplies"],149,103,502)+B(149,259,120,title==="Open mail"?"Reply":"Open mail")+B(531,259,120,"Delete"));
  if(/Quest dialogue|Gossip/.test(title))return window(title,T(149,111,"Grimand Elmore","#e1c170",17)+T(149,147,"Elmore’s Task","#dce2e6",16)+T(149,184,"Speak to Grimand Elmore in Stormwind.","#b7c4d0",13)+B(149,263,115,"Continue")+B(536,263,115,"Goodbye"));
  if(/Professions/.test(title))return window(title,rows(["Recipes","All recipes","Available","Learned"],149,102,176)+T(346,118,"Recipe details","#dfc675",16)+T(346,151,"Reagents","#c6d1db",14)+R(346,173,305,59)+B(526,260,125,"Create"));
@@ -107,6 +107,18 @@ export function illustration(kind,title,index=0){
  }
  const bounds=kind==="unit"&&!["Party","Raid grid"].includes(title)?"180 85 360 130":["cast","resource","pips","timer","totems","auras","combattext","progress","durability"].includes(kind)?"110 70 480 170":kind==="slots"&&!title.includes("column")?"65 80 580 170":"0 0 700 350";
  return '<svg class="ui-example" viewBox="'+bounds+'" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif" role="img" aria-label="'+escapeHTML(title+' — illustrative RikUI mockup')+'">'+R(0,0,700,350,"#0c1117","none")+body+'</svg>';
+}
+// Two illustrations that differ only in their text are the same drawing to a reader.
+export const drawingKey=svg=>svg.replace(/<text\b[^>]*>[\s\S]*?<\/text>/g,"<text/>").replace(/<title>[\s\S]*?<\/title>/g,"").replace(/aria-label="[^"]*"/g,"");
+// Several catalogued surfaces share one drawing; only the first of each drawing is worth showing.
+export function distinctSurfaces(page){
+ const seen=new Map(),canonical=new Map();
+ page.surfaces.forEach((title,index)=>{
+  const drawing=drawingKey(illustration(page.kind,title,index));
+  if(!seen.has(drawing))seen.set(drawing,index);
+  canonical.set(index,seen.get(drawing));
+ });
+ return canonical;
 }
 const WIDE_RENDER=600;
 export function renderFigure(page,capture,caption){

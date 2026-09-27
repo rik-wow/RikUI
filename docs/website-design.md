@@ -137,9 +137,11 @@ web/ui-renders, and one whose address is `mockup` places the catalogued SVG
 illustration named by its alt text. The build fails when a page's captures (or,
 for pages without captures, its catalogued surfaces) are not each placed exactly
 once, so there is no detached gallery. Nine guides currently use the 26 Lua
-captures; the other 41 feature guides still use the 218 illustrative SVGs, whose
-sample values and conditional native surfaces are not evidence of a live client
-capture. The page inventory and module mapping are generated in
+captures; the other 41 feature guides still use illustrative SVGs, whose sample values
+and conditional native surfaces are not evidence of a live client capture. The
+catalogue names 274 surfaces, but many share one drawing once text is ignored;
+the build shows only the first surface of each distinct drawing (89
+illustrations) and rejects a guide that places a duplicate. The page inventory and module mapping are generated in
 web/docs-inventory.json.
 
 Named spell and item identities replace random icon selection. Spell identifiers

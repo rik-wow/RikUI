@@ -4,7 +4,7 @@ import path from "node:path";
 import { Marked } from "marked";
 import { catalogue, modulePages } from "./docs-catalogue.mjs";
 import { createHash } from "node:crypto";
-import { illustration, renderFigure, mockupFigure, escapeHTML as esc } from "./docs-visuals.mjs";
+import { illustration, renderFigure, mockupFigure, distinctSurfaces, escapeHTML as esc } from "./docs-visuals.mjs";
 import startGuides from "./guides-start.mjs";
 import combatGuides from "./guides-combat.mjs";
 import worldGuides from "./guides-world.mjs";
@@ -27,7 +27,7 @@ for(const capture of renderManifest.renders){
  visualPaths.set("render:"+capture.id,capture.url);
 }
 for(const page of catalogue)for(const [index,title] of page.surfaces.entries()){
- if(liveRenders.has(page.slug))continue;
+ if(liveRenders.has(page.slug)||distinctSurfaces(page).get(index)!==index)continue;
  const svg=illustration(page.kind,title,index);
  const hash=createHash("sha256").update(svg).digest("hex").slice(0,12);
  const name=page.slug+"-"+index+"-"+hash+".svg";
@@ -93,6 +93,8 @@ function placeFigure(page,href,caption,used){
  if(href===MOCKUP_REFERENCE){
   const index=page.feature?.surfaces.indexOf(caption)??-1;
   if(index<0||liveRenders.has(page.slug))throw Error(page.slug+": unknown mockup reference "+caption);
+  const canonical=distinctSurfaces(page.feature).get(index);
+  if(canonical!==index)throw Error(page.slug+": "+caption+" is the same drawing as "+page.feature.surfaces[canonical]+"; place only one of them");
   used.add("mockup:"+index);
   return mockupFigure(page.feature,caption,index,visualPaths.get(page.slug+":"+index));
  }
@@ -101,7 +103,8 @@ function placeFigure(page,href,caption,used){
 function expectedFigures(page){
  if(!page.feature)return [];
  const captures=liveRenders.get(page.slug);
- return captures?captures.map(capture=>"render:"+capture.id):page.feature.surfaces.map((_,index)=>"mockup:"+index);
+ if(captures)return captures.map(capture=>"render:"+capture.id);
+ return [...distinctSurfaces(page.feature)].filter(([index,canonical])=>index===canonical).map(([index])=>"mockup:"+index);
 }
 function verifyPlacement(page,used){
  const expected=expectedFigures(page);

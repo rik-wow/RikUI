@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { documentation } from "./docs-generated.mjs";
 import { catalogue } from "./docs-catalogue.mjs";
+import { distinctSurfaces, drawingKey } from "./docs-visuals.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 const renders=JSON.parse(readFileSync(new URL("./ui-renders/manifest.json",import.meta.url),"utf8")).renders;
@@ -18,10 +19,12 @@ const placements={
  shell:{"shell-menu":"ref-the-rikui-button"}
 };
 const mockupPlacements={
- interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Inspect":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},
- nameplates:{"Threat indication":"ref-threat","Friendly name":"ref-size-and-visibility"},
- layout:{"Layout presets":"ref-scale-and-presets","Undo layout change":"ref-reset-or-undo"}
+ interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Friends":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},
+ nameplates:{"Enemy plate":"ref-enemy-nameplates","Debuff row":"ref-enemy-nameplates","Nameplate cast":"ref-enemy-nameplates"},
+ layout:{"Frame mover":"ref-move-a-frame"},
+ "combat-hud":{"Primary resource":"ref-resource-display"}
 };
+const distinctCount=page=>[...distinctSurfaces(page)].filter(([index,canonical])=>index===canonical).length;
 const figureSections=()=>{
  const article=document.querySelector("article.doc-prose");
  let heading=null;const result=[];
@@ -66,7 +69,9 @@ test("every documentation route and internal guide link resolves",async({request
  expect((await request.get("/docs/bags/",{maxRedirects:0})).status()).toBe(308);
  for(const guide of catalogue){
   expect(pages["/docs/"+guide.slug]).toContain('class="ui-example"');
-  expect(pages["/docs/"+guide.slug].match(/<figure /g)?.length,guide.slug).toBe(renders.filter(render=>render.page===guide.slug).length||guide.surfaces.length);
+  expect(pages["/docs/"+guide.slug].match(/<figure /g)?.length,guide.slug).toBe(renders.filter(render=>render.page===guide.slug).length||distinctCount(guide));
+  const drawings=[...pages["/docs/"+guide.slug].matchAll(/<figure [\s\S]*?<\/figure>/g)].map(([figure])=>drawingKey(figure.match(/<svg[\s\S]*<\/svg>|<img [^>]*>/)[0]));
+  expect(new Set(drawings).size,guide.slug+" repeats a drawing").toBe(drawings.length);
  }
 });
 
