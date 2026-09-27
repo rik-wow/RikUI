@@ -26,7 +26,10 @@ amounts, durations, validation and confirmation dialogs. It does not issue
 search or transaction requests of its own.
 
 The adapter handles the auction addon's delayed loading, native tab changes,
-recycled result rows and display-size changes. Visual updates defer during
+recycled result rows and display-size changes. Repeated refreshes preserve
+unchanged control anchors and leave subsequent form layout to the native
+controllers, so showing a pooled row does not restart the whole layout.
+Visual updates defer during
 combat. Protected and forbidden frames are skipped.
 
 ## Implementation and evidence

@@ -1,8 +1,27 @@
 local core, auction, skin = RikUI, RikUI.AuctionHouse, RikUI.Skin
 local PAD, SIDE, GAP = auction.PAD, auction.SIDEBAR, 12
 
+local function samePoint(frame, index, point, parent, relativePoint, x, y)
+    local actual, relative, anchor, dx, dy = frame:GetPoint(index)
+    return actual == point and relative == parent and anchor == relativePoint and dx == x and dy == y
+end
+
+local function size(frame, width, height)
+    if frame:GetWidth() ~= width or frame:GetHeight() ~= height then frame:SetSize(width, height) end
+end
+
+-- Leave hit rectangles attached while refreshing colors, data or native status.
+function auction.Point(frame, parent, point, relativePoint, x, y)
+    if not auction.Allowed(frame) then return end
+    if frame:GetNumPoints() == 1 and samePoint(frame, 1, point, parent, relativePoint, x, y) then return end
+    frame:ClearAllPoints()
+    frame:SetPoint(point, parent, relativePoint, x, y)
+end
+
 function auction.Rect(frame, parent, left, top, right, bottom)
     if not auction.Allowed(frame) then return end
+    if frame:GetNumPoints() == 2 and samePoint(frame, 1, "TOPLEFT", parent, "TOPLEFT", left, -top)
+        and samePoint(frame, 2, "BOTTOMRIGHT", parent, "BOTTOMRIGHT", -right, bottom) then return end
     frame:ClearAllPoints()
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", left, -top)
     frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -right, bottom)
@@ -10,16 +29,14 @@ end
 
 function auction.Box(frame, parent, left, top, width, height)
     if not auction.Allowed(frame) then return end
-    frame:ClearAllPoints()
-    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", left, -top)
-    frame:SetSize(width, height)
+    auction.Point(frame, parent, "TOPLEFT", "TOPLEFT", left, -top)
+    size(frame, width, height)
 end
 
 local function footer(frame, parent, right, width)
     if not auction.Allowed(frame) then return end
-    frame:ClearAllPoints()
-    frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -right, 12)
-    frame:SetSize(width, 30)
+    auction.Point(frame, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", -right, 12)
+    size(frame, width, 30)
 end
 
 function auction.Nav(frame, parent, left, top, width, selected)
@@ -96,14 +113,8 @@ local function itemBuy(frame)
     if not auction.Allowed(buy) then return end
     auction.Rect(buy, frame, PAD + SIDE + GAP, 158, PAD, 54)
     auction.Box(buy.BackButton, buy, 0, 0, 110, 28)
-    auction.Rect(buy.ItemDisplay, buy, 0, 38, 0, 0)
-    if buy.ItemDisplay then
-        buy.ItemDisplay:ClearAllPoints()
-        buy.ItemDisplay:SetPoint("TOPLEFT", buy, "TOPLEFT", 0, -38)
-        buy.ItemDisplay:SetPoint("TOPRIGHT", buy, "TOPRIGHT", 0, -38)
-        buy.ItemDisplay:SetHeight(80)
-        auction.Card(buy.ItemDisplay)
-    end
+    auction.Box(buy.ItemDisplay, buy, 0, 38, auction.WIDTH - PAD * 2 - SIDE - GAP, 80)
+    auction.Card(buy.ItemDisplay)
     auction.Rect(buy.ItemList, buy, 0, 130, 0, 54)
     footer(buy.BuyoutFrame, buy, 8, 120)
     footer(buy.BidFrame, buy, 150, 250)
@@ -122,7 +133,11 @@ local function commodityBuy(frame)
     if auction.Allowed(buy.BuyDisplay) then
         buy.BuyDisplay.fixedWidth, buy.BuyDisplay.fixedHeight = 390, 410
         auction.Card(buy.BuyDisplay)
-        if type(buy.BuyDisplay.Layout) == "function" then buy.BuyDisplay:Layout() end
+        local state = auction.State(buy.BuyDisplay)
+        if not state.formLayout then
+            state.formLayout = true
+            if type(buy.BuyDisplay.Layout) == "function" then buy.BuyDisplay:Layout() end
+        end
     end
 end
 
@@ -140,7 +155,11 @@ local function sellPanel(panel, frame)
         core.Media.Font(panel.CreateAuctionLabel, "label")
     end
     if auction.Allowed(panel.PostButton) then panel.PostButton:SetSize(220, 30) end
-    if type(panel.Layout) == "function" then panel:Layout() end
+    local state = auction.State(panel)
+    if not state.formLayout then
+        state.formLayout = true
+        if type(panel.Layout) == "function" then panel:Layout() end
+    end
 end
 
 local function selling(frame)
@@ -183,10 +202,11 @@ end
 
 function auction.Layout(frame)
     frame:SetClampedToScreen(true)
-    frame:SetSize(auction.WIDTH, auction.HEIGHT)
+    size(frame, auction.WIDTH, auction.HEIGHT)
     local width, height = UIParent:GetWidth(), UIParent:GetHeight()
     if type(width) == "number" and type(height) == "number" and width > 0 and height > 0 then
-        frame:SetScale(math.min(1, (width - 40) / auction.WIDTH, (height - 60) / auction.HEIGHT))
+        local scale = math.min(1, (width - 40) / auction.WIDTH, (height - 60) / auction.HEIGHT)
+        if frame:GetScale() ~= scale then frame:SetScale(scale) end
     end
     header(frame); search(frame); browse(frame)
     itemBuy(frame); commodityBuy(frame); selling(frame); management(frame)

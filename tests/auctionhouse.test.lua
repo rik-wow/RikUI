@@ -4,6 +4,9 @@ return function(check)
     local restore = widgets.install()
     local names = { "AuctionHouseFrame", "ScrollBoxListMixin", "C_AuctionHouse", "PanelTemplates_SetTab",
         "AuctionHouseFilterButton_SetUp", "UIParent" }
+    local auctionEvent = "AUCTION_HOUSE_THROTTLED_MESSAGE_SENT"
+    local knownEvent = env.KNOWN_EVENTS[auctionEvent]
+    env.KNOWN_EVENTS[auctionEvent] = true
     local saved = {}
     for _, name in ipairs(names) do saved[name] = _G[name] end
     local ok, reason = pcall(function()
@@ -114,6 +117,43 @@ return function(check)
         auction.Refresh(); auction.Refresh()
         check("repeated refresh reuses chrome and hooks", root.rikAuction.chrome == chrome and #root.hooks.OnShow == hooks
             and list.ScrollBox.updates == 1)
+        env.flushTimers()
+        RikUI.Interiors.Enable()
+        env.flushTimers(); env.flushTimers()
+        local layout, refreshes = auction.Layout, 0
+        auction.Layout = function(frame) refreshes = refreshes + 1; layout(frame) end
+        env.fire("AUCTION_HOUSE_THROTTLED_MESSAGE_SENT")
+        env.flushTimers()
+        check("auction event settles after one presentation refresh", refreshes == 1 and #env.timers == 0,
+            "refreshes=" .. refreshes .. " timers=" .. #env.timers)
+        auction.Layout = layout
+        local hovered, tooltipShown, leaves = root.SearchBar.SearchButton, true, 0
+        local clear = hovered.ClearAllPoints
+        hovered:SetScript("OnLeave", function() tooltipShown = false; leaves = leaves + 1 end)
+        function hovered:ClearAllPoints()
+            env.runScript(self, "OnLeave")
+            clear(self)
+        end
+        local layouts = root.ItemSellFrame.layouts
+        local commodityLayouts = root.CommoditiesBuyFrame.BuyDisplay.layouts
+        auction.Refresh(); auction.Refresh()
+        check("stationary auction hover survives repeated refresh", tooltipShown and leaves == 0)
+        check("unchanged refresh does not rerun native form layout", root.ItemSellFrame.layouts == layouts
+            and root.CommoditiesBuyFrame.BuyDisplay.layouts == commodityLayouts)
+        hovered.ClearAllPoints = clear
+        local rectClears, rectClear = 0, list.ClearAllPoints
+        function list:ClearAllPoints() rectClears = rectClears + 1; rectClear(self) end
+        auction.Refresh()
+        check("stable result viewport retains its anchors", rectClears == 0)
+        hovered:ClearAllPoints()
+        hovered:SetPoint("TOPLEFT", root.SearchBar, "TOPLEFT", 999, 0)
+        auction.Refresh()
+        check("native anchor changes can still be repaired", hovered:GetPoint(1) == "TOPLEFT"
+            and fixture.Bounds(hovered).right <= fixture.Bounds(root.SearchBar).right)
+        list.ClearAllPoints = rectClear
+        env.runScript(row, "OnShow")
+        check("pooled row show does not schedule whole auction refresh", #env.timers == 0)
+        env.flushTimers()
         root.BrowseResultsFrame:Hide(); root.ItemSellFrame:Show()
         PanelTemplates_SetTab(root, 2); env.flushTimers()
         check("native tab changes update custom selection", root.SellTab.rikAuction.rail:IsShown()
@@ -153,6 +193,7 @@ return function(check)
         end
     end)
     for _, name in ipairs(names) do _G[name] = saved[name] end
+    env.KNOWN_EVENTS[auctionEvent] = knownEvent
     env.inCombat = false
     restore()
     check("auction house suite completes", ok, reason)

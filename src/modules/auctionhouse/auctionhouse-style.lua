@@ -72,8 +72,7 @@ local function list(frame)
     header.fill:SetVertexColor(0.12, 0.145, 0.185, 1)
     local refresh = frame.RefreshFrame
     if auction.Allowed(refresh) then
-        refresh:ClearAllPoints()
-        refresh:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, 30)
+        auction.Point(refresh, frame, "TOPRIGHT", "TOPRIGHT", -8, 30)
     end
     local width = frame.ScrollBox:GetWidth()
     local state = auction.State(frame)
@@ -168,9 +167,6 @@ function auction.Style(frame)
     for _, key in ipairs(TEXT_KEYS) do font(frame[key]) end
     for _, region in ipairs({ frame:GetRegions() }) do font(region) end
     for _, key in ipairs(ACTIONS) do action(frame[key]) end
-    local state = auction.State(frame)
-    if not state.watched then
-        state.watched = true
-        core.Hooks.Script(frame, "OnShow", auction.Queue)
-    end
+    -- Interiors already decorates shown children and pooled rows locally.
+    -- Queuing the root here feeds native row recycling back into a full relayout.
 end

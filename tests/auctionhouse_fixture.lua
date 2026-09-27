@@ -12,6 +12,9 @@ function fixture.Frame(parent, key, kind)
     function f:GetChildren() return unpack(self.children) end
     function f:GetRegions() return unpack(self.regions) end
     function f:SetScale(value) self.scale = value end
+    function f:GetScale() return self.scale or 1 end
+    function f:GetNumPoints() return #(self.points or {}) end
+    function f:GetPoint(index) return unpack((self.points or {})[index or 1] or {}) end
     if parent then parent.children[#parent.children + 1] = f; parent[key] = f end
     return f
 end
