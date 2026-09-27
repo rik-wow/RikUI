@@ -1,5 +1,7 @@
 # Changelog
 
+- Native item counts now have dark inset badges above the icon art. Badges follow count visibility and clear on empty/reused slots; native quantities and quality colors remain intact.
+
 Versions follow [semantic versioning](https://semver.org/). The tags
 `v0.0.1-beta.1` and `v0.0.1-beta.2` from September 2026 were packaging tests
 and carry no notes. The BigWigs packager ships this file in the release ZIP

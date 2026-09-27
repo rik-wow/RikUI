@@ -19,6 +19,8 @@ return function(check)
         item.icon, item.IconBorder = item:CreateTexture(), item:CreateTexture()
         function item:IsProtected() return true end
         item.IconBorder:SetVertexColor(0.6, 0.2, 0.9)
+        item.Count = item:CreateFontString()
+        item.Count:SetText("20")
         local clicks = 0
         item:SetScript("OnClick", function() clicks = clicks + 1 end)
         local row = frame("Frame", root)
@@ -29,6 +31,18 @@ return function(check)
         check("equipment gets cropped icon and edge", item.icon.coords[1] == 0.08 and #state.edge == 4)
         check("quality border becomes native-coloured strip", item.IconBorder.texture == RikUI.Skin.FLAT
             and item.IconBorder.height == 2 and item.IconBorder.color[3] == 0.9)
+        local badge = state.countPlate
+        check("item count has an inset contrast badge", badge and badge.points[1][2] == item.Count
+            and badge:IsShown() and item.Count:GetText() == "20")
+        item.Count:Hide()
+        service.Item(item)
+        check("hidden count clears its badge on reuse", badge and not badge:IsShown())
+        item.Count:Show(); item.Count:SetText("")
+        service.Item(item)
+        check("empty count clears its badge", badge and not badge:IsShown())
+        item.Count:SetText("99")
+        service.Item(item)
+        check("returning stack reuses badge", state.countPlate == badge and badge and badge:IsShown())
         check("secure buttons have no addon fields or layout writes", item.rikFill == nil
             and item.points == nil and next(item.attributes) == nil)
         env.runScript(item, "OnClick")

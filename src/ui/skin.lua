@@ -109,6 +109,27 @@ function skin.WindowChrome(owner, headerHeight, footerHeight)
     return chrome
 end
 
+-- Contrast plates follow the native string's bounds. Call again after native setup/reuse.
+local textPlates = setmetatable({}, { __mode = "k" })
+function skin.TextPlate(owner, region, color, padding, layer)
+    if not skin.IsRegion(region) or type(region.GetText) ~= "function" then return end
+    local plate = textPlates[region]
+    if not plate then
+        plate = owner:CreateTexture(nil, layer or "BACKGROUND", nil, -1)
+        plate:SetTexture(skin.FLAT)
+        textPlates[region] = plate
+    end
+    padding = padding or 3
+    plate:ClearAllPoints()
+    plate:SetPoint("TOPLEFT", region, "TOPLEFT", -padding, 1)
+    plate:SetPoint("BOTTOMRIGHT", region, "BOTTOMRIGHT", padding, -1)
+    plate:SetVertexColor(unpack(color or { 0.025, 0.035, 0.05, 0.9 }))
+    local text = region:GetText()
+    local secret = RikUI.Secret and RikUI.Secret.IsSecret(text)
+    plate:SetShown(not secret and type(text) == "string" and text ~= "" and region:IsShown())
+    return plate
+end
+
 function skin.Font(region, role)
     if skin.IsRegion(region) and type(region.SetFont) == "function" then media.Font(region, role) end
 end

@@ -1,5 +1,7 @@
 # UI oracle
 
+- Native item counts now have dark inset badges above the icon art. Badges follow count visibility and clear on empty/reused slots; native quantities and quality colors remain intact.
+
 ## Additional visual polish — September 2026
 
 - Static popups now separate secondary text with quieter ink and an inset top rule. Input fields show focus outlines; actions gain press feedback and recessed disabled surfaces, including pooled game-menu buttons.

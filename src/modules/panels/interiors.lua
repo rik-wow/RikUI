@@ -78,6 +78,23 @@ function interiors.Quality(frame)
     border:SetHeight(2)
 end
 
+function interiors.Count(frame)
+    local state = states[frame]
+    if not state then return end
+    local count = frame.Count
+    if not skin.IsRegion(count) then
+        local name = type(frame.GetName) == "function" and frame:GetName()
+        count = type(name) == "string" and _G[name .. "Count"] or nil
+    end
+    if not skin.IsRegion(count) or type(count.GetText) ~= "function" then
+        if state.countPlate then state.countPlate:Hide() end
+        return
+    end
+    count:SetDrawLayer("OVERLAY", 1)
+    skin.Typeface(count)
+    state.countPlate = skin.TextPlate(frame, count, nil, 2, "OVERLAY")
+end
+
 function interiors.Item(frame)
     local icon = interiors.Icon(frame)
     if not skin.IsRegion(icon) then return end
@@ -97,6 +114,7 @@ function interiors.Item(frame)
     motion.BindPress(frame, state)
     interiors.Labels(frame)
     interiors.Quality(frame)
+    interiors.Count(frame)
 end
 
 function interiors.Row(frame)
@@ -236,6 +254,7 @@ function interiors.Enable()
     for _, start in ipairs(refreshers) do start() end
     interiors.Discover()
     core:RegisterEvent("ADDON_LOADED", interiors.Discover)
+    core.Hooks.Function("SetItemButtonCount", interiors.Count)
     core.Hooks.Function("SetItemButtonQuality", function(frame)
         if states[frame] then
             local ok, reason = pcall(interiors.Quality, frame)
