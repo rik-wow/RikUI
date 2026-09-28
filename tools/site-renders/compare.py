@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import sys
 from check import BASELINE, ROOT
+from schema import frames_of, frame_id
 from validate_capture import compare_images
 
 def main():
@@ -10,15 +11,20 @@ def main():
     manifest = json.loads((current / "manifest.json").read_text())
     previous_path = BASELINE / "manifest.json"
     previous = json.loads(previous_path.read_text()) if previous_path.exists() else {"renders": []}
-    known = {r["id"]: r for r in previous["renders"]}
+    known = {}
+    for capture in previous["renders"]:
+        for frame in frames_of(capture):
+            known[frame_id(capture, frame)] = frame
     results = []
     for capture in manifest["renders"]:
-        old = known.get(capture["id"])
-        result = {"changed": True, "reason": "new scenario"}
-        if old:
-            result = compare_images(current / capture["filename"], BASELINE / old["filename"],
-                                    current / "diffs" / (capture["id"] + ".png"))
-        results.append({"id": capture["id"], **result})
+        for frame in frames_of(capture):
+            name = frame_id(capture, frame)
+            old = known.get(name)
+            result = {"changed": True, "reason": "new scenario"}
+            if old:
+                result = compare_images(current / frame["filename"], BASELINE / old["filename"],
+                                        current / "diffs" / (name + ".png"))
+            results.append({"id": name, **result})
     (current / "comparison.json").write_text(json.dumps(results, indent=2) + "\n")
     changed = [r["id"] for r in results if r["changed"]]
     print("Changed captures: " + (", ".join(changed) or "none"))
@@ -27,4 +33,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

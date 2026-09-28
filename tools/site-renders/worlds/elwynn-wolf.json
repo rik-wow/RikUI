@@ -1,0 +1,1440 @@
+{
+  "name": "elwynn-wolf",
+  "caption": "South of Goldshire, facing a Mangy Wolf on the grass.",
+  "file": "elwynn-wolf.jpg",
+  "width": 2048,
+  "height": 1152,
+  "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+  "capturedAt": "2026-09-28T00:55:46.754Z",
+  "app": {
+    "root": "D:/Code/isometric-wow-sim",
+    "commit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+    "dirty": [
+      "ADVENTURER_AI_AUDIT.md",
+      "STREAMING_AND_NAVIGATION_AUDIT.md",
+      "src/native/scene.ts",
+      "src/sim/adventurers.ts",
+      "src/sim/ai.test.mjs",
+      "src/sim/casting.ts",
+      "src/sim/combat.ts",
+      "src/sim/creatures.ts",
+      "src/sim/goals.ts",
+      "src/sim/heights.ts",
+      "src/sim/rotation.ts",
+      "src/sim/snapshot.ts",
+      "src/sim/travel.ts",
+      "src/sim/walkability.test.mjs",
+      "src/sim/walkability.ts",
+      "src/sim/worker.ts",
+      "src/sim/world.ts",
+      "vite.config.ts"
+    ],
+    "url": "http://localhost:5173",
+    "browser": "153.0.8010.12"
+  },
+  "request": {
+    "map": 0,
+    "hour": 14,
+    "quality": "ultra",
+    "realm": true,
+    "seed": 24401,
+    "camera": {
+      "x": -52.3,
+      "z": 9406,
+      "above": 4.2
+    },
+    "lookAt": {
+      "x": -52.6,
+      "z": 9393,
+      "above": 0.8
+    },
+    "follow": null
+  },
+  "camera": {
+    "x": -52.3,
+    "y": 64.5762500915528,
+    "z": 9406,
+    "yaw": 0.023072827890143977,
+    "pitch": -0.3028609100331466,
+    "fov": 62
+  },
+  "followed": null,
+  "actors": [
+    {
+      "id": 1079648,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": -52.579200744628906,
+      "y": 59.71125793457031,
+      "z": 9393.3603515625,
+      "distance": 13.546468704680885,
+      "screen": {
+        "x": 1025,
+        "y": 570
+      }
+    },
+    {
+      "id": 1080342,
+      "entry": 525,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Mangy Wolf",
+      "level": 6,
+      "x": -59.61869812011719,
+      "y": 59.89912414550781,
+      "z": 9386.41015625,
+      "distance": 21.428971684100667,
+      "screen": {
+        "x": 694,
+        "y": 462
+      }
+    },
+    {
+      "id": 1080341,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": -49.6599006652832,
+      "y": 60.39946746826172,
+      "z": 9380.7197265625,
+      "distance": 25.75864636688361,
+      "screen": {
+        "x": 1148,
+        "y": 404
+      }
+    },
+    {
+      "id": 1080335,
+      "entry": 1423,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Stormwind Guard",
+      "level": 24,
+      "x": -73.72740173339844,
+      "y": 56.76715850830078,
+      "z": 9455.4296875,
+      "distance": 54.43720660309198,
+      "screen": {
+        "x": 1508,
+        "y": 123
+      }
+    },
+    {
+      "id": 1080351,
+      "entry": 525,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Mangy Wolf",
+      "level": 6,
+      "x": -39.70859909057617,
+      "y": 61.622100830078125,
+      "z": 9352.6796875,
+      "distance": 54.86643873825389,
+      "screen": {
+        "x": 1283,
+        "y": 315
+      }
+    },
+    {
+      "id": 1080343,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": -56.44070053100586,
+      "y": 60.991207122802734,
+      "z": 9351.23046875,
+      "distance": 55.04270603195288,
+      "screen": {
+        "x": 972,
+        "y": 325
+      }
+    },
+    {
+      "id": 1079646,
+      "entry": 2329,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Michelle Belle",
+      "level": 11,
+      "x": -29.361000061035156,
+      "y": 63.90380096435547,
+      "z": 9456.8095703125,
+      "distance": 55.75179227046767,
+      "screen": {
+        "x": 599,
+        "y": 283
+      }
+    },
+    {
+      "id": 1080347,
+      "entry": 377,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Priestess Josetta",
+      "level": 13,
+      "x": -33.1338005065918,
+      "y": 63.90380096435547,
+      "z": 9460.75,
+      "distance": 58.011704774552086,
+      "screen": {
+        "x": 699,
+        "y": 283
+      }
+    },
+    {
+      "id": 1080350,
+      "entry": 253,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "William Pestle",
+      "level": 6,
+      "x": -31.938899993896484,
+      "y": 56.5293083190918,
+      "z": 9460.2998046875,
+      "distance": 58.5473864015173,
+      "screen": {
+        "x": 659,
+        "y": 135
+      }
+    },
+    {
+      "id": 1080340,
+      "entry": 6749,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Erma",
+      "level": 30,
+      "x": -48.14189910888672,
+      "y": 56.884361267089844,
+      "z": 9465.9501953125,
+      "distance": 60.58449368209222,
+      "screen": {
+        "x": 976,
+        "y": 155
+      }
+    },
+    {
+      "id": 1080336,
+      "entry": 514,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Smith Argus",
+      "level": 24,
+      "x": -87.85530090332031,
+      "y": 58.427101135253906,
+      "z": 9456.650390625,
+      "distance": 62.18885370930622,
+      "screen": {
+        "x": 1789,
+        "y": 164
+      }
+    },
+    {
+      "id": 1080283,
+      "entry": 3937,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Kira Songshine",
+      "level": 12,
+      "x": -61.664100646972656,
+      "y": 55.98373794555664,
+      "z": 9468.3701171875,
+      "distance": 63.65178052410009,
+      "screen": {
+        "x": 1206,
+        "y": 143
+      }
+    },
+    {
+      "id": 1080328,
+      "entry": 5403,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "White Stallion",
+      "level": 1,
+      "x": -46.117401123046875,
+      "y": 56.72567367553711,
+      "z": 9468.900390625,
+      "distance": 63.689208031774044,
+      "screen": {
+        "x": 946,
+        "y": 158
+      }
+    },
+    {
+      "id": 1080334,
+      "entry": 240,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Marshal Dughan",
+      "level": 25,
+      "x": -74.00689697265625,
+      "y": 56.59515380859375,
+      "z": 9465.51953125,
+      "distance": 63.85500665005919,
+      "screen": {
+        "x": 1432,
+        "y": 147
+      }
+    },
+    {
+      "id": 1080332,
+      "entry": 620,
+      "kind": "creature",
+      "flags": [],
+      "name": "Chicken",
+      "level": 1,
+      "x": -54.063899993896484,
+      "y": 57.08905792236328,
+      "z": 9470.2197265625,
+      "distance": 64.67876521339217,
+      "screen": {
+        "x": 1076,
+        "y": 167
+      }
+    },
+    {
+      "id": 1080331,
+      "entry": 620,
+      "kind": "creature",
+      "flags": [],
+      "name": "Chicken",
+      "level": 1,
+      "x": -47.392601013183594,
+      "y": 56.69729232788086,
+      "z": 9472.6201171875,
+      "distance": 67.26366444324727,
+      "screen": {
+        "x": 972,
+        "y": 164
+      }
+    },
+    {
+      "id": 1080329,
+      "entry": 5406,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Palomino",
+      "level": 1,
+      "x": -46.97700119018555,
+      "y": 56.703670501708984,
+      "z": 9472.91015625,
+      "distance": 67.58166049400626,
+      "screen": {
+        "x": 966,
+        "y": 165
+      }
+    },
+    {
+      "id": 1080346,
+      "entry": 295,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Innkeeper Farley",
+      "level": 30,
+      "x": -16.191499710083008,
+      "y": 57.0458984375,
+      "z": 9462.66015625,
+      "distance": 67.60845579877598,
+      "screen": {
+        "x": 394,
+        "y": 153
+      }
+    },
+    {
+      "id": 1080344,
+      "entry": 328,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Zaldimar Wefhellt",
+      "level": 13,
+      "x": -34.45100021362305,
+      "y": 63.90380096435547,
+      "z": 9471.669921875,
+      "distance": 68.05569498779184,
+      "screen": {
+        "x": 776,
+        "y": 282
+      }
+    },
+    {
+      "id": 1080339,
+      "entry": 2046,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Andrew Krighton",
+      "level": 8,
+      "x": -87.9186019897461,
+      "y": 58.34299850463867,
+      "z": 9464.080078125,
+      "distance": 68.41661865406545,
+      "screen": {
+        "x": 1691,
+        "y": 177
+      }
+    },
+    {
+      "id": 1080320,
+      "entry": 797,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Bo",
+      "level": 1,
+      "x": -94.2334976196289,
+      "y": 58.354000091552734,
+      "z": 9460.580078125,
+      "distance": 69.10947507982554,
+      "screen": {
+        "x": 1859,
+        "y": 171
+      }
+    },
+    {
+      "id": 1079647,
+      "entry": 465,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Barkeep Dobbins",
+      "level": 10,
+      "x": -8.411399841308594,
+      "y": 57.14590072631836,
+      "z": 9459.98046875,
+      "distance": 69.96649428153917,
+      "screen": {
+        "x": 216,
+        "y": 149
+      }
+    },
+    {
+      "id": 1080337,
+      "entry": 74,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Kurran Steele",
+      "level": 10,
+      "x": -99.68840026855469,
+      "y": 58.427101135253906,
+      "z": 9457.6396484375,
+      "distance": 70.35713043926751,
+      "screen": {
+        "x": 2021,
+        "y": 166
+      }
+    },
+    {
+      "id": 1080345,
+      "entry": 6778,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Melika Isenstrider",
+      "level": 11,
+      "x": -27.407699584960938,
+      "y": 56.33091354370117,
+      "z": 9471.9404296875,
+      "distance": 70.963035885678,
+      "screen": {
+        "x": 659,
+        "y": 158
+      }
+    },
+    {
+      "id": 1079645,
+      "entry": 917,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Keryn Sylvius",
+      "level": 11,
+      "x": -12.645400047302246,
+      "y": 63.90380096435547,
+      "z": 9465.7900390625,
+      "distance": 71.74808886885032,
+      "screen": {
+        "x": 392,
+        "y": 282
+      }
+    },
+    {
+      "id": 1080338,
+      "entry": 54,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Corina Steele",
+      "level": 10,
+      "x": -93.9896011352539,
+      "y": 58.527099609375,
+      "z": 9464.8701171875,
+      "distance": 72.38995622351611,
+      "screen": {
+        "x": 1792,
+        "y": 182
+      }
+    },
+    {
+      "id": 1080348,
+      "entry": 151,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Brog Hamfist",
+      "level": 10,
+      "x": -9.633099555969238,
+      "y": 57.14590072631836,
+      "z": 9465.2900390625,
+      "distance": 73.42331521542083,
+      "screen": {
+        "x": 312,
+        "y": 160
+      }
+    },
+    {
+      "id": 1080330,
+      "entry": 1423,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Stormwind Guard",
+      "level": 22,
+      "x": -74.42240142822266,
+      "y": 56.54877471923828,
+      "z": 9481.3095703125,
+      "distance": 78.90102905829508,
+      "screen": {
+        "x": 1354,
+        "y": 175
+      }
+    },
+    {
+      "id": 1080349,
+      "entry": 3935,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Toddrick",
+      "level": 10,
+      "x": -0.06129999831318855,
+      "y": 57.03350067138672,
+      "z": 9466.419921875,
+      "distance": 80.22681475705458,
+      "screen": {
+        "x": 167,
+        "y": 161
+      }
+    },
+    {
+      "id": 1080355,
+      "entry": 1430,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Tomas",
+      "level": 10,
+      "x": 4.533999919891357,
+      "y": 57.03300094604492,
+      "z": 9466.990234375,
+      "distance": 83.70670728013884,
+      "screen": {
+        "x": 100,
+        "y": 162
+      }
+    },
+    {
+      "id": 1080325,
+      "entry": 927,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Brother Wilhelm",
+      "level": 11,
+      "x": -108.97599792480469,
+      "y": 57.47711944580078,
+      "z": 9468.1396484375,
+      "distance": 84.40321264403397,
+      "screen": {
+        "x": 2014,
+        "y": 168
+      }
+    },
+    {
+      "id": 1080352,
+      "entry": 6374,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Cylina Darkheart",
+      "level": 11,
+      "x": 5.529300212860107,
+      "y": 56.42271423339844,
+      "z": 9466.9697265625,
+      "distance": 84.42757646175407,
+      "screen": {
+        "x": 81,
+        "y": 151
+      }
+    },
+    {
+      "id": 1080353,
+      "entry": 906,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Maximillian Crowe",
+      "level": 10,
+      "x": 5.326600074768066,
+      "y": 56.45158386230469,
+      "z": 9472.7998046875,
+      "distance": 88.59485957888353,
+      "screen": {
+        "x": 169,
+        "y": 163
+      }
+    },
+    {
+      "id": 1080354,
+      "entry": 6121,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Remen Marcot",
+      "level": 10,
+      "x": 8.588199615478516,
+      "y": 56.44816207885742,
+      "z": 9473.4296875,
+      "distance": 91.2151381268709,
+      "screen": {
+        "x": 129,
+        "y": 164
+      }
+    },
+    {
+      "id": 1080326,
+      "entry": 241,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Remy \"Two Times\"",
+      "level": 5,
+      "x": -72.82640075683594,
+      "y": 56.41454315185547,
+      "z": 9496.3203125,
+      "distance": 92.98228561558054,
+      "screen": {
+        "x": 1283,
+        "y": 190
+      }
+    },
+    {
+      "id": 1080327,
+      "entry": 66,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Tharynn Bouden",
+      "level": 10,
+      "x": -83.90959930419922,
+      "y": 56.475013732910156,
+      "z": 9494.1298828125,
+      "distance": 93.9769814542668,
+      "screen": {
+        "x": 1421,
+        "y": 189
+      }
+    },
+    {
+      "id": 1081090,
+      "entry": 883,
+      "kind": "creature",
+      "flags": [],
+      "name": "Deer",
+      "level": 5,
+      "x": 33.600101470947266,
+      "y": 59.14524459838867,
+      "z": 9490.580078125,
+      "distance": 120.67357983012238,
+      "screen": {
+        "x": 34,
+        "y": 222
+      }
+    },
+    {
+      "id": 1081091,
+      "entry": 890,
+      "kind": "creature",
+      "flags": [],
+      "name": "Fawn",
+      "level": 1,
+      "x": 32.66699981689453,
+      "y": 59.01753234863281,
+      "z": 9492.48046875,
+      "distance": 121.3637584950686,
+      "screen": {
+        "x": 66,
+        "y": 221
+      }
+    },
+    {
+      "id": 1079651,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": -93.21410369873047,
+      "y": 70.00667572021484,
+      "z": 9288.7802734375,
+      "distance": 124.27355993680298,
+      "screen": {
+        "x": 694,
+        "y": 218
+      }
+    },
+    {
+      "id": 1079650,
+      "entry": 525,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Mangy Wolf",
+      "level": 6,
+      "x": -93.02410125732422,
+      "y": 70.35765075683594,
+      "z": 9281.849609375,
+      "distance": 130.78683614649228,
+      "screen": {
+        "x": 715,
+        "y": 218
+      }
+    },
+    {
+      "id": 1079920,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": 10.243900299072266,
+      "y": 69.4078140258789,
+      "z": 9290,
+      "distance": 131.87525724968947,
+      "screen": {
+        "x": 1605,
+        "y": 222
+      }
+    },
+    {
+      "id": 1080360,
+      "entry": 721,
+      "kind": "creature",
+      "flags": [],
+      "name": "Rabbit",
+      "level": 1,
+      "x": -89.86090087890625,
+      "y": 58.8814697265625,
+      "z": 9535.330078125,
+      "distance": 134.7943652607894,
+      "screen": {
+        "x": 1345,
+        "y": 238
+      }
+    },
+    {
+      "id": 1079899,
+      "entry": 525,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Mangy Wolf",
+      "level": 6,
+      "x": 11.220100402832031,
+      "y": 70.6019515991211,
+      "z": 9277.91015625,
+      "distance": 143.10178302782808,
+      "screen": {
+        "x": 1561,
+        "y": 217
+      }
+    },
+    {
+      "id": 1080361,
+      "entry": 113,
+      "kind": "creature",
+      "flags": [],
+      "name": "Stonetusk Boar",
+      "level": 5,
+      "x": -4.407199859619141,
+      "y": 60.62667465209961,
+      "z": 9545.400390625,
+      "distance": 147.45096933503348,
+      "screen": {
+        "x": 703,
+        "y": 254
+      }
+    },
+    {
+      "id": 1080363,
+      "entry": 1933,
+      "kind": "creature",
+      "flags": [],
+      "name": "Sheep",
+      "level": 3,
+      "x": -82.20800018310547,
+      "y": 58.8814697265625,
+      "z": 9554.759765625,
+      "distance": 151.843297076832,
+      "screen": {
+        "x": 1252,
+        "y": 243
+      }
+    },
+    {
+      "id": 1080270,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": 20.458200454711914,
+      "y": 71.95329284667969,
+      "z": 9271.6298828125,
+      "distance": 152.98204105777089,
+      "screen": {
+        "x": 1610,
+        "y": 209
+      }
+    },
+    {
+      "id": 1080367,
+      "entry": 113,
+      "kind": "creature",
+      "flags": [],
+      "name": "Stonetusk Boar",
+      "level": 6,
+      "x": -115.03199768066406,
+      "y": 59.02119445800781,
+      "z": 9548.4697265625,
+      "distance": 155.76837022608964,
+      "screen": {
+        "x": 1499,
+        "y": 242
+      }
+    },
+    {
+      "id": 1079893,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 6,
+      "x": -49.44609832763672,
+      "y": 73.47227478027344,
+      "z": 9248.4296875,
+      "distance": 157.8470379556281,
+      "screen": {
+        "x": 1066,
+        "y": 209
+      }
+    },
+    {
+      "id": 1080365,
+      "entry": 721,
+      "kind": "creature",
+      "flags": [],
+      "name": "Rabbit",
+      "level": 1,
+      "x": -64.60030364990234,
+      "y": 59.89710235595703,
+      "z": 9563.490234375,
+      "distance": 158.03912748716303,
+      "screen": {
+        "x": 1127,
+        "y": 252
+      }
+    },
+    {
+      "id": 1080364,
+      "entry": 525,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Mangy Wolf",
+      "level": 5,
+      "x": 57.68619918823242,
+      "y": 58.919185638427734,
+      "z": 9526.0400390625,
+      "distance": 162.90665231422219,
+      "screen": {
+        "x": 135,
+        "y": 236
+      }
+    },
+    {
+      "id": 1080278,
+      "entry": 883,
+      "kind": "creature",
+      "flags": [],
+      "name": "Deer",
+      "level": 5,
+      "x": -139.60499572753906,
+      "y": 68.72112274169922,
+      "z": 9265.330078125,
+      "distance": 165.61210453523665,
+      "screen": {
+        "x": 426,
+        "y": 238
+      }
+    },
+    {
+      "id": 1079652,
+      "entry": 883,
+      "kind": "creature",
+      "flags": [],
+      "name": "Deer",
+      "level": 5,
+      "x": -128.08299255371094,
+      "y": 70.77438354492188,
+      "z": 9255.4501953125,
+      "distance": 168.66156204110638,
+      "screen": {
+        "x": 540,
+        "y": 226
+      }
+    },
+    {
+      "id": 1079901,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 6,
+      "x": 13.699799537658691,
+      "y": 72.96143341064453,
+      "z": 9250.830078125,
+      "distance": 168.83124560637322,
+      "screen": {
+        "x": 1488,
+        "y": 211
+      }
+    },
+    {
+      "id": 1079653,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 6,
+      "x": -118.2229995727539,
+      "y": 72.15776062011719,
+      "z": 9250.16015625,
+      "distance": 169.37939093817894,
+      "screen": {
+        "x": 619,
+        "y": 218
+      }
+    },
+    {
+      "id": 1080366,
+      "entry": 1933,
+      "kind": "creature",
+      "flags": [],
+      "name": "Sheep",
+      "level": 3,
+      "x": -2.286099910736084,
+      "y": 61.6143798828125,
+      "z": 9574.0302734375,
+      "distance": 175.3406275475063,
+      "screen": {
+        "x": 749,
+        "y": 264
+      }
+    },
+    {
+      "id": 1080369,
+      "entry": 113,
+      "kind": "creature",
+      "flags": [],
+      "name": "Stonetusk Boar",
+      "level": 5,
+      "x": -151.44900512695312,
+      "y": 59.13286209106445,
+      "z": 9552.6103515625,
+      "distance": 177.07272764564365,
+      "screen": {
+        "x": 1744,
+        "y": 244
+      }
+    },
+    {
+      "id": 1080699,
+      "entry": 721,
+      "kind": "creature",
+      "flags": [],
+      "name": "Rabbit",
+      "level": 1,
+      "x": -18.77869987487793,
+      "y": 60.18606948852539,
+      "z": 9581.1201171875,
+      "distance": 178.35360016430684,
+      "screen": {
+        "x": 855,
+        "y": 256
+      }
+    },
+    {
+      "id": 1079894,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": -46.35919952392578,
+      "y": 74.70978546142578,
+      "z": 9221.41015625,
+      "distance": 184.96321814090064,
+      "screen": {
+        "x": 1081,
+        "y": 212
+      }
+    },
+    {
+      "id": 1080696,
+      "entry": 113,
+      "kind": "creature",
+      "flags": [],
+      "name": "Stonetusk Boar",
+      "level": 5,
+      "x": -124.61599731445312,
+      "y": 59.39297103881836,
+      "z": 9577.099609375,
+      "distance": 185.82665626222763,
+      "screen": {
+        "x": 1480,
+        "y": 250
+      }
+    },
+    {
+      "id": 1080695,
+      "entry": 113,
+      "kind": "creature",
+      "flags": [],
+      "name": "Stonetusk Boar",
+      "level": 5,
+      "x": -54.71900177001953,
+      "y": 60.79335403442383,
+      "z": 9593.6103515625,
+      "distance": 187.664077237886,
+      "screen": {
+        "x": 1060,
+        "y": 261
+      }
+    },
+    {
+      "id": 1079886,
+      "entry": 721,
+      "kind": "creature",
+      "flags": [],
+      "name": "Rabbit",
+      "level": 1,
+      "x": -106.72599792480469,
+      "y": 73.92001342773438,
+      "z": 9221.009765625,
+      "distance": 193.05668073783627,
+      "screen": {
+        "x": 749,
+        "y": 217
+      }
+    },
+    {
+      "id": 1080700,
+      "entry": 30,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Forest Spider",
+      "level": 6,
+      "x": 12.222700119018555,
+      "y": 61.44364547729492,
+      "z": 9588.3603515625,
+      "distance": 193.4639239349721,
+      "screen": {
+        "x": 693,
+        "y": 264
+      }
+    },
+    {
+      "id": 1079898,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 5,
+      "x": -78.1784439086914,
+      "y": 77.22470092773438,
+      "z": 9213.87890625,
+      "distance": 194.2683500506114,
+      "screen": {
+        "x": 910,
+        "y": 200
+      }
+    },
+    {
+      "id": 1079895,
+      "entry": 525,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Mangy Wolf",
+      "level": 5,
+      "x": -49.648399353027344,
+      "y": 75.5884780883789,
+      "z": 9211.8603515625,
+      "distance": 194.4698003466893,
+      "screen": {
+        "x": 1062,
+        "y": 210
+      }
+    },
+    {
+      "id": 1079907,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 5,
+      "x": -15.256199836730957,
+      "y": 77.80406188964844,
+      "z": 9214.400390625,
+      "distance": 195.59557369264428,
+      "screen": {
+        "x": 1248,
+        "y": 196
+      }
+    },
+    {
+      "id": 1079900,
+      "entry": 299,
+      "kind": "creature",
+      "flags": [],
+      "name": "Young Wolf",
+      "level": 1,
+      "x": 39.7406005859375,
+      "y": 73.75666809082031,
+      "z": 9222.1103515625,
+      "distance": 205.8425491324102,
+      "screen": {
+        "x": 1565,
+        "y": 216
+      }
+    },
+    {
+      "id": 1080694,
+      "entry": 30,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Forest Spider",
+      "level": 6,
+      "x": -82.46160125732422,
+      "y": 61.25754165649414,
+      "z": 9609.83984375,
+      "distance": 206.08594788608747,
+      "screen": {
+        "x": 1197,
+        "y": 264
+      }
+    },
+    {
+      "id": 1080693,
+      "entry": 113,
+      "kind": "creature",
+      "flags": [],
+      "name": "Stonetusk Boar",
+      "level": 5,
+      "x": -17.916000366210938,
+      "y": 61.52825164794922,
+      "z": 9612.5595703125,
+      "distance": 209.42398576336296,
+      "screen": {
+        "x": 880,
+        "y": 266
+      }
+    },
+    {
+      "id": 1079922,
+      "entry": 2442,
+      "kind": "creature",
+      "flags": [],
+      "name": "Cow",
+      "level": 5,
+      "x": 59.26340103149414,
+      "y": 74.3016128540039,
+      "z": 9226.41015625,
+      "distance": 211.64471906646924,
+      "screen": {
+        "x": 1693,
+        "y": 211
+      }
+    },
+    {
+      "id": 1079892,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 6,
+      "x": -149.2209930419922,
+      "y": 72.28917694091797,
+      "z": 9217.8095703125,
+      "distance": 211.8225813240775,
+      "screen": {
+        "x": 529,
+        "y": 228
+      }
+    },
+    {
+      "id": 1079921,
+      "entry": 525,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Mangy Wolf",
+      "level": 6,
+      "x": 53.98540115356445,
+      "y": 73.51720428466797,
+      "z": 9222.7802734375,
+      "distance": 212.00470598997273,
+      "screen": {
+        "x": 1649,
+        "y": 218
+      }
+    },
+    {
+      "id": 1079913,
+      "entry": 6368,
+      "kind": "creature",
+      "flags": [],
+      "name": "Cat",
+      "level": 1,
+      "x": -5.3007001876831055,
+      "y": 78.01274108886719,
+      "z": 9188.400390625,
+      "distance": 223.0225627001034,
+      "screen": {
+        "x": 1270,
+        "y": 205
+      }
+    },
+    {
+      "id": 1079887,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 5,
+      "x": -82.99690246582031,
+      "y": 77.68438720703125,
+      "z": 9184.26953125,
+      "distance": 224.22873110225862,
+      "screen": {
+        "x": 906,
+        "y": 208
+      }
+    },
+    {
+      "id": 1079897,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 6,
+      "x": -48.759700775146484,
+      "y": 78.17330932617188,
+      "z": 9179.7998046875,
+      "distance": 226.6361447294857,
+      "screen": {
+        "x": 1064,
+        "y": 207
+      }
+    },
+    {
+      "id": 1079903,
+      "entry": 6368,
+      "kind": "creature",
+      "flags": [],
+      "name": "Cat",
+      "level": 1,
+      "x": 6.263700008392334,
+      "y": 78.01361846923828,
+      "z": 9185.83984375,
+      "distance": 228.2121035957887,
+      "screen": {
+        "x": 1322,
+        "y": 206
+      }
+    },
+    {
+      "id": 1080691,
+      "entry": 113,
+      "kind": "creature",
+      "flags": [],
+      "name": "Stonetusk Boar",
+      "level": 5,
+      "x": -58.262298583984375,
+      "y": 60.2063102722168,
+      "z": 9634.26953125,
+      "distance": 228.38919474336768,
+      "screen": {
+        "x": 1074,
+        "y": 261
+      }
+    },
+    {
+      "id": 1079911,
+      "entry": 6368,
+      "kind": "creature",
+      "flags": [],
+      "name": "Cat",
+      "level": 1,
+      "x": -13.526399612426758,
+      "y": 79.18317413330078,
+      "z": 9180.5,
+      "distance": 229.27495353172927,
+      "screen": {
+        "x": 1225,
+        "y": 202
+      }
+    },
+    {
+      "id": 1079891,
+      "entry": 94,
+      "kind": "creature",
+      "flags": [
+        "hostile"
+      ],
+      "name": "Defias Cutpurse",
+      "level": 6,
+      "x": -110.47000122070312,
+      "y": 75.54306030273438,
+      "z": 9184.4033203125,
+      "distance": 229.36675525618168,
+      "screen": {
+        "x": 781,
+        "y": 219
+      }
+    },
+    {
+      "id": 1079912,
+      "entry": 6367,
+      "kind": "creature",
+      "flags": [
+        "friendly"
+      ],
+      "name": "Donni Anthania",
+      "level": 5,
+      "x": -0.7041000127792358,
+      "y": 80.4760971069336,
+      "z": 9176.5,
+      "distance": 235.76512047078512,
+      "screen": {
+        "x": 1280,
+        "y": 197
+      }
+    },
+    {
+      "id": 1079910,
+      "entry": 7384,
+      "kind": "creature",
+      "flags": [],
+      "name": "Cornish Rex",
+      "level": 1,
+      "x": -3.8726000785827637,
+      "y": 80.39119720458984,
+      "z": 9175.330078125,
+      "distance": 236.2285725164415,
+      "screen": {
+        "x": 1265,
+        "y": 198
+      }
+    }
+  ]
+}

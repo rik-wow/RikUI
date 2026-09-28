@@ -4,7 +4,7 @@ import path from "node:path";
 import { Marked } from "marked";
 import { catalogue, modulePages } from "./docs-catalogue.mjs";
 import { createHash } from "node:crypto";
-import { illustration, renderFigure, mockupFigure, distinctSurfaces, escapeHTML as esc } from "./docs-visuals.mjs";
+import { illustration, renderFigure, sequenceFigure, mockupFigure, distinctSurfaces, escapeHTML as esc } from "./docs-visuals.mjs";
 import startGuides from "./guides-start.mjs";
 import combatGuides from "./guides-combat.mjs";
 import worldGuides from "./guides-world.mjs";
@@ -20,11 +20,17 @@ for(const capture of renderManifest.renders){
  const list=liveRenders.get(capture.page)||[];list.push(capture);liveRenders.set(capture.page,list);
 }
 await mkdir(new URL("./public/assets/docs/",import.meta.url),{recursive:true});
+// A capture is one image, or a sequence of frames (one per setting value) whose default frame stands for it.
 for(const capture of renderManifest.renders){
- const name=capture.id+"-"+capture.sha256.slice(0,12)+".webp";
- capture.url="/assets/docs/"+name;
- await copyFile(new URL("./ui-renders/"+capture.filename,import.meta.url),new URL("./public/assets/docs/"+name,import.meta.url));
- visualPaths.set("render:"+capture.id,capture.url);
+ for(const frame of capture.frames||[capture]){
+  // Public asset names keep to letters, digits and dashes; a frame's value joins the id that way.
+  const stem=capture.frames?capture.id+"-"+String(frame.value).replace(/[^a-z0-9]+/gi,"-"):capture.id;
+  const name=stem+"-"+frame.sha256.slice(0,12)+".webp";
+  frame.url="/assets/docs/"+name;
+  await copyFile(new URL("./ui-renders/"+frame.filename,import.meta.url),new URL("./public/assets/docs/"+name,import.meta.url));
+  visualPaths.set("render:"+stem,frame.url);
+ }
+ if(capture.frames)capture.url=capture.frames.find(frame=>frame.sha256===capture.sha256)?.url??capture.frames[0].url;
 }
 for(const page of catalogue)for(const [index,title] of page.surfaces.entries()){
  if(liveRenders.has(page.slug)||distinctSurfaces(page).get(index)!==index)continue;
@@ -81,14 +87,16 @@ const groupOrder=["Getting started","Combat","Questing","Everyday interface","No
 const groups=groupOrder.filter(group=>pages.some(page=>page.group===group));
 const sidebar=current=>'<aside class="docs-sidebar"><details class="docs-nav-toggle" open><summary>Browse documentation</summary><div class="nav-content"><label for="docs-search">Find a guide</label><input id="docs-search" type="search" placeholder="Nameplates, bags, profiles…" autocomplete="off"><p id="search-empty" hidden>No matching guides.</p><nav aria-label="Documentation">'+groups.map(group=>'<section class="nav-group"><h2>'+esc(group)+'</h2>'+pages.filter(p=>p.group===group).map(p=>'<a data-doc-link data-keywords="'+esc(p.slug+' '+p.summary)+'" href="/docs/'+p.slug+'"'+(p.slug===current?' aria-current="page"':"")+'>'+esc(p.title)+'</a>').join("")+'</section>').join("")+'</nav></div></details></aside>';
 const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license.</p></footer></body></html>';
-const RENDER_REFERENCE="render:", MOCKUP_REFERENCE="mockup";
+const RENDER_REFERENCE="render:", PREVIEW_REFERENCE="preview:", MOCKUP_REFERENCE="mockup";
 function placeFigure(page,href,caption,used){
- if(href.startsWith(RENDER_REFERENCE)){
-  const id=href.slice(RENDER_REFERENCE.length);
+ if(href.startsWith(RENDER_REFERENCE)||href.startsWith(PREVIEW_REFERENCE)){
+  const preview=href.startsWith(PREVIEW_REFERENCE);
+  const id=href.slice(preview?PREVIEW_REFERENCE.length:RENDER_REFERENCE.length);
   const capture=(liveRenders.get(page.slug)||[]).find(item=>item.id===id);
   if(!capture)throw Error(page.slug+": unknown Lua render reference "+id);
+  if(preview!==!!capture.frames)throw Error(page.slug+": "+id+(preview?" is a single capture; reference it with render:":" is a sequence; reference it with preview:"));
   used.add("render:"+id);
-  return renderFigure(page.feature,capture,caption);
+  return preview?sequenceFigure(page.feature,capture,caption):renderFigure(page.feature,capture,caption);
  }
  if(href===MOCKUP_REFERENCE){
   const index=page.feature?.surfaces.indexOf(caption)??-1;
@@ -101,9 +109,9 @@ function placeFigure(page,href,caption,used){
  throw Error(page.slug+": unsupported image reference "+href);
 }
 function expectedFigures(page){
- if(!page.feature)return [];
  const captures=liveRenders.get(page.slug);
  if(captures)return captures.map(capture=>"render:"+capture.id);
+ if(!page.feature)return [];
  return [...distinctSurfaces(page.feature)].filter(([index,canonical])=>index===canonical).map(([index])=>"mockup:"+index);
 }
 function verifyPlacement(page,used){
@@ -134,7 +142,7 @@ function render(page){
    return '<a href="'+esc(target)+'"'+(title?' title="'+esc(title)+'"':"")+'>'+this.parser.parseInline(tokens)+'</a>';
   },
   image({href,text}){
-   const key=(href||"").startsWith(RENDER_REFERENCE)?"render:"+href.slice(RENDER_REFERENCE.length):"mockup:"+page.feature?.surfaces.indexOf(text);
+   const key=(href||"").startsWith(RENDER_REFERENCE)?"render:"+href.slice(RENDER_REFERENCE.length):(href||"").startsWith(PREVIEW_REFERENCE)?"render:"+href.slice(PREVIEW_REFERENCE.length):"mockup:"+page.feature?.surfaces.indexOf(text);
    if(used.has(key))throw Error(page.slug+": example placed twice: "+text);
    return placeFigure(page,href||"",text,used);
   }

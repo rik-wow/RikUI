@@ -2092,6 +2092,13 @@
       "title": "Your class area",
       "width": 800,
       "height": 600
+    },
+    {
+      "id": "hud-scale",
+      "page": "combat-hud",
+      "title": "Frame scale",
+      "width": 1000,
+      "height": 420
     }
   ]
 }

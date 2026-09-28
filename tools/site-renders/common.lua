@@ -39,25 +39,42 @@ function RikRenderCheck(root)
     end
     CreateFrame("Frame", "RIK_RENDER_OK", root):Hide()
 end
+
 -- The simulator's built-in spellbook and spell metadata belong to another game version. These
--- inputs describe a Forever paladin by level 10 using RikUI's own catalogue (data/spells-paladin.lua,
--- ranks and acquisition levels), so the addon's spellbook scans, icons and action textures read
--- the current client's spells. RikUI still resolves ranks, membership and drawing itself.
-local PALADIN_SPELLS_BY_10 = { 635, 639, 20154, 20287, 465, 19740, 20271, 679, 498, 21082, 1152, 853, 633, 1022, 1311649 }
-function RikRenderSpellbook()
-    local catalog, icons, names, known, items = RikUI.Spells.Catalog("PALADIN"), {}, {}, {}, {}
+-- inputs describe a Forever character by level 10 using RikUI's own catalogue (data/spells-<class>.lua,
+-- ranks and acquisition levels: rank 1 of every spell learned by 10, rank 2 of those learned by 4),
+-- so the addon's spellbook scans, icons and action textures read the current client's spells.
+-- RikUI still resolves ranks, membership and drawing itself.
+local SPELLS_BY_10 = {
+    DRUID = { 5176, 5177, 8921, 8924, 467, 339, 16689, 18960, 5487, 99, 6795, 6807, 5185, 5186, 1126, 5232, 774, 1058 },
+    HUNTER = { 13163, 13165, 883, 2641, 6991, 982, 75, 1978, 13549, 3044, 1130, 5116, 2973, 14260, 1494, 19883, 5149 },
+    MAGE = { 1459, 1460, 5504, 5505, 587, 5143, 118, 133, 143, 2136, 168, 7300, 116, 205, 122, 1296017, 1302508 },
+    PALADIN = { 635, 639, 20154, 20287, 465, 19740, 20271, 679, 498, 21082, 1152, 853, 633, 1022, 1311649 },
+    PRIEST = { 1243, 1244, 17, 1277455, 10797, 2050, 2052, 585, 591, 139, 13908, 1277370, 2006, 589, 594, 586, 9035, 8092, 2652 },
+    ROGUE = { 2098, 6760, 5171, 1752, 1757, 53, 2589, 1776, 5277, 2983, 1784, 1785, 921, 6770, 1804 },
+    SHAMAN = { 403, 529, 8042, 8044, 2484, 5730, 8050, 3599, 8017, 8018, 8071, 8154, 324, 8024, 8075, 331, 332 },
+    WARLOCK = { 172, 6222, 702, 1108, 1454, 980, 5782, 1120, 687, 696, 688, 6201, 697, 348, 707, 686, 695 },
+}
+local CLASS_IDS = { WARRIOR = 1, PALADIN = 2, HUNTER = 3, ROGUE = 4, PRIEST = 5, SHAMAN = 7, MAGE = 8, WARLOCK = 9, DRUID = 11 }
+local CLASS_ICONS = { WARRIOR = 626008, PALADIN = 626003, HUNTER = 626000, ROGUE = 626005, PRIEST = 626004, SHAMAN = 626006, MAGE = 626001, WARLOCK = 626007, DRUID = 625999 }
+
+function RikRenderSpellbook(class)
+    class = class or "PALADIN"
+    local list = assert(SPELLS_BY_10[class], "No level-10 spell list for " .. class)
+    local catalog, icons, names, known, items = RikUI.Spells.Catalog(class), {}, {}, {}, {}
     for name, entry in pairs(catalog) do
         for _, id in ipairs(entry.ranks) do icons[id], names[id] = entry.icon, name end
     end
-    for _, id in ipairs(PALADIN_SPELLS_BY_10) do
-        assert(icons[id], "Spell " .. id .. " is not in RikUI's paladin catalogue")
+    for _, id in ipairs(list) do
+        assert(icons[id], "Spell " .. id .. " is not in RikUI's " .. class .. " catalogue")
         known[id] = true
         items[#items + 1] = id
     end
+    local title = class:sub(1, 1) .. class:sub(2):lower()
     C_SpellBook.GetNumSpellBookSkillLines = function() return 1 end
     C_SpellBook.GetSpellBookSkillLineInfo = function(index)
         if index ~= 1 then return nil end
-        return { name = "Paladin", iconID = 626003, itemIndexOffset = 0, numSpellBookItems = #items,
+        return { name = title, iconID = CLASS_ICONS[class], itemIndexOffset = 0, numSpellBookItems = #items,
             isGuild = false, shouldHide = false, specID = nil, offSpecID = nil }
     end
     C_SpellBook.GetSpellBookItemInfo = function(slot, bank)
@@ -91,6 +108,15 @@ function RikRenderSpellbook()
     end
 end
 
+-- A character of another class at level 10: the seed's paladin becomes this class, with that class's
+-- spellbook. RikUI's class-driven modules read the class through the normal unit APIs.
+function RikRenderPlayer(class, level)
+    class = class or "PALADIN"
+    A_Admin.SetPlayerClass(assert(CLASS_IDS[class], "Unknown class " .. class))
+    if level then A_Admin.SetPlayerLevel(level) end
+    RikRenderSpellbook(class)
+end
+
 -- Cooldown state for the strip: the simulator's Forever profile returns no cooldown duration
 -- objects, so these supply them on the game clock; each entry is { id, duration, elapsed }.
 function RikRenderCooldowns(entries)
@@ -105,6 +131,41 @@ function RikRenderCooldowns(entries)
     C_Spell.GetSpellDisplayCount = function() return "" end
 end
 
+-- The paladin's combat HUD mid-fight: three abilities cooling down, a seal up, the HUD arranged,
+-- the strip rebuilt and the (always present) simulator pet frame hidden.
+function RikRenderHUDState()
+    RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 },
+        { id = 498, duration = 300, elapsed = 255.1 } })
+    A_Admin.AddBuff(20287, "Seal of Righteousness", 132325, 30, 0)
+    assert(RikUI.Layout.ApplyCombatHUD())
+    RikUI.Cooldowns.Rebuild()
+    RikUI.UnitFrames.Refresh()
+    RikUIUnit_petframe:Hide()
+end
+
+-- A player cast one second into Holy Light on a manual clock, so the bar's fill is fixed.
+function RikRenderCast(spell, name, icon, duration, elapsed)
+    spell, name, icon = spell or 635, name or "Holy Light", icon or "Interface\\Icons\\Spell_Holy_HolyBolt"
+    duration, elapsed = duration or 2.5, elapsed or 1
+    A_Admin.SetCasting(spell, name, icon, duration)
+    local clock = C_DurationUtil.CreateManualClock(elapsed)
+    local object = C_DurationUtil.CreateDuration()
+    object:SetClock(clock)
+    object:SetTimeFromStart(0, duration)
+    local reader = UnitCastingDuration
+    UnitCastingDuration = function(unit) if unit == "player" then return object end return reader(unit) end
+    A_Admin.FireEvent("UNIT_SPELLCAST_START", "player")
+end
+
+-- A main-hand swing frozen one second into a 2.4 s cycle.
+function RikRenderSwing(elapsed, speed)
+    local started = GetTime()
+    A_Admin.FireEvent("PLAYER_SWING", speed or 2.4, Enum.PlayerSwingType.MainHand)
+    GetTime = function() return started + (elapsed or 1) end
+    local mainHand = RikUI.SwingTimer.Bars[Enum.PlayerSwingType.MainHand]
+    mainHand:GetScript("OnUpdate")(mainHand, 0)
+end
+
 -- A capture root for several top-level frames: the simulator renders one frame's subtree, so the
 -- frames are re-parented to a holder covering the crop while keeping their screen anchors.
 function RikRenderGroup(name, frames, left, bottom, width, height)
@@ -116,6 +177,36 @@ function RikRenderGroup(name, frames, left, bottom, width, height)
         frame:SetParent(holder)
     end
     return holder
+end
+
+-- The whole combat HUD as one capture root, laid out by RikUI; the holder matches the crop.
+local HUD_FRAMES = { "RikUICooldowns", "RikUICombatResource", "RikUICast_player", "RikUISwingTimer",
+    "RikUIClassAuras_player", "RikUIClassAuras_target", "RikUIUnit_player", "RikUIUnit_target", "RikUIUnit_focus" }
+function RikRenderHUDGroup(name, left, bottom, width, height, names)
+    local frames = {}
+    for _, global in ipairs(names or HUD_FRAMES) do frames[#frames + 1] = _G[global] end
+    local holder = RikRenderGroup(name, frames, left, bottom, width, height)
+    RikRenderResize(holder)
+    return holder
+end
+
+-- Apply one settings value through the option spec RikUI's settings panel uses, so a sequence
+-- frame shows exactly what the control would do.
+function RikRenderSetOption(pageId, key, value)
+    for _, page in ipairs(RikUI.Options.Pages()) do
+        if page.id == pageId then
+            for _, spec in ipairs(page.specs) do
+                if spec.key == key then
+                    assert(type(spec.set) == "function", pageId .. "." .. key .. " has no setter")
+                    local ok, reason = spec.set(value)
+                    assert(ok ~= false, pageId .. "." .. key .. ": " .. tostring(reason))
+                    return
+                end
+            end
+            error("No setting " .. key .. " on page " .. pageId)
+        end
+    end
+    error("No settings page " .. pageId)
 end
 
 -- Inputs for two items whose artwork was extracted from the current client.
@@ -150,4 +241,3 @@ function RikRenderItems()
         if item then return item.icon, item.name, item.count, nil, 1, false, false end
     end
 end
-

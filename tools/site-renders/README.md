@@ -8,7 +8,7 @@ Keep the simulator outside the addon checkout. Build its `gui,client-wowforever`
 
 Before preparing Blizzard UI files, resolve the current head of Gethe/wow-ui-source's `forever` branch and cross-check its version with the installed `_classic_beta_/WowB.exe`. Refresh the simulator's Forever manifest and community listfile, then run `wow-cli casc sync-blizzard-ui`. Use the installed client's CASC files and the simulator's normal verified cache.
 
-Apply `wow-ui-sim.patch` to a compatible simulator checkout before building. It loads addon fonts, corrects sRGB vertex colours, removes the simulator's brightness boost, supplies a plain capture background and writes lossless WebP. It also adds multiline EditBox sizing and wrapping, updates timer-bound status bars from duration objects, applies inherited text insets to XML and Lua-created EditBoxes, and gives headless screenshots the simulator's own clock so cooldown swipes and countdowns show the current moment instead of time zero. The patch was reviewed against simulator commit `6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f`; this is tool provenance, not a Forever build target. The patch is GPL-3.0-only, matching the simulator; it is excluded from RikUI's MIT license.
+Apply `wow-ui-sim.patch` to a compatible simulator checkout before building. It loads addon fonts, corrects sRGB vertex colours, removes the simulator's brightness boost, supplies a plain or transparent capture background (`WOW_SIM_PLAIN_BACKGROUND`, `WOW_SIM_TRANSPARENT_BACKGROUND`) and writes lossless WebP. It also adds multiline EditBox sizing and wrapping, updates timer-bound status bars from duration objects, applies inherited text insets to XML and Lua-created EditBoxes, and gives headless screenshots the simulator's own clock so cooldown swipes and countdowns show the current moment instead of time zero. The patch was reviewed against simulator commit `6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f`; this is tool provenance, not a Forever build target. The patch is GPL-3.0-only, matching the simulator; it is excluded from RikUI's MIT license.
 
 Use this external directory structure:
 
@@ -30,7 +30,26 @@ python tools/site-renders/render.py --sim-root D:/RikUI-local/wow-ui-sim --wow-r
 
 Use `--only wizard,options` to select guides, or give individual scenario IDs. Output, logs and a hash manifest go into the checkout's `dist/ui-renders/` directory. Each capture has a 90-second timeout. A scenario error, unexpected Lua error or missing completion marker rejects the capture. The native frame dump supplies checks for visibility, text, dimensions and crop bounds without reading protected values through addon APIs. Pixel checks reject blank output.
 
+A scenario in `scenarios.json` names its `frame`, `crop` and Lua, and may add:
+
+- `fixtures`: calls from `common.lua` that run before the scenario's Lua (`RikRenderSpellbook("ROGUE")`, `RikRenderHUDState()`, `RikRenderCast()`, `RikRenderSwing()`, `RikRenderPlayer(class, level)`, `RikRenderHUDGroup(...)`). Fixtures supply game data the simulator lacks; RikUI still lays out and draws everything.
+- `screen`: the simulated screen, default `2048x1152`.
+- `world`: `{"plate": name}` composites the capture over a world plate (below). The UI renders alone on a transparent layer, that layer passes the blank-output check on its own, and the plate goes underneath afterwards; world captures are encoded at WebP quality 92, UI-only captures stay lossless.
+- `sequence`: one frame per value of a setting. `apply` is Lua with `VALUE` replaced by each value and runs before the scenario's Lua, normally through `RikRenderSetOption(page, key, VALUE)`, which calls the same setter the settings panel uses. `control` (`slider`, `toggle`, `dropdown`), `label`, `labels` and `default` describe the control the website shows. Frames are named `id@value` and each one is reviewed and promoted like a capture; two values that render the same image fail the gate, because that is a finding about the setting.
+
 Review the generated images before promoting them to website assets. Check text, icon identity, bounds, state differences and the relevant reference capture. Do not count a renamed or recropped copy as a different state.
+
+## World plates
+
+The world behind the interface comes from [isometric-wow-sim](D:/Code/isometric-wow-sim), which renders the installed client's terrain, buildings, lighting and realm creatures in the browser. Nothing in that project is changed: `plates.mjs` drives the objects it exposes at runtime (the scene, its fly camera and its realm layer), hides the app's own chrome and nameplates, and screenshots the canvas at 2048x1152.
+
+```powershell
+node tools/site-renders/plates.mjs                       # every plate in worlds/plates.json
+node tools/site-renders/plates.mjs elwynn-wolf           # one plate
+node tools/site-renders/plates.mjs --probe 0 -47 9454    # ground height and the named creatures around a point
+```
+
+It needs the app's dev server (`npm run dev` there, port 5173) and the Playwright Chromium the site project installs. A plate is defined by map, hour, a camera position (`x`, `z` and height above the ground) and a point to look at, or an actor to follow. Each capture writes `worlds/<name>.jpg` and `worlds/<name>.json`: the app commit and its uncommitted files, the request, the resolved camera pose, and the named actors in frame with their screen positions, so a fixture can put RikUI's nameplates over a creature that is really there. The realm is a live simulation, so a regenerated plate is not byte-identical; captures record the plate's hash and the gate verifies the plate they were composited over.
 
 ## Required gates and review
 

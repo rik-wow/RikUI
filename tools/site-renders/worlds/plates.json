@@ -1,0 +1,42 @@
+{
+  "appRoot": "D:/Code/isometric-wow-sim",
+  "width": 2048,
+  "height": 1152,
+  "plates": [
+    {
+      "name": "goldshire-road",
+      "caption": "Goldshire from the road east of the Lion's Pride Inn, mid-morning.",
+      "map": 0,
+      "hour": 10,
+      "camera": {
+        "x": 8,
+        "z": 9502,
+        "above": 7.5
+      },
+      "lookAt": {
+        "x": -48,
+        "z": 9466,
+        "above": 3
+      }
+    },
+    {
+      "name": "elwynn-wolf",
+      "caption": "South of Goldshire, facing a Mangy Wolf on the grass.",
+      "map": 0,
+      "hour": 14,
+      "camera": {
+        "x": -52.3,
+        "z": 9406,
+        "above": 4.2
+      },
+      "lookAt": {
+        "x": -52.6,
+        "z": 9393,
+        "above": 0.8
+      },
+      "anchor": {
+        "entry": 299
+      }
+    }
+  ]
+}

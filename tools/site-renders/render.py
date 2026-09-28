@@ -7,12 +7,12 @@ import os
 from pathlib import Path
 import re
 import subprocess
-from validate_capture import validate_capture
+from schema import FIXTURE_FILES
+from validate_capture import validate_capture, composite_world, screen_size
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = Path(__file__).resolve().parent
-FIXTURE_FILES = ("common.lua", "seed.lua", "scenarios.json", "render.py",
-                 "validate_capture.py", "wow-ui-sim.patch")
+WORLDS = FIXTURES / "worlds"
 KNOWN_STARTUP_ERRORS = (
     'unknown event "GLOBAL_REGION_MOUSE_DOWN"',
     'unknown event "ALERT_AGE_VERIFICATION_RESTRICTED"',
@@ -93,21 +93,36 @@ def verify_addon(addon):
         checked_files[name] = addon_digest(source)
     return checked_files
 
-def environment(sim_root, wow_root):
-    return {**os.environ, "WOW_INSTALL_PATH": str(wow_root), "WOW_SIM_WOW_PATH": str(wow_root),
-            "WOW_SIM_ADDONS_PATH": str(sim_root / "addons"),
-            "WOW_SIM_ADDONS_TXT": str(sim_root / "AddOns.txt"),
-            "WOW_SIM_WTF_PATH": str(sim_root / "WTF"), "WOW_SIM_WTF_ACCOUNT": "RENDER",
-            "WOW_SIM_WTF_REALM": "Preview", "WOW_SIM_WTF_CHARACTER": "Rikui",
-            "WOW_SIM_PLAIN_BACKGROUND": "1"}
+def environment(sim_root, wow_root, case):
+    env = {**os.environ, "WOW_INSTALL_PATH": str(wow_root), "WOW_SIM_WOW_PATH": str(wow_root),
+           "WOW_SIM_ADDONS_PATH": str(sim_root / "addons"),
+           "WOW_SIM_ADDONS_TXT": str(sim_root / "AddOns.txt"),
+           "WOW_SIM_WTF_PATH": str(sim_root / "WTF"), "WOW_SIM_WTF_ACCOUNT": "RENDER",
+           "WOW_SIM_WTF_REALM": "Preview", "WOW_SIM_WTF_CHARACTER": "Rikui"}
+    # A world scenario renders RikUI alone on a transparent layer; the plate goes underneath afterwards.
+    env["WOW_SIM_TRANSPARENT_BACKGROUND" if case.get("world") else "WOW_SIM_PLAIN_BACKGROUND"] = "1"
+    return env
 
-def scenario_script(case, common):
+def lua_literal(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return repr(value)
+    return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+def scenario_script(case, common, value=None):
+    fixtures = "\n".join(case.get("fixtures", []))
+    body = case.get("lua", "")
+    # The setting is applied first, so the scenario composes its frame the way a player would see it.
+    if value is not None:
+        body = case["sequence"]["apply"].replace("VALUE", lua_literal(value)) + "\n" + body
     checks = case.get("assertLua", "") + "\nRikRenderCheck(" + case["frame"] + ")\n"
-    return common + "\n" + case["lua"] + "\nC_Timer.After(0, function()\n" + checks + "end)\n"
+    return common + "\n" + fixtures + "\n" + body + "\nC_Timer.After(0, function()\n" + checks + "end)\n"
 
 def render_command(case, binary, script, image):
+    width, height = screen_size(case)
     command = [str(binary), "--no-saved-vars", "--exec-lua", "@" + str(script),
-               "screenshot", "--width", "2048", "--height", "1152", "--filter", case["frame"],
+               "screenshot", "--width", str(width), "--height", str(height), "--filter", case["frame"],
                "--crop", case["crop"], "--output", str(image), "--dump-tree", case["frame"]]
     if case.get("delay"):
         command[1:1] = ["--delay", str(case["delay"])]
@@ -120,21 +135,54 @@ def verify_log(case, result, text, log):
         details = "\n".join(errors[:5] or [line for line in text.splitlines() if "[exec-lua] error:" in line])
         raise RuntimeError(f"Render failed: {case['id']}; {details}; inspect {log}")
 
-def render_case(case, binary, env, output, common):
-    script, image, log = [output / (case["id"] + suffix) for suffix in (".lua", ".webp", ".log")]
-    script.write_text(scenario_script(case, common), encoding="utf-8")
+def plate_record(case):
+    """The world plate a scenario composites over, with the provenance written by plates.mjs."""
+    name = case["world"]["plate"]
+    record = json.loads((WORLDS / (name + ".json")).read_text(encoding="utf-8"))
+    image = WORLDS / record["file"]
+    if not image.is_file() or digest(image) != record["sha256"]:
+        raise RuntimeError("World plate does not match its record: " + name)
+    return {"plate": name, "sha256": record["sha256"], "appCommit": record["app"]["commit"],
+            "camera": record["camera"], "captured": record["capturedAt"]}, image
+
+def render_frame(case, binary, env, output, common, value=None, stem=None):
+    """Render one image for a scenario (or one frame of a sequence) and validate it."""
+    stem = stem or case["id"]
+    script, log = output / (stem + ".lua"), output / (stem + ".log")
+    image = output / (stem + ".webp")
+    layer = output / (stem + ".layer.webp") if case.get("world") else image
+    script.write_text(scenario_script(case, common, value), encoding="utf-8")
     with log.open("w", encoding="utf-8") as stream:
-        result = subprocess.run(render_command(case, binary, script, image), env=env,
+        result = subprocess.run(render_command(case, binary, script, layer), env=env,
                                 stdout=stream, stderr=subprocess.STDOUT, timeout=90, cwd=binary.parent)
     text = log.read_text(encoding="utf-8")
     verify_log(case, result, text, log)
-    if not image.is_file():
-        raise RuntimeError("Renderer did not produce " + str(image))
-    diagnostics = validate_capture(case, image, text)
+    if not layer.is_file():
+        raise RuntimeError("Renderer did not produce " + str(layer))
+    diagnostics = validate_capture(case, layer, text)
+    plate = None
+    if case.get("world"):
+        plate, plate_image = plate_record(case)
+        composite_world(layer, plate_image, case, image)
     dimensions = case["crop"].split("+", 1)[0].split("x")
-    return {**case, "diagnostics": diagnostics, "sha256": digest(image), "bytes": image.stat().st_size,
-            "fixtureSha256": digest(script), "filename": image.name,
-            "width": int(dimensions[0]), "height": int(dimensions[1])}
+    frame = {"diagnostics": diagnostics, "sha256": digest(image), "bytes": image.stat().st_size,
+             "fixtureSha256": digest(script), "filename": image.name,
+             "width": int(dimensions[0]), "height": int(dimensions[1])}
+    if plate:
+        frame["plate"] = plate  # provenance of the world underneath; the scenario's own "world" key stays as written
+    return frame
+
+def render_case(case, binary, env, output, common):
+    if not case.get("sequence"):
+        return {**case, **render_frame(case, binary, env, output, common)}
+    sequence = case["sequence"]
+    frames = []
+    for value in sequence["values"]:
+        frame = render_frame(case, binary, env, output, common, value, case["id"] + "@" + str(value))
+        frames.append({"value": value, **frame})
+    default = next((frame for frame in frames if frame["value"] == sequence.get("default", frames[0]["value"])), frames[0])
+    # The record carries the default frame's image like any capture, plus every frame.
+    return {**case, **{key: default[key] for key in default if key != "value"}, "frames": frames}
 
 def install_seed(sim_root):
     seed = sim_root / "addons/A_RikUIPreview"
@@ -156,19 +204,19 @@ def create_manifest(sim_root, binary, client, addon_files):
     manifest["generation"] = hashlib.sha256(json.dumps(provenance, sort_keys=True).encode()).hexdigest()
     return manifest
 
-def capture_cases(cases, binary, env, output, manifest):
+def capture_cases(cases, binary, sim_root, wow_root, output, manifest):
     manifest_path = output / "manifest.json"
     previous = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     renders = {r["id"]: r for r in previous.get("renders", [])}
     common = (FIXTURES / "common.lua").read_text(encoding="utf-8")
     for case in cases:
-        capture = render_case(case, binary, env, output, common)
+        capture = render_case(case, binary, environment(sim_root, wow_root, case), output, common)
         capture.update(client=manifest["client"], seedSha256=digest(FIXTURES / "seed.lua"),
                        generation=manifest["generation"])
         renders[case["id"]] = capture
         manifest["renders"] = list(renders.values())
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        print("Rendered " + case["id"], flush=True)
+        print("Rendered " + case["id"] + (f" ({len(capture['frames'])} frames)" if capture.get("frames") else ""), flush=True)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -191,10 +239,9 @@ def main():
     cases = [s for s in scenarios if not selected or s["id"] in selected or s["page"] in selected]
     if not cases:
         raise RuntimeError("No matching render scenarios")
-    capture_cases(cases, binary, environment(sim_root, wow_root), output,
+    capture_cases(cases, binary, sim_root, wow_root, output,
                   create_manifest(sim_root, binary, client, addon_files))
     print(f"{len(cases)} captures saved in {output}", flush=True)
 
 if __name__ == "__main__":
     main()
-

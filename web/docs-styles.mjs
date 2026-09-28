@@ -49,6 +49,13 @@ export const docsStyles = `
 .example-grid figcaption{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:11px 14px;background:#1c2218;border-top:1px solid #394232}
 .example-grid figcaption strong{font-size:13px;font-weight:500}
 .example-grid figcaption span{color:#9cab90;font-size:11px;text-align:right}
+.preview-frames{position:relative}
+.preview-control{display:flex;align-items:center;gap:10px;flex:1;justify-content:center;font-size:12px;color:#d3d8dd}
+.preview-control[hidden]{display:none}
+.preview-control input[type=range]{width:min(180px,40vw);accent-color:#c9a648}
+.preview-control input[type=checkbox]{width:16px;height:16px;accent-color:#c9a648}
+.preview-control select{background:#0c1117;color:#d3d8dd;border:1px solid #46515e;padding:3px 6px;font:inherit}
+.preview-control output{min-width:3.5em;font-variant-numeric:tabular-nums;color:#e4c267}
 .docs-start{display:flex;flex-wrap:wrap;gap:12px 24px;padding-block:20px;border-block:1px solid var(--line);font-size:14px}
 .guide-group h3{color:#aebb9f;font-size:14px;letter-spacing:0;margin-top:32px}
 .guide-group dl>div{display:grid;grid-template-columns:170px minmax(0,1fr);gap:20px;padding-block:14px;border-bottom:1px solid #333c2c}

@@ -61,7 +61,7 @@ index f4028fc..f8753a7 100644
          };
          (batch, glyph_atlas)
 diff --git a/src/iced_app/strata_emit.rs b/src/iced_app/strata_emit.rs
-index dba5eee..2f61680 100644
+index dba5eee..3411b9c 100644
 --- a/src/iced_app/strata_emit.rs
 +++ b/src/iced_app/strata_emit.rs
 @@ -386,6 +386,9 @@ pub struct RegistryQuadBatchParams<'a, 'font> {
@@ -99,11 +99,13 @@ index dba5eee..2f61680 100644
      });
      batch
  }
-@@ -535,6 +544,9 @@ pub fn build_quad_batch_with_cache(
+@@ -535,6 +544,11 @@ pub fn build_quad_batch_with_cache(
  
  fn build_background_batch(screen_size: (f32, f32)) -> QuadBatch {
      let mut batch = QuadBatch::with_capacity(1000);
-+    if std::env::var("WOW_SIM_PLAIN_BACKGROUND").ok().as_deref() == Some("1") {
++    if std::env::var("WOW_SIM_PLAIN_BACKGROUND").ok().as_deref() == Some("1")
++        || std::env::var("WOW_SIM_TRANSPARENT_BACKGROUND").ok().as_deref() == Some("1")
++    {
 +        return batch;
 +    }
      let size = Size::new(screen_size.0, screen_size.1);
@@ -412,15 +414,18 @@ index 116f372..601ecd5 100644
      let phase_start = std::time::Instant::now();
      let result = action();
 diff --git a/src/render/headless.rs b/src/render/headless.rs
-index 85b9c98..61ff3c3 100644
+index 85b9c98..298ffd9 100644
 --- a/src/render/headless.rs
 +++ b/src/render/headless.rs
-@@ -334,7 +334,11 @@ fn clear_headless_render_target(
+@@ -334,7 +334,14 @@ fn clear_headless_render_target(
          &mut encoder,
          render_view,
          &clip_bounds_u32,
 -        [0.05, 0.05, 0.08, 1.0],
-+        if std::env::var("WOW_SIM_PLAIN_BACKGROUND").ok().as_deref() == Some("1") {
++        if std::env::var("WOW_SIM_TRANSPARENT_BACKGROUND").ok().as_deref() == Some("1") {
++            // Premultiplied blending accumulates coverage, so the UI layer composites elsewhere.
++            [0.0, 0.0, 0.0, 0.0]
++        } else if std::env::var("WOW_SIM_PLAIN_BACKGROUND").ok().as_deref() == Some("1") {
 +            [0.003676507, 0.005605392, 0.008568126, 1.0]
 +        } else {
 +            [0.05, 0.05, 0.08, 1.0]

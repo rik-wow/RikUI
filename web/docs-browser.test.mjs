@@ -5,6 +5,7 @@ import { distinctSurfaces, drawingKey } from "./docs-visuals.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 const renders=JSON.parse(readFileSync(new URL("./ui-renders/manifest.json",import.meta.url),"utf8")).renders;
+const sequences=renders.filter(render=>render.frames);
 const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
 // Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
 const placements={
@@ -17,7 +18,7 @@ const placements={
  chat:{"chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history"},
  loot:{"loot-list":"ref-loot-an-item"},
  shell:{"shell-menu":"ref-the-rikui-button"},
- "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column"},
+ "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-scale":"ref-scale-the-hud"},
  cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip"},
  swingtimer:{"swing-main-hand":"ref-weapon-swings"}
 };
@@ -85,7 +86,7 @@ test("examples sit beside the instructions they illustrate",async({page})=>{
   expect(actual,slug).toEqual(expected);
   const captions=figures.map(figure=>figure.caption);
   expect(new Set(captions).size,slug+" repeats an example").toBe(captions.length);
-  for(const render of renders.filter(render=>render.page===slug))await expect(page.locator('figure[data-render="'+render.id+'"] img')).toHaveAttribute("src",/\/assets\/docs\//);
+  for(const render of renders.filter(render=>render.page===slug))await expect(page.locator('figure[data-render="'+render.id+'"] img').first()).toHaveAttribute("src",/\/assets\/docs\//);
  }
  for(const [slug,expected] of Object.entries(mockupPlacements)){
   await page.goto("/docs/"+slug);
@@ -132,18 +133,47 @@ test("spell and item examples load the correct named images",async({page})=>{
 test("documentation works without JavaScript",async({browser})=>{
  const context=await browser.newContext({javaScriptEnabled:false});
  const page=await context.newPage();
- await page.goto((process.env.SITE_URL||"http://127.0.0.1:8787")+"/docs/castbars");
+ const site=process.env.SITE_URL||"http://127.0.0.1:8787";
+ await page.goto(site+"/docs/castbars");
  await expect(page.getByRole("heading",{name:"Cast bars",exact:true})).toBeVisible();
  await expect(page.getByRole("navigation",{name:"Documentation",exact:true})).toBeVisible();
  await expect(page.locator('figure[data-render="cast-interrupted"] img')).toBeVisible();
+ // A setting preview degrades to its default frame with the control hidden.
+ await page.goto(site+"/docs/combat-hud");
+ const preview=page.locator('figure[data-sequence="slider"]').first();
+ await expect(preview.locator("[data-frame]:visible")).toHaveCount(1);
+ await expect(preview.locator(".preview-control")).toBeHidden();
  await context.close();
 });
+
+test("setting previews swap frames in place",async({page})=>{
+ await page.goto("/docs/combat-hud");
+ const preview=page.locator('figure[data-render="hud-scale"]');
+ await expect(preview).toHaveAttribute("data-sequence","slider");
+ const frames=preview.locator("[data-frame]");
+ expect(await frames.count()).toBe(sequences.find(render=>render.id==="hud-scale").frames.length);
+ const control=preview.locator(".preview-control input[type=range]");
+ await expect(control).toBeVisible();
+ await expect(preview.locator("[data-frame]:visible")).toHaveCount(1);
+ await expect(preview.locator(".preview-control output")).toHaveText("100%");
+ const before=await preview.locator("[data-frame]:visible img").getAttribute("src");
+ await control.fill("0");
+ await expect(preview.locator(".preview-control output")).toHaveText("85%");
+ await expect(preview.locator('[data-frame="0"]')).toBeVisible();
+ await expect(preview.locator('[data-frame="1"]')).toBeHidden();
+ const after=await preview.locator("[data-frame]:visible img").getAttribute("src");
+ expect(after).not.toBe(before);
+ expect(await preview.locator("[data-frame] img").evaluateAll(images=>images.map(image=>image.complete&&image.naturalWidth>0))).not.toContain(false);
+ await control.fill("2");
+ await expect(preview.locator(".preview-control output")).toHaveText("115%");
+ await expect(preview.locator('[data-frame="2"]')).toBeVisible();
+});
 test("Lua examples serve the reviewed images with their original proportions",async({request,page})=>{
- for(const render of renders){
-  const asset="/assets/docs/"+render.id+"-"+render.sha256.slice(0,12)+".webp";
+ for(const render of renders)for(const frame of render.frames||[render]){
+  const asset="/assets/docs/"+render.id+(render.frames?"-"+String(frame.value).replace(/[^a-z0-9]+/gi,"-"):"")+"-"+frame.sha256.slice(0,12)+".webp";
   const response=await request.get(asset);
   expect(response.status(),asset).toBe(200);
-  expect(createHash("sha256").update(await response.body()).digest("hex"),asset).toBe(render.reviewedSha256);
+  expect(createHash("sha256").update(await response.body()).digest("hex"),asset).toBe(frame.reviewedSha256);
  }
  await page.goto("/docs/wizard");
  const images=page.locator("figure img.ui-example");

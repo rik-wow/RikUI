@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T00:13:30.030825+00:00",
-  "addonCommit": "f08b0c6ac3d5ed3ddcfbafe43468557bb6553b02",
+  "capturedAt": "2026-09-28T00:59:51.658541+00:00",
+  "addonCommit": "09498de13839a3bbb10af8c727d019c3df5dcb7a",
   "addonFiles": {
     "Bindings.xml": "f4de3bf073de7728bb45ceb353ffaeb1edc50eea3704a26743ef60887bbcb5e0",
     "RikUI.toc": "52bd13c43576ded42a9957dac09d9ada13cedeff7193ff5a0affe4073252be8e",
@@ -372,19 +372,21 @@
       "source": "casc-local-or-cdn",
       "fallback": "none"
     },
-    "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+    "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
   },
   "fixtureFiles": {
-    "common.lua": "56f849638c02fb5e276a892944ddf5b6aa891b223eb7a6a235a1c05e2a7b01dd",
+    "common.lua": "fa3fa8d91a5ce9ae2f2254e52ead73003d15db6a15311163fbeffedfded10b30",
     "seed.lua": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-    "scenarios.json": "4f7e71d8efba4e19b525a2ea39002796f70a542e37bfda4ba9b29acb2ac33573",
-    "render.py": "12f4e7b502382cde5087cbb70fbd646602de655133053b2381fdb3c7380c6dc1",
-    "validate_capture.py": "af00d572d67f8d277bfec043d38c06642da089a27e0b097dabdf0b5cd48f8330",
-    "wow-ui-sim.patch": "373f2d58a228ac09849a56cd755e81e90de3e00a765039afb4fbca22eff0bac7"
+    "scenarios.json": "218ef49613104cf94c4ab4f1b51ce29dfe2f01c8a55da6f87a034e48b86ffc69",
+    "render.py": "85b8ca498101d75b376159de1e5607c0ecca908f9b3cf88c983b4a8ea6244f4c",
+    "validate_capture.py": "b6b1b77221c76ce346335b79866b49bfaa0fc25b8b776760893e1ae910b432db",
+    "wow-ui-sim.patch": "3fa20147121415b4dc7c0a089ea1831a80f64aeed1dd4f53fe9bf901c11b3a41",
+    "plates.mjs": "609b794e9ed1c334dde26f86ebb5098f5124cba7736a96fd8aa37667934e6b3c",
+    "schema.py": "ff00306cd8159a43d7eea5ba5d60fab57d4f441f128d8eb0fa34fa0dcd678af4"
   },
   "rendererCommit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f",
-  "rendererBinarySha256": "7df0a5790eca391ace1cf0f4db335f43cc6344b187e8faf581a72de94d6c7810",
-  "rendererPatchSha256": "373f2d58a228ac09849a56cd755e81e90de3e00a765039afb4fbca22eff0bac7",
+  "rendererBinarySha256": "7a11eb8d1fb8397a2281c0cb9d8746946de8b6f8182824896a9b18f5b5ae6a29",
+  "rendererPatchSha256": "3fa20147121415b4dc7c0a089ea1831a80f64aeed1dd4f53fe9bf901c11b3a41",
   "renders": [
     {
       "id": "options-general",
@@ -392,6 +394,7 @@
       "title": "General",
       "frame": "RikUIOptionsPanel",
       "crop": "800x600+624+276",
+      "fixtures": [],
       "lua": "RikUI.Options.Open(\"general\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
       "expectText": [
         "General"
@@ -408,7 +411,7 @@
       },
       "sha256": "2b99b112e62b2d8c7cee50774fefc4216137e088768f6af09986a4510ec6712d",
       "bytes": 34088,
-      "fixtureSha256": "1cfc85caac1e366567b5244ed2c5aaa5bee85a4493c8119278af749cda90d6d1",
+      "fixtureSha256": "777f95718dbe14b9421673612519110067df26403bbe4841d4c8c92b577fa85d",
       "filename": "options-general.webp",
       "width": 800,
       "height": 600,
@@ -427,10 +430,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "2b99b112e62b2d8c7cee50774fefc4216137e088768f6af09986a4510ec6712d"
     },
     {
@@ -439,6 +442,7 @@
       "title": "Module selection",
       "frame": "RikUIOptionsPanel",
       "crop": "800x600+624+276",
+      "fixtures": [],
       "lua": "RikUI.Options.Open(\"modules\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
       "expectText": [
         "Enabled modules"
@@ -455,7 +459,7 @@
       },
       "sha256": "6026b60e13149fd131cfd2c33d95523afa68a2f70cea888368b7cf523c5c97ac",
       "bytes": 24780,
-      "fixtureSha256": "acc631cac7efafed05a44d005eab701c0ab7e5f330d1619ecf12c5669344d17b",
+      "fixtureSha256": "8272af0ebe5c92f2b268dfd674bd1fbe71bc1eb572f844b26675ef91bead9dc4",
       "filename": "options-modules.webp",
       "width": 800,
       "height": 600,
@@ -474,10 +478,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "6026b60e13149fd131cfd2c33d95523afa68a2f70cea888368b7cf523c5c97ac"
     },
     {
@@ -486,6 +490,7 @@
       "title": "Profiles",
       "frame": "RikUIOptionsPanel",
       "crop": "800x600+624+276",
+      "fixtures": [],
       "lua": "RikUI.Options.Open(\"profiles\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
       "expectText": [
         "Profiles"
@@ -502,7 +507,7 @@
       },
       "sha256": "00bf39efb70f179ec9f9345e3a64ef69a35b9821f560cbddcbe0335a8824c675",
       "bytes": 35386,
-      "fixtureSha256": "42019b3dc3862260eae52ab0477e40f38abaed31b02c6817f974374bc8989607",
+      "fixtureSha256": "265b5a4f12ad8e4c4107701014c25b603d2b63de57a7185466b264ab35f42193",
       "filename": "options-profiles.webp",
       "width": 800,
       "height": 600,
@@ -521,10 +526,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "00bf39efb70f179ec9f9345e3a64ef69a35b9821f560cbddcbe0335a8824c675"
     },
     {
@@ -533,6 +538,7 @@
       "title": "Setup and support",
       "frame": "RikUIOptionsPanel",
       "crop": "800x600+624+276",
+      "fixtures": [],
       "lua": "RikUI.Options.Open(\"setup\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
       "expectText": [
         "Open wizard"
@@ -549,7 +555,7 @@
       },
       "sha256": "36dc502adb6e1fabe2eb38677b88dc9fad96e039423e76dacf6ac2643459b0b2",
       "bytes": 36024,
-      "fixtureSha256": "102a4a8feda0875869889398c9257f602752bf7d271c65b77d97dc98fb7d3616",
+      "fixtureSha256": "2265a26fca38e1202fb1f379fcb485813d098b7da9e6913750668d5b97679eb0",
       "filename": "options-setup.webp",
       "width": 800,
       "height": 600,
@@ -568,10 +574,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "36dc502adb6e1fabe2eb38677b88dc9fad96e039423e76dacf6ac2643459b0b2"
     },
     {
@@ -580,6 +586,7 @@
       "title": "Cast-bar settings",
       "frame": "RikUIOptionsPanel",
       "crop": "800x600+624+276",
+      "fixtures": [],
       "lua": "RikUI.Options.Open(\"castbars\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
       "expectText": [
         "Show remaining cast time"
@@ -596,7 +603,7 @@
       },
       "sha256": "643e282296180481f7b021229ff60f46b79c0a13ae497a4a0e63b2ae3430ec85",
       "bytes": 23948,
-      "fixtureSha256": "d5aa341c2f9ed6266b06039f20938be50f950e529b86fb4b6536a0fbe5e2c35a",
+      "fixtureSha256": "bb4de5cffe9cea0a3a1802a61900e3b06c636e72b92664ebea4d1127ebb81580",
       "filename": "options-castbars.webp",
       "width": 800,
       "height": 600,
@@ -615,10 +622,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "643e282296180481f7b021229ff60f46b79c0a13ae497a4a0e63b2ae3430ec85"
     },
     {
@@ -627,6 +634,7 @@
       "title": "Player",
       "frame": "RikUIUnit_player",
       "crop": "472x120+788+516",
+      "fixtures": [],
       "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_player,2)\n",
       "expectText": [
         "Rik",
@@ -644,7 +652,7 @@
       },
       "sha256": "ea606267391721048bc4b10dc43a8e2e911a923a2abc4f7555b03a02b494da12",
       "bytes": 5406,
-      "fixtureSha256": "33fa9c637761857750f4442b62162bf4fec43f0d8e151c1ba8fe88500a525ac8",
+      "fixtureSha256": "2d81c85b6acaa30083e94e9866147e8100914e411f1e888ba8584bdea5dee118",
       "filename": "units-player.webp",
       "width": 472,
       "height": 120,
@@ -663,10 +671,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "ea606267391721048bc4b10dc43a8e2e911a923a2abc4f7555b03a02b494da12"
     },
     {
@@ -675,6 +683,7 @@
       "title": "Low health",
       "frame": "RikUIUnit_player",
       "crop": "472x120+788+516",
+      "fixtures": [],
       "lua": "A_Admin.SetPlayerHealth(46,220)\nA_Admin.SetPlayerPower(87,287,0)\nRikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_player,2)\n",
       "expectText": [
         "Rik",
@@ -692,7 +701,7 @@
       },
       "sha256": "f8f25c0dc9255916f266de33c066d8d61db12bfca6e99a9a455ad6d303935049",
       "bytes": 4636,
-      "fixtureSha256": "3089a51d5b6bd710ce5385f7de56644cfe9562237ef73c0cb3da90c5e12b8a66",
+      "fixtureSha256": "1427c7398b38e4b751df163b9c2fd2d22f709a79644a9d24662f8701ac6fa4c8",
       "filename": "units-low-health.webp",
       "width": 472,
       "height": 120,
@@ -711,10 +720,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "f8f25c0dc9255916f266de33c066d8d61db12bfca6e99a9a455ad6d303935049"
     },
     {
@@ -723,6 +732,7 @@
       "title": "Target",
       "frame": "RikUIUnit_target",
       "crop": "472x120+788+516",
+      "fixtures": [],
       "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_target,2)\n",
       "expectText": [
         "Mangy Wolf",
@@ -740,7 +750,7 @@
       },
       "sha256": "16d33808bf815e86bac4ed51ff75d6871a8c2e44dd534e4f378bf994c58e4ba1",
       "bytes": 5376,
-      "fixtureSha256": "9e5b5e138306b938cc39123bf54bc29adb3ab94a6a1d0d2b942e5af61bf2c5b1",
+      "fixtureSha256": "6d037c8c2fec9d5d27677b1b15caf8a528fbf2661cdca94ca4d4d3cc423ad373",
       "filename": "units-target.webp",
       "width": 472,
       "height": 120,
@@ -759,10 +769,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "16d33808bf815e86bac4ed51ff75d6871a8c2e44dd534e4f378bf994c58e4ba1"
     },
     {
@@ -771,6 +781,7 @@
       "title": "Focus",
       "frame": "RikUIUnit_focus",
       "crop": "352x104+848+524",
+      "fixtures": [],
       "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_focus,2)\n",
       "expectText": [
         "Mira",
@@ -788,7 +799,7 @@
       },
       "sha256": "ff8ab2b5f41cd17a0d3f72bfb39ec0593bcf8528f4fc23b44da88a858946cf24",
       "bytes": 2464,
-      "fixtureSha256": "59c0774409824c32fec5e929919d22070ef8c313b48a77e9c8b9a42cc37675e4",
+      "fixtureSha256": "c63239b8335815c4081edae3ef3894e83be38cd9d3c734a227b5aff93ae7ff0a",
       "filename": "units-focus.webp",
       "width": 352,
       "height": 104,
@@ -807,10 +818,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "ff8ab2b5f41cd17a0d3f72bfb39ec0593bcf8528f4fc23b44da88a858946cf24"
     },
     {
@@ -819,7 +830,10 @@
       "title": "Remaining time hidden",
       "frame": "RikUICast_player",
       "crop": "600x80+724+536",
-      "lua": "A_Admin.SetCasting(635,\"Holy Light\",\"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\",2.5)\nlocal clock = C_DurationUtil.CreateManualClock(1)\nlocal duration = C_DurationUtil.CreateDuration()\nduration:SetClock(clock)\nduration:SetTimeFromStart(0,2.5)\nlocal reader = UnitCastingDuration\nUnitCastingDuration = function(unit) if unit == \"player\" then return duration end return reader(unit) end\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\",\"player\")\nRikRenderCenter(RikUICast_player,2)\nfor _, option in ipairs(RikUI.CastBars.Options.settings) do if option.key == \"timeText\" then option.set(false) end end\n",
+      "fixtures": [
+        "RikRenderCast()"
+      ],
+      "lua": "RikRenderCenter(RikUICast_player,2)\nfor _, option in ipairs(RikUI.CastBars.Options.settings) do if option.key == \"timeText\" then option.set(false) end end\n",
       "expectText": [
         "Holy Light"
       ],
@@ -836,7 +850,7 @@
       },
       "sha256": "0bc0c2e6079ac9c922a1251bc98218005d47bc7b52c1d1307d2a98e122bf7760",
       "bytes": 4942,
-      "fixtureSha256": "702d28fce2ccf960bb66189cb71a3c1d914b119ece15845172ef48bd09a2acac",
+      "fixtureSha256": "0accffa65026971ab2896f78a6edf03c76ae134df1e60b24a8cd7428d75d86c6",
       "filename": "cast-player.webp",
       "width": 600,
       "height": 80,
@@ -855,10 +869,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "0bc0c2e6079ac9c922a1251bc98218005d47bc7b52c1d1307d2a98e122bf7760"
     },
     {
@@ -867,6 +881,7 @@
       "title": "Interrupted cast",
       "frame": "RikUICast_player",
       "crop": "600x80+724+536",
+      "fixtures": [],
       "lua": "A_Admin.SetCasting(635,\"Holy Light\",\"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\",2.5)\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\",\"player\")\nA_Admin.FireEvent(\"UNIT_SPELLCAST_INTERRUPTED\",\"player\")\nRikRenderCenter(RikUICast_player,2)\n",
       "expectText": [
         "Interrupted"
@@ -881,9 +896,9 @@
         },
         "uniqueColors": 744
       },
-      "sha256": "d4ca2c81a8f0febb87424c8d82be4841bc1a71330c31824c15bdf76ef7ebfd2d",
-      "bytes": 4214,
-      "fixtureSha256": "1a722dea142768c43b888d595bcbd513471997e1a7c848e48dff3744a67b5a13",
+      "sha256": "cd5ad0ed34df6a969107f4c63e783c6ffff3f2c73ffdd622225571abb789369d",
+      "bytes": 4208,
+      "fixtureSha256": "23249467a485cb9175d0bdff219fbc3a7e837523e5d54adaab494e54ca5741db",
       "filename": "cast-interrupted.webp",
       "width": 600,
       "height": 80,
@@ -902,11 +917,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
-      "reviewedSha256": "d4ca2c81a8f0febb87424c8d82be4841bc1a71330c31824c15bdf76ef7ebfd2d"
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "reviewedSha256": "cd5ad0ed34df6a969107f4c63e783c6ffff3f2c73ffdd622225571abb789369d"
     },
     {
       "id": "wizard-1",
@@ -914,6 +929,7 @@
       "title": "Welcome",
       "frame": "RikUIWizard",
       "crop": "860x624+594+264",
+      "fixtures": [],
       "lua": "RikUI.Wizard.Open()\nfor step=1,1 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
       "expectText": [
         "Welcome to RikUI"
@@ -930,7 +946,7 @@
       },
       "sha256": "fcb1283758599e9a967beb536bc195265427356ca009aff117ad245ea745ca18",
       "bytes": 21784,
-      "fixtureSha256": "25ee420d4db24b766fea88dd9614c6d9e7f03079d729dd796bc569e64cffc371",
+      "fixtureSha256": "5b9bbb83e284cfcf0266c9d0d61b1077857c852f160a02f1d1c862d2997261c6",
       "filename": "wizard-1.webp",
       "width": 860,
       "height": 624,
@@ -949,10 +965,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "fcb1283758599e9a967beb536bc195265427356ca009aff117ad245ea745ca18"
     },
     {
@@ -961,6 +977,7 @@
       "title": "Your role",
       "frame": "RikUIWizard",
       "crop": "860x624+594+264",
+      "fixtures": [],
       "lua": "RikUI.Wizard.Open()\nfor step=1,2 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
       "expectText": [
         "Retribution",
@@ -980,7 +997,7 @@
       },
       "sha256": "c3c07fb236229be9e887e1268ca3ee87e7f94cfe581bf20246f68377a7c624fb",
       "bytes": 52692,
-      "fixtureSha256": "f2fdb1138df663eff44c995d5934b4a6d1c9d379100b81a837ee06dc6918b998",
+      "fixtureSha256": "b36cb23a2167535a0467a16c671f22b6834976be8a2ea3d5636349591dddd53f",
       "filename": "wizard-2.webp",
       "width": 860,
       "height": 624,
@@ -999,10 +1016,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "c3c07fb236229be9e887e1268ca3ee87e7f94cfe581bf20246f68377a7c624fb"
     },
     {
@@ -1011,6 +1028,7 @@
       "title": "Keybinds",
       "frame": "RikUIWizard",
       "crop": "860x624+594+264",
+      "fixtures": [],
       "lua": "RikUI.Wizard.Open()\nfor step=1,3 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
       "expectText": [
         "Mouse 4/5"
@@ -1027,7 +1045,7 @@
       },
       "sha256": "60541eca61252c7ddc923da90c7ea13994b9cc7d7494db6aec80356361f4a0e7",
       "bytes": 29644,
-      "fixtureSha256": "1591e1b91423dad59eb046a90fa39d293fa8b090243a6963db83a7f57ecc803b",
+      "fixtureSha256": "6af92bfd29bb8ec56ec9069d3758271add4e6a1afb2ab470674b552671806fb5",
       "filename": "wizard-3.webp",
       "width": 860,
       "height": 624,
@@ -1046,10 +1064,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "60541eca61252c7ddc923da90c7ea13994b9cc7d7494db6aec80356361f4a0e7"
     },
     {
@@ -1058,6 +1076,7 @@
       "title": "Screen layout",
       "frame": "RikUIWizard",
       "crop": "860x624+594+264",
+      "fixtures": [],
       "lua": "RikUI.Wizard.Open()\nfor step=1,4 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
       "expectText": [
         "Screen layout"
@@ -1074,7 +1093,7 @@
       },
       "sha256": "99939502fd739ccf79785fd28eb9f5e1d395648dcc5d430c929bcc210a4780e3",
       "bytes": 30014,
-      "fixtureSha256": "1cfde09e31eedcef9ebbcb2e7c66b4ab2b7c685a672a1634743ccb139ceabd28",
+      "fixtureSha256": "7dd7bc7b146405d093a0c8b94a7ddb2e7653f53434c92589e4af46497705c3aa",
       "filename": "wizard-4.webp",
       "width": 860,
       "height": 624,
@@ -1093,10 +1112,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "99939502fd739ccf79785fd28eb9f5e1d395648dcc5d430c929bcc210a4780e3"
     },
     {
@@ -1105,6 +1124,7 @@
       "title": "Modules and settings",
       "frame": "RikUIWizard",
       "crop": "860x624+594+264",
+      "fixtures": [],
       "lua": "RikUI.Wizard.Open()\nfor step=1,5 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
       "expectText": [
         "Modules and settings"
@@ -1121,7 +1141,7 @@
       },
       "sha256": "28ab7286efa7f16560935866880e47ec07b3fd7e05f925038fd5c2f89528a90b",
       "bytes": 35250,
-      "fixtureSha256": "e24e0d2d512ea20f2dafcd92abdb20e773ef9b1524ff33210ca2d4d835005e39",
+      "fixtureSha256": "72b4b738d6a5003f1d001886083f9a5ab13d5e4d62b2f5b505609740c32d880e",
       "filename": "wizard-5.webp",
       "width": 860,
       "height": 624,
@@ -1140,10 +1160,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "28ab7286efa7f16560935866880e47ec07b3fd7e05f925038fd5c2f89528a90b"
     },
     {
@@ -1152,6 +1172,7 @@
       "title": "Review and apply",
       "frame": "RikUIWizard",
       "crop": "860x624+594+264",
+      "fixtures": [],
       "lua": "RikUI.Wizard.Open()\nfor step=1,6 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
       "expectText": [
         "Summary",
@@ -1169,7 +1190,7 @@
       },
       "sha256": "3d74e25f957fe0c2d997cef215f3df8a223b1107ccea1d0b7634080d1e00b3b6",
       "bytes": 28100,
-      "fixtureSha256": "8b0bfed4fd4f67215e942a7e22ce902186e2324ba1ce96e939c4e3ad89f5c68f",
+      "fixtureSha256": "35f764344c7a7bd2bee980cc2ae359dc54f0f917d7dbfb755f6f810b36d227f3",
       "filename": "wizard-6.webp",
       "width": 860,
       "height": 624,
@@ -1188,10 +1209,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "3d74e25f957fe0c2d997cef215f3df8a223b1107ccea1d0b7634080d1e00b3b6"
     },
     {
@@ -1200,6 +1221,7 @@
       "title": "Inventory and item stacks",
       "frame": "RikUIBags",
       "crop": "434x288+807+432",
+      "fixtures": [],
       "lua": "RikRenderItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderCenter(RikUIBags)\nassert(RikUIBag0Slot2.rikIcon:GetTexture() == 134829, \"Wrong potion icon\")\nassert(RikUIBag0Slot2.rikCount:GetText() == \"5\", \"Missing stack count\")\n",
       "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")",
       "diagnostics": {
@@ -1214,7 +1236,7 @@
       },
       "sha256": "bd9ad92e589805578c2ac56849eb45df4e794d56ca1d0f0451b401ee7c52e86e",
       "bytes": 12024,
-      "fixtureSha256": "bada5a169ceff967372f067a19017d00f5a141d40227be23db802f747ae9c583",
+      "fixtureSha256": "c822c8d1acffa7eb39f00098ab21db7214e658404cf90c66b8f64ecc4036208a",
       "filename": "bags-inventory.webp",
       "width": 434,
       "height": 288,
@@ -1233,10 +1255,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "bd9ad92e589805578c2ac56849eb45df4e794d56ca1d0f0451b401ee7c52e86e"
     },
     {
@@ -1245,11 +1267,12 @@
       "title": "Searching for a potion",
       "frame": "RikUIBags",
       "crop": "434x288+807+432",
+      "fixtures": [],
       "lua": "RikRenderItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderCenter(RikUIBags)\nRikUIBags.search:SetText(\"potion\")\nassert(RikUIBag0Slot2.rikIcon:GetTexture() == 134829, \"Wrong potion icon\")\nassert(RikUIBag0Slot2.rikCount:GetText() == \"5\", \"Missing stack count\")\n",
-      "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")",
       "expectText": [
         "potion"
       ],
+      "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")",
       "diagnostics": {
         "visibleTextCount": 19,
         "root": {
@@ -1262,7 +1285,7 @@
       },
       "sha256": "45688048c93b9cb3372bbf75edbfb0d990251b327ab2d972521ce0eb6a6d84a6",
       "bytes": 13044,
-      "fixtureSha256": "1f2196eb4624d08e0d3d805db043656ddbda6118474d8a6fdf07a12c1195706a",
+      "fixtureSha256": "c6988564578aee25b3b38daf66dc61279640c1a9ca9a473b39bb6dbe0b8c06dd",
       "filename": "bags-search.webp",
       "width": 434,
       "height": 288,
@@ -1281,10 +1304,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "45688048c93b9cb3372bbf75edbfb0d990251b327ab2d972521ce0eb6a6d84a6"
     },
     {
@@ -1293,11 +1316,12 @@
       "title": "No matching items",
       "frame": "RikUIBags",
       "crop": "434x288+807+432",
+      "fixtures": [],
       "lua": "RikRenderItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderCenter(RikUIBags)\nRikUIBags.search:SetText(\"mithril\")\nassert(RikUIBag0Slot2.rikIcon:GetTexture() == 134829, \"Wrong potion icon\")\nassert(RikUIBag0Slot2.rikCount:GetText() == \"5\", \"Missing stack count\")\n",
-      "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")",
       "expectText": [
         "mithril"
       ],
+      "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")",
       "diagnostics": {
         "visibleTextCount": 20,
         "root": {
@@ -1310,7 +1334,7 @@
       },
       "sha256": "d3fd1558c648dda8f436f99eaccab41e0f2cb0410f42087de30cb4c6239df154",
       "bytes": 15746,
-      "fixtureSha256": "0b1e5d135fb0de82144742a0fa7b400e59c29db3bc9d3f32ca40cde5e8f1564a",
+      "fixtureSha256": "cc73012fe9716a0f5c775b7546d48f41db2de007ba3bd6a489367b6f2c98600e",
       "filename": "bags-empty-search.webp",
       "width": 434,
       "height": 288,
@@ -1329,10 +1353,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "d3fd1558c648dda8f436f99eaccab41e0f2cb0410f42087de30cb4c6239df154"
     },
     {
@@ -1341,6 +1365,7 @@
       "title": "RikUI menu",
       "frame": "RikUIUtilityPanel",
       "crop": "360x680+844+236",
+      "fixtures": [],
       "lua": "RikUI.Shell.Open()\nRikRenderCenter(RikUIUtilityPanel)\nRikRenderResize(RikUIUtilityPanel)\n",
       "diagnostics": {
         "visibleTextCount": 20,
@@ -1354,7 +1379,7 @@
       },
       "sha256": "0a490965217e7fad9b33d784e7aab88a725ef4cad54e642e5a28e77c6e8fddf1",
       "bytes": 13116,
-      "fixtureSha256": "8aa25b488e8b7f1cc1e1ba12aa98bf607b850ee4f84e42ec5a4dd0c1c8f5ce3e",
+      "fixtureSha256": "c619a889c6636e42b07e896dd4de6e666e616152bb391936b9e657e1bd775b11",
       "filename": "shell-menu.webp",
       "width": 360,
       "height": 680,
@@ -1373,10 +1398,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "0a490965217e7fad9b33d784e7aab88a725ef4cad54e642e5a28e77c6e8fddf1"
     },
     {
@@ -1385,6 +1410,7 @@
       "title": "Exporting a profile",
       "frame": "RikUISharing",
       "crop": "700x480+674+336",
+      "fixtures": [],
       "lua": "assert(RikUI.Sharing.OpenProfileExport())\nRikRenderCenter(RikUISharing)\n",
       "diagnostics": {
         "visibleTextCount": 4,
@@ -1398,7 +1424,7 @@
       },
       "sha256": "d1b3c1483091d84555637bad9aa4fb8b84d40b68af6d90dc5500fad1b8c57cc2",
       "bytes": 31528,
-      "fixtureSha256": "85b33d2a0305d02095dfb60cd1675c94d9ed62b6ab01dbb3b976bcdd8873aa4c",
+      "fixtureSha256": "4033aa3a2f6b39819da30ea5f10536f99c15372bf0577fa862686ed4d7a226dc",
       "filename": "sharing-export.webp",
       "width": 700,
       "height": 480,
@@ -1417,10 +1443,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "d1b3c1483091d84555637bad9aa4fb8b84d40b68af6d90dc5500fad1b8c57cc2"
     },
     {
@@ -1429,6 +1455,7 @@
       "title": "Importing a profile",
       "frame": "RikUISharing",
       "crop": "700x480+674+336",
+      "fixtures": [],
       "lua": "assert(RikUI.Sharing.OpenProfileImport())\nRikRenderCenter(RikUISharing)\n",
       "diagnostics": {
         "visibleTextCount": 4,
@@ -1442,7 +1469,7 @@
       },
       "sha256": "1cc8d1aec17847bf8fd45cbbace5d57e4cb582c6eacb7bd80ea38a8e46f67294",
       "bytes": 5706,
-      "fixtureSha256": "2b84991fca4d0df7f8c6360738f8dc6dd1f92819560b3de3a79f297ae6a16154",
+      "fixtureSha256": "1855088bb0677c5e68909f83eb325030f71a91e5455f76b09cffcfdfaeac318b",
       "filename": "sharing-import.webp",
       "width": 700,
       "height": 480,
@@ -1461,10 +1488,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "1cc8d1aec17847bf8fd45cbbace5d57e4cb582c6eacb7bd80ea38a8e46f67294"
     },
     {
@@ -1473,6 +1500,7 @@
       "title": "Copying a conversation",
       "frame": "RikUIChatCopy",
       "crop": "600x440+724+356",
+      "fixtures": [],
       "lua": "RikUI.Chat.OpenCopy(ChatFrame1,\"Mira: Meet at the Goldshire inn?\\nRik: On my way.\\nMira: I have the linen for your quest.\\nRik: Thanks, see you there.\")\nRikRenderCenter(RikUIChatCopy)\nRikUIChatCopy.edit:ClearFocus()\nRikRenderResize(RikUIChatCopy)\n",
       "expectText": [
         "linen",
@@ -1490,7 +1518,7 @@
       },
       "sha256": "07dfd8d45b045f8e8ad82a77779585133d0035a257a6c77529e91f2c45cb39a4",
       "bytes": 10312,
-      "fixtureSha256": "99c1765fa8f8063f209e35acbacede280f330834eb015c7d117a1c26a3b8ad07",
+      "fixtureSha256": "d6c7774125780f40c5375bf7664b6ff074c97fa2f6c7f2096733def5924de2ff",
       "filename": "chat-copy.webp",
       "width": 600,
       "height": 440,
@@ -1509,10 +1537,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "07dfd8d45b045f8e8ad82a77779585133d0035a257a6c77529e91f2c45cb39a4"
     },
     {
@@ -1521,6 +1549,7 @@
       "title": "Finding a line in chat",
       "frame": "RikUIChatCopy",
       "crop": "600x440+724+356",
+      "fixtures": [],
       "lua": "RikUI.Chat.OpenCopy(ChatFrame1,\"Mira: Meet at the Goldshire inn?\\nRik: On my way.\\nMira: I have the linen for your quest.\\nRik: Thanks, see you there.\")\nRikUIChatCopy.search:SetText(\"linen\")\nRikRenderCenter(RikUIChatCopy)\nRikUIChatCopy.edit:ClearFocus()\nRikRenderResize(RikUIChatCopy)\n",
       "expectText": [
         "linen",
@@ -1538,7 +1567,7 @@
       },
       "sha256": "50c72b0b643511609a90f63065590fa1ec8b62126e599ecaac773036abbd57bd",
       "bytes": 7454,
-      "fixtureSha256": "012d9bd26d0f120eb6dd4fb75c924cc4b52d13f5d507c6801e6252782de08752",
+      "fixtureSha256": "5cfa973ad4c841ad40d013d4a5019ce60f04a505781b2a4634824002872c3d5c",
       "filename": "chat-search.webp",
       "width": 600,
       "height": 440,
@@ -1557,10 +1586,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "50c72b0b643511609a90f63065590fa1ec8b62126e599ecaac773036abbd57bd"
     },
     {
@@ -1569,6 +1598,7 @@
       "title": "Looting items",
       "frame": "RikUILoot",
       "crop": "360x220+844+466",
+      "fixtures": [],
       "lua": "RikRenderItems()\nRikUI.Loot.Open()\nRikRenderCenter(RikUILoot)\nassert(RikUI.Loot.Rows[2].icon:GetTexture() == 134829, \"Wrong potion icon\")\n",
       "expectText": [
         "Hearthstone",
@@ -1586,7 +1616,7 @@
       },
       "sha256": "34d1648b5416ba9f8e1ac0a1e170a1f440f2451bd9195db148f13cd36c09abc8",
       "bytes": 5428,
-      "fixtureSha256": "5e24c325bff167579efcb8d0d03a0b98b4767fdb86d36726577f7b43353c602e",
+      "fixtureSha256": "6f651da332dee7e05ce2279fcfe5a186f8bc10e3b54bf58aabaf5c552ba1d06a",
       "filename": "loot-list.webp",
       "width": 360,
       "height": 220,
@@ -1605,10 +1635,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "34d1648b5416ba9f8e1ac0a1e170a1f440f2451bd9195db148f13cd36c09abc8"
     },
     {
@@ -1617,7 +1647,16 @@
       "title": "The combat HUD",
       "frame": "RikRenderHUD",
       "crop": "830x340+470+572",
-      "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nA_Admin.SetCasting(635, \"Holy Light\", \"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\", 2.5)\nlocal clock = C_DurationUtil.CreateManualClock(1)\nlocal duration = C_DurationUtil.CreateDuration()\nduration:SetClock(clock)\nduration:SetTimeFromStart(0, 2.5)\nlocal reader = UnitCastingDuration\nUnitCastingDuration = function(unit) if unit == \"player\" then return duration end return reader(unit) end\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\", \"player\")\nlocal realTime = GetTime\nlocal started = realTime()\nA_Admin.FireEvent(\"PLAYER_SWING\", 2.4, Enum.PlayerSwingType.MainHand)\nGetTime = function() return started + 1 end\nlocal mainHand = RikUI.SwingTimer.Bars[Enum.PlayerSwingType.MainHand]\nmainHand:GetScript(\"OnUpdate\")(mainHand, 0)\nRikRenderGroup(\"RikRenderHUD\", { RikUICooldowns, RikUICombatResource, RikUICast_player, RikUISwingTimer, RikUIClassAuras_player, RikUIClassAuras_target, RikUIUnit_player, RikUIUnit_target, RikUIUnit_focus }, 470, 240, 830, 340)\nRikRenderResize(RikRenderHUD)\n",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderCast()",
+        "RikRenderSwing()"
+      ],
+      "lua": "RikRenderHUDGroup(\"RikRenderHUD\", 470, 240, 830, 340)\n",
       "expectText": [
         "Rik",
         "Mangy Wolf",
@@ -1634,14 +1673,28 @@
           "w": 830.0,
           "h": 340.0
         },
-        "uniqueColors": 5857
+        "uniqueColors": 5849
       },
-      "sha256": "2769e957051d37250ea1b28174f362a6a96221fb64e5b827c60945526d38df94",
-      "bytes": 26138,
-      "fixtureSha256": "d27b41f0adeea607d5c3d9bdbc91e9de4570b36b507f6a7039460c9a163840b4",
+      "sha256": "8d2c1813e1c009fb1b71cfb44a67371baad5216cce3891346cb558f0685c3f13",
+      "bytes": 109816,
+      "fixtureSha256": "c7cb920d0c9b8a0414c1169c43300c92550b813545360ed30039f313713f868b",
       "filename": "hud-arrangement.webp",
       "width": 830,
       "height": 340,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
       "client": {
         "version": "1.60.1.70009",
         "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
@@ -1657,11 +1710,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
-      "reviewedSha256": "2769e957051d37250ea1b28174f362a6a96221fb64e5b827c60945526d38df94"
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "reviewedSha256": "8d2c1813e1c009fb1b71cfb44a67371baad5216cce3891346cb558f0685c3f13"
     },
     {
       "id": "hud-column",
@@ -1669,7 +1722,13 @@
       "title": "Cooldowns, resource, cast and swing",
       "frame": "RikRenderHUDColumn",
       "crop": "320x220+864+692",
-      "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nA_Admin.SetCasting(635, \"Holy Light\", \"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\", 2.5)\nlocal clock = C_DurationUtil.CreateManualClock(1)\nlocal duration = C_DurationUtil.CreateDuration()\nduration:SetClock(clock)\nduration:SetTimeFromStart(0, 2.5)\nlocal reader = UnitCastingDuration\nUnitCastingDuration = function(unit) if unit == \"player\" then return duration end return reader(unit) end\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\", \"player\")\nlocal realTime = GetTime\nlocal started = realTime()\nA_Admin.FireEvent(\"PLAYER_SWING\", 2.4, Enum.PlayerSwingType.MainHand)\nGetTime = function() return started + 1 end\nlocal mainHand = RikUI.SwingTimer.Bars[Enum.PlayerSwingType.MainHand]\nmainHand:GetScript(\"OnUpdate\")(mainHand, 0)\nRikRenderGroup(\"RikRenderHUDColumn\", { RikUICooldowns, RikUICombatResource, RikUICast_player, RikUISwingTimer }, 864, 240, 320, 220)\nRikRenderResize(RikRenderHUDColumn)\n",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderCast()",
+        "RikRenderSwing()"
+      ],
+      "lua": "RikRenderHUDGroup(\"RikRenderHUDColumn\", 864, 240, 320, 220, { \"RikUICooldowns\", \"RikUICombatResource\", \"RikUICast_player\", \"RikUISwingTimer\" })\n",
       "expectText": [
         "287 / 287",
         "Holy Light",
@@ -1686,9 +1745,9 @@
         },
         "uniqueColors": 4837
       },
-      "sha256": "6d9db779b2d29247da4a659b8bf8092bf7a24c6c88784a3b8ecad9a33286a867",
-      "bytes": 19378,
-      "fixtureSha256": "3a05622c6c9355b399c33075a36d2ed77b0d768302dcede3361710963dafe4f2",
+      "sha256": "d21734235e827c7c7a6fec57b04ad229ed9d479a29bb635690797cbdc374f0ad",
+      "bytes": 19350,
+      "fixtureSha256": "c5d6741574c8e73f33b4017d1117570b20b10c5e65e05531966c4826eca09c41",
       "filename": "hud-column.webp",
       "width": 320,
       "height": 220,
@@ -1707,11 +1766,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
-      "reviewedSha256": "6d9db779b2d29247da4a659b8bf8092bf7a24c6c88784a3b8ecad9a33286a867"
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "reviewedSha256": "d21734235e827c7c7a6fec57b04ad229ed9d479a29bb635690797cbdc374f0ad"
     },
     {
       "id": "cooldowns-strip",
@@ -1719,7 +1778,11 @@
       "title": "The cooldown strip",
       "frame": "RikUICooldowns",
       "crop": "600x180+724+486",
-      "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nRikRenderCenter(RikUICooldowns, 2)\n",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()"
+      ],
+      "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
       "expectText": [],
       "assertLua": "local ids = {}\nfor _, entry in ipairs(RikUI.Cooldowns.Entries) do ids[#ids + 1] = entry.id end\nassert(table.concat(ids, \",\") == \"20287,20271,853,1022,633,498,679\", \"Unexpected strip order: \" .. table.concat(ids, \",\"))\nassert(RikUI.Cooldowns.Buttons[2].icon:GetTexture() == 135959, \"Wrong Judgement icon\")\nassert(not RikUI.Cooldowns.Buttons[3].unknown:IsShown(), \"Hammer of Justice cooldown must be readable\")\n",
       "diagnostics": {
@@ -1730,11 +1793,11 @@
           "w": 560.0,
           "h": 152.0
         },
-        "uniqueColors": 5233
+        "uniqueColors": 5232
       },
-      "sha256": "c646cdcc03f025e4b324b3dad015d1c24ba6d5696ac2a68ef73e0e522c9d3484",
-      "bytes": 31238,
-      "fixtureSha256": "a496eca7f2e75be48a6798d2f9d5eb551181cc14f8450792d8034929dbf52cfd",
+      "sha256": "366ae1cfc80d6167ad8ac64de2cf94e3271b32c0ca38b37493110c3dc77e40ad",
+      "bytes": 31228,
+      "fixtureSha256": "83be8005231b530a5545dee78b04e9fd3179cb798a413d64548e7ef73be27602",
       "filename": "cooldowns-strip.webp",
       "width": 600,
       "height": 180,
@@ -1753,11 +1816,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
-      "reviewedSha256": "c646cdcc03f025e4b324b3dad015d1c24ba6d5696ac2a68ef73e0e522c9d3484"
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "reviewedSha256": "366ae1cfc80d6167ad8ac64de2cf94e3271b32c0ca38b37493110c3dc77e40ad"
     },
     {
       "id": "swing-main-hand",
@@ -1765,7 +1828,12 @@
       "title": "Main hand swing",
       "frame": "RikUISwingTimer",
       "crop": "600x180+724+486",
-      "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nlocal realTime = GetTime\nlocal started = realTime()\nA_Admin.FireEvent(\"PLAYER_SWING\", 2.4, Enum.PlayerSwingType.MainHand)\nGetTime = function() return started + 1 end\nlocal mainHand = RikUI.SwingTimer.Bars[Enum.PlayerSwingType.MainHand]\nmainHand:GetScript(\"OnUpdate\")(mainHand, 0)\nRikRenderCenter(RikUISwingTimer, 2)\n",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderSwing()"
+      ],
+      "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
       "expectText": [
         "Main Hand",
         "1.4"
@@ -1782,7 +1850,7 @@
       },
       "sha256": "14894c0725b86779ded63c49d442ee0ab598fbc581d4da8f247e3fb49bb2e734",
       "bytes": 2274,
-      "fixtureSha256": "ab0236c1b8bc2d3cf0f4b63c18bf7e611481085ee31b4af51a4b48786752835a",
+      "fixtureSha256": "2d2c8f8f1a25156085abf361dde1765989314513bd3d8f2f28058ffe44e8ff96",
       "filename": "swing-main-hand.webp",
       "width": 600,
       "height": 180,
@@ -1801,10 +1869,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "14894c0725b86779ded63c49d442ee0ab598fbc581d4da8f247e3fb49bb2e734"
     },
     {
@@ -1813,7 +1881,10 @@
       "title": "Your class area",
       "frame": "RikUIOptionsPanel",
       "crop": "800x600+624+276",
-      "lua": "RikRenderSpellbook()\nRikUI.Options.Open(\"class-cooldowns\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class-cooldowns\")\n",
+      "fixtures": [
+        "RikRenderSpellbook()"
+      ],
+      "lua": "RikUI.Options.Open(\"class-cooldowns\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class-cooldowns\")\n",
       "expectText": [
         "Class: Paladin",
         "Class list",
@@ -1833,7 +1904,7 @@
       },
       "sha256": "260796a2cc4fea2ace039a01bf1aa8726aa43b37d8bf536c0a92016f7729c4f1",
       "bytes": 46716,
-      "fixtureSha256": "af8c32f3313f722afbc71ec2382000aeedaad079946bd0f939b08c473fcd0058",
+      "fixtureSha256": "a933d2ac28a5393beee2e2956a24b40a48ebc56e40f3b3f4c5b7f03b78650a3c",
       "filename": "options-class.webp",
       "width": 800,
       "height": 600,
@@ -1852,12 +1923,204 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:13:29.896210+00:00"
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
       },
       "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
       "reviewedSha256": "260796a2cc4fea2ace039a01bf1aa8726aa43b37d8bf536c0a92016f7729c4f1"
+    },
+    {
+      "id": "hud-scale",
+      "page": "combat-hud",
+      "title": "Frame scale",
+      "frame": "RikRenderHUDScale",
+      "crop": "1000x420+385+540",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderCast()",
+        "RikRenderSwing()"
+      ],
+      "lua": "RikRenderHUDGroup(\"RikRenderHUDScale\", 385, 192, 1000, 420)\n",
+      "expectText": [
+        "Rik",
+        "Mangy Wolf",
+        "Holy Light"
+      ],
+      "sequence": {
+        "control": "slider",
+        "label": "Frame scale",
+        "values": [
+          0.85,
+          1,
+          1.15
+        ],
+        "labels": [
+          "85%",
+          "100%",
+          "115%"
+        ],
+        "default": 1,
+        "apply": "RikRenderSetOption(\"general\", \"scale\", VALUE)"
+      },
+      "diagnostics": {
+        "visibleTextCount": 16,
+        "root": {
+          "x": 385.0,
+          "y": 540.0,
+          "w": 1000.0,
+          "h": 420.0
+        },
+        "uniqueColors": 5848
+      },
+      "sha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e",
+      "bytes": 162428,
+      "fixtureSha256": "05c795411492954770c8398f7d3fd5c201784f14c57211137db0bcd3f052d22a",
+      "filename": "hud-scale@1.webp",
+      "width": 1000,
+      "height": 420,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "frames": [
+        {
+          "value": 0.85,
+          "diagnostics": {
+            "visibleTextCount": 16,
+            "root": {
+              "x": 385.0,
+              "y": 540.0,
+              "w": 1000.0,
+              "h": 420.0
+            },
+            "uniqueColors": 5427
+          },
+          "sha256": "85f9c2fbb6d5b1275717cdc05d48502d93e08c682a8fcdb80ce224b06c6df1b1",
+          "bytes": 163842,
+          "fixtureSha256": "d584a7a22287b4aab9c50438982bc9150415fe11da50ffb816a0c5396604f779",
+          "filename": "hud-scale@0.85.webp",
+          "width": 1000,
+          "height": 420,
+          "plate": {
+            "plate": "goldshire-road",
+            "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+            "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+            "camera": {
+              "x": 8,
+              "y": 65.61634414672838,
+              "z": 9502,
+              "yaw": 0.9994588469612697,
+              "pitch": -0.08597929644384962,
+              "fov": 62
+            },
+            "captured": "2026-09-28T00:55:06.916Z"
+          },
+          "reviewedSha256": "85f9c2fbb6d5b1275717cdc05d48502d93e08c682a8fcdb80ce224b06c6df1b1"
+        },
+        {
+          "value": 1,
+          "diagnostics": {
+            "visibleTextCount": 16,
+            "root": {
+              "x": 385.0,
+              "y": 540.0,
+              "w": 1000.0,
+              "h": 420.0
+            },
+            "uniqueColors": 5848
+          },
+          "sha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e",
+          "bytes": 162428,
+          "fixtureSha256": "05c795411492954770c8398f7d3fd5c201784f14c57211137db0bcd3f052d22a",
+          "filename": "hud-scale@1.webp",
+          "width": 1000,
+          "height": 420,
+          "plate": {
+            "plate": "goldshire-road",
+            "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+            "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+            "camera": {
+              "x": 8,
+              "y": 65.61634414672838,
+              "z": 9502,
+              "yaw": 0.9994588469612697,
+              "pitch": -0.08597929644384962,
+              "fov": 62
+            },
+            "captured": "2026-09-28T00:55:06.916Z"
+          },
+          "reviewedSha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e"
+        },
+        {
+          "value": 1.15,
+          "diagnostics": {
+            "visibleTextCount": 16,
+            "root": {
+              "x": 385.0,
+              "y": 540.0,
+              "w": 1000.0,
+              "h": 420.0
+            },
+            "uniqueColors": 6187
+          },
+          "sha256": "2d7bb4eb50767b4dac775616b4375e3a4f6c911f386e925d7a44c293a96275f6",
+          "bytes": 161542,
+          "fixtureSha256": "04bccdefb32b7648a26c7cc7cbf2ff63d21d4b52956d96318b3777e4c78899e5",
+          "filename": "hud-scale@1.15.webp",
+          "width": 1000,
+          "height": 420,
+          "plate": {
+            "plate": "goldshire-road",
+            "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+            "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+            "camera": {
+              "x": 8,
+              "y": 65.61634414672838,
+              "z": 9502,
+              "yaw": 0.9994588469612697,
+              "pitch": -0.08597929644384962,
+              "fov": 62
+            },
+            "captured": "2026-09-28T00:55:06.916Z"
+          },
+          "reviewedSha256": "2d7bb4eb50767b4dac775616b4375e3a4f6c911f386e925d7a44c293a96275f6"
+        }
+      ],
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+      },
+      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
+      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "reviewedSha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e"
     }
   ],
-  "generation": "00cb71108049a6ed0344bce626209df46b6f6fb1c4664f08ad2491d4e91e0088"
+  "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb"
 }

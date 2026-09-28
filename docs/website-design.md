@@ -133,16 +133,30 @@ remain available. The draft licensing request is labeled as an unsent draft.
 A source registration check maps every named module to a guide page. Examples
 sit inside the guide text beside the instruction they illustrate: a Markdown
 image whose address is `render:<scenario-id>` places a reviewed Lua capture from
-web/ui-renders, and one whose address is `mockup` places the catalogued SVG
-illustration named by its alt text. The build fails when a page's captures (or,
-for pages without captures, its catalogued surfaces) are not each placed exactly
-once, so there is no detached gallery. Twelve guides currently use the 31 Lua
-captures; the other 38 feature guides still use illustrative SVGs, whose sample values
-and conditional native surfaces are not evidence of a live client capture. The
-catalogue names 274 surfaces, but many share one drawing once text is ignored;
-the build shows only the first surface of each distinct drawing (84
-illustrations) and rejects a guide that places a duplicate. The page inventory and module mapping are generated in
+web/ui-renders, one whose address is `preview:<scenario-id>` places a setting
+sequence (every frame is in the page; a range, switch or select shows one at a
+time, and without scripting the default frame shows alone), and one whose
+address is `mockup` places the catalogued SVG illustration named by its alt
+text. The build fails when a page's captures (or, for pages without captures,
+its catalogued surfaces) are not each placed exactly once, so there is no
+detached gallery. Twelve guides currently use the 32 Lua captures (34 images,
+one of them a three-frame sequence); the other 38 feature guides still use
+illustrative SVGs, whose sample values and conditional native surfaces are not
+evidence of a live client capture. The catalogue names 274 surfaces, but many
+share one drawing once text is ignored; the build shows only the first surface
+of each distinct drawing (84 illustrations) and rejects a guide that places a
+duplicate. The page inventory and module mapping are generated in
 web/docs-inventory.json.
+
+Captures of world-anchored interface (the combat HUD, later nameplates, the
+minimap and the rest) are composited over world plates: screenshots of the
+installed client's world rendered by the isometric-wow-sim project from a
+recorded fly-camera pose, taken by tools/site-renders/plates.mjs without
+changing that project. RikUI renders alone on a transparent layer, that layer
+must pass the blank-output check by itself, and the plate's hash, the app
+commit and the creatures in frame with their screen positions are recorded
+beside the plate and verified by the render gate. tools/site-renders/README.md
+has the details.
 
 Named spell and item identities replace random icon selection. Spell identifiers
 come from RikUI catalogues; action placement also uses the selected preset and
