@@ -16,7 +16,9 @@ def digest(path, normalized=False):
     return hashlib.sha256(data).hexdigest()
 
 def verify_inputs(manifest, errors):
-    tracked = subprocess.check_output(["git", "ls-files", "src", "data", "media", ":(glob)presets/**/*.lua", "RikUI.toc", "Bindings.xml"],
+    # Tracked and untracked (not ignored) files alike, so the gate sees a new source file before its first commit.
+    tracked = subprocess.check_output(["git", "ls-files", "--cached", "--others", "--exclude-standard",
+                                       "src", "data", "media", ":(glob)presets/**/*.lua", "RikUI.toc", "Bindings.xml"],
                                       cwd=ROOT, text=True).splitlines()
     if set(tracked) != set(manifest["addonFiles"]):
         errors.append("Addon file inventory changed; render the current addon")

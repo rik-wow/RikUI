@@ -82,7 +82,9 @@ def verify_client(sim_root, wow_root):
             "verifiedAt": datetime.now(timezone.utc).isoformat()}
 
 def verify_addon(addon):
-    files = checked(["git", "ls-files", "src", "data", "media", ":(glob)presets/**/*.lua", "RikUI.toc", "Bindings.xml"], cwd=ROOT).splitlines()
+    # Tracked and untracked (not ignored) files alike, so a new source file counts before its first commit.
+    files = checked(["git", "ls-files", "--cached", "--others", "--exclude-standard",
+                     "src", "data", "media", ":(glob)presets/**/*.lua", "RikUI.toc", "Bindings.xml"], cwd=ROOT).splitlines()
     checked_files = {}
     for name in files:
         source, installed = ROOT / name, addon / name

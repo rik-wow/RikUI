@@ -20,7 +20,7 @@ Use this external directory structure:
 
 Every run resolves the current upstream Forever head, rejects a stale or modified source checkout, and checks its full version against the installed client executable before launching the renderer. An unavailable upstream or a version mismatch stops the run. Each new capture records the client version, source commit, executable hash and fixture seed hash; older captures keep their original provenance.
 
-The runner verifies the addon's tracked source and media against the checkout, allowing only line-ending differences in text files. It creates the fixture addon in that isolated directory. It never reads the player's SavedVariables, and every simulator call uses `--no-saved-vars`.
+The runner verifies the addon's source and media (tracked files and untracked files that are not ignored, so a new file counts before its first commit) against the checkout, allowing only line-ending differences in text files. It creates the fixture addon in that isolated directory. It never reads the player's SavedVariables, and every simulator call uses `--no-saved-vars`.
 
 ## Capture
 
