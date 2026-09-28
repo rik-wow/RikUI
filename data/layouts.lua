@@ -236,14 +236,15 @@ layouts.CombatPositions = {
     classbuffs = bottomRightOfCentre(-CORE_HALF - GAP, CORE_CAST),
     classeffects = bottomLeftOfCentre(CORE_HALF + GAP, CORE_CAST),
     combopoints = bottom(0, CORE_EXTRA),
-    totems = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + GAP),
-    druidmana = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + layouts.Sizes.totems.height + 2 * GAP),
+    totems = bottom(0, CORE_EXTRA),
+    druidmana = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + GAP),
     swingtimer = bottom(0, CORE_SWING),
 }
 -- The unit row sits above the supporting rows a class uses: combo points (rogue, druid), totems
 -- (shaman) and form mana (druid), then the target cast bar's own row under the target frame. Any
 -- other class keeps only that cast row between the strip and its unit frames, so the HUD has no
--- empty band reserved for displays it never shows.
+-- empty band reserved for displays it never shows. No class shows all three rows, so an unknown
+-- class keeps the room of the tallest stack a class has, not the sum of every row.
 layouts.SupportingRows = {
     { key = "combopoints", classes = { ROGUE = true, DRUID = true } },
     { key = "totems", classes = { SHAMAN = true } },
@@ -251,12 +252,45 @@ layouts.SupportingRows = {
 }
 layouts.CombatUnitKeys = { "player", "target", "tot", "focus", "casttarget", "castfocus" }
 layouts.CombatRowLayouts = { centered = true, hud = true }
-function layouts.CombatUnitRow(class)
-    local y = CORE_EXTRA
+local function classRows(class)
+    local places, y = {}, CORE_EXTRA
     for _, row in ipairs(layouts.SupportingRows) do
-        if class == nil or row.classes[class] then y = y + layouts.Sizes[row.key].height + GAP end
+        if row.classes[class] then
+            places[row.key] = y
+            y = y + layouts.Sizes[row.key].height + GAP
+        end
     end
-    return y + CAST_HEIGHT + GAP
+    return places, y
+end
+-- Where each supporting row a class shows stands, and the top of its stack. For an unknown class
+-- every row stands where its highest class puts it, under the tallest stack.
+function layouts.SupportingRowPlaces(class)
+    if class ~= nil then return classRows(class) end
+    local places, top = {}, CORE_EXTRA
+    for _, row in ipairs(layouts.SupportingRows) do
+        for name in pairs(row.classes) do
+            local own, y = classRows(name)
+            top = math.max(top, y)
+            for key, place in pairs(own) do places[key] = math.max(places[key] or place, place) end
+        end
+    end
+    return places, top
+end
+-- Two supporting rows share the screen only when some class shows both.
+function layouts.RowsMeet(first, second)
+    local a, b
+    for _, row in ipairs(layouts.SupportingRows) do
+        if row.key == first then a = row.classes elseif row.key == second then b = row.classes end
+    end
+    if not a or not b then return true end
+    for class in pairs(a) do
+        if b[class] then return true end
+    end
+    return false
+end
+function layouts.CombatUnitRow(class)
+    local _, top = layouts.SupportingRowPlaces(class)
+    return top + CAST_HEIGHT + GAP
 end
 local COMBAT_UNIT_ROW = layouts.CombatUnitRow(nil)
 for _, name in ipairs({ "centered", "hud" }) do
@@ -269,6 +303,45 @@ for _, name in ipairs({ "centered", "hud" }) do
     positions.petframe = bottomRightOfCentre(-CORE_HALF - GAP - UNIT_WIDTH - GAP, CORE_CAST)
     positions.castpet = bottomRightOfCentre(-CORE_HALF - GAP - UNIT_WIDTH - 2 * GAP - SMALL_WIDTH, CORE_CAST)
 end
+-- A short screen (768 units high at the default UI scale) has no room for every recipe place. The
+-- combat column keeps its place there and these give way by design, before the packer has to:
+-- the group frames go up to the top margin, clear of the unit row; the target of target goes above
+-- the target where it would otherwise reach into the minimap column; and the HUD's player and
+-- target close in until the target clears that column.
+layouts.SHORT_SCREEN = 900
+local function short(name, screen)
+    return screen ~= nil and screen.height < layouts.SHORT_SCREEN and layouts.CombatRowLayouts[name] == true
+end
+-- Where the class effect row reaches under the tracker's column (16:10), the tracker takes the quest
+-- timers' place under the minimap and keeps the room down to that row; the tracker caps itself.
+local EFFECTS_RIGHT = CORE_HALF + GAP + layouts.Sizes.classeffects.width
+local EFFECTS_TOP = CORE_CAST + layouts.Sizes.classeffects.height
+local function crowded(screen)
+    return screen.width / 2 + EFFECTS_RIGHT + GAP > screen.width + COLUMN - layouts.Sizes.questtracker.width
+end
+function layouts.CompactSizes(name, screen)
+    if not short(name, screen) or not crowded(screen) then return nil end
+    return { questtracker = { width = layouts.Sizes.questtracker.width,
+        height = screen.height + TIMERS_Y - EFFECTS_TOP - GAP } }
+end
+function layouts.Compact(name, screen, positions)
+    if not short(name, screen) then return positions end
+    local half = screen.width / 2
+    local column = screen.width + COLUMN - layouts.Sizes.minimap.width - GAP
+    if crowded(screen) then positions.questtracker = topRight(COLUMN, TIMERS_Y) end
+    if name == "hud" then
+        local spread = math.max(0, math.min(HUD_SPREAD, math.floor(column - half - UNIT_WIDTH)))
+        local x = spread + UNIT_WIDTH / 2
+        positions.player.x, positions.target.x, positions.casttarget.x = -x, x, x
+    end
+    local row, target = positions.player.y, positions.target.x + UNIT_WIDTH / 2
+    if half + positions.tot.x + SMALL_WIDTH > column then
+        positions.tot = bottomRightOfCentre(target, row + UNIT_HEIGHT + GAP)
+    end
+    positions.raid, positions.party = topLeft(MARGIN, -MARGIN), topLeft(MARGIN, -MARGIN)
+    return positions
+end
+
 for _, name in ipairs(layouts.Order) do
     for key, place in pairs(layouts.CombatPositions) do
         layouts[name].positions[key] = { point=place.point, relativePoint=place.relativePoint, x=place.x, y=place.y }

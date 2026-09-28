@@ -6,7 +6,7 @@ return function(check)
     local env = require("wow_stub")
     local widgets = require("widget_stub")
     local restore = widgets.install()
-    local savedWidth, savedHeight = UIParent.GetWidth, UIParent.GetHeight
+    local savedWidth, savedHeight, savedClass = UIParent.GetWidth, UIParent.GetHeight, UnitClass
     local SCREENS = { { name = "16:9", width = 1365, height = 768 }, { name = "16:10", width = 1228, height = 768 },
         { name = "21:9", width = 1820, height = 768 },
         { name = "4K at 85%", width = 3840 / 0.85, height = 2160 / 0.85 },
@@ -75,11 +75,16 @@ return function(check)
         local strip = layouts.Rect("hud", "cooldowns", SCREENS[1], paladin)
         check("a class without supporting rows keeps only the target cast bar between the strip and its unit frames",
             near(paladinCast.bottom, strip.top + layouts.GAP) and near(paladinTarget.bottom, paladinCast.top + layouts.GAP))
-        check("a druid keeps combo points and form mana under its unit frames, an unknown class keeps every row",
+        -- No class shows all three rows: an unknown class keeps the tallest stack a class has.
+        check("a druid keeps combo points and form mana under its unit frames, an unknown class keeps the tallest class's rows",
             near(layouts.CombatUnitRow("DRUID"), layouts.CombatUnitRow("ROGUE") + layouts.Sizes.druidmana.height + layouts.GAP)
             and layouts.CombatUnitRow("DRUID") > layouts.CombatUnitRow("PALADIN")
-            and near(layouts.CombatUnitRow(nil), layouts.CombatUnitRow("DRUID") + layouts.Sizes.totems.height + layouts.GAP)
+            and near(layouts.CombatUnitRow(nil), layouts.CombatUnitRow("DRUID"))
+            and layouts.CombatUnitRow(nil) >= layouts.CombatUnitRow("SHAMAN")
             and near(layouts.Positions("hud", nil).player.y, layouts.CombatUnitRow(nil)))
+        local shaman, druid = layouts.Positions("hud", nil, "SHAMAN"), layouts.Positions("hud", nil, "DRUID")
+        check("a class's supporting rows close down onto the strip", near(shaman.totems.y, layouts.CombatPositions.combopoints.y)
+            and near(druid.druidmana.y, druid.combopoints.y + layouts.Sizes.combopoints.height + layouts.GAP))
         local rogue = layouts.Positions("centered", SCREENS[3], "ROGUE")
         local rogueTarget, pips = layouts.Rect("centered", "target", SCREENS[3], rogue), layouts.Rect("centered", "combopoints", SCREENS[3], rogue)
         check("a rogue's unit row clears the combo points and the target cast bar", rogueTarget.bottom >= pips.top + layouts.GAP
@@ -123,6 +128,42 @@ return function(check)
         local hudPlayer, hudTarget = layouts.Rect("hud", "player", SCREENS[1]), layouts.Rect("hud", "target", SCREENS[1])
         check("HUD: player and target mirror each other about the screen centre", near(1365 - hudTarget.right, hudPlayer.left)
             and near(hudPlayer.bottom, hudTarget.bottom) and hudPlayer.bottom >= 300)
+
+        -- The packer fits a recipe to the screen, and a clean audit only says nothing overlaps afterwards.
+        -- On a 768-high screen the combat cluster must stay where the recipe put it: group frames and
+        -- the side columns are the ones that yield.
+        local CLUSTER = { "player", "target", "tot", "focus", "petframe", "castplayer", "casttarget", "castfocus",
+            "castpet", "swingtimer", "combatresource", "cooldowns", "classbuffs", "classeffects", "combopoints",
+            "totems", "druidmana" }
+        local CLASSES = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "SHAMAN", "MAGE", "WARLOCK", "DRUID" }
+        local function hidden(key, class)
+            for _, row in ipairs(layouts.SupportingRows) do
+                if row.key == key then return not row.classes[class] end
+            end
+            return false
+        end
+        for _, name in ipairs({ "centered", "hud" }) do
+            for index = 1, 3 do
+                local screen = SCREENS[index]
+                for _, class in ipairs(CLASSES) do
+                    local recipe, fitted = layouts.Recipe(name, screen, class), layouts.Positions(name, screen, class)
+                    local moved = {}
+                    for _, key in ipairs(CLUSTER) do
+                        if not hidden(key, class) and (not near(recipe[key].x, fitted[key].x)
+                            or not near(recipe[key].y, fitted[key].y)) then
+                            moved[#moved + 1] = string.format("%s %+d,%+d", key, fitted[key].x - recipe[key].x,
+                                fitted[key].y - recipe[key].y)
+                        end
+                    end
+                    check(name .. " keeps a " .. class:lower() .. "'s combat cluster in place on " .. screen.name,
+                        #moved == 0, table.concat(moved, "; "))
+                    local player = layouts.Rect(name, "player", screen, fitted)
+                    local target = layouts.Rect(name, "target", screen, fitted)
+                    check(name .. " mirrors a " .. class:lower() .. "'s player and target on " .. screen.name,
+                        near(screen.width - target.right, player.left) and near(player.bottom, target.bottom))
+                end
+            end
+        end
 
         for _, name in ipairs(layouts.Order) do
             for _, screen in ipairs({ SCREENS[4], SCREENS[5] }) do
@@ -183,6 +224,51 @@ return function(check)
         check("every registered group has a nominal size equal to its real size", groups >= 20 and #wrong == 0,
             table.concat(wrong, "; "))
         check("every module default is the Centered layout's position", #drift == 0, table.concat(drift, "; "))
+
+        -- The client registers the totem row and the form mana row for every class, and a hidden group
+        -- still has a rectangle. Rows no class shows together share room in the recipe, so the screen's
+        -- own settling must not move them apart: a fresh profile is the Centered layout.
+        everything, layout = loadEverything(2048)
+        UIParent.GetHeight = function() return 1152 end
+        for _, key in ipairs({ "combopoints", "totems", "druidmana" }) do
+            if not layout.Groups[key] then
+                local frame = CreateFrame("Frame", nil, UIParent)
+                frame:SetSize(everything.Sizes[key].width, everything.Sizes[key].height)
+                layout.Register(frame, key, everything.centered.positions[key])
+            end
+        end
+        env.fire("PLAYER_ENTERING_WORLD")
+        local settledRows = {}
+        for _, key in ipairs({ "combopoints", "totems", "druidmana" }) do
+            if RikUI.Profile.positions[key] then settledRows[#settledRows + 1] = key end
+        end
+        check("settling leaves rows that share room where the recipe put them", #settledRows == 0
+            and layout.MatchingPreset() == "centered", table.concat(settledRows, ", "))
+        local totemRect, comboRect = layout.Rect("totems"), layout.Rect("combopoints")
+        local seen = false
+        for _, other in ipairs(layout.Obstacles("totems")) do
+            if other.key == "combopoints" or other.key == "druidmana" then seen = true end
+        end
+        check("rows no class shows together are not each other's obstacles", not seen
+            and RikUI.Geometry.Overlaps(totemRect, comboRect))
+        local stubClass = UnitClass
+        UnitClass = function() return "Druid", "DRUID", 11 end
+        seen = false
+        for _, other in ipairs(layout.Obstacles("druidmana")) do
+            if other.key == "combopoints" then seen = true end
+            if other.key == "totems" then seen = false; break end
+        end
+        check("rows a class shows together block each other, a row it never shows does not", seen)
+        UnitClass = stubClass
+        seen = false
+        for _, other in ipairs(layout.Obstacles("player")) do
+            if other.key == "combopoints" or other.key == "totems" or other.key == "druidmana" then seen = true end
+        end
+        check("a warrior's frames have no supporting row in their way", not seen)
+
+        -- The checks below grow the cooldown strip into the row above it, which only a class with
+        -- combo points has.
+        UnitClass = function() return "Rogue", "ROGUE", 4 end
 
         -- Populate the optional native widgets too: minimal stubs used to omit these,
         -- and a five-bag-only micro menu concealed the real client's much wider controls.
@@ -249,6 +335,7 @@ return function(check)
                 check(name .. " reserves input below the message area at scale " .. scale, inputBottom >= 0)
             end
         end
+        UnitClass = stubClass
 
         for _, name in ipairs(everything.Order) do
             everything, layout = loadEverything(NARROW.width)
@@ -275,7 +362,7 @@ return function(check)
                 table.concat(overlaps, " "))
         end
     end)
-    UIParent.GetWidth, UIParent.GetHeight = savedWidth, savedHeight
+    UIParent.GetWidth, UIParent.GetHeight, UnitClass = savedWidth, savedHeight, savedClass
     restore()
     env.inCombat = false
     check("layouts suite completes", ok, reason)

@@ -12,7 +12,8 @@ local EDGES = { { "left", "the left edge" }, { "bottom", "the bottom edge" }, { 
 function layouts.Rect(name, key, screen, positions)
     local entry = layouts[name]
     local position = positions and positions[key] or type(entry) == "table" and entry.positions[key] or nil
-    local size = position and entry.sizes and entry.sizes[key] or layouts.Sizes[key]
+    local compact = position and screen and layouts.CompactSizes and layouts.CompactSizes(name, screen)
+    local size = compact and compact[key] or position and entry.sizes and entry.sizes[key] or layouts.Sizes[key]
 
     if not position or not size then return nil end
     local rect = geometry.FromAnchor(position, size.width, size.height, screen)
@@ -30,9 +31,11 @@ local function sortedKeys(values)
 end
 
 -- Windows that float over the screen (the tooltip anchor, the bag window) are placed but block nothing;
--- party and raid share a place because they are never shown together.
+-- party and raid share a place because they are never shown together, and so do two supporting rows
+-- no class shows together.
 local function blocks(first, second)
     if layouts.Floating[first] or layouts.Floating[second] then return false end
+    if not layouts.RowsMeet(first, second) then return false end
     local tag = layouts.Exclusive[first]
     return not (tag and tag == layouts.Exclusive[second])
 end
@@ -65,8 +68,21 @@ end
 local PRIORITY = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar",
     "swingtimer", "combatresource", "cooldowns", "castplayer",
     "raid", "party", "chat", "minimap", "micromenu", "bagspace" }
-local rank = {}
-for index, key in ipairs(PRIORITY) do rank[key] = index end
+-- The layouts with a combat column (Centered, HUD) keep all of it in place, unit frames included.
+-- The order is who keeps its place first: the bars, the column with the player and target, the
+-- corner furniture, the smaller unit frames, then the group frames; everything else follows by area.
+local COLUMN_PRIORITY = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar",
+    "swingtimer", "combatresource", "cooldowns", "castplayer", "classbuffs", "classeffects",
+    "combopoints", "totems", "druidmana", "player", "target", "casttarget",
+    "minimap", "micromenu", "bagspace", "chat",
+    "focus", "castfocus", "tot", "petframe", "castpet",
+    "raid", "party" }
+local function ranks(order)
+    local rank = {}
+    for index, key in ipairs(order) do rank[key] = index end
+    return rank
+end
+local RANK, COLUMN_RANK = ranks(PRIORITY), ranks(COLUMN_PRIORITY)
 
 local function copyPositions(source)
     local positions = {}
@@ -78,6 +94,7 @@ end
 
 local function orderedKeys(name, positions)
     local keys = sortedKeys(positions)
+    local rank = layouts.CombatRowLayouts[name] and COLUMN_RANK or RANK
     table.sort(keys, function(a, b)
         local first, second = rank[a] or math.huge, rank[b] or math.huge
         if first ~= second then return first < second end
@@ -101,12 +118,24 @@ local function obstaclesFor(key, placed)
     return obstacles
 end
 
-local function fitPositions(name, screen, positions)
+-- A supporting row (combo points, totems, form mana) another class never shows.
+local function unusedRow(key, class)
+    if class == nil then return false end
+    for _, row in ipairs(layouts.SupportingRows) do
+        if row.key == key then return not row.classes[class] end
+    end
+    return false
+end
+
+layouts.RowUnused = unusedRow
+
+-- A row the class never shows takes no room and blocks nothing.
+local function fitPositions(name, screen, class, positions)
     local placed, margin = {}, layouts.MARGIN
     local available = { width=screen.width-2*margin, height=screen.height-2*margin }
     for _, key in ipairs(orderedKeys(name, positions)) do
         local rect = layouts.Rect(name, key, screen, positions)
-        if rect and not layouts.Floating[key] then
+        if rect and not layouts.Floating[key] and not unusedRow(key, class) then
             local obstacles = obstaclesFor(key, placed)
             local wanted = geometry.Move(rect, -margin, -margin)
             local fitted, found = geometry.Nearest(wanted, obstacles, available)
@@ -123,22 +152,29 @@ local function fitPositions(name, screen, positions)
     return positions
 end
 
--- A supporting row (combo points, totems, form mana) another class never shows.
-local function unusedRow(key, class)
-    if class == nil then return false end
-    for _, row in ipairs(layouts.SupportingRows) do
-        if row.key == key then return not row.classes[class] end
-    end
-    return false
-end
-
 -- In the layouts with a combat column, the unit row closes down over the supporting rows a class
 -- does not use (data/layouts.lua CombatUnitRow); no class is nil, the full stack.
 local function classRow(name, class, positions)
     if class == nil or not layouts.CombatRowLayouts[name] then return positions end
     local shift = layouts.CombatUnitRow(class) - layouts.CombatUnitRow(nil)
     for _, key in ipairs(layouts.CombatUnitKeys) do positions[key].y = positions[key].y + shift end
+    -- The rows the class shows close down too, so none keeps the height of a row under it that is not there.
+    for key, y in pairs(layouts.SupportingRowPlaces(class)) do positions[key].y = y end
     return positions
+end
+
+-- The recipe for this screen: a layout's places, the class's unit row, and what a short screen changes.
+local function recipe(name, screen, class)
+    local positions = classRow(name, class, copyPositions(layouts[name].positions))
+    if screen and layouts.Compact then layouts.Compact(name, screen, positions) end
+    return positions
+end
+
+-- What the packer starts from; the suite compares the fitted places with it.
+function layouts.Recipe(name, screen, class)
+    local entry = layouts[name]
+    if not entry or not entry.positions then return nil end
+    return recipe(name, screen, class)
 end
 
 -- Registration asks for defaults repeatedly. Cache only the last viewport per preset and class,
@@ -147,12 +183,12 @@ local fitted = {}
 function layouts.Positions(name, screen, class)
     local entry = layouts[name]
     if not entry or not entry.positions then return nil end
-    if not screen then return classRow(name, class, copyPositions(entry.positions)) end
+    if not screen then return recipe(name, nil, class) end
     local slot = name .. ":" .. tostring(class)
     local cached = fitted[slot]
     if not cached or cached.width ~= screen.width or cached.height ~= screen.height then
         cached = { width=screen.width, height=screen.height,
-            positions=fitPositions(name, screen, classRow(name, class, copyPositions(entry.positions))) }
+            positions=fitPositions(name, screen, class, recipe(name, screen, class)) }
         fitted[slot] = cached
     end
     return copyPositions(cached.positions)

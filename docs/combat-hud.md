@@ -46,9 +46,22 @@ column depends on the class: `layouts.SupportingRows` names which classes use
 combo points, totems and form mana, `layouts.CombatUnitRow(class)` stacks only
 those rows plus the target cast bar's row, and `layout.PresetPositions` passes
 the readable player class, so a paladin's unit frames sit just above the target
-cast bar while a druid keeps room for combo points and form mana. An unknown
-class keeps the full stack. `tests/layouts.test.lua` audits centered and hud
-for paladin, warrior, rogue, shaman and druid.
+cast bar while a druid keeps room for combo points and form mana. The rows a
+class shows close down onto the strip. No class shows all three rows, so an
+unknown class keeps the tallest stack a class has (the druid's), and two rows
+no class shows together may share a place. `tests/layouts.test.lua` audits
+centered and hud for paladin, warrior, rogue, shaman and druid.
+
+On a short screen (768 units high, the default UI scale) the recipes do not all
+fit. The packer places the combat column, the player, the target and the smaller
+unit frames first and leaves them where the recipe put them; `layouts.Compact`
+moves the group frames to the top margin, puts the target of target above the
+target where it would reach the minimap column, closes the HUD's player and
+target in on 16:10, and gives the quest tracker the quest timers' place there.
+What still does not fit (breath and feign bars, durability, combat timer,
+stopwatch, debuffs, quest timers) goes to the nearest free place. The suite
+pins this for nine classes on 16:9, 16:10 and 21:9. Classic and Healer keep the
+earlier packing order.
 
 The resource strip is enabled by default. It follows the player's current power
 type; Druid mana remains a separate supporting display when shifted, configured

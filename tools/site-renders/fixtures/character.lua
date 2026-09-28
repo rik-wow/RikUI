@@ -73,12 +73,15 @@ end
 -- A character of another class at level 10: the seed's paladin becomes this class, with that class's
 -- spellbook. RikUI's class-driven modules read the class through the normal unit APIs; the ones that
 -- decided at login that the paladin has no use for them (combo points, totems, form mana) are
--- enabled again now, exactly as they would be for a character of this class.
+-- enabled again now, exactly as they would be for a character of this class. The frames registered
+-- while the character was a paladin stand at a paladin's default places; a character of this class
+-- starts at its own, which is what applying the Centered layout gives them before the rows register.
 function RikRenderPlayer(class, level)
     class = class or "PALADIN"
     A_Admin.SetPlayerClass(assert(CLASS_IDS[class], "Unknown class " .. class))
     if level then A_Admin.SetPlayerLevel(level) end
     RikRenderSpellbook(class)
+    if class ~= "PALADIN" then assert(RikUI.Layout.ApplyPreset("centered")) end
     for _, name in ipairs({ "combopoints", "totems", "druidmana" }) do
         local module = RikUI.Modules and RikUI.Modules[name]
         if module and type(module.OnEnable) == "function" and not module.Holder then

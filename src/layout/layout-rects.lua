@@ -40,8 +40,27 @@ function layout.Rect(key)
     return rect
 end
 
+-- The player's class token when it is readable; the combat column's rows depend on it.
+function layout.PlayerClass()
+    if type(UnitClass) ~= "function" then return nil end
+    local ok, _, class = core.Secret.Read(UnitClass, "player")
+    if ok and not core.Secret.IsSecret(class) and type(class) == "string" then return class end
+    return nil
+end
+
+-- A supporting row this class never shows (the totem row registers for every class): it takes no
+-- room, as in the layouts (layouts.RowUnused), and settling leaves it where it is.
+local function idle(group)
+    local unused = core.Layouts and core.Layouts.RowUnused
+    return unused ~= nil and unused(group.key, layout.PlayerClass())
+end
+
+-- Two supporting rows no class shows together (totems and form mana) share room in the layouts,
+-- as party and raid do through their exclusive tag.
 local function blocks(group, other)
-    if layout.Floats(group) or layout.Floats(other) then return false end
+    if layout.Floats(group) or layout.Floats(other) or idle(group) or idle(other) then return false end
+    local rows = core.Layouts and core.Layouts.RowsMeet
+    if rows and not rows(group.key, other.key) then return false end
     return not (group.exclusive and group.exclusive == other.exclusive)
 end
 
@@ -160,7 +179,7 @@ local function settleAll(screen)
     local placed, moved = {}, {}
     for _, key in ipairs(ordered()) do
         local group, rect = layout.Groups[key], layout.Rect(key)
-        if rect and not layout.Floats(group) then
+        if rect and not layout.Floats(group) and not idle(group) then
             local obstacles = {}
             for _, other in ipairs(placed) do
                 if blocks(group, layout.Groups[other.key]) then obstacles[#obstacles + 1] = other end
@@ -175,7 +194,7 @@ end
 
 local function settleOne(key, screen)
     local group, rect = layout.Groups[key], layout.Rect(key)
-    if not rect or layout.Floats(group) then return {} end
+    if not rect or layout.Floats(group) or idle(group) then return {} end
     local _, didMove = makeRoom(key, rect, layout.Obstacles(key), screen)
     return didMove and { group.label or key } or {}
 end

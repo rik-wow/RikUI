@@ -94,7 +94,7 @@ end
 
 local function newGroup(key, defaults, opts)
     defaults = position(defaultFor(key, defaults), ORIGIN)
-    local group = { frames = {}, defaults = defaults }
+    local group = { key = key, frames = {}, defaults = defaults }
     for _, name in ipairs(OPTIONS) do group[name] = opts and opts[name] or nil end
     -- The first registration owns every refresh callback, even when another module requests it.
     local owner = opts and opts.owner

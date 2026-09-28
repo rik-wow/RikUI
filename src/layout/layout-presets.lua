@@ -19,13 +19,7 @@ function layout.ChatSize(screen)
     return { width = width, height = layouts.ChatSize.height }
 end
 
--- The player's class token when it is readable; the combat column's unit row depends on it.
-local function playerClass()
-    if type(UnitClass) ~= "function" then return nil end
-    local ok, _, class = core.Secret.Read(UnitClass, "player")
-    if ok and not core.Secret.IsSecret(class) and type(class) == "string" then return class end
-    return nil
-end
+local playerClass = layout.PlayerClass
 
 -- A copy of a layout's positions for this screen and class: the chat holder is the window's centre,
 -- so its place follows the width a layout gives the chat here.
