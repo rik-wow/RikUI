@@ -47,10 +47,17 @@ const placements={
  toasts:{"toast-friend":"ref-social-notices","toast-time":"ref-social-notices","toast-voice":"ref-social-notices"},
  questtracker:{"tracker-active":"ref-your-watched-quests","tracker-complete":"ref-your-watched-quests","tracker-failed":"ref-your-watched-quests","tracker-header":"ref-your-watched-quests","tracker-overflow":"ref-your-watched-quests"},
  questtimers:{"timers-timed":"ref-timed-quests","timers-warning":"ref-timed-quests","timers-final":"ref-timed-quests"},
- questplanner:{"planner-browser":"ref-start-quest-guidance","planner-pins":"ref-start-quest-guidance","planner-guidance":"ref-guide-controls","planner-objective":"ref-guide-controls","planner-details":"ref-guide-controls","planner-arrow":"ref-map-and-direction-arrow","planner-partial":"ref-missing-locations","planner-preferences":"ref-preferences"}
+ questplanner:{"planner-browser":"ref-start-quest-guidance","planner-pins":"ref-start-quest-guidance","planner-guidance":"ref-guide-controls","planner-objective":"ref-guide-controls","planner-details":"ref-guide-controls","planner-arrow":"ref-map-and-direction-arrow","planner-partial":"ref-missing-locations","planner-preferences":"ref-preferences"},
+ panels:{"panels-window":"ref-game-windows","panels-close":"ref-game-windows","panels-tabs":"ref-game-windows","panels-inset":"ref-game-windows"},
+ interiors:{"int-character":"ref-character-and-abilities","int-stats":"ref-character-and-abilities","int-reputation":"ref-character-and-abilities","int-spellbook":"ref-character-and-abilities","int-quest":"ref-quests-and-conversations","int-gossip":"ref-quests-and-conversations","int-merchant":"ref-buying-crafting-and-storage","int-trade":"ref-buying-crafting-and-storage","int-inbox":"ref-buying-crafting-and-storage","int-friends":"ref-social-and-group-panels","int-communities":"ref-social-and-group-panels","int-raidinfo":"ref-social-and-group-panels","int-inspect":"ref-social-and-group-panels","int-calendar":"ref-other-game-panels","int-achievements":"ref-other-game-panels","int-collections":"ref-other-game-panels"},
+ "auction-house":{"ah-browse":"ref-find-an-item","ah-item":"ref-find-an-item","ah-sell":"ref-sell-an-item","ah-owned":"ref-sell-an-item"},
+ dialogs:{"dlg-readycheck":"ref-small-windows","dlg-rolepoll":"ref-small-windows","dlg-stacksplit":"ref-small-windows","dlg-queueready":"ref-small-windows","dlg-colorpicker":"ref-small-windows","dlg-addfriend":"ref-small-windows","dlg-report":"ref-small-windows","dlg-autocomplete":"ref-small-windows"},
+ popups:{"popup-confirm":"ref-confirmations","popup-invite":"ref-confirmations","popup-text":"ref-confirmations","popup-item":"ref-confirmations"},
+ menus:{"menu-context":"ref-context-menus"},
+ widgets:{"widget-status":"ref-objectives-and-activity-displays","widget-double":"ref-objectives-and-activity-displays","widget-icon":"ref-objectives-and-activity-displays"},
+ controls:{"ctl-button":"ref-buttons-and-fields","ctl-checkbox":"ref-buttons-and-fields","ctl-dropdown":"ref-buttons-and-fields","ctl-disabled":"ref-buttons-and-fields","ctl-textfield":"ref-buttons-and-fields","ctl-slider":"ref-buttons-and-fields","ctl-scrollbar":"ref-buttons-and-fields","ctl-colour":"ref-buttons-and-fields"}
 };
 const mockupPlacements={
- interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Friends":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},
  layout:{"Frame mover":"ref-move-a-frame"}
 };
 const distinctCount=page=>[...distinctSurfaces(page)].filter(([index,canonical])=>index===canonical).length;
@@ -150,9 +157,9 @@ for(const width of [1440,768,390,320]){
 test("spell and item examples load the correct named images",async({page})=>{
  await page.goto("/docs/micromenu");
  await expect(page.locator("figure").first().locator("image")).toHaveCount(0);
- await page.goto("/docs/interiors");
+ await page.goto("/docs/worldmap");
  const paths=await page.locator("image").evaluateAll(images=>[...new Set(images.map(image=>image.getAttribute("href")))]);
- expect(paths).toHaveLength(5);
+ expect(paths).toHaveLength(12);
  for(const path of paths){expect((await page.request.get(path)).status()).toBe(200);}
 });
 

@@ -2283,5 +2283,532 @@
     "expectText": [
       "Questing style"
     ]
+  },
+  {
+    "id": "panels-window",
+    "page": "panels",
+    "title": "Title and accent rule",
+    "frame": "CharacterFrame",
+    "crop": "720x500+701+326",
+    "fixtures": [],
+    "lua": "RikRenderCharacter()\n",
+    "expectText": [
+      "Rik"
+    ]
+  },
+  {
+    "id": "panels-close",
+    "page": "panels",
+    "title": "Close button",
+    "frame": "RikRenderChromeClose",
+    "crop": "127x46+960+553",
+    "fixtures": [],
+    "lua": "RikRenderCharacter()\nRikRenderDetail(CharacterFrame, \"RikRenderChromeClose\", 520, 0, 111, 30)\n",
+    "expectText": []
+  },
+  {
+    "id": "panels-tabs",
+    "page": "panels",
+    "title": "Selected tab",
+    "frame": "RikRenderChromeTabs",
+    "crop": "346x66+851+543",
+    "fixtures": [],
+    "lua": "RikRenderSpells(\"talents\")\nRikRenderDetail(PlayerSpellsFrame, \"RikRenderChromeTabs\", 60, 36, 330, 50)\n",
+    "expectText": [
+      "Primary"
+    ]
+  },
+  {
+    "id": "panels-inset",
+    "page": "panels",
+    "title": "Content inset",
+    "frame": "RikRenderChromeInset",
+    "crop": "376x216+836+468",
+    "fixtures": [],
+    "lua": "RikRenderFactions()\nRikRenderDetail(CharacterFrame, \"RikRenderChromeInset\", 20, 56, 360, 200)\n",
+    "expectText": [
+      "Stormwind"
+    ]
+  },
+  {
+    "id": "int-character",
+    "page": "interiors",
+    "title": "Character equipment",
+    "frame": "CharacterFrame",
+    "crop": "720x500+701+326",
+    "fixtures": [],
+    "lua": "RikRenderCharacter()\n",
+    "expectText": [
+      "Rik"
+    ]
+  },
+  {
+    "id": "int-stats",
+    "page": "interiors",
+    "title": "Character stats",
+    "frame": "RikRenderStats",
+    "crop": "220x372+914+390",
+    "fixtures": [],
+    "lua": "RikRenderCharacter()\nRikRenderDetail(CharacterFrame, \"RikRenderStats\", 404, 108, 204, 356)\n",
+    "expectText": [
+      "Health:"
+    ]
+  },
+  {
+    "id": "int-reputation",
+    "page": "interiors",
+    "title": "Reputation and skills",
+    "frame": "CharacterFrame",
+    "crop": "647x500+701+326",
+    "fixtures": [],
+    "lua": "RikRenderFactions()\n",
+    "expectText": [
+      "Stormwind"
+    ]
+  },
+  {
+    "id": "int-spellbook",
+    "page": "interiors",
+    "title": "Spellbook",
+    "frame": "PlayerSpellsFrame",
+    "crop": "1634x899+207+127",
+    "fixtures": [],
+    "lua": "RikRenderSpells(\"spellbook\")\n",
+    "expectText": []
+  },
+  {
+    "id": "int-quest",
+    "page": "interiors",
+    "title": "Quest dialogue",
+    "frame": "QuestFrame",
+    "crop": "354x512+847+320",
+    "fixtures": [],
+    "lua": "RikRenderQuestDetail()\n",
+    "expectText": [
+      "Kobold Camp Cleanup"
+    ]
+  },
+  {
+    "id": "int-gossip",
+    "page": "interiors",
+    "title": "Gossip choices",
+    "frame": "GossipFrame",
+    "crop": "354x512+847+320",
+    "fixtures": [],
+    "lua": "RikRenderGossip()\n",
+    "expectText": [
+      "Kobold Camp Cleanup"
+    ]
+  },
+  {
+    "id": "int-merchant",
+    "page": "interiors",
+    "title": "Merchant",
+    "frame": "MerchantFrame",
+    "crop": "352x460+848+346",
+    "fixtures": [],
+    "lua": "RikRenderVendor()\n",
+    "expectText": [
+      "Linen Cloth"
+    ]
+  },
+  {
+    "id": "int-inbox",
+    "page": "interiors",
+    "title": "Mail inbox",
+    "frame": "MailFrame",
+    "crop": "354x440+847+356",
+    "fixtures": [],
+    "lua": "RikRenderInbox()\n",
+    "expectText": [
+      "Mira"
+    ]
+  },
+  {
+    "id": "int-trade",
+    "page": "interiors",
+    "title": "Trade",
+    "frame": "TradeFrame",
+    "crop": "360x462+844+345",
+    "fixtures": [],
+    "lua": "RikRenderTrade()\n",
+    "expectText": [
+      "Mira"
+    ]
+  },
+  {
+    "id": "int-friends",
+    "page": "interiors",
+    "title": "Friends",
+    "frame": "FriendsFrame",
+    "crop": "401x440+824+356",
+    "fixtures": [],
+    "lua": "RikRenderInterior(\"FriendsFrame\")\n",
+    "expectText": []
+  },
+  {
+    "id": "int-communities",
+    "page": "interiors",
+    "title": "Guild and communities",
+    "frame": "CommunitiesFrame",
+    "crop": "830x442+609+355",
+    "fixtures": [],
+    "lua": "RikRenderInterior(\"CommunitiesFrame\")\n",
+    "expectText": []
+  },
+  {
+    "id": "int-raidinfo",
+    "page": "interiors",
+    "title": "Raid information",
+    "frame": "RaidInfoFrame",
+    "crop": "361x266+844+443",
+    "fixtures": [],
+    "lua": "RikRenderInterior(\"RaidInfoFrame\")\n",
+    "expectText": []
+  },
+  {
+    "id": "int-inspect",
+    "page": "interiors",
+    "title": "Inspect",
+    "frame": "InspectFrame",
+    "crop": "354x440+847+356",
+    "fixtures": [],
+    "lua": "RikRenderInspect()\n",
+    "expectText": []
+  },
+  {
+    "id": "int-calendar",
+    "page": "interiors",
+    "title": "Calendar",
+    "frame": "CalendarFrame",
+    "crop": "675x640+687+256",
+    "fixtures": [],
+    "lua": "RikRenderInterior(\"CalendarFrame\")\n",
+    "expectText": []
+  },
+  {
+    "id": "int-achievements",
+    "page": "interiors",
+    "title": "Achievements",
+    "frame": "AchievementFrame",
+    "crop": "784x516+632+318",
+    "fixtures": [],
+    "lua": "RikRenderInterior(\"AchievementFrame\")\n",
+    "expectText": []
+  },
+  {
+    "id": "int-collections",
+    "page": "interiors",
+    "title": "Collections",
+    "frame": "CollectionsJournal",
+    "crop": "719x622+665+265",
+    "fixtures": [],
+    "lua": "RikRenderInterior(\"CollectionsJournal\")\n",
+    "expectText": []
+  },
+  {
+    "id": "ah-browse",
+    "page": "auction-house",
+    "title": "Buying and search",
+    "frame": "AuctionHouseFrame",
+    "crop": "1096x676+476+238",
+    "fixtures": [],
+    "lua": "RikRenderAuctionBrowse()\n",
+    "expectText": [
+      "Auction House"
+    ]
+  },
+  {
+    "id": "ah-item",
+    "page": "auction-house",
+    "title": "Item summary",
+    "frame": "AuctionHouseFrame",
+    "crop": "1096x676+476+238",
+    "fixtures": [],
+    "lua": "RikRenderAuctionItem()\n",
+    "expectText": [
+      "Linen Cloth"
+    ]
+  },
+  {
+    "id": "ah-sell",
+    "page": "auction-house",
+    "title": "Selling",
+    "frame": "AuctionHouseFrame",
+    "crop": "1096x676+476+238",
+    "fixtures": [],
+    "lua": "RikRenderAuctionSell()\n",
+    "expectText": []
+  },
+  {
+    "id": "ah-owned",
+    "page": "auction-house",
+    "title": "Owned auctions",
+    "frame": "AuctionHouseFrame",
+    "crop": "1096x676+476+238",
+    "fixtures": [],
+    "lua": "RikRenderAuctionOwned()\n",
+    "expectText": []
+  },
+  {
+    "id": "dlg-readycheck",
+    "page": "dialogs",
+    "title": "Ready check",
+    "frame": "ReadyCheckListenerFrame",
+    "crop": "339x128+855+512",
+    "fixtures": [],
+    "lua": "RikRenderReadyCheck()\n",
+    "expectText": [
+      "Mira"
+    ]
+  },
+  {
+    "id": "dlg-rolepoll",
+    "page": "dialogs",
+    "title": "Role poll",
+    "frame": "RolePollPopup",
+    "crop": "322x176+863+488",
+    "fixtures": [],
+    "lua": "RikRenderRolePoll()\n",
+    "expectText": []
+  },
+  {
+    "id": "dlg-stacksplit",
+    "page": "dialogs",
+    "title": "Stack split",
+    "frame": "StackSplitFrame",
+    "crop": "188x112+930+520",
+    "fixtures": [],
+    "lua": "RikRenderStackSplit(20)\n",
+    "expectText": []
+  },
+  {
+    "id": "dlg-queueready",
+    "page": "dialogs",
+    "title": "Queue ready",
+    "frame": "PVPReadyDialog",
+    "crop": "322x226+863+463",
+    "fixtures": [],
+    "lua": "RikRenderQueueReady()\n",
+    "expectText": []
+  },
+  {
+    "id": "dlg-colorpicker",
+    "page": "dialogs",
+    "title": "Colour picker",
+    "frame": "ColorPickerFrame",
+    "crop": "404x226+822+463",
+    "fixtures": [],
+    "lua": "RikRenderColorPicker()\n",
+    "expectText": []
+  },
+  {
+    "id": "dlg-addfriend",
+    "page": "dialogs",
+    "title": "Add friend",
+    "frame": "AddFriendFrame",
+    "crop": "466x343+791+405",
+    "fixtures": [],
+    "lua": "RikRenderAddFriend()\n",
+    "expectText": []
+  },
+  {
+    "id": "dlg-report",
+    "page": "dialogs",
+    "title": "Report",
+    "frame": "ReportFrame",
+    "crop": "416x286+816+433",
+    "fixtures": [],
+    "lua": "RikRenderReportDialog()\n",
+    "expectText": []
+  },
+  {
+    "id": "dlg-autocomplete",
+    "page": "dialogs",
+    "title": "Autocomplete",
+    "frame": "RikRenderAutoComplete",
+    "crop": "256x146+896+503",
+    "fixtures": [],
+    "lua": "RikRenderAutoComplete()\n",
+    "expectText": [
+      "Mira"
+    ]
+  },
+  {
+    "id": "popup-confirm",
+    "page": "popups",
+    "title": "Confirmation text",
+    "frame": "StaticPopup1",
+    "crop": "352x132+848+510",
+    "fixtures": [],
+    "lua": "RikRenderPopup(\"CONFIRM_RESET_INSTANCES\")\n",
+    "expectText": [
+      "Yes"
+    ]
+  },
+  {
+    "id": "popup-invite",
+    "page": "popups",
+    "title": "Accept and cancel",
+    "frame": "StaticPopup1",
+    "crop": "352x132+848+510",
+    "fixtures": [],
+    "lua": "RikRenderPopup(\"PARTY_INVITE\", \"Mira\")\n",
+    "expectText": [
+      "Mira"
+    ]
+  },
+  {
+    "id": "popup-text",
+    "page": "popups",
+    "title": "Text entry",
+    "frame": "StaticPopup1",
+    "crop": "352x162+848+495",
+    "fixtures": [],
+    "lua": "local d = RikRenderPopup(\"ADD_FRIEND\")\nif d.EditBox then d.EditBox:SetText(\"Mira\") end\n",
+    "expectText": []
+  },
+  {
+    "id": "popup-item",
+    "page": "popups",
+    "title": "Item confirmation",
+    "frame": "StaticPopup1",
+    "crop": "352x207+848+473",
+    "fixtures": [],
+    "lua": "RikRenderPopup(\"CONFIRM_PURCHASE_NONREFUNDABLE_ITEM\", \"Worn Shortsword\", \"\", { texture = 135274, name = \"Worn Shortsword\", color = { 1, 1, 1, 1 }, link = \"|cffffffff|Hitem:25::::::::10:::::|h[Worn Shortsword]|h|r\", count = 1 })\n",
+    "expectText": [
+      "Worn Shortsword"
+    ]
+  },
+  {
+    "id": "menu-context",
+    "page": "menus",
+    "title": "Context menu",
+    "frame": "RikRenderMenu",
+    "crop": "192x272+928+440",
+    "fixtures": [],
+    "lua": "RikRenderContextMenu(false)\n",
+    "expectText": [
+      "Whisper",
+      "Duel"
+    ]
+  },
+  {
+    "id": "widget-status",
+    "page": "widgets",
+    "title": "Status bar",
+    "frame": "UIWidgetTopCenterContainerFrame",
+    "crop": "263x81+893+536",
+    "fixtures": [],
+    "lua": "local c = RikRenderWidgets({ \"status\" })\nRikRenderCenter(c)\nRikRenderResize(c)\n",
+    "expectText": []
+  },
+  {
+    "id": "widget-double",
+    "page": "widgets",
+    "title": "Double status bar",
+    "frame": "UIWidgetTopCenterContainerFrame",
+    "crop": "230x90+909+531",
+    "fixtures": [],
+    "lua": "local c = RikRenderWidgets({ \"double\" })\nRikRenderCenter(c)\nRikRenderResize(c)\n",
+    "expectText": []
+  },
+  {
+    "id": "widget-icon",
+    "page": "widgets",
+    "title": "Icon and text",
+    "frame": "UIWidgetTopCenterContainerFrame",
+    "crop": "152x56+948+548",
+    "fixtures": [],
+    "lua": "local c = RikRenderWidgets({ \"icon\" })\nRikRenderCenter(c)\nRikRenderResize(c)\n",
+    "expectText": []
+  },
+  {
+    "id": "ctl-button",
+    "page": "controls",
+    "title": "Button",
+    "frame": "RikRenderControlButton",
+    "crop": "136x38+760+442",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": [
+      "Accept"
+    ]
+  },
+  {
+    "id": "ctl-disabled",
+    "page": "controls",
+    "title": "Disabled control",
+    "frame": "RikRenderControlDisabled",
+    "crop": "166x38+896+442",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": [
+      "Locked"
+    ]
+  },
+  {
+    "id": "ctl-checkbox",
+    "page": "controls",
+    "title": "Checkbox",
+    "frame": "RikRenderControlCheck",
+    "crop": "170x48+760+482",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": []
+  },
+  {
+    "id": "ctl-textfield",
+    "page": "controls",
+    "title": "Text field",
+    "frame": "RikRenderControlEdit",
+    "crop": "220x40+766+530",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": [
+      "Mira"
+    ]
+  },
+  {
+    "id": "ctl-slider",
+    "page": "controls",
+    "title": "Slider",
+    "frame": "RikRenderControlSlider",
+    "crop": "266x64+760+570",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": []
+  },
+  {
+    "id": "ctl-dropdown",
+    "page": "controls",
+    "title": "Dropdown",
+    "frame": "RikRenderControlDropdown",
+    "crop": "176x53+760+624",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": [
+      "Party"
+    ]
+  },
+  {
+    "id": "ctl-colour",
+    "page": "controls",
+    "title": "Colour control",
+    "frame": "RikRenderControlSwatch",
+    "crop": "40x40+942+630",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": []
+  },
+  {
+    "id": "ctl-scrollbar",
+    "page": "controls",
+    "title": "Scrollbar",
+    "frame": "RikRenderControlScroll",
+    "crop": "40x196+1256+442",
+    "fixtures": [],
+    "lua": "RikRenderControls()\n",
+    "expectText": []
   }
 ]

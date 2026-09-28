@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T08:51:17.724800+00:00",
-  "addonCommit": "283e3445eb561070cb02ab236b4f9192515575b3",
+  "capturedAt": "2026-09-28T10:56:36.843556+00:00",
+  "addonCommit": "b9ac2bc6b81c8d9b5b176a081ab6774ecdd396cc",
   "addonFiles": {
     "Bindings.xml": "f4de3bf073de7728bb45ceb353ffaeb1edc50eea3704a26743ef60887bbcb5e0",
     "RikUI.toc": "52bd13c43576ded42a9957dac09d9ada13cedeff7193ff5a0affe4073252be8e",
@@ -372,7 +372,7 @@
       "source": "casc-local-or-cdn",
       "fallback": "none"
     },
-    "verifiedAt": "2026-09-28T08:51:16.911998+00:00"
+    "verifiedAt": "2026-09-28T10:56:22.790201+00:00"
   },
   "renderer": {
     "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -10355,6 +10355,2411 @@
         "core"
       ],
       "reviewedSha256": "a6ed3f06e453d0a09b516c71a1526f956df91478c3c549ecc4e0b537c90d07d8"
+    },
+    {
+      "id": "panels-window",
+      "page": "panels",
+      "title": "Title and accent rule",
+      "frame": "CharacterFrame",
+      "crop": "720x500+701+326",
+      "fixtures": [],
+      "lua": "RikRenderCharacter()\n",
+      "expectText": [
+        "Rik"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 29,
+        "root": {
+          "x": 708.0,
+          "y": 334.0,
+          "w": 631.0,
+          "h": 484.0
+        },
+        "uniqueColors": 10235
+      },
+      "sha256": "dfdab023e0d72cc73653c2157fcabd25eabec6725719d4344573aec346a18354",
+      "bytes": 77910,
+      "fixtureSha256": "f65b6bb9936756f3e79c08d4c755aa748b39e3ddbf024dc15709b07ed8247d47",
+      "filename": "panels-window.webp",
+      "width": 720,
+      "height": 500,
+      "inputs": {
+        "script": "c2075906b943701f9dae36b75b1c1eb921546cac148b1da467861edcb19b62fe",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "c3f6e2752abd7a80c21d88b06c7c16353856e6907e8c61f9e40bfd416f5c62d8",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "dfdab023e0d72cc73653c2157fcabd25eabec6725719d4344573aec346a18354"
+    },
+    {
+      "id": "panels-close",
+      "page": "panels",
+      "title": "Close button",
+      "frame": "RikRenderChromeClose",
+      "crop": "127x46+960+553",
+      "fixtures": [],
+      "lua": "RikRenderCharacter()\nRikRenderDetail(CharacterFrame, \"RikRenderChromeClose\", 520, 0, 111, 30)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 29,
+        "root": {
+          "x": 968.0,
+          "y": 561.0,
+          "w": 111.0,
+          "h": 30.0
+        },
+        "uniqueColors": 72
+      },
+      "sha256": "f28450948f13debd7e10d88c7d8fccfa363291cd169dad7b2eff3d3c30197c2c",
+      "bytes": 446,
+      "fixtureSha256": "687c413ca65d2a30bdcdccdcea80a2cbd3d3d68fde8533985a8985a8eff93fa4",
+      "filename": "panels-close.webp",
+      "width": 127,
+      "height": 46,
+      "inputs": {
+        "script": "e6162f043e242c71c977dad768d611b204b0c7eabc0a7f54820f1dafa2e18c2f",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "ccb284df2525c01e3abfaa4b011c338ce766cce12bd1301c56e2a2e208690966",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "f28450948f13debd7e10d88c7d8fccfa363291cd169dad7b2eff3d3c30197c2c"
+    },
+    {
+      "id": "panels-inset",
+      "page": "panels",
+      "title": "Content inset",
+      "frame": "RikRenderChromeInset",
+      "crop": "376x216+836+468",
+      "fixtures": [],
+      "lua": "RikRenderFactions()\nRikRenderDetail(CharacterFrame, \"RikRenderChromeInset\", 20, 56, 360, 200)\n",
+      "expectText": [
+        "Stormwind"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 22,
+        "root": {
+          "x": 844.0,
+          "y": 476.0,
+          "w": 360.0,
+          "h": 200.0
+        },
+        "uniqueColors": 675
+      },
+      "sha256": "5d8d5eb69305701d172ce052f68f0c3c8ddbc67c4194cb1653d12a45e236aa98",
+      "bytes": 6070,
+      "fixtureSha256": "45164dc35e842c0b187b522b95ef4d509b1a875591e6dc62ef788a254552d8e9",
+      "filename": "panels-inset.webp",
+      "width": 376,
+      "height": 216,
+      "inputs": {
+        "script": "264a9aa5488f77eb90def2fd7d9f2d59885feca42d41d01a3eee3a347e7415d6",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "b121e84488a968ce76894342283d0a8223986eee26d59dae4251d5d9dbcbe26a",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "5d8d5eb69305701d172ce052f68f0c3c8ddbc67c4194cb1653d12a45e236aa98"
+    },
+    {
+      "id": "int-character",
+      "page": "interiors",
+      "title": "Character equipment",
+      "frame": "CharacterFrame",
+      "crop": "720x500+701+326",
+      "fixtures": [],
+      "lua": "RikRenderCharacter()\n",
+      "expectText": [
+        "Rik"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 29,
+        "root": {
+          "x": 708.0,
+          "y": 334.0,
+          "w": 631.0,
+          "h": 484.0
+        },
+        "uniqueColors": 10235
+      },
+      "sha256": "dfdab023e0d72cc73653c2157fcabd25eabec6725719d4344573aec346a18354",
+      "bytes": 77910,
+      "fixtureSha256": "f65b6bb9936756f3e79c08d4c755aa748b39e3ddbf024dc15709b07ed8247d47",
+      "filename": "int-character.webp",
+      "width": 720,
+      "height": 500,
+      "inputs": {
+        "script": "c2075906b943701f9dae36b75b1c1eb921546cac148b1da467861edcb19b62fe",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "c3f6e2752abd7a80c21d88b06c7c16353856e6907e8c61f9e40bfd416f5c62d8",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "dfdab023e0d72cc73653c2157fcabd25eabec6725719d4344573aec346a18354"
+    },
+    {
+      "id": "int-reputation",
+      "page": "interiors",
+      "title": "Reputation and skills",
+      "frame": "CharacterFrame",
+      "crop": "647x500+701+326",
+      "fixtures": [],
+      "lua": "RikRenderFactions()\n",
+      "expectText": [
+        "Stormwind"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 22,
+        "root": {
+          "x": 708.0,
+          "y": 334.0,
+          "w": 631.0,
+          "h": 484.0
+        },
+        "uniqueColors": 2631
+      },
+      "sha256": "06a9c650bc1cf485ca61f05d1f79b4ef1efb8900b1308016b17e9db504019f30",
+      "bytes": 21750,
+      "fixtureSha256": "4809f1938863f52ac33d502580555f9399b55bfd83ab31f5b864a43aa2c28c1d",
+      "filename": "int-reputation.webp",
+      "width": 647,
+      "height": 500,
+      "inputs": {
+        "script": "9fa4b6c92377a6bfbdcb7a5ec7fabbb316ade49be2a5bee038bacd7318d527f3",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "8e1151f72146d83d1727f03d45b51c1fcaafb220b6d161342868ea2fc9cb2b02",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "06a9c650bc1cf485ca61f05d1f79b4ef1efb8900b1308016b17e9db504019f30"
+    },
+    {
+      "id": "int-friends",
+      "page": "interiors",
+      "title": "Friends",
+      "frame": "FriendsFrame",
+      "crop": "401x440+824+356",
+      "fixtures": [],
+      "lua": "RikRenderInterior(\"FriendsFrame\")\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 15,
+        "root": {
+          "x": 831.0,
+          "y": 364.0,
+          "w": 385.0,
+          "h": 424.0
+        },
+        "uniqueColors": 1225
+      },
+      "sha256": "a4ca0e6e4f7da786c4ad7b349ab22c99f35cc4f3ec9c96d0616eff947564fa06",
+      "bytes": 6926,
+      "fixtureSha256": "fb63997fca3b67a92a7bddb5a1737dc3280052997529176d289fac4441436762",
+      "filename": "int-friends.webp",
+      "width": 401,
+      "height": 440,
+      "inputs": {
+        "script": "1f46ac623a80ceb270f0ad29eae0b3dc7ffe44891f13ac44ac1803a30ef837d7",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "179ffbf11ab98e775db811b1004426e4cc6ae3c8047ac7425934a96325d2b413",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "a4ca0e6e4f7da786c4ad7b349ab22c99f35cc4f3ec9c96d0616eff947564fa06"
+    },
+    {
+      "id": "int-communities",
+      "page": "interiors",
+      "title": "Guild and communities",
+      "frame": "CommunitiesFrame",
+      "crop": "830x442+609+355",
+      "fixtures": [],
+      "lua": "RikRenderInterior(\"CommunitiesFrame\")\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 17,
+        "root": {
+          "x": 617.0,
+          "y": 363.0,
+          "w": 814.0,
+          "h": 426.0
+        },
+        "uniqueColors": 8001
+      },
+      "sha256": "f898bc2c2692f33fe50a97abb46768b2041ac85f4f35aac778cd4026f262de60",
+      "bytes": 61656,
+      "fixtureSha256": "2f982f4bb6989a0d3134b18f631d725e0424cf5dc483cbfd4ec6d6e7bd157428",
+      "filename": "int-communities.webp",
+      "width": 830,
+      "height": 442,
+      "inputs": {
+        "script": "8a612c7b5649479f64e88bc88cc18662f7a5ac037cf77ab8f79756370873401b",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "08392dc6074e51127ba2b62c1eb6e36b41ea70376cb179f75c06f01b207e07e5",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "f898bc2c2692f33fe50a97abb46768b2041ac85f4f35aac778cd4026f262de60"
+    },
+    {
+      "id": "int-calendar",
+      "page": "interiors",
+      "title": "Calendar",
+      "frame": "CalendarFrame",
+      "crop": "675x640+687+256",
+      "fixtures": [],
+      "lua": "RikRenderInterior(\"CalendarFrame\")\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 52,
+        "root": {
+          "x": 694.0,
+          "y": 264.0,
+          "w": 659.0,
+          "h": 624.0
+        },
+        "uniqueColors": 1309
+      },
+      "sha256": "cec9e07898a88342b14c8531c168b9bacedc931cfc36e2fb229fca02bce802d1",
+      "bytes": 16722,
+      "fixtureSha256": "b072b54579bdf98a8e1ac06dfde36c58424b4e603265c9745d93817e7f1e601a",
+      "filename": "int-calendar.webp",
+      "width": 675,
+      "height": 640,
+      "inputs": {
+        "script": "675bdd147adcdb7fc634e50311fe4f16992e58b69915f483686fb6c907bbc412",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "f46db45aa7084f53e1d4c5c9cdcce152bda520610b8d0e5f4a424aefb6bb762c",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "cec9e07898a88342b14c8531c168b9bacedc931cfc36e2fb229fca02bce802d1"
+    },
+    {
+      "id": "int-achievements",
+      "page": "interiors",
+      "title": "Achievements",
+      "frame": "AchievementFrame",
+      "crop": "784x516+632+318",
+      "fixtures": [],
+      "lua": "RikRenderInterior(\"AchievementFrame\")\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 62,
+        "root": {
+          "x": 640.0,
+          "y": 326.0,
+          "w": 768.0,
+          "h": 500.0
+        },
+        "uniqueColors": 12313
+      },
+      "sha256": "be52497a9535b23541068a923f5a0545cef1527b580eb32ac8f29536648c3643",
+      "bytes": 148084,
+      "fixtureSha256": "96a909f112b4f6efeeff8ff1cd418758e17e68ebbfbdb174f6501c7aa549baf0",
+      "filename": "int-achievements.webp",
+      "width": 784,
+      "height": 516,
+      "inputs": {
+        "script": "1fc33070a599a56a1e554dba2595c23edc45086e32655381f7826bf34d85ecbd",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "00e9a21752c2863c966de657d49c28a1fd2976ed4cb2ee5baed08af9a66886dc",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "be52497a9535b23541068a923f5a0545cef1527b580eb32ac8f29536648c3643"
+    },
+    {
+      "id": "int-collections",
+      "page": "interiors",
+      "title": "Collections",
+      "frame": "CollectionsJournal",
+      "crop": "719x622+665+265",
+      "fixtures": [],
+      "lua": "RikRenderInterior(\"CollectionsJournal\")\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 21,
+        "root": {
+          "x": 672.0,
+          "y": 273.0,
+          "w": 703.0,
+          "h": 606.0
+        },
+        "uniqueColors": 5394
+      },
+      "sha256": "3d674d28eefc87710b18853ae970da44db8cfb175ceae69291187dd7dd6f01ce",
+      "bytes": 161508,
+      "fixtureSha256": "af67ab8812dae12956f0802c4ac28c29c70097a8cac9a2dc28b155fbb30fe68c",
+      "filename": "int-collections.webp",
+      "width": 719,
+      "height": 622,
+      "inputs": {
+        "script": "0bc0f0fb97f5bae1b0b4196e4d49e5745753f9f564abcfb5be310ee69065d883",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "d6e251098549603db5f37318ddc007c36b52c936a625d24fc1ba461c97d85395",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "3d674d28eefc87710b18853ae970da44db8cfb175ceae69291187dd7dd6f01ce"
+    },
+    {
+      "id": "dlg-rolepoll",
+      "page": "dialogs",
+      "title": "Role poll",
+      "frame": "RolePollPopup",
+      "crop": "322x176+863+488",
+      "fixtures": [],
+      "lua": "RikRenderRolePoll()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 871.0,
+          "y": 496.0,
+          "w": 306.0,
+          "h": 160.0
+        },
+        "uniqueColors": 3848
+      },
+      "sha256": "fc8d853cbb76f863244dca9fccb2bb217de789e4440a65aa1496aac6d423eb84",
+      "bytes": 18290,
+      "fixtureSha256": "71f2864a43ee6a143e0f24653f97d215cef672376957d855b0bdb1c0de584c18",
+      "filename": "dlg-rolepoll.webp",
+      "width": 322,
+      "height": 176,
+      "inputs": {
+        "script": "6873323b9a1fb63158fc1ccc0441d2dca6f73c2d433721cd4e7b9bd3b91c5a31",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "d77ce018380989b7e29ba614410980b68632ed6a31ceafc9d85c9bed13fa7bdf",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "fc8d853cbb76f863244dca9fccb2bb217de789e4440a65aa1496aac6d423eb84"
+    },
+    {
+      "id": "dlg-stacksplit",
+      "page": "dialogs",
+      "title": "Stack split",
+      "frame": "StackSplitFrame",
+      "crop": "188x112+930+520",
+      "fixtures": [],
+      "lua": "RikRenderStackSplit(20)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 5,
+        "root": {
+          "x": 938.0,
+          "y": 528.0,
+          "w": 172.0,
+          "h": 96.0
+        },
+        "uniqueColors": 468
+      },
+      "sha256": "d325d6385a8e52f12cfb3b96a62246dc1be0a7a5d13a1dc41eba9787f265327b",
+      "bytes": 2040,
+      "fixtureSha256": "8a274dd08943920cffa8fd2414d53e193f4591b22b2eae3b5605bb85425f7db5",
+      "filename": "dlg-stacksplit.webp",
+      "width": 188,
+      "height": 112,
+      "inputs": {
+        "script": "8e1746a6488f3c8fff6a329d292e81b866b83065441b5aa69c0d5587a291d2a7",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "b051810c4f32d21eeedc8c15b6e9ef8011ac3fc638cda390a1b0975dde6751a2",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "d325d6385a8e52f12cfb3b96a62246dc1be0a7a5d13a1dc41eba9787f265327b"
+    },
+    {
+      "id": "dlg-queueready",
+      "page": "dialogs",
+      "title": "Queue ready",
+      "frame": "PVPReadyDialog",
+      "crop": "322x226+863+463",
+      "fixtures": [],
+      "lua": "RikRenderQueueReady()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 7,
+        "root": {
+          "x": 871.0,
+          "y": 471.0,
+          "w": 306.0,
+          "h": 210.0
+        },
+        "uniqueColors": 2447
+      },
+      "sha256": "3fb67a37e52cfd6c07dd94f171f5e1027578b7452c00058996b0860fb71b2fe6",
+      "bytes": 12094,
+      "fixtureSha256": "fb00f686acce052f05f9ea462c2a00162d1eef1f60782158f588f76853ed6e0b",
+      "filename": "dlg-queueready.webp",
+      "width": 322,
+      "height": 226,
+      "inputs": {
+        "script": "dd8f0d96fdfa180dbda91fafc9dd123c746226a97a8777cc2c99d6557a3e3ef9",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "cf774b9b303b517666034d9f3ba4ffb7f9b49fcbe87d730449741c3da7c8bfa2",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "3fb67a37e52cfd6c07dd94f171f5e1027578b7452c00058996b0860fb71b2fe6"
+    },
+    {
+      "id": "dlg-colorpicker",
+      "page": "dialogs",
+      "title": "Colour picker",
+      "frame": "ColorPickerFrame",
+      "crop": "404x226+822+463",
+      "fixtures": [],
+      "lua": "RikRenderColorPicker()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 7,
+        "root": {
+          "x": 830.0,
+          "y": 471.0,
+          "w": 388.0,
+          "h": 210.0
+        },
+        "uniqueColors": 819
+      },
+      "sha256": "dadb75cf80956ee7967a5a9a082366d467be36a225c6613fba8dff7f5f7efa7d",
+      "bytes": 4042,
+      "fixtureSha256": "94683a1d54b08f6214ad26321750fa51724ec2de3a85d94265280b54d8250b53",
+      "filename": "dlg-colorpicker.webp",
+      "width": 404,
+      "height": 226,
+      "inputs": {
+        "script": "2bee1a7d1deb3f1006b5a81fdaa83dec47be67630ac02ebce52dcb0a1cada9f3",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "e79e1032b532534305364874178ff68252a9e9691063f67a76deb50bc3c3ee5b",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "dadb75cf80956ee7967a5a9a082366d467be36a225c6613fba8dff7f5f7efa7d"
+    },
+    {
+      "id": "dlg-addfriend",
+      "page": "dialogs",
+      "title": "Add friend",
+      "frame": "AddFriendFrame",
+      "crop": "466x343+791+405",
+      "fixtures": [],
+      "lua": "RikRenderAddFriend()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 15,
+        "root": {
+          "x": 799.0,
+          "y": 412.0,
+          "w": 450.0,
+          "h": 327.0
+        },
+        "uniqueColors": 1379
+      },
+      "sha256": "737504d26a49cee13bf5e668d119287279f65db9dda7446d5ebd2f84d60cba06",
+      "bytes": 12610,
+      "fixtureSha256": "7735c9d860572552963ac8adbb79f42f265dbb42e526abe6fd99687f5dc140ac",
+      "filename": "dlg-addfriend.webp",
+      "width": 466,
+      "height": 343,
+      "inputs": {
+        "script": "3109d155dfc2ed3182e66f341897da099a8de77789afe2dcd8a4f2180b1bba44",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "4f19ca5311897d51b7d803abe69a771911db62c1d24ad6fe6f40b824bb3b0fd5",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "737504d26a49cee13bf5e668d119287279f65db9dda7446d5ebd2f84d60cba06"
+    },
+    {
+      "id": "dlg-report",
+      "page": "dialogs",
+      "title": "Report",
+      "frame": "ReportFrame",
+      "crop": "416x286+816+433",
+      "fixtures": [],
+      "lua": "RikRenderReportDialog()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 7,
+        "root": {
+          "x": 824.0,
+          "y": 481.0,
+          "w": 400.0,
+          "h": 190.0
+        },
+        "uniqueColors": 1646
+      },
+      "sha256": "9aba6237347f82da091929cf4854d5e955e55c7d1e839c11b94975476cf7dd83",
+      "bytes": 13054,
+      "fixtureSha256": "69b38b56bd017e61e24dc115f88719645a87c3f0224334ac09a0e3ea33f0cdb8",
+      "filename": "dlg-report.webp",
+      "width": 416,
+      "height": 286,
+      "inputs": {
+        "script": "69cca03c30bbbe8e93a97f6f1ddb358be560bccc2120da627a3633f7a13bd1bc",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "0deef95bed718705641b6be1e5c931938aa9272de6c152b736610af656b98b95",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "9aba6237347f82da091929cf4854d5e955e55c7d1e839c11b94975476cf7dd83"
+    },
+    {
+      "id": "dlg-autocomplete",
+      "page": "dialogs",
+      "title": "Autocomplete",
+      "frame": "RikRenderAutoComplete",
+      "crop": "256x146+896+503",
+      "fixtures": [],
+      "lua": "RikRenderAutoComplete()\n",
+      "expectText": [
+        "Mira"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 8,
+        "root": {
+          "x": 904.0,
+          "y": 511.0,
+          "w": 240.0,
+          "h": 130.0
+        },
+        "uniqueColors": 729
+      },
+      "sha256": "6e73cf7b115ddc158036a71ed2c6ace5dbe4a083486cc2cbbad0bed6fb056bc7",
+      "bytes": 3220,
+      "fixtureSha256": "503d365593528a6e5e0cd07248700ef180959a636d4ce02840a4eefd1cb43e52",
+      "filename": "dlg-autocomplete.webp",
+      "width": 256,
+      "height": 146,
+      "inputs": {
+        "script": "ca40ad0d122638d79502236ad6de12d28ac212f57a071890d34cf70793ea10d5",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "a8eba0a965b51116742139d206bce5e621d23593656c4a5ca1ea5b5eb0fade29",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "6e73cf7b115ddc158036a71ed2c6ace5dbe4a083486cc2cbbad0bed6fb056bc7"
+    },
+    {
+      "id": "popup-confirm",
+      "page": "popups",
+      "title": "Confirmation text",
+      "frame": "StaticPopup1",
+      "crop": "352x132+848+510",
+      "fixtures": [],
+      "lua": "RikRenderPopup(\"CONFIRM_RESET_INSTANCES\")\n",
+      "expectText": [
+        "Yes"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 5,
+        "root": {
+          "x": 864.0,
+          "y": 522.0,
+          "w": 320.0,
+          "h": 107.0
+        },
+        "uniqueColors": 636
+      },
+      "sha256": "3b84e781218f361d3ed33f6c862ebc3fa99fd5b127e7a11ec343dff5ee12ddee",
+      "bytes": 3818,
+      "fixtureSha256": "46002df31035ff6dbf3a478d72091ec8c33e21d24854f7fbe1755236acfba63e",
+      "filename": "popup-confirm.webp",
+      "width": 352,
+      "height": 132,
+      "inputs": {
+        "script": "f2c0d96dddc39c4327e559e8801b827993c3ef27e31e6b332b57565289a64733",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "3b6b742b61ca0008df53e48f07fe415a539f6afdfe67ae36f3e7aacdb6f275c9",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "3b84e781218f361d3ed33f6c862ebc3fa99fd5b127e7a11ec343dff5ee12ddee"
+    },
+    {
+      "id": "popup-invite",
+      "page": "popups",
+      "title": "Accept and cancel",
+      "frame": "StaticPopup1",
+      "crop": "352x132+848+510",
+      "fixtures": [],
+      "lua": "RikRenderPopup(\"PARTY_INVITE\", \"Mira\")\n",
+      "expectText": [
+        "Mira"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 5,
+        "root": {
+          "x": 864.0,
+          "y": 537.0,
+          "w": 320.0,
+          "h": 78.0
+        },
+        "uniqueColors": 640
+      },
+      "sha256": "b0e3d63d8d24320dd4428615107fd184f80761d08ec4c0ee1b8e91bed68f8d1c",
+      "bytes": 2688,
+      "fixtureSha256": "b16ee20d3590ddbd304494fdc3ac08e5db3b309c3b5a829a798822f4575bbf74",
+      "filename": "popup-invite.webp",
+      "width": 352,
+      "height": 132,
+      "inputs": {
+        "script": "f8d71d15a82018977950e6d825c86a5e9dd38a99b8baf5fb89393dad826ad248",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "acff165742caaf1694bb31a606143a59511b7a4c5140d08b5551e2c7326c73bd",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "b0e3d63d8d24320dd4428615107fd184f80761d08ec4c0ee1b8e91bed68f8d1c"
+    },
+    {
+      "id": "popup-text",
+      "page": "popups",
+      "title": "Text entry",
+      "frame": "StaticPopup1",
+      "crop": "352x162+848+495",
+      "fixtures": [],
+      "lua": "local d = RikRenderPopup(\"ADD_FRIEND\")\nif d.EditBox then d.EditBox:SetText(\"Mira\") end\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 6,
+        "root": {
+          "x": 864.0,
+          "y": 519.0,
+          "w": 320.0,
+          "h": 113.0
+        },
+        "uniqueColors": 869
+      },
+      "sha256": "4444491edf95d2aa052b79f7f34f546b3562c7b7099548fa20a12fca4b3ca581",
+      "bytes": 4576,
+      "fixtureSha256": "b00a91ad373adb308d828b269fa7d0ad01d3d7be79899e5b844d2a07762f7a12",
+      "filename": "popup-text.webp",
+      "width": 352,
+      "height": 162,
+      "inputs": {
+        "script": "264c1c841b9fd06c0c159b6aa30585de663a02a3e599c11e8e40244e33b8a324",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "3f1f37b7abbc83388cfa91a533a8e903769033366c66cfd8f6430dc40f5cc340",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "4444491edf95d2aa052b79f7f34f546b3562c7b7099548fa20a12fca4b3ca581"
+    },
+    {
+      "id": "ctl-button",
+      "page": "controls",
+      "title": "Button",
+      "frame": "RikRenderControlButton",
+      "crop": "136x38+760+442",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [
+        "Accept"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 768.0,
+          "y": 450.0,
+          "w": 120.0,
+          "h": 22.0
+        },
+        "uniqueColors": 271
+      },
+      "sha256": "7364fe108a6c68d13143f9973b709e387a78b043ae8fb07a60e34fc9b0edf2f2",
+      "bytes": 1000,
+      "fixtureSha256": "39b07981baa4325cca919ee1295acd5a35bb87f55f1d2f709ff001e0e65dc541",
+      "filename": "ctl-button.webp",
+      "width": 136,
+      "height": 38,
+      "inputs": {
+        "script": "18f6ba3d785645ca816d7bb0a978782aafac5952d3c572401ee901a449c8edd1",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "be829e9d980419a893d26110c5a2ae26a13e5fd5ce5c1d49639f7cad2c781e1f",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "7364fe108a6c68d13143f9973b709e387a78b043ae8fb07a60e34fc9b0edf2f2"
+    },
+    {
+      "id": "ctl-disabled",
+      "page": "controls",
+      "title": "Disabled control",
+      "frame": "RikRenderControlDisabled",
+      "crop": "166x38+896+442",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [
+        "Locked"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 904.0,
+          "y": 450.0,
+          "w": 150.0,
+          "h": 22.0
+        },
+        "uniqueColors": 196
+      },
+      "sha256": "60c020567035ad32fcd7b5fc90fa530e834de09c4cfa323f5e78868524758a81",
+      "bytes": 678,
+      "fixtureSha256": "83236b5a5195f8afbb2f234a517eeececdbe42287b1c31af8f15f1231b6c8717",
+      "filename": "ctl-disabled.webp",
+      "width": 166,
+      "height": 38,
+      "inputs": {
+        "script": "44e771a5d9863e2e7b2f6a9362fc81042d580b5a0aea6850dbe4b423ed891131",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "a2361bc5ad9d1c3a21000655dbf7ca75528490978a3bf26e9126cf892dae5fa2",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "60c020567035ad32fcd7b5fc90fa530e834de09c4cfa323f5e78868524758a81"
+    },
+    {
+      "id": "ctl-checkbox",
+      "page": "controls",
+      "title": "Checkbox",
+      "frame": "RikRenderControlCheck",
+      "crop": "170x48+760+482",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 768.0,
+          "y": 490.0,
+          "w": 32.0,
+          "h": 32.0
+        },
+        "uniqueColors": 180
+      },
+      "sha256": "40308e7eb1c2dbb2d09c88b853467aa228bf7fc36fc851e589e00245cb0b617a",
+      "bytes": 756,
+      "fixtureSha256": "2ae654059ee2c26ba73ca84a08180d75dc74d457bd6040521e563da0fef863d9",
+      "filename": "ctl-checkbox.webp",
+      "width": 170,
+      "height": 48,
+      "inputs": {
+        "script": "cadf609497a6b423359f6f694ee9683c8556e3623e810790cd8b6b2d3e0bb047",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "163f37f55ad0cceb4c2132e18241d6efc869cf46e25d329d5add1d626e929c98",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "40308e7eb1c2dbb2d09c88b853467aa228bf7fc36fc851e589e00245cb0b617a"
+    },
+    {
+      "id": "ctl-textfield",
+      "page": "controls",
+      "title": "Text field",
+      "frame": "RikRenderControlEdit",
+      "crop": "220x40+766+530",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [
+        "Mira"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 776.0,
+          "y": 538.0,
+          "w": 200.0,
+          "h": 24.0
+        },
+        "uniqueColors": 140
+      },
+      "sha256": "7ef2d2346d187810cbc1efcef491deddf04f45629618a165afc725380ad7a65a",
+      "bytes": 536,
+      "fixtureSha256": "2b59223d5c5dec1811926f7bfeb7bdc1830685f5aa3ff4fefdbc881775b88a7a",
+      "filename": "ctl-textfield.webp",
+      "width": 220,
+      "height": 40,
+      "inputs": {
+        "script": "99e1593cb1d8096bea57de890d8b276e46f0a30e2920a90315dd735f4be8e090",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "421ca635aa12a57dc5442e0395974bef74f87ddddee5b0f50c21643a5edadefc",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "7ef2d2346d187810cbc1efcef491deddf04f45629618a165afc725380ad7a65a"
+    },
+    {
+      "id": "ctl-slider",
+      "page": "controls",
+      "title": "Slider",
+      "frame": "RikRenderControlSlider",
+      "crop": "266x64+760+570",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 768.0,
+          "y": 582.0,
+          "w": 250.0,
+          "h": 40.0
+        },
+        "uniqueColors": 108
+      },
+      "sha256": "b122660f4a25f432429c9749be5f1112058311f98e8409730e179f3319cfbac2",
+      "bytes": 522,
+      "fixtureSha256": "373ff862328ab3b829d2f96c543037072575d6e12022d49a58564b27bb2615df",
+      "filename": "ctl-slider.webp",
+      "width": 266,
+      "height": 64,
+      "inputs": {
+        "script": "6ece2cb064ca9a47eb785ad2a6e6f1d12f7d457a31dd07309c6d15f43090699e",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "1887ea2cd59819ae97a2191a8b2dec10b9e3eed92ecac1e300d2f6bb663cfb2a",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "b122660f4a25f432429c9749be5f1112058311f98e8409730e179f3319cfbac2"
+    },
+    {
+      "id": "ctl-dropdown",
+      "page": "controls",
+      "title": "Dropdown",
+      "frame": "RikRenderControlDropdown",
+      "crop": "176x53+760+624",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [
+        "Party"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 768.0,
+          "y": 638.0,
+          "w": 160.0,
+          "h": 25.0
+        },
+        "uniqueColors": 168
+      },
+      "sha256": "10bfea474bd71fd652f10ed888a5a40fe13139294940d200b65af2f1a233ec2e",
+      "bytes": 512,
+      "fixtureSha256": "afe01dfec029aa9ab17ef17c3581493e182c6977b211b6b1e6b5f4ec33e86e70",
+      "filename": "ctl-dropdown.webp",
+      "width": 176,
+      "height": 53,
+      "inputs": {
+        "script": "aa92ccfed0d4b8637e351cc5de1df5f1ef8e27c0d8020fdd51d9f9e542ecc746",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "8d74b5b1ef9b8785bdc7e03cf5f4ea355e0e9a7dba96d6292d198af06fa6d319",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "10bfea474bd71fd652f10ed888a5a40fe13139294940d200b65af2f1a233ec2e"
+    },
+    {
+      "id": "ctl-colour",
+      "page": "controls",
+      "title": "Colour control",
+      "frame": "RikRenderControlSwatch",
+      "crop": "40x40+942+630",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 952.0,
+          "y": 640.0,
+          "w": 20.0,
+          "h": 20.0
+        },
+        "uniqueColors": 4
+      },
+      "sha256": "61aead39b407aca09e49d27c8cf85c975d61f15371b4ea0a7039f6ae5f65cf75",
+      "bytes": 94,
+      "fixtureSha256": "f4e0c153eb6cb27da4f54d2967a8a1441741690ea8b32e80bda45307423b0310",
+      "filename": "ctl-colour.webp",
+      "width": 40,
+      "height": 40,
+      "inputs": {
+        "script": "384a72d4b7b3ff91a574f757586a2cca20ec4d415d5b74a851831be3ece007a9",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "9a90d6f56c379b26d7a8220e8775eafa970b99ac172deaaa86255e7877192472",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "61aead39b407aca09e49d27c8cf85c975d61f15371b4ea0a7039f6ae5f65cf75"
+    },
+    {
+      "id": "ctl-scrollbar",
+      "page": "controls",
+      "title": "Scrollbar",
+      "frame": "RikRenderControlScroll",
+      "crop": "40x196+1256+442",
+      "fixtures": [],
+      "lua": "RikRenderControls()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 1272.0,
+          "y": 450.0,
+          "w": 8.0,
+          "h": 180.0
+        },
+        "uniqueColors": 12
+      },
+      "sha256": "03639167dce39c4a4f663c701eb7f317a39f86d676a0317edb2f707b6ab34966",
+      "bytes": 166,
+      "fixtureSha256": "3d1c86598c08a27b737901b9d5d61534ddf6262280a55f7eae6cfb353f38af5a",
+      "filename": "ctl-scrollbar.webp",
+      "width": 40,
+      "height": 196,
+      "inputs": {
+        "script": "d2c20029fc21c4cc3b8bba9e26f151f889a686a6d939984a5eafb89f76ac3096",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "621190e7b03977695f56ddf51206d213713c7e849c825c4d3cbc39df33c51d1c",
+      "modules": [
+        "controls",
+        "core"
+      ],
+      "reviewedSha256": "03639167dce39c4a4f663c701eb7f317a39f86d676a0317edb2f707b6ab34966"
+    },
+    {
+      "id": "int-stats",
+      "page": "interiors",
+      "title": "Character stats",
+      "frame": "RikRenderStats",
+      "crop": "220x372+914+390",
+      "fixtures": [],
+      "lua": "RikRenderCharacter()\nRikRenderDetail(CharacterFrame, \"RikRenderStats\", 404, 108, 204, 356)\n",
+      "expectText": [
+        "Health:"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 29,
+        "root": {
+          "x": 922.0,
+          "y": 398.0,
+          "w": 204.0,
+          "h": 356.0
+        },
+        "uniqueColors": 596
+      },
+      "sha256": "099f837d623b2e31605fe2c889fc4e6081f78c05a837b42a2a7a39ed75abf78d",
+      "bytes": 10566,
+      "fixtureSha256": "dd09df19d53fda58df8b30c8857cd18823aebd39379bb7a2adcbec5ea57dfccd",
+      "filename": "int-stats.webp",
+      "width": 220,
+      "height": 372,
+      "inputs": {
+        "script": "60e2cb0afa9e08d9eac2c42454316142f4a015b9cbaa86e6e442d94113104c6b",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "4140a94d37af5011c66e6fbaa8e9b2bb9d245c5115bf6a2dabbcbf14f0dae604",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "099f837d623b2e31605fe2c889fc4e6081f78c05a837b42a2a7a39ed75abf78d"
+    },
+    {
+      "id": "int-gossip",
+      "page": "interiors",
+      "title": "Gossip choices",
+      "frame": "GossipFrame",
+      "crop": "354x512+847+320",
+      "fixtures": [],
+      "lua": "RikRenderGossip()\n",
+      "expectText": [
+        "Kobold Camp Cleanup"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 18,
+        "root": {
+          "x": 855.0,
+          "y": 328.0,
+          "w": 338.0,
+          "h": 496.0
+        },
+        "uniqueColors": 1163
+      },
+      "sha256": "3a83c25087d88a5c4320f071d4dbdd21104265be4ebd9d92cf217cbb973c1b22",
+      "bytes": 8766,
+      "fixtureSha256": "a7543c2beb26c5a6699466805e70e11d5939eb553f26ece61dab7edc602bf95c",
+      "filename": "int-gossip.webp",
+      "width": 354,
+      "height": 512,
+      "inputs": {
+        "script": "1bf98ffb93e28076ab21c75818f5531dab8d03404aedd6c2b3a374925b87ef4d",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "364fa58f2ca7b16da9e628d7ca4c80e343d907de65857f5fb070913af7db81e7",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "3a83c25087d88a5c4320f071d4dbdd21104265be4ebd9d92cf217cbb973c1b22"
+    },
+    {
+      "id": "int-inbox",
+      "page": "interiors",
+      "title": "Mail inbox",
+      "frame": "MailFrame",
+      "crop": "354x440+847+356",
+      "fixtures": [],
+      "lua": "RikRenderInbox()\n",
+      "expectText": [
+        "Mira"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 22,
+        "root": {
+          "x": 855.0,
+          "y": 364.0,
+          "w": 338.0,
+          "h": 424.0
+        },
+        "uniqueColors": 6563
+      },
+      "sha256": "a4b57acb07118cc50c1d26aeb8bc4dfa156226e234301d3e1d04a7bdecd45ed3",
+      "bytes": 78818,
+      "fixtureSha256": "615df87d15a664bac6cc808f24d207f7d755ce6e31c29d3862b50c751ebcb182",
+      "filename": "int-inbox.webp",
+      "width": 354,
+      "height": 440,
+      "inputs": {
+        "script": "4e142e7f3188597bf485ac9a941f1a9eb06052bf2e63ddb1d89bba09148d3f02",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "692bba413c70dd996db9aa0471841a09fe856bb84fce36fecf435702adcca8cc",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "a4b57acb07118cc50c1d26aeb8bc4dfa156226e234301d3e1d04a7bdecd45ed3"
+    },
+    {
+      "id": "int-raidinfo",
+      "page": "interiors",
+      "title": "Raid information",
+      "frame": "RaidInfoFrame",
+      "crop": "361x266+844+443",
+      "fixtures": [],
+      "lua": "RikRenderInterior(\"RaidInfoFrame\")\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 5,
+        "root": {
+          "x": 851.0,
+          "y": 451.0,
+          "w": 345.0,
+          "h": 250.0
+        },
+        "uniqueColors": 910
+      },
+      "sha256": "2d4af98c4aa145cdcdc3db9f9c6313746efa4a5212520d077c1ea4ba7f4514b4",
+      "bytes": 4758,
+      "fixtureSha256": "b40cfef058b0e732ab2084abb70f94870e7de8c51f09e1dc0c713263497f2ee9",
+      "filename": "int-raidinfo.webp",
+      "width": 361,
+      "height": 266,
+      "inputs": {
+        "script": "d7b300c387fb802582606e80985821f6766d8b10a76f0e0faf2a9e209f5e6634",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "7e065fb0523fa235b33836188843a9e8f308a3d4cf7840ff53adde99db930abb",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "2d4af98c4aa145cdcdc3db9f9c6313746efa4a5212520d077c1ea4ba7f4514b4"
+    },
+    {
+      "id": "int-inspect",
+      "page": "interiors",
+      "title": "Inspect",
+      "frame": "InspectFrame",
+      "crop": "354x440+847+356",
+      "fixtures": [],
+      "lua": "RikRenderInspect()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 5,
+        "root": {
+          "x": 855.0,
+          "y": 364.0,
+          "w": 338.0,
+          "h": 424.0
+        },
+        "uniqueColors": 1889
+      },
+      "sha256": "f7c06c9cf2e839ab6fa73b80d6dce6658b05b392a91c822aa336f20534c3d576",
+      "bytes": 23582,
+      "fixtureSha256": "43703bb95f2a472dbd9628d537e0023b9f6f1d6a6bbe153fcef180f292b81835",
+      "filename": "int-inspect.webp",
+      "width": 354,
+      "height": 440,
+      "inputs": {
+        "script": "0c1cb057a4d99db48f800087ca4fc0c165f32aeb9e52804963c04e3ee4aba1f2",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "3449e826d05b9ef6d3700eb764d7efeab6b40303d9dd84676a1dc78636846c14",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "f7c06c9cf2e839ab6fa73b80d6dce6658b05b392a91c822aa336f20534c3d576"
+    },
+    {
+      "id": "dlg-readycheck",
+      "page": "dialogs",
+      "title": "Ready check",
+      "frame": "ReadyCheckListenerFrame",
+      "crop": "339x128+855+512",
+      "fixtures": [],
+      "lua": "RikRenderReadyCheck()\n",
+      "expectText": [
+        "Mira"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 7,
+        "root": {
+          "x": 862.0,
+          "y": 520.0,
+          "w": 323.0,
+          "h": 112.0
+        },
+        "uniqueColors": 1013
+      },
+      "sha256": "87bfb6c8bf0b2bbf50633364a05981eba618eaed8bb2e746795a97ec2466f9de",
+      "bytes": 5666,
+      "fixtureSha256": "111f8a661b57fc9bc613940024e0705aa3075e94407d53cd5cd200c9ffcc6061",
+      "filename": "dlg-readycheck.webp",
+      "width": 339,
+      "height": 128,
+      "inputs": {
+        "script": "993b34ace020603a4721d13ee2a92a0fedc5466ed029dab51842cea3d6e958cf",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "c4e5bd32b8f775404545377c962a78fe175fe5f5aa808fe49ba73100eb5c60e2",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "87bfb6c8bf0b2bbf50633364a05981eba618eaed8bb2e746795a97ec2466f9de"
+    },
+    {
+      "id": "menu-context",
+      "page": "menus",
+      "title": "Context menu",
+      "frame": "RikRenderMenu",
+      "crop": "192x272+928+440",
+      "fixtures": [],
+      "lua": "RikRenderContextMenu(false)\n",
+      "expectText": [
+        "Whisper",
+        "Duel"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 7,
+        "root": {
+          "x": 953.0,
+          "y": 482.0,
+          "w": 142.0,
+          "h": 187.0
+        },
+        "uniqueColors": 299
+      },
+      "sha256": "06b24e43bcba3b4e54c10cb0a03bcc5313100a7b47168889087a2caa9ced8eb1",
+      "bytes": 2574,
+      "fixtureSha256": "9d43f0401134a08937a239cfdbbe6b583b2b85f9f38bf3ca3c9d281cbdf30f88",
+      "filename": "menu-context.webp",
+      "width": 192,
+      "height": 272,
+      "inputs": {
+        "script": "04b5c925ec64c6d3b50d332c6bd5180b4b5e2d2814ae68c4b8bd7089c06bb07a",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "0f458fb035050f4d8d773f5c5f6445bc464cf71f578757f6a176ebefb11a9537",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "06b24e43bcba3b4e54c10cb0a03bcc5313100a7b47168889087a2caa9ced8eb1"
+    },
+    {
+      "id": "widget-status",
+      "page": "widgets",
+      "title": "Status bar",
+      "frame": "UIWidgetTopCenterContainerFrame",
+      "crop": "263x81+893+536",
+      "fixtures": [],
+      "lua": "local c = RikRenderWidgets({ \"status\" })\nRikRenderCenter(c)\nRikRenderResize(c)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 908.0,
+          "y": 551.0,
+          "w": 231.0,
+          "h": 49.0
+        },
+        "uniqueColors": 342
+      },
+      "sha256": "f95adf41635f49fc52bb835035369e4cabba537a4a0e79d1a3fe24a69bc566e0",
+      "bytes": 1356,
+      "fixtureSha256": "8f3cbde02fe4f69e06f9990e7194e9771a4f09e11fd72184041d12492dc20fe0",
+      "filename": "widget-status.webp",
+      "width": 263,
+      "height": 81,
+      "inputs": {
+        "script": "95fa32aa520e780613973905565a6eeeec0da48dd51253299452ffc2f7d0d655",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "85908923637ee447965a0a7486a351ae292674d1a651eecff58651ccb2e8b12c",
+      "modules": [
+        "core",
+        "widgets"
+      ],
+      "reviewedSha256": "f95adf41635f49fc52bb835035369e4cabba537a4a0e79d1a3fe24a69bc566e0"
+    },
+    {
+      "id": "widget-double",
+      "page": "widgets",
+      "title": "Double status bar",
+      "frame": "UIWidgetTopCenterContainerFrame",
+      "crop": "230x90+909+531",
+      "fixtures": [],
+      "lua": "local c = RikRenderWidgets({ \"double\" })\nRikRenderCenter(c)\nRikRenderResize(c)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 925.0,
+          "y": 547.0,
+          "w": 198.0,
+          "h": 58.0
+        },
+        "uniqueColors": 274
+      },
+      "sha256": "541025acf413b67796e83857d5882e0e818e857d00c92547e1cfbce46c708cbf",
+      "bytes": 1390,
+      "fixtureSha256": "52afa8cd2367efcbd3b546afba97cb72aea9985de5f234ce8356e9a0f8e2106a",
+      "filename": "widget-double.webp",
+      "width": 230,
+      "height": 90,
+      "inputs": {
+        "script": "9136bcc93d06502c66f234138701b399bb3c5d087cac760d2bb8310116449250",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "2cb384d26d0cff7d7600d5d50b7ceb6d36cd1bea01ab01840a6ff0f26a6db16a",
+      "modules": [
+        "core",
+        "widgets"
+      ],
+      "reviewedSha256": "541025acf413b67796e83857d5882e0e818e857d00c92547e1cfbce46c708cbf"
+    },
+    {
+      "id": "panels-tabs",
+      "page": "panels",
+      "title": "Selected tab",
+      "frame": "RikRenderChromeTabs",
+      "crop": "346x66+851+543",
+      "fixtures": [],
+      "lua": "RikRenderSpells(\"talents\")\nRikRenderDetail(PlayerSpellsFrame, \"RikRenderChromeTabs\", 60, 36, 330, 50)\n",
+      "expectText": [
+        "Primary"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 43,
+        "root": {
+          "x": 859.0,
+          "y": 551.0,
+          "w": 330.0,
+          "h": 50.0
+        },
+        "uniqueColors": 483
+      },
+      "sha256": "6a33bb39388659e5b8b049132edcb28fd11174d2935968bfe6c1c672dd4e666f",
+      "bytes": 1660,
+      "fixtureSha256": "3aa799730ac240d5451542acb0ec58b9094a9b409ed4fd879fcecdaf543271e5",
+      "filename": "panels-tabs.webp",
+      "width": 346,
+      "height": 66,
+      "inputs": {
+        "script": "ba20ba05ca21e7059fd90d23ce78143caa2e0c3d4a9d7b72829ead08160f0b91",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "bc82848cbab5ba28cd9a7cc304dd3d66abacd56dbb5067de22d3692277a9b612",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "6a33bb39388659e5b8b049132edcb28fd11174d2935968bfe6c1c672dd4e666f"
+    },
+    {
+      "id": "int-spellbook",
+      "page": "interiors",
+      "title": "Spellbook",
+      "frame": "PlayerSpellsFrame",
+      "crop": "1634x899+207+127",
+      "fixtures": [],
+      "lua": "RikRenderSpells(\"spellbook\")\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 8,
+        "root": {
+          "x": 215.0,
+          "y": 216.0,
+          "w": 1618.0,
+          "h": 720.0
+        },
+        "uniqueColors": 9237
+      },
+      "sha256": "a3e94236d01bb7b8e157dee19fd068418a7650647389ece6fc46e832bcb7bdbd",
+      "bytes": 85058,
+      "fixtureSha256": "8b406523b3ce2fcb97d66445cc570f26323ad555878a8ddfb26204ff5fde1f28",
+      "filename": "int-spellbook.webp",
+      "width": 1634,
+      "height": 899,
+      "inputs": {
+        "script": "4aebed8b310d5d375b6acbfe4113515961cab6632890d0917d288a76d05577ab",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "3622dd1cbafea0869e17d7e4cc1a838fd3c2f581f9203bc37c2f228ac9b2d62c",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "a3e94236d01bb7b8e157dee19fd068418a7650647389ece6fc46e832bcb7bdbd"
+    },
+    {
+      "id": "popup-item",
+      "page": "popups",
+      "title": "Item confirmation",
+      "frame": "StaticPopup1",
+      "crop": "352x207+848+473",
+      "fixtures": [],
+      "lua": "RikRenderPopup(\"CONFIRM_PURCHASE_NONREFUNDABLE_ITEM\", \"Worn Shortsword\", \"\", { texture = 135274, name = \"Worn Shortsword\", color = { 1, 1, 1, 1 }, link = \"|cffffffff|Hitem:25::::::::10:::::|h[Worn Shortsword]|h|r\", count = 1 })\n",
+      "expectText": [
+        "Worn Shortsword"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 6,
+        "root": {
+          "x": 864.0,
+          "y": 488.0,
+          "w": 320.0,
+          "h": 175.0
+        },
+        "uniqueColors": 1029
+      },
+      "sha256": "4d365c5f91994ca225c8eb55c757fc6e6da37de3a0e87cad994b90857a46a908",
+      "bytes": 9504,
+      "fixtureSha256": "f4eb25b3ad9f53f2d63433f79280ba8051c76ff7a38b18c85b947292ef207ba6",
+      "filename": "popup-item.webp",
+      "width": 352,
+      "height": 207,
+      "inputs": {
+        "script": "4163924c1e420cb8a4e10bb6c8ae7d603a06e9afa28f483399d8d36760daed8f",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "fc47feba1d9fea6a18967bf2519e8944c88ce8cd4b28d08e58c9ef42dcfb3be1",
+      "modules": [
+        "bags",
+        "core",
+        "dialogs",
+        "windows"
+      ],
+      "reviewedSha256": "4d365c5f91994ca225c8eb55c757fc6e6da37de3a0e87cad994b90857a46a908"
+    },
+    {
+      "id": "widget-icon",
+      "page": "widgets",
+      "title": "Icon and text",
+      "frame": "UIWidgetTopCenterContainerFrame",
+      "crop": "152x56+948+548",
+      "fixtures": [],
+      "lua": "local c = RikRenderWidgets({ \"icon\" })\nRikRenderCenter(c)\nRikRenderResize(c)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 963.0,
+          "y": 564.0,
+          "w": 120.0,
+          "h": 24.0
+        },
+        "uniqueColors": 310
+      },
+      "sha256": "487a871f5835f23691c7559bc70a392d0cb8419c07e69aff88a0954f3b606ed1",
+      "bytes": 1460,
+      "fixtureSha256": "2729e778f601e4fafb66b9fc29ac0f20c1b88f30dec154fb735cbaf88e1ab860",
+      "filename": "widget-icon.webp",
+      "width": 152,
+      "height": 56,
+      "inputs": {
+        "script": "57717e2b9daaf9f2edb7bf25b1ec14515c66e0c0dbda97946165246d46badfeb",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "54e976d5e24ac7016f4ca28e8cf9890ac718ed03df3c64e78606223d73cf7c1d",
+      "modules": [
+        "core",
+        "widgets"
+      ],
+      "reviewedSha256": "487a871f5835f23691c7559bc70a392d0cb8419c07e69aff88a0954f3b606ed1"
+    },
+    {
+      "id": "int-merchant",
+      "page": "interiors",
+      "title": "Merchant",
+      "frame": "MerchantFrame",
+      "crop": "352x460+848+346",
+      "fixtures": [],
+      "lua": "RikRenderVendor()\n",
+      "expectText": [
+        "Linen Cloth"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 37,
+        "root": {
+          "x": 856.0,
+          "y": 354.0,
+          "w": 336.0,
+          "h": 444.0
+        },
+        "uniqueColors": 4248
+      },
+      "sha256": "80b0563ec0057cf63b100265280ede702b0f20ccc5a0593a97c47c1d7c650207",
+      "bytes": 31128,
+      "fixtureSha256": "317daf6787189578c7b369e767b0343ec1767a848a0a9eaf7d4c287a97316ca6",
+      "filename": "int-merchant.webp",
+      "width": 352,
+      "height": 460,
+      "inputs": {
+        "script": "d23ea197aea857fbd596c1de0b2c6552cdf365632c55251a9c341c22f4854dca",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "71bf58260c57aa0d753cbc67735d42de1710f0c015dd15bfd0fc64548e6f09af",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "80b0563ec0057cf63b100265280ede702b0f20ccc5a0593a97c47c1d7c650207"
+    },
+    {
+      "id": "int-trade",
+      "page": "interiors",
+      "title": "Trade",
+      "frame": "TradeFrame",
+      "crop": "360x462+844+345",
+      "fixtures": [],
+      "lua": "RikRenderTrade()\n",
+      "expectText": [
+        "Mira"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 852.0,
+          "y": 353.0,
+          "w": 344.0,
+          "h": 446.0
+        },
+        "uniqueColors": 5377
+      },
+      "sha256": "56722c27082a2a8e22bcef918bd179b66bbe5588c6bf1c527572fee6d457a539",
+      "bytes": 37204,
+      "fixtureSha256": "dd563a374df087d6cbfcf2d78def1e5c3610961aa8f472705bf084d15f85edbf",
+      "filename": "int-trade.webp",
+      "width": 360,
+      "height": 462,
+      "inputs": {
+        "script": "25be64a40c046795e7d2d44c3699d69f577a574ac85e179f355a4a309c965c83",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "233860860df6527e2854fff75fbd0fe97a7a2f2b5d8dc72c8c3a4401f5549350",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "56722c27082a2a8e22bcef918bd179b66bbe5588c6bf1c527572fee6d457a539"
+    },
+    {
+      "id": "ah-browse",
+      "page": "auction-house",
+      "title": "Buying and search",
+      "frame": "AuctionHouseFrame",
+      "crop": "1096x676+476+238",
+      "fixtures": [],
+      "lua": "RikRenderAuctionBrowse()\n",
+      "expectText": [
+        "Auction House"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 66,
+        "root": {
+          "x": 484.0,
+          "y": 246.0,
+          "w": 1080.0,
+          "h": 660.0
+        },
+        "uniqueColors": 4235
+      },
+      "sha256": "84ba443d637f7f51df1b387cb0ea5be1a2dea72371e0981577be0f2caa854d6f",
+      "bytes": 37350,
+      "fixtureSha256": "a4bb92882ce754d5d6b94ed4116bf47d336098a18e0dee48b932a810e4278607",
+      "filename": "ah-browse.webp",
+      "width": 1096,
+      "height": 676,
+      "inputs": {
+        "script": "442e84afac259da4a2b89bd83d47672b459babeabd9ea6ff7414828282f9ba2e",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "267b70d62b53de8c5334395e8031254afc618270d6c032a042c6f9ed6175900d",
+      "modules": [
+        "auction",
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "84ba443d637f7f51df1b387cb0ea5be1a2dea72371e0981577be0f2caa854d6f"
+    },
+    {
+      "id": "ah-sell",
+      "page": "auction-house",
+      "title": "Selling",
+      "frame": "AuctionHouseFrame",
+      "crop": "1096x676+476+238",
+      "fixtures": [],
+      "lua": "RikRenderAuctionSell()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 35,
+        "root": {
+          "x": 484.0,
+          "y": 246.0,
+          "w": 1080.0,
+          "h": 660.0
+        },
+        "uniqueColors": 3638
+      },
+      "sha256": "775789ab5466fb4736128fa19507573bf768e36b4c5b574e42ec569d88866bc7",
+      "bytes": 28862,
+      "fixtureSha256": "8aadd9be97309020420bda6293fff47913a4261dcc23bb7c0d4a22ed8d931e7c",
+      "filename": "ah-sell.webp",
+      "width": 1096,
+      "height": 676,
+      "inputs": {
+        "script": "b8a61aa65c8db9dc1ba569eb989b7420d8485bd8a88f74ad763ab85d46637435",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "835b0f9460d73dcd5bb5e64ff3d1a11d5848eab390bf5eb0ca8a439e58256e2e",
+      "modules": [
+        "auction",
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "775789ab5466fb4736128fa19507573bf768e36b4c5b574e42ec569d88866bc7"
+    },
+    {
+      "id": "int-quest",
+      "page": "interiors",
+      "title": "Quest dialogue",
+      "frame": "QuestFrame",
+      "crop": "354x512+847+320",
+      "fixtures": [],
+      "lua": "RikRenderQuestDetail()\n",
+      "expectText": [
+        "Kobold Camp Cleanup"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 10,
+        "root": {
+          "x": 855.0,
+          "y": 328.0,
+          "w": 338.0,
+          "h": 496.0
+        },
+        "uniqueColors": 2284
+      },
+      "sha256": "bd94452debcd16b833906d9974c3fba4c060292d7712abd1df60f3b8bda4f742",
+      "bytes": 22808,
+      "fixtureSha256": "1cbdb0d3dfe24ae900bf5d9ae0145535d15d9dff934212bab2533473c9134dfa",
+      "filename": "int-quest.webp",
+      "width": 354,
+      "height": 512,
+      "inputs": {
+        "script": "c75e91e59c5263cb56bc4cb48b9c7b4a4db32cde841748ab2533099189fcd81a",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "85db083b5529321ee2fa9e0688ad5ee6410c3a82df31c7d4f3a655f828505255",
+      "modules": [
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "bd94452debcd16b833906d9974c3fba4c060292d7712abd1df60f3b8bda4f742"
+    },
+    {
+      "id": "ah-item",
+      "page": "auction-house",
+      "title": "Item summary",
+      "frame": "AuctionHouseFrame",
+      "crop": "1096x676+476+238",
+      "fixtures": [],
+      "lua": "RikRenderAuctionItem()\n",
+      "expectText": [
+        "Linen Cloth"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 65,
+        "root": {
+          "x": 484.0,
+          "y": 246.0,
+          "w": 1080.0,
+          "h": 660.0
+        },
+        "uniqueColors": 4281
+      },
+      "sha256": "1f544329bb80eb1878d5a32b02ac7a8b0b3a418e26b366f92d8eac44ea7830c2",
+      "bytes": 34700,
+      "fixtureSha256": "a0bcfd5c8004106ac22e6dd9492f28fea47e007fd329cc178da5e610f40c57d2",
+      "filename": "ah-item.webp",
+      "width": 1096,
+      "height": 676,
+      "inputs": {
+        "script": "1fe5862b7c59307319b6d7fb2b66229ad57e5a24657c53f8ec73314df74e2108",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "3b6776f0b354db10f3ef95ac1d2aabfd1a32e4f8aa6a6b89cdd54439b706099a",
+      "modules": [
+        "auction",
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "1f544329bb80eb1878d5a32b02ac7a8b0b3a418e26b366f92d8eac44ea7830c2"
+    },
+    {
+      "id": "ah-owned",
+      "page": "auction-house",
+      "title": "Owned auctions",
+      "frame": "AuctionHouseFrame",
+      "crop": "1096x676+476+238",
+      "fixtures": [],
+      "lua": "RikRenderAuctionOwned()\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 48,
+        "root": {
+          "x": 484.0,
+          "y": 246.0,
+          "w": 1080.0,
+          "h": 660.0
+        },
+        "uniqueColors": 4469
+      },
+      "sha256": "700114e528de2ae63a710e5776dd5e3185c23a6c8d3fc3a46c2e5a0531a24c15",
+      "bytes": 34402,
+      "fixtureSha256": "498843ffda23ed0daf0a65087bb06e5373e81bd678dba1881c67a81d1aa5fd63",
+      "filename": "ah-owned.webp",
+      "width": 1096,
+      "height": 676,
+      "inputs": {
+        "script": "f5d235a686eb0f81c2219b466021969d645f550a38ca80ef713a0f33483472cb",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "1d8a83c112509ee2e1ec88ccc331c576d80e11067685476a05f4caf99df32d64",
+      "modules": [
+        "auction",
+        "bags",
+        "core",
+        "windows"
+      ],
+      "reviewedSha256": "700114e528de2ae63a710e5776dd5e3185c23a6c8d3fc3a46c2e5a0531a24c15"
     }
   ]
 }

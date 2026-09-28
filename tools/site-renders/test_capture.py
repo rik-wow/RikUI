@@ -119,6 +119,15 @@ class ScriptChecks(unittest.TestCase):
         case = {"id": "h", "lua": 'CreateFrame("Frame", "RikRenderHUD", UIParent) -- RikRenderMissing\nlocal s = \'RikRenderNope\''}
         self.assertEqual(resolve(case, MODULES), ["core"])
 
+    def test_apostrophes_in_comments_do_not_hide_references(self):
+        modules = {**MODULES, "windows": "-- A vendor's goods: the bag fixture's items, priced.\nfunction RikRenderVendor() RikRenderQuestLog() end\n-- it's [[not]] a string\nlocal s = [[RikRenderLong]]"}
+        self.assertEqual(resolve({"id": "v", "lua": "RikRenderVendor()"}, modules), ["core", "questing", "windows"])
+        from fixtures import scan_lua, holders
+        code, strings = scan_lua('a("x\\"y") -- don\'t\nb(\'z\') --[[ RikRenderNo ]] c([[w]])')
+        self.assertEqual(strings, ['x\\"y', "z", "w"])
+        self.assertNotIn("RikRenderNo", code)
+        self.assertEqual(holders("f('RikRenderHold') -- RikRenderComment"), {"RikRenderHold"})
+
     def test_holder_frames_reached_as_globals_resolve_to_their_creator(self):
         # A scenario that names a holder and then uses it, and one that uses a holder a module creates.
         case = {"id": "g", "lua": 'RikRenderGroup("RikRenderBars", {}, 0, 0, 1, 1)\nRikRenderResize(RikRenderBars)'}

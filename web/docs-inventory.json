@@ -2967,6 +2967,342 @@
       "title": "Preferences",
       "width": 800,
       "height": 600
+    },
+    {
+      "id": "panels-window",
+      "page": "panels",
+      "title": "Title and accent rule",
+      "width": 720,
+      "height": 500
+    },
+    {
+      "id": "panels-close",
+      "page": "panels",
+      "title": "Close button",
+      "width": 127,
+      "height": 46
+    },
+    {
+      "id": "panels-inset",
+      "page": "panels",
+      "title": "Content inset",
+      "width": 376,
+      "height": 216
+    },
+    {
+      "id": "int-character",
+      "page": "interiors",
+      "title": "Character equipment",
+      "width": 720,
+      "height": 500
+    },
+    {
+      "id": "int-reputation",
+      "page": "interiors",
+      "title": "Reputation and skills",
+      "width": 647,
+      "height": 500
+    },
+    {
+      "id": "int-friends",
+      "page": "interiors",
+      "title": "Friends",
+      "width": 401,
+      "height": 440
+    },
+    {
+      "id": "int-communities",
+      "page": "interiors",
+      "title": "Guild and communities",
+      "width": 830,
+      "height": 442
+    },
+    {
+      "id": "int-calendar",
+      "page": "interiors",
+      "title": "Calendar",
+      "width": 675,
+      "height": 640
+    },
+    {
+      "id": "int-achievements",
+      "page": "interiors",
+      "title": "Achievements",
+      "width": 784,
+      "height": 516
+    },
+    {
+      "id": "int-collections",
+      "page": "interiors",
+      "title": "Collections",
+      "width": 719,
+      "height": 622
+    },
+    {
+      "id": "dlg-rolepoll",
+      "page": "dialogs",
+      "title": "Role poll",
+      "width": 322,
+      "height": 176
+    },
+    {
+      "id": "dlg-stacksplit",
+      "page": "dialogs",
+      "title": "Stack split",
+      "width": 188,
+      "height": 112
+    },
+    {
+      "id": "dlg-queueready",
+      "page": "dialogs",
+      "title": "Queue ready",
+      "width": 322,
+      "height": 226
+    },
+    {
+      "id": "dlg-colorpicker",
+      "page": "dialogs",
+      "title": "Colour picker",
+      "width": 404,
+      "height": 226
+    },
+    {
+      "id": "dlg-addfriend",
+      "page": "dialogs",
+      "title": "Add friend",
+      "width": 466,
+      "height": 343
+    },
+    {
+      "id": "dlg-report",
+      "page": "dialogs",
+      "title": "Report",
+      "width": 416,
+      "height": 286
+    },
+    {
+      "id": "dlg-autocomplete",
+      "page": "dialogs",
+      "title": "Autocomplete",
+      "width": 256,
+      "height": 146
+    },
+    {
+      "id": "popup-confirm",
+      "page": "popups",
+      "title": "Confirmation text",
+      "width": 352,
+      "height": 132
+    },
+    {
+      "id": "popup-invite",
+      "page": "popups",
+      "title": "Accept and cancel",
+      "width": 352,
+      "height": 132
+    },
+    {
+      "id": "popup-text",
+      "page": "popups",
+      "title": "Text entry",
+      "width": 352,
+      "height": 162
+    },
+    {
+      "id": "ctl-button",
+      "page": "controls",
+      "title": "Button",
+      "width": 136,
+      "height": 38
+    },
+    {
+      "id": "ctl-disabled",
+      "page": "controls",
+      "title": "Disabled control",
+      "width": 166,
+      "height": 38
+    },
+    {
+      "id": "ctl-checkbox",
+      "page": "controls",
+      "title": "Checkbox",
+      "width": 170,
+      "height": 48
+    },
+    {
+      "id": "ctl-textfield",
+      "page": "controls",
+      "title": "Text field",
+      "width": 220,
+      "height": 40
+    },
+    {
+      "id": "ctl-slider",
+      "page": "controls",
+      "title": "Slider",
+      "width": 266,
+      "height": 64
+    },
+    {
+      "id": "ctl-dropdown",
+      "page": "controls",
+      "title": "Dropdown",
+      "width": 176,
+      "height": 53
+    },
+    {
+      "id": "ctl-colour",
+      "page": "controls",
+      "title": "Colour control",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "ctl-scrollbar",
+      "page": "controls",
+      "title": "Scrollbar",
+      "width": 40,
+      "height": 196
+    },
+    {
+      "id": "int-stats",
+      "page": "interiors",
+      "title": "Character stats",
+      "width": 220,
+      "height": 372
+    },
+    {
+      "id": "int-gossip",
+      "page": "interiors",
+      "title": "Gossip choices",
+      "width": 354,
+      "height": 512
+    },
+    {
+      "id": "int-inbox",
+      "page": "interiors",
+      "title": "Mail inbox",
+      "width": 354,
+      "height": 440
+    },
+    {
+      "id": "int-raidinfo",
+      "page": "interiors",
+      "title": "Raid information",
+      "width": 361,
+      "height": 266
+    },
+    {
+      "id": "int-inspect",
+      "page": "interiors",
+      "title": "Inspect",
+      "width": 354,
+      "height": 440
+    },
+    {
+      "id": "dlg-readycheck",
+      "page": "dialogs",
+      "title": "Ready check",
+      "width": 339,
+      "height": 128
+    },
+    {
+      "id": "menu-context",
+      "page": "menus",
+      "title": "Context menu",
+      "width": 192,
+      "height": 272
+    },
+    {
+      "id": "widget-status",
+      "page": "widgets",
+      "title": "Status bar",
+      "width": 263,
+      "height": 81
+    },
+    {
+      "id": "widget-double",
+      "page": "widgets",
+      "title": "Double status bar",
+      "width": 230,
+      "height": 90
+    },
+    {
+      "id": "panels-tabs",
+      "page": "panels",
+      "title": "Selected tab",
+      "width": 346,
+      "height": 66
+    },
+    {
+      "id": "int-spellbook",
+      "page": "interiors",
+      "title": "Spellbook",
+      "width": 1634,
+      "height": 899
+    },
+    {
+      "id": "popup-item",
+      "page": "popups",
+      "title": "Item confirmation",
+      "width": 352,
+      "height": 207
+    },
+    {
+      "id": "widget-icon",
+      "page": "widgets",
+      "title": "Icon and text",
+      "width": 152,
+      "height": 56
+    },
+    {
+      "id": "int-merchant",
+      "page": "interiors",
+      "title": "Merchant",
+      "width": 352,
+      "height": 460
+    },
+    {
+      "id": "int-trade",
+      "page": "interiors",
+      "title": "Trade",
+      "width": 360,
+      "height": 462
+    },
+    {
+      "id": "ah-browse",
+      "page": "auction-house",
+      "title": "Buying and search",
+      "width": 1096,
+      "height": 676
+    },
+    {
+      "id": "ah-sell",
+      "page": "auction-house",
+      "title": "Selling",
+      "width": 1096,
+      "height": 676
+    },
+    {
+      "id": "int-quest",
+      "page": "interiors",
+      "title": "Quest dialogue",
+      "width": 354,
+      "height": 512
+    },
+    {
+      "id": "ah-item",
+      "page": "auction-house",
+      "title": "Item summary",
+      "width": 1096,
+      "height": 676
+    },
+    {
+      "id": "ah-owned",
+      "page": "auction-house",
+      "title": "Owned auctions",
+      "width": 1096,
+      "height": 676
     }
   ]
 }

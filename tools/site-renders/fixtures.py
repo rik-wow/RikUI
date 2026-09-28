@@ -16,16 +16,49 @@ CORE = "core"
 PRELUDE_NAMES = {"RikRenderWorld", "RikRenderClient"}
 NAME = re.compile(r"\bRikRender\w+")
 DEFINITION = re.compile(r"^(?:function (RikRender\w+)|(RikRender\w+)\s*=)", re.M)
-# Holder frames are named "RikRender..." in string literals; only code references count as fixture use.
-STRINGS = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
-COMMENTS = re.compile(r"--[^\n]*")
+def scan_lua(text):
+    """Split Lua into code and string literals: comments (line and long) are dropped, strings (quoted and
+    long-bracket) are collected, and the code keeps a placeholder where each string stood. An apostrophe
+    in a comment is a comment, not a string."""
+    code, strings, i, n = [], [], 0, len(text)
+    while i < n:
+        two = text[i:i + 2]
+        if two == "--":
+            long = re.match(r"--\[(=*)\[", text[i:])
+            if long:
+                close = text.find("]" + long.group(1) + "]", i + long.end())
+                i = n if close < 0 else close + len(long.group(1)) + 2
+            else:
+                end = text.find("\n", i)
+                i = n if end < 0 else end
+            continue
+        long = re.match(r"\[(=*)\[", text[i:])
+        if long:
+            close = text.find("]" + long.group(1) + "]", i + long.end())
+            end = n if close < 0 else close
+            strings.append(text[i + long.end():end])
+            code.append('""')
+            i = n if close < 0 else close + len(long.group(1)) + 2
+            continue
+        if text[i] in "\"'":
+            quote, j = text[i], i + 1
+            while j < n and text[j] != quote:
+                j += 2 if text[j] == "\\" else 1
+            strings.append(text[i + 1:j])
+            code.append('""')
+            i = j + 1
+            continue
+        code.append(text[i])
+        i += 1
+    return "".join(code), strings
 
 def references(text):
-    return set(NAME.findall(COMMENTS.sub("", STRINGS.sub('""', text)))) - PRELUDE_NAMES
+    """Fixture names the code reaches; holder frames are named in string literals, which do not count."""
+    return set(NAME.findall(scan_lua(text)[0])) - PRELUDE_NAMES
 
 def holders(text):
     """Frames a script creates by name ("RikRenderBars" in RikRenderGroup) and then reaches as globals."""
-    return set(NAME.findall(" ".join(STRINGS.findall(text))))
+    return set(NAME.findall(" ".join(scan_lua(text)[1])))
 
 def holder_providers(modules):
     table = {}

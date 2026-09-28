@@ -260,12 +260,21 @@ def select_stale(cases, renders, addon_files, renderer, client):
             reasons[case["id"]] = why
     return stale, inputs, reasons
 
-def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, renders):
+def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, renders, keep_going=False):
+    """Render each case; with keep_going a failed capture is reported and the rest still render."""
     manifest_path = output / "manifest.json"
+    failures = []
     try:
         for case in cases:
             stage_corpus(sim_root, wow_root, case.get("corpus") is True)
-            capture = render_case(case, binary, environment(sim_root, wow_root, case), output)
+            try:
+                capture = render_case(case, binary, environment(sim_root, wow_root, case), output)
+            except RuntimeError as error:
+                if not keep_going:
+                    raise
+                failures.append(f"{case['id']}: {error}")
+                print("FAILED " + case["id"] + ": " + str(error).splitlines()[0][:200], flush=True)
+                continue
             capture.update(inputs=inputs[case["id"]], key=capture_key(inputs[case["id"]]),
                            modules=resolve(case, MODULES))
             renders[case["id"]] = capture
@@ -274,6 +283,8 @@ def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, r
             print("Rendered " + case["id"] + (f" ({len(capture['frames'])} frames)" if capture.get("frames") else ""), flush=True)
     finally:
         stage_corpus(sim_root, wow_root, False)
+    if failures:
+        raise RuntimeError(f"{len(failures)} captures failed:\n" + "\n".join(failures))
 
 def summarize(reasons):
     counts = {}
@@ -288,6 +299,7 @@ def main():
     parser.add_argument("--wow-root", type=Path, required=True)
     parser.add_argument("--only", default="", help="Comma-separated scenario IDs or page slugs")
     parser.add_argument("--all", action="store_true", help="Render every selected scenario, stale or not")
+    parser.add_argument("--keep-going", action="store_true", help="Report failed captures at the end instead of stopping at the first")
     args = parser.parse_args()
     sim_root, wow_root = args.sim_root.resolve(), args.wow_root.resolve()
     binary = sim_root / "source/target/debug/wow-sim.exe"
@@ -322,7 +334,7 @@ def main():
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         print("Nothing to render", flush=True)
         return
-    capture_cases(todo, inputs, binary, sim_root, wow_root, output, manifest, renders)
+    capture_cases(todo, inputs, binary, sim_root, wow_root, output, manifest, renders, args.keep_going)
     print(f"{len(todo)} captures saved in {output}", flush=True)
 
 if __name__ == "__main__":
