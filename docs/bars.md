@@ -294,10 +294,13 @@ macros. The display fix exposes those slots without reapplying the preset or
 replacing custom actions, bindings or saved layout. Empty assigned slots use
 their own stance's ghost previews.
 
-Druid, Rogue and Priest mappings remain unimplemented; `bars-stance-beta-coverage`
-retains their mapping and native acceptance work. Defensive and Berserker
-mappings are source-verified; live switching, click/key agreement and combat
-protection have not been independently observed for these new overlays.
+Druid Cat (offset 1) and Bear or Dire Bear (offset 3) and Rogue Stealth
+(offset 1) are mapped the same way. Read again on 2026-09-28 for build
+1.60.1.70009, `SpellShapeshiftForm` gives a bonus bar to no other form:
+Shadowform, Moonkin, Travel, Aquatic, Tree and Ghost Wolf are 0, so they have
+no page to map and `data/bonus-pages.lua` is complete for this build. Defensive
+and Berserker mappings are source-verified; live switching, click/key agreement
+and combat protection have not been independently observed for these overlays.
 
 `src/modules/bars/bars-paging.lua` creates fixed overlays and registers only visibility drivers.
 Its `[bar:1,bonusbar:N]` conditions respect the native controller's rule that
