@@ -147,10 +147,10 @@ index b3d38e4..ecfdb5c 100644
  Blizzard_UnitPopup/Camelot/UnitPopupMenus.lua
  Blizzard_UnitPopup/Mainline/UnitPopup.lua
 diff --git a/data/listfile-overrides.csv b/data/listfile-overrides.csv
-index 7e46d2e..2e4e3ee 100644
+index 7e46d2e..22db83b 100644
 --- a/data/listfile-overrides.csv
 +++ b/data/listfile-overrides.csv
-@@ -56,3 +56,12 @@
+@@ -56,3 +56,61 @@
  8279821;interface/addons/Blizzard_TutorialTemplates/Blizzard_TutorialTemplates.xml
  8279822;interface/addons/Blizzard_UIParentPanelManager/Blizzard_UIParentPanelManager.toc
  8263018;interface/addons/Blizzard_UnitPopup/Blizzard_UnitPopup.toc
@@ -163,8 +163,57 @@ index 7e46d2e..2e4e3ee 100644
 +204493;world/minimaps/azeroth/map32_48.blp
 +204494;world/minimaps/azeroth/map32_49.blp
 +204495;world/minimaps/azeroth/map32_50.blp
++137138;interface/worldmap/elwynn/elwynnhighlight.blp
++271556;interface/worldmap/elwynn/elwynn6.blp
++271557;interface/worldmap/elwynn/ridgepointtower1.blp
++271559;interface/worldmap/elwynn/brackwellpumpkinpatch1.blp
++271560;interface/worldmap/elwynn/crystallake1.blp
++271561;interface/worldmap/elwynn/elwynn8.blp
++271563;interface/worldmap/elwynn/elwynn3.blp
++271565;interface/worldmap/elwynn/stonecairnlake2.blp
++271567;interface/worldmap/elwynn/goldshire1.blp
++271569;interface/worldmap/elwynn/elwynn12.blp
++271570;interface/worldmap/elwynn/elwynn2.blp
++271571;interface/worldmap/elwynn/elwynn5.blp
++271572;interface/worldmap/elwynn/northshirevalley1.blp
++271573;interface/worldmap/elwynn/towerofazora1.blp
++271574;interface/worldmap/elwynn/elwynn10.blp
++271575;interface/worldmap/elwynn/elwynn4.blp
++271576;interface/worldmap/elwynn/fargodeepmine1.blp
++271578;interface/worldmap/elwynn/eastvaleloggingcamp1.blp
++271579;interface/worldmap/elwynn/elwynn1.blp
++271580;interface/worldmap/elwynn/elwynn7.blp
++271581;interface/worldmap/elwynn/elwynn9.blp
++271582;interface/worldmap/elwynn/jerodslanding1.blp
++271583;interface/worldmap/elwynn/ridgepointtower2.blp
++271584;interface/worldmap/elwynn/stonecairnlake1.blp
++271585;interface/worldmap/elwynn/elwynn11.blp
++438412;interface/worldmap/elwynn/brackwellpumpkinpatch2.blp
++438413;interface/worldmap/elwynn/eastvaleloggingcamp2.blp
++438414;interface/worldmap/elwynn/fargodeepmine2.blp
++438415;interface/worldmap/elwynn/goldshire2.blp
++438416;interface/worldmap/elwynn/northshirevalley2.blp
++438417;interface/worldmap/elwynn/northshirevalley3.blp
++438418;interface/worldmap/elwynn/northshirevalley4.blp
++438419;interface/worldmap/elwynn/stonecairnlake3.blp
++438420;interface/worldmap/elwynn/stonecairnlake4.blp
++438421;interface/worldmap/elwynn/stromwind1.blp
++438422;interface/worldmap/elwynn/stromwind2.blp
++438423;interface/worldmap/elwynn/stromwind3.blp
++438424;interface/worldmap/elwynn/stromwind4.blp
++438425;interface/worldmap/elwynn/towerofazora2.blp
++438426;interface/worldmap/elwynn/westbrookgarrison1.blp
++438427;interface/worldmap/elwynn/westbrookgarrison2.blp
++438428;interface/worldmap/elwynn/westbrookgarrison3.blp
++438429;interface/worldmap/elwynn/westbrookgarrison4.blp
++2212708;interface/worldmap/elwynn/forestsedge1.blp
++2212709;interface/worldmap/elwynn/forestsedge2.blp
++2212713;interface/worldmap/elwynn/stormwind1.blp
++2212714;interface/worldmap/elwynn/stormwind2.blp
++2212715;interface/worldmap/elwynn/stormwind3.blp
++2212716;interface/worldmap/elwynn/stormwind4.blp
 diff --git a/data/wow-ui-sim-listfile.csv b/data/wow-ui-sim-listfile.csv
-index e7b431c..e794efb 100644
+index e7b431c..2985569 100644
 --- a/data/wow-ui-sim-listfile.csv
 +++ b/data/wow-ui-sim-listfile.csv
 @@ -1,23 +1,9 @@
@@ -338,7 +387,7 @@ index e7b431c..e794efb 100644
  5612683;interface/addons/blizzard_unitframe/wrath/alternatepowerbar.lua
  8263018;interface/addons/Blizzard_UnitPopup/Blizzard_UnitPopup.toc
  6716594;interface/addons/blizzard_unitpopup/blizzard_unitpopup_mainline.toc
-@@ -146359,3 +146364,12 @@
+@@ -146359,3 +146364,18 @@
  567407;sound/interface/uchatscrollbutton.ogg
  567464;sound/interface/uescapescreenclose.ogg
  567490;sound/interface/uescapescreenopen.ogg
@@ -351,6 +400,12 @@ index e7b431c..e794efb 100644
 +204493;world/minimaps/azeroth/map32_48.blp
 +204494;world/minimaps/azeroth/map32_49.blp
 +204495;world/minimaps/azeroth/map32_50.blp
++2212708;interface/worldmap/elwynn/forestsedge1.blp
++2212709;interface/worldmap/elwynn/forestsedge2.blp
++2212713;interface/worldmap/elwynn/stormwind1.blp
++2212714;interface/worldmap/elwynn/stormwind2.blp
++2212715;interface/worldmap/elwynn/stormwind3.blp
++2212716;interface/worldmap/elwynn/stormwind4.blp
 diff --git a/src/bin/wow_sim/gui_commands.rs b/src/bin/wow_sim/gui_commands.rs
 index 38c5046..8421cdc 100644
 --- a/src/bin/wow_sim/gui_commands.rs
@@ -384,6 +439,23 @@ index 38c5046..8421cdc 100644
      if let Err(e) = std::fs::write(&output, &*mem) {
          eprintln!("Failed to save WebP: {}", e);
          std::process::exit(1);
+diff --git a/src/cvars.rs b/src/cvars.rs
+index b15e83f..e789097 100644
+--- a/src/cvars.rs
++++ b/src/cvars.rs
+@@ -28,6 +28,12 @@ fn default_storage_path() -> PathBuf {
+         ));
+     }
+ 
++    // A headless capture run keeps its cvar overrides apart from the interactive store, so
++    // addon state written through cvars in one run never reaches the next.
++    if let Some(path) = std::env::var_os("WOW_SIM_CVARS_PATH") {
++        return PathBuf::from(path);
++    }
++
+     dirs::data_local_dir()
+         .unwrap_or_else(|| PathBuf::from("."))
+         .join("wow-sim")
 diff --git a/src/iced_app/quad_builders_button.rs b/src/iced_app/quad_builders_button.rs
 index 8824df3..258afba 100644
 --- a/src/iced_app/quad_builders_button.rs

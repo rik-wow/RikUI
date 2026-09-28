@@ -2855,6 +2855,118 @@
       "title": "Aura tooltip",
       "width": 460,
       "height": 220
+    },
+    {
+      "id": "tracker-header",
+      "page": "questtracker",
+      "title": "Tracker header",
+      "width": 260,
+      "height": 40
+    },
+    {
+      "id": "tracker-active",
+      "page": "questtracker",
+      "title": "Active objective",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "timers-timed",
+      "page": "questtimers",
+      "title": "Timed objective",
+      "width": 240,
+      "height": 40
+    },
+    {
+      "id": "timers-warning",
+      "page": "questtimers",
+      "title": "Thirty-second warning",
+      "width": 240,
+      "height": 40
+    },
+    {
+      "id": "timers-final",
+      "page": "questtimers",
+      "title": "Final ten seconds",
+      "width": 240,
+      "height": 40
+    },
+    {
+      "id": "tracker-complete",
+      "page": "questtracker",
+      "title": "Completed quest",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "tracker-failed",
+      "page": "questtracker",
+      "title": "Failed quest",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "tracker-overflow",
+      "page": "questtracker",
+      "title": "Overflow count",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "planner-guidance",
+      "page": "questplanner",
+      "title": "Guidance row",
+      "width": 260,
+      "height": 420
+    },
+    {
+      "id": "planner-arrow",
+      "page": "questplanner",
+      "title": "Direction arrow",
+      "width": 300,
+      "height": 110
+    },
+    {
+      "id": "planner-objective",
+      "page": "questplanner",
+      "title": "Current objective",
+      "width": 840,
+      "height": 160
+    },
+    {
+      "id": "planner-browser",
+      "page": "questplanner",
+      "title": "Quest browser",
+      "width": 860,
+      "height": 620
+    },
+    {
+      "id": "planner-details",
+      "page": "questplanner",
+      "title": "Objective details",
+      "width": 860,
+      "height": 620
+    },
+    {
+      "id": "planner-pins",
+      "page": "questplanner",
+      "title": "Pin and skip controls",
+      "width": 480,
+      "height": 420
+    },
+    {
+      "id": "planner-partial",
+      "page": "questplanner",
+      "title": "Partial data state",
+      "width": 840,
+      "height": 160
+    },
+    {
+      "id": "planner-preferences",
+      "page": "questplanner",
+      "title": "Preferences",
+      "width": 800,
+      "height": 600
     }
   ]
 }

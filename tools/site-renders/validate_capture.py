@@ -1,12 +1,11 @@
-"""Validate GPU captures and their native frame diagnostics, and composite UI layers over world plates."""
+"""Validate GPU captures and their native frame diagnostics. This file's digest is part of every capture's provenance."""
 import re
 from pathlib import Path
-from PIL import Image, ImageChops, ImageStat
+from PIL import Image
 from schema import DEFAULT_SCREEN
 
 NODE = re.compile(r'^(?P<indent> *)(?P<name>.+?) \[(?P<type>\w+)\] \((?P<w>[\d.]+)x(?P<h>[\d.]+)\).*? (?P<visible>visible|hidden) .*?x=(?P<x>[-\d.]+), y=(?P<y>[-\d.]+), alpha=(?P<alpha>[\d.]+)')
 TEXT = re.compile(r' text="((?:\\.|[^"\\])*)"')
-WORLD_QUALITY = 92
 
 def screen_size(case):
     width, height = case.get("screen", DEFAULT_SCREEN).split("x")
@@ -80,32 +79,3 @@ def validate_capture(case, image_path, log):
     unique = verify_pixels(case, image)
     return {"visibleTextCount": len(texts), "root": {k: root[k] for k in ("x", "y", "w", "h")},
             "uniqueColors": unique}
-
-def composite_world(layer_path, plate_path, case, output_path):
-    """Put the premultiplied UI layer over the plate: out = layer + plate * (1 - alpha), then crop."""
-    layer = Image.open(layer_path).convert("RGBA")
-    width, height, x, y = map(int, re.fullmatch(r"(\d+)x(\d+)\+(\d+)\+(\d+)", case["crop"]).groups())
-    screen = screen_size(case)
-    plate = Image.open(plate_path).convert("RGB")
-    if plate.size != screen:
-        plate = plate.resize(screen, Image.LANCZOS)
-    plate = plate.crop((x, y, x + width, y + height))
-    if layer.size != (width, height):
-        raise RuntimeError(case["id"] + ": UI layer does not match the crop")
-    alpha = layer.getchannel("A")
-    keep = ImageChops.invert(alpha).convert("RGB")
-    result = ImageChops.add(layer.convert("RGB"), ImageChops.multiply(plate, keep))
-    result.save(output_path, format="WEBP", quality=WORLD_QUALITY, method=6)
-    return result
-
-def compare_images(actual, baseline, diff_path):
-    current, old = Image.open(actual).convert("RGB"), Image.open(baseline).convert("RGB")
-    if current.size != old.size:
-        return {"changed": True, "reason": "dimensions"}
-    diff = ImageChops.difference(current, old)
-    mean = sum(ImageStat.Stat(diff).mean) / 3
-    changed = bool(diff.getbbox())
-    if changed:
-        Path(diff_path).parent.mkdir(parents=True, exist_ok=True)
-        diff.save(diff_path)
-    return {"changed": changed, "meanChannelDifference": round(mean, 6)}

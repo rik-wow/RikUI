@@ -44,7 +44,10 @@ const placements={
  screentext:{"text-zone":"ref-zone-names-and-warnings","text-subzone":"ref-zone-names-and-warnings","text-error":"ref-zone-names-and-warnings","text-raid":"ref-zone-names-and-warnings"},
  alerts:{"alert-loot":"ref-loot-and-reward-alerts","alert-money":"ref-loot-and-reward-alerts","alert-achievement":"ref-loot-and-reward-alerts"},
  banners:{"banner-objective":"ref-level-ups-and-events"},
- toasts:{"toast-friend":"ref-social-notices","toast-time":"ref-social-notices","toast-voice":"ref-social-notices"}
+ toasts:{"toast-friend":"ref-social-notices","toast-time":"ref-social-notices","toast-voice":"ref-social-notices"},
+ questtracker:{"tracker-active":"ref-your-watched-quests","tracker-complete":"ref-your-watched-quests","tracker-failed":"ref-your-watched-quests","tracker-header":"ref-your-watched-quests","tracker-overflow":"ref-your-watched-quests"},
+ questtimers:{"timers-timed":"ref-timed-quests","timers-warning":"ref-timed-quests","timers-final":"ref-timed-quests"},
+ questplanner:{"planner-browser":"ref-start-quest-guidance","planner-pins":"ref-start-quest-guidance","planner-guidance":"ref-guide-controls","planner-objective":"ref-guide-controls","planner-details":"ref-guide-controls","planner-arrow":"ref-map-and-direction-arrow","planner-partial":"ref-missing-locations","planner-preferences":"ref-preferences"}
 };
 const mockupPlacements={
  interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Friends":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},

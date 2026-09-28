@@ -5,8 +5,13 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from PIL import Image
-from validate_capture import validate_capture, compare_images, composite_world
-from render import verify_client, scenario_script
+from validate_capture import validate_capture
+from composite import composite_world
+from compare import compare_images
+from render import verify_client
+import fixtures
+from fixtures import scenario_script, resolve
+from provenance import tree_inputs, stale_reasons, text_digest
 
 class CaptureChecks(unittest.TestCase):
     def setUp(self):
@@ -75,15 +80,85 @@ class CaptureChecks(unittest.TestCase):
         self.assertTrue(diff.is_file())
         self.assertFalse(compare_images(self.image, self.image, diff)["changed"])
 
+MODULES = {
+    "core": "-- core\nfunction RikRenderCheck(root) end\nfunction RikRenderCenter(frame) end",
+    "character": "function RikRenderSpellbook(class) end\nfunction RikRenderPlayer(class) RikRenderSpellbook(class) end",
+    "hud": "function RikRenderHUDState(class) RikRenderPlayer(class) end",
+    "questing": "local QUESTS = {}\nRikRenderElwynnQuests = QUESTS\nfunction RikRenderQuestLog() end",
+}
+
 class ScriptChecks(unittest.TestCase):
     def test_fixtures_and_sequence_value_enter_the_script(self):
         case = {"id": "s", "frame": "Demo", "fixtures": ["RikRenderSpellbook()"], "lua": "Open()",
                 "sequence": {"values": [0.8, True, "big"], "apply": "RikRenderSetOption('general','scale', VALUE)"}}
-        script = scenario_script(case, "-- common", 0.8)
+        modules = {**MODULES, "core": MODULES["core"] + "\nfunction RikRenderSetOption() end"}
+        script = scenario_script(case, modules, "1.60.1.70009", 0.8)
         self.assertIn("RikRenderSpellbook()\n", script)
+        self.assertIn('RikRenderClient = { version = "1.60.1", build = "70009" }', script)
         self.assertLess(script.index("scale', 0.8"), script.index("Open()"), "the setting applies before the scenario composes the frame")
-        self.assertIn("scale', true)", scenario_script(case, "", True))
-        self.assertIn('scale\', "big")', scenario_script(case, "", "big"))
+        self.assertIn("scale', true)", scenario_script(case, modules, None, True))
+        self.assertIn('scale\', "big")', scenario_script(case, modules, None, "big"))
+
+    def test_only_the_modules_a_scenario_reaches_join_its_script(self):
+        self.assertEqual(resolve({"id": "a", "lua": "RikRenderCenter(Demo)"}, MODULES), ["core"])
+        self.assertEqual(resolve({"id": "b", "fixtures": ["RikRenderHUDState('ROGUE')"]}, MODULES), ["core", "character", "hud"])
+        self.assertEqual(resolve({"id": "c", "lua": "local q = RikRenderElwynnQuests"}, MODULES), ["core", "questing"])
+        script = scenario_script({"id": "c", "frame": "Demo", "lua": "RikRenderQuestLog()"}, MODULES, None)
+        self.assertNotIn("RikRenderSpellbook", script)
+
+    def test_unknown_fixture_names_fail_before_a_render(self):
+        with self.assertRaisesRegex(RuntimeError, "unknown fixture RikRenderMissing"):
+            resolve({"id": "x", "lua": "RikRenderMissing()"}, MODULES)
+        with self.assertRaisesRegex(RuntimeError, "defined in both"):
+            resolve({"id": "x", "lua": ""}, {**MODULES, "extra": "function RikRenderCheck() end"})
+
+    def test_prelude_globals_are_not_fixtures(self):
+        self.assertEqual(resolve({"id": "w", "lua": "if RikRenderWorld then RikRenderClient = nil end"}, MODULES), ["core"])
+
+    def test_holder_names_in_strings_and_comments_are_not_fixtures(self):
+        case = {"id": "h", "lua": 'CreateFrame("Frame", "RikRenderHUD", UIParent) -- RikRenderMissing\nlocal s = \'RikRenderNope\''}
+        self.assertEqual(resolve(case, MODULES), ["core"])
+
+    def test_holder_frames_reached_as_globals_resolve_to_their_creator(self):
+        # A scenario that names a holder and then uses it, and one that uses a holder a module creates.
+        case = {"id": "g", "lua": 'RikRenderGroup("RikRenderBars", {}, 0, 0, 1, 1)\nRikRenderResize(RikRenderBars)'}
+        modules = {**MODULES, "core": MODULES["core"] + "\nfunction RikRenderGroup() end\nfunction RikRenderResize() end"}
+        self.assertEqual(resolve(case, modules), ["core"])
+        modules["questing"] += '\nfunction RikRenderPlannerArrow() CreateFrame("Frame", "RikRenderArrow") end'
+        self.assertEqual(resolve({"id": "a", "lua": "RikRenderArrow:Show()"}, modules), ["core", "questing"])
+
+class ProvenanceChecks(unittest.TestCase):
+    def setUp(self):
+        self.case = {"id": "s", "page": "demo", "frame": "Demo", "crop": "8x8+0+0", "lua": "RikRenderQuestLog()"}
+        self.addon = {"src/a.lua": "1"}
+        self.inputs = tree_inputs(self.case, scenario_script(self.case, MODULES, None), self.addon)
+        self.capture = {**self.case, "inputs": {**self.inputs, "renderer": {"binary": "b"}}}
+        self.current = {**self.inputs, "renderer": {"binary": "b"}}
+
+    def test_an_unchanged_capture_is_current(self):
+        self.assertEqual(stale_reasons(self.case, self.capture, self.current), [])
+        self.assertEqual(stale_reasons(self.case, None, self.current), ["missing"])
+
+    def test_editing_an_unused_module_leaves_the_capture_current(self):
+        modules = {**MODULES, "hud": MODULES["hud"] + "\n-- changed"}
+        inputs = tree_inputs(self.case, scenario_script(self.case, modules, None), self.addon)
+        self.assertEqual(inputs["script"], self.inputs["script"])
+
+    def test_editing_a_used_module_or_the_addon_marks_the_capture_stale(self):
+        modules = {**MODULES, "questing": MODULES["questing"] + "\n-- changed"}
+        inputs = tree_inputs(self.case, scenario_script(self.case, modules, None), self.addon)
+        self.assertEqual(stale_reasons(self.case, self.capture, {**self.current, "script": inputs["script"]}), ["script"])
+        other = tree_inputs(self.case, scenario_script(self.case, MODULES, None), {"src/a.lua": "2"})
+        self.assertEqual(stale_reasons(self.case, self.capture, {**self.current, "addon": other["addon"]}), ["addon"])
+
+    def test_environment_and_scenario_changes_mark_the_capture_stale(self):
+        self.assertEqual(stale_reasons(self.case, self.capture, {**self.current, "renderer": {"binary": "c"}}), ["renderer"])
+        self.assertEqual(stale_reasons({**self.case, "crop": "9x9+0+0"}, self.capture, self.current), ["scenario"])
+        self.assertEqual(stale_reasons(self.case, {**self.capture, "corpus": True}, self.current), ["scenario"])
+
+    def test_the_script_digest_is_the_text_digest(self):
+        script = scenario_script(self.case, MODULES, None)
+        self.assertEqual(self.inputs["script"], text_digest(script))
 
 class ClientChecks(unittest.TestCase):
     def test_stale_source(self):
@@ -107,19 +182,17 @@ class EvidenceChecks(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.directory = Path(self.temp.name)
         (self.directory / "sample.webp").write_bytes(b"reviewed image")
-        from check import digest, FIXTURES
-        self.case = {"id": "sample", "page": "demo"}
-        self.manifest = {"generation": "current", "client": {"foreverCommit": "current"}}
-        self.capture = dict(self.case, generation="current", filename="sample.webp",
-                            sha256=digest(self.directory / "sample.webp"),
-                            client=self.manifest["client"], seedSha256=digest(FIXTURES / "seed.lua"),
-                            diagnostics={"visibleTextCount": 1})
+        from check import digest
+        self.case = {"id": "sample", "page": "demo", "frame": "Demo", "lua": "RikRenderCheck(Demo)"}
+        self.expected = tree_inputs(self.case, scenario_script(self.case, MODULES, None), {})
+        self.capture = dict(self.case, filename="sample.webp", sha256=digest(self.directory / "sample.webp"),
+                            inputs=dict(self.expected, renderer={}, client={}), diagnostics={"visibleTextCount": 1})
         self.capture["reviewedSha256"] = self.capture["sha256"]
 
     def errors(self):
         from check import verify_capture
         errors = []
-        verify_capture(self.case, self.capture, self.manifest, self.directory, errors, {})
+        verify_capture(self.case, self.capture, self.expected, self.directory, errors, {})
         return errors
 
     def test_reviewed_capture(self):
@@ -133,24 +206,25 @@ class EvidenceChecks(unittest.TestCase):
         self.capture.pop("reviewedSha256")
         self.assertTrue(any("visual review" in error for error in self.errors()))
 
-    def test_mixed_generation(self):
-        self.capture["generation"] = "previous"
-        self.assertTrue(any("generation" in error for error in self.errors()))
-
-    def test_changed_provenance(self):
-        from check import verify_generation
-        manifest = dict(addonFiles={}, fixtureFiles={"wow-ui-sim.patch": "patch"},
-                        rendererBinarySha256="binary", rendererCommit="renderer",
-                        rendererPatchSha256="patch", generation="incorrect",
-                        client=dict(version="version", foreverCommit="source",
-                                    executableSha256="executable", cache={}))
-        errors = []
-        verify_generation(manifest, errors)
-        self.assertIn("Render provenance changed after capture", errors)
+    def test_stale_inputs_name_the_input(self):
+        self.capture["inputs"]["script"] = "previous"
+        self.assertIn("Stale capture sample: script", self.errors())
+        self.capture["inputs"]["seed"] = "previous"
+        self.assertIn("Stale capture sample: script, seed", self.errors())
 
     def test_changed_scenario(self):
         self.case["title"] = "New state"
-        self.assertTrue(any("Scenario changed" in error for error in self.errors()))
+        self.assertTrue(any("Stale capture sample: scenario" in error for error in self.errors()))
+
+    def test_mixed_environment(self):
+        from check import verify_environment
+        manifest = {"renderer": {"binary": "b", "patch": "p"}, "client": {"version": "v", "foreverCommit": "c", "executableSha256": "e"},
+                    "renders": [{"id": "one", "inputs": {"renderer": {"binary": "b", "patch": "p"}, "client": {"version": "v", "foreverCommit": "c", "executableSha256": "e"}}},
+                                {"id": "two", "inputs": {"renderer": {"binary": "old", "patch": "p"}, "client": {"version": "v", "foreverCommit": "c", "executableSha256": "e"}}}]}
+        errors = []
+        with patch("check.digest", return_value="p"):
+            verify_environment(manifest, errors)
+        self.assertEqual(errors, ["Mixed render environment: two"])
 
     def test_world_plate_must_match_its_record(self):
         import check
@@ -161,7 +235,7 @@ class EvidenceChecks(unittest.TestCase):
         (self.directory / "field.json").write_text(json.dumps(record))
         self.case["world"] = self.capture["world"] = {"plate": "field"}
         self.capture["plate"] = {"plate": "field", "sha256": record["sha256"]}
-        with patch.object(check, "WORLDS", self.directory):
+        with patch.object(check, "WORLDS", self.directory), patch("provenance.WORLDS", self.directory):
             self.assertEqual(self.errors(), [])
             plate.write_bytes(b"other pixels")
             self.assertTrue(any("World plate does not match" in error for error in self.errors()))
@@ -180,9 +254,18 @@ class EvidenceChecks(unittest.TestCase):
         self.capture["frames"][1].update(filename="other.webp", sha256=digest(self.directory / "other.webp"))
         self.assertTrue(any("visual review: sample@1.2" in error for error in self.errors()))
         self.capture["frames"][1]["reviewedSha256"] = self.capture["frames"][1]["sha256"]
-        self.assertEqual(self.errors(), [])
+        self.assertEqual([e for e in self.errors() if "Stale" not in e], [])
         self.capture["frames"].pop()
         self.assertTrue(any("Sequence values changed" in error for error in self.errors()))
+
+class ModuleChecks(unittest.TestCase):
+    def test_real_modules_resolve_every_catalogued_scenario(self):
+        modules = fixtures.load_modules()
+        cases = json.loads((fixtures.FIXTURES / "scenarios.json").read_text(encoding="utf-8"))
+        used = set()
+        for case in cases:
+            used.update(resolve(case, modules))
+        self.assertEqual(sorted(used), sorted(modules), "every fixture module is used by some scenario")
 
 if __name__ == "__main__":
     unittest.main()

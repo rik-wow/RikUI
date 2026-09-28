@@ -109,3 +109,47 @@ A_Admin.SetTargetPower(0, 0, 1)
 A_Admin.SetFocus("Mira", 10, 5, false)
 A_Admin.SetFocusHealth(176, 210)
 A_Admin.SetFocusPower(240, 300, 0)
+
+-- The saved account settings of a player who chose "Reduce cosmetic motion": RikUI reads that startup
+-- setting once at login, and the headless simulator never finishes an entrance animation, so every
+-- capture shows its element at rest. Everything else stays at RikUI's defaults.
+RikUIDB = { version = 1, profiles = { Default = { reducedMotion = true } } }
+
+-- 2. The simulator keeps macros it creates but answers GetMacroInfo with nothing, so RikUI's restart
+--    backup (a macro it writes and reads back) reports "the client did not retain the restart backup
+--    macro" on every run. A client keeps macros; this in-memory copy behaves like one for the session.
+local macroStore = {}
+local function macroSlot(key)
+    if type(key) == "number" then return macroStore[key] and key or nil end
+    for index, entry in ipairs(macroStore) do
+        if entry.name == key then return index end
+    end
+end
+function GetNumMacros() return #macroStore, 0 end
+function GetMacroIndexByName(name) return macroSlot(name) or 0 end
+function GetMacroInfo(key)
+    local slot = macroSlot(key)
+    local entry = slot and macroStore[slot]
+    if not entry then return nil end
+    return entry.name, entry.icon, entry.body, false
+end
+function GetMacroBody(key)
+    local slot = macroSlot(key)
+    return slot and macroStore[slot].body or nil
+end
+function CreateMacro(name, icon, body)
+    if type(name) ~= "string" or name == "" or #macroStore >= 138 then return nil end
+    macroStore[#macroStore + 1] = { name = name, icon = icon, body = body or "" }
+    return #macroStore
+end
+function EditMacro(key, name, icon, body)
+    local slot = macroSlot(key)
+    if not slot then return nil end
+    local entry = macroStore[slot]
+    entry.name, entry.icon, entry.body = name or entry.name, icon or entry.icon, body or entry.body
+    return slot
+end
+function DeleteMacro(key)
+    local slot = macroSlot(key)
+    if slot then table.remove(macroStore, slot) end
+end

@@ -2054,5 +2054,234 @@
     "expectText": [
       "Cruel Barb"
     ]
+  },
+  {
+    "id": "tracker-header",
+    "page": "questtracker",
+    "title": "Tracker header",
+    "frame": "RikUIQuestTracker",
+    "crop": "260x40+894+556",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderTrackerOnly()\nRikRenderQuestLog()\nRikUI.QuestTracker.ToggleCollapsed()\nRikRenderCenter(RikUIQuestTracker)\n",
+    "expectText": [
+      "Quests"
+    ]
+  },
+  {
+    "id": "tracker-active",
+    "page": "questtracker",
+    "title": "Active objective",
+    "frame": "RikUIQuestTracker",
+    "crop": "260x200+894+476",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "local quests = RikRenderElwynnQuests\nRikRenderTrackerOnly()\nRikRenderQuestLog({ quests[1], quests[2], quests[4] })\nRikRenderCenter(RikUIQuestTracker)\n",
+    "expectText": [
+      "Kobold Vermin slain: 6/10"
+    ]
+  },
+  {
+    "id": "tracker-complete",
+    "page": "questtracker",
+    "title": "Completed quest",
+    "frame": "RikUIQuestTracker",
+    "crop": "260x200+894+476",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "local quests = RikRenderElwynnQuests\nRikRenderTrackerOnly()\nRikRenderQuestLog({ quests[3], quests[1], quests[5] })\nRikRenderCenter(RikUIQuestTracker)\n",
+    "expectText": [
+      "Ready for turn-in"
+    ]
+  },
+  {
+    "id": "tracker-failed",
+    "page": "questtracker",
+    "title": "Failed quest",
+    "frame": "RikUIQuestTracker",
+    "crop": "260x200+894+476",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "local quests = RikRenderElwynnQuests\nlocal failed = { id = 21, title = \"Rest and Relaxation\", level = 6, failed = true, objectives = { { text = \"Deliver the Stormwind Brie to Innkeeper Farley\", type = \"item\", fulfilled = 0, required = 1 } } }\nRikRenderTrackerOnly()\nRikRenderQuestLog({ quests[1], failed, quests[5] })\nRikRenderCenter(RikUIQuestTracker)\n",
+    "expectText": [
+      "Failed"
+    ]
+  },
+  {
+    "id": "tracker-overflow",
+    "page": "questtracker",
+    "title": "Overflow count",
+    "frame": "RikUIQuestTracker",
+    "crop": "260x200+894+476",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderTrackerOnly()\nRikRenderSetOption(\"questtracker\", \"maxVisible\", 2)\nRikRenderQuestLog()\nRikRenderCenter(RikUIQuestTracker)\n",
+    "expectText": [
+      "+3 more"
+    ]
+  },
+  {
+    "id": "timers-timed",
+    "page": "questtimers",
+    "title": "Timed objective",
+    "frame": "RikUIQuestTimers",
+    "crop": "240x40+904+556",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "local quests = RikRenderElwynnQuests\nRikRenderTrackerOnly()\nRikRenderQuestLog({ { id = 21, title = \"Rest and Relaxation\", level = 6, timer = 754, timerTotal = 900, objectives = {} } })\nRikRenderCenter(RikUIQuestTimers)\n",
+    "expectText": [
+      "12:34"
+    ]
+  },
+  {
+    "id": "timers-warning",
+    "page": "questtimers",
+    "title": "Thirty-second warning",
+    "frame": "RikUIQuestTimers",
+    "crop": "240x40+904+556",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "local quests = RikRenderElwynnQuests\nRikRenderTrackerOnly()\nRikRenderQuestLog({ { id = 21, title = \"Rest and Relaxation\", level = 6, timer = 28, timerTotal = 900, objectives = {} } })\nRikRenderCenter(RikUIQuestTimers)\n",
+    "expectText": [
+      "0:28"
+    ]
+  },
+  {
+    "id": "timers-final",
+    "page": "questtimers",
+    "title": "Final ten seconds",
+    "frame": "RikUIQuestTimers",
+    "crop": "240x40+904+556",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "local quests = RikRenderElwynnQuests\nRikRenderTrackerOnly()\nRikRenderQuestLog({ { id = 21, title = \"Rest and Relaxation\", level = 6, timer = 7, timerTotal = 900, objectives = {} } })\nRikRenderCenter(RikUIQuestTimers)\n",
+    "expectText": [
+      "0:07"
+    ]
+  },
+  {
+    "id": "planner-guidance",
+    "page": "questplanner",
+    "title": "Guidance row",
+    "frame": "RikUIQuestTracker",
+    "crop": "260x420+894+366",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikRenderCenter(RikUIQuestTracker)\n",
+    "expectText": [
+      "yd remaining"
+    ],
+    "corpus": true
+  },
+  {
+    "id": "planner-arrow",
+    "page": "questplanner",
+    "title": "Direction arrow",
+    "frame": "RikRenderArrow",
+    "crop": "300x110+874+92",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikRenderPlannerArrow()\n",
+    "expectText": [
+      "yd"
+    ],
+    "corpus": true
+  },
+  {
+    "id": "planner-objective",
+    "page": "questplanner",
+    "title": "Current objective",
+    "frame": "RikRenderSummary",
+    "crop": "840x160+1108+892",
+    "fixtures": [],
+    "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\n-- The window stays shown in a corner so its cards keep refreshing; the captured card moves to a named holder.\nlocal function hold(name, card, width, height)\n    window:ClearAllPoints()\n    window:SetPoint(\"TOPLEFT\", UIParent, \"TOPLEFT\", 0, 0)\n    local holder = CreateFrame(\"Frame\", name, UIParent)\n    holder:SetSize(width, height)\n    holder:SetPoint(\"BOTTOMRIGHT\", UIParent, \"BOTTOMRIGHT\", -100, 100)\n    card:SetParent(holder)\n    card:ClearAllPoints()\n    card:SetPoint(\"TOPLEFT\", holder, \"TOPLEFT\", 8, -8)\n    RikRenderResize(holder)\n    return holder\nend\nhold(\"RikRenderSummary\", window.summary, 840, 160)\n",
+    "expectText": [
+      "CURRENT OBJECTIVE"
+    ],
+    "corpus": true
+  },
+  {
+    "id": "planner-browser",
+    "page": "questplanner",
+    "title": "Quest browser",
+    "frame": "RikUIQuestPlannerWindow",
+    "crop": "860x620+594+266",
+    "fixtures": [],
+    "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\nRikRenderResize(window)\nRikRenderCenter(window)\n",
+    "expectText": [
+      "Quests",
+      "Kobold Camp Cleanup"
+    ],
+    "corpus": true
+  },
+  {
+    "id": "planner-details",
+    "page": "questplanner",
+    "title": "Objective details",
+    "frame": "RikUIQuestPlannerWindow",
+    "crop": "860x620+594+266",
+    "fixtures": [],
+    "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\nRikUI.QuestPlanner.View.ToggleDetails()\nRikRenderResize(window)\nRikRenderCenter(window)\n",
+    "expectText": [
+      "Route details"
+    ],
+    "corpus": true
+  },
+  {
+    "id": "planner-pins",
+    "page": "questplanner",
+    "title": "Pin and skip controls",
+    "frame": "RikRenderSelection",
+    "crop": "480x420+1468+632",
+    "fixtures": [],
+    "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\nRikUI.QuestPlanner.Controller.Toggle(\"pins\", 7)\nRikUI.QuestPlanner.Controller.Toggle(\"skips\", 62)\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.RefreshWindow()\nfor _, row in ipairs(window.rows) do if row.questID == 7 then RikUI.QuestPlanner.View.Browse(row) end end\n-- The window stays shown in a corner so its cards keep refreshing; the captured card moves to a named holder.\nlocal function hold(name, card, width, height)\n    window:ClearAllPoints()\n    window:SetPoint(\"TOPLEFT\", UIParent, \"TOPLEFT\", 0, 0)\n    local holder = CreateFrame(\"Frame\", name, UIParent)\n    holder:SetSize(width, height)\n    holder:SetPoint(\"BOTTOMRIGHT\", UIParent, \"BOTTOMRIGHT\", -100, 100)\n    card:SetParent(holder)\n    card:ClearAllPoints()\n    card:SetPoint(\"TOPLEFT\", holder, \"TOPLEFT\", 8, -8)\n    RikRenderResize(holder)\n    return holder\nend\nhold(\"RikRenderSelection\", window.selection, 480, 420)\n",
+    "expectText": [
+      "Unpin"
+    ],
+    "corpus": true
+  },
+  {
+    "id": "planner-partial",
+    "page": "questplanner",
+    "title": "Partial data state",
+    "frame": "RikRenderSummary",
+    "crop": "840x160+1108+892",
+    "fixtures": [],
+    "lua": "local quests = RikRenderElwynnQuests\nlocal short = { id = 33, title = \"Wolves Across the Border\", level = 5 }\nRikRenderQuestLog({ quests[1], short, quests[4] })\nRikRenderPlannerWorld()\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\n-- The window stays shown in a corner so its cards keep refreshing; the captured card moves to a named holder.\nlocal function hold(name, card, width, height)\n    window:ClearAllPoints()\n    window:SetPoint(\"TOPLEFT\", UIParent, \"TOPLEFT\", 0, 0)\n    local holder = CreateFrame(\"Frame\", name, UIParent)\n    holder:SetSize(width, height)\n    holder:SetPoint(\"BOTTOMRIGHT\", UIParent, \"BOTTOMRIGHT\", -100, 100)\n    card:SetParent(holder)\n    card:ClearAllPoints()\n    card:SetPoint(\"TOPLEFT\", holder, \"TOPLEFT\", 8, -8)\n    RikRenderResize(holder)\n    return holder\nend\nhold(\"RikRenderSummary\", window.summary, 840, 160)\n",
+    "expectText": [
+      "Partial quest data"
+    ]
+  },
+  {
+    "id": "planner-preferences",
+    "page": "questplanner",
+    "title": "Preferences",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikUI.Options.Open(\"questplanner\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"questplanner\")\n",
+    "expectText": [
+      "Questing style"
+    ]
   }
 ]

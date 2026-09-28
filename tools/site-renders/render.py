@@ -1,18 +1,26 @@
-"""Capture RikUI's Lua output using verified current client inputs."""
+"""Capture RikUI's Lua output using verified current client inputs.
+
+By default only stale captures render: those whose recorded inputs (script, seed, addon, validator,
+world plate, simulator, client, corpus) or scenario differ from the current tree and environment.
+`--all` renders everything; `--only` names scenario ids or page slugs."""
 import argparse
 from datetime import datetime, timezone
-import hashlib
 import json
+import shutil
 import os
 from pathlib import Path
 import re
 import subprocess
-from schema import FIXTURE_FILES
-from validate_capture import validate_capture, composite_world, screen_size
+from schema import CORPUS_DIRS
+from fixtures import load_modules, resolve, scenario_script as build_script
+from provenance import digest, tree_inputs, environment_inputs, capture_key, stale_reasons, scenario_record, plate_record
+from validate_capture import validate_capture, screen_size
+from composite import composite_world
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = Path(__file__).resolve().parent
 WORLDS = FIXTURES / "worlds"
+ROAD_PATCH_PREFIX = "RikUIQuestRoads_"
 KNOWN_STARTUP_ERRORS = (
     'unknown event "GLOBAL_REGION_MOUSE_DOWN"',
     'unknown event "ALERT_AGE_VERIFICATION_RESTRICTED"',
@@ -21,15 +29,12 @@ KNOWN_STARTUP_ERRORS = (
     "attempt to index field 'ForeverExperiencePreset'",
     "attempt to call method 'GetVariable'",
 )
-
-def digest(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+# Set once per run: the fixture modules and the verified client version every script is built from.
+MODULES = None
+CLIENT_VERSION = None
 
 def addon_digest(path):
-    data = path.read_bytes()
-    if path.suffix.lower() in {".lua", ".xml", ".toc", ".txt", ".svg", ".py", ".md", ".json"}:
-        data = data.replace(b"\r\n", b"\n")
-    return hashlib.sha256(data).hexdigest()
+    return digest(path, normalized=True)
 
 def checked(command, **kwargs):
     return subprocess.check_output(command, text=True, **kwargs).strip()
@@ -81,57 +86,38 @@ def verify_client(sim_root, wow_root):
             "executableSha256": digest(executable), "cache": verify_cache(sim_root, version),
             "verifiedAt": datetime.now(timezone.utc).isoformat()}
 
-def verify_addon(addon):
+def addon_inventory():
     # Tracked and untracked (not ignored) files alike, so a new source file counts before its first commit.
-    files = checked(["git", "ls-files", "--cached", "--others", "--exclude-standard",
-                     "src", "data", "media", ":(glob)presets/**/*.lua", "RikUI.toc", "Bindings.xml"], cwd=ROOT).splitlines()
+    return checked(["git", "ls-files", "--cached", "--others", "--exclude-standard",
+                    "src", "data", "media", ":(glob)presets/**/*.lua", "RikUI.toc", "Bindings.xml"], cwd=ROOT).splitlines()
+
+def verify_addon(addon):
     checked_files = {}
-    for name in files:
+    for name in addon_inventory():
         source, installed = ROOT / name, addon / name
         if not installed.is_file() or addon_digest(source) != addon_digest(installed):
             raise RuntimeError("Renderer addon is stale: " + name)
         checked_files[name] = addon_digest(source)
     return checked_files
 
+def cvar_store(sim_root):
+    return sim_root / "WTF/render-cvars.json"
+
 def environment(sim_root, wow_root, case):
     env = {**os.environ, "WOW_INSTALL_PATH": str(wow_root), "WOW_SIM_WOW_PATH": str(wow_root),
            "WOW_SIM_ADDONS_PATH": str(sim_root / "addons"),
            "WOW_SIM_ADDONS_TXT": str(sim_root / "AddOns.txt"),
            "WOW_SIM_WTF_PATH": str(sim_root / "WTF"), "WOW_SIM_WTF_ACCOUNT": "RENDER",
-           "WOW_SIM_WTF_REALM": "Preview", "WOW_SIM_WTF_CHARACTER": "Rikui"}
+           "WOW_SIM_WTF_REALM": "Preview", "WOW_SIM_WTF_CHARACTER": "Rikui",
+           # The simulator persists cvar overrides across runs, and RikUI mirrors its settings into cvars;
+           # each capture starts from an empty store of its own (render_frame removes it).
+           "WOW_SIM_CVARS_PATH": str(cvar_store(sim_root))}
     # A world scenario renders RikUI alone on a transparent layer; the plate goes underneath afterwards.
     env["WOW_SIM_TRANSPARENT_BACKGROUND" if case.get("world") else "WOW_SIM_PLAIN_BACKGROUND"] = "1"
     return env
 
-def lua_literal(value):
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    if isinstance(value, (int, float)):
-        return repr(value)
-    return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"') + '"'
-
-def world_prelude(case):
-    """The plate's named creatures and their screen positions, so fixtures can put plates over them."""
-    if not case.get("world"):
-        return "RikRenderWorld = nil\n"
-    record = json.loads((WORLDS / (case["world"]["plate"] + ".json")).read_text(encoding="utf-8"))
-    actors = []
-    for actor in record.get("actors", []):
-        flags = ", ".join(f'{flag} = true' for flag in actor.get("flags", []))
-        actors.append("{ name = %s, level = %s, kind = %s, x = %d, y = %d, distance = %.1f%s }" % (
-            lua_literal(actor.get("name") or ""), actor.get("level") or "nil", lua_literal(actor.get("kind", "creature")),
-            actor["screen"]["x"], actor["screen"]["y"], actor.get("distance", 0), (", " + flags) if flags else ""))
-    return ("RikRenderWorld = { plate = %s, width = %d, height = %d, actors = {\n    %s\n} }\n"
-            % (lua_literal(record["name"]), record["width"], record["height"], ",\n    ".join(actors)))
-
-def scenario_script(case, common, value=None):
-    fixtures = world_prelude(case) + "\n".join(case.get("fixtures", []))
-    body = case.get("lua", "")
-    # The setting is applied first, so the scenario composes its frame the way a player would see it.
-    if value is not None:
-        body = case["sequence"]["apply"].replace("VALUE", lua_literal(value)) + "\n" + body
-    checks = case.get("assertLua", "") + "\nRikRenderCheck(" + case["frame"] + ")\n"
-    return common + "\n" + fixtures + "\n" + body + "\nC_Timer.After(0, function()\n" + checks + "end)\n"
+def scenario_script(case, value=None):
+    return build_script(case, MODULES, CLIENT_VERSION, value)
 
 def render_command(case, binary, script, image):
     width, height = screen_size(case)
@@ -149,23 +135,26 @@ def verify_log(case, result, text, log):
         details = "\n".join(errors[:5] or [line for line in text.splitlines() if "[exec-lua] error:" in line])
         raise RuntimeError(f"Render failed: {case['id']}; {details}; inspect {log}")
 
-def plate_record(case):
+def plate_provenance(case):
     """The world plate a scenario composites over, with the provenance written by plates.mjs."""
     name = case["world"]["plate"]
-    record = json.loads((WORLDS / (name + ".json")).read_text(encoding="utf-8"))
+    record = plate_record(name)
     image = WORLDS / record["file"]
     if not image.is_file() or digest(image) != record["sha256"]:
         raise RuntimeError("World plate does not match its record: " + name)
     return {"plate": name, "sha256": record["sha256"], "appCommit": record["app"]["commit"],
             "camera": record["camera"], "captured": record["capturedAt"]}, image
 
-def render_frame(case, binary, env, output, common, value=None, stem=None):
+def render_frame(case, binary, env, output, value=None, stem=None):
     """Render one image for a scenario (or one frame of a sequence) and validate it."""
     stem = stem or case["id"]
     script, log = output / (stem + ".lua"), output / (stem + ".log")
     image = output / (stem + ".webp")
     layer = output / (stem + ".layer.webp") if case.get("world") else image
-    script.write_text(scenario_script(case, common, value), encoding="utf-8")
+    script.write_text(scenario_script(case, value), encoding="utf-8")
+    store = Path(env["WOW_SIM_CVARS_PATH"])
+    if store.exists():
+        store.unlink()
     with log.open("w", encoding="utf-8") as stream:
         result = subprocess.run(render_command(case, binary, script, layer), env=env,
                                 stdout=stream, stderr=subprocess.STDOUT, timeout=90, cwd=binary.parent)
@@ -176,7 +165,7 @@ def render_frame(case, binary, env, output, common, value=None, stem=None):
     diagnostics = validate_capture(case, layer, text)
     plate = None
     if case.get("world"):
-        plate, plate_image = plate_record(case)
+        plate, plate_image = plate_provenance(case)
         composite_world(layer, plate_image, case, image)
     dimensions = case["crop"].split("+", 1)[0].split("x")
     frame = {"diagnostics": diagnostics, "sha256": digest(image), "bytes": image.stat().st_size,
@@ -186,13 +175,13 @@ def render_frame(case, binary, env, output, common, value=None, stem=None):
         frame["plate"] = plate  # provenance of the world underneath; the scenario's own "world" key stays as written
     return frame
 
-def render_case(case, binary, env, output, common):
+def render_case(case, binary, env, output):
     if not case.get("sequence"):
-        return {**case, **render_frame(case, binary, env, output, common)}
+        return {**case, **render_frame(case, binary, env, output)}
     sequence = case["sequence"]
     frames = []
     for value in sequence["values"]:
-        frame = render_frame(case, binary, env, output, common, value, case["id"] + "@" + str(value))
+        frame = render_frame(case, binary, env, output, value, case["id"] + "@" + str(value))
         frames.append({"value": value, **frame})
     default = next((frame for frame in frames if frame["value"] == sequence.get("default", frames[0]["value"])), frames[0])
     # The record carries the default frame's image like any capture, plus every frame.
@@ -205,44 +194,109 @@ def install_seed(sim_root):
     (seed / "A_RikUIPreview.toc").write_text(
         "## Interface: 16001\n## Title: RikUI render inputs\n## LoadFirst: 1\nseed.lua\n", encoding="utf-8")
 
-def create_manifest(sim_root, binary, client, addon_files):
-    manifest = {"capturedAt": datetime.now(timezone.utc).isoformat(),
-                "addonCommit": checked(["git", "rev-parse", "HEAD"], cwd=ROOT),
-                "addonFiles": addon_files, "client": client,
-                "fixtureFiles": {name: digest(FIXTURES / name) for name in FIXTURE_FILES},
-                "rendererCommit": checked(["git", "rev-parse", "HEAD"], cwd=sim_root / "source"),
-                "rendererBinarySha256": digest(binary), "rendererPatchSha256": digest(FIXTURES / "wow-ui-sim.patch"),
-                "renders": []}
-    provenance = {key: manifest[key] for key in ("addonFiles", "fixtureFiles", "rendererBinarySha256", "rendererCommit")}
-    provenance["client"] = {key: client[key] for key in ("version", "foreverCommit", "executableSha256", "cache")}
-    manifest["generation"] = hashlib.sha256(json.dumps(provenance, sort_keys=True).encode()).hexdigest()
-    return manifest
+def renderer_provenance(sim_root, binary):
+    return {"binary": digest(binary), "patch": digest(FIXTURES / "wow-ui-sim.patch"),
+            "commit": checked(["git", "rev-parse", "HEAD"], cwd=sim_root / "source")}
 
-def capture_cases(cases, binary, sim_root, wow_root, output, manifest):
-    manifest_path = output / "manifest.json"
-    previous = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
-    renders = {r["id"]: r for r in previous.get("renders", [])}
-    common = (FIXTURES / "common.lua").read_text(encoding="utf-8")
+def corpus_digest():
+    """The quest corpus is installer-written and ignored by git; its catalogue names every part."""
+    catalog = ROOT / "generated/corpus/catalog.lua"
+    return digest(catalog) if catalog.is_file() else None
+
+def road_patch_sources(wow_root):
+    """The installer-written road patch addons beside the client's RikUI: LoadOnDemand cell packs the
+    road router loads for the player's region. They ship with the same revision as generated/roads."""
+    addons = wow_root / "_classic_beta_/Interface/AddOns"
+    return sorted(p for p in addons.iterdir() if p.is_dir() and p.name.startswith(ROAD_PATCH_PREFIX)) if addons.is_dir() else []
+
+def set_addon_state(sim_root, names, enabled):
+    """Mark addons enabled or disabled in the simulator's AddOns.txt; a disabled LoadOnDemand addon refuses to load."""
+    path = sim_root / "AddOns.txt"
+    lines = [line for line in (path.read_text(encoding="utf-8").splitlines() if path.is_file() else [])
+             if line.split(":", 1)[0].strip() not in names]
+    lines.extend(f"{name}: {'enabled' if enabled else 'disabled'}" for name in names)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+def stage_corpus(sim_root, wow_root, wanted):
+    """Copy the generated corpus, road data and road patch addons into the render copy for scenarios
+    that need them, and take them out again for the rest, so ordinary captures keep the short startup."""
+    addon = sim_root / "addons/RikUI/generated"
+    staged_patches = sorted(p for p in (sim_root / "addons").iterdir() if p.name.startswith(ROAD_PATCH_PREFIX))
+    present = all((addon / name).is_dir() for name in CORPUS_DIRS) and bool(staged_patches)
+    if wanted == present:
+        return
+    for name in CORPUS_DIRS:
+        target = addon / name
+        if target.exists():
+            shutil.rmtree(target)
+        if wanted:
+            source = ROOT / "generated" / name
+            if not source.is_dir():
+                raise RuntimeError("Quest corpus missing: " + str(source))
+            shutil.copytree(source, target)
+    for patch in staged_patches:
+        shutil.rmtree(patch)
+    set_addon_state(sim_root, [p.name for p in staged_patches], False)
+    if wanted:
+        sources = road_patch_sources(wow_root)
+        if not sources:
+            raise RuntimeError("Road patch addons missing beside the client's RikUI")
+        for source in sources:
+            shutil.copytree(source, sim_root / "addons" / source.name)
+        set_addon_state(sim_root, [p.name for p in sources], True)
+
+def capture_inputs(case, addon_files, renderer, client):
+    corpus = corpus_digest() if case.get("corpus") is True else None
+    return {**tree_inputs(case, scenario_script(case), addon_files), **environment_inputs(renderer, client, corpus)}
+
+def select_stale(cases, renders, addon_files, renderer, client):
+    """Cases whose recorded capture no longer stands, with the reasons, and the inputs for each case."""
+    stale, inputs, reasons = [], {}, {}
     for case in cases:
-        capture = render_case(case, binary, environment(sim_root, wow_root, case), output, common)
-        capture.update(client=manifest["client"], seedSha256=digest(FIXTURES / "seed.lua"),
-                       generation=manifest["generation"])
-        renders[case["id"]] = capture
-        manifest["renders"] = list(renders.values())
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        print("Rendered " + case["id"] + (f" ({len(capture['frames'])} frames)" if capture.get("frames") else ""), flush=True)
+        inputs[case["id"]] = capture_inputs(case, addon_files, renderer, client)
+        why = stale_reasons(case, renders.get(case["id"]), inputs[case["id"]])
+        if why:
+            stale.append(case)
+            reasons[case["id"]] = why
+    return stale, inputs, reasons
+
+def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, renders):
+    manifest_path = output / "manifest.json"
+    try:
+        for case in cases:
+            stage_corpus(sim_root, wow_root, case.get("corpus") is True)
+            capture = render_case(case, binary, environment(sim_root, wow_root, case), output)
+            capture.update(inputs=inputs[case["id"]], key=capture_key(inputs[case["id"]]),
+                           modules=resolve(case, MODULES))
+            renders[case["id"]] = capture
+            manifest["renders"] = list(renders.values())
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            print("Rendered " + case["id"] + (f" ({len(capture['frames'])} frames)" if capture.get("frames") else ""), flush=True)
+    finally:
+        stage_corpus(sim_root, wow_root, False)
+
+def summarize(reasons):
+    counts = {}
+    for why in reasons.values():
+        for name in why:
+            counts[name] = counts.get(name, 0) + 1
+    return ", ".join(f"{name}={count}" for name, count in sorted(counts.items(), key=lambda item: -item[1]))
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sim-root", type=Path, required=True)
     parser.add_argument("--wow-root", type=Path, required=True)
     parser.add_argument("--only", default="", help="Comma-separated scenario IDs or page slugs")
+    parser.add_argument("--all", action="store_true", help="Render every selected scenario, stale or not")
     args = parser.parse_args()
     sim_root, wow_root = args.sim_root.resolve(), args.wow_root.resolve()
     binary = sim_root / "source/target/debug/wow-sim.exe"
     if not binary.is_file():
         raise RuntimeError("Build wow-ui-sim with gui,client-wowforever first")
     client = verify_client(sim_root, wow_root)
+    global CLIENT_VERSION, MODULES
+    CLIENT_VERSION = client["version"]
+    MODULES = load_modules()
     print("Verified current Forever client " + client["version"], flush=True)
     addon_files = verify_addon(sim_root / "addons/RikUI")
     install_seed(sim_root)
@@ -253,9 +307,23 @@ def main():
     cases = [s for s in scenarios if not selected or s["id"] in selected or s["page"] in selected]
     if not cases:
         raise RuntimeError("No matching render scenarios")
-    capture_cases(cases, binary, sim_root, wow_root, output,
-                  create_manifest(sim_root, binary, client, addon_files))
-    print(f"{len(cases)} captures saved in {output}", flush=True)
+    manifest_path = output / "manifest.json"
+    previous = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    known = {c["id"] for c in scenarios}
+    renders = {r["id"]: r for r in previous.get("renders", []) if r["id"] in known}
+    renderer = renderer_provenance(sim_root, binary)
+    stale, inputs, reasons = select_stale(cases, renders, addon_files, renderer, client)
+    todo = cases if args.all else stale
+    print(f"{len(stale)} of {len(cases)} selected captures stale ({summarize(reasons) or 'none'}); rendering {len(todo)}", flush=True)
+    manifest = {"capturedAt": datetime.now(timezone.utc).isoformat(),
+                "addonCommit": checked(["git", "rev-parse", "HEAD"], cwd=ROOT),
+                "addonFiles": addon_files, "client": client, "renderer": renderer, "renders": list(renders.values())}
+    if not todo:
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        print("Nothing to render", flush=True)
+        return
+    capture_cases(todo, inputs, binary, sim_root, wow_root, output, manifest, renders)
+    print(f"{len(todo)} captures saved in {output}", flush=True)
 
 if __name__ == "__main__":
     main()
