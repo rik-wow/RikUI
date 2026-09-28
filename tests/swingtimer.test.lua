@@ -118,7 +118,7 @@ return function(check)
             and ranged.cue.text=="Wait for shot" and ranged.time.text=="--")
         env.fire("PLAYER_SWING",3,RANGED)
         check("any ranged weapon gains a movement window and stop marker",ranged.cue.text=="Move window"
-            and near(ranged.window.width,39.6) and ranged.marker.shown and near(ranged.bar.value,0))
+            and near(ranged.window.width,55.6) and ranged.marker.shown and near(ranged.bar.value,0))
         local endpoint=ranged.endTime
         advance(ranged,1/120)
         local firstFill=ranged.bar.value

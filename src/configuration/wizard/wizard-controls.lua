@@ -63,7 +63,8 @@ local function paintCheck(check)
     check.label:SetTextColor(on and 1 or MUTED[1], on and 1 or MUTED[2], on and 1 or MUTED[3], 1)
 end
 
--- A compact check box: a 14px box with an accent mark and the label beside it.
+-- A compact check box: a 14px box with an accent check mark and the label beside it, the same
+-- glyph the settings toggles use.
 function controls.Check(parent, width, text, get, set)
     local check = CreateFrame("Button", nil, parent)
     check:SetSize(width, CHECK_HEIGHT)
@@ -73,10 +74,8 @@ function controls.Check(parent, width, text, get, set)
     check.box:SetPoint("LEFT", check, "LEFT", 0, 0)
     skin.Fill(check.box, skin.CONTROL)
     skin.Outline(check.box)
-    check.mark = check.box:CreateTexture(nil, "ARTWORK")
-    check.mark:SetPoint("TOPLEFT", check.box, "TOPLEFT", 3, -3)
-    check.mark:SetPoint("BOTTOMRIGHT", check.box, "BOTTOMRIGHT", -3, 3)
-    check.mark:SetTexture(skin.FLAT)
+    check.mark = core.Media.Icon(check.box, "check", BOX - 2, "ARTWORK")
+    check.mark:SetPoint("CENTER", check.box, "CENTER", 0, 0)
     check.mark:SetVertexColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
     check.mark.fade = motion.Tween(check.mark, 0, 1, HOVER_SECONDS)
     check.glow = hover(check)

@@ -2,12 +2,27 @@
 local core, options, scroll = RikUI, RikUI.Options, RikUI.Scroll
 local PAD, HEADER, FOOTER, NAV_WIDTH, GAP, NAV_ROW = 16, 94, 42, 140, 20, 28
 local WIDTH, HEIGHT = 760, 560
-local GROUPS = { "Interface", "Gameplay", "System" }
+-- The fixed sidebar groups; a class area (options-class.lua) declares its own group, named after
+-- the class, and takes the place after Interface.
+local BASE_GROUPS = { "Interface", "Gameplay", "System" }
+local CLASS_GROUP_POSITION = 2
 local panel, category
 local applySearch
 local function shown(frame, value) options.SetShown(frame, value) end
 
 function options.Panel() return panel end
+
+-- A page's hint may follow state (the class area names the class it shows).
+local function pageDescription(page)
+    local description = page.description
+    if type(description) == "function" then description = description() end
+    return description or "Customize this part of your interface."
+end
+
+local function groupLabel(group)
+    local label = options.GroupLabel and options.GroupLabel(group)
+    return label or group
+end
 
 local function pendingReload()
     local total = 0
@@ -34,6 +49,7 @@ function options.Refresh()
     local issue = core.Store and core.Store.BackupIssue and core.Store.BackupIssue()
     if issue then message = issue .. (pending > 0 and " | Reload needed" or "") end
     panel.status:SetText(profile .. " | " .. message)
+    if panel.current and panel.pages[panel.current] then panel.hint:SetText(pageDescription(panel.pages[panel.current])) end
     shown(panel.reload, pending > 0)
     local combat = InCombatLockdown()
     panel.reload:SetEnabled(not combat)
@@ -42,12 +58,27 @@ function options.Refresh()
     if applySearch then applySearch() end
 end
 
+-- Sidebar groups in order: the fixed three, with any group a page adds (the class area) after Interface.
+local function groupOrder(pages)
+    local order, known = {}, {}
+    for index, group in ipairs(BASE_GROUPS) do order[index], known[group] = group, true end
+    local extra = 0
+    for _, page in ipairs(pages) do
+        if not known[page.group] then
+            known[page.group] = true
+            table.insert(order, CLASS_GROUP_POSITION + extra, page.group)
+            extra = extra + 1
+        end
+    end
+    return order
+end
+
 local function navigationLayout()
     local y = 0
-    for _, group in ipairs(GROUPS) do
+    for _, group in ipairs(panel.groupOrder) do
         local header = panel.groups[group]
         header:ClearAllPoints(); header:SetPoint("TOPLEFT", 0, -y)
-        header.label:SetText(group)
+        header.label:SetText(groupLabel(group))
         core.Media.SetIcon(header.disclosure, header.collapsed and "chevron-right" or "chevron-down")
         y = y + NAV_ROW
         for _, page in ipairs(panel.pages) do
@@ -77,7 +108,7 @@ function options.ShowPage(index, skipRefresh)
     navigationLayout()
     scroll.Reveal(panel.nav, selected.tab.top, NAV_ROW)
     panel.title:SetText(selected.title)
-    panel.hint:SetText(selected.description or "Customize this part of your interface.")
+    panel.hint:SetText(pageDescription(selected))
     options.SetFocus(panel, nil)
     if not skipRefresh then options.Refresh() end
 end
@@ -97,7 +128,8 @@ local function filterPage(page, query)
         local description = row.spec.getDescription and row.spec.getDescription() or row.spec.description
         local searchable = table.concat({ page.title or "", page.group or "",
             row.spec.label or "", description or "" }, " ")
-        row.filtered = (panel.onlyPending and not row.pending) or not (whole or matches(searchable, query))
+        local hidden = row.spec.visible ~= nil and not row.spec.visible()
+        row.filtered = hidden or (panel.onlyPending and not row.pending) or not (whole or matches(searchable, query))
         if not row.filtered then count = count + 1 end
     end
     page.filtered = count == 0 and (panel.onlyPending or not whole)
@@ -193,7 +225,7 @@ local function createNavigation()
     panel.nav = scroll.Create(panel)
     panel.nav:SetPoint("TOPLEFT", PAD, -HEADER)
     panel.groups = {}
-    for _, group in ipairs(GROUPS) do
+    for _, group in ipairs(panel.groupOrder) do
         local button = CreateFrame("Button", nil, panel.nav.content)
         button:SetSize(NAV_WIDTH - 14, NAV_ROW)
         core.Motion.BindHover(button)
@@ -306,9 +338,11 @@ local function register()
     panel = CreateFrame("Frame", "RikUIOptionsPanel", UIParent)
     panel:Hide(); panel:SetSize(WIDTH, HEIGHT)
     core.Motion.BindEntrance(panel, true)
+    local declared = options.Pages()
+    panel.groupOrder = groupOrder(declared)
     createFurniture(); createNavigation()
     panel.pages = {}
-    for index, page in ipairs(options.Pages()) do panel.pages[index] = createPage(index, page) end
+    for index, page in ipairs(declared) do panel.pages[index] = createPage(index, page) end
     createSearch()
     panel.MovePage = movePage
     options.EnableKeyboard(panel, function() return panel.pages[panel.current].list.rows end)

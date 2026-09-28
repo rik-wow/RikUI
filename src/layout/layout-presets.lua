@@ -19,14 +19,22 @@ function layout.ChatSize(screen)
     return { width = width, height = layouts.ChatSize.height }
 end
 
--- A copy of a layout's positions for this screen: the chat holder is the window's centre, so its
--- place follows the width a layout gives the chat here.
+-- The player's class token when it is readable; the combat column's unit row depends on it.
+local function playerClass()
+    if type(UnitClass) ~= "function" then return nil end
+    local ok, _, class = core.Secret.Read(UnitClass, "player")
+    if ok and not core.Secret.IsSecret(class) and type(class) == "string" then return class end
+    return nil
+end
+
+-- A copy of a layout's positions for this screen and class: the chat holder is the window's centre,
+-- so its place follows the width a layout gives the chat here.
 function layout.PresetPositions(name)
     local entry = layouts[name]
     if type(entry) ~= "table" or type(entry.positions) ~= "table" then return nil end
     local screen, scale = layout.Screen(), layout.GetScale()
     local units = screen and { width=screen.width / scale, height=screen.height / scale }
-    local positions = layouts.Positions(name, units)
+    local positions = layouts.Positions(name, units, playerClass())
     local foot = layouts.ChatFootprint
     positions.chat.x = layouts.MARGIN + (layout.ChatSize(layout.Screen()).width + foot.left + foot.right) / 2
     return positions

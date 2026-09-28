@@ -125,6 +125,21 @@
     ]
   },
   {
+    "id": "options-class",
+    "page": "options",
+    "title": "Your class area",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "lua": "RikRenderSpellbook()\nRikUI.Options.Open(\"class-cooldowns\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class-cooldowns\")\n",
+    "expectText": [
+      "Class: Paladin",
+      "Class list",
+      "Judgement",
+      "Add a spell",
+      "Tracked spells"
+    ]
+  },
+  {
     "id": "units-player",
     "page": "unitframes",
     "title": "Player",
@@ -177,7 +192,7 @@
     "page": "castbars",
     "title": "Remaining time hidden",
     "frame": "RikUICast_player",
-    "crop": "472x80+788+536",
+    "crop": "600x80+724+536",
     "lua": "A_Admin.SetCasting(635,\"Holy Light\",\"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\",2.5)\nlocal clock = C_DurationUtil.CreateManualClock(1)\nlocal duration = C_DurationUtil.CreateDuration()\nduration:SetClock(clock)\nduration:SetTimeFromStart(0,2.5)\nlocal reader = UnitCastingDuration\nUnitCastingDuration = function(unit) if unit == \"player\" then return duration end return reader(unit) end\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\",\"player\")\nRikRenderCenter(RikUICast_player,2)\nfor _, option in ipairs(RikUI.CastBars.Options.settings) do if option.key == \"timeText\" then option.set(false) end end\n",
     "expectText": [
       "Holy Light"
@@ -189,7 +204,7 @@
     "page": "castbars",
     "title": "Interrupted cast",
     "frame": "RikUICast_player",
-    "crop": "472x80+788+536",
+    "crop": "600x80+724+536",
     "lua": "A_Admin.SetCasting(635,\"Holy Light\",\"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\",2.5)\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\",\"player\")\nA_Admin.FireEvent(\"UNIT_SPELLCAST_INTERRUPTED\",\"player\")\nRikRenderCenter(RikUICast_player,2)\n",
     "expectText": [
       "Interrupted"
@@ -287,6 +302,57 @@
       "Hearthstone",
       "Minor Healing Potion"
     ]
+  },
+  {
+    "id": "hud-arrangement",
+    "page": "combat-hud",
+    "title": "The combat HUD",
+    "frame": "RikRenderHUD",
+    "crop": "830x340+470+572",
+    "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nA_Admin.SetCasting(635, \"Holy Light\", \"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\", 2.5)\nlocal clock = C_DurationUtil.CreateManualClock(1)\nlocal duration = C_DurationUtil.CreateDuration()\nduration:SetClock(clock)\nduration:SetTimeFromStart(0, 2.5)\nlocal reader = UnitCastingDuration\nUnitCastingDuration = function(unit) if unit == \"player\" then return duration end return reader(unit) end\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\", \"player\")\nlocal realTime = GetTime\nlocal started = realTime()\nA_Admin.FireEvent(\"PLAYER_SWING\", 2.4, Enum.PlayerSwingType.MainHand)\nGetTime = function() return started + 1 end\nlocal mainHand = RikUI.SwingTimer.Bars[Enum.PlayerSwingType.MainHand]\nmainHand:GetScript(\"OnUpdate\")(mainHand, 0)\nRikRenderGroup(\"RikRenderHUD\", { RikUICooldowns, RikUICombatResource, RikUICast_player, RikUISwingTimer, RikUIClassAuras_player, RikUIClassAuras_target, RikUIUnit_player, RikUIUnit_target, RikUIUnit_focus }, 470, 240, 830, 340)\nRikRenderResize(RikRenderHUD)\n",
+    "expectText": [
+      "Rik",
+      "Mangy Wolf",
+      "287 / 287",
+      "Holy Light",
+      "Main Hand"
+    ],
+    "assertLua": "local ids = {}\nfor _, entry in ipairs(RikUI.Cooldowns.Entries) do ids[#ids + 1] = entry.id end\nassert(table.concat(ids, \",\") == \"20287,20271,853,1022,633,498,679\", \"Unexpected strip order: \" .. table.concat(ids, \",\"))\nassert(RikUI.Cooldowns.Buttons[2].icon:GetTexture() == 135959, \"Wrong Judgement icon\")\nassert(not RikUI.Cooldowns.Buttons[3].unknown:IsShown(), \"Hammer of Justice cooldown must be readable\")\n"
+  },
+  {
+    "id": "hud-column",
+    "page": "combat-hud",
+    "title": "Cooldowns, resource, cast and swing",
+    "frame": "RikRenderHUDColumn",
+    "crop": "320x220+864+692",
+    "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nA_Admin.SetCasting(635, \"Holy Light\", \"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\", 2.5)\nlocal clock = C_DurationUtil.CreateManualClock(1)\nlocal duration = C_DurationUtil.CreateDuration()\nduration:SetClock(clock)\nduration:SetTimeFromStart(0, 2.5)\nlocal reader = UnitCastingDuration\nUnitCastingDuration = function(unit) if unit == \"player\" then return duration end return reader(unit) end\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\", \"player\")\nlocal realTime = GetTime\nlocal started = realTime()\nA_Admin.FireEvent(\"PLAYER_SWING\", 2.4, Enum.PlayerSwingType.MainHand)\nGetTime = function() return started + 1 end\nlocal mainHand = RikUI.SwingTimer.Bars[Enum.PlayerSwingType.MainHand]\nmainHand:GetScript(\"OnUpdate\")(mainHand, 0)\nRikRenderGroup(\"RikRenderHUDColumn\", { RikUICooldowns, RikUICombatResource, RikUICast_player, RikUISwingTimer }, 864, 240, 320, 220)\nRikRenderResize(RikRenderHUDColumn)\n",
+    "expectText": [
+      "287 / 287",
+      "Holy Light",
+      "Main Hand"
+    ],
+    "assertLua": "local ids = {}\nfor _, entry in ipairs(RikUI.Cooldowns.Entries) do ids[#ids + 1] = entry.id end\nassert(table.concat(ids, \",\") == \"20287,20271,853,1022,633,498,679\", \"Unexpected strip order: \" .. table.concat(ids, \",\"))\nassert(RikUI.Cooldowns.Buttons[2].icon:GetTexture() == 135959, \"Wrong Judgement icon\")\nassert(not RikUI.Cooldowns.Buttons[3].unknown:IsShown(), \"Hammer of Justice cooldown must be readable\")\n"
+  },
+  {
+    "id": "cooldowns-strip",
+    "page": "cooldowns",
+    "title": "The cooldown strip",
+    "frame": "RikUICooldowns",
+    "crop": "600x180+724+486",
+    "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nRikRenderCenter(RikUICooldowns, 2)\n",
+    "expectText": [],
+    "assertLua": "local ids = {}\nfor _, entry in ipairs(RikUI.Cooldowns.Entries) do ids[#ids + 1] = entry.id end\nassert(table.concat(ids, \",\") == \"20287,20271,853,1022,633,498,679\", \"Unexpected strip order: \" .. table.concat(ids, \",\"))\nassert(RikUI.Cooldowns.Buttons[2].icon:GetTexture() == 135959, \"Wrong Judgement icon\")\nassert(not RikUI.Cooldowns.Buttons[3].unknown:IsShown(), \"Hammer of Justice cooldown must be readable\")\n"
+  },
+  {
+    "id": "swing-main-hand",
+    "page": "swingtimer",
+    "title": "Main hand swing",
+    "frame": "RikUISwingTimer",
+    "crop": "600x180+724+486",
+    "lua": "RikRenderSpellbook()\nRikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 }, { id = 498, duration = 300, elapsed = 255.1 } })\nA_Admin.AddBuff(20287, \"Seal of Righteousness\", 132325, 30, 0)\nassert(RikUI.Layout.ApplyCombatHUD())\nRikUI.Cooldowns.Rebuild()\nRikUI.UnitFrames.Refresh()\nRikUIUnit_petframe:Hide()\nlocal realTime = GetTime\nlocal started = realTime()\nA_Admin.FireEvent(\"PLAYER_SWING\", 2.4, Enum.PlayerSwingType.MainHand)\nGetTime = function() return started + 1 end\nlocal mainHand = RikUI.SwingTimer.Bars[Enum.PlayerSwingType.MainHand]\nmainHand:GetScript(\"OnUpdate\")(mainHand, 0)\nRikRenderCenter(RikUISwingTimer, 2)\n",
+    "expectText": [
+      "Main Hand",
+      "1.4"
+    ]
   }
 ]
-

@@ -172,8 +172,8 @@ function options.ModuleStatus(name)
     return "Waiting to start."
 end
 
-local function moduleToggle(name, module)
-    return { type = "checkbox", key = "module." .. name, label = moduleTitle(name, module), reload = true,
+local function moduleToggle(name, module, prefix)
+    return { type = "checkbox", key = (prefix or "module.") .. name, label = moduleTitle(name, module), reload = true,
         description = "", getDescription = function() return options.ModuleStatus(name) end,
         get = function() return core.Profile.modules[name] ~= false end,
         set = function(value) return core:SetModuleEnabled(name, value == true) end,
@@ -345,6 +345,7 @@ local function moduleSpec(name, module, spec)
     end
     return wrapped
 end
+options.ModuleToggle, options.ModuleSpec = moduleToggle, moduleSpec
 
 local function modulePages(pages)
     for _, name in ipairs(sortedKeys(core.Modules)) do
@@ -485,6 +486,7 @@ end
 function options.Pages()
     local pages = { { id = "general", group = "Interface", title = "General",
         description = "Your layout and everyday preferences.", specs = generalSpecs() } }
+    for _, page in ipairs(options.ClassPages and options.ClassPages() or {}) do pages[#pages + 1] = page end
     modulePages(pages)
     pages[#pages + 1] = { id = "modules", group = "System", title = "Modules",
         description = "Choose which parts of RikUI to load. Apply changes with Reload UI.", specs = moduleSpecs() }

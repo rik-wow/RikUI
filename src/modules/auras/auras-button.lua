@@ -3,7 +3,7 @@
 -- initializeFrame call; the button then drives icon, count, border colour, cooldown, tooltip
 -- and right-click cancel in secure code and RikUI never touches it again.
 local core, media, ui, auras = RikUI, RikUI.Media, RikUI.UI, RikUI.Auras
-local EDGE, ICON_CROP, COUNT_INSET = 1, 0.07, 2
+local EDGE, ICON_CROP, COUNT_INSET, MIN_COUNTDOWN_FONT = 1, 0.07, 2, 10
 local BACKGROUND = { 0.055, 0.065, 0.08, 0.95 }
 local PRESERVE_ASSET_STYLE = 3 -- Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset on 69913
 local CANCEL_CLICKS = "RightButtonUp"
@@ -41,7 +41,9 @@ local function icon(button)
     return texture
 end
 
-local function cooldown(button)
+-- The countdown uses RikUI's font at half the icon size, the same as the cooldown strip's own
+-- cells, so an aura cell and a cooldown cell read alike.
+local function cooldown(button, size)
     local widget = CreateFrame("Cooldown", nil, button)
     widget:SetAllPoints(button)
     widget:EnableMouse(false)
@@ -50,6 +52,8 @@ local function cooldown(button)
     widget:SetHideCountdownNumbers(false)
     widget:SetCountdownFont("NumberFontNormal")
     widget:SetSwipeColor(0, 0, 0, 0.8)
+    local font = type(widget.GetCountdownFontString) == "function" and widget:GetCountdownFontString()
+    if font then font:SetFont(media.font, math.max(MIN_COUNTDOWN_FONT, math.floor(size / 2)), "OUTLINE") end
     return widget
 end
 
@@ -108,7 +112,7 @@ local function decorate(button, spec)
     registerMotion(button)
     button:SetIcon(button.icon)
     button.border = border(button, spec.harmful)
-    button.cooldown = cooldown(button)
+    button.cooldown = cooldown(button, spec.size)
     button:SetDurationCooldown(button.cooldown)
     button.count = countText(button, button.cooldown)
     button:SetApplicationCount(button.count)

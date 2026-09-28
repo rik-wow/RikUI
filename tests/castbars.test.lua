@@ -175,6 +175,9 @@ return function(check)
             and binding.last.SetFontString[1] == player.time and binding.last.SetDuration[1] == casts.player.duration
             and binding.last.SetEnabled[1] == true and binding.last.SetFormatter[1] == formatters[1]
             and formatters[1].last.SetMillisecondsThreshold ~= nil)
+        check("the seconds formatter abbreviates units so the time field is not clipped",
+            formatters[1] and formatters[1].last.SetDefaultAbbreviation ~= nil
+            and formatters[1].last.SetDefaultAbbreviation[1] == 2)
         check("casts use the cast colour", color(player.bar.color, module.Colors.cast))
         check("cast start fades in and follows native fill geometry", player.fadeIn and player.fadeIn.playing
             and player.spark and player.spark.point[2] == player.bar.fill)
@@ -344,7 +347,7 @@ return function(check)
         local focus, pet = module.Bars.castfocus, module.Bars.castpet
         groups = RikUI.Layout.Groups
         check("focus and pet castbars exist at their unit frame's width", focus and pet and focus.unit == "focus"
-            and pet.unit == "pet" and focus.width == 160 and pet.width == 110 and module.Bars.castplayer.width == 220)
+            and pet.unit == "pet" and focus.width == 160 and pet.width == 110 and module.Bars.castplayer.width == 280)
         check("the focus bar has a shield and the pet bar does not", focus.shield ~= nil and pet.shield == nil)
         local df, dpf = groups.focus.defaults, groups.petframe.defaults
         local dcf, dcp = groups.castfocus.defaults, groups.castpet.defaults
@@ -388,7 +391,7 @@ return function(check)
 
         module = load({ castbars = { widthScale = 1.25, height = 30, timeText = false } })
         player, target = module.Bars.castplayer, module.Bars.casttarget
-        check("castbar dimensions scale all units", player.width == 275 and player.height == 30
+        check("castbar dimensions scale all units", player.width == 350 and player.height == 30
             and module.Bars.castfocus.width == 200 and module.Bars.castpet.width == 138)
         check("castbar art follows height", player.icon.height == 28 and player.spark.height == 28)
         playerCast("HiddenTime", {})
@@ -405,7 +408,7 @@ return function(check)
             and player.bar.timeBacking.shown)
         check("timer option updates running casts immediately", player.time.shown == true and player.shown)
         module = load({ castbars = { widthScale = -10, height = math.huge } })
-        check("invalid restored castbar dimensions use profile defaults", module.Bars.castplayer.width == 220
+        check("invalid restored castbar dimensions use profile defaults", module.Bars.castplayer.width == 280
             and module.Bars.castplayer.height == 22)
         module = load(nil, true)
         check("combat login defers bar creation and stock hiding", next(module.Bars) == nil

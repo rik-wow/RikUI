@@ -161,7 +161,8 @@ end
 local function compose(class)
     local known, reason = core.Spells.KnownIDs()
     if not known then return nil, reason end
-    local profile, problem = panel.Resolve(class, core.ClassCooldownProfiles[class] or {})
+    local names = core.ClassSettings and core.ClassSettings.List(class, "cooldowns") or core.ClassCooldownProfiles[class] or {}
+    local profile, problem = panel.Resolve(class, names)
     if not profile then return nil, problem end
     local cells, trouble = panel.ResolveCells(class, core.ClassAuraCells[class])
     if not cells then return nil, trouble end
@@ -198,6 +199,8 @@ function panel:OnEnable()
     if panel.Native then panel.Native.Enable() end
     if panel.Cells then panel.Cells.Enable() end
     if panel.Controls and core.Shell then panel.Controls.Create() end
+    -- An edited class list (src/core/class-settings.lua) rebuilds the strip outside combat.
+    if core.ClassSettings then core.ClassSettings.OnChange(function(_, kind) if kind == "cooldowns" then panel.Schedule() end end) end
 end
 
 function panel:Debug()

@@ -18,6 +18,7 @@ src/core/combat.lua
 src/core/support.lua
 src/core/lifecycle.lua
 src/core/diagnostics.lua
+src/core/class-settings.lua
 src/platform/hooks.lua
 src/platform/tutorials.lua
 src/platform/hide.lua
@@ -283,6 +284,7 @@ src/configuration/wizard/wizard-pages.lua
 src/configuration/options/options-widgets.lua
 src/configuration/options/options-controls.lua
 src/configuration/options/options.lua
+src/configuration/options/options-class.lua
 src/configuration/options/options-view.lua
 src/configuration/options/sharing.lua
 src/configuration/options/profile-sharing.lua

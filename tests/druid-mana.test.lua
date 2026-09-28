@@ -66,7 +66,9 @@ return function(check)
         env.fire("UNIT_POWER_UPDATE", "player", "MANA")
         check("API failure leaves no old mana value", bar.value == 0 and bar.text.text == "Mana unavailable")
         state.fail = false
-        local setting = mana.Options.settings[1]
+        check("the mana setting lives on the class page, not a page of its own", mana.Options == nil
+            and type(mana.ClassSettings) == "table" and mana.ClassSettings[1].key == "show")
+        local setting = mana.ClassSettings[1]
         setting.set(false)
         check("the setting saves and hides immediately in combat", not setting.get()
             and RikUI.Profile.druidmana.show == false and not holder:IsShown())

@@ -60,6 +60,33 @@ return function(check)
         end
         check("the audit names an unknown layout", layouts.Audit("nonsense", SCREENS[1])[1] == "nonsense: unknown layout")
 
+        -- The combat column's unit row depends on the class: only the supporting rows a class shows keep room.
+        for _, class in ipairs({ "PALADIN", "WARRIOR", "ROGUE", "SHAMAN", "DRUID" }) do
+            for _, name in ipairs({ "centered", "hud" }) do
+                for _, screen in ipairs(SCREENS) do
+                    local issues = layouts.Audit(name, screen, class)
+                    check(name .. " is clean for a " .. class:lower() .. " on " .. screen.name, #issues == 0, table.concat(issues, "; "))
+                end
+            end
+        end
+        local paladin = layouts.Positions("hud", SCREENS[1], "PALADIN")
+        local paladinTarget = layouts.Rect("hud", "target", SCREENS[1], paladin)
+        local paladinCast = layouts.Rect("hud", "casttarget", SCREENS[1], paladin)
+        local strip = layouts.Rect("hud", "cooldowns", SCREENS[1], paladin)
+        check("a class without supporting rows keeps only the target cast bar between the strip and its unit frames",
+            near(paladinCast.bottom, strip.top + layouts.GAP) and near(paladinTarget.bottom, paladinCast.top + layouts.GAP))
+        check("a druid keeps combo points and form mana under its unit frames, an unknown class keeps every row",
+            near(layouts.CombatUnitRow("DRUID"), layouts.CombatUnitRow("ROGUE") + layouts.Sizes.druidmana.height + layouts.GAP)
+            and layouts.CombatUnitRow("DRUID") > layouts.CombatUnitRow("PALADIN")
+            and near(layouts.CombatUnitRow(nil), layouts.CombatUnitRow("DRUID") + layouts.Sizes.totems.height + layouts.GAP)
+            and near(layouts.Positions("hud", nil).player.y, layouts.CombatUnitRow(nil)))
+        local rogue = layouts.Positions("centered", SCREENS[3], "ROGUE")
+        local rogueTarget, pips = layouts.Rect("centered", "target", SCREENS[3], rogue), layouts.Rect("centered", "combopoints", SCREENS[3], rogue)
+        check("a rogue's unit row clears the combo points and the target cast bar", rogueTarget.bottom >= pips.top + layouts.GAP
+            and near(rogueTarget.bottom, layouts.Rect("centered", "casttarget", SCREENS[3], rogue).top + layouts.GAP))
+        check("classic and healer layouts ignore the class", near(layouts.Positions("classic", SCREENS[1], "PALADIN").player.y,
+            layouts.Positions("classic", SCREENS[1]).player.y))
+
         local broken = { label = "Broken", description = "two frames on one spot, one off screen",
             positions = { player = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT", x = 100, y = 100 },
                 target = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT", x = 110, y = 100 },

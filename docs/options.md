@@ -47,6 +47,22 @@ The nested sidebar groups pages under **Interface**, **Gameplay**, and
 and scale controls; individual module preferences stay on their own pages.
 Modules, Profiles, and Setup and support are separate System pages.
 
+A fourth sidebar group, **Class**, sits between Interface and Gameplay
+(`src/configuration/options/options-class.lua`). Its label names the class it
+shows and every page starts with a class chooser that defaults to the class
+being played, so any class can be configured before it is played. Overview
+carries the module switches for the class displays (shared by the profile) and
+the class-only options that follow `layouts.SupportingRows`; a module contributes
+those through `module.ClassSettings` instead of `module.Options`, as druid mana
+does. Cooldown strip and Class effects edit per-class lists through
+`src/core/class-settings.lua`: the shipped tables are the defaults, a profile
+override (`profile.classes[TOKEN][kind]`) replaces a list wholesale, names are
+validated against the class's spell catalogue, and the `spelllist` control
+(`options-controls.lua`) reorders and removes while a dropdown adds. Strip edits
+rebuild the strip at once; effect edits apply after a reload and raise the
+pending-reload badge. The view derives its group order from the declared pages,
+so the area is absent when RikUI has no class data.
+
 Use **Search settings** to filter pages and controls by title, group, label or live help text. Every word must match, in any order, across those fields; for example, `bags columns`. Punctuation is treated literally.
 The clear button or Escape clears the text search. **Needs reload** narrows the view to pending changes and combines with the search; **All settings** restores the full view. Reverting a change removes it from the pending view immediately. Direct links to a page clear both filters. Empty results explain whether there are no pending changes or no search matches.
 

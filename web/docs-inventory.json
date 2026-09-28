@@ -1943,14 +1943,14 @@
       "id": "cast-player",
       "page": "castbars",
       "title": "Remaining time hidden",
-      "width": 472,
+      "width": 600,
       "height": 80
     },
     {
       "id": "cast-interrupted",
       "page": "castbars",
       "title": "Interrupted cast",
-      "width": 472,
+      "width": 600,
       "height": 80
     },
     {
@@ -2057,6 +2057,41 @@
       "title": "Looting items",
       "width": 360,
       "height": 220
+    },
+    {
+      "id": "hud-arrangement",
+      "page": "combat-hud",
+      "title": "The combat HUD",
+      "width": 830,
+      "height": 340
+    },
+    {
+      "id": "hud-column",
+      "page": "combat-hud",
+      "title": "Cooldowns, resource, cast and swing",
+      "width": 320,
+      "height": 220
+    },
+    {
+      "id": "cooldowns-strip",
+      "page": "cooldowns",
+      "title": "The cooldown strip",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-main-hand",
+      "page": "swingtimer",
+      "title": "Main hand swing",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "options-class",
+      "page": "options",
+      "title": "Your class area",
+      "width": 800,
+      "height": 600
     }
   ]
 }

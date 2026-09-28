@@ -1,5 +1,5 @@
 diff --git a/src/bin/wow_sim/gui_commands.rs b/src/bin/wow_sim/gui_commands.rs
-index 38c5046..b92a3c0 100644
+index 38c5046..8421cdc 100644
 --- a/src/bin/wow_sim/gui_commands.rs
 +++ b/src/bin/wow_sim/gui_commands.rs
 @@ -285,8 +285,8 @@ fn prepare_screenshot_env(env: &WowLuaEnv, command: &ScreenshotCommand<'_>) {
@@ -12,7 +12,17 @@ index 38c5046..b92a3c0 100644
  }
  
  fn run_screenshot_exec_lua(env: &WowLuaEnv, command: &ScreenshotCommand<'_>) {
-@@ -429,7 +429,7 @@ fn apply_crop(img: image::RgbaImage, crop_str: &str) -> image::RgbaImage {
+@@ -379,7 +379,8 @@ fn build_screenshot_batch(
+                 .text_ctx(Some((&mut fs, &mut glyph_atlas)))
+                 .message_frames(Some(&state.message_frames))
+                 .tooltip_data(Some(&tooltip_data))
+-                .quest_blobs(Some(&state.quest_blobs)),
++                .quest_blobs(Some(&state.quest_blobs))
++                .elapsed_secs(state.elapsed_secs()),
+         )
+     };
+     (batch, glyph_atlas)
+@@ -429,7 +430,7 @@ fn apply_crop(img: image::RgbaImage, crop_str: &str) -> image::RgbaImage {
  fn save_screenshot(img: &image::RgbaImage, output: &Path) {
      let output = output.with_extension("webp");
      let encoder = webp::Encoder::from_rgba(img.as_raw(), img.width(), img.height());
@@ -36,11 +46,60 @@ index 8824df3..258afba 100644
              max_lines: 0,
              alpha,
          },
+diff --git a/src/iced_app/screenshot.rs b/src/iced_app/screenshot.rs
+index f4028fc..f8753a7 100644
+--- a/src/iced_app/screenshot.rs
++++ b/src/iced_app/screenshot.rs
+@@ -73,7 +73,8 @@ impl App {
+                 .text_ctx(Some((&mut fs, &mut glyph_atlas)))
+                 .message_frames(Some(&state.message_frames))
+                 .tooltip_data(Some(&tooltip_data))
+-                .quest_blobs(Some(&state.quest_blobs)),
++                .quest_blobs(Some(&state.quest_blobs))
++                .elapsed_secs(state.elapsed_secs()),
+             )
+         };
+         (batch, glyph_atlas)
 diff --git a/src/iced_app/strata_emit.rs b/src/iced_app/strata_emit.rs
-index dba5eee..0d0429c 100644
+index dba5eee..2f61680 100644
 --- a/src/iced_app/strata_emit.rs
 +++ b/src/iced_app/strata_emit.rs
-@@ -535,6 +535,9 @@ pub fn build_quad_batch_with_cache(
+@@ -386,6 +386,9 @@ pub struct RegistryQuadBatchParams<'a, 'font> {
+     pub tooltip_data: Option<&'a TooltipDataMap>,
+     pub quest_blobs: Option<&'a QuestBlobMap>,
+     pub strata_buckets: &'a [Vec<u64>],
++    /// Seconds since the simulator started, on the same clock as `GetTime()`, so timed
++    /// widgets such as cooldown swipes render the current moment rather than time zero.
++    pub elapsed_secs: f64,
+ }
+ 
+ impl<'a, 'font> RegistryQuadBatchParams<'a, 'font> {
+@@ -405,9 +408,15 @@ impl<'a, 'font> RegistryQuadBatchParams<'a, 'font> {
+             tooltip_data: None,
+             quest_blobs: None,
+             strata_buckets,
++            elapsed_secs: 0.0,
+         }
+     }
+ 
++    pub fn elapsed_secs(mut self, elapsed_secs: f64) -> Self {
++        self.elapsed_secs = elapsed_secs;
++        self
++    }
++
+     pub fn root_name(mut self, root_name: Option<&'a str>) -> Self {
+         self.root_name = root_name;
+         self
+@@ -467,7 +476,7 @@ pub fn build_quad_batch_for_registry_with_quest_blobs(
+         tooltip_data: params.tooltip_data,
+         quest_blobs: params.quest_blobs,
+         strata_buckets: params.strata_buckets,
+-        elapsed_secs: 0.0,
++        elapsed_secs: params.elapsed_secs,
+     });
+     batch
+ }
+@@ -535,6 +544,9 @@ pub fn build_quad_batch_with_cache(
  
  fn build_background_batch(screen_size: (f32, f32)) -> QuadBatch {
      let mut batch = QuadBatch::with_capacity(1000);
@@ -259,6 +318,23 @@ index b293df3..6880956 100644
  
      let started = Instant::now();
      advance_animation_groups(env, elapsed)?;
+diff --git a/src/lua_api/state.rs b/src/lua_api/state.rs
+index 836ac2d..13c0913 100644
+--- a/src/lua_api/state.rs
++++ b/src/lua_api/state.rs
+@@ -711,6 +711,12 @@ impl Default for SimState {
+ }
+ 
+ impl SimState {
++    /// Seconds since the simulator started: the clock behind `GetTime()`, shared with
++    /// headless screenshot rendering so timed widgets draw the current moment.
++    pub fn elapsed_secs(&self) -> f64 {
++        self.start_time.elapsed().as_secs_f64()
++    }
++
+     fn seed_default_game_state(&mut self) {
+         self.action_bars = default_action_bars();
+         self.party_members = default_party();
 diff --git a/src/render/font.rs b/src/render/font.rs
 index 116f372..601ecd5 100644
 --- a/src/render/font.rs
@@ -382,4 +458,3 @@ index ce2cb88..92b7d6d 100644
      // Premultiplied alpha output: pipeline uses src + dst * (1 - src.a).
      // Standard alpha: premultiply color by alpha for correct blending.
      // Additive: premultiply then zero alpha so dst is fully preserved (src + dst).
-

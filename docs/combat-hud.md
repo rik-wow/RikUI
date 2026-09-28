@@ -39,9 +39,21 @@ keep their places, so the combat frames may need to fit around them.
 Use `/rik layout hud` (or another preset name) to arrange the whole screen instead.
 Both actions have one step of undo through `/rik layout undo`.
 
+The column is 280 wide throughout: the cooldown strip, the resource strip, the
+player cast bar and the weapon timers share that width (`COLUMN_WIDTH` in
+`data/layouts.lua`), and the class effect rows flank it. The unit row above the
+column depends on the class: `layouts.SupportingRows` names which classes use
+combo points, totems and form mana, `layouts.CombatUnitRow(class)` stacks only
+those rows plus the target cast bar's row, and `layout.PresetPositions` passes
+the readable player class, so a paladin's unit frames sit just above the target
+cast bar while a druid keeps room for combo points and form mana. An unknown
+class keeps the full stack. `tests/layouts.test.lua` audits centered and hud
+for paladin, warrior, rogue, shaman and druid.
+
 The resource strip is enabled by default. It follows the player's current power
-type; Druid mana remains a separate supporting display when shifted. Turn the
-strip off with `/rik module combatresource off`, then reload. Blizzard's cooldown
+type; Druid mana remains a separate supporting display when shifted, configured
+in the class settings area (`src/configuration/options/options-class.lua`). Turn
+the strip off with `/rik module combatresource off`, then reload. Blizzard's cooldown
 manager is kept off while the Cooldowns module is on; disable that module to get
 Blizzard's viewers back.
 

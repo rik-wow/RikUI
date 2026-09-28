@@ -6,9 +6,11 @@ core.CastBars = castbars
 
 local HEIGHT, EDGE, TEXT_INSET, ICON_CROP = 22, 1, 4, 0.08
 local TIME_MIN_WIDTH, TIME_MAX_WIDTH, TIME_FRACTION = 28, 54, 0.38
--- width is the matching unit frame's width.
+-- The player bar sits in the combat column under the resource strip (data/layouts.lua CombatPositions)
+-- and takes the column's width; the others match their unit frames.
+local COLUMN_WIDTH = 280
 local UNITS = {
-    { key = "castplayer", unit = "player", width = 220, shield = false },
+    { key = "castplayer", unit = "player", width = COLUMN_WIDTH, shield = false },
     { key = "casttarget", unit = "target", width = 220, shield = true },
     { key = "castfocus", unit = "focus", width = 160, shield = true },
     { key = "castpet", unit = "pet", width = 110, shield = false },

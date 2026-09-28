@@ -124,7 +124,7 @@ end
 function bars.CreateActiveTexture(parent)
     local texture = parent:CreateTexture(nil, "OVERLAY")
     texture:SetAllPoints()
-    texture:SetTexture(media.checked)
+    texture:SetTexture(media.ring)
     texture:SetVertexColor(1, 0.78, 0.3, 1)
     texture:SetAlphaFromBoolean(false, 1, 0)
     return texture

@@ -188,8 +188,10 @@ end
 local function placeRow(row, width, y)
     local kind = row.spec.type
     local narrow = kind == "checkbox" and metrics.toggleWidth or (kind == "colour" and metrics.controlHeight * 2)
-    local stacked = width < STACK_WIDTH and row.widget ~= nil and not narrow
+    local control = types[kind]
+    local stacked = width < STACK_WIDTH and row.widget ~= nil and not narrow and not control.place
     local baseHeight = stacked and STACK_HEIGHT or ROW_HEIGHT
+    if control.height then baseHeight = ROW_HEIGHT + control.height(row, width) end
     local descriptionHeight = 0
     if row.description then
         row.description:SetWidth(math.max(1, width - 12))
@@ -215,6 +217,8 @@ local function placeRow(row, width, y)
         widget:ClearAllPoints()
         widget:SetWidth(narrow or math.max(1, controlWidth - reserved))
         widget:SetPoint(stacked and "BOTTOMRIGHT" or "RIGHT", row, stacked and "BOTTOMRIGHT" or "RIGHT", -reserved, stacked and 4 + descriptionHeight or descriptionHeight / 2)
+        -- A control that owns the row's body (a spell list) lays out its label and itself.
+        if control.place then control.place(row, width, ROW_HEIGHT) end
     end
     return y + height + ROW_GAP
 end
@@ -276,7 +280,9 @@ end
 local function moveFocus(panel, rows, delta)
     local candidates = {}
     for _, row in ipairs(rows) do
-        if row.widget and row.enabled and not row.filtered then candidates[#candidates + 1] = row end
+        if row.widget and row.enabled and not row.filtered and types[row.spec.type].focusable ~= false then
+            candidates[#candidates + 1] = row
+        end
     end
     if #candidates == 0 then return end
     local index = 0
@@ -301,7 +307,7 @@ end
 local function focusEdge(panel, last)
     local target
     for _, row in ipairs(panel.GetRows()) do
-        if row.widget and row.enabled and not row.filtered then
+        if row.widget and row.enabled and not row.filtered and types[row.spec.type].focusable ~= false then
             target = row
             if not last then break end
         end

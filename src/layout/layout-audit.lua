@@ -123,31 +123,51 @@ local function fitPositions(name, screen, positions)
     return positions
 end
 
--- Registration asks for defaults repeatedly. Cache only the last viewport per preset,
+-- A supporting row (combo points, totems, form mana) another class never shows.
+local function unusedRow(key, class)
+    if class == nil then return false end
+    for _, row in ipairs(layouts.SupportingRows) do
+        if row.key == key then return not row.classes[class] end
+    end
+    return false
+end
+
+-- In the layouts with a combat column, the unit row closes down over the supporting rows a class
+-- does not use (data/layouts.lua CombatUnitRow); no class is nil, the full stack.
+local function classRow(name, class, positions)
+    if class == nil or not layouts.CombatRowLayouts[name] then return positions end
+    local shift = layouts.CombatUnitRow(class) - layouts.CombatUnitRow(nil)
+    for _, key in ipairs(layouts.CombatUnitKeys) do positions[key].y = positions[key].y + shift end
+    return positions
+end
+
+-- Registration asks for defaults repeatedly. Cache only the last viewport per preset and class,
 -- and always return a copy so setup, undo and hand edits cannot mutate the cached recipe.
 local fitted = {}
-function layouts.Positions(name, screen)
+function layouts.Positions(name, screen, class)
     local entry = layouts[name]
     if not entry or not entry.positions then return nil end
-    if not screen then return copyPositions(entry.positions) end
-    local cached = fitted[name]
+    if not screen then return classRow(name, class, copyPositions(entry.positions)) end
+    local slot = name .. ":" .. tostring(class)
+    local cached = fitted[slot]
     if not cached or cached.width ~= screen.width or cached.height ~= screen.height then
         cached = { width=screen.width, height=screen.height,
-            positions=fitPositions(name, screen, copyPositions(entry.positions)) }
-        fitted[name] = cached
+            positions=fitPositions(name, screen, classRow(name, class, copyPositions(entry.positions))) }
+        fitted[slot] = cached
     end
     return copyPositions(cached.positions)
 end
 
-function layouts.Audit(name, screen)
+function layouts.Audit(name, screen, class)
     if type(layouts[name]) ~= "table" or type(layouts[name].positions) ~= "table" then
         return { tostring(name) .. ": unknown layout" }
     end
     local issues, rects = {}, {}
-    local positions = layouts.Positions(name, screen)
+    local positions = layouts.Positions(name, screen, class)
     for _, key in ipairs(sortedKeys(layouts.Sizes)) do
-        local rect = layouts.Rect(name, key, screen, positions)
-        if rect then rects[#rects + 1] = rect else issues[#issues + 1] = key .. ": not placed" end
+        local rect = not unusedRow(key, class) and layouts.Rect(name, key, screen, positions) or nil
+        if rect then rects[#rects + 1] = rect
+        elseif not unusedRow(key, class) then issues[#issues + 1] = key .. ": not placed" end
     end
     for index, rect in ipairs(rects) do
         edgeIssues(rect, screen, issues)

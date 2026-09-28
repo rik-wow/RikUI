@@ -31,6 +31,15 @@ end
 local function phrases(value)
     return type(value) == "string" and #value <= 256 and not value:find("[%c|]")
 end
+local function spellNames(value)
+    if type(value) ~= "table" or getmetatable(value) or #value > 12 then return false end
+    for index, name in pairs(value) do
+        if type(index) ~= "number" or index < 1 or index > 12 or index % 1 ~= 0 then return false end
+        if type(name) ~= "string" or #name < 1 or #name > 64 or name:find("[%c|]") then return false end
+    end
+    return true
+end
+local classLists = { cooldowns=spellNames, player=spellNames, harmful=spellNames, helpful=spellNames }
 local function fontChoice(value) return value == "bundled" or value == "game" end
 local function textMode(value) return value == "both" or value == "current" or value == "hidden" end
 local function boolean(value) return type(value) == "boolean" end
@@ -43,6 +52,7 @@ local function anchor(value) return type(value) == "string" and anchors[value] =
 local schema = {
     scale=number(0.25,3), textScale=number(0.85,1.3), font=fontChoice, reducedMotion=boolean, gryphons=boolean, showEmptySlots=boolean, showHotkeys=boolean, showCooldownNumbers=boolean, ghosts=boolean, showStockBars=boolean, lootAtCursor=boolean,
     modules={ wildcard=boolean },
+    classes={ wildcard=classLists },
     positions={ wildcard={ point=anchor, relativePoint=anchor, x=number(-32768,32768), y=number(-32768,32768) } },
     borderColor={ [1]=number(0,1), [2]=number(0,1), [3]=number(0,1) },
     barFade={ main=boolean, bar2=boolean, bar3=boolean, bar4=boolean, bar5=boolean },

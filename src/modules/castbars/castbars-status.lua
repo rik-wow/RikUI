@@ -2,6 +2,7 @@
 -- fill comes from the client's duration object, or from readable numbers when no object exists.
 local core, castbars = RikUI, RikUI.CastBars
 local HOLD_SECONDS, FINISH_HOLD, TIME_FORMAT, MILLISECONDS_THRESHOLD = 0.6, 0.2, "%.1f", 60
+local ONE_LETTER = 2 -- Enum.SecondsFormatterAbbreviation.OneLetter on 1.60.1.70009
 local FAILED_TEXT, INTERRUPTED_TEXT = FAILED or "Failed", INTERRUPTED or "Interrupted"
 local DIRECTION = { cast = { name = "ElapsedTime", value = 0 }, channel = { name = "RemainingTime", value = 1 } }
 local colors = {
@@ -59,6 +60,8 @@ local function secondsFormatter()
         object:SetMillisecondsThreshold(MILLISECONDS_THRESHOLD)
         object:SetDesiredUnitCount(1)
         object:SetMinInterval(enumValue("SecondsFormatterInterval", "Seconds", 0))
+        -- "1.5 s", not "1.5 seconds": the time field is narrow and the unit word would be clipped.
+        object:SetDefaultAbbreviation(enumValue("SecondsFormatterAbbreviation", "OneLetter", ONE_LETTER))
         return object
     end)
     if not ok then warnOnce("formatter", created); return nil end

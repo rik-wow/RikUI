@@ -18,13 +18,13 @@ def texture(name):
             alpha = 255
             if name == "highlight":
                 alpha = 32
-            elif name == "checked":
+            elif name == "ring":
                 alpha = 255 if min(x, y, SIZE - x - 1, SIZE - y - 1) < 2 else 0
             pixels.extend((255, 255, 255, alpha))
     return header + pixels
 
 
-for name in ("statusbar", "border", "checked", "highlight"):
+for name in ("statusbar", "border", "ring", "highlight"):
     target = ROOT / (name + ".tga")
     data = texture(name)
     if "--check" in sys.argv:

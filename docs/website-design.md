@@ -136,11 +136,11 @@ image whose address is `render:<scenario-id>` places a reviewed Lua capture from
 web/ui-renders, and one whose address is `mockup` places the catalogued SVG
 illustration named by its alt text. The build fails when a page's captures (or,
 for pages without captures, its catalogued surfaces) are not each placed exactly
-once, so there is no detached gallery. Nine guides currently use the 26 Lua
-captures; the other 41 feature guides still use illustrative SVGs, whose sample values
+once, so there is no detached gallery. Twelve guides currently use the 31 Lua
+captures; the other 38 feature guides still use illustrative SVGs, whose sample values
 and conditional native surfaces are not evidence of a live client capture. The
 catalogue names 274 surfaces, but many share one drawing once text is ignored;
-the build shows only the first surface of each distinct drawing (89
+the build shows only the first surface of each distinct drawing (84
 illustrations) and rejects a guide that places a duplicate. The page inventory and module mapping are generated in
 web/docs-inventory.json.
 

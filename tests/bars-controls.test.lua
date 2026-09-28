@@ -122,7 +122,7 @@ return function(check)
         env.runScript(pet.buttons[2], "OnLeave")
         check("leaving hides the control tooltip", GameTooltip.shown == false)
         check("companion indicators use shared flat media", RikUI.Media ~= nil
-            and stance.buttons[1].active.texture == RikUI.Media.checked
+            and stance.buttons[1].active.texture == RikUI.Media.ring
             and pet.buttons[2].autoCastAllowed.texture == RikUI.Media.checked)
         check("native stance and pet binding scheme is preserved",
             RikUI.Bindings.Scheme.SHAPESHIFTBUTTON1 == "CTRL-Q"

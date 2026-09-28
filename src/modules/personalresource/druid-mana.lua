@@ -90,10 +90,11 @@ function mana:OnEnable()
     core.Hooks.Owned(core, "SetProfile", mana.Refresh)
 end
 
-mana.Options = { title = "Druid mana", settings = {
+-- Shown on the class settings page (options-class.lua) rather than as a page of its own.
+mana.ClassSettings = {
     { type = "checkbox", key = "show", label = "Show mana in Cat and Bear",
         description = "Keep underlying mana visible alongside energy or rage. Move this strip with Move frames.",
         get = enabled, set = function(value) core.Profile.druidmana.show = value == true; mana.Refresh() end },
-} }
+}
 core:RegisterModule("druidmana", mana)
 

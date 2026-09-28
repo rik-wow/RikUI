@@ -9,20 +9,22 @@ const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
 // Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
 const placements={
  wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
- options:{"options-castbars":"ref-open-settings","options-general":"ref-appearance","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
+ options:{"options-castbars":"ref-open-settings","options-general":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
  sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile"},
  unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text"},
  castbars:{"cast-interrupted":"ref-reading-a-cast-bar","cast-player":"ref-change-the-size"},
  bags:{"bags-inventory":"ref-open-your-inventory","bags-search":"ref-search-and-filters","bags-empty-search":"ref-search-and-filters"},
  chat:{"chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history"},
  loot:{"loot-list":"ref-loot-an-item"},
- shell:{"shell-menu":"ref-the-rikui-button"}
+ shell:{"shell-menu":"ref-the-rikui-button"},
+ "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column"},
+ cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip"},
+ swingtimer:{"swing-main-hand":"ref-weapon-swings"}
 };
 const mockupPlacements={
  interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Friends":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},
  nameplates:{"Enemy plate":"ref-enemy-nameplates","Debuff row":"ref-enemy-nameplates","Nameplate cast":"ref-enemy-nameplates"},
- layout:{"Frame mover":"ref-move-a-frame"},
- "combat-hud":{"Primary resource":"ref-resource-display"}
+ layout:{"Frame mover":"ref-move-a-frame"}
 };
 const distinctCount=page=>[...distinctSurfaces(page)].filter(([index,canonical])=>index===canonical).length;
 const figureSections=()=>{

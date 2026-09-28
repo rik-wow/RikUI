@@ -3,7 +3,7 @@ local addonName = ...
 local root = "Interface\\AddOns\\" .. addonName .. "\\media\\"
 local media = {
     font = root .. "font.ttf", statusbar = root .. "statusbar.tga",
-    border = root .. "border.tga", checked = root .. "checked.tga",
+    border = root .. "border.tga", ring = root .. "ring.tga",
     highlight = root .. "highlight.tga",
     sizes = { hotkey = 12, count = 12, cooldown = 16, charge = 11, label = 13, heading = 16, small = 11 },
 }
@@ -11,12 +11,14 @@ RikUI.Media = media
 local warned = false
 local FALLBACK_FONT = "Fonts\\FRIZQT__.TTF"
 local ICONS = root .. "icons\\"
+-- The checked mark is the check icon; ring.tga is the hollow square for active-state outlines.
+media.checked = ICONS .. "check.tga"
 
 -- RikUI's icons are white 32x32 textures with the shape in the alpha channel, built from the SVG
 -- sources in media/icons by media/build_icons.py (the client cannot load SVG). Tint them with three
 -- colour components: the fourth component of SetVertexColor is the region's alpha.
 -- Every icon the addon ships; a name outside this set is a typo that would draw nothing in game.
-local NAMES = { "achievement", "character", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "close",
+local NAMES = { "achievement", "character", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "close",
     "collections", "copy", "diamond", "groupfinder", "guild", "help", "housing", "journal", "legacy", "lock",
     "lock-open", "menu", "minus", "plus", "profession", "quest", "settings", "skull", "spellbook", "spells", "star",
     "store", "talents" }

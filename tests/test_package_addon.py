@@ -30,7 +30,7 @@ class PackageTests(unittest.TestCase):
             "media/font.ttf": "font fixture",
             "media/statusbar.tga": "texture",
             "media/border.tga": "texture",
-            "media/checked.tga": "texture",
+            "media/ring.tga": "texture",
             "media/highlight.tga": "texture",
             "media/icons/close.svg": "<svg/>",
             "media/icons/close.tga": "icon fixture",

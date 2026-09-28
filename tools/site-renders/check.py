@@ -52,7 +52,8 @@ def verify_capture(case, capture, manifest, directory, errors, hashes):
         errors.append("Mixed client builds: " + case["id"])
     if capture.get("seedSha256") != digest(FIXTURES / "seed.lua"):
         errors.append("Stale character fixture: " + case["id"])
-    if not capture.get("diagnostics", {}).get("visibleTextCount"):
+    # A capture of icon-only controls (the cooldown strip) legitimately has no text; the diagnostics must still exist.
+    if not isinstance(capture.get("diagnostics"), dict) or "visibleTextCount" not in capture["diagnostics"]:
         errors.append("Missing frame diagnostics: " + case["id"])
     key = (case["page"], capture["sha256"])
     if key in hashes:

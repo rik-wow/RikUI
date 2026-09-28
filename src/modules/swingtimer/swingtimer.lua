@@ -6,7 +6,8 @@ local swing = { Bars = {}, Options = { title = "Weapon timers", settings = {} } 
 core.SwingTimer = swing
 
 local HOLDER_NAME, KEY = "RikUISwingTimer", "swingtimer"
-local WIDTH, HEIGHT, GAP, EDGE, TEXT_INSET, SPARK_WIDTH, FOOTER = 200, 18, 3, 1, 5, 2, 16
+-- WIDTH is the combat column's width, shared with the cooldown strip and the resource strip.
+local WIDTH, HEIGHT, GAP, EDGE, TEXT_INSET, SPARK_WIDTH, FOOTER = 280, 18, 3, 1, 5, 2, 16
 local FOOTPRINT = HEIGHT * 3 + GAP * 2 + FOOTER
 local DEFAULTS = { point = "BOTTOM", relativePoint = "BOTTOM", x = 0, y = 236 }
 local BACKGROUND, BORDER, WHITE = { 0.06, 0.07, 0.09, 0.9 }, { 0.25, 0.28, 0.32, 1 }, { 1, 1, 1, 1 }

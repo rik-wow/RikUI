@@ -14,6 +14,8 @@ local UNIT_WIDTH, UNIT_HEIGHT, SMALL_WIDTH, SMALL_HEIGHT, FOCUS_WIDTH, FOCUS_HEI
 local CAST_HEIGHT, ROW_HEIGHT = 22, 30
 -- The cooldown strip (src/modules/cooldowns/cooldowns-strip.lua): 280 wide, two rows of 36 px icons at rest.
 local STRIP_WIDTH, STRIP_HEIGHT = 280, 2 * (36 + GAP) - GAP
+-- The combat column: the strip, the resource strip, the player cast bar and the weapon timers share this width.
+local COLUMN_WIDTH = STRIP_WIDTH
 
 -- Nominal footprints. A frame whose size is not fixed (tracker, bags, chat, damage meter, loot list)
 -- gets the room a layout keeps free for it; the rest are the frames' real sizes, which the suite pins.
@@ -25,12 +27,12 @@ layouts.Sizes = {
     player = { width = UNIT_WIDTH, height = UNIT_HEIGHT }, target = { width = UNIT_WIDTH, height = UNIT_HEIGHT },
     focus = { width = FOCUS_WIDTH, height = FOCUS_HEIGHT }, tot = { width = SMALL_WIDTH, height = SMALL_HEIGHT },
     petframe = { width = SMALL_WIDTH, height = SMALL_HEIGHT }, party = { width = 150, height = 186 },
-    raid = { width = 604, height = 166 }, castplayer = { width = UNIT_WIDTH, height = CAST_HEIGHT },
+    raid = { width = 604, height = 166 }, castplayer = { width = COLUMN_WIDTH, height = CAST_HEIGHT },
     casttarget = { width = UNIT_WIDTH, height = CAST_HEIGHT }, castfocus = { width = FOCUS_WIDTH, height = CAST_HEIGHT },
     castpet = { width = SMALL_WIDTH, height = CAST_HEIGHT }, buffs = { width = 268, height = 132 },
     debuffs = { width = 268, height = 64 }, minimap = { width = 200, height = 270 },
     micromenu = { width = 238, height = 70 }, bagspace = { width = 210, height = 22 }, durability = { width = 132, height = 18 },
-    mirrortimers = { width = 220, height = 56 }, swingtimer = { width = 200, height = 76 },
+    mirrortimers = { width = 220, height = 56 }, swingtimer = { width = COLUMN_WIDTH, height = 76 },
     combopoints = { width = 58, height = 10 }, totems = { width = 121, height = 28 },
     combattimer = { width = 110, height = 20 }, stopwatch = { width = 110, height = 20 },
     druidmana = { width = 121, height = 18 },
@@ -40,7 +42,7 @@ layouts.Sizes = {
     loot = { width = 228, height = 174 }, tooltip = { width = 250, height = 150 },
     bags = { width = 394, height = 360 }, chat = { width = 344, height = 214 },
     damagemeter = { width = 260, height = 180 },
-    combatresource = { width = 280, height = 18 },
+    combatresource = { width = COLUMN_WIDTH, height = 18 },
 }
 -- Room outside the frame: the reputation row under the experience row.
 -- The minimap header and status footer are included in its nominal footprint.
@@ -238,7 +240,25 @@ layouts.CombatPositions = {
     druidmana = bottom(0, CORE_EXTRA + layouts.Sizes.combopoints.height + layouts.Sizes.totems.height + 2 * GAP),
     swingtimer = bottom(0, CORE_SWING),
 }
-local COMBAT_UNIT_ROW = layouts.CombatPositions.druidmana.y + layouts.Sizes.druidmana.height + GAP
+-- The unit row sits above the supporting rows a class uses: combo points (rogue, druid), totems
+-- (shaman) and form mana (druid), then the target cast bar's own row under the target frame. Any
+-- other class keeps only that cast row between the strip and its unit frames, so the HUD has no
+-- empty band reserved for displays it never shows.
+layouts.SupportingRows = {
+    { key = "combopoints", classes = { ROGUE = true, DRUID = true } },
+    { key = "totems", classes = { SHAMAN = true } },
+    { key = "druidmana", classes = { DRUID = true } },
+}
+layouts.CombatUnitKeys = { "player", "target", "tot", "focus", "casttarget", "castfocus" }
+layouts.CombatRowLayouts = { centered = true, hud = true }
+function layouts.CombatUnitRow(class)
+    local y = CORE_EXTRA
+    for _, row in ipairs(layouts.SupportingRows) do
+        if class == nil or row.classes[class] then y = y + layouts.Sizes[row.key].height + GAP end
+    end
+    return y + CAST_HEIGHT + GAP
+end
+local COMBAT_UNIT_ROW = layouts.CombatUnitRow(nil)
 for _, name in ipairs({ "centered", "hud" }) do
     local positions = layouts[name].positions
     positions.player.y, positions.target.y = COMBAT_UNIT_ROW, COMBAT_UNIT_ROW

@@ -415,3 +415,89 @@ types.button = {
         if options.Refresh then options.Refresh() end
     end,
 }
+
+-- An ordered spell list (the class area): one line per spell with its catalogue icon, move
+-- up/down and remove. Adding happens through a dropdown row next to it; the list only edits.
+local ENTRY_HEIGHT, ENTRY_GAP, ENTRY_BUTTON, ENTRY_ICON, EMPTY_HEIGHT = 24, 2, 26, 18, 22
+local DIM_ENTRY_BUTTON, UNKNOWN_ICON = 0.3, 134400
+
+local function listChange(row, callback, ...)
+    options.TryChange(row.spec.label, callback, ...)
+    if options.Refresh then options.Refresh() else options.RefreshList(row.list) end
+end
+
+local function entryButton(entry, glyph, onClick)
+    local button = CreateFrame("Button", nil, entry)
+    button:SetSize(ENTRY_BUTTON, ENTRY_HEIGHT - 4)
+    options.Flat(button, "BACKGROUND", BACKGROUND); options.Border(button, BORDER_TINT)
+    button.icon = media.Icon(button, glyph, 10, "OVERLAY")
+    button.icon:SetPoint("CENTER")
+    core.Motion.BindHover(button)
+    button:SetScript("OnClick", onClick)
+    return button
+end
+
+local function createEntry(row, widget, index)
+    local entry = CreateFrame("Frame", nil, widget)
+    entry:SetHeight(ENTRY_HEIGHT)
+    local offset = -(index - 1) * (ENTRY_HEIGHT + ENTRY_GAP)
+    entry:SetPoint("TOPLEFT", widget, "TOPLEFT", 0, offset); entry:SetPoint("TOPRIGHT", widget, "TOPRIGHT", 0, offset)
+    options.Flat(entry, "BACKGROUND", BACKGROUND)
+    entry.icon = entry:CreateTexture(nil, "ARTWORK")
+    entry.icon:SetSize(ENTRY_ICON, ENTRY_ICON); entry.icon:SetPoint("LEFT", 4, 0)
+    entry.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    entry.order = options.Text(entry, "small"); entry.order:SetPoint("LEFT", 28, 0); entry.order:SetWidth(20)
+    entry.order:SetJustifyH("RIGHT"); entry.order:SetTextColor(0.6, 0.68, 0.75)
+    entry.name = options.Text(entry, "label"); entry.name:SetPoint("LEFT", 54, 0)
+    entry.name:SetPoint("RIGHT", -(3 * ENTRY_BUTTON + 16), 0); entry.name:SetJustifyH("LEFT"); entry.name:SetWordWrap(false)
+    entry.remove = entryButton(entry, "close", function() listChange(row, row.spec.remove, entry.spell) end)
+    entry.remove:SetPoint("RIGHT", -4, 0)
+    entry.down = entryButton(entry, "chevron-down", function() listChange(row, row.spec.move, entry.spell, 1) end)
+    entry.down:SetPoint("RIGHT", entry.remove, "LEFT", -4, 0)
+    entry.up = entryButton(entry, "chevron-up", function() listChange(row, row.spec.move, entry.spell, -1) end)
+    entry.up:SetPoint("RIGHT", entry.down, "LEFT", -4, 0)
+    return entry
+end
+
+types.spelllist = {
+    focusable = false,
+    create = function(row)
+        local widget = CreateFrame("Frame", nil, row)
+        widget.entries, widget.count = {}, 0
+        widget.empty = options.Text(widget, "small", "Nothing listed. Add a spell below.")
+        widget.empty:SetPoint("TOPLEFT", 6, -4); widget.empty:SetTextColor(0.6, 0.68, 0.75)
+        widget:SetHeight(1)
+        function widget:Enable() self.enabled = true end
+        function widget:Disable() self.enabled = false end
+        return widget
+    end,
+    refresh = function(row, value)
+        local spec, widget, names = row.spec, row.widget, value or {}
+        local class = spec.class and spec.class()
+        for index, name in ipairs(names) do
+            local entry = widget.entries[index] or createEntry(row, widget, index)
+            widget.entries[index], entry.spell = entry, name
+            entry.order:SetText(index .. ".")
+            entry.name:SetText(name)
+            local known = class and core.Spells and core.Spells.Entry(name, class)
+            entry.icon:SetTexture(known and known.icon or UNKNOWN_ICON)
+            entry.up:SetAlpha(index > 1 and 1 or DIM_ENTRY_BUTTON)
+            entry.down:SetAlpha(index < #names and 1 or DIM_ENTRY_BUTTON)
+            entry:Show()
+        end
+        for index = #names + 1, #widget.entries do widget.entries[index]:Hide() end
+        widget.count = #names
+        setShown(widget.empty, #names == 0)
+        widget:SetHeight(math.max(1, #names * (ENTRY_HEIGHT + ENTRY_GAP), #names == 0 and EMPTY_HEIGHT or 0))
+    end,
+    height = function(row)
+        local count = row.widget.count or 0
+        return count == 0 and EMPTY_HEIGHT or count * (ENTRY_HEIGHT + ENTRY_GAP)
+    end,
+    place = function(row, width, top)
+        row.label:ClearAllPoints(); row.label:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -4)
+        row.label:SetWidth(math.max(1, width - 12)); row.label:SetHeight(30)
+        row.widget:ClearAllPoints(); row.widget:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -top)
+        row.widget:SetWidth(math.max(1, width - 12))
+    end,
+}

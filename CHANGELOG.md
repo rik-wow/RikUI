@@ -9,6 +9,14 @@ tagging.
 
 ## Unreleased
 
+- Added a Class area to the settings, between Interface and Gameplay, with a class chooser on every page so any class can be set up before you log over to it. Overview holds the class display switches and the class-only options (combo points, totems, form mana with its Cat and Bear option); Cooldown strip and Class effects let you add, remove and reorder the spells in the strip's class list and the three effect groups from RikUI's catalogue, per class, saved in the profile, with a reset to RikUI's lists. The separate Druid mana page is gone.
+
+- Tightened the combat HUD. The player cast bar and the weapon timers now take the combat column's width, so the strip, resource bar, cast bar and swing bars line up and the class effect rows sit beside them. The unit frames now sit directly above the target cast bar and only above the supporting rows your class uses, instead of leaving an empty band reserved for combo points, totems and form mana on every class.
+
+- Checked marks are a real check glyph. The old mark texture was a hollow square, so enabled toggles, chosen dropdown entries, completed wizard steps, native check buttons, menu checks and finished quest objectives all looked unticked. The setup wizard's check boxes use the same glyph. Active stance and pet buttons keep their square outline.
+
+- Cast bars now ask the game's seconds formatter for the one-letter unit ("1.5 s"), so the remaining time no longer gets clipped in the time field. Aura cells in the cooldown strip draw their countdown in RikUI's font at the same size as the cooldown cells.
+
 - Added a coordinated visual polish pass across ten areas: layered window chrome, inset utility and quest controls, clearer scrollbar grips, settings cards, utility sections, a recessed bag grid, compact quest guidance, separate clock readouts, stronger progress milestones, and cooldown icon/count badges. Existing layouts and interactions remain in place.
 
 - Individual auction listings now show an Item / enchantment column with each listing’s exact linked name and random suffix. Names wrap, retain quality colors and clear on recycled rows; missing client details are explicit. Native bidding, buying and tooltips keep their original auction data.

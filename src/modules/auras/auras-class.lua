@@ -104,7 +104,8 @@ local function context()
     if tracker.enabled == false then return nil end
     local ok, _, class = core.Secret.Read(UnitClass, "player")
     if not ok or core.Secret.IsSecret(class) then return nil end
-    local profile = core.ClassAuraProfiles[class]
+    -- Edited lists (src/core/class-settings.lua) are read at build time; changes apply after a reload.
+    local profile = core.ClassSettings and core.ClassSettings.Effects(class) or core.ClassAuraProfiles[class]
     if type(profile) ~= "table" then return nil end
     return class, profile
 end

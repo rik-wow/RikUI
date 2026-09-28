@@ -21,7 +21,7 @@ MEDIA_TYPES = {".tga", ".blp", ".ttf", ".otf", ".ogg", ".mp3", ".wav"}
 REQUIRED = {
     "RikUI.toc", "Bindings.xml", "LICENSE", "media/LICENSES.md", "media/OFL.txt",
     "media/font.ttf", "media/statusbar.tga", "media/border.tga",
-    "media/checked.tga", "media/highlight.tga",
+    "media/ring.tga", "media/highlight.tga",
 }
 
 
