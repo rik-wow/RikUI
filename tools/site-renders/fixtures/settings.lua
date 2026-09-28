@@ -77,7 +77,5 @@ end
 function RikRenderLauncher(name, left, bottom, width, height)
     RikRenderMinimapTiles()
     RikUI.Shell.Anchor()
-    local holder = RikRenderGroup(name, { RikUIMinimap, RikUI.Shell.Launcher }, left, bottom, width, height)
-    RikRenderLayerBacking(holder)
-    return holder
+    return RikRenderGroup(name, { RikUIMinimap, RikUI.Shell.Launcher }, left, bottom, width, height)
 end

@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T18:17:29.401708+00:00",
-  "addonCommit": "5406c69dfe8bdab122f7946c23a97ce456d35438",
+  "capturedAt": "2026-09-28T19:12:03.969831+00:00",
+  "addonCommit": "f589b477c5dbcd44aab210402a303e3da8dae36a",
   "addonFiles": {
     "Bindings.xml": "f4de3bf073de7728bb45ceb353ffaeb1edc50eea3704a26743ef60887bbcb5e0",
     "RikUI.toc": "52bd13c43576ded42a9957dac09d9ada13cedeff7193ff5a0affe4073252be8e",
@@ -372,7 +372,7 @@
       "source": "casc-local-or-cdn",
       "fallback": "none"
     },
-    "verifiedAt": "2026-09-28T18:17:28.956809+00:00"
+    "verifiedAt": "2026-09-28T19:11:47.969679+00:00"
   },
   "renderer": {
     "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -1697,10 +1697,10 @@
           "w": 1000.0,
           "h": 420.0
         },
-        "uniqueColors": 6642
+        "uniqueColors": 6643
       },
-      "sha256": "6fe7887139a59ab16dfd3b569321a2bf92a35d7120c5480f5ff20cb89b884285",
-      "bytes": 162964,
+      "sha256": "9ea62aa1e85d4379ef91e4603e886e1de0590b6b0bbe87b444fbe0c3e8bfc688",
+      "bytes": 162948,
       "fixtureSha256": "302b5a4a0aeda3f1d32d94bb39e54efb69dbe6c7b4de0ec12689cc5264f00e77",
       "filename": "hud-arrangement.webp",
       "width": 1000,
@@ -1727,7 +1727,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -1740,14 +1740,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "4c619d829197dd54ce6cbc84ff64825d18e1fa517f3aed73343f14b4772ccfd1",
+      "key": "fd3e1221f9276d8b01667501678a981d083560a4061e67d12933491f605b843e",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "6fe7887139a59ab16dfd3b569321a2bf92a35d7120c5480f5ff20cb89b884285"
+      "reviewedSha256": "9ea62aa1e85d4379ef91e4603e886e1de0590b6b0bbe87b444fbe0c3e8bfc688"
     },
     {
       "id": "hud-column",
@@ -2017,10 +2017,10 @@
           "w": 1000.0,
           "h": 420.0
         },
-        "uniqueColors": 6643
+        "uniqueColors": 6644
       },
-      "sha256": "8778f39988bf73a15e6cda0b0539d574075c44a0132b2c40767924175287b0d0",
-      "bytes": 162988,
+      "sha256": "5c6224817b5e787b6b457b1f18ee619a4420a5478fc2c2f516e9a1a88d50a2da",
+      "bytes": 162968,
       "fixtureSha256": "739ee91416861680271c721ba9c884c30a18697ed0be8c3032ed0b4db729182d",
       "filename": "hud-scale@1.webp",
       "width": 1000,
@@ -2050,10 +2050,10 @@
               "w": 1000.0,
               "h": 420.0
             },
-            "uniqueColors": 6093
+            "uniqueColors": 6097
           },
-          "sha256": "70bef59659f105cab33b81aaa153197026e620da9cabe0d65a73931a006bc6a4",
-          "bytes": 164098,
+          "sha256": "6148dd7e7c5a1ead1c7a2d4e9574a2042b67fd8edba944833a077c3c9628b855",
+          "bytes": 164154,
           "fixtureSha256": "ba1efcb2bdd2f8eb751e03bb7746bf0636b3b5c02f145c10c68770ced37d36f9",
           "filename": "hud-scale@0.85.webp",
           "width": 1000,
@@ -2072,7 +2072,7 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "70bef59659f105cab33b81aaa153197026e620da9cabe0d65a73931a006bc6a4"
+          "reviewedSha256": "6148dd7e7c5a1ead1c7a2d4e9574a2042b67fd8edba944833a077c3c9628b855"
         },
         {
           "value": 1,
@@ -2084,10 +2084,10 @@
               "w": 1000.0,
               "h": 420.0
             },
-            "uniqueColors": 6643
+            "uniqueColors": 6644
           },
-          "sha256": "8778f39988bf73a15e6cda0b0539d574075c44a0132b2c40767924175287b0d0",
-          "bytes": 162988,
+          "sha256": "5c6224817b5e787b6b457b1f18ee619a4420a5478fc2c2f516e9a1a88d50a2da",
+          "bytes": 162968,
           "fixtureSha256": "739ee91416861680271c721ba9c884c30a18697ed0be8c3032ed0b4db729182d",
           "filename": "hud-scale@1.webp",
           "width": 1000,
@@ -2106,7 +2106,7 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "8778f39988bf73a15e6cda0b0539d574075c44a0132b2c40767924175287b0d0"
+          "reviewedSha256": "5c6224817b5e787b6b457b1f18ee619a4420a5478fc2c2f516e9a1a88d50a2da"
         },
         {
           "value": 1.15,
@@ -2118,10 +2118,10 @@
               "w": 1000.0,
               "h": 420.0
             },
-            "uniqueColors": 6384
+            "uniqueColors": 6385
           },
-          "sha256": "e4bfc8e75d7060bb920e0d9171ee1e20049904b69d83deea260590d10e514283",
-          "bytes": 161674,
+          "sha256": "38a173cabed032a1350e681e611927f79813b1a5258a7fd9ae538d0a1e334e86",
+          "bytes": 161602,
           "fixtureSha256": "3e2b3ad851850f50f218d26ab3c64d8e186d42526c14bb299a06c6722714919a",
           "filename": "hud-scale@1.15.webp",
           "width": 1000,
@@ -2140,7 +2140,7 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "e4bfc8e75d7060bb920e0d9171ee1e20049904b69d83deea260590d10e514283"
+          "reviewedSha256": "38a173cabed032a1350e681e611927f79813b1a5258a7fd9ae538d0a1e334e86"
         }
       ],
       "inputs": {
@@ -2151,7 +2151,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2164,14 +2164,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "419cb6a73dd97d9709efbb11d4cecdc2b62c1cd30e3249b187e47084d82f174c",
+      "key": "2cf168c0a7ddee0af9f1c3c941ea8f05b2b63f4d94182b0d8684ef3bf1a6661f",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "8778f39988bf73a15e6cda0b0539d574075c44a0132b2c40767924175287b0d0"
+      "reviewedSha256": "5c6224817b5e787b6b457b1f18ee619a4420a5478fc2c2f516e9a1a88d50a2da"
     },
     {
       "id": "plates-enemy",
@@ -2226,7 +2226,7 @@
         "world": {
           "plate": "elwynn-wolf",
           "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2239,7 +2239,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "17aa229b0fe11b5f190ffcf1a366f8659153be1b7262d58f09970cbb60a1a4d0",
+      "key": "bab304530a87fe776a0ff3faf147112372edf7221ffe8666300f162d03060af0",
       "modules": [
         "core",
         "nameplates"
@@ -2271,8 +2271,8 @@
         },
         "uniqueColors": 554
       },
-      "sha256": "9845f251837942b97ba25eba28625933cfcef231ec7c3524b29f401766f989b6",
-      "bytes": 65242,
+      "sha256": "7b6f517c4975bebb92da9192fa018815a217f3e7974911e9fa97f026b036ac77",
+      "bytes": 65232,
       "fixtureSha256": "13ac356110b1b3b6729dec3e50576cb7e744b466a4ac0d8172b33bbba7f5aa1a",
       "filename": "plates-target-focus.webp",
       "width": 600,
@@ -2299,7 +2299,7 @@
         "world": {
           "plate": "elwynn-wolf",
           "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2312,12 +2312,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "a1f798c008affa7fcab45ad56bdcbdf21c44062eeb5239e7a9c7398e2d730385",
+      "key": "d77a32f605e3aa46dfde928134fadebe187a9e6016dfa324639f19772041fb6a",
       "modules": [
         "core",
         "nameplates"
       ],
-      "reviewedSha256": "9845f251837942b97ba25eba28625933cfcef231ec7c3524b29f401766f989b6"
+      "reviewedSha256": "7b6f517c4975bebb92da9192fa018815a217f3e7974911e9fa97f026b036ac77"
     },
     {
       "id": "plates-friendly",
@@ -2371,7 +2371,7 @@
         "world": {
           "plate": "elwynn-wolf",
           "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2384,7 +2384,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "74301e10b7fe5850c068f01e624b213ef59ea1663547513777d69b6eb1576a05",
+      "key": "4876b0d16e2f7d5acbc0fc64d9c7d82982431ba4741e33b5499ba8ddbe2ccde0",
       "modules": [
         "core",
         "nameplates"
@@ -2416,8 +2416,8 @@
         },
         "uniqueColors": 596
       },
-      "sha256": "c08de9ecaf8de6e560c7977c0228e9dabcec59d31d592559e3aa45073bf90358",
-      "bytes": 80758,
+      "sha256": "5eb2b827e9f27cf4f1000e0bae7f95a90cfc909807673970d49982f7820cf6fc",
+      "bytes": 80790,
       "fixtureSha256": "fa31027bd887a85ac410d8f99b4f8829d47b7321d81100fafa5246a8939ad790",
       "filename": "plates-markers.webp",
       "width": 860,
@@ -2444,7 +2444,7 @@
         "world": {
           "plate": "elwynn-wolf",
           "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2457,12 +2457,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "329dedd11ca159e09467882663464aa861cda4375cdc40aac66195ece43e832d",
+      "key": "c32e823db9f3b4e879c421364f3687440ce7f0dbc6e79b8c77380ff857379857",
       "modules": [
         "core",
         "nameplates"
       ],
-      "reviewedSha256": "c08de9ecaf8de6e560c7977c0228e9dabcec59d31d592559e3aa45073bf90358"
+      "reviewedSha256": "5eb2b827e9f27cf4f1000e0bae7f95a90cfc909807673970d49982f7820cf6fc"
     },
     {
       "id": "plates-threat",
@@ -2488,8 +2488,8 @@
         },
         "uniqueColors": 760
       },
-      "sha256": "5c36881ed378ec1ddf429c5770739b0b8660e719daa53576c7d3435c72ddd98e",
-      "bytes": 30616,
+      "sha256": "f35b36b86a9b8377ae1d68239760fc076266282c10fe13515e8d2fd5b1051787",
+      "bytes": 30286,
       "fixtureSha256": "ba33a1cc98c8637587e09e06a477a8d65725b582eec91b8616ec16763948b174",
       "filename": "plates-threat.webp",
       "width": 520,
@@ -2516,7 +2516,7 @@
         "world": {
           "plate": "elwynn-wolf",
           "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2529,12 +2529,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "696d7e4ba4d2e4ac85175d626022b982667f82bec29537627d7e137e4686cea2",
+      "key": "78466311481038701be6900748370b785a7b37077c1dc5f5663606f2b66f4c61",
       "modules": [
         "core",
         "nameplates"
       ],
-      "reviewedSha256": "5c36881ed378ec1ddf429c5770739b0b8660e719daa53576c7d3435c72ddd98e"
+      "reviewedSha256": "f35b36b86a9b8377ae1d68239760fc076266282c10fe13515e8d2fd5b1051787"
     },
     {
       "id": "plates-debuffs",
@@ -2558,10 +2558,10 @@
           "w": 420.0,
           "h": 180.0
         },
-        "uniqueColors": 819
+        "uniqueColors": 818
       },
-      "sha256": "89d3a2dd4d4cd815b33d13f955f8b2bcb73da25fd4e930c4ebc4499df99ede83",
-      "bytes": 28788,
+      "sha256": "e73da236f39e0741e3bc4c1d10cb077ef2d29504236d7db6d136072c1e7406c9",
+      "bytes": 28740,
       "fixtureSha256": "314fb4949ce46d0c3e8e9fece0368c55f72a837ef6d10efa452805bd19a20620",
       "filename": "plates-debuffs.webp",
       "width": 420,
@@ -2588,7 +2588,7 @@
         "world": {
           "plate": "elwynn-wolf",
           "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2601,12 +2601,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "2342994fc6330bdeeaf13a9858b14da3a6dd518aad8403fb42eb93836c14c275",
+      "key": "280e11a5b5c1a0adaea11f90461d91e49bdc2ade6189f4cdbc8aed97eb106487",
       "modules": [
         "core",
         "nameplates"
       ],
-      "reviewedSha256": "89d3a2dd4d4cd815b33d13f955f8b2bcb73da25fd4e930c4ebc4499df99ede83"
+      "reviewedSha256": "e73da236f39e0741e3bc4c1d10cb077ef2d29504236d7db6d136072c1e7406c9"
     },
     {
       "id": "plates-cast",
@@ -2635,8 +2635,8 @@
         },
         "uniqueColors": 818
       },
-      "sha256": "9a00aaaec6f3d95607c73a8810567b4a7e02cc456f388fb8660e8efd22b8905d",
-      "bytes": 29658,
+      "sha256": "ffcbe47b6c201ad01019a1f5b16d287170f798d6974d62108639350fbcd201cc",
+      "bytes": 29662,
       "fixtureSha256": "d5ec32ab770ef9bf3bc87fb6ada0f04e0310e25d70f34d96cfb4f9f5ca173d70",
       "filename": "plates-cast.webp",
       "width": 420,
@@ -2663,7 +2663,7 @@
         "world": {
           "plate": "elwynn-wolf",
           "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -2676,14 +2676,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "f986abbd1160d5ed11e0da5b79e6fe4dfabfc15b1a52c1bd84f8811d828fab3d",
+      "key": "961c9025247071cd5148b5118ae4db0f6f9f82490b0b6447d82a061be4e239d6",
       "modules": [
         "auras",
         "core",
         "hud",
         "nameplates"
       ],
-      "reviewedSha256": "9a00aaaec6f3d95607c73a8810567b4a7e02cc456f388fb8660e8efd22b8905d"
+      "reviewedSha256": "ffcbe47b6c201ad01019a1f5b16d287170f798d6974d62108639350fbcd201cc"
     },
     {
       "id": "units-tot",
@@ -3382,10 +3382,10 @@
           "w": 1000.0,
           "h": 420.0
         },
-        "uniqueColors": 3795
+        "uniqueColors": 3791
       },
-      "sha256": "1d2f1ab634aae1e89271ac3a813a6ac15b451b044ec578b3231f532b5ce8c808",
-      "bytes": 162186,
+      "sha256": "b66404ebeefd4843ade238389bb828bdcc271f4e9c365662e014e7ca9f0ac9ef",
+      "bytes": 162108,
       "fixtureSha256": "e85525e62cd890359dc9b4f8338fa2de9c9c7a80e1c8d3914cfcbb39b88e82b0",
       "filename": "hud-rogue.webp",
       "width": 1000,
@@ -3412,7 +3412,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -3425,14 +3425,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "e8468686984282a7e59f9cb8e40ca5c55824e038ad65ea1317d79987cb727dfd",
+      "key": "09a57c130b4129d3ecf2631f40e77cf185a56c92c3a84d8b1b209643725d74b6",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "1d2f1ab634aae1e89271ac3a813a6ac15b451b044ec578b3231f532b5ce8c808"
+      "reviewedSha256": "b66404ebeefd4843ade238389bb828bdcc271f4e9c365662e014e7ca9f0ac9ef"
     },
     {
       "id": "hud-shaman",
@@ -3463,10 +3463,10 @@
           "w": 1000.0,
           "h": 420.0
         },
-        "uniqueColors": 5550
+        "uniqueColors": 5543
       },
-      "sha256": "cbcb780ab19541540e06b5dc866477d0e6434263457c91f547a3238010f93253",
-      "bytes": 164184,
+      "sha256": "4cb34832fd1069ebabc9a198162a05fbf5a446753335e87f7836b5b553f410a3",
+      "bytes": 164150,
       "fixtureSha256": "68ad03cc1a28feef389519bd0b58c2de69eecdec677fbcde215c7a9a1aa6daa7",
       "filename": "hud-shaman.webp",
       "width": 1000,
@@ -3493,7 +3493,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -3506,14 +3506,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "5a30a4d5dca925fb1698c56dd96ee7b8bd59bef85c18065d4dfc0ee2a16eda65",
+      "key": "c5ebb0d0e679d4a4b0c2de03ea29cc5bd8c0c365513f9a5213e5ed906875fecc",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "cbcb780ab19541540e06b5dc866477d0e6434263457c91f547a3238010f93253"
+      "reviewedSha256": "4cb34832fd1069ebabc9a198162a05fbf5a446753335e87f7836b5b553f410a3"
     },
     {
       "id": "hud-druid",
@@ -3545,10 +3545,10 @@
           "w": 1000.0,
           "h": 420.0
         },
-        "uniqueColors": 3396
+        "uniqueColors": 3402
       },
-      "sha256": "9228469ef2643c19ce3b93343ad1ef0b7092748d82dd1e5cfe4886b93cd91e5a",
-      "bytes": 163056,
+      "sha256": "b42ca8c25400222fd8588c0b4b368cbd807e2c98f5a567535123fc0d6624ad12",
+      "bytes": 163184,
       "fixtureSha256": "7a0873aebe0dd52ba5655378b8874e454fa839be8b9e3be6df3143844459cfc2",
       "filename": "hud-druid.webp",
       "width": 1000,
@@ -3575,7 +3575,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -3588,14 +3588,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "bbbce8bf5c753a65bbbb34246d10be18ad7681446984f0a91ac5225e4edfc2d3",
+      "key": "557db42676c701c8cd37456e6b83139f4c9bc36a52db20ac5f9008800abe6aa6",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "9228469ef2643c19ce3b93343ad1ef0b7092748d82dd1e5cfe4886b93cd91e5a"
+      "reviewedSha256": "b42ca8c25400222fd8588c0b4b368cbd807e2c98f5a567535123fc0d6624ad12"
     },
     {
       "id": "effects-player",
@@ -4544,8 +4544,8 @@
         },
         "uniqueColors": 3003
       },
-      "sha256": "6f556d357d755de1d5a24080c7f19002f59fe89d7bd8038dbe30dee592b9243c",
-      "bytes": 10642,
+      "sha256": "a60310d1f64fdf35756f00d97358bb8cec259624f796fd12d9bdc3a9179df7c3",
+      "bytes": 10546,
       "fixtureSha256": "3abd0ec97e313d57de8e4b1933595952e697ccc0c21574f27d347b6ebdeb00cf",
       "filename": "bars-main.webp",
       "width": 504,
@@ -4572,7 +4572,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -4585,14 +4585,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "c5d546b6ed5dba787435ef58021dcdd1d0208cffe247d4ab168f398482f6bc87",
+      "key": "7c6114d880881295c86f64266d51c5470403dd892ae5e7ee29d87ae50537baeb",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "6f556d357d755de1d5a24080c7f19002f59fe89d7bd8038dbe30dee592b9243c"
+      "reviewedSha256": "a60310d1f64fdf35756f00d97358bb8cec259624f796fd12d9bdc3a9179df7c3"
     },
     {
       "id": "bars-secondary",
@@ -4647,7 +4647,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -4660,7 +4660,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "e01af85ad875412b9770f0b4ee80828c5b81742da6c3b58e4c2c6360bdbebb4f",
+      "key": "0a592a05469deb9a0a71e22f080ab6ced67f1c62bf90b2ae62ef6fd6a2a502df",
       "modules": [
         "auras",
         "character",
@@ -4722,7 +4722,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -4735,7 +4735,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "9042099975d0484a73cd341caae879ec1a85eefe16eedbff794619ba4c8aad16",
+      "key": "b88d29e3be77c0b00954c0c7656ed6af1985e91648dbd31e9cbbf324f7740953",
       "modules": [
         "auras",
         "character",
@@ -4797,7 +4797,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -4810,7 +4810,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "f6a3af94b7467a9741ccd1a4d079a74acb1590c512ca8b94841650841f99737b",
+      "key": "5a8876c874da82d48ff635344cb88685a2b644a46fac8116a474fa6be0e8c0e2",
       "modules": [
         "auras",
         "character",
@@ -4872,7 +4872,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -4885,7 +4885,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "a0c6d16e0baa4369efa790fccc40808933b193744f2042498f04c4f69ee0ac84",
+      "key": "a26c97cc0e3a57bd7f2a2d584a0c310a3934611cec81ae72681cf11b21b24364",
       "modules": [
         "auras",
         "core",
@@ -4947,7 +4947,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -4960,7 +4960,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "d11a4fde786f756d66be31e41cfab75c423e695d5edece2da079b99609dcc244",
+      "key": "5709b8f017b554ac482a2c774f8428eb1b160bbb0db1867f005e1809f1884a90",
       "modules": [
         "auras",
         "character",
@@ -5023,7 +5023,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5036,7 +5036,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "98953f98e131b9c4a11b0e0d919520ec56bd892755c7dddd744ec8cd2eebad73",
+      "key": "41bdd694db1115c18602e49490d23772cb943d0bdf3a4e6abac41f351cecac99",
       "modules": [
         "auras",
         "core"
@@ -5097,7 +5097,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5110,7 +5110,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "73d2c4a2f6abdd90cebe30e78ab71f5feba6bad53c2c18b5e5f6d14ffb38fd77",
+      "key": "1bcee6e90eedce16bdb9e6333ce5f4532bef85f083f9e3ef8afa95283f5fa017",
       "modules": [
         "auras",
         "core"
@@ -5171,7 +5171,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5184,7 +5184,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "5b2bba9176f750d2a2fa6047340ce8116e712ac03a5769666522c89a1e6235c0",
+      "key": "8bb8aceacfee274b8496df2eef4f2332fa0c452c42a854132bd7abd9a2b509c0",
       "modules": [
         "auras",
         "core"
@@ -5245,7 +5245,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5258,7 +5258,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "697e1ca246a38852555ef79ee7d715872c287e365548931ddb63798c51b69faf",
+      "key": "7b59e99a5ca62e6745c9a99cfc7dc56fb08da161109f780c6bc0d03c2f3c2338",
       "modules": [
         "auras",
         "core"
@@ -5319,7 +5319,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5332,7 +5332,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "9c0ea1dc0e08c15b8edfb6215ba17b3878180f600526b8d772637d67d8c9a448",
+      "key": "ea2183dbde719d2c075a6e9526c56336c21a7a6e2b1bd57394f362edccead984",
       "modules": [
         "auras",
         "core"
@@ -5394,7 +5394,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5407,7 +5407,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "ad76fbe36bbee0a61240729c11e60939eb9a65199499cb1ac2a8bc61f0a585ac",
+      "key": "d24ad47585da789338c4dc9eca46a63480478b6ba5a5151e2296c01483864ae2",
       "modules": [
         "auras",
         "core",
@@ -5470,7 +5470,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5483,7 +5483,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "786ba3aac23cae487de53bc77347a631afd89018530993719870c910ff26635b",
+      "key": "0932288e221984786edeff09a51eb4537cb5ef4d09ce0b039abb9ca0bc6d3827",
       "modules": [
         "auras",
         "core",
@@ -5545,7 +5545,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5558,7 +5558,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "fcd822782c6e99950a998dcde36f50752fc873fb02ed37f063523ffcc8ea9c5c",
+      "key": "17f5eb068a867e73dba0a6e744051844b13812be04f68ffe02d96b6e3422144e",
       "modules": [
         "auras",
         "core",
@@ -5666,7 +5666,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5679,7 +5679,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "5a2dff7fbc7ce2e425db429c1c0e44c97d9edf012813aa669f2050d68a602d9e",
+      "key": "f458c59cc0e1950c35ea5ae15c0e358b9334167a29e2f3daa817987ac85f08f8",
       "modules": [
         "auras",
         "character",
@@ -5741,7 +5741,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5754,7 +5754,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "6c77619ef0561dd1abcc0f11fa6d1e1eee7cfd121386561b3404bff4b1c8667f",
+      "key": "31e7a04212cec4167586f66fb94a2962532a5fcd693d41e0a7ca9d8737920601",
       "modules": [
         "auras",
         "character",
@@ -5790,8 +5790,8 @@
         },
         "uniqueColors": 2144
       },
-      "sha256": "74a612a9ad58dbfff8b4faf6d020866ad156c92531ee3758b4fd6ee571ce1ea7",
-      "bytes": 8524,
+      "sha256": "316deabd61baa240fd86c9174b7dbf5ab3da1266ea2f105d43f29bfaedd8fec3",
+      "bytes": 8392,
       "fixtureSha256": "119d51e7e8f9e64bda3e776c241b8f601830f37db16cf915d7a2cac607091be3",
       "filename": "bars-stance-page.webp",
       "width": 504,
@@ -5818,7 +5818,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5831,14 +5831,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "bb2553f9f2f26a746274e4fb3ea21fd657b04c4cad37de1fd8fe9d2bfa19fe2b",
+      "key": "be6ee1b1bc0d1f58e9993fb093d01f7455da32edc1ebc3fe2feb2d2fda1d10f5",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "74a612a9ad58dbfff8b4faf6d020866ad156c92531ee3758b4fd6ee571ce1ea7"
+      "reviewedSha256": "316deabd61baa240fd86c9174b7dbf5ab3da1266ea2f105d43f29bfaedd8fec3"
     },
     {
       "id": "bars-stance",
@@ -5893,7 +5893,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5906,7 +5906,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "770c34855034fed21581452ec5da1313b60a02b569909002a9b702e7d52542c5",
+      "key": "f3154553f74ebda63a4b8d2765e3f9f1d2296b93c11ff2c19a76a01ac47574e4",
       "modules": [
         "auras",
         "character",
@@ -5968,7 +5968,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -5981,7 +5981,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "f1b28e4fd07d92ed340e53a0e387cdbdb7c6df0ba5d11fb3d1cb17897dc85c53",
+      "key": "7ec289a5e00805456aa30b600d3dcddb8660a65a1d65c39b682762bd25fe0911",
       "modules": [
         "auras",
         "character",
@@ -6042,7 +6042,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6055,7 +6055,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "08808533fef02f06286d76ad98c8fcd91adf65cec6dcc7cd2418895d2c28075c",
+      "key": "57bed36df862df73f61688994afcdb56ebeeeba7e9ba23fa11fec5b0debbcf66",
       "modules": [
         "auras",
         "core"
@@ -6116,7 +6116,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6129,7 +6129,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "7f2429c73a8f92f41139689b4ced8ef59344e59fa4ad6741cae475a237bc3da1",
+      "key": "f985894d7b38bb048302c613e69d9edb05692548a8c99f855f3ac5e18269f81d",
       "modules": [
         "auras",
         "character",
@@ -6164,8 +6164,8 @@
         },
         "uniqueColors": 5151
       },
-      "sha256": "37a3570495c267fdea6ef33088b0afae570c60e50eb9ec829d3c4580b772a074",
-      "bytes": 13084,
+      "sha256": "7595719a70dec6e5163fefb62d5b8c1e95955e11c33ab63926b1151511ffe9a2",
+      "bytes": 12846,
       "fixtureSha256": "b44b6bbd2eaea2106faab23440973a649d0deac7c40e54957ce49eb8fc6ef55a",
       "filename": "bars-ghost.webp",
       "width": 504,
@@ -6192,7 +6192,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6205,14 +6205,14 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "19c50b42d335b85fee2a2cecf46a7e7dc8871d91b986eb1e00f5a798f64240e5",
+      "key": "b1f5618d89dcc024b20e730295b3df98577a40885b81144d9222b89ece16d0d6",
       "modules": [
         "auras",
         "character",
         "core",
         "hud"
       ],
-      "reviewedSha256": "37a3570495c267fdea6ef33088b0afae570c60e50eb9ec829d3c4580b772a074"
+      "reviewedSha256": "7595719a70dec6e5163fefb62d5b8c1e95955e11c33ab63926b1151511ffe9a2"
     },
     {
       "id": "proc-vertical",
@@ -6266,7 +6266,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6279,7 +6279,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "c1c55bf2327cb24990112332f03b22f831813a55b1e9a4409512ad2a6b66ffbb",
+      "key": "08795c0a1f4a7ce0999b0366c58b9f9854ecb0514d65bf96b0c085dc1cdc5604",
       "modules": [
         "auras",
         "core"
@@ -6338,7 +6338,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6351,7 +6351,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "fb9766598715c3589b5f3ea30b4c92c36abd63f8d176616f9fb5e738ce2e1856",
+      "key": "20a34ef6a7e24f0c324510abbaa390a098ba0fd799fc97aa10e1c32dc326494c",
       "modules": [
         "auras",
         "core"
@@ -6410,7 +6410,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6423,7 +6423,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "d683ced9f2caf23f1eedd37a27ae877180fc925a5133e92c085e93c57efb4469",
+      "key": "9cc4d7dcce3a661f812ceaf4bc1e21256e03c7ac643bb1ea5fe7a29589ca5b99",
       "modules": [
         "core",
         "minimap"
@@ -6484,7 +6484,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6497,7 +6497,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "aa0bd838e47b3fbbd5840f81aaa91a11c817dcd35d5044c20ca136482c866040",
+      "key": "d23a32f540a3fb632ecd8933ee7c737c9c6151ee6ecc62c31c0ce28a9a5c0c23",
       "modules": [
         "core",
         "minimap"
@@ -6558,7 +6558,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6571,7 +6571,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "b1df2d0248778c0cae69ea04cfa5cdb9df0ce832e42458f642e5cae7c27ac172",
+      "key": "86a36ec75f4992631fb59e90fb2c85ce11f6e386beb656a1c95fc4d4414a4486",
       "modules": [
         "core",
         "minimap"
@@ -6630,7 +6630,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6643,7 +6643,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "46323cddf9d63edbbca81c43669ee94c35f825b8ee59b1d5dfa8addc5a9aa730",
+      "key": "5904f0fef8f3ca514ad737d611ec464a41e8eeb1471c6a459dc99950b548be65",
       "modules": [
         "core",
         "progress"
@@ -6702,7 +6702,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6715,7 +6715,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "0be909e5def69d178f9e77c5fc0109fdfdccbd6f98ee18c99f82641c69715a6d",
+      "key": "86f3974b02f3283bf5312ed24f00e188b68d15fcd076f75e7abf6737348e7d0e",
       "modules": [
         "core",
         "progress"
@@ -6774,7 +6774,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6787,7 +6787,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "8ff79dd01233ed5ebe406bb9f74fd75522c58d562d6ae25b3c00f2ef1cf45890",
+      "key": "264a310756382cf7ac056b31ad050a3884de4e3dd8bb2bc1d8bace5edf2300af",
       "modules": [
         "core",
         "progress"
@@ -6844,7 +6844,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6857,7 +6857,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "78e89e929530512599bd11ea43f53052f74bfafe0942970df04744e215ac8dd8",
+      "key": "d9452945be5feadeaa88bc4c11b419ac91fc4171d0b5421b2660714f840d5429",
       "modules": [
         "bags",
         "core"
@@ -6916,7 +6916,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -6929,7 +6929,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "653eaadbe500ce7932975dc74f74992873aed7be5f469b8e6a96c89d9834782f",
+      "key": "0dceaab94a6e5c479e3b6b0a95b9bffecf97c881ec1fcf9df5a1dc1de30059cc",
       "modules": [
         "chat",
         "core"
@@ -6960,8 +6960,8 @@
         },
         "uniqueColors": 2845
       },
-      "sha256": "58f83f1e5aa1fb2c44fdc65f6576293683b4b3a538daef2a29756d7362e3e5b3",
-      "bytes": 35246,
+      "sha256": "8783e5389d27663142a2ac08b4958ba091f9d2d12927a3b268aec5d53416ddba",
+      "bytes": 35200,
       "fixtureSha256": "9f0ae6c3ff665981a9d78d3e117931ba1b5d5b325fca064f213a0250f6490f95",
       "filename": "chat-input.webp",
       "width": 500,
@@ -6988,7 +6988,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7001,12 +7001,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "8492a39d430d4b7459d66eedfb6e1b93b38da91fa727563931bb676ad14b2f3d",
+      "key": "b6210f304d4a7dc2c15770375d21b3d038b71360b2ba5d7f5ab1b1ef444d6edf",
       "modules": [
         "chat",
         "core"
       ],
-      "reviewedSha256": "58f83f1e5aa1fb2c44fdc65f6576293683b4b3a538daef2a29756d7362e3e5b3"
+      "reviewedSha256": "8783e5389d27663142a2ac08b4958ba091f9d2d12927a3b268aec5d53416ddba"
     },
     {
       "id": "chat-scroll",
@@ -7058,7 +7058,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7071,7 +7071,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "e2b4b71713ccf100486c1cade854fbd0182057ea50089ce909f8d580b73ebb97",
+      "key": "54d21630d7b7ac58d0acb150891c1ecd145a87217234a8b65b4fbf20db1d4071",
       "modules": [
         "chat",
         "core"
@@ -7128,7 +7128,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7141,7 +7141,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "fbe8710c1737c1cbb8eaba361a97c4b4c3c5e670f9080ea3c121a1f0d17fda2a",
+      "key": "6d6b07506c7623ad21d0386417921adae46c33aa428f98c2c4d2461a11cabb32",
       "modules": [
         "chat",
         "core"
@@ -7282,7 +7282,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7295,7 +7295,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "3e8394050ee49e5c8dac4c8142c5d876c9a36f0e3fd83a6a7e2538bbc391b69f",
+      "key": "0496af975fc4fd82542f3189b17409212ba32a3301674295fd5d45ec85ae53c6",
       "modules": [
         "core",
         "progress"
@@ -7352,7 +7352,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7365,7 +7365,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "e8bc3a082506484e60b1a77697f9302f865ad0ce83fa748191acce63662fc713",
+      "key": "4a1cbb516c12645d2b19e16de8090379ef5bc7fc1456f7b8e25118fc3a181b26",
       "modules": [
         "core",
         "progress"
@@ -7422,7 +7422,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7435,7 +7435,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "231fdfce80ff03655417fba364a604e0d090014415d645e320be5f6b366cd49d",
+      "key": "d38198717551af7bb893469d87c295204706936637ed1b7173ca1694cec9187e",
       "modules": [
         "core",
         "progress"
@@ -7494,7 +7494,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7507,7 +7507,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "3529fc4224fb6885f7196648920875a2ba5ad3d168f3690af2feafe13658dbcc",
+      "key": "319e5e7fee6e59845f007f6f9a9ceb1fe0c958b642213c7b679d2e5153a04324",
       "modules": [
         "core",
         "progress"
@@ -7564,7 +7564,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7577,7 +7577,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "f19a128b26998a1ec8831748bf9bf49132a548eab39435b6f9de7920b7971a18",
+      "key": "57f19869fa8e6996b12a621ae3be77343fd78b866b7d903e07f23579dabc35e1",
       "modules": [
         "bags",
         "core"
@@ -7608,8 +7608,8 @@
         },
         "uniqueColors": 5607
       },
-      "sha256": "a65ca2ddffc8ed08ef09048dd121d71c84aff1e0b8d4602a03f09d6457c0cb52",
-      "bytes": 72500,
+      "sha256": "8c9d8cace1768081d2560861cfe0f180704a531a638c2f4a4a7f96878c53a82c",
+      "bytes": 72292,
       "fixtureSha256": "2af3d58c0348823b4833cb0c20e6b66b50594135200325c8abb21219963845c0",
       "filename": "hud-queue.webp",
       "width": 480,
@@ -7636,7 +7636,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7649,12 +7649,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "aa7dfedf414b44ce06c7a6301a14500efa4d6beb812ee2a015a5a2898b5c401e",
+      "key": "6f83c0383af6dbea2040be7cf1625536caef6bf9a77e56cfdaaf37474f957a4f",
       "modules": [
         "core",
         "minimap"
       ],
-      "reviewedSha256": "a65ca2ddffc8ed08ef09048dd121d71c84aff1e0b8d4602a03f09d6457c0cb52"
+      "reviewedSha256": "8c9d8cace1768081d2560861cfe0f180704a531a638c2f4a4a7f96878c53a82c"
     },
     {
       "id": "hud-framerate",
@@ -7706,7 +7706,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7719,7 +7719,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "eb749c4873f4ca31dd4df97e1b2b63f950010d5319b83a0d1d3d06603a871465",
+      "key": "8019f4fd795704fda900c7f1abffb1371c74119142908a9823f555ae8fc5494b",
       "modules": [
         "core",
         "text"
@@ -7750,8 +7750,8 @@
         },
         "uniqueColors": 746
       },
-      "sha256": "b51e15950d8e736ff417c047dbf5f3283186dc0a375e75e32528cf245eff23ed",
-      "bytes": 65460,
+      "sha256": "d4f4bf619cce8c30b6dc201b07fec523d989956705bb182d24999c3efcf2aea7",
+      "bytes": 65106,
       "fixtureSha256": "8d510c3f5ff3051192814ff20176675af291399d2d0345cf0a625b53ecdcf76e",
       "filename": "text-zone.webp",
       "width": 800,
@@ -7778,7 +7778,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7791,12 +7791,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "e2d6136e815448ab5550176fe5261f434b26caffa641ce17b8a49e5f03bc16ca",
+      "key": "c1e53dbf5e4fab24e807618d3d27d42a39dd245514356dd17bdf4c6e4ed6c507",
       "modules": [
         "core",
         "text"
       ],
-      "reviewedSha256": "b51e15950d8e736ff417c047dbf5f3283186dc0a375e75e32528cf245eff23ed"
+      "reviewedSha256": "d4f4bf619cce8c30b6dc201b07fec523d989956705bb182d24999c3efcf2aea7"
     },
     {
       "id": "loot-coins",
@@ -7872,8 +7872,8 @@
         },
         "uniqueColors": 443
       },
-      "sha256": "1f51e715d95ba3c6704644ccb2850afa022af3c877d19d2e7c130952a4d6e675",
-      "bytes": 63504,
+      "sha256": "03d91e3891ca1fcd0188185c762bc480c751463c5d4df4eb16c52fc5a31599c3",
+      "bytes": 63394,
       "fixtureSha256": "ae2b84ffbb7552fee4988c0dedcdf40cf831624ef5fcbdb078ecb3894372364d",
       "filename": "text-subzone.webp",
       "width": 800,
@@ -7900,7 +7900,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -7913,12 +7913,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "6399056bf7ed89865d8726afc705606acbbc798b9192d4c750fe8fab5d2c6d88",
+      "key": "1ede7017928faf98905306b219497fe5e265b433c21dff424f5b490badae1ce3",
       "modules": [
         "core",
         "text"
       ],
-      "reviewedSha256": "1f51e715d95ba3c6704644ccb2850afa022af3c877d19d2e7c130952a4d6e675"
+      "reviewedSha256": "03d91e3891ca1fcd0188185c762bc480c751463c5d4df4eb16c52fc5a31599c3"
     },
     {
       "id": "toast-friend",
@@ -8366,7 +8366,7 @@
         },
         "uniqueColors": 474
       },
-      "sha256": "a3999f51a4fdbd4da90dfbe7c067e6931fc3666536517400bdeb7ef608192fa8",
+      "sha256": "9006057499d57aa670650d0bf0b655db120f3e529a64527ec2c0c029a1d460d0",
       "bytes": 16034,
       "fixtureSha256": "fbb95efbc7e3fb9ec830d6189355a2b52901acfd8a93bfd561867aed4cabca33",
       "filename": "bubble-npc.webp",
@@ -8394,7 +8394,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -8407,12 +8407,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "640fa2f346049251306afe7fc6f0d5c1c16ad1a069aa7c0013c41f2166c6c53e",
+      "key": "9ec2dd02c3a065ca800030429cde827cfde258672ca149aebfde79c201f4a0b7",
       "modules": [
         "chat",
         "core"
       ],
-      "reviewedSha256": "a3999f51a4fdbd4da90dfbe7c067e6931fc3666536517400bdeb7ef608192fa8"
+      "reviewedSha256": "9006057499d57aa670650d0bf0b655db120f3e529a64527ec2c0c029a1d460d0"
     },
     {
       "id": "hud-navigation",
@@ -8438,8 +8438,8 @@
         },
         "uniqueColors": 785
       },
-      "sha256": "9db27d9ab1ec04fd38f8cb49dc8021fb27ec98040fce9e494a50a79f2f248da1",
-      "bytes": 19072,
+      "sha256": "7e5872510501e3dea5e1318d6cb05053cf6b6b0e35874d8059684c0f0a917c9e",
+      "bytes": 19184,
       "fixtureSha256": "88fefdbd900ac2b1ab8e076f467463aa95acebbd1cc909481081717111a599d7",
       "filename": "hud-navigation.webp",
       "width": 260,
@@ -8466,7 +8466,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -8479,12 +8479,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "b034f4a1f4698247dc427c9f40281e2205bc4bffe2684f8eec12a0329e378248",
+      "key": "f0b1a4add534e3a95516ab126b1cdce87e1578e4974572352e36753d196ba054",
       "modules": [
         "core",
         "text"
       ],
-      "reviewedSha256": "9db27d9ab1ec04fd38f8cb49dc8021fb27ec98040fce9e494a50a79f2f248da1"
+      "reviewedSha256": "7e5872510501e3dea5e1318d6cb05053cf6b6b0e35874d8059684c0f0a917c9e"
     },
     {
       "id": "text-error",
@@ -8508,8 +8508,8 @@
         },
         "uniqueColors": 993
       },
-      "sha256": "c2f172d055336b0e3352a02cff299ac2e8155790748757144507258ac23c3bd9",
-      "bytes": 48250,
+      "sha256": "3e1ea4645c31dd89760e9332e0881b8a28d588b7e67f8a169b2e5f4db2738a43",
+      "bytes": 48246,
       "fixtureSha256": "8a974b4415cbc28dac4280d9258eaee21f8058e89b5fa7f9e084ab45b64cfb76",
       "filename": "text-error.webp",
       "width": 800,
@@ -8536,7 +8536,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -8549,12 +8549,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "9225281469de1f8764c236e911ab7854bfa50df2f8d8f710ff540513740b075d",
+      "key": "c3e4951736f046c8aad817e15bd30a290073ec3faed85d0c866f8bd898197a00",
       "modules": [
         "core",
         "text"
       ],
-      "reviewedSha256": "c2f172d055336b0e3352a02cff299ac2e8155790748757144507258ac23c3bd9"
+      "reviewedSha256": "3e1ea4645c31dd89760e9332e0881b8a28d588b7e67f8a169b2e5f4db2738a43"
     },
     {
       "id": "alert-loot",
@@ -8608,7 +8608,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -8621,7 +8621,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "1b43282591bc6c64b87fcb62e99b49524131bdda58341fb35f39b51be6be58dd",
+      "key": "d1dee8e42508a122ce987e568ef061335ceecd1a5ef2a2aa18a995d593f0426d",
       "modules": [
         "alerts",
         "core"
@@ -8678,7 +8678,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -8691,7 +8691,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "700e484962c05e9a5949fd458e847d0b6fe9cdd98df2e5ac4de3c30f08efcf13",
+      "key": "c6b20ba6d4a40860e7457a86067956a06fb1508410da7301fe9194f246d6eebb",
       "modules": [
         "alerts",
         "core"
@@ -8722,8 +8722,8 @@
         },
         "uniqueColors": 1734
       },
-      "sha256": "7c4520f2cf033f4d25b1d1755d1365067d32a33d75da0bc5c92ac0f2207fb305",
-      "bytes": 24026,
+      "sha256": "dbdec274e7f50df832d80c4929ad53027da53c0c99372dec9fb3d7e51a83a48c",
+      "bytes": 24028,
       "fixtureSha256": "6621eda43930862dc64fb7d2d1c7544b707da686edee7c0ef4cd4682d22f8e6c",
       "filename": "alert-achievement.webp",
       "width": 400,
@@ -8750,7 +8750,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -8763,12 +8763,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "4252b1d7d58fd3db99a655b53ce2c8ad380cc6f6b8a8b6b54afb26eaf01981a0",
+      "key": "45f03f109f737853e166ffcced436de92d33ba040d72c024c3f3b39686a8a11d",
       "modules": [
         "alerts",
         "core"
       ],
-      "reviewedSha256": "7c4520f2cf033f4d25b1d1755d1365067d32a33d75da0bc5c92ac0f2207fb305"
+      "reviewedSha256": "dbdec274e7f50df832d80c4929ad53027da53c0c99372dec9fb3d7e51a83a48c"
     },
     {
       "id": "toast-time",
@@ -8918,7 +8918,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -8931,7 +8931,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "44ae123669e43875282464d24f869987282b23eacf69e1b3f635aa94aef071c7",
+      "key": "8f1635f3e6de77b445ba2715a332034aad402561401b0c2efa5446bf96b32039",
       "modules": [
         "bags",
         "core"
@@ -9012,8 +9012,8 @@
         },
         "uniqueColors": 1928
       },
-      "sha256": "15713d201de9be498bf782855f4ced51ee4e63325475b0976aa04a1f68022364",
-      "bytes": 72940,
+      "sha256": "40567462ef6a5f0716ffdacb057cbb82f8efbb8cbc59110647c8686234182124",
+      "bytes": 72808,
       "fixtureSha256": "5c264ac562fbf80eea0ce8e9eebd42d37a287bb479bfda63fcaad26062f86d2d",
       "filename": "banner-objective.webp",
       "width": 800,
@@ -9040,7 +9040,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9053,12 +9053,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "1eaf5ce0c39b40a57b59c601be29ceb8b0f759ae36b71dd983892f3d448c6418",
+      "key": "fab353a47e2e02c2984b5131e75eee0db9b6568f672366b0dc5cc751937ecb55",
       "modules": [
         "alerts",
         "core"
       ],
-      "reviewedSha256": "15713d201de9be498bf782855f4ced51ee4e63325475b0976aa04a1f68022364"
+      "reviewedSha256": "40567462ef6a5f0716ffdacb057cbb82f8efbb8cbc59110647c8686234182124"
     },
     {
       "id": "xp-gain",
@@ -9112,7 +9112,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9125,7 +9125,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "3c0317be347302fb06b683a4f31c4f9b55be47984b8cd266159ac1bb2f306649",
+      "key": "d93b38288ffb7a45383ae16ce90c7a504a689694e85665387ab48bafe62b2c2e",
       "modules": [
         "core",
         "progress"
@@ -9154,8 +9154,8 @@
         },
         "uniqueColors": 526
       },
-      "sha256": "8a31b1d7b4d97c171d1a2fa5cb3a8bc1b1c74ebe2c718d29d723626d931fe112",
-      "bytes": 20114,
+      "sha256": "e0e3b37139bc979f34905df565dcc55a34fab5898097aa041aeb5d61bab9ad82",
+      "bytes": 20106,
       "fixtureSha256": "2faf8da1ee96ab18b0b52eee7c306d9f20e912d8f3ebdbf5b91f6d293bf5a468",
       "filename": "bubble-player.webp",
       "width": 420,
@@ -9182,7 +9182,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9195,12 +9195,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "7d7ec77a6ce10c0fa62fafd662a8eb99d60165b39145f895442d7d12f6cabcc9",
+      "key": "1a113688865fc57bfd6c2371ffec6a8fc2b7b8d95268f28c8c5f0eac55a1fc7e",
       "modules": [
         "chat",
         "core"
       ],
-      "reviewedSha256": "8a31b1d7b4d97c171d1a2fa5cb3a8bc1b1c74ebe2c718d29d723626d931fe112"
+      "reviewedSha256": "e0e3b37139bc979f34905df565dcc55a34fab5898097aa041aeb5d61bab9ad82"
     },
     {
       "id": "text-raid",
@@ -9226,8 +9226,8 @@
         },
         "uniqueColors": 900
       },
-      "sha256": "cf5b888d971590c0d435404a5f3c5169f1fac98402a647eed724c8a5fb62076d",
-      "bytes": 45630,
+      "sha256": "b94c1b93cb33bbf0297d054d12f191f0b3b85e641a2028f00971c234a6032bc6",
+      "bytes": 45588,
       "fixtureSha256": "598c2cefa497907d4fd1e226330371e7298fe396bbf1fa84203f5b18ce078ba6",
       "filename": "text-raid.webp",
       "width": 800,
@@ -9254,7 +9254,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9267,12 +9267,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "41cdf0bc3492bc6f96fc65d5a120112037deafc09c38f9b017aeec0cffdcae2b",
+      "key": "d79e7827016bf97036d4f7648187df0a8e5f80769572460b11d94db9e4e092cb",
       "modules": [
         "core",
         "text"
       ],
-      "reviewedSha256": "cf5b888d971590c0d435404a5f3c5169f1fac98402a647eed724c8a5fb62076d"
+      "reviewedSha256": "b94c1b93cb33bbf0297d054d12f191f0b3b85e641a2028f00971c234a6032bc6"
     },
     {
       "id": "tip-aura",
@@ -9376,7 +9376,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9389,7 +9389,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "977d29a83e45d97f311b844763c0bc431ae4c1a8240b94d985ce659aa5fe1576",
+      "key": "ee5dbec1bdbfea3416c622ab8e73bf43c16241108142b1e25cb5ef44e022d2aa",
       "modules": [
         "core",
         "questing"
@@ -9448,7 +9448,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9461,7 +9461,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "ca311cbeacd17cfe952b3e140a28e7b7fa79d82b84be714126f373ad5fd481d2",
+      "key": "9c97f71264a16d1b4e7f3df470a4c5d88eb5cbbbb91a3c35560b01646c2969f6",
       "modules": [
         "core",
         "questing"
@@ -9520,7 +9520,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9533,7 +9533,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "aff6f9ac83e0aa1838636c3e5d4507e6d100bc0b7d63f540bd673961802ca253",
+      "key": "4176e1beaf62a8223a35b8b6f476b552daa74fb1610ac97a06a91a7f32e7b82d",
       "modules": [
         "core",
         "questing"
@@ -9592,7 +9592,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9605,7 +9605,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "749ae5d93bf3f57aa5cd12607ff6934c5cfa6715f46fafca899148a62b2626c0",
+      "key": "4423cdb7e9a8d74d9ed7fae58acafb1f6b7222999458e41a92df046b9a4b17e1",
       "modules": [
         "core",
         "questing"
@@ -9664,7 +9664,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9677,7 +9677,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "81176a682660cd84d4c4a04b05fb04f2508deab8f820684028202ca7801f3b16",
+      "key": "0d0e092f11f0f13033c77baec1ed8d72cbaa6165cf60fc502c07e5f4c7ba5645",
       "modules": [
         "core",
         "questing"
@@ -9736,7 +9736,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9749,7 +9749,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "14871e4ec7d5afdeda289e1771443ab06ea7dc952b70da6aed4b5a7ebbc6c07b",
+      "key": "0fbc3e94c6d21122106679c92333c6f311aee71780677c101d0aed3d553e0cfb",
       "modules": [
         "core",
         "questing"
@@ -9808,7 +9808,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9821,7 +9821,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "09b215a28065f0894465efd4fa45af8e6f36b5eb24dcb6c4c107a30a97c0695c",
+      "key": "4190ed1ccaf0a095a163ddcf654812f6cf674a592b4cba24c0e83f0726ec3c21",
       "modules": [
         "core",
         "questing"
@@ -9880,7 +9880,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9893,7 +9893,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "533ee4bbbadb8fff7d7d7d4327d005f1df78173e9bf1e9a182df83128db87163",
+      "key": "0d10f109471c20bb699d27b8dbac987308fa94e604657217869e368179ca7cca",
       "modules": [
         "core",
         "questing"
@@ -9953,7 +9953,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -9967,7 +9967,7 @@
         },
         "corpus": "dcb5e7ea6bf8a5bc60a64532136ac1ac5be8778efac6b38669e03b5649878591"
       },
-      "key": "be6ff952104145397bfbf8f330116f48df67e1914768301924fcd91043b6ae2e",
+      "key": "ea9cba48265bb29f5e4f368021e8cd7f0a45125132ef42632284020ceb101d04",
       "modules": [
         "core",
         "questing"
@@ -9999,8 +9999,8 @@
         },
         "uniqueColors": 796
       },
-      "sha256": "f30a6743982f62c1da3b5f9a115755f0e73a46bf22bfdc319d83b272c21ece26",
-      "bytes": 17980,
+      "sha256": "eef4c25a8b8e75c1e704abef82c155ff79ce48989c2c5d52a61c5a9660f365af",
+      "bytes": 17976,
       "fixtureSha256": "1cad02914b817d984e6936496f1b70c9a51da511dc48c39c96a25c4150605ea4",
       "filename": "planner-arrow.webp",
       "width": 300,
@@ -10027,7 +10027,7 @@
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -10041,12 +10041,12 @@
         },
         "corpus": "dcb5e7ea6bf8a5bc60a64532136ac1ac5be8778efac6b38669e03b5649878591"
       },
-      "key": "f5e7b5195dadf6d15181dab241b16cd4990ebefb5d45e2a792cde4c29608ba63",
+      "key": "0ff9fda4a81708cd092ad65d50723a71eae7dbae28296382821f2e20f3aaefa8",
       "modules": [
         "core",
         "questing"
       ],
-      "reviewedSha256": "f30a6743982f62c1da3b5f9a115755f0e73a46bf22bfdc319d83b272c21ece26"
+      "reviewedSha256": "eef4c25a8b8e75c1e704abef82c155ff79ce48989c2c5d52a61c5a9660f365af"
     },
     {
       "id": "planner-objective",
@@ -12786,11 +12786,11 @@
           "w": 1060.0,
           "h": 592.0
         },
-        "uniqueColors": 11941
+        "uniqueColors": 13616
       },
-      "sha256": "33d25613812a9e53a28fc97aba6e3dcdda9873c6e9b6f0b34aa2c2c3ffb9a639",
-      "bytes": 241298,
-      "fixtureSha256": "28ce38baed2ac3fe3501b76cb44343f1a4b5ae28dcfd668d22094e014d64a230",
+      "sha256": "843de2753eaf7034e9793bc9704e8c07e16e16108b5560a64fa1c4571cf1e142",
+      "bytes": 242844,
+      "fixtureSha256": "de498b167f1eb67366f5d7a2d9380db7fb1f42f02706734c91f9ceb18f301c5c",
       "filename": "layout-mover.webp",
       "width": 1060,
       "height": 592,
@@ -12809,14 +12809,14 @@
         "captured": "2026-09-28T00:55:06.916Z"
       },
       "inputs": {
-        "script": "4fc73e12b8009bac4594b051c3d677a406e74bbd029d11c9f615ef9ab45fd56d",
+        "script": "1ee408e41ae297360a527fdccb08f359de11991bfdb24e82c0ae457600ec5fed",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -12829,7 +12829,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "149f5551637a467be3c042a160c0ecdcc8763a96859ebe602fe0eb42db52890b",
+      "key": "16667c9e3ce64b225a996ac45bf0037d9aafec38da3a9275b03093e1060c9fc3",
       "modules": [
         "auras",
         "bags",
@@ -12842,7 +12842,7 @@
         "progress",
         "questing"
       ],
-      "reviewedSha256": "33d25613812a9e53a28fc97aba6e3dcdda9873c6e9b6f0b34aa2c2c3ffb9a639"
+      "reviewedSha256": "843de2753eaf7034e9793bc9704e8c07e16e16108b5560a64fa1c4571cf1e142"
     },
     {
       "id": "layout-tags",
@@ -12869,11 +12869,11 @@
           "w": 1160.0,
           "h": 560.0
         },
-        "uniqueColors": 10562
+        "uniqueColors": 11137
       },
-      "sha256": "ace886c808987f5130c637c8b75d3301d61c75064a55bf8d16395e4b1d1992c1",
-      "bytes": 262054,
-      "fixtureSha256": "b39ca42f8f737753fb1798e3d49c0b903e375d71b9f51f0b6429a0b64dc3dffc",
+      "sha256": "ecc11adb0707fcea176f3fbb0cee7790edf85cee8a48c37fcfaffe6166002ac6",
+      "bytes": 263216,
+      "fixtureSha256": "0db1cc678f0353f01bedc0a620187a1371bfdf92b7b8be5a391c203173734e89",
       "filename": "layout-tags.webp",
       "width": 1160,
       "height": 560,
@@ -12892,14 +12892,14 @@
         "captured": "2026-09-28T00:55:06.916Z"
       },
       "inputs": {
-        "script": "898625b2172fa5e179af2784d620a89488d3bfe22b22de1fe5ea845980b968cf",
+        "script": "86da06e18d16425942c6df4c71393fbf4e2e797dc02b1a3470e9801d3283e4bd",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -12912,7 +12912,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "7205eb26d37f213e284c64e8c909a07b9beabd6694045750503b9c9f94dd517b",
+      "key": "aa3eccf8c1554a1b1c97d5e5bed424804c3c44ab994d4ec5f82c9f944aafac26",
       "modules": [
         "auras",
         "bags",
@@ -12925,7 +12925,7 @@
         "progress",
         "questing"
       ],
-      "reviewedSha256": "ace886c808987f5130c637c8b75d3301d61c75064a55bf8d16395e4b1d1992c1"
+      "reviewedSha256": "ecc11adb0707fcea176f3fbb0cee7790edf85cee8a48c37fcfaffe6166002ac6"
     },
     {
       "id": "layout-resize",
@@ -12951,11 +12951,11 @@
           "w": 560.0,
           "h": 330.0
         },
-        "uniqueColors": 813
+        "uniqueColors": 1822
       },
-      "sha256": "103b5e219996afe4b9ae20a95e51731863f8dcefc871d41d1543e6029d3a5366",
-      "bytes": 53862,
-      "fixtureSha256": "87663fda3e57776b87e026c74262db1b7199c374cd7a5cb41496c410a8502a35",
+      "sha256": "f533ac65ed4742fe8ef64a804d3683985035d912ad141bf5e346e41af9d514c4",
+      "bytes": 54384,
+      "fixtureSha256": "93b523ddb1d475df738d56974926468d79d30eadaf55cd0711083171a1004f25",
       "filename": "layout-resize.webp",
       "width": 560,
       "height": 330,
@@ -12974,14 +12974,14 @@
         "captured": "2026-09-28T00:55:06.916Z"
       },
       "inputs": {
-        "script": "e1a2dd98387f10b4942d7a2711d195547ca4331c2ff2bb64be9c3178a6d3bded",
+        "script": "9bd1123502e278cda033b951589a50d7f730dca60ba695ab63a203cc3c2aa942",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -12994,7 +12994,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "6ecd6a99300e1f7765cb1b6858b1ee7b39edccc430cb7c349dc0444431dc2d9a",
+      "key": "d8f012b34d2875e1fa7d66d5e7ac0fc06963c6e0aeaeb30d9a3f9b263aeb375c",
       "modules": [
         "auras",
         "bags",
@@ -13007,7 +13007,7 @@
         "progress",
         "questing"
       ],
-      "reviewedSha256": "103b5e219996afe4b9ae20a95e51731863f8dcefc871d41d1543e6029d3a5366"
+      "reviewedSha256": "f533ac65ed4742fe8ef64a804d3683985035d912ad141bf5e346e41af9d514c4"
     },
     {
       "id": "layout-presets",
@@ -13180,7 +13180,7 @@
       "fixtures": [
         "RikRenderScreenState()"
       ],
-      "lua": "ChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+      "lua": "ChatFrame1:Clear()\nRikRenderChatLines()\n",
       "expectText": [
         "Rik",
         "Goldshire"
@@ -13211,11 +13211,11 @@
           "w": 2048.0,
           "h": 1152.0
         },
-        "uniqueColors": 20464
+        "uniqueColors": 22878
       },
-      "sha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1",
-      "bytes": 862266,
-      "fixtureSha256": "7bfb307c3548abb2b8ff1f488298b4d62177bc3ebe9db9ac76a02506b043f7c3",
+      "sha256": "6e9ac4d6f0ce5e7df9423732440ba1d947d1f416e7f3e6eead9178091e575a9b",
+      "bytes": 864702,
+      "fixtureSha256": "210b11fedc0e6bde951956d0411267f4e213dd48d024c4969b8f220357229dd6",
       "filename": "overview-layouts@centered.webp",
       "width": 2048,
       "height": 1152,
@@ -13244,11 +13244,11 @@
               "w": 2048.0,
               "h": 1152.0
             },
-            "uniqueColors": 20464
+            "uniqueColors": 22878
           },
-          "sha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1",
-          "bytes": 862266,
-          "fixtureSha256": "7bfb307c3548abb2b8ff1f488298b4d62177bc3ebe9db9ac76a02506b043f7c3",
+          "sha256": "6e9ac4d6f0ce5e7df9423732440ba1d947d1f416e7f3e6eead9178091e575a9b",
+          "bytes": 864702,
+          "fixtureSha256": "210b11fedc0e6bde951956d0411267f4e213dd48d024c4969b8f220357229dd6",
           "filename": "overview-layouts@centered.webp",
           "width": 2048,
           "height": 1152,
@@ -13266,7 +13266,7 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1"
+          "reviewedSha256": "6e9ac4d6f0ce5e7df9423732440ba1d947d1f416e7f3e6eead9178091e575a9b"
         },
         {
           "value": "classic",
@@ -13278,11 +13278,11 @@
               "w": 2048.0,
               "h": 1152.0
             },
-            "uniqueColors": 20828
+            "uniqueColors": 22676
           },
-          "sha256": "5557ca0c488a22ffabbaec6e5bd78f177a67fdd9a291326a08fdbf8c7d4376a9",
-          "bytes": 862140,
-          "fixtureSha256": "86134b7c8a9f7a2ce0c507866d8b5f92b318ff03739bee332cc79e9296b3a121",
+          "sha256": "40795b22285f54f200dd19833c0aa4de7c2c5369d437a96c68f9bf77f7c0a860",
+          "bytes": 864582,
+          "fixtureSha256": "d463f058f43d777eea9a2aacf467dba059e9dd58dbd4ec58434d64f3b23ff4fe",
           "filename": "overview-layouts@classic.webp",
           "width": 2048,
           "height": 1152,
@@ -13300,7 +13300,7 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "5557ca0c488a22ffabbaec6e5bd78f177a67fdd9a291326a08fdbf8c7d4376a9"
+          "reviewedSha256": "40795b22285f54f200dd19833c0aa4de7c2c5369d437a96c68f9bf77f7c0a860"
         },
         {
           "value": "hud",
@@ -13312,11 +13312,11 @@
               "w": 2048.0,
               "h": 1152.0
             },
-            "uniqueColors": 20769
+            "uniqueColors": 22734
           },
-          "sha256": "8dfd1d731ef4f008cf0de3312f8d2c42d1beaaf5788c021fd187e551d25930fd",
-          "bytes": 863646,
-          "fixtureSha256": "aabc919025bad14afdb713e115b0ad1fe82d06eb684ae84ae9d26f7e21b8c33e",
+          "sha256": "257f8bf352c26c066e26bf934d813dd6cfcc95bebe205c560cb594ceff423dd8",
+          "bytes": 864774,
+          "fixtureSha256": "f92f2d9d721f333a0e0008c3bb6c5899d4f14a8778bb3d7e9635d7ec2ce5f759",
           "filename": "overview-layouts@hud.webp",
           "width": 2048,
           "height": 1152,
@@ -13334,7 +13334,7 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "8dfd1d731ef4f008cf0de3312f8d2c42d1beaaf5788c021fd187e551d25930fd"
+          "reviewedSha256": "257f8bf352c26c066e26bf934d813dd6cfcc95bebe205c560cb594ceff423dd8"
         },
         {
           "value": "healer",
@@ -13346,11 +13346,11 @@
               "w": 2048.0,
               "h": 1152.0
             },
-            "uniqueColors": 19907
+            "uniqueColors": 22136
           },
-          "sha256": "046de5902d8a47e11752dadd239a8a86d2c4b41d9b20a78dbc60646642ae1ac3",
-          "bytes": 861640,
-          "fixtureSha256": "4a6424f7c357ac9c4a6f8e0305838f8ef39a26dd032366b53301dd972e213d1a",
+          "sha256": "18616bb18362ad651367e1611fa156b93a4b64cf88a027f71c5e9c2cce67a332",
+          "bytes": 863826,
+          "fixtureSha256": "4f25f61bb4dbc57fe8f9d481fa3e78435cb3c346895b2bbcbfd05d09f8bdc827",
           "filename": "overview-layouts@healer.webp",
           "width": 2048,
           "height": 1152,
@@ -13368,18 +13368,18 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "046de5902d8a47e11752dadd239a8a86d2c4b41d9b20a78dbc60646642ae1ac3"
+          "reviewedSha256": "18616bb18362ad651367e1611fa156b93a4b64cf88a027f71c5e9c2cce67a332"
         }
       ],
       "inputs": {
-        "script": "3e9461630ca324b4f176a7066c312a8c5947d3cf1d7581356b937f405819e8b7",
+        "script": "20fe898751ba0b07f53233435e83dede34bd07906dddb9cc389f129a7f287981",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -13392,7 +13392,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "28ab7a2f8fffff0de43f12f801f7d35021a1277f5f672fa9de190bfa0ad89cfd",
+      "key": "4f56b99972e04c5b29b84ff41de7b67470b0f138160b60f92d27b7d4072f5540",
       "modules": [
         "auras",
         "bags",
@@ -13405,7 +13405,7 @@
         "progress",
         "questing"
       ],
-      "reviewedSha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1"
+      "reviewedSha256": "6e9ac4d6f0ce5e7df9423732440ba1d947d1f416e7f3e6eead9178091e575a9b"
     },
     {
       "id": "overview-small-screen",
@@ -13420,7 +13420,7 @@
       "fixtures": [
         "RikRenderScreenState()"
       ],
-      "lua": "RikRenderSetOption(\"general\", \"layoutPreset\", \"centered\")\nChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+      "lua": "RikRenderSetOption(\"general\", \"layoutPreset\", \"centered\")\nChatFrame1:Clear()\nRikRenderChatLines()\n",
       "expectText": [
         "Rik",
         "Goldshire"
@@ -13433,11 +13433,11 @@
           "w": 1366.0,
           "h": 768.0
         },
-        "uniqueColors": 21058
+        "uniqueColors": 23118
       },
-      "sha256": "124b3653eb66d24727802c1f82215924ce3160b365c61ebbf8799eaae7259412",
-      "bytes": 388420,
-      "fixtureSha256": "7bfb307c3548abb2b8ff1f488298b4d62177bc3ebe9db9ac76a02506b043f7c3",
+      "sha256": "50f0b0d7284d052d94d533a58c21d4567f977634b1a3dd84e42ee0a5b59f5914",
+      "bytes": 388782,
+      "fixtureSha256": "210b11fedc0e6bde951956d0411267f4e213dd48d024c4969b8f220357229dd6",
       "filename": "overview-small-screen.webp",
       "width": 1366,
       "height": 768,
@@ -13456,14 +13456,14 @@
         "captured": "2026-09-28T00:55:06.916Z"
       },
       "inputs": {
-        "script": "d066bcc3ecd6d52b6b34d193c6d540c1d12170bd3e90d102d4fb3568d2ca4cc6",
+        "script": "4d2779b99851a060fa98f9e30ec5ede4700bcc8e85d0f89e4ca0892c0c6327c2",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -13476,7 +13476,7 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "0b495f383d207cfa545b766b94eee35e6b98e82e0a1973b9936d99871120a42f",
+      "key": "d2a74d1ea2797b28f82c75119e881fd803bca502f49fb8231a2c891f2d55f12f",
       "modules": [
         "auras",
         "bags",
@@ -13489,7 +13489,7 @@
         "progress",
         "questing"
       ],
-      "reviewedSha256": "124b3653eb66d24727802c1f82215924ce3160b365c61ebbf8799eaae7259412"
+      "reviewedSha256": "50f0b0d7284d052d94d533a58c21d4567f977634b1a3dd84e42ee0a5b59f5914"
     },
     {
       "id": "options-search",
@@ -13515,12 +13515,12 @@
       },
       "sha256": "97e69ed3fe1dcb581d5f26d0077c6d7ded4276f649cfc57389cb2fd6feb15b36",
       "bytes": 18266,
-      "fixtureSha256": "3ddc2dcf7b707facf7bd45bc7fd6e91d8b84cf2d6a2f2f46cc753454455a0cae",
+      "fixtureSha256": "d8f42cd0f70dc7b91a3a90234e399d263846af0fa393f2e0f63f7c6e76b5c6ae",
       "filename": "options-search.webp",
       "width": 800,
       "height": 600,
       "inputs": {
-        "script": "6f35ce28e444b019950489fb4bad20b08584023863400c099f07ca72764a17a9",
+        "script": "132f1d81e7fd5fe38a2d48a437e87cd74d00adc92af0eb55985844e61b07f6a9",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -13535,19 +13535,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "4f808d90487fa4bba2eefed9186d0b3394b8017590695e8eb8e43e4668312a65",
+      "key": "dbdbafb31bedf760c03afe05f8ae596b31613698f73c234673f39e1c64d3fee9",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
         "optionsrows",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
@@ -13577,12 +13570,12 @@
       },
       "sha256": "f36b27aac2cece4a4aad02a774cad0c81f9a77921718c78c1b23ff99356c00cf",
       "bytes": 18200,
-      "fixtureSha256": "db0043e4581c955d8214df85e68092f9d6a07d284442560006de3975cf7356e7",
+      "fixtureSha256": "a85466382b40c2ba1397fa80bc5f5ffd9901e6b25c964d6dcf2debebf61f9049",
       "filename": "options-pending.webp",
       "width": 800,
       "height": 600,
       "inputs": {
-        "script": "a7a08ecd36ec62400cc8b9d2108fa48abb0bd92991f6d288b0f86a9c987f0f89",
+        "script": "bd0d919abb20dc3f56ff3ed61d47b57d634933d1b86ae9d8aeb4dad06cb12e63",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -13597,19 +13590,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "8ba5a3e50bcb74f487dcbf560848e07c756e22ba5b2bc84b4bdde4e6a46010c3",
+      "key": "e6351f551eee5631eb512f4881fdae6c6996300d719512c3b9ed69b40506e92b",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
         "optionsrows",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
@@ -13639,12 +13625,12 @@
       },
       "sha256": "59fd559da9ce5f95aaab9e40e32dc68bcb333e5caa05506c73b06292a630ed90",
       "bytes": 5480,
-      "fixtureSha256": "fba9653ad7b77ea794cd583bc2a9a7e98ed4425a2198917710fb8e2f8b575cdb",
+      "fixtureSha256": "d816a1751694108a85c89b8127e4cd0a9009e13c8a4dd322331cbf45d47f2375",
       "filename": "options-confirm.webp",
       "width": 570,
       "height": 170,
       "inputs": {
-        "script": "6cbe9ca955c7892d256ef647397206b95d5d3ae5ccb364b1e49d420eee10ea17",
+        "script": "88a2536a4f9bac6937a7de429b8e581b3d63fe89ba764ee9cd4ecc2378aa93fa",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -13659,19 +13645,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "c1ea3767351972a4f58e309a18f7dc21ae54b815b4af97ee48c1c108dffc8d33",
+      "key": "a233e8b0571083261f955e216c501c3f5b5588400e06f802e8ff6bf4d540dbc1",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
         "optionsrows",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
@@ -13700,11 +13679,11 @@
           "w": 260.0,
           "h": 310.0
         },
-        "uniqueColors": 4639
+        "uniqueColors": 4646
       },
-      "sha256": "65fb90e98383f0e79921429e338f3353b95f921ded8d9029869992b4881dad4a",
-      "bytes": 24870,
-      "fixtureSha256": "1a3f278b12f8405613580d5a2e2c3123c12de28fe589c1412b6e8df0700631cc",
+      "sha256": "0aeee1fd705c9991b819f02d06367219b721b2895c6b0d9df067b00b68d9f768",
+      "bytes": 24960,
+      "fixtureSha256": "3f0d9d800dfeadee0b13d69c56e7b8530a59b6312539a1b1976ff1640cd66cc0",
       "filename": "shell-launcher.webp",
       "width": 260,
       "height": 310,
@@ -13723,14 +13702,14 @@
         "captured": "2026-09-28T00:55:06.916Z"
       },
       "inputs": {
-        "script": "f2f4244e8bdb5ae9f15a23870b2718c306ba4016cac2270b308317e9fbb267f9",
+        "script": "1ccf44e73022f0840b04c99e5cefe92480c35ac5cfe37d59e1d2f6827ec8891f",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
         "world": {
           "plate": "goldshire-road",
           "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
-          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+          "composite": "b83b8a6d35b5562a856984b41ac799bdc7acb6d11969dcca81e2258dc08e83f8"
         },
         "renderer": {
           "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -13743,22 +13722,15 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "6c0d9fc62fd92abaecdb19d4213e9d786f19827dfe3c900b3005f6d29578c714",
+      "key": "343030344bf0af558b61cdbe0c77787b675b63e7cbdbebc8e463afe39fea9028",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
-      "reviewedSha256": "65fb90e98383f0e79921429e338f3353b95f921ded8d9029869992b4881dad4a"
+      "reviewedSha256": "0aeee1fd705c9991b819f02d06367219b721b2895c6b0d9df067b00b68d9f768"
     },
     {
       "id": "shell-interface",
@@ -13784,12 +13756,12 @@
       },
       "sha256": "2af3744e550ad291639078578aa1df450166f69bf4ef247ce3b2f371102e1284",
       "bytes": 6226,
-      "fixtureSha256": "41f1112b96cf0f4061c6557e52787b1197f5fcafe227c3d4e6d3b0249774163e",
+      "fixtureSha256": "5b2fc1bf540253a98983379e421e8fc1b78118811adb04ade70a52c4d090dbba",
       "filename": "shell-interface.webp",
       "width": 320,
       "height": 250,
       "inputs": {
-        "script": "c4561730f1597011cffcbecb71cc50c23dd006eb9712263d6eb0c797e7c4c279",
+        "script": "a2a398d103983b7d6021901b98f363e0716c0592b50bced47e0fdd50de0f8f8e",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -13804,18 +13776,11 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "1f4b54885dafd408e96d87fb4d21a599033e1fe39e1f20887e77101c849c8058",
+      "key": "514ef0d8342e7161db0b19dffb2b5ca6b5f9439a97a6b0a8025a91e153b9b635",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
@@ -13844,12 +13809,12 @@
       },
       "sha256": "4ea9eb084966472888c28d7b00817741d3197e4497c285782b9b7d7901ece840",
       "bytes": 2972,
-      "fixtureSha256": "71761b9512ee3ad2a7d32bf02f48d4ed91bcafd2e76b2d00b2439d5d408bdd60",
+      "fixtureSha256": "e1cb2e00033fa72ac6474d382f9a9a8b89b4f9c2c311ec979e4c8ce4e9af8823",
       "filename": "shell-tools.webp",
       "width": 320,
       "height": 140,
       "inputs": {
-        "script": "2edf11cb64d5e20b651e570badeae5d0680cecd2f0cd754ebb43474974e85d70",
+        "script": "7d08a31415a59676fa833a8157ba95c753a8d0ba244f9c52e40cc7b4f816db00",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -13864,18 +13829,11 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "e26063dc53f115b84c1fc9b4d54dc4e49d105a391f26b064a701d9a2c8772ec2",
+      "key": "6d29f4720be06b22410edcaa3562ae7ebb743af24cab628cf77d3154614ad3a6",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
@@ -13905,12 +13863,12 @@
       },
       "sha256": "35aa3e67ce370b6399c3dd37bae04dde231406e161e83b223827f46167f81142",
       "bytes": 4406,
-      "fixtureSha256": "6c4b1a67765e947d079af8ba54d6f77085b5de108695a370e316611f6510e292",
+      "fixtureSha256": "bb9537257e69581e2db4305d1863303960e2cd4be73316452a893998058b6c1f",
       "filename": "shell-support.webp",
       "width": 320,
       "height": 160,
       "inputs": {
-        "script": "8a76ae4602789aed3206311745f0c9b4d698e2bad28c3c6ad4c98e4932280a5c",
+        "script": "7ffec8f09617b7532c95e9b2db860e60334c9dcc8c75bafac219b5883bd41d7c",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -13925,18 +13883,11 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "7ccddfb7e99f2709af8c550643bf9981db2a926812b5c2a9687edad75c9640f2",
+      "key": "be71e3812ffc5d61216d72b0361cf30c27b2667e1532ab25e97e07485e00290e",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
@@ -13966,12 +13917,12 @@
       },
       "sha256": "43d8bf1d2aa02c32f05766ff6f4f211f859e4a4b316c4abf5efcab4004077271",
       "bytes": 11200,
-      "fixtureSha256": "4015220c64d5292e795c9fde6c91d3c662242445818d4f6a6023a9af5b8ab02a",
+      "fixtureSha256": "7524b6d31c5830ac3767cd27106515a89cbf9a5ecc4035affcff8abe3bb27959",
       "filename": "sharing-library.webp",
       "width": 570,
       "height": 170,
       "inputs": {
-        "script": "110f5c68bf22e7c8e8b25c9bcd2991797b16a287b8eff1ad0e35cb3b1ba63f9c",
+        "script": "abf157f2331e4625aa65e7a0543cc5b70706a411cef2fd4e77752d061fb92c10",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -13986,19 +13937,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "ae1b5e16e620647248bf97e61f3dc212d4e93b2040bd11adc96d1d01d870dd7d",
+      "key": "096a649c7b34b65865fab37acc67eccb15e9536e9046591158640c5e6a40044d",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
         "optionsrows",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],
@@ -14028,12 +13972,12 @@
       },
       "sha256": "71ad7544768a7b9962d6588ffb80ee6d8fd824a8ffc3d98d2edf177fdf4bcf9c",
       "bytes": 15266,
-      "fixtureSha256": "45cb6f24f992f000b50be3912ce1f41fe5fb8ad07bdf8d591586a0c5c9b72daa",
+      "fixtureSha256": "3b301e3c7e76c78d4b05927078538240f3c78006b86efedb294f8a9c82800471",
       "filename": "sharing-remove.webp",
       "width": 570,
       "height": 212,
       "inputs": {
-        "script": "8114355ecece06287ec2566992984a7eee132c6a00e6446ece41b5c1729633f2",
+        "script": "755ced8c707c845a5a051be662f212d36cd401821bb23e358c609a44a066d166",
         "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
         "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
         "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
@@ -14048,19 +13992,12 @@
           "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
         }
       },
-      "key": "a6b154a6006ecfa1d606b3a48e7618ccbcbd4c99b69b2736d8f52b2ee0124b18",
+      "key": "9c1a8d740937463693eea4a4831cb633b4892f25fcd20193bcef691e5e86368a",
       "modules": [
-        "auras",
         "bags",
-        "character",
-        "chat",
         "core",
-        "hud",
-        "layout",
         "minimap",
         "optionsrows",
-        "progress",
-        "questing",
         "settings",
         "windows"
       ],

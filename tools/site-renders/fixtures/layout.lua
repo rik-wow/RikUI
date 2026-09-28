@@ -31,17 +31,6 @@ function RikRenderScreenState()
     RikUI.Bars.Refresh()
 end
 
--- The simulator writes the transparent UI layer as lossless WebP, and the encoder is free to replace
--- the colour of fully transparent pixels to compress better. The layer is premultiplied, so that
--- colour would be added over the world plate as a grey or tinted wash. A black backing at alpha 0.006
--- (two steps of 255) leaves no pixel fully transparent; it darkens the world under the root by under 1%.
-function RikRenderLayerBacking(root)
-    local backing = root:CreateTexture(nil, "BACKGROUND", nil, -8)
-    backing:SetAllPoints(root)
-    backing:SetColorTexture(0, 0, 0, 0.006)
-    return backing
-end
-
 -- A capture root for part of the screen: every child of UIParent is re-parented to a holder covering
 -- the crop and keeps its screen anchors, as RikRenderGroup does for a few frames. A capture of the
 -- whole screen names UIParent itself instead.
@@ -56,7 +45,6 @@ function RikRenderScreen(name, left, bottom, width, height)
     for _, child in ipairs(children) do
         if child ~= holder then pcall(child.SetParent, child, holder) end
     end
-    RikRenderLayerBacking(holder)
     return holder
 end
 

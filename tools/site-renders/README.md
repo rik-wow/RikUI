@@ -45,7 +45,7 @@ Aura countdown digits depend on how long the simulator took to load, so a full r
 
 Review the generated images before promoting them to website assets. Check text, icon identity, bounds, state differences and the relevant reference capture. Do not count a renamed or recropped copy as a different state.
 
-Whole-screen and part-of-screen captures name `UIParent` as their root, or re-parent every child of `UIParent` into a holder of the crop's size (`RikRenderScreen`). The simulator writes the transparent UI layer as lossless WebP, and the encoder may replace the colour of fully transparent pixels; because the layer is premultiplied, `composite.py` would add that colour over the plate. New world scenarios therefore put `RikRenderLayerBacking` (black at alpha 0.006) under their root. Five earlier captures (hud-queue, banner-objective, bars-main, bars-ghost, bars-stance-page) carry a visible grey from this and wait on a compositor fix, which re-renders every world capture.
+Whole-screen and part-of-screen captures name `UIParent` as their root, or re-parent every child of `UIParent` into a holder of the crop's size (`RikRenderScreen`). The simulator writes the transparent UI layer as lossless WebP, and the encoder may store any colour under a fully transparent pixel; `composite.py` clamps the premultiplied layer's colour to its alpha so that colour never reaches the plate.
 
 ## World plates
 

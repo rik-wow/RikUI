@@ -3034,7 +3034,7 @@
     "fixtures": [
       "RikRenderScreenState()"
     ],
-    "lua": "ChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+    "lua": "ChatFrame1:Clear()\nRikRenderChatLines()\n",
     "expectText": [
       "Rik",
       "Goldshire"
@@ -3071,7 +3071,7 @@
     "fixtures": [
       "RikRenderScreenState()"
     ],
-    "lua": "RikRenderSetOption(\"general\", \"layoutPreset\", \"centered\")\nChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+    "lua": "RikRenderSetOption(\"general\", \"layoutPreset\", \"centered\")\nChatFrame1:Clear()\nRikRenderChatLines()\n",
     "expectText": [
       "Rik",
       "Goldshire"

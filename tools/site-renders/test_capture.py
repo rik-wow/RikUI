@@ -72,6 +72,23 @@ class CaptureChecks(unittest.TestCase):
         self.assertLess(abs(result.getpixel((56, 8))[1] - 200), 6)
         self.assertTrue(output.is_file())
 
+    def test_world_composite_ignores_colour_on_transparent_pixels(self):
+        # A lossless WebP encoder may store any colour under alpha 0; the premultiplied layer never
+        # carries more light than its coverage, so that colour must not reach the plate.
+        layer = Image.new("RGBA", (64, 40), (80, 90, 100, 0))
+        layer.paste((200, 60, 60, 128), (0, 0, 16, 40))
+        path = Path(self.temp.name) / "layer.png"
+        layer.save(path)
+        plate = Path(self.temp.name) / "plate.png"
+        Image.new("RGB", (128, 80), (0, 200, 0)).save(plate)
+        output = Path(self.temp.name) / "out.webp"
+        result = composite_world(path, plate, {**self.case, "screen": "128x80"}, Path(output))
+        self.assertEqual(result.getpixel((40, 8)), (0, 200, 0))
+        # A half-covered pixel adds at most its coverage: 128 + 200 * 127 / 255.
+        red, green, blue = result.getpixel((8, 8))
+        self.assertEqual((red, blue), (128, 60))
+        self.assertLess(abs(green - (60 + 100)), 2)
+
     def test_pixel_changes_create_a_diff(self):
         other = self.image.with_name("other.webp")
         Image.new("RGB", (64, 40), "black").save(other, lossless=True)
