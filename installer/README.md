@@ -4,6 +4,11 @@ A native Win32 graphical installer written in Rust. The GUI uses Microsoft's
 windows-sys bindings and standard Windows controls. No egui, webview, browser
 engine, Python installation or Rust installation is needed by the player.
 
+The installer is not published with the 1.0.0 beta. The beta is the addon ZIP
+on the [releases page](https://github.com/rik-wow/RikUI/releases); this
+installer is built locally until the data it can carry has passed the
+[licensing review](../docs/corpus-licensing.md).
+
 Select the Forever folder containing WowB.exe, then **Install / update**.
 The executable carries its package offline. **Choose package** accepts another
 RikUI bundle ZIP; **Get latest release** opens the public releases page.
@@ -14,7 +19,7 @@ There is no background network updater or credential storage.
 With Rust 1.95 or later and Python 3.10 or later:
 
 ~~~powershell
-python -B tools/build_installer_bundle.py --version 0.1.0-beta.1 --output dist/RikUI-local-all-in-one.zip --corpus dist/installer-corpus/quest-data.zip --local-roads "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
+python -B tools/build_installer_bundle.py --version 1.0.0-beta.1 --output dist/RikUI-local-all-in-one.zip --corpus dist/installer-corpus/quest-data.zip --local-roads "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
 $env:RIKUI_BUNDLE = (Resolve-Path dist/RikUI-local-all-in-one.zip).Path
 cargo build --release --locked --manifest-path installer/Cargo.toml
 ~~~

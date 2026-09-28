@@ -8,12 +8,19 @@ and includes an optional setup wizard for your action bars, keybinds and layout.
 
 ## Install
 
-The source is public. The complete installer is built and tested locally;
-public distribution of its quest and road datasets is pending the
-[licensing review](docs/corpus-licensing.md). No quest data has been removed.
+RikUI is in beta. Expect rough edges, and
+[report what you find](https://github.com/rik-wow/RikUI/issues).
 
-1. Build a local addon ZIP using the [packaging guide](docs/packaging.md), or
-   use the [complete native installer build](installer/README.md).
+The beta ZIP holds the addon without the quest planner's quest and road
+datasets. Their public distribution is pending the
+[licensing review](docs/corpus-licensing.md), so the planner gives guidance
+only where that data is installed locally. No quest data has been removed from
+the project.
+
+1. Download `RikUI-v1.0.0-beta.1-forever.zip` from the
+   [releases page](https://github.com/rik-wow/RikUI/releases). It is marked as
+   a pre-release. You can also build a ZIP yourself with the
+   [packaging guide](docs/packaging.md).
    GitHub's “Source code” download is not an installable addon ZIP.
 2. Close the game and extract the `RikUI` folder into your Forever beta
    installation's `Interface/AddOns` folder.
@@ -27,9 +34,10 @@ in each version is in [CHANGELOG.md](CHANGELOG.md).
 ### Native Windows installer
 
 The [Rust installer](installer/README.md) uses native Windows controls and can
-carry RikUI, the quest corpus and road data in one executable. Complete local
-builds are available; public distribution of the generated data is pending the
-[licensing review](docs/corpus-licensing.md). Existing data is preserved.
+carry RikUI, the quest corpus and road data in one executable. It is not part
+of the beta release: you can build it locally, and a public download waits for
+the [licensing review](docs/corpus-licensing.md) of the generated data.
+Existing data is preserved.
 
 ## First login
 

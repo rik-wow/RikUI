@@ -55,10 +55,11 @@ jobs:
         uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
         with:
           # Keep the verified staging directory when skipping the copy step.
-          args: -c -o -e -l -u
+          # -p names the CurseForge project. RikUI.toc keeps ID 0: the TOC is an input of the
+          # website captures, so the project is named here instead.
+          args: -c -o -e -l -u -p 1717069
           pandoc: "false"
         env:
-          # ID 0 in RikUI.toc disables CurseForge until a project exists.
           CF_API_TOKEN: ${{ secrets.CF_API_KEY }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

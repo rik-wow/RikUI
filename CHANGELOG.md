@@ -3,11 +3,28 @@
 
 Versions follow [semantic versioning](https://semver.org/). The tags
 `v0.0.1-beta.1` and `v0.0.1-beta.2` from September 2026 were packaging tests
-and carry no notes. The BigWigs packager ships this file in the release ZIP
+and carry no notes. A version with `beta` in its name is a prerelease. The BigWigs packager ships this file in the release ZIP
 and uses it as the GitHub release text, so add the new version here before
 tagging.
 
 ## Unreleased
+
+Nothing yet.
+
+## 1.0.0-beta.1
+
+2026-09-28. The first public build: a beta for the WoW: Forever beta (interface
+16001, checked against client 1.60.1.70009). It passes the project's automated
+checks, which do not replace play testing. Expect rough edges and
+[report them on GitHub](https://github.com/rik-wow/RikUI/issues).
+
+The ZIP holds the addon. The quest planner's quest and road data are not in it:
+their public distribution waits for a licensing review, so the planner shows
+guidance only where that data is installed locally.
+
+What the addon includes is listed under "In this release" at the end.
+
+### Changes since the packaging tests
 
 - Centered and HUD layouts keep the combat frames in place on small screens. At the default UI scale on 1366x768, 1280x800 and ultrawide 768-high screens, the layout used to move the player frame, and on some classes the target, away from their places because the raid grid's room overlapped them. Now the cooldown column, player, target, focus, pet and their cast bars stay where the layout puts them. On those screens the party and raid frames sit at the top left margin, the target of target sits above the target where it would reach the minimap, and the HUD's player and target stand closer together on 1280x800. Smaller frames that still do not fit (breath bar, durability, combat timer, stopwatch, debuffs, quest timers) move to the nearest free place. Re-apply the layout with `/rik layout centered` or `/rik layout hud` to get the new places; `/rik layout undo` reverts it.
 
@@ -157,9 +174,7 @@ tagging.
   `tools/quest_corpus.py install --rikui ...` and
   `tools/terrain/install_roads.py install --addons ...`, then restart the client.
 
-## 1.0.0
-
-First release, built for the WoW: Forever beta (interface 16001).
+### In this release
 
 - Setup wizard with presets for all nine classes: action bars, macros,
   character keybinds, game settings and frame layout. Every step is optional

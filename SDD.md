@@ -1,9 +1,13 @@
 # RikUI design doc
 
-Status: draft 2, 2026-09-18. Milestone 0 (the probe) is done and the Constraints
-section below now says what build 69913 actually does, not what we guessed. The
-raw probe output is at the bottom under "Probe results". Nothing of RikUI itself
-is built yet.
+Status: 1.0.0-beta.1, 2026-09-28. RikUI is built and released as a public beta;
+what each version changed is in CHANGELOG.md. This document is the design as it
+was agreed on 2026-09-18 (draft 2), kept for its reasoning: the text below
+describes the plan, and where the addon went another way the module docs under
+docs/ are current. The Constraints section says what build 69913 actually did,
+not what we guessed; the raw probe output is at the bottom under "Probe
+results". Game-client behavior is accepted under the project's native acceptance
+policy; no in-game playthrough was required for this release.
 
 ## What it is
 

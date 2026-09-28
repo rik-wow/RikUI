@@ -33,7 +33,7 @@ export const page = `<!doctype html>
 <div><dt><a href="/docs/chat">Chat</a></dt><dd>History, timestamps and channel controls.</dd></div>
 </dl><a class="all-docs" href="/docs">Browse all documentation</a></section>
 <section id="install" aria-labelledby="install-heading"><h2 id="install-heading">Installing RikUI</h2>
-<p>RikUI is in development for the WoW Forever beta. The source and local build instructions are available now; a public Windows installer is still being prepared.</p>
+<p>RikUI 1.0.0 is in beta for the WoW Forever beta. Download the addon ZIP from the <a href="https://github.com/rik-wow/RikUI/releases">releases page</a>, where it is marked as a pre-release. The ZIP holds the addon without the quest planner’s quest and road data. The Windows installer is not published yet.</p>
 <p><a href="/docs/installation">Read the installation guide</a></p>
 <h3>In game</h3><dl class="commands">
 <div><dt><code>/rik setup</code></dt><dd>Review and apply a preset.</dd></div>

@@ -79,12 +79,16 @@ No externals are fetched: the addon uses its own serialization codec.
 The empty `libs/` placeholder is not shipped.
 
 GitHub uses its automatic `GITHUB_TOKEN` with `contents: write`.
-RikUI has no CurseForge project yet (confirmed 2026-09-24), so
-`X-Curse-Project-ID: 0` explicitly disables that destination. When the project
-exists, replace `0` with its numeric ID and configure repository secret
-`CF_API_KEY`; the workflow maps it to BigWigs' `CF_API_TOKEN`. Never commit
-an API key. A missing secret skips CurseForge uploads.
-The existing `release-v1` roadmap item owns project creation and 1.0.0 publication.
+RikUI's CurseForge project is 1717069 (created 2026-09-28). The upload step
+of `release.yml` gives that ID to the packager with `-p 1717069`, and the
+repository secret `CF_API_KEY` on rik-wow/RikUI holds the API token; the
+workflow maps it to BigWigs' `CF_API_TOKEN`. The TOC keeps
+`X-Curse-Project-ID: 0`: it is one of the inputs the
+website captures are rendered from, so editing it makes every capture stale.
+Never commit an API key. A missing secret skips CurseForge uploads.
+A tag with `beta` in its name is uploaded to CurseForge as a beta file and to
+GitHub as a pre-release. The `release-v1` roadmap item owns project creation
+and the 1.0.0 beta publication.
 
 For a local dry run on a tagged checkout, using Bash, Git, curl and zip:
 
