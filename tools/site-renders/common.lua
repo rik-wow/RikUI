@@ -782,3 +782,561 @@ function RikRenderItems()
         if item then return item.icon, item.name, item.count, nil, 1, false, false end
     end
 end
+
+-- ===== Everyday interface =====
+
+-- The simulator's Minimap widget draws a fixed placeholder picture. The client's own minimap tiles
+-- for the ground around Goldshire go over it: Azeroth tiles 30-32 x 48-50, 533 yards and 256 pixels
+-- each, placed so the Lion's Pride Inn sits under the player dot at the centre.
+local TILE_PIXELS = 256
+local PLAYER_TILE = { column = 31, row = 49, fx = 0.80, fy = 0.74 }
+local function placeTile(parent, size, tx, ty, path)
+    local x0, y0 = math.max(0, tx), math.max(0, ty)
+    local x1, y1 = math.min(size, tx + TILE_PIXELS), math.min(size, ty + TILE_PIXELS)
+    if x1 <= x0 or y1 <= y0 then return end
+    local tex = parent:CreateTexture(nil, "BACKGROUND")
+    tex:SetTexture(path)
+    tex:SetPoint("TOPLEFT", parent, "TOPLEFT", x0, -y0)
+    tex:SetSize(x1 - x0, y1 - y0)
+    tex:SetTexCoord((x0 - tx) / TILE_PIXELS, (x1 - tx) / TILE_PIXELS, (y0 - ty) / TILE_PIXELS, (y1 - ty) / TILE_PIXELS)
+end
+
+function RikRenderMinimapTiles()
+    local holder = RikUIMinimap
+    assert(holder, "Minimap holder missing")
+    local tiles = CreateFrame("Frame", "RikRenderMinimapTiles", holder)
+    tiles:SetAllPoints(Minimap)
+    tiles:SetFrameLevel(Minimap:GetFrameLevel() + 1)
+    local size = Minimap:GetWidth()
+    local originX = size / 2 - PLAYER_TILE.fx * TILE_PIXELS
+    local originY = size / 2 - PLAYER_TILE.fy * TILE_PIXELS
+    for column = PLAYER_TILE.column - 1, PLAYER_TILE.column + 1 do
+        for row = PLAYER_TILE.row - 1, PLAYER_TILE.row + 1 do
+            placeTile(tiles, size, originX + (column - PLAYER_TILE.column) * TILE_PIXELS,
+                originY + (row - PLAYER_TILE.row) * TILE_PIXELS, "World/Minimaps/Azeroth/map" .. column .. "_" .. row)
+        end
+    end
+    -- The client draws the indicator and queue frames over the map; keep them above the mosaic.
+    for _, frame in ipairs(RikUI.Minimap.Adopted) do
+        if frame:GetFrameLevel() <= tiles:GetFrameLevel() then frame:SetFrameLevel(tiles:GetFrameLevel() + 1) end
+    end
+    -- The clock and coordinates refresh from the holder's own tick.
+    RikUI.Minimap.Tick(holder, 1)
+    return tiles
+end
+
+-- Performance readout: the simulator answers a flat 60 FPS and no latency; these are ordinary values.
+function RikRenderPerformance(fps, latency)
+    GetFramerate = function() return fps end
+    GetNetStats = function() return 1.2, 0.4, latency, latency end
+    RikRenderSetOption("minimap", "performance", true)
+end
+
+-- New mail: the client raises UPDATE_PENDING_MAIL and answers HasNewMail.
+function RikRenderMail()
+    HasNewMail = function() return true end
+    A_Admin.FireEvent("UPDATE_PENDING_MAIL")
+    -- The icon shows when the reminder animation finishes; the simulator never finishes it.
+    if MiniMapMailIcon then MiniMapMailIcon:SetShown(HasNewMail()) end
+end
+
+-- A listed premade group: the queue eye's status frame reads C_LFGList for it.
+function RikRenderQueueStatus(name, applicants)
+    -- The simulator reports a pet battle queue of its own; none is wanted here. The client resolves
+    -- the |4 plural token in the applicant line when it draws it; the resolved text is supplied.
+    C_PetBattles.GetPVPMatchmakingInfo = function() return nil end
+    LFG_LIST_PENDING_APPLICANTS = "%d Pending Applicants"
+    C_LFGList.HasActiveEntryInfo = function() return true end
+    C_LFGList.GetActiveEntryInfo = function() return { name = name, activityIDs = { 1 }, censored = false } end
+    C_LFGList.GetNumApplicants = function() return applicants, applicants end
+    QueueStatusFrame:Update()
+    QueueStatusFrame:Show()
+    return QueueStatusFrame
+end
+
+-- Tracking menu: the minimap's own tracking dropdown, opened the way a right-click does.
+function RikRenderTrackingMenu()
+    RikUI.Minimap.OpenTracking()
+end
+
+-- Experience and reputation come from the unit readers.
+function RikRenderExperience(current, maximum, rested)
+    UnitXP = function() return current end
+    UnitXPMax = function() return maximum end
+    GetXPExhaustion = function() return rested end
+    -- The simulator's character watches a retail faction; no faction is watched unless a fixture says so.
+    if not RikRenderWatchedFaction then C_Reputation.GetWatchedFactionData = function() return nil end end
+    RikUI.XPBar.Refresh()
+end
+
+function RikRenderReputation(name, reaction, standing, low, high)
+    RikRenderWatchedFaction = true
+    C_Reputation.GetWatchedFactionData = function()
+        return { factionID = 72, name = name, reaction = reaction, currentStanding = standing,
+            currentReactionThreshold = low, nextReactionThreshold = high }
+    end
+    RikUI.XPBar.Refresh()
+end
+
+-- A gain: the bar records the value it showed, then the client raises PLAYER_XP_UPDATE.
+function RikRenderExperienceGain(before, after, maximum)
+    -- The gain label is part of the bar's animation; captures otherwise run with motion reduced.
+    RikUI.Profile.reducedMotion = false
+    RikRenderSetOption("xpbar", "xpbar.animations", true)
+    RikRenderExperience(before, maximum, nil)
+    A_Admin.FireEvent("PLAYER_XP_UPDATE", "player")
+    RikRenderExperience(after, maximum, nil)
+    A_Admin.FireEvent("PLAYER_XP_UPDATE", "player")
+    local row = RikUI.XPBar.Rows.xp
+    if row.gainAnim then row.gainAnim:Stop() end
+    if row.gainText then row.gainText:SetAlpha(1) end
+    if row.flashAnim then row.flashAnim:Stop() end
+    if row.flash then row.flash:SetAlpha(0) end
+end
+
+-- Durability: the client answers GetInventoryAlertStatus per alert slot (1 worn, 2 broken) and
+-- GetInventoryItemDurability per inventory slot.
+function RikRenderDurability(statuses, percents, tooltip)
+    GetInventoryAlertStatus = function(index) return statuses[index] or 0 end
+    GetInventoryItemDurability = function(slot)
+        local value = percents and percents[slot]
+        if value then return value, 100 end
+        return nil
+    end
+    RikUI.Durability.Refresh()
+    local pill = RikUI.Durability.Pill
+    local broken = false
+    for _, status in pairs(statuses) do if status == 2 then broken = true end end
+    if RikUI.Durability.Pulse then RikUI.Durability.Pulse:Stop() end
+    if pill.alert then pill.alert:SetAlpha(broken and 0.25 or 0) end
+    if RikUI.Durability.Fade then RikUI.Durability.Fade:Stop() end
+    pill:SetAlpha(1)
+    if tooltip then pill:GetScript("OnEnter")(pill) end
+    return pill
+end
+
+-- Tooltips through GameTooltip's own setters; RikUI's anchor hook places the frame.
+function RikRenderTooltip(kind, a, b)
+    local tip = GameTooltip
+    -- The tooltip's unit health bar polls this client reader, which the simulator lacks.
+    UnitPercentHealthFromGUID = UnitPercentHealthFromGUID or function()
+        return math.floor(UnitHealth("target") / math.max(1, UnitHealthMax("target")) * 100 + 0.5)
+    end
+    -- The PTR issue reporter appends a keybind notice to every tooltip on test builds.
+    if type(PTR_IssueReporter) == "table" then PTR_IssueReporter.HookIntoTooltip = function() end end
+    GameTooltip_SetDefaultAnchor(tip, UIParent)
+    if kind == "unit" then tip:SetUnit(a or "target")
+    elseif kind == "item" then tip:SetItemByID(a)
+    elseif kind == "spell" then tip:SetSpellByID(a)
+    elseif kind == "inventory" then tip:SetInventoryItem("player", a)
+    elseif kind == "aura" then tip:SetUnitAura("player", a or 1, b or "HELPFUL")
+    else error("Unknown tooltip kind " .. tostring(kind)) end
+    tip:Show()
+    RikRenderRemeasure(tip)
+    return tip
+end
+
+function RikRenderCompareTooltip(slot)
+    local tip = RikRenderTooltip("inventory", slot or 16)
+    GameTooltip_ShowCompareItem(tip)
+    RikRenderRemeasure(ShoppingTooltip1)
+    RikRenderRemeasure(ShoppingTooltip2)
+    return tip
+end
+
+-- Chat lines the way the client formats them, through AddMessage; RikUI's line filters then
+-- shorten tags, colour names and add timestamps as configured.
+local function chatColor(kind)
+    local info = ChatTypeInfo and ChatTypeInfo[kind]
+    if info then return info.r, info.g, info.b end
+    return 1, 1, 1
+end
+
+local CHAT_SAMPLE = {
+    { "SYSTEM", "Quest accepted: Kobold Camp Cleanup" },
+    { "SAY", "|Hplayer:Mira|h[Mira]|h says: Anyone heading to the Deadmines later?" },
+    { "PARTY", "|Hchannel:PARTY|h[Party]|h |Hplayer:Mira|h[Mira]|h: Meet at the inn first." },
+    { "PARTY", "|Hchannel:PARTY|h[Party]|h |Hplayer:Rik|h[Rik]|h: On my way." },
+    { "GUILD", "|Hchannel:GUILD|h[Guild]|h |Hplayer:Toddrick|h[Toddrick]|h: Grats on 10!" },
+    { "WHISPER", "|Hplayer:Mira|h[Mira]|h whispers: Do you still need linen?" },
+    { "CHANNEL", "|Hchannel:channel:1|h[1. General]|h |Hplayer:Remy|h[Remy]|h: WTS Linen Cloth, 10s a stack" },
+    { "LOOT", "You receive loot: |cffffffff|Hitem:118|h[Minor Healing Potion]|h|rx2." },
+}
+
+function RikRenderChatLines(lines)
+    -- Lines fade two minutes after they arrive in the client; these have just arrived.
+    ChatFrame1:SetFading(false)
+    for _, line in ipairs(lines or CHAT_SAMPLE) do
+        ChatFrame1:AddMessage(line[2], chatColor(line[1]))
+    end
+end
+
+-- The edit box open on a channel, with text typed.
+function RikRenderChatInput(text, chatType)
+    local box = ChatFrame1EditBox
+    box:SetAttribute("chatType", chatType or "PARTY")
+    if ChatEdit_UpdateHeader then pcall(ChatEdit_UpdateHeader, box) end
+    box:Show()
+    box:SetText(text or "")
+    box:SetFocus()
+    box:SetAlpha(1)
+    if RikUI.Chat.RefreshInputLayout then RikUI.Chat.RefreshInputLayout() end
+    return box
+end
+
+-- Scrolled up: the jump-to-newest button appears.
+function RikRenderChatScrolled()
+    for _ = 1, 3 do ChatFrame1:ScrollUp() end
+    local handler = ChatFrame1:GetScript("OnScrollChanged") or ChatFrame1:GetScript("OnMessageScrollChanged")
+    if handler then handler(ChatFrame1) end
+end
+
+-- Chat bubbles: the engine pools its bubbles and lists them through C_ChatBubbles. A bubble here
+-- is Blizzard's ChatBubbleTemplate under a holder, listed the same way, over a named actor.
+local bubbles = {}
+function RikRenderBubble(name, text, actorName, nth, dx, dy)
+    local actor = type(actorName) == "table" and actorName or RikRenderActor(actorName, nth)
+    local bubble = CreateFrame("Frame", name, UIParent)
+    bubble:SetSize(1, 1)
+    bubble:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", actor.x + (dx or 0), RikRenderWorld.height - actor.y + (dy or 44))
+    local frame = CreateFrame("Frame", nil, bubble, "ChatBubbleTemplate")
+    frame.String:SetWidth(0)
+    frame.String:SetText(text)
+    frame.String:ClearAllPoints()
+    frame.String:SetPoint("BOTTOM", bubble, "TOP", 0, 16)
+    bubbles[#bubbles + 1] = bubble
+    C_ChatBubbles.GetAllChatBubbles = function() return bubbles end
+    A_Admin.FireEvent("CHAT_MSG_SAY", text, actorName)
+    local scanner = RikUI.ChatBubbles.Scanner
+    local handler = scanner and scanner:GetScript("OnUpdate")
+    if handler then handler(scanner, 1) end
+    return bubble
+end
+
+-- Alert toasts through their own systems. The loot toast obeys the enableLootToasts CVar.
+local function freezeAlerts(system)
+    for frame in system.alertFramePool:EnumerateActive() do
+        if frame.animIn then frame.animIn:Stop() end
+        if frame.waitAndAnimOut then frame.waitAndAnimOut:Stop() end
+        frame:SetAlpha(1)
+    end
+end
+
+function RikRenderAlerts(kinds)
+    local getBool = C_CVar.GetCVarBool
+    C_CVar.GetCVarBool = function(name, ...)
+        if name == "enableLootToasts" then return true end
+        return getBool(name, ...)
+    end
+    local systems = {}
+    for _, kind in ipairs(kinds) do
+        if kind == "loot" then
+            local link = select(2, GetItemInfo(6948))
+            assert(LootAlertSystem:AddAlert(link, 1, 0, 0, nil, false, false, 0, false, false, false), "loot alert refused")
+            systems[#systems + 1] = LootAlertSystem
+        elseif kind == "money" then
+            -- The client draws coin icons inside the money string; the simulator has none.
+            GetMoneyString = function(copper) return string.format("%dg %ds %dc", math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100) end
+            assert(MoneyWonAlertSystem:AddAlert(15342), "money alert refused")
+            systems[#systems + 1] = MoneyWonAlertSystem
+        elseif kind == "achievement" then
+            assert(AchievementAlertSystem:AddAlert(6), "achievement alert refused")
+            systems[#systems + 1] = AchievementAlertSystem
+        else error("Unknown alert " .. tostring(kind)) end
+    end
+    for _, system in ipairs(systems) do freezeAlerts(system) end
+    AlertFrame:Show()
+    -- Alert frames are pooled under UIParent and anchored to AlertFrame; a group holds them all.
+    local frames = { AlertFrame }
+    for _, system in ipairs(systems) do
+        for frame in system.alertFramePool:EnumerateActive() do frames[#frames + 1] = frame end
+    end
+    return frames
+end
+
+-- Centre-screen banners. The event toast manager reads the next toast from the client.
+function RikRenderEventToast(title, subtitle, textureKit)
+    local info = { eventToastID = 1, title = title, subtitle = subtitle,
+        displayType = Enum.EventToastDisplayType.NormalTitleAndSubTitle, uiTextureKit = textureKit or "levelup" }
+    C_EventToastManager.GetNextToastToDisplay = function() return info end
+    EventToastManagerFrame:DisplayToast(true)
+    local toast = EventToastManagerFrame.currentDisplayingToast
+    assert(toast, "no event toast shown")
+    for _, region in ipairs({ toast:GetRegions() }) do region:SetAlpha(1) end
+    toast:SetAlpha(1)
+    EventToastManagerFrame:SetAlpha(1)
+    return EventToastManagerFrame
+end
+
+function RikRenderBossBanner(name)
+    A_Admin.FireEvent("BOSS_KILL", 1, name)
+    assert(BossBanner:IsShown(), "boss banner hidden")
+    BossBanner.Title:SetAlpha(1)
+    BossBanner.SubTitle:SetAlpha(1)
+    return BossBanner
+end
+
+function RikRenderObjectiveBanner(title)
+    local frame = ObjectiveTrackerTopBannerFrame
+    frame.questTitle, frame.showWorldQuests = title, false
+    TopBannerManager_Show(frame)
+    assert(frame:IsShown(), "objective banner hidden")
+    frame.PopAnim:Stop()
+    for _, key in ipairs({ "Title", "Subtitle", "UpLine", "DownLine" }) do
+        if frame[key] then frame[key]:SetAlpha(1) end
+    end
+    frame:SetAlpha(1)
+    return frame
+end
+
+-- Social toasts. Their templates' animation groups inherit parentKeys the simulator drops, so the
+-- groups are created from Blizzard's own templates before the alert code plays them.
+local function socialAnimations(frame)
+    if not frame.animIn then frame.animIn = frame:CreateAnimationGroup(nil, "SocialToastAnimInTemplate") end
+    if not frame.waitAndAnimOut then
+        local group = frame:CreateAnimationGroup(nil, "SocialToastAnimOutTemplate")
+        if not group.animOut then group.animOut = group:CreateAnimation("Alpha") end
+        frame.waitAndAnimOut = group
+    end
+end
+
+local function freezeSocial(frame)
+    frame.animIn:Stop()
+    frame.waitAndAnimOut:Stop()
+    frame:SetAlpha(1)
+end
+
+function RikRenderTimeAlert(seconds)
+    GetSessionTime = function() return seconds end
+    -- The client resolves the |4 plural tokens SecondsToTime emits when it draws the string; the
+    -- simulator draws them raw, so the resolved text is supplied.
+    SecondsToTime = function()
+        local hours, minutes = math.floor(seconds / 3600), math.floor(seconds / 60) % 60
+        return string.format("%d %s %d %s", hours, hours == 1 and "Hour" or "Hours", minutes, minutes == 1 and "Minute" or "Minutes")
+    end
+    socialAnimations(TimeAlertFrame)
+    TimeAlertFrame:Start(600000)
+    TimeAlertFrame:OnUpdate(0)
+    freezeSocial(TimeAlertFrame)
+    return TimeAlertFrame
+end
+
+function RikRenderFriendToast(invites)
+    BNGetNumFriendInvites = function() return invites end
+    socialAnimations(BNToastFrame)
+    -- A new friend request: the pending-invite line uses a plural token the simulator leaves raw.
+    BNToastFrame:AddToast(5, invites)
+    assert(BNToastFrame:IsShown(), "friend toast hidden")
+    freezeSocial(BNToastFrame)
+    return BNToastFrame
+end
+
+function RikRenderVoiceToast()
+    local frame = VoiceChatPromptActivateChannel
+    socialAnimations(frame)
+    if frame.Text and (frame.Text:GetText() or "") == "" then
+        frame.Text:SetText(VOICE_CHAT_PROMPT_CHANNEL_ACTIVATE or "Voice chat is available for this channel.")
+    end
+    frame:Show()
+    frame:SetAlpha(1)
+    return frame
+end
+
+-- Small HUD frames.
+function RikRenderFramerate(fps)
+    GetFramerate = function() return fps end
+    IsCpuBound = IsCpuBound or function() return nil end
+    FramerateFrame:Show()
+    FramerateFrame.fpsTime = 0
+    FramerateFrame:OnUpdate(1)
+    return FramerateFrame
+end
+
+function RikRenderNavigationMarker(distance, actorName, nth)
+    local actor = RikRenderActor(actorName, nth)
+    C_Navigation.GetDistance = function() return distance end
+    IN_GAME_NAVIGATION_RANGE = "%s yds" -- the client resolves the |4 plural token when drawing
+    local frame = SuperTrackedFrame
+    -- The marker follows the client's navigation state every frame; the capture holds one moment.
+    frame:SetScript("OnUpdate", nil)
+    frame:Show()
+    frame.isClamped = false
+    frame:ClearAllPoints()
+    frame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", actor.x, RikRenderWorld.height - actor.y + 40)
+    frame:UpdateDistanceText()
+    frame.Icon:Show()
+    frame:SetAlpha(1)
+    return frame
+end
+
+-- Screen text. FadingFrame keeps time from GetTime, so the clock moves past the fade-in.
+function RikRenderZoneText(zone, subzone)
+    A_Admin.SetZone(zone, 37)
+    A_Admin.SetSubZone(subzone or "")
+    A_Admin.FireEvent("ZONE_CHANGED_NEW_AREA")
+    RikRenderAdvanceClock(1)
+    ZoneTextFrame:SetAlpha(1)
+    return ZoneTextFrame
+end
+
+function RikRenderSubZoneText(subzone)
+    A_Admin.SetSubZone(subzone)
+    A_Admin.FireEvent("ZONE_CHANGED")
+    RikRenderAdvanceClock(1)
+    SubZoneTextFrame:SetAlpha(1)
+    -- The invisible frame sits at the screen centre while its string hangs from the top; wrap it.
+    SubZoneTextFrame:ClearAllPoints()
+    SubZoneTextFrame:SetPoint("TOPLEFT", SubZoneTextString, "TOPLEFT", -8, 8)
+    SubZoneTextFrame:SetPoint("BOTTOMRIGHT", SubZoneTextString, "BOTTOMRIGHT", 8, -8)
+    return SubZoneTextFrame
+end
+
+function RikRenderErrorText(text)
+    UIErrorsFrame:SetFading(false) -- the line has just arrived; it fades two seconds later
+    UIErrorsFrame:AddMessage(text, 1, 0.1, 0.1)
+    return UIErrorsFrame
+end
+
+function RikRenderRaidWarning(text)
+    RaidNotice_AddMessage(RaidWarningFrame, text, ChatTypeInfo["RAID_WARNING"])
+    -- The line fades in by the clock; move the clock into the hold.
+    RikRenderAdvanceClock(1)
+    return RaidWarningFrame
+end
+
+-- Bags: item identities the fixture supplies; the simulator knows none of these ids.
+local BAG_ITEMS = {
+    [6948] = { name = "Hearthstone", icon = 134414, count = 1, quality = 1, class = 15, subclass = 0 },
+    [118] = { name = "Minor Healing Potion", icon = 134829, count = 5, quality = 1, class = 0, subclass = 1 },
+    [2589] = { name = "Linen Cloth", icon = 132889, count = 12, quality = 1, class = 7, subclass = 5 },
+    [117] = { name = "Tough Jerky", icon = 133971, count = 4, quality = 1, class = 0, subclass = 5 },
+    [25] = { name = "Worn Shortsword", icon = 135274, count = 1, quality = 1, class = 2, subclass = 7, level = 2, equipLoc = "INVTYPE_WEAPON" },
+    [3300] = { name = "Rabbit's Foot", icon = 133731, count = 3, quality = 0, class = 15, subclass = 0 },
+    [3299] = { name = "Fractured Canine", icon = 133724, count = 2, quality = 0, class = 15, subclass = 0 },
+    [2070] = { name = "Darnassian Bleu", icon = 133950, count = 6, quality = 1, class = 0, subclass = 5 },
+    [4865] = { name = "Torn Note", icon = 134939, count = 1, quality = 1, class = 12, subclass = 0 },
+}
+local BAG_SLOTS = { 6948, 118, 2589, 117, 25, 3300, 3299, 2070, 4865 }
+
+function RikRenderBagItems()
+    local items, slots = BAG_ITEMS, BAG_SLOTS
+    -- The backpack holds the items; one six-slot bag is equipped, the other bag slots are empty.
+    C_Container.GetContainerNumSlots = function(bag) return bag == 0 and 16 or bag == 1 and 6 or 0 end
+    C_Container.GetContainerNumFreeSlots = function(bag)
+        if bag == 0 then return 16 - #slots, 0 end
+        if bag == 1 then return 6, 0 end
+        return 0, 0
+    end
+    local inventoryTexture = GetInventoryItemTexture
+    local bagSlots = {}
+    for bag = 1, 4 do bagSlots[C_Container.ContainerIDToInventoryID(bag)] = bag end
+    GetInventoryItemTexture = function(unit, inventoryID)
+        local bag = bagSlots[inventoryID]
+        if bag == 1 then return "Interface/Icons/INV_Misc_Bag_10" end
+        if bag then return nil end
+        return inventoryTexture(unit, inventoryID)
+    end
+    C_Container.GetContainerItemInfo = function(bag, slot)
+        local id = bag == 0 and slots[slot]
+        local item = items[id]
+        if not item then return nil end
+        return { itemID = id, iconFileID = item.icon, stackCount = item.count, quality = item.quality,
+            isLocked = false, isReadable = false, hasLoot = false, hyperlink = "|cffffffff|Hitem:" .. id .. "::::::::10:::::|h[" .. item.name .. "]|h|r",
+            isFiltered = false, hasNoValue = item.quality == 0 and false or false, itemName = item.name }
+    end
+    C_Container.GetContainerItemID = function(bag, slot) return bag == 0 and slots[slot] or nil end
+    C_Container.GetContainerItemLink = function(bag, slot)
+        local info = C_Container.GetContainerItemInfo(bag, slot)
+        return info and info.hyperlink
+    end
+    local itemInfo, instant = GetItemInfo, C_Item.GetItemInfoInstant
+    local function known(id)
+        if type(id) == "string" then id = tonumber(id:match("item:(%d+)")) or tonumber(id) end
+        return items[id], id
+    end
+    GetItemInfo = function(id)
+        local item, numeric = known(id)
+        if not item then return itemInfo(id) end
+        return item.name, "|cffffffff|Hitem:" .. numeric .. "::::::::10:::::|h[" .. item.name .. "]|h|r", item.quality,
+            item.level or 1, 1, nil, nil, item.count > 1 and 20 or 1, item.equipLoc or "", item.icon, item.quality == 0 and 3 or 25,
+            item.class, item.subclass
+    end
+    C_Item.GetItemInfo = GetItemInfo
+    C_Item.GetItemInfoInstant = function(id)
+        local item, numeric = known(id)
+        if not item then return instant(id) end
+        return numeric, nil, nil, item.equipLoc or "", item.icon, item.class, item.subclass
+    end
+    C_Item.GetItemQualityByID = function(id) local item = known(id); return item and item.quality end
+    return slots
+end
+
+function RikRenderBagFilter(value)
+    assert(RikUI.Bags.SetFilter, "no bag filters")
+    RikUI.Bags.SetFilter(value)
+end
+
+-- One slot holds an item that starts a quest, another a newly looted item.
+function RikRenderBagMarkers(questSlot, newSlot)
+    C_Container.GetContainerItemQuestInfo = function(bag, slot)
+        local starts = bag == 0 and slot == questSlot
+        return { isQuestItem = starts, questID = starts and 62 or nil, isActive = false }
+    end
+    C_NewItems = C_NewItems or {}
+    C_NewItems.IsNewItem = function(bag, slot) return bag == 0 and slot == newSlot end
+    RikUI.Bags.Refresh()
+end
+
+function RikRenderCapacityHUD(lowOnly)
+    RikRenderSetOption("bags", "capacityHUD", true)
+    RikRenderSetOption("bags", "capacityLowOnly", lowOnly == true)
+    RikUI.Bags.UpdateCapacity()
+    return RikUI.Bags.CapacityHUD
+end
+
+-- A merchant open: junk sale and repair controls appear in the bag window.
+function RikRenderMerchant(repairCost)
+    GetRepairAllCost = function() return repairCost or 0, (repairCost or 0) > 0 end
+    CanMerchantRepair = function() return (repairCost or 0) > 0 end
+    A_Admin.FireEvent("MERCHANT_SHOW")
+    if RikUI.Bags.RefreshMerchant then RikUI.Bags.RefreshMerchant() end
+    if RikUI.Bags.RefreshRepair then RikUI.Bags.RefreshRepair() end
+end
+
+-- Loot: coins take a slot of their own; a roll comes from the group loot readers.
+function RikRenderLootCoins(copper)
+    local count, info, slotType = GetNumLootItems, GetLootSlotInfo, GetLootSlotType
+    local base = count()
+    local gold, silver, cop = math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100
+    local parts = {}
+    if gold > 0 then parts[#parts + 1] = gold .. " Gold" end
+    if silver > 0 then parts[#parts + 1] = silver .. " Silver" end
+    if cop > 0 then parts[#parts + 1] = cop .. " Copper" end
+    GetNumLootItems = function() return base + 1 end
+    GetLootSlotInfo = function(slot)
+        if slot == base + 1 then return "Interface\\Icons\\INV_Misc_Coin_02", table.concat(parts, "\n"), 0, nil, 1 end
+        return info(slot)
+    end
+    GetLootSlotType = function(slot)
+        if slot == base + 1 then return 2 end
+        return slotType and slotType(slot) or 1
+    end
+end
+
+function RikRenderLootRoll(name, icon, quality, seconds)
+    local link = "|cff1eff00|Hitem:2488::::::::10:::::|h[" .. name .. "]|h|r"
+    GetLootRollItemInfo = function() return icon, name, 1, quality, true, true, true, false, nil, nil, nil, nil, false end
+    GetLootRollItemLink = function() return link end
+    GetLootRollTimeLeft = function() return (seconds or 60) * 0.6 end
+    GroupLootContainer_AddRoll(1, seconds or 60)
+    assert(GroupLootFrame1:IsShown(), "roll frame hidden")
+    GroupLootFrame1.Timer:SetValue((seconds or 60) * 0.6)
+    if RikUI.Loot.SkinRolls then RikUI.Loot.SkinRolls() end
+    return GroupLootFrame1
+end
+
+function RikRenderLootConfirm(name)
+    local popup = StaticPopup_Show("LOOT_BIND", name)
+    assert(popup, "no loot confirmation")
+    return popup
+end

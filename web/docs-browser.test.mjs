@@ -14,9 +14,9 @@ const placements={
  sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile"},
  unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-tot":"ref-player-and-target","units-pet":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text","units-party":"ref-party-and-raid","units-raid":"ref-party-and-raid"},
  castbars:{"cast-interrupted":"ref-reading-a-cast-bar","cast-channel":"ref-reading-a-cast-bar","cast-target":"ref-player-target-focus-and-pet","cast-focus":"ref-player-target-focus-and-pet","cast-pet":"ref-player-target-focus-and-pet","cast-player":"ref-change-the-size"},
- bags:{"bags-inventory":"ref-open-your-inventory","bags-search":"ref-search-and-filters","bags-empty-search":"ref-search-and-filters"},
- chat:{"chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history"},
- loot:{"loot-list":"ref-loot-an-item"},
+ bags:{"bags-inventory":"ref-open-your-inventory","bags-search":"ref-search-and-filters","bags-empty-search":"ref-search-and-filters","bags-filters":"ref-search-and-filters","bags-markers":"ref-favourites-and-item-markers","bags-merchant":"ref-vendors-and-repairs","bags-capacity":"ref-capacity-and-money"},
+ chat:{"chat-history":"ref-read-and-send-messages","chat-input":"ref-read-and-send-messages","chat-scroll":"ref-read-and-send-messages","chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history","chat-resize":"ref-font-timestamps-and-size"},
+ loot:{"loot-list":"ref-loot-an-item","loot-coins":"ref-loot-an-item","loot-roll":"ref-group-rolls","loot-confirm":"ref-group-rolls"},
  shell:{"shell-menu":"ref-the-rikui-button"},
  "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-rogue":"ref-your-class-in-the-column","hud-shaman":"ref-your-class-in-the-column","hud-druid":"ref-your-class-in-the-column","hud-scale":"ref-scale-the-hud"},
  cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip","cooldowns-viewer":"ref-your-cooldown-strip","cooldowns-class":"ref-your-cooldown-strip","cooldowns-rows":"ref-your-cooldown-strip","cooldowns-counter":"ref-your-cooldown-strip","cooldowns-tracked":"ref-choose-tracked-spells"},
@@ -33,7 +33,18 @@ const placements={
  lossofcontrol:{"loc-effect":"ref-control-effects","loc-remaining":"ref-control-effects"},
  "proc-overlay":{"proc-sides":"ref-ability-cues","proc-vertical":"ref-ability-cues","proc-center":"ref-ability-cues"},
  damagemeter:{"meter-rows":"ref-read-the-meter"},
- extrabuttons:{"extra-zone":"ref-special-actions"}
+ extrabuttons:{"extra-zone":"ref-special-actions"},
+ minimap:{"minimap-square":"ref-the-minimap","minimap-indicators":"ref-the-minimap","minimap-performance":"ref-rikui-menu"},
+ xpbar:{"xp-experience":"ref-experience","xp-rested":"ref-experience","xp-gain":"ref-experience","xp-reputation":"ref-reputation"},
+ durability:{"dur-worn":"ref-worn-and-broken-gear","dur-broken":"ref-worn-and-broken-gear","dur-tooltip":"ref-worn-and-broken-gear","dur-lowest":"ref-keep-durability-visible"},
+ tooltip:{"tip-item":"ref-unit-item-and-spell-information","tip-aura":"ref-unit-item-and-spell-information","tip-unit":"ref-size-and-position"},
+ micromenu:{"micro-menu":"ref-game-menus","micro-bags":"ref-bag-strip"},
+ chatbubbles:{"bubble-player":"ref-speech-bubbles","bubble-npc":"ref-speech-bubbles"},
+ hudframes:{"hud-framerate":"ref-small-on-screen-labels","hud-navigation":"ref-small-on-screen-labels","hud-queue":"ref-small-on-screen-labels"},
+ screentext:{"text-zone":"ref-zone-names-and-warnings","text-subzone":"ref-zone-names-and-warnings","text-error":"ref-zone-names-and-warnings","text-raid":"ref-zone-names-and-warnings"},
+ alerts:{"alert-loot":"ref-loot-and-reward-alerts","alert-money":"ref-loot-and-reward-alerts","alert-achievement":"ref-loot-and-reward-alerts"},
+ banners:{"banner-objective":"ref-level-ups-and-events"},
+ toasts:{"toast-friend":"ref-social-notices","toast-time":"ref-social-notices","toast-voice":"ref-social-notices"}
 };
 const mockupPlacements={
  interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Friends":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},

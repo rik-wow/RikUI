@@ -31,7 +31,9 @@ def read_tree(case, log):
     return nodes, texts
 
 def verify_geometry(case, nodes):
-    root = next((n for n in nodes if n["name"] == case["frame"] and not n["indent"]), None)
+    # The simulator lists a built-in placeholder before some Blizzard frames of the same name.
+    candidates = [n for n in nodes if n["name"] == case["frame"] and not n["indent"]]
+    root = next((n for n in candidates if n["visible"] == "visible"), candidates[0] if candidates else None)
     if not root or root["visible"] != "visible" or root["alpha"] < 0.5:
         raise RuntimeError(case["id"] + ": root missing or hidden in native diagnostics")
     width, height, x, y = map(int, re.fullmatch(r"(\d+)x(\d+)\+(\d+)\+(\d+)", case["crop"]).groups())

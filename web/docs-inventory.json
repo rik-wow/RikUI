@@ -2554,6 +2554,307 @@
       "title": "Central cue",
       "width": 380,
       "height": 220
+    },
+    {
+      "id": "minimap-square",
+      "page": "minimap",
+      "title": "Square minimap",
+      "width": 240,
+      "height": 300
+    },
+    {
+      "id": "minimap-indicators",
+      "page": "minimap",
+      "title": "Mail and queue indicators",
+      "width": 240,
+      "height": 300
+    },
+    {
+      "id": "minimap-performance",
+      "page": "minimap",
+      "title": "Performance readout",
+      "width": 240,
+      "height": 300
+    },
+    {
+      "id": "dur-lowest",
+      "page": "durability",
+      "title": "Lowest durability",
+      "width": 180,
+      "height": 40
+    },
+    {
+      "id": "dur-worn",
+      "page": "durability",
+      "title": "Worn gear",
+      "width": 180,
+      "height": 40
+    },
+    {
+      "id": "dur-broken",
+      "page": "durability",
+      "title": "Broken gear",
+      "width": 180,
+      "height": 40
+    },
+    {
+      "id": "micro-menu",
+      "page": "micromenu",
+      "title": "Micro menu",
+      "width": 260,
+      "height": 70
+    },
+    {
+      "id": "chat-history",
+      "page": "chat",
+      "title": "Message history",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "chat-input",
+      "page": "chat",
+      "title": "Input bar",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "chat-scroll",
+      "page": "chat",
+      "title": "History scrolling",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "chat-resize",
+      "page": "chat",
+      "title": "Resize handle",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "xp-experience",
+      "page": "xpbar",
+      "title": "Experience",
+      "width": 540,
+      "height": 60
+    },
+    {
+      "id": "xp-rested",
+      "page": "xpbar",
+      "title": "Rested experience",
+      "width": 540,
+      "height": 60
+    },
+    {
+      "id": "xp-reputation",
+      "page": "xpbar",
+      "title": "Watched reputation",
+      "width": 540,
+      "height": 60
+    },
+    {
+      "id": "dur-tooltip",
+      "page": "durability",
+      "title": "Gear tooltip",
+      "width": 320,
+      "height": 200
+    },
+    {
+      "id": "micro-bags",
+      "page": "micromenu",
+      "title": "Backpack",
+      "width": 500,
+      "height": 110
+    },
+    {
+      "id": "hud-queue",
+      "page": "hudframes",
+      "title": "Queue status",
+      "width": 480,
+      "height": 420
+    },
+    {
+      "id": "hud-framerate",
+      "page": "hudframes",
+      "title": "Framerate label",
+      "width": 160,
+      "height": 60
+    },
+    {
+      "id": "text-zone",
+      "page": "screentext",
+      "title": "Zone name",
+      "width": 800,
+      "height": 160
+    },
+    {
+      "id": "loot-coins",
+      "page": "loot",
+      "title": "Currency row",
+      "width": 360,
+      "height": 220
+    },
+    {
+      "id": "text-subzone",
+      "page": "screentext",
+      "title": "Subzone name",
+      "width": 800,
+      "height": 160
+    },
+    {
+      "id": "toast-friend",
+      "page": "toasts",
+      "title": "Friend notification",
+      "width": 300,
+      "height": 100
+    },
+    {
+      "id": "bags-filters",
+      "page": "bags",
+      "title": "Quick filters",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-markers",
+      "page": "bags",
+      "title": "Quest-item marker",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "loot-roll",
+      "page": "loot",
+      "title": "Need and greed roll",
+      "width": 360,
+      "height": 120
+    },
+    {
+      "id": "loot-confirm",
+      "page": "loot",
+      "title": "Loot confirmation",
+      "width": 360,
+      "height": 140
+    },
+    {
+      "id": "tip-unit",
+      "page": "tooltip",
+      "title": "Unit tooltip",
+      "width": 460,
+      "height": 220
+    },
+    {
+      "id": "tip-item",
+      "page": "tooltip",
+      "title": "Item tooltip",
+      "width": 460,
+      "height": 220
+    },
+    {
+      "id": "bubble-npc",
+      "page": "chatbubbles",
+      "title": "NPC speech",
+      "width": 420,
+      "height": 140
+    },
+    {
+      "id": "hud-navigation",
+      "page": "hudframes",
+      "title": "Quest navigation marker",
+      "width": 260,
+      "height": 180
+    },
+    {
+      "id": "text-error",
+      "page": "screentext",
+      "title": "Error message",
+      "width": 800,
+      "height": 120
+    },
+    {
+      "id": "alert-loot",
+      "page": "alerts",
+      "title": "Loot alert",
+      "width": 400,
+      "height": 170
+    },
+    {
+      "id": "alert-money",
+      "page": "alerts",
+      "title": "Money alert",
+      "width": 400,
+      "height": 170
+    },
+    {
+      "id": "alert-achievement",
+      "page": "alerts",
+      "title": "Achievement alert",
+      "width": 400,
+      "height": 170
+    },
+    {
+      "id": "toast-time",
+      "page": "toasts",
+      "title": "Play-time notice",
+      "width": 300,
+      "height": 100
+    },
+    {
+      "id": "toast-voice",
+      "page": "toasts",
+      "title": "Voice notice",
+      "width": 300,
+      "height": 120
+    },
+    {
+      "id": "bags-capacity",
+      "page": "bags",
+      "title": "Capacity indicator",
+      "width": 240,
+      "height": 50
+    },
+    {
+      "id": "bags-merchant",
+      "page": "bags",
+      "title": "Sell junk",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "banner-objective",
+      "page": "banners",
+      "title": "Objective banner",
+      "width": 800,
+      "height": 200
+    },
+    {
+      "id": "xp-gain",
+      "page": "xpbar",
+      "title": "Experience gain",
+      "width": 540,
+      "height": 90
+    },
+    {
+      "id": "bubble-player",
+      "page": "chatbubbles",
+      "title": "Player speech",
+      "width": 420,
+      "height": 140
+    },
+    {
+      "id": "text-raid",
+      "page": "screentext",
+      "title": "Raid warning",
+      "width": 800,
+      "height": 110
+    },
+    {
+      "id": "tip-aura",
+      "page": "tooltip",
+      "title": "Aura tooltip",
+      "width": 460,
+      "height": 220
     }
   ]
 }

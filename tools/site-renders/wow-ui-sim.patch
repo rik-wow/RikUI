@@ -1,3 +1,356 @@
+diff --git a/data/blizzard-ui-files/wowforever.txt b/data/blizzard-ui-files/wowforever.txt
+index b3d38e4..ecfdb5c 100644
+--- a/data/blizzard-ui-files/wowforever.txt
++++ b/data/blizzard-ui-files/wowforever.txt
+@@ -186,6 +186,7 @@ Blizzard_APIDocumentationGenerated/ExpansionLandingPageConstantsDocumentation.lu
+ Blizzard_APIDocumentationGenerated/ExpansionLevelConstantsDocumentation.lua
+ Blizzard_APIDocumentationGenerated/ExpansionTrialDocumentation.lua
+ Blizzard_APIDocumentationGenerated/ExternalEventURLDocumentation.lua
++Blizzard_APIDocumentationGenerated/FlyoutDocumentation.lua
+ Blizzard_APIDocumentationGenerated/FogOfWarDocumentation.lua
+ Blizzard_APIDocumentationGenerated/FontDocumentation.lua
+ Blizzard_APIDocumentationGenerated/ForbiddenAspectConstantsDocumentation.lua
+@@ -352,6 +353,7 @@ Blizzard_APIDocumentationGenerated/NameGenConstantsDocumentation.lua
+ Blizzard_APIDocumentationGenerated/NamePlateConstantsDocumentation.lua
+ Blizzard_APIDocumentationGenerated/NamePlateDocumentation.lua
+ Blizzard_APIDocumentationGenerated/NamePlateManagerDocumentation.lua
++Blizzard_APIDocumentationGenerated/NameUtilDocumentation.lua
+ Blizzard_APIDocumentationGenerated/NeighborhoodInitiativeDocumentation.lua
+ Blizzard_APIDocumentationGenerated/NeighborhoodInitiativesConstantsDocumentation.lua
+ Blizzard_APIDocumentationGenerated/NewItemsDocumentation.lua
+@@ -1818,6 +1820,7 @@ Blizzard_FrameXMLUtil/Blizzard_FrameXMLUtil.toc
+ Blizzard_FrameXMLUtil/CalendarUtil.lua
+ Blizzard_FrameXMLUtil/Camelot/CollectionsUtilOverrides.lua
+ Blizzard_FrameXMLUtil/Camelot/DifficultyUtilOverrides.lua
++Blizzard_FrameXMLUtil/Camelot/ItemUtil.lua
+ Blizzard_FrameXMLUtil/Camelot/NameUtil.lua
+ Blizzard_FrameXMLUtil/Camelot/QuestUtilsOverrides.lua
+ Blizzard_FrameXMLUtil/CampaignUtil.lua
+@@ -1937,7 +1940,6 @@ Blizzard_GameTooltip/Shared/GameTooltipConstants.lua
+ Blizzard_Gamepad/Bindings.xml
+ Blizzard_Gamepad/Blizzard_Gamepad.toc
+ Blizzard_Gamepad/Core.lua
+-Blizzard_Gamepad/Gameplay/SpecialInputStates.lua
+ Blizzard_Gamepad/SmartNavigationInGame/FrameBoltOns/GamepadItemPickupCursor.lua
+ Blizzard_Gamepad/SmartNavigationInGame/FrameBoltOns/GamepadItemPickupCursor.xml
+ Blizzard_Gamepad/UI/CinematicMovie.lua
+@@ -1953,7 +1955,6 @@ Blizzard_Gamepad/UI/Radials/GamepadRadial.xml
+ Blizzard_Gamepad/UI/Reticle/GamepadReticle.lua
+ Blizzard_Gamepad/UI/Reticle/GamepadReticle.xml
+ Blizzard_Gamepad/Utility/Bindings/HoldBindings.lua
+-Blizzard_Gamepad/Utility/Utility.lua
+ Blizzard_GamepadActionBars/ActionBar.lua
+ Blizzard_GamepadActionBars/ActionBarButton.lua
+ Blizzard_GamepadActionBars/ActionBarButton.xml
+@@ -1965,6 +1966,13 @@ Blizzard_GamepadActionBars/ActionBarTemplates.xml
+ Blizzard_GamepadActionBars/ActionBindingUtil.lua
+ Blizzard_GamepadActionBars/Bindings.xml
+ Blizzard_GamepadActionBars/Blizzard_GamepadActionBars.toc
++Blizzard_GamepadActionBars/Camelot/ClassSpellFlyout.lua
++Blizzard_GamepadActionBars/Camelot/PetActionFlyout.lua
++Blizzard_GamepadActionBars/Camelot/PetActionFlyoutButton.lua
++Blizzard_GamepadActionBars/Camelot/PetClassFlyouts.xml
++Blizzard_GamepadActionBars/Camelot/PetSpellFlyout.lua
++Blizzard_GamepadActionBars/ClassActionFlyout.lua
++Blizzard_GamepadActionBars/ClassActionFlyout.xml
+ Blizzard_GamepadActionBars/FlyoutRadial.lua
+ Blizzard_GamepadActionBars/FlyoutRadial.xml
+ Blizzard_GamepadActionBars/GamepadOverrideBarMixin.lua
+@@ -1974,6 +1982,8 @@ Blizzard_GamepadActionBars/MainActionBarFrame.lua
+ Blizzard_GamepadActionBars/MainActionBarFrame.xml
+ Blizzard_GamepadActionBars/PageUnit.lua
+ Blizzard_GamepadActionBars/PossessBar.lua
++Blizzard_GamepadActionBars/SpellFlyoutRadial.lua
++Blizzard_GamepadActionBars/SpellFlyoutRadial.xml
+ Blizzard_GamepadActionBars/StanceBar.lua
+ Blizzard_GamepadActionBars/TargetActionBars/FriendlyTargetingActionBar.lua
+ Blizzard_GamepadActionBars/TargetActionBars/HostileTargetingActionBar.lua
+@@ -2103,6 +2113,8 @@ Blizzard_GlueStubs/GlueStubs.xml
+ Blizzard_GlueXML/Bindings.xml
+ Blizzard_GlueXML/Blizzard_GlueXML.toc
+ Blizzard_GlueXML/Camelot/AccountLoginOverrides.lua
++Blizzard_GlueXML/Camelot/CharacterCopy.lua
++Blizzard_GlueXML/Camelot/CharacterCopy.xml
+ Blizzard_GlueXML/Camelot/CharacterSelect/CharacterSelectList.lua
+ Blizzard_GlueXML/Camelot/CharacterSelect/CharacterSelectListBackground.xml
+ Blizzard_GlueXML/Camelot/CharacterSelect/CharacterSelectTemplates.lua
+@@ -2113,6 +2125,8 @@ Blizzard_GlueXML/ForceRenameFullNameDialog.lua
+ Blizzard_GlueXML/ForceRenameFullNameDialog.xml
+ Blizzard_GlueXML/Mainline/AccountLogin.lua
+ Blizzard_GlueXML/Mainline/AccountLogin.xml
++Blizzard_GlueXML/Mainline/CharacterCopy.lua
++Blizzard_GlueXML/Mainline/CharacterCopy.xml
+ Blizzard_GlueXML/Mainline/CharacterLoginUtil.lua
+ Blizzard_GlueXML/Mainline/CharacterSelect.lua
+ Blizzard_GlueXML/Mainline/CharacterSelect.xml
+@@ -2492,14 +2506,14 @@ Blizzard_Kiosk/Unused/Unused.lua
+ Blizzard_Kiosk/Unused/Unused.xml
+ Blizzard_LFGUtil/Blizzard_LFGUtil.toc
+ Blizzard_LFGUtil/Camelot/LFGUtil.lua
++Blizzard_LFGUtil/Mainline/LFGEye.lua
++Blizzard_LFGUtil/Mainline/LFGEye.xml
+ Blizzard_LFGUtil/Mainline/LFGUtil.lua
+ Blizzard_LFGUtil/Mainline/PVPHelper.lua
+ Blizzard_LFGUtil/Mainline/PVPHelper.xml
+ Blizzard_LFGUtil/Mainline/PvpPopup.lua
+ Blizzard_LFGUtil/Mainline/PvpPopup.xml
+ Blizzard_LFGUtil/Shared/Constants.lua
+-Blizzard_LFGUtil/Shared/LFGEye.lua
+-Blizzard_LFGUtil/Shared/LFGEye.xml
+ Blizzard_LFGUtil/Shared/LFGInvitePopup.lua
+ Blizzard_LFGUtil/Shared/LFGInvitePopup.xml
+ Blizzard_LFGUtil/Shared/LFGRole.lua
+@@ -2810,6 +2824,7 @@ Blizzard_PTRFeedback/Blizzard_PTRFeedback.toc
+ Blizzard_PTRFeedback/Blizzard_PTRFeedback_Events.lua
+ Blizzard_PTRFeedback/Blizzard_PTRFeedback_FrameTemplates.xml
+ Blizzard_PTRFeedback/Blizzard_PTRFeedback_Frames.lua
++Blizzard_PTRFeedback/Blizzard_PTRFeedback_Gamepad.lua
+ Blizzard_PTRFeedback/Blizzard_PTRFeedback_Tooltips.lua
+ Blizzard_PTRFeedback/Blizzard_Reports.lua
+ Blizzard_PTRFeedbackGlue/Blizzard_PTRFeedbackGlue.toc
+@@ -3961,10 +3976,12 @@ Blizzard_UIModes/Blizzard_UIModeManager.lua
+ Blizzard_UIModes/Blizzard_UIModeUtil.lua
+ Blizzard_UIModes/Blizzard_UIModes.toc
+ Blizzard_UIPanelTemplates/Blizzard_UIPanelTemplates.toc
++Blizzard_UIPanelTemplates/Camelot/UIPanelTemplatesOverrides.xml
+ Blizzard_UIPanelTemplates/Mainline/AutoCastTemplates.lua
+ Blizzard_UIPanelTemplates/Mainline/AutoCastTemplates.xml
+ Blizzard_UIPanelTemplates/Mainline/UIPanelTemplates.lua
+ Blizzard_UIPanelTemplates/Mainline/UIPanelTemplates.xml
++Blizzard_UIPanelTemplates/Mainline/UIPanelTemplatesOverrides.xml
+ Blizzard_UIPanelTemplates/Shared/UIPanelSpellButtonFrame.lua
+ Blizzard_UIPanelTemplates/Shared/UIPanelSpellButtonFrame.xml
+ Blizzard_UIPanelTemplates/Shared/UIPanelTemplatesShared.lua
+@@ -4224,6 +4241,7 @@ Blizzard_UnitFrame/Camelot/PlayerFrameTemplates.xml
+ Blizzard_UnitFrame/Camelot/TargetFrame.lua
+ Blizzard_UnitFrame/Camelot/TargetFrameTemplates.xml
+ Blizzard_UnitFrame/Camelot/TargetFrameUtils.lua
++Blizzard_UnitFrame/Camelot/UnitFramePvPIndicatorStyle.lua
+ Blizzard_UnitFrame/DemonHunterSoulFragmentsBar.lua
+ Blizzard_UnitFrame/DemonHunterSoulFragmentsBar.xml
+ Blizzard_UnitFrame/DevourerFuryBar.lua
+@@ -4282,7 +4300,7 @@ Blizzard_UnitFrame/Mainline/TargetFrameUtils.lua
+ Blizzard_UnitFrame/Mainline/TotemFrame.lua
+ Blizzard_UnitFrame/Mainline/TotemFrame.xml
+ Blizzard_UnitFrame/Mainline/UnitFrame.lua
+-Blizzard_UnitFrame/Mainline/UnitFrameUtil.lua
++Blizzard_UnitFrame/Mainline/UnitFramePvPIndicatorStyle.lua
+ Blizzard_UnitFrame/Mainline/UnitPowerBarAlt.lua
+ Blizzard_UnitFrame/Mainline/UnitPowerBarAlt.xml
+ Blizzard_UnitFrame/Shared/CompactPartyFrame.lua
+@@ -4312,6 +4330,7 @@ Blizzard_UnitFrame/Shared/TargetFrameAuraContainer.xml
+ Blizzard_UnitFrame/Shared/TargetFrameAuraShared.lua
+ Blizzard_UnitFrame/Shared/UnitFrame.lua
+ Blizzard_UnitFrame/Shared/UnitFrame.xml
++Blizzard_UnitFrame/Shared/UnitFrameUtil.lua
+ Blizzard_UnitPopup/Blizzard_UnitPopup.toc
+ Blizzard_UnitPopup/Camelot/UnitPopupMenus.lua
+ Blizzard_UnitPopup/Mainline/UnitPopup.lua
+diff --git a/data/listfile-overrides.csv b/data/listfile-overrides.csv
+index 7e46d2e..2e4e3ee 100644
+--- a/data/listfile-overrides.csv
++++ b/data/listfile-overrides.csv
+@@ -56,3 +56,12 @@
+ 8279821;interface/addons/Blizzard_TutorialTemplates/Blizzard_TutorialTemplates.xml
+ 8279822;interface/addons/Blizzard_UIParentPanelManager/Blizzard_UIParentPanelManager.toc
+ 8263018;interface/addons/Blizzard_UnitPopup/Blizzard_UnitPopup.toc
++204413;world/minimaps/azeroth/map30_48.blp
++204414;world/minimaps/azeroth/map30_49.blp
++204415;world/minimaps/azeroth/map30_50.blp
++204453;world/minimaps/azeroth/map31_48.blp
++204454;world/minimaps/azeroth/map31_49.blp
++204455;world/minimaps/azeroth/map31_50.blp
++204493;world/minimaps/azeroth/map32_48.blp
++204494;world/minimaps/azeroth/map32_49.blp
++204495;world/minimaps/azeroth/map32_50.blp
+diff --git a/data/wow-ui-sim-listfile.csv b/data/wow-ui-sim-listfile.csv
+index e7b431c..e794efb 100644
+--- a/data/wow-ui-sim-listfile.csv
++++ b/data/wow-ui-sim-listfile.csv
+@@ -1,23 +1,9 @@
+-615966;fonts/2002.ttf
+-615968;fonts/2002b.ttf
+-615964;fonts/arhei.ttf
+ 2888293;fonts/arheiuhk_bd.ttf
+ 615958;fonts/arialn.ttf
+-615970;fonts/arkai_c.ttf
+-615974;fonts/arkai_t.ttf
+-615969;fonts/bhei00m.ttf
+-615977;fonts/bhei01b.ttf
+-615965;fonts/bkai00m.ttf
+-615963;fonts/blei00d.ttf
+ 615960;Fonts/FRIZQT__.TTF
+ 615971;fonts/frizqt___cyr.ttf
+-615975;fonts/k_damage.ttf
+-615972;fonts/k_pagetext.ttf
+ 615962;fonts/morpheus.ttf
+-615976;fonts/morpheus_cyr.ttf
+-615967;fonts/nim_____.ttf
+ 615961;fonts/skurri.ttf
+-615973;fonts/skurri_cyr.ttf
+ 4723680;interface/ garrison/dragonflightlandingpage.blp
+ 130646;interface/abilitiesframe/ui-abilitypanel-botleft.blp
+ 130647;interface/abilitiesframe/ui-abilitypanel-botright.blp
+@@ -437,6 +423,7 @@
+ 6791771;interface/addons/blizzard_apidocumentationgenerated/expansionlevelconstantsdocumentation.lua
+ 5177503;interface/addons/blizzard_apidocumentationgenerated/expansiontrialdocumentation.lua
+ 7391201;interface/addons/blizzard_apidocumentationgenerated/externaleventurldocumentation.lua
++8474100;interface/addons/blizzard_apidocumentationgenerated/flyoutdocumentation.lua
+ 4637093;interface/addons/blizzard_apidocumentationgenerated/fogofwardocumentation.lua
+ 5200984;interface/addons/blizzard_apidocumentationgenerated/fontdocumentation.lua
+ 8119707;interface/addons/blizzard_apidocumentationgenerated/forbiddenaspectconstantsdocumentation.lua
+@@ -604,6 +591,7 @@
+ 6922318;interface/addons/blizzard_apidocumentationgenerated/nameplateconstantsdocumentation.lua
+ 4637145;interface/addons/blizzard_apidocumentationgenerated/nameplatedocumentation.lua
+ 4637154;interface/addons/blizzard_apidocumentationgenerated/nameplatemanagerdocumentation.lua
++8490157;interface/addons/blizzard_apidocumentationgenerated/nameutildocumentation.lua
+ 6999257;interface/addons/blizzard_apidocumentationgenerated/neighborhoodinitiativedocumentation.lua
+ 7106802;interface/addons/blizzard_apidocumentationgenerated/neighborhoodinitiativesconstantsdocumentation.lua
+ 4744159;interface/addons/blizzard_apidocumentationgenerated/newitemsdocumentation.lua
+@@ -2151,6 +2139,7 @@
+ 5612372;interface/addons/blizzard_framexmlutil/calendarutil.lua
+ 8285778;interface/addons/blizzard_framexmlutil/camelot/collectionsutiloverrides.lua
+ 8279820;interface/addons/blizzard_framexmlutil/camelot/difficultyutiloverrides.lua
++8473050;interface/addons/blizzard_framexmlutil/camelot/itemutil.lua
+ 7949502;interface/addons/blizzard_framexmlutil/camelot/nameutil.lua
+ 8431072;interface/addons/blizzard_framexmlutil/camelot/questutilsoverrides.lua
+ 5612472;interface/addons/blizzard_framexmlutil/campaignutil.lua
+@@ -2274,7 +2263,6 @@
+ 6188183;interface/addons/blizzard_gamepad/bindings.xml
+ 6188214;interface/addons/blizzard_gamepad/blizzard_gamepad.toc
+ 6188365;interface/addons/blizzard_gamepad/core.lua
+-6211145;interface/addons/blizzard_gamepad/gameplay/specialinputstates.lua
+ 6218224;interface/addons/blizzard_gamepad/smartnavigationingame/frameboltons/gamepaditempickupcursor.lua
+ 6218223;interface/addons/blizzard_gamepad/smartnavigationingame/frameboltons/gamepaditempickupcursor.xml
+ 6211119;interface/addons/blizzard_gamepad/ui/cinematicmovie.lua
+@@ -2290,7 +2278,6 @@
+ 6429360;interface/addons/blizzard_gamepad/ui/reticle/gamepadreticle.lua
+ 6429359;interface/addons/blizzard_gamepad/ui/reticle/gamepadreticle.xml
+ 6904397;interface/addons/blizzard_gamepad/utility/bindings/holdbindings.lua
+-6211111;interface/addons/blizzard_gamepad/utility/utility.lua
+ 7050702;interface/addons/blizzard_gamepadactionbars/actionbar.lua
+ 7050709;interface/addons/blizzard_gamepadactionbars/actionbarbutton.lua
+ 7050712;interface/addons/blizzard_gamepadactionbars/actionbarbutton.xml
+@@ -2302,6 +2289,13 @@
+ 7050708;interface/addons/blizzard_gamepadactionbars/actionbindingutil.lua
+ 7050706;interface/addons/blizzard_gamepadactionbars/bindings.xml
+ 7050699;interface/addons/blizzard_gamepadactionbars/blizzard_gamepadactionbars.toc
++8484043;interface/addons/blizzard_gamepadactionbars/camelot/classspellflyout.lua
++8475044;interface/addons/blizzard_gamepadactionbars/camelot/petactionflyout.lua
++8475046;interface/addons/blizzard_gamepadactionbars/camelot/petactionflyoutbutton.lua
++8475045;interface/addons/blizzard_gamepadactionbars/camelot/petclassflyouts.xml
++8475047;interface/addons/blizzard_gamepadactionbars/camelot/petspellflyout.lua
++8474101;interface/addons/blizzard_gamepadactionbars/classactionflyout.lua
++8474102;interface/addons/blizzard_gamepadactionbars/classactionflyout.xml
+ 7961437;interface/addons/blizzard_gamepadactionbars/flyoutradial.lua
+ 7961438;interface/addons/blizzard_gamepadactionbars/flyoutradial.xml
+ 7050707;interface/addons/blizzard_gamepadactionbars/gamepadoverridebarmixin.lua
+@@ -2311,6 +2305,8 @@
+ 7050701;interface/addons/blizzard_gamepadactionbars/mainactionbarframe.xml
+ 7050710;interface/addons/blizzard_gamepadactionbars/pageunit.lua
+ 7050713;interface/addons/blizzard_gamepadactionbars/possessbar.lua
++8474103;interface/addons/blizzard_gamepadactionbars/spellflyoutradial.lua
++8474104;interface/addons/blizzard_gamepadactionbars/spellflyoutradial.xml
+ 7050700;interface/addons/blizzard_gamepadactionbars/stancebar.lua
+ 8419625;interface/addons/blizzard_gamepadactionbars/targetactionbars/friendlytargetingactionbar.lua
+ 8419626;interface/addons/blizzard_gamepadactionbars/targetactionbars/hostiletargetingactionbar.lua
+@@ -2457,6 +2453,8 @@
+ 5613260;interface/addons/blizzard_gluexml/blizzard_gluexml_mainline.toc
+ 6204372;interface/addons/blizzard_gluexml/blizzard_gluexml_mists.toc
+ 7967621;interface/addons/blizzard_gluexml/camelot/accountloginoverrides.lua
++8490763;interface/addons/blizzard_gluexml/camelot/charactercopy.lua
++8490764;interface/addons/blizzard_gluexml/camelot/charactercopy.xml
+ 8269570;interface/addons/blizzard_gluexml/camelot/characterselect/characterselectlist.lua
+ 8269572;interface/addons/blizzard_gluexml/camelot/characterselect/characterselectlistbackground.xml
+ 8269571;interface/addons/blizzard_gluexml/camelot/characterselect/characterselecttemplates.lua
+@@ -2467,6 +2465,8 @@
+ 8035579;interface/addons/blizzard_gluexml/forcerenamefullnamedialog.xml
+ 5612756;interface/addons/blizzard_gluexml/mainline/accountlogin.lua
+ 5612948;interface/addons/blizzard_gluexml/mainline/accountlogin.xml
++8490765;interface/addons/blizzard_gluexml/mainline/charactercopy.lua
++8490766;interface/addons/blizzard_gluexml/mainline/charactercopy.xml
+ 5614217;interface/addons/blizzard_gluexml/mainline/characterloginutil.lua
+ 5612621;interface/addons/blizzard_gluexml/mainline/characterselect.lua
+ 5613496;interface/addons/blizzard_gluexml/mainline/characterselect.xml
+@@ -2958,14 +2958,14 @@
+ 8124389;interface/addons/blizzard_lfgutil/blizzard_lfgutil_mainline.toc
+ 8124391;interface/addons/blizzard_lfgutil/camelot/lfgutil.lua
+ 8124390;interface/addons/blizzard_lfgutil/classic/lfgutil.lua
++8475048;interface/addons/blizzard_lfgutil/mainline/lfgeye.lua
++8475049;interface/addons/blizzard_lfgutil/mainline/lfgeye.xml
+ 8124392;interface/addons/blizzard_lfgutil/mainline/lfgutil.lua
+ 7826060;interface/addons/blizzard_lfgutil/mainline/pvphelper.lua
+ 7826058;interface/addons/blizzard_lfgutil/mainline/pvphelper.xml
+ 7826059;interface/addons/blizzard_lfgutil/mainline/pvppopup.lua
+ 7826061;interface/addons/blizzard_lfgutil/mainline/pvppopup.xml
+ 7789367;interface/addons/blizzard_lfgutil/shared/constants.lua
+-7826236;interface/addons/blizzard_lfgutil/shared/lfgeye.lua
+-7826237;interface/addons/blizzard_lfgutil/shared/lfgeye.xml
+ 7789366;interface/addons/blizzard_lfgutil/shared/lfginvitepopup.lua
+ 7789364;interface/addons/blizzard_lfgutil/shared/lfginvitepopup.xml
+ 7789365;interface/addons/blizzard_lfgutil/shared/lfgrole.lua
+@@ -3577,6 +3577,7 @@
+ 2921884;interface/addons/blizzard_ptrfeedback/blizzard_ptrfeedback_events.lua
+ 2921877;interface/addons/blizzard_ptrfeedback/blizzard_ptrfeedback_frames.lua
+ 4704269;interface/addons/blizzard_ptrfeedback/blizzard_ptrfeedback_frametemplates.xml
++8496374;interface/addons/blizzard_ptrfeedback/blizzard_ptrfeedback_gamepad.lua
+ 2921879;interface/addons/blizzard_ptrfeedback/blizzard_ptrfeedback_tooltips.lua
+ 2921880;interface/addons/blizzard_ptrfeedback/blizzard_reports.lua
+ 3592446;interface/addons/blizzard_ptrfeedbackglue/blizzard_ptrfeedback_events_glue.lua
+@@ -4823,6 +4824,7 @@
+ 8286111;interface/addons/blizzard_uipaneltemplates/blizzard_uipaneltemplates.toc
+ 5613874;interface/addons/blizzard_uipaneltemplates/blizzard_uipaneltemplates_classic.toc
+ 5612412;interface/addons/blizzard_uipaneltemplates/blizzard_uipaneltemplates_mainline.toc
++8475050;interface/addons/blizzard_uipaneltemplates/camelot/uipaneltemplatesoverrides.xml
+ 7431895;interface/addons/blizzard_uipaneltemplates/classic/autocasttemplates.lua
+ 7431896;interface/addons/blizzard_uipaneltemplates/classic/autocasttemplates.xml
+ 5613710;interface/addons/blizzard_uipaneltemplates/classic/uipaneltemplates.lua
+@@ -4831,6 +4833,7 @@
+ 5901702;interface/addons/blizzard_uipaneltemplates/mainline/autocasttemplates.xml
+ 5613979;interface/addons/blizzard_uipaneltemplates/mainline/uipaneltemplates.lua
+ 5613540;interface/addons/blizzard_uipaneltemplates/mainline/uipaneltemplates.xml
++8475051;interface/addons/blizzard_uipaneltemplates/mainline/uipaneltemplatesoverrides.xml
+ 6929513;interface/addons/blizzard_uipaneltemplates/shared/uipanelspellbuttonframe.lua
+ 6929512;interface/addons/blizzard_uipaneltemplates/shared/uipanelspellbuttonframe.xml
+ 8124443;interface/addons/blizzard_uipaneltemplates/shared/uipaneltemplatesshared.lua
+@@ -5041,6 +5044,7 @@
+ 8124450;interface/addons/blizzard_unitframe/camelot/targetframe.lua
+ 8124452;interface/addons/blizzard_unitframe/camelot/targetframetemplates.xml
+ 7850526;interface/addons/blizzard_unitframe/camelot/targetframeutils.lua
++8472160;interface/addons/blizzard_unitframe/camelot/unitframepvpindicatorstyle.lua
+ 5739612;interface/addons/blizzard_unitframe/cata/eclipsebarframe.lua
+ 5739611;interface/addons/blizzard_unitframe/cata/eclipsebarframe.xml
+ 5645636;interface/addons/blizzard_unitframe/cata/runeframe.lua
+@@ -5121,7 +5125,7 @@
+ 7557113;interface/addons/blizzard_unitframe/mainline/totemframe.lua
+ 7557114;interface/addons/blizzard_unitframe/mainline/totemframe.xml
+ 7557116;interface/addons/blizzard_unitframe/mainline/unitframe.lua
+-8467861;interface/addons/blizzard_unitframe/mainline/unitframeutil.lua
++8472161;interface/addons/blizzard_unitframe/mainline/unitframepvpindicatorstyle.lua
+ 7557115;interface/addons/blizzard_unitframe/mainline/unitpowerbaralt.lua
+ 7557117;interface/addons/blizzard_unitframe/mainline/unitpowerbaralt.xml
+ 6692670;interface/addons/blizzard_unitframe/mists/alternatepowerbar.xml
+@@ -5162,6 +5166,7 @@
+ 8187734;interface/addons/blizzard_unitframe/shared/targetframeaurashared.lua
+ 7557044;interface/addons/blizzard_unitframe/shared/unitframe.lua
+ 7557045;interface/addons/blizzard_unitframe/shared/unitframe.xml
++8489399;interface/addons/blizzard_unitframe/shared/unitframeutil.lua
+ 5612683;interface/addons/blizzard_unitframe/wrath/alternatepowerbar.lua
+ 8263018;interface/addons/Blizzard_UnitPopup/Blizzard_UnitPopup.toc
+ 6716594;interface/addons/blizzard_unitpopup/blizzard_unitpopup_mainline.toc
+@@ -146359,3 +146364,12 @@
+ 567407;sound/interface/uchatscrollbutton.ogg
+ 567464;sound/interface/uescapescreenclose.ogg
+ 567490;sound/interface/uescapescreenopen.ogg
++204413;world/minimaps/azeroth/map30_48.blp
++204414;world/minimaps/azeroth/map30_49.blp
++204415;world/minimaps/azeroth/map30_50.blp
++204453;world/minimaps/azeroth/map31_48.blp
++204454;world/minimaps/azeroth/map31_49.blp
++204455;world/minimaps/azeroth/map31_50.blp
++204493;world/minimaps/azeroth/map32_48.blp
++204494;world/minimaps/azeroth/map32_49.blp
++204495;world/minimaps/azeroth/map32_50.blp
 diff --git a/src/bin/wow_sim/gui_commands.rs b/src/bin/wow_sim/gui_commands.rs
 index 38c5046..8421cdc 100644
 --- a/src/bin/wow_sim/gui_commands.rs

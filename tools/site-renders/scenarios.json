@@ -1443,5 +1443,616 @@
     "fixtures": [],
     "lua": "DamageMeter:Show()\nDamageMeterSessionWindow1:Show()\nRikRenderCenter(DamageMeter, 1.5)\nRikRenderResize(DamageMeter)\n",
     "expectText": []
+  },
+  {
+    "id": "minimap-square",
+    "page": "minimap",
+    "title": "Square minimap",
+    "frame": "RikUIMinimap",
+    "crop": "240x300+904+426",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderMinimapTiles()\nRikRenderCenter(RikUIMinimap)\n",
+    "expectText": [
+      "Goldshire"
+    ]
+  },
+  {
+    "id": "minimap-indicators",
+    "page": "minimap",
+    "title": "Mail and queue indicators",
+    "frame": "RikUIMinimap",
+    "crop": "240x300+904+426",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderMail()"
+    ],
+    "lua": "RikRenderMinimapTiles()\nRikRenderCenter(RikUIMinimap)\n",
+    "expectText": [
+      "Goldshire"
+    ]
+  },
+  {
+    "id": "minimap-performance",
+    "page": "minimap",
+    "title": "Performance readout",
+    "frame": "RikUIMinimap",
+    "crop": "240x300+904+426",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderPerformance(74, 38)"
+    ],
+    "lua": "RikRenderMinimapTiles()\nRikRenderCenter(RikUIMinimap)\n",
+    "expectText": [
+      "74 FPS"
+    ]
+  },
+  {
+    "id": "xp-experience",
+    "page": "xpbar",
+    "title": "Experience",
+    "frame": "RikUIXPBar",
+    "crop": "540x60+754+546",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderExperience(1240, 2800, nil)\nRikRenderCenter(RikUIXPBar)\n",
+    "expectText": [],
+    "sequence": {
+      "control": "toggle",
+      "label": "Compact bars",
+      "values": [
+        false,
+        true
+      ],
+      "labels": [
+        "Detailed",
+        "Compact"
+      ],
+      "default": false,
+      "apply": "RikRenderSetOption(\"xpbar\", \"xpbar.compact\", VALUE)"
+    }
+  },
+  {
+    "id": "xp-rested",
+    "page": "xpbar",
+    "title": "Rested experience",
+    "frame": "RikUIXPBar",
+    "crop": "540x60+754+546",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderExperience(1240, 2800, 900)\nRikRenderCenter(RikUIXPBar)\n",
+    "expectText": []
+  },
+  {
+    "id": "xp-reputation",
+    "page": "xpbar",
+    "title": "Watched reputation",
+    "frame": "RikUIXPBar",
+    "crop": "540x60+754+546",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderExperience(1240, 2800, nil)\nRikRenderReputation(\"Stormwind\", 5, 4200, 3000, 9000)\nRikRenderCenter(RikUIXPBar)\n",
+    "expectText": []
+  },
+  {
+    "id": "xp-gain",
+    "page": "xpbar",
+    "title": "Experience gain",
+    "frame": "RikUIXPBar",
+    "crop": "540x90+754+516",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderExperienceGain(1240, 1360, 2800)\nRikRenderCenter(RikUIXPBar)\n",
+    "expectText": [
+      "+120 XP"
+    ]
+  },
+  {
+    "id": "dur-lowest",
+    "page": "durability",
+    "title": "Lowest durability",
+    "frame": "RikUIDurability",
+    "crop": "180x40+934+556",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderSetOption(\"durability\", \"showPercent\", true)\nRikRenderDurability({}, { [5] = 64, [16] = 71, [7] = 88 })\nRikRenderCenter(RikUIDurability)\n",
+    "expectText": [
+      "64% durability"
+    ]
+  },
+  {
+    "id": "dur-worn",
+    "page": "durability",
+    "title": "Worn gear",
+    "frame": "RikUIDurability",
+    "crop": "180x40+934+556",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderDurability({ [2] = 1, [5] = 1 }, { [3] = 18, [7] = 22 })\nRikRenderCenter(RikUIDurability)\n",
+    "expectText": [
+      "2 worn"
+    ]
+  },
+  {
+    "id": "dur-broken",
+    "page": "durability",
+    "title": "Broken gear",
+    "frame": "RikUIDurability",
+    "crop": "180x40+934+556",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderDurability({ [9] = 2, [2] = 1 }, { [16] = 0, [3] = 18 })\nRikRenderCenter(RikUIDurability)\n",
+    "expectText": [
+      "1 broken, 1 worn"
+    ]
+  },
+  {
+    "id": "dur-tooltip",
+    "page": "durability",
+    "title": "Gear tooltip",
+    "frame": "RikRenderDurabilityTip",
+    "crop": "320x200+864+526",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderSetOption(\"durability\", \"showPercent\", true)\nRikRenderGroup(\"RikRenderDurabilityTip\", { RikUIDurability, GameTooltip }, 864, 426, 320, 200)\nRikUIDurability:ClearAllPoints()\nRikUIDurability:SetPoint(\"TOP\", RikRenderDurabilityTip, \"TOP\", 0, -8)\nRikRenderDurability({ [9] = 2, [2] = 1 }, { [16] = 0, [3] = 18, [5] = 64 }, true)\nRikRenderRemeasure(GameTooltip)\n",
+    "expectText": [
+      "Durability"
+    ]
+  },
+  {
+    "id": "tip-unit",
+    "page": "tooltip",
+    "title": "Unit tooltip",
+    "frame": "GameTooltip",
+    "crop": "460x220+744+466",
+    "fixtures": [],
+    "lua": "RikRenderCenter(RikUITooltipAnchor)\nRikRenderTooltip(\"unit\", \"target\")\n",
+    "expectText": [
+      "Mangy Wolf"
+    ],
+    "sequence": {
+      "control": "slider",
+      "label": "Tooltip size",
+      "values": [
+        0.75,
+        1,
+        1.25
+      ],
+      "labels": [
+        "75%",
+        "100%",
+        "125%"
+      ],
+      "default": 1,
+      "apply": "RikRenderSetOption(\"tooltip\", \"scale\", VALUE)"
+    }
+  },
+  {
+    "id": "tip-item",
+    "page": "tooltip",
+    "title": "Item tooltip",
+    "frame": "GameTooltip",
+    "crop": "460x220+744+466",
+    "fixtures": [],
+    "lua": "RikRenderCenter(RikUITooltipAnchor)\nRikRenderTooltip(\"item\", 6948)\n",
+    "expectText": [
+      "Hearthstone"
+    ]
+  },
+  {
+    "id": "tip-aura",
+    "page": "tooltip",
+    "title": "Aura tooltip",
+    "frame": "GameTooltip",
+    "crop": "460x220+744+466",
+    "fixtures": [],
+    "lua": "RikRenderCenter(RikUITooltipAnchor)\nRikRenderTooltip(\"aura\", 1, \"HELPFUL\")\n",
+    "expectText": [
+      "1 hr"
+    ]
+  },
+  {
+    "id": "micro-menu",
+    "page": "micromenu",
+    "title": "Micro menu",
+    "frame": "RikUIMicroMenu",
+    "crop": "260x70+894+541",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderBagItems()\nRikUI.MicroMenu.RefreshBags()\nRikRenderCenter(RikUIMicroMenu)\n",
+    "expectText": []
+  },
+  {
+    "id": "micro-bags",
+    "page": "micromenu",
+    "title": "Backpack",
+    "frame": "RikUIMicroMenu",
+    "crop": "500x110+774+521",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderBagItems()\nRikUI.MicroMenu.RefreshBags()\nRikRenderCenter(RikUIMicroMenu, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "chat-history",
+    "page": "chat",
+    "title": "Message history",
+    "frame": "RikRenderChat",
+    "crop": "500x280+8+872",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderChatLines()\nRikRenderGroup(\"RikRenderChat\", { RikUIChatHolder, ChatFrame1, ChatFrame1Tab, ChatFrame1EditBox, RikUIChatStrip, GeneralDockManager }, 8, 0, 500, 280)\n",
+    "expectText": [
+      "Deadmines"
+    ]
+  },
+  {
+    "id": "chat-input",
+    "page": "chat",
+    "title": "Input bar",
+    "frame": "RikRenderChat",
+    "crop": "500x280+8+872",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderChatLines()\nRikRenderChatInput(\"On my way\", \"PARTY\")\nRikRenderGroup(\"RikRenderChat\", { RikUIChatHolder, ChatFrame1, ChatFrame1Tab, ChatFrame1EditBox, RikUIChatStrip, GeneralDockManager }, 8, 0, 500, 280)\n",
+    "expectText": [
+      "On my way"
+    ]
+  },
+  {
+    "id": "chat-scroll",
+    "page": "chat",
+    "title": "History scrolling",
+    "frame": "RikRenderChat",
+    "crop": "500x280+8+872",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderChatLines()\nRikRenderChatLines()\nRikRenderChatScrolled()\nRikRenderGroup(\"RikRenderChat\", { RikUIChatHolder, ChatFrame1, ChatFrame1Tab, ChatFrame1EditBox, RikUIChatStrip, GeneralDockManager }, 8, 0, 500, 280)\n",
+    "expectText": []
+  },
+  {
+    "id": "chat-resize",
+    "page": "chat",
+    "title": "Resize handle",
+    "frame": "RikRenderChat",
+    "crop": "500x280+8+872",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderChatLines()\nRikUI.Chat.SetLocked(false)\nRikRenderGroup(\"RikRenderChat\", { RikUIChatHolder, ChatFrame1, ChatFrame1Tab, ChatFrame1EditBox, RikUIChatStrip, GeneralDockManager }, 8, 0, 500, 280)\n",
+    "expectText": []
+  },
+  {
+    "id": "bubble-npc",
+    "page": "chatbubbles",
+    "title": "NPC speech",
+    "frame": "RikRenderBubbleNPC",
+    "crop": "420x140+1280+520",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderBubble(\"RikRenderBubbleNPC\", \"Welcome to the Lion's Pride Inn.\", \"Innkeeper Farley\")\n",
+    "expectText": []
+  },
+  {
+    "id": "bubble-player",
+    "page": "chatbubbles",
+    "title": "Player speech",
+    "frame": "RikRenderBubblePlayer",
+    "crop": "420x140+814+540",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderBubble(\"RikRenderBubblePlayer\", \"Anyone heading to the Deadmines later?\", { x = 1024, y = 700 })\n",
+    "expectText": []
+  },
+  {
+    "id": "hud-queue",
+    "page": "hudframes",
+    "title": "Queue status",
+    "frame": "RikRenderQueue",
+    "crop": "480x420+784+366",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderMinimapTiles()\nRikRenderGroup(\"RikRenderQueue\", { RikUIMinimap, QueueStatusFrame }, 784, 366, 480, 420)\nRikUIMinimap:ClearAllPoints()\nRikUIMinimap:SetPoint(\"TOPRIGHT\", RikRenderQueue, \"TOPRIGHT\", -10, -10)\nRikRenderQueueStatus(\"Deadmines\", 2)\n",
+    "expectText": [
+      "Deadmines"
+    ]
+  },
+  {
+    "id": "hud-framerate",
+    "page": "hudframes",
+    "title": "Framerate label",
+    "frame": "FramerateFrame",
+    "crop": "160x60+944+546",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderFramerate(74)\nRikRenderCenter(FramerateFrame)\n",
+    "expectText": []
+  },
+  {
+    "id": "hud-navigation",
+    "page": "hudframes",
+    "title": "Quest navigation marker",
+    "frame": "SuperTrackedFrame",
+    "crop": "260x180+747+470",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderNavigationMarker(42, \"Marshal Dughan\")\n",
+    "expectText": [
+      "42"
+    ]
+  },
+  {
+    "id": "text-zone",
+    "page": "screentext",
+    "title": "Zone name",
+    "frame": "ZoneTextFrame",
+    "crop": "800x160+624+96",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderZoneText(\"Elwynn Forest\", \"Goldshire\")\n",
+    "expectText": [
+      "Elwynn Forest"
+    ]
+  },
+  {
+    "id": "text-subzone",
+    "page": "screentext",
+    "title": "Subzone name",
+    "frame": "SubZoneTextFrame",
+    "crop": "800x160+624+176",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderSubZoneText(\"Goldshire\")\n",
+    "expectText": [
+      "Goldshire"
+    ]
+  },
+  {
+    "id": "text-error",
+    "page": "screentext",
+    "title": "Error message",
+    "frame": "UIErrorsFrame",
+    "crop": "800x120+624+96",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderErrorText(\"Target needs to be in front of you.\")\n",
+    "expectText": []
+  },
+  {
+    "id": "text-raid",
+    "page": "screentext",
+    "title": "Raid warning",
+    "frame": "RaidWarningFrame",
+    "crop": "800x110+624+178",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderRaidWarning(\"Everyone move out of the fire!\")\n",
+    "expectText": [
+      "Everyone move out of the fire!"
+    ]
+  },
+  {
+    "id": "alert-loot",
+    "page": "alerts",
+    "title": "Loot alert",
+    "frame": "RikRenderAlerts",
+    "crop": "400x170+824+864",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderGroup(\"RikRenderAlerts\", RikRenderAlerts({ \"loot\" }), 824, 118, 400, 170)\n",
+    "expectText": [
+      "Hearthstone"
+    ]
+  },
+  {
+    "id": "alert-money",
+    "page": "alerts",
+    "title": "Money alert",
+    "frame": "RikRenderAlerts",
+    "crop": "400x170+824+864",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderGroup(\"RikRenderAlerts\", RikRenderAlerts({ \"money\" }), 824, 118, 400, 170)\n",
+    "expectText": []
+  },
+  {
+    "id": "alert-achievement",
+    "page": "alerts",
+    "title": "Achievement alert",
+    "frame": "RikRenderAlerts",
+    "crop": "400x170+824+864",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderGroup(\"RikRenderAlerts\", RikRenderAlerts({ \"achievement\" }), 824, 118, 400, 170)\n",
+    "expectText": [
+      "Level 10"
+    ]
+  },
+  {
+    "id": "banner-objective",
+    "page": "banners",
+    "title": "Objective banner",
+    "frame": "ObjectiveTrackerTopBannerFrame",
+    "crop": "800x200+624+110",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderObjectiveBanner(\"Kobold Camp Cleanup\")\n",
+    "expectText": [
+      "Kobold Camp Cleanup"
+    ]
+  },
+  {
+    "id": "toast-friend",
+    "page": "toasts",
+    "title": "Friend notification",
+    "frame": "BNToastFrame",
+    "crop": "300x100+874+526",
+    "fixtures": [],
+    "lua": "RikRenderFriendToast(2)\nRikRenderCenter(BNToastFrame)\n",
+    "expectText": [
+      "friend request"
+    ]
+  },
+  {
+    "id": "toast-time",
+    "page": "toasts",
+    "title": "Play-time notice",
+    "frame": "TimeAlertFrame",
+    "crop": "300x100+874+526",
+    "fixtures": [],
+    "lua": "RikRenderTimeAlert(2 * 3600 + 15 * 60)\nRikRenderCenter(TimeAlertFrame)\n",
+    "expectText": [
+      "2 Hours"
+    ]
+  },
+  {
+    "id": "toast-voice",
+    "page": "toasts",
+    "title": "Voice notice",
+    "frame": "VoiceChatPromptActivateChannel",
+    "crop": "300x120+874+516",
+    "fixtures": [],
+    "lua": "RikRenderVoiceToast()\nRikRenderCenter(VoiceChatPromptActivateChannel)\n",
+    "expectText": []
+  },
+  {
+    "id": "bags-filters",
+    "page": "bags",
+    "title": "Quick filters",
+    "frame": "RikUIBags",
+    "crop": "434x288+807+432",
+    "fixtures": [],
+    "lua": "RikRenderBagItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderBagFilter(\"junk\")\nRikRenderCenter(RikUIBags)\n",
+    "expectText": []
+  },
+  {
+    "id": "bags-markers",
+    "page": "bags",
+    "title": "Quest-item marker",
+    "frame": "RikUIBags",
+    "crop": "434x288+807+432",
+    "fixtures": [],
+    "lua": "RikRenderBagItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderBagMarkers(9, 4)\nRikRenderCenter(RikUIBags)\n",
+    "expectText": []
+  },
+  {
+    "id": "bags-capacity",
+    "page": "bags",
+    "title": "Capacity indicator",
+    "frame": "RikUIBagCapacity",
+    "crop": "240x50+904+551",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderBagItems()\nRikUI.Bags.Refresh()\nRikRenderCapacityHUD(false)\nRikRenderCenter(RikUIBagCapacity)\n",
+    "expectText": []
+  },
+  {
+    "id": "bags-merchant",
+    "page": "bags",
+    "title": "Sell junk",
+    "frame": "RikUIBags",
+    "crop": "434x288+807+432",
+    "fixtures": [],
+    "lua": "RikRenderBagItems()\nRikUIBags:Show()\nRikUI.Bags.Refresh()\nRikRenderMerchant(4521)\nRikRenderCenter(RikUIBags)\n",
+    "expectText": [
+      "Sell junk"
+    ]
+  },
+  {
+    "id": "loot-coins",
+    "page": "loot",
+    "title": "Currency row",
+    "frame": "RikUILoot",
+    "crop": "360x220+844+466",
+    "fixtures": [],
+    "lua": "RikRenderItems()\nRikRenderLootCoins(4321)\nRikUI.Loot.Open()\nRikRenderCenter(RikUILoot)\n",
+    "expectText": [
+      "43 Silver"
+    ]
+  },
+  {
+    "id": "loot-roll",
+    "page": "loot",
+    "title": "Need and greed roll",
+    "frame": "GroupLootFrame1",
+    "crop": "360x120+844+516",
+    "fixtures": [],
+    "lua": "RikRenderLootRoll(\"Cruel Barb\", 135274, 2, 60)\nRikRenderCenter(GroupLootFrame1)\n",
+    "expectText": [
+      "Cruel Barb"
+    ]
+  },
+  {
+    "id": "loot-confirm",
+    "page": "loot",
+    "title": "Loot confirmation",
+    "frame": "StaticPopup1",
+    "crop": "360x140+844+506",
+    "fixtures": [],
+    "lua": "RikRenderLootConfirm(\"Cruel Barb\")\nRikRenderCenter(StaticPopup1)\n",
+    "expectText": [
+      "Cruel Barb"
+    ]
   }
 ]
