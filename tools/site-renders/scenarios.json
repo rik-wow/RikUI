@@ -144,13 +144,9 @@
     "fixtures": [
       "RikRenderSpellbook()"
     ],
-    "lua": "RikUI.Options.Open(\"class-cooldowns\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class-cooldowns\")\n",
+    "lua": "RikUI.Options.Open(\"class\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class\")\n",
     "expectText": [
-      "Class: Paladin",
-      "Class list",
-      "Judgement",
-      "Add a spell",
-      "Tracked spells"
+      "which displays run"
     ]
   },
   {
@@ -184,7 +180,7 @@
     "page": "unitframes",
     "title": "Target",
     "frame": "RikUIUnit_target",
-    "crop": "472x120+788+516",
+    "crop": "472x160+788+476",
     "fixtures": [],
     "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_target,2)\n",
     "expectText": [
@@ -203,6 +199,54 @@
     "expectText": [
       "Mira",
       "176"
+    ]
+  },
+  {
+    "id": "units-tot",
+    "page": "unitframes",
+    "title": "Target of target",
+    "frame": "RikUIUnit_tot",
+    "crop": "352x104+848+524",
+    "fixtures": [
+      "RikRenderUnitAlias(\"targettarget\", \"player\")"
+    ],
+    "lua": "RikUI.UnitFrames.Refresh()\nRikUIUnit_tot:Show()\nRikRenderCenter(RikUIUnit_tot, 2)\n",
+    "expectText": [
+      "Rik"
+    ]
+  },
+  {
+    "id": "units-pet",
+    "page": "unitframes",
+    "title": "Pet",
+    "frame": "RikUIUnit_petframe",
+    "crop": "352x104+848+524",
+    "fixtures": [],
+    "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_petframe, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "units-party",
+    "page": "unitframes",
+    "title": "Party",
+    "frame": "RikUIParty",
+    "crop": "520x520+764+316",
+    "fixtures": [],
+    "lua": "assert(RikUI.UnitFrames.Party.SetTest(true))\nRikRenderCenter(RikUIParty, 1.5)\n",
+    "expectText": [
+      "Rik"
+    ]
+  },
+  {
+    "id": "units-raid",
+    "page": "unitframes",
+    "title": "Raid grid",
+    "frame": "RikUIRaid",
+    "crop": "1000x420+524+366",
+    "fixtures": [],
+    "lua": "assert(RikUI.UnitFrames.Raid.SetTest(true))\nRikRenderCenter(RikUIRaid, 1)\n",
+    "expectText": [
+      "Rik"
     ]
   },
   {
@@ -230,6 +274,65 @@
     "lua": "A_Admin.SetCasting(635,\"Holy Light\",\"Interface\\\\Icons\\\\Spell_Holy_HolyBolt\",2.5)\nA_Admin.FireEvent(\"UNIT_SPELLCAST_START\",\"player\")\nA_Admin.FireEvent(\"UNIT_SPELLCAST_INTERRUPTED\",\"player\")\nRikRenderCenter(RikUICast_player,2)\n",
     "expectText": [
       "Interrupted"
+    ]
+  },
+  {
+    "id": "cast-target",
+    "page": "castbars",
+    "title": "Target cast",
+    "frame": "RikUICast_target",
+    "crop": "600x80+724+536",
+    "fixtures": [
+      "RikRenderCast(6016, \"Pierce Armor\", \"Interface\\\\Icons\\\\Ability_Warrior_Sunder\", 2, 0.8)",
+      "RikRenderCastAlias(\"target\")"
+    ],
+    "lua": "RikRenderCenter(RikUICast_target, 2)\n",
+    "expectText": [
+      "Pierce Armor"
+    ]
+  },
+  {
+    "id": "cast-focus",
+    "page": "castbars",
+    "title": "Focus cast",
+    "frame": "RikUICast_focus",
+    "crop": "600x80+724+536",
+    "fixtures": [
+      "RikRenderCast(2050, \"Lesser Heal\", \"Interface\\\\Icons\\\\Spell_Holy_LesserHeal\", 2.5, 1)",
+      "RikRenderCastAlias(\"focus\")"
+    ],
+    "lua": "RikRenderCenter(RikUICast_focus, 2)\n",
+    "expectText": [
+      "Lesser Heal"
+    ]
+  },
+  {
+    "id": "cast-pet",
+    "page": "castbars",
+    "title": "Pet cast",
+    "frame": "RikUICast_pet",
+    "crop": "600x80+724+536",
+    "fixtures": [
+      "RikRenderCast(2649, \"Growl\", \"Interface\\\\Icons\\\\Ability_Physical_Taunt\", 1.5, 0.5)",
+      "RikRenderCastAlias(\"pet\")"
+    ],
+    "lua": "RikRenderCenter(RikUICast_pet, 2)\n",
+    "expectText": [
+      "Growl"
+    ]
+  },
+  {
+    "id": "cast-channel",
+    "page": "castbars",
+    "title": "Channel",
+    "frame": "RikUICast_player",
+    "crop": "600x80+724+536",
+    "fixtures": [
+      "RikRenderChannel()"
+    ],
+    "lua": "RikRenderCenter(RikUICast_player, 2)\n",
+    "expectText": [
+      "Mind Flay"
     ]
   },
   {
@@ -339,7 +442,7 @@
     "page": "combat-hud",
     "title": "The combat HUD",
     "frame": "RikRenderHUD",
-    "crop": "830x340+470+572",
+    "crop": "1000x420+385+540",
     "world": {
       "plate": "goldshire-road"
     },
@@ -349,7 +452,7 @@
       "RikRenderCast()",
       "RikRenderSwing()"
     ],
-    "lua": "RikRenderHUDGroup(\"RikRenderHUD\", 470, 240, 830, 340)\n",
+    "lua": "RikRenderHUDGroup(\"RikRenderHUD\", 385, 192, 1000, 420)\n",
     "expectText": [
       "Rik",
       "Mangy Wolf",
@@ -418,6 +521,72 @@
     }
   },
   {
+    "id": "hud-rogue",
+    "page": "combat-hud",
+    "title": "Rogue: combo points",
+    "frame": "RikRenderHUDRogue",
+    "crop": "1000x420+385+540",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderPlayer(\"ROGUE\")",
+      "RikRenderHUDState(\"ROGUE\")",
+      "RikRenderSwing()"
+    ],
+    "lua": "RikRenderHUDGroup(\"RikRenderHUDRogue\", 385, 192, 1000, 420, { \"RikUICooldowns\", \"RikUICombatResource\", \"RikUICast_player\", \"RikUISwingTimer\", \"RikUIClassAuras_player\", \"RikUIClassAuras_target\", \"RikUIUnit_player\", \"RikUIUnit_target\", \"RikUIUnit_focus\", \"RikUIComboPoints\", \"RikUITotems\", \"RikUIDruidMana\" })\n",
+    "expectText": [
+      "Rik",
+      "Mangy Wolf",
+      "Main Hand"
+    ]
+  },
+  {
+    "id": "hud-shaman",
+    "page": "combat-hud",
+    "title": "Shaman: totems",
+    "frame": "RikRenderHUDShaman",
+    "crop": "1000x420+385+540",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderPlayer(\"SHAMAN\")",
+      "RikRenderHUDState(\"SHAMAN\")",
+      "RikRenderCast(403, \"Lightning Bolt\", \"Interface\\Icons\\Spell_Nature_Lightning\", 2.5, 1)",
+      "RikRenderSwing()"
+    ],
+    "lua": "RikRenderHUDGroup(\"RikRenderHUDShaman\", 385, 192, 1000, 420, { \"RikUICooldowns\", \"RikUICombatResource\", \"RikUICast_player\", \"RikUISwingTimer\", \"RikUIClassAuras_player\", \"RikUIClassAuras_target\", \"RikUIUnit_player\", \"RikUIUnit_target\", \"RikUIUnit_focus\", \"RikUIComboPoints\", \"RikUITotems\", \"RikUIDruidMana\" })\n",
+    "expectText": [
+      "Rik",
+      "Mangy Wolf",
+      "Lightning Bolt"
+    ]
+  },
+  {
+    "id": "hud-druid",
+    "page": "combat-hud",
+    "title": "Druid: form mana",
+    "frame": "RikRenderHUDDruid",
+    "crop": "1000x420+385+540",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderPlayer(\"DRUID\")",
+      "RikRenderHUDState(\"DRUID\")",
+      "RikRenderCast(5185, \"Healing Touch\", \"Interface\\Icons\\Spell_Nature_HealingTouch\", 3, 1.2)",
+      "RikRenderSwing()"
+    ],
+    "lua": "RikRenderHUDGroup(\"RikRenderHUDDruid\", 385, 192, 1000, 420, { \"RikUICooldowns\", \"RikUICombatResource\", \"RikUICast_player\", \"RikUISwingTimer\", \"RikUIClassAuras_player\", \"RikUIClassAuras_target\", \"RikUIUnit_player\", \"RikUIUnit_target\", \"RikUIUnit_focus\", \"RikUIComboPoints\", \"RikUITotems\", \"RikUIDruidMana\" })\n",
+    "expectText": [
+      "Rik",
+      "Mangy Wolf",
+      "Healing Touch",
+      "Mana"
+    ]
+  },
+  {
     "id": "cooldowns-strip",
     "page": "cooldowns",
     "title": "The cooldown strip",
@@ -430,6 +599,77 @@
     "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
     "expectText": [],
     "assertLua": "local ids = {}\nfor _, entry in ipairs(RikUI.Cooldowns.Entries) do ids[#ids + 1] = entry.id end\nassert(table.concat(ids, \",\") == \"20287,20271,853,1022,633,498,679\", \"Unexpected strip order: \" .. table.concat(ids, \",\"))\nassert(RikUI.Cooldowns.Buttons[2].icon:GetTexture() == 135959, \"Wrong Judgement icon\")\nassert(not RikUI.Cooldowns.Buttons[3].unknown:IsShown(), \"Hammer of Justice cooldown must be readable\")\n"
+  },
+  {
+    "id": "cooldowns-viewer",
+    "page": "cooldowns",
+    "title": "Essential and utility entries",
+    "frame": "RikUICooldowns",
+    "crop": "600x180+724+486",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderViewerEntries({ 20271, 853 }, { 1022 })",
+      "RikRenderHUDState()"
+    ],
+    "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "cooldowns-class",
+    "page": "cooldowns",
+    "title": "Class cooldowns",
+    "frame": "RikUICooldowns",
+    "crop": "600x180+724+486",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 } })",
+      "RikUI.Cooldowns.Rebuild()"
+    ],
+    "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "cooldowns-rows",
+    "page": "cooldowns",
+    "title": "Additional rows",
+    "frame": "RikUICooldowns",
+    "crop": "600x260+724+446",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderViewerEntries({ 20271, 853, 1022, 498, 633 }, { 20217, 1152, 465 })",
+      "RikRenderHUDState()"
+    ],
+    "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "cooldowns-counter",
+    "page": "cooldowns",
+    "title": "Cooldown counter",
+    "frame": "RikUICooldowns",
+    "crop": "900x260+574+446",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 55.2 }, { id = 1022, duration = 300, elapsed = 100 }, { id = 498, duration = 300, elapsed = 296 } })",
+      "RikUI.Cooldowns.Rebuild()"
+    ],
+    "lua": "RikRenderCenter(RikUICooldowns, 3)\n",
+    "expectText": []
+  },
+  {
+    "id": "cooldowns-tracked",
+    "page": "cooldowns",
+    "title": "Tracked spell selection",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [
+      "RikRenderSpellbook()"
+    ],
+    "lua": "RikUI.Options.Open(\"class-cooldowns\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class-cooldowns\")\n",
+    "expectText": [
+      "Class list",
+      "Add a spell"
+    ]
   },
   {
     "id": "swing-main-hand",
@@ -447,5 +687,761 @@
       "Main Hand",
       "1.4"
     ]
+  },
+  {
+    "id": "swing-off-hand",
+    "page": "swingtimer",
+    "title": "Off hand",
+    "frame": "RikUISwingTimer",
+    "crop": "600x180+724+486",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderHUDState()",
+      "RikRenderSwingState(\"MainHand\", { speed = 2.6, elapsed = 0.9 })",
+      "RikRenderSwingState(\"OffHand\", { speed = 1.8, elapsed = 1.1 })"
+    ],
+    "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+    "expectText": [
+      "Off Hand"
+    ]
+  },
+  {
+    "id": "swing-ranged",
+    "page": "swingtimer",
+    "title": "Ranged cycle",
+    "frame": "RikUISwingTimer",
+    "crop": "600x180+724+486",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderHUDState()",
+      "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 0.6, auto = true, kiting = false, inRange = true })"
+    ],
+    "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+    "expectText": [
+      "Ranged"
+    ]
+  },
+  {
+    "id": "swing-move",
+    "page": "swingtimer",
+    "title": "Move window",
+    "frame": "RikUISwingTimer",
+    "crop": "600x180+724+486",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderHUDState()",
+      "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 0.4, auto = true, kiting = true, inRange = true, moving = false })"
+    ],
+    "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+    "expectText": [
+      "Move window"
+    ]
+  },
+  {
+    "id": "swing-stop",
+    "page": "swingtimer",
+    "title": "Stop window",
+    "frame": "RikUISwingTimer",
+    "crop": "600x180+724+486",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderHUDState()",
+      "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 1.6, auto = true, kiting = true, inRange = true, moving = true })"
+    ],
+    "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+    "expectText": [
+      "Stop moving"
+    ]
+  },
+  {
+    "id": "swing-unknown",
+    "page": "swingtimer",
+    "title": "Unknown range",
+    "frame": "RikUISwingTimer",
+    "crop": "600x180+724+486",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderHUDState()",
+      "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 0.4, auto = true, kiting = true, inRange = \"unknown\", moving = false })"
+    ],
+    "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+    "expectText": [
+      "Range unknown"
+    ]
+  },
+  {
+    "id": "plates-enemy",
+    "page": "nameplates",
+    "title": "Enemy plate",
+    "frame": "RikRenderPlatesEnemy",
+    "crop": "600x260+560+340",
+    "world": {
+      "plate": "elwynn-wolf"
+    },
+    "fixtures": [],
+    "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", notTarget = true }, { actor = \"Young Wolf\", nth = 1, unit = \"target\", notTarget = true, readers = RikRenderCreature(\"Young Wolf\", 1, 30, 30, \"neutral\") } }, \"RikRenderPlatesEnemy\", 560, 552, 600, 260)\n",
+    "expectText": [
+      "Mangy Wolf",
+      "Young Wolf"
+    ]
+  },
+  {
+    "id": "plates-target-focus",
+    "page": "nameplates",
+    "title": "Target and focus",
+    "frame": "RikRenderPlatesTarget",
+    "crop": "600x260+560+340",
+    "world": {
+      "plate": "elwynn-wolf"
+    },
+    "fixtures": [],
+    "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\" }, { actor = \"Young Wolf\", nth = 1, unit = \"focus\", readers = RikRenderCreature(\"Young Wolf\", 1, 30, 30, \"neutral\") } }, \"RikRenderPlatesTarget\", 560, 552, 600, 260)\n",
+    "expectText": [
+      "Mangy Wolf",
+      "Young Wolf"
+    ]
+  },
+  {
+    "id": "plates-friendly",
+    "page": "nameplates",
+    "title": "Friendly name",
+    "frame": "RikRenderPlatesFriendly",
+    "crop": "420x130+1300+20",
+    "world": {
+      "plate": "elwynn-wolf"
+    },
+    "fixtures": [],
+    "lua": "RikRenderNameplateCVar(\"nameplateShowOnlyNameForFriendlyPlayerUnits\", \"1\")\nRikRenderNameplates({ { actor = \"Stormwind Guard\", unit = \"focus\", readers = RikRenderCreature(\"Stormwind Guard\", 24, 1600, 1600, \"friendly\", { UnitIsPlayer = { true }, UnitClass = { \"Warrior\", \"WARRIOR\", 1 }, UnitClassBase = { \"WARRIOR\", 1 } }) } }, \"RikRenderPlatesFriendly\", 1300, 1002, 420, 130)\n",
+    "expectText": [
+      "Stormwind Guard"
+    ]
+  },
+  {
+    "id": "plates-markers",
+    "page": "nameplates",
+    "title": "Elite and rare markers",
+    "frame": "RikRenderPlatesMarkers",
+    "crop": "860x280+560+200",
+    "world": {
+      "plate": "elwynn-wolf"
+    },
+    "fixtures": [],
+    "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", notTarget = true, classification = \"elite\" }, { actor = \"Mangy Wolf\", nth = 2, unit = \"target\", notTarget = true, classification = \"rare\" }, { actor = \"Young Wolf\", nth = 2, unit = \"target\", notTarget = true, classification = \"rareelite\", readers = RikRenderCreature(\"Young Wolf\", 1, 30, 30, \"neutral\") } }, \"RikRenderPlatesMarkers\", 560, 672, 860, 280)\n",
+    "expectText": [
+      "Mangy Wolf",
+      "Young Wolf"
+    ]
+  },
+  {
+    "id": "plates-threat",
+    "page": "nameplates",
+    "title": "Threat indication",
+    "frame": "RikRenderPlatesThreat",
+    "crop": "520x150+470+320",
+    "world": {
+      "plate": "elwynn-wolf"
+    },
+    "fixtures": [],
+    "lua": "A_Admin.SetInCombat(true)\nRikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", threat = 3 } }, \"RikRenderPlatesThreat\", 470, 682, 520, 150)\n",
+    "expectText": [
+      "Mangy Wolf"
+    ]
+  },
+  {
+    "id": "plates-debuffs",
+    "page": "nameplates",
+    "title": "Debuff row",
+    "frame": "RikRenderPlatesDebuffs",
+    "crop": "420x180+520+300",
+    "world": {
+      "plate": "elwynn-wolf"
+    },
+    "fixtures": [],
+    "lua": "A_Admin.AddDebuff(853, \"Hammer of Justice\", 135963, 6, 0)\nA_Admin.AddDebuff(20271, \"Judgement\", 135959, 20, 0)\nRikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", aurasFrom = \"player\" } }, \"RikRenderPlatesDebuffs\", 520, 672, 420, 180)\n",
+    "expectText": [
+      "Mangy Wolf"
+    ]
+  },
+  {
+    "id": "plates-cast",
+    "page": "nameplates",
+    "title": "Nameplate cast",
+    "frame": "RikRenderPlatesCast",
+    "crop": "420x180+520+330",
+    "world": {
+      "plate": "elwynn-wolf"
+    },
+    "fixtures": [
+      "RikRenderCast(6016, \"Pierce Armor\", \"Interface\\\\Icons\\\\Ability_Warrior_Sunder\", 2, 0.8)"
+    ],
+    "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", castFrom = \"player\" } }, \"RikRenderPlatesCast\", 520, 642, 420, 180)\n",
+    "expectText": [
+      "Mangy Wolf",
+      "Pierce Armor"
+    ]
+  },
+  {
+    "id": "auras-buffs",
+    "page": "auras",
+    "title": "Player buffs",
+    "frame": "RikUIAuras_buffs",
+    "crop": "300x160+874+496",
+    "fixtures": [
+      "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600 }, { 465, \"Devotion Aura\", 135893, 0 }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 1459, \"Arcane Intellect\", 135932, 1800 }, { 1243, \"Power Word: Fortitude\", 135987, 1800 }, { 1126, \"Mark of the Wild\", 136078, 1800 } })"
+    ],
+    "lua": "RikRenderCenter(RikUIAuras_buffs)\nRikRenderResize(RikUIAuras_buffs)\nRikRenderRemeasure(RikUIAuras_buffs)\n",
+    "expectText": []
+  },
+  {
+    "id": "auras-debuffs",
+    "page": "auras",
+    "title": "Player debuffs",
+    "frame": "RikUIAuras_debuffs",
+    "crop": "300x100+874+526",
+    "fixtures": [
+      "RikRenderAuras({ { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true }, { 172, \"Corruption\", 136118, 12, harmful = true } })"
+    ],
+    "lua": "RikRenderCenter(RikUIAuras_debuffs)\nRikRenderResize(RikUIAuras_debuffs)\nRikRenderRemeasure(RikUIAuras_debuffs)\n",
+    "expectText": []
+  },
+  {
+    "id": "auras-target",
+    "page": "auras",
+    "title": "Target auras",
+    "frame": "RikUIUnit_target",
+    "crop": "480x240+784+440",
+    "fixtures": [
+      "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600, own = true }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true } }, { target = \"player\" })"
+    ],
+    "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_target, 1.5)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIUnit_target)\n",
+    "expectText": [
+      "Mangy Wolf"
+    ]
+  },
+  {
+    "id": "auras-pet",
+    "page": "auras",
+    "title": "Pet auras",
+    "frame": "RikUIUnit_petframe",
+    "crop": "480x240+784+440",
+    "fixtures": [
+      "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600, own = true }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true } }, { pet = \"player\" })"
+    ],
+    "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_petframe, 1.5)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIUnit_petframe)\n",
+    "expectText": []
+  },
+  {
+    "id": "auras-focus",
+    "page": "auras",
+    "title": "Focus auras",
+    "frame": "RikUIUnit_focus",
+    "crop": "480x240+784+440",
+    "fixtures": [
+      "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600, own = true }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true } }, { focus = \"player\" })"
+    ],
+    "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_focus, 1.5)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIUnit_focus)\n",
+    "expectText": [
+      "Mira"
+    ]
+  },
+  {
+    "id": "effects-player",
+    "page": "class-effects",
+    "title": "Player effects",
+    "frame": "RikUIClassAuras_player",
+    "crop": "600x160+724+496",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderAuras({ { 25780, \"Righteous Fury\", 135962, 1800 }, { 642, \"Divine Shield\", 135896, 8 } })"
+    ],
+    "lua": "RikRenderCenter(RikUIClassAuras_player, 2)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIClassAuras_player)\n",
+    "expectText": []
+  },
+  {
+    "id": "effects-target",
+    "page": "class-effects",
+    "title": "Target effects",
+    "frame": "RikUIClassAuras_target",
+    "crop": "600x160+724+496",
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderAuras({ { 853, \"Hammer of Justice\", 135963, 6, harmful = true }, { 19740, \"Blessing of Might\", 135906, 600, own = true } }, { target = \"player\" })"
+    ],
+    "lua": "RikRenderCenter(RikUIClassAuras_target, 2)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIClassAuras_target)\n",
+    "expectText": []
+  },
+  {
+    "id": "combo-empty",
+    "page": "combopoints",
+    "title": "Empty points",
+    "frame": "RikUIComboPoints",
+    "crop": "400x80+824+536",
+    "fixtures": [
+      "RikRenderPlayer(\"ROGUE\")",
+      "A_Admin.SetPlayerPower(75, 100, 3)",
+      "RikRenderComboPoints(0)"
+    ],
+    "lua": "RikRenderCenter(RikUIComboPoints, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "combo-three",
+    "page": "combopoints",
+    "title": "Three points",
+    "frame": "RikUIComboPoints",
+    "crop": "400x80+824+536",
+    "fixtures": [
+      "RikRenderPlayer(\"ROGUE\")",
+      "A_Admin.SetPlayerPower(75, 100, 3)",
+      "RikRenderComboPoints(3)"
+    ],
+    "lua": "RikRenderCenter(RikUIComboPoints, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "combo-full",
+    "page": "combopoints",
+    "title": "Full points",
+    "frame": "RikUIComboPoints",
+    "crop": "400x80+824+536",
+    "fixtures": [
+      "RikRenderPlayer(\"ROGUE\")",
+      "A_Admin.SetPlayerPower(75, 100, 3)",
+      "RikRenderComboPoints(5)"
+    ],
+    "lua": "RikRenderCenter(RikUIComboPoints, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "totems-slots",
+    "page": "totems",
+    "title": "Four totem slots",
+    "frame": "RikUITotems",
+    "crop": "400x100+824+526",
+    "fixtures": [
+      "RikRenderPlayer(\"SHAMAN\")",
+      "RikRenderTotems({ { \"Searing Totem\", 135825, 55, 20 }, { \"Strength of Earth Totem\", 136023, 120, 30 }, { \"Healing Stream Totem\", 135127, 60, 10 }, { \"Windfury Totem\", 136114, 120, 45 } })"
+    ],
+    "lua": "RikRenderCenter(RikUITotems, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "totems-duration",
+    "page": "totems",
+    "title": "Active duration",
+    "frame": "RikUITotems",
+    "crop": "400x100+824+526",
+    "fixtures": [
+      "RikRenderPlayer(\"SHAMAN\")",
+      "RikRenderTotems({ { \"Searing Totem\", 135825, 55, 48 }, nil, { \"Healing Stream Totem\", 135127, 60, 3 } })"
+    ],
+    "lua": "RikRenderCenter(RikUITotems, 2)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-main",
+    "page": "bars",
+    "title": "Main action row",
+    "frame": "RikRenderBars",
+    "crop": "504x40+772+1062",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+    ],
+    "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-secondary",
+    "page": "bars",
+    "title": "Secondary action row",
+    "frame": "RikRenderBars",
+    "crop": "504x40+772+1020",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+    ],
+    "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 92, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-third",
+    "page": "bars",
+    "title": "Third action row",
+    "frame": "RikRenderBars",
+    "crop": "504x40+772+978",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+    ],
+    "lua": "RikUIBar_bar3:SetAlpha(1)\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 134, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-right",
+    "page": "bars",
+    "title": "Right action column",
+    "frame": "RikRenderBars",
+    "crop": "40x502+1994+636",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+    ],
+    "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_bar4, RikUIBar_bar5 }, 1994, 14, 40, 502)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-left",
+    "page": "bars",
+    "title": "Left action column",
+    "frame": "RikRenderBars",
+    "crop": "40x502+1952+636",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+    ],
+    "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_bar4, RikUIBar_bar5 }, 1952, 14, 40, 502)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-page",
+    "page": "bars",
+    "title": "Manual page overlay",
+    "frame": "RikRenderBars",
+    "crop": "504x40+772+1062",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+    ],
+    "lua": "pcall(UnregisterStateDriver, RikUIBar_main, \"visibility\")\npcall(UnregisterStateDriver, RikUIBar_page2, \"visibility\")\nRikUIBar_main:Hide()\nRikUIBar_page2:Show()\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-stance-page",
+    "page": "bars",
+    "title": "Stance page overlay",
+    "frame": "RikRenderBars",
+    "crop": "504x40+772+1062",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })",
+      "RikRenderPlayer(\"DRUID\")",
+      "RikRenderForm(1, 40, 100, 180, 300)"
+    ],
+    "lua": "pcall(UnregisterStateDriver, RikUIBar_main, \"visibility\")\n-- Bear Form (the level 10 druid form) selects the bear bonus page: actions 97 to 108.\nlocal bear = RikUI.Bars.Frames.bear or RikUI.Bars.Create(\"bear\", 97, { positionKey = \"main\" })\nassert(bear, \"bear page missing\")\nfor index, spell in ipairs({ 6807, 99, 6795, 5487 }) do A_Admin.SetActionSlot(97 + index - 1, spell) end\nRikUIBar_main:Hide()\npcall(UnregisterStateDriver, bear, \"visibility\")\nbear:Show()\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6, bear }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-stance",
+    "page": "bars",
+    "title": "Stance buttons",
+    "frame": "RikRenderBars",
+    "crop": "108x34+772+942",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+    ],
+    "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 176, 108, 34)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-pet",
+    "page": "bars",
+    "title": "Pet actions",
+    "frame": "RikRenderBars",
+    "crop": "360x34+772+906",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })",
+      "HasPetUI = function() return true, true end"
+    ],
+    "lua": "RikUIBar_pet:Show()\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 212, 360, 34)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "bars-ghost",
+    "page": "bars",
+    "title": "Empty preset slot",
+    "frame": "RikRenderBars",
+    "crop": "504x40+772+1062",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })",
+      "RikRenderGhosts(\"PALADIN\", \"dps\")"
+    ],
+    "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+    "expectText": []
+  },
+  {
+    "id": "prd-health",
+    "page": "personalresource",
+    "title": "Health",
+    "frame": "PersonalResourceDisplayFrame",
+    "crop": "320x72+864+540",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "A_Admin.SetPlayerHealth(146, 220)",
+      "RikRenderPersonalResource()"
+    ],
+    "lua": "RikRenderCenter(PersonalResourceDisplayFrame, 1.5)\n",
+    "expectText": []
+  },
+  {
+    "id": "prd-power",
+    "page": "personalresource",
+    "title": "Power",
+    "frame": "PersonalResourceDisplayFrame",
+    "crop": "320x72+864+540",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderPlayer(\"ROGUE\")",
+      "A_Admin.SetPlayerPower(45, 100, 3)",
+      "RikRenderPersonalResource()"
+    ],
+    "lua": "RikRenderCenter(PersonalResourceDisplayFrame, 1.5)\n",
+    "expectText": []
+  },
+  {
+    "id": "mirror-breath",
+    "page": "mirrortimers",
+    "title": "Breath",
+    "frame": "RikUIMirrorTimers",
+    "crop": "480x120+784+516",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderMirrorTimer(\"BREATH\", 41000, 60000, \"Breath\")"
+    ],
+    "lua": "RikRenderCenter(RikUIMirrorTimers, 1.5)\n",
+    "expectText": [
+      "Breath"
+    ]
+  },
+  {
+    "id": "mirror-fatigue",
+    "page": "mirrortimers",
+    "title": "Fatigue",
+    "frame": "RikUIMirrorTimers",
+    "crop": "480x120+784+516",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderMirrorTimer(\"EXHAUSTION\", 22000, 60000, \"Fatigue\")"
+    ],
+    "lua": "RikRenderCenter(RikUIMirrorTimers, 1.5)\n",
+    "expectText": [
+      "Fatigue"
+    ]
+  },
+  {
+    "id": "mirror-feign",
+    "page": "mirrortimers",
+    "title": "Feign death",
+    "frame": "RikUIMirrorTimers",
+    "crop": "480x120+784+516",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderMirrorTimer(\"FEIGNDEATH\", 210000, 360000, \"Feign Death\")"
+    ],
+    "lua": "RikRenderCenter(RikUIMirrorTimers, 1.5)\n",
+    "expectText": [
+      "Feign Death"
+    ]
+  },
+  {
+    "id": "loc-effect",
+    "page": "lossofcontrol",
+    "title": "Control effect",
+    "frame": "LossOfControlFrame",
+    "crop": "600x200+724+476",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderLossOfControl(\"STUN\", 853, \"Stunned\", 135963, 6, 4.2)"
+    ],
+    "lua": "RikRenderCenter(LossOfControlFrame, 1.5)\nRikRenderRemeasure(LossOfControlFrame)\n",
+    "expectText": [
+      "Stunned"
+    ]
+  },
+  {
+    "id": "loc-remaining",
+    "page": "lossofcontrol",
+    "title": "Remaining duration",
+    "frame": "LossOfControlFrame",
+    "crop": "600x200+724+476",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderLossOfControl(\"SILENCE\", 15487, \"Silenced\", 458230, 5, 1.3)"
+    ],
+    "lua": "RikRenderCenter(LossOfControlFrame, 1.5)\nRikRenderRemeasure(LossOfControlFrame)\n",
+    "expectText": [
+      "Silenced"
+    ]
+  },
+  {
+    "id": "proc-sides",
+    "page": "proc-overlay",
+    "title": "Left and right cues",
+    "frame": "SpellActivationOverlayFrame",
+    "crop": "380x440+834+356",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderProc(Enum.ScreenLocationType.LeftRight)"
+    ],
+    "lua": "RikRenderCenter(SpellActivationOverlayFrame)\n",
+    "expectText": []
+  },
+  {
+    "id": "proc-vertical",
+    "page": "proc-overlay",
+    "title": "Upper and lower cues",
+    "frame": "SpellActivationOverlayFrame",
+    "crop": "380x440+834+356",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderProc(Enum.ScreenLocationType.TopBottom)"
+    ],
+    "lua": "RikRenderCenter(SpellActivationOverlayFrame)\n",
+    "expectText": []
+  },
+  {
+    "id": "proc-center",
+    "page": "proc-overlay",
+    "title": "Central cue",
+    "frame": "SpellActivationOverlayFrame",
+    "crop": "380x220+834+466",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderProc(Enum.ScreenLocationType.Center)"
+    ],
+    "lua": "RikRenderCenter(SpellActivationOverlayFrame)\n",
+    "expectText": []
+  },
+  {
+    "id": "timer-elapsed",
+    "page": "combattimer",
+    "title": "Combat elapsed",
+    "frame": "RikUICombatTimer",
+    "crop": "360x80+844+536",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSetOption(\"combattimer\", \"show\", true)",
+      "RikRenderCombatTimer(47)"
+    ],
+    "lua": "RikRenderCenter(RikUICombatTimer, 2)\n",
+    "expectText": [
+      "0:47"
+    ]
+  },
+  {
+    "id": "timer-final",
+    "page": "combattimer",
+    "title": "Final duration",
+    "frame": "RikUICombatTimer",
+    "crop": "360x80+844+536",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSetOption(\"combattimer\", \"show\", true)",
+      "RikRenderCombatTimer(83, true)"
+    ],
+    "lua": "RikRenderCenter(RikUICombatTimer, 2)\n",
+    "expectText": [
+      "1:23"
+    ]
+  },
+  {
+    "id": "timer-stopwatch",
+    "page": "combattimer",
+    "title": "Session stopwatch",
+    "frame": "RikUIStopwatch",
+    "crop": "360x80+844+536",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderStopwatch(754)"
+    ],
+    "lua": "RikRenderCenter(RikUIStopwatch, 2)\n",
+    "expectText": [
+      "12:34"
+    ]
+  },
+  {
+    "id": "extra-zone",
+    "page": "extrabuttons",
+    "title": "Zone ability",
+    "frame": "ZoneAbilityFrame",
+    "crop": "460x200+858+950",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderSpellbook()",
+      "RikRenderZoneAbility(20271, 135959)"
+    ],
+    "lua": "RikRenderResize(ZoneAbilityFrame)\n",
+    "expectText": []
+  },
+  {
+    "id": "meter-rows",
+    "page": "damagemeter",
+    "title": "Damage rows",
+    "frame": "DamageMeter",
+    "crop": "600x360+724+396",
+    "fixtures": [],
+    "lua": "DamageMeter:Show()\nDamageMeterSessionWindow1:Show()\nRikRenderCenter(DamageMeter, 1.5)\nRikRenderResize(DamageMeter)\n",
+    "expectText": []
   }
 ]

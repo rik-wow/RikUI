@@ -109,12 +109,63 @@ function RikRenderSpellbook(class)
 end
 
 -- A character of another class at level 10: the seed's paladin becomes this class, with that class's
--- spellbook. RikUI's class-driven modules read the class through the normal unit APIs.
+-- spellbook. RikUI's class-driven modules read the class through the normal unit APIs; the ones that
+-- decided at login that the paladin has no use for them (combo points, totems, form mana) are
+-- enabled again now, exactly as they would be for a character of this class.
 function RikRenderPlayer(class, level)
     class = class or "PALADIN"
     A_Admin.SetPlayerClass(assert(CLASS_IDS[class], "Unknown class " .. class))
     if level then A_Admin.SetPlayerLevel(level) end
     RikRenderSpellbook(class)
+    for _, name in ipairs({ "combopoints", "totems", "druidmana" }) do
+        local module = RikUI.Modules and RikUI.Modules[name]
+        if module and type(module.OnEnable) == "function" and not module.Holder then
+            local ok, reason = pcall(module.OnEnable, module)
+            assert(ok, name .. ": " .. tostring(reason))
+        end
+    end
+    A_Admin.FireEvent("PLAYER_TARGET_CHANGED")
+end
+
+-- Combo points on the current target (rogues and druids).
+function RikRenderComboPoints(points)
+    GetComboPoints = function() return points end
+    A_Admin.FireEvent("PLAYER_TARGET_CHANGED")
+    A_Admin.FireEvent("UNIT_POWER_FREQUENT", "player", "COMBO_POINTS")
+end
+
+-- Active totems: entries by slot, { name, icon, duration, elapsed }; a nil entry leaves the slot empty.
+function RikRenderTotems(entries)
+    local now = GetTime()
+    GetTotemInfo = function(slot)
+        local totem = entries[slot]
+        if not totem then return false, "", 0, 0, 0 end
+        return true, totem[1], now - (totem[4] or 0), totem[3], totem[2]
+    end
+    for slot = 1, 4 do A_Admin.FireEvent("PLAYER_TOTEM_UPDATE", slot) end
+    if RikUI.Totems and RikUI.Totems.Refresh then RikUI.Totems.Refresh() end
+end
+
+-- A druid in Cat (form 3) or Bear (form 1) form: energy or rage on the primary bar, mana behind it.
+function RikRenderForm(form, power, powerMax, mana, manaMax)
+    local powerType = form == 1 and 1 or 3
+    local token = form == 1 and "RAGE" or "ENERGY"
+    A_Admin.SetPlayerPower(power, powerMax, powerType)
+    A_Admin.SetPlayerPower(mana, manaMax, 0)
+    -- The simulator keeps one primary power; the form's power is answered here for the untyped reads.
+    local basePowerType, basePower, basePowerMax = UnitPowerType, UnitPower, UnitPowerMax
+    UnitPowerType = function(unit, ...) if unit == "player" then return powerType, token end return basePowerType(unit, ...) end
+    UnitPower = function(unit, kind, ...)
+        if unit == "player" and (kind == nil or kind == powerType) then return power end
+        return basePower(unit, kind, ...)
+    end
+    UnitPowerMax = function(unit, kind, ...)
+        if unit == "player" and (kind == nil or kind == powerType) then return powerMax end
+        return basePowerMax(unit, kind, ...)
+    end
+    GetShapeshiftForm = function() return form end
+    A_Admin.FireEvent("UPDATE_SHAPESHIFT_FORM")
+    A_Admin.FireEvent("UNIT_DISPLAYPOWER", "player")
 end
 
 -- Cooldown state for the strip: the simulator's Forever profile returns no cooldown duration
@@ -131,16 +182,33 @@ function RikRenderCooldowns(entries)
     C_Spell.GetSpellDisplayCount = function() return "" end
 end
 
--- The paladin's combat HUD mid-fight: three abilities cooling down, a seal up, the HUD arranged,
--- the strip rebuilt and the (always present) simulator pet frame hidden.
-function RikRenderHUDState()
-    RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 1022, duration = 300, elapsed = 268.1 },
-        { id = 498, duration = 300, elapsed = 255.1 } })
-    A_Admin.AddBuff(20287, "Seal of Righteousness", 132325, 30, 0)
+-- A class's combat HUD mid-fight: abilities cooling down, one class buff up, the HUD arranged, the
+-- strip rebuilt and the (always present) simulator pet frame hidden. Call RikRenderPlayer(class)
+-- first for a class other than the seed's paladin.
+local HUD_CLASSES = {
+    PALADIN = { cooldowns = { { 853, 60, 19.1 }, { 1022, 300, 268.1 }, { 498, 300, 255.1 } }, buff = { 20287, "Seal of Righteousness", 132325, 30 } },
+    ROGUE = { cooldowns = { { 2983, 300, 120 }, { 5277, 300, 200 }, { 1776, 10, 3 } }, buff = { 5171, "Slice and Dice", 132306, 9 },
+        power = { 75, 100, 3 }, combo = 3 },
+    SHAMAN = { cooldowns = { { 8042, 6, 2 }, { 8050, 6, 4 } }, buff = { 324, "Lightning Shield", 136051, 600 },
+        totems = { { "Searing Totem", 135825, 55, 20 }, { "Strength of Earth Totem", 136023, 120, 30 }, { "Healing Stream Totem", 135127, 60, 10 } } },
+    DRUID = { cooldowns = { { 6795, 10, 3 } }, buff = { 467, "Thorns", 136104, 600 }, form = { 3, 60, 100, 180, 300 } },
+}
+function RikRenderHUDState(class)
+    local state = assert(HUD_CLASSES[class or "PALADIN"], "No HUD state for " .. tostring(class))
+    local cooldowns = {}
+    for _, entry in ipairs(state.cooldowns) do cooldowns[#cooldowns + 1] = { id = entry[1], duration = entry[2], elapsed = entry[3] } end
+    RikRenderCooldowns(cooldowns)
+    A_Admin.AddBuff(state.buff[1], state.buff[2], state.buff[3], state.buff[4], 0)
+    if state.power then A_Admin.SetPlayerPower(unpack(state.power)) end
+    if state.form then RikRenderForm(unpack(state.form)) end
+    if state.combo then RikRenderComboPoints(state.combo) end
+    if state.totems then RikRenderTotems(state.totems) end
     assert(RikUI.Layout.ApplyCombatHUD())
     RikUI.Cooldowns.Rebuild()
     RikUI.UnitFrames.Refresh()
+    if RikUI.CombatResource and RikUI.CombatResource.Refresh then RikUI.CombatResource.Refresh() end
     RikUIUnit_petframe:Hide()
+    RikRenderRefreshAuras()
 end
 
 -- A player cast one second into Holy Light on a manual clock, so the bar's fill is fixed.
@@ -155,6 +223,23 @@ function RikRenderCast(spell, name, icon, duration, elapsed)
     local reader = UnitCastingDuration
     UnitCastingDuration = function(unit) if unit == "player" then return object end return reader(unit) end
     A_Admin.FireEvent("UNIT_SPELLCAST_START", "player")
+end
+
+-- A player channel on a manual clock, mirroring RikRenderCast.
+function RikRenderChannel(spell, name, icon, duration, elapsed)
+    spell, name, icon = spell or 15407, name or "Mind Flay", icon or "Interface\\Icons\\Spell_Shadow_SiphonMana"
+    duration, elapsed = duration or 3, elapsed or 1.2
+    local clock = C_DurationUtil.CreateManualClock(elapsed)
+    local object = C_DurationUtil.CreateDuration()
+    object:SetClock(clock)
+    object:SetTimeFromStart(0, duration)
+    local startMs = GetTime() * 1000
+    UnitChannelInfo = function(unit)
+        if unit == "player" then return name, name, icon, startMs, startMs + duration * 1000, false, false, spell end
+    end
+    UnitChannelDuration = function(unit) if unit == "player" then return object end end
+    UnitCastingInfo = function() return nil end
+    A_Admin.FireEvent("UNIT_SPELLCAST_CHANNEL_START", "player")
 end
 
 -- A main-hand swing frozen one second into a 2.4 s cycle.
@@ -207,6 +292,462 @@ function RikRenderSetOption(pageId, key, value)
         end
     end
     error("No settings page " .. pageId)
+end
+
+-- Nameplates. The simulator has no 3D world, so C_NamePlate never hands out a plate. Blizzard's own
+-- driver and templates build the plates here (Blizzard_NamePlates, NamePlateScriptBaseMixin for the
+-- engine methods a script plate lacks), and each plate's unit token answers through a unit the
+-- simulator already has: every Unit* and C_UnitAuras reader maps the token to that unit. RikUI's
+-- nameplate module then runs its normal NAME_PLATE_UNIT_ADDED path. The plates stand over the
+-- creatures recorded with the world plate (RikRenderWorld.actors, written by plates.mjs).
+local PLATE_UNITS, PLATE_CASTS, PLATE_AURAS, PLATE_CLASS, PLATE_THREAT = {}, {}, {}, {}, {}
+local PLATE_READERS, PLATE_NOT_TARGET = {}, {}
+local plateShimsReady = false
+local function plateUnit(unit)
+    if type(unit) == "string" then return PLATE_UNITS[unit] or unit end
+    return unit
+end
+local function installPlateShims()
+    if plateShimsReady then return end
+    plateShimsReady = true
+    local unitFunctions = {}
+    for name, fn in pairs(_G) do
+        if type(fn) == "function" and name:match("^Unit[A-Z]") then unitFunctions[name] = fn end
+    end
+    for name, fn in pairs(unitFunctions) do
+        local castReader = name:match("^UnitCasting") or name:match("^UnitChannel")
+        -- Either argument may be the plate token: UnitIsFriend("player", token) asks about the token.
+        _G[name] = function(unit, second, ...)
+            local readers = type(unit) == "string" and PLATE_READERS[unit] or type(second) == "string" and PLATE_READERS[second]
+            if readers and readers[name] then return unpack(readers[name]) end
+            if castReader and type(unit) == "string" and PLATE_CASTS[unit] then return fn(PLATE_CASTS[unit], plateUnit(second), ...) end
+            return fn(plateUnit(unit), plateUnit(second), ...)
+        end
+    end
+    local auraFunctions = {}
+    for name, fn in pairs(C_UnitAuras) do
+        if type(fn) == "function" then auraFunctions[name] = fn end
+    end
+    for name, fn in pairs(auraFunctions) do
+        C_UnitAuras[name] = function(unit, ...)
+            if type(unit) == "string" and PLATE_AURAS[unit] then return fn(PLATE_AURAS[unit], ...) end
+            return fn(plateUnit(unit), ...)
+        end
+    end
+    local baseClassification, baseThreat, baseDetailed, baseIsUnit = UnitClassification, UnitThreatSituation, UnitDetailedThreatSituation, UnitIsUnit
+    UnitClassification = function(unit) return PLATE_CLASS[unit] or baseClassification(unit) end
+    -- Threat exists only where a scenario says so; the client answers nil out of combat, and the
+    -- simulator would answer 0% for every unit.
+    UnitThreatSituation = function(unit, other)
+        local level = PLATE_THREAT[unit] or PLATE_THREAT[other]
+        if level then return level end
+        if PLATE_UNITS[unit] or PLATE_UNITS[other] then return nil end
+        return baseThreat(unit, other)
+    end
+    UnitDetailedThreatSituation = function(unit, other)
+        local level = PLATE_THREAT[unit] or PLATE_THREAT[other]
+        if level then return level >= 2, level, 100, 100, 1200 end
+        if PLATE_UNITS[unit] or PLATE_UNITS[other] then return nil end
+        return baseDetailed(unit, other)
+    end
+    -- A plate token is only ever the unit it stands for; soft targets stay out of a capture.
+    UnitIsUnit = function(a, b)
+        if type(a) == "string" and a:match("^soft") or type(b) == "string" and b:match("^soft") then return false end
+        if a == b then return true end
+        if PLATE_NOT_TARGET[a] or PLATE_NOT_TARGET[b] then return false end
+        local ma, mb = plateUnit(a), plateUnit(b)
+        if ma == mb then return true end
+        if PLATE_UNITS[a] or PLATE_UNITS[b] then return false end
+        return baseIsUnit(ma, mb) == true
+    end
+    -- Readers the simulator lacks for compact unit frames; the answers are the quiet defaults.
+    local defaults = { UnitTreatAsPlayerForDisplay = false, UnitIsBossMob = false, UnitNameplateShowsWidgetsOnly = false,
+        UnitShouldDisplayName = true, UnitWidgetSet = nil, UnitIsOwnerOrControllerOfUnit = false, UnitIsBattlePetCompanion = false,
+        UnitIsWildBattlePet = false, UnitPhaseReason = nil, UnitInPartyShard = true, UnitGetTotalAbsorbs = 0,
+        UnitGetTotalHealAbsorbs = 0, UnitGetIncomingHeals = 0, UnitHasIncomingResurrection = false, UnitSelectionType = 0,
+        UnitIsInteractable = true, UnitHasEffectivelyTankAura = false, UnitIsBehindCamera = false, PlayerIsSpellTarget = false,
+        UnitShouldDisplaySpellTargetName = false,
+        GetSpecialization = 1, GetSpecializationSystem = 0, GetSpecializationRole = "DAMAGER" }
+    for name, value in pairs(defaults) do
+        if rawget(_G, name) == nil then _G[name] = function() return value end end
+    end
+    -- Readers whose quiet answer is nil (a table literal cannot hold those).
+    for _, name in ipairs({ "UnitWidgetSet", "UnitPhaseReason" }) do
+        if rawget(_G, name) == nil then _G[name] = function() return nil end end
+    end
+    GetRaidTargetIndex = function() return nil end
+    -- The plate's loss-of-control lookup indexes a constant the simulator lacks.
+    if type(Constants) == "table" then
+        Constants.LossOfControlConsts = Constants.LossOfControlConsts or {}
+        Constants.LossOfControlConsts.LOSS_OF_CONTROL_ACTIVE_INDEX = Constants.LossOfControlConsts.LOSS_OF_CONTROL_ACTIVE_INDEX or 1
+    end
+    -- The level badge colour needs the quest trivial range; the simulator answers nil.
+    if C_QuestLog and not (type(C_QuestLog.GetTrivialRange) == "function" and C_QuestLog.GetTrivialRange()) then
+        C_QuestLog.GetTrivialRange = function() return 5 end
+    end
+    -- The simulator's colour objects refuse a number in WrapTextInColorCode and Blizzard passes the
+    -- level as one; when Blizzard's update fails, the same text is set from a string.
+    local updateLevelDiff = CompactUnitFrame_UpdatePlayerLevelDiff
+    CompactUnitFrame_UpdatePlayerLevelDiff = function(frame)
+        if pcall(updateLevelDiff, frame) then return end
+        local badge = frame.PlayerLevelDiffFrame
+        if not badge or not badge:ShouldDisplay(frame.unit) then return end
+        local level = UnitEffectiveLevel(frame.unit)
+        local color = UNIT_LEVEL_NON_ATTACKABLE
+        if UnitCanAttack("player", frame.unit) then color = badge:GetDifficultyColor(level - UnitEffectiveLevel("player")) end
+        badge.playerLevelDiffText:SetText(color:WrapTextInColorCode(tostring(level)))
+        if badge.highLevelTexture then
+            badge.highLevelTexture:SetShown(level <= 0)
+            badge.playerLevelDiffText:SetShown(level > 0)
+        end
+        badge:Show()
+    end
+    assert(C_AddOns.LoadAddOn("Blizzard_NamePlates"))
+    -- The simulator's aura data carries no nameplate display flags, and its registry answers true
+    -- for the show-all-personal-auras setting; the client's default is off.
+    if type(NamePlateConstants) == "table" and NamePlateConstants.SHOW_ALL_PERSONAL_AURAS_CVAR then
+        RikRenderNameplateCVar(NamePlateConstants.SHOW_ALL_PERSONAL_AURAS_CVAR, "0")
+    end
+end
+
+-- Auras. The seed addon makes Blizzard's aura containers work in the simulator (their intrinsic
+-- OnLoad, and the PLAYER/RAID filter parts); the simulator only ever puts auras on the player, so a
+-- unit's aura reads can be pointed at the player's list. Containers refresh on request, because
+-- the simulator does not route UNIT_AURA into a container's private partition.
+local AURA_SOURCES = {}
+local auraShimsReady = false
+local function installAuraShims()
+    if auraShimsReady then return end
+    auraShimsReady = true
+    local auraFunctions = {}
+    for name, fn in pairs(C_UnitAuras) do
+        if type(fn) == "function" then auraFunctions[name] = fn end
+    end
+    for name, fn in pairs(auraFunctions) do
+        C_UnitAuras[name] = function(unit, ...)
+            if type(unit) == "string" and AURA_SOURCES[unit] then return fn(AURA_SOURCES[unit], ...) end
+            return fn(unit, ...)
+        end
+    end
+end
+
+-- entries: { { id, name, icon, duration, harmful = true, own = true }, ... }; from: units whose aura
+-- reads should answer with the player's list, e.g. { target = "player" }. Debuffs count as the
+-- player's own; a buff does when `own` says so (the seed's PLAYER filter reads RikRenderOwnAuras).
+function RikRenderAuras(entries, from)
+    installAuraShims()
+    for unit, source in pairs(from or {}) do AURA_SOURCES[unit] = source end
+    A_Admin.ClearBuffs()
+    for _, aura in ipairs(entries) do
+        if aura.own then RikRenderOwnAuras[aura[1]] = true end
+        if aura.harmful then
+            A_Admin.AddDebuff(aura[1], aura[2], aura[3], aura[4] or 0, 0)
+        else
+            A_Admin.AddBuff(aura[1], aura[2], aura[3], aura[4] or 0, 0)
+        end
+    end
+    RikRenderRefreshAuras()
+end
+
+-- Every RikUI aura container reads its unit's list again.
+function RikRenderRefreshAuras()
+    for name, frame in pairs(_G) do
+        if type(name) == "string" and name:match("^RikUI") and type(frame) == "table" and type(frame.GetObjectType) == "function"
+            and frame:GetObjectType() == "AuraContainer" and type(GetForbiddenObjectTable) == "function" then
+            local private = GetForbiddenObjectTable(frame)
+            if type(private) == "table" and type(private.UpdateAllAuras) == "function" then
+                pcall(private.UpdateAllAuras, private)
+                if type(private.OnWeaponEnchantChanged) == "function" then pcall(private.OnWeaponEnchantChanged, private) end
+            end
+        end
+    end
+end
+
+-- A breath, fatigue or feign-death timer: the client sends the range with MIRROR_TIMER_START and the
+-- bar polls GetMirrorTimerProgress (milliseconds).
+function RikRenderMirrorTimer(timer, value, maximum, label)
+    GetMirrorTimerProgress = function(name) if name == timer then return value end return 0 end
+    GetMirrorTimerInfo = function(index) if index == 1 then return timer, value, maximum, -1, false, label end return "UNKNOWN" end
+    A_Admin.FireEvent("MIRROR_TIMER_START", timer, value, maximum, -1, false, label)
+end
+
+-- Blizzard's loss-of-control alert with one active effect; RikUI skins the frame in place.
+function RikRenderLossOfControl(locType, spell, text, icon, duration, remaining)
+    local now = GetTime()
+    local data = { locType = locType, spellID = spell, displayText = text, iconTexture = icon,
+        startTime = now - (duration - remaining), timeRemaining = remaining, duration = duration,
+        lockoutSchool = 0, priority = 5, displayType = 2 }
+    C_LossOfControl.GetActiveLossOfControlData = function() return data end
+    C_LossOfControl.GetActiveLossOfControlDataCount = function() return 1 end
+    LossOfControlFrame:SetUpDisplay(false, data)
+    LossOfControlFrame:Show()
+end
+
+-- A proc overlay at a screen location (Enum.ScreenLocationType); the native pool draws it and RikUI
+-- replaces the artwork.
+function RikRenderProc(locationType, spell)
+    local getBool = GetCVarBool
+    GetCVarBool = function(name, ...) if name == "displaySpellActivationOverlays" then return true end return getBool(name, ...) end
+    A_Admin.FireEvent("SPELL_ACTIVATION_OVERLAY_SHOW", spell or 20375, "Interface\\SpellActivationOverlay\\Art_of_War", locationType, 1, 255, 255, 255)
+    -- The overlays fade in through an animation; the capture shows them at rest.
+    for _, overlay in ipairs({ SpellActivationOverlayFrame:GetChildren() }) do
+        if overlay:IsShown() then
+            if overlay.animIn then overlay.animIn:Stop() end
+            overlay:SetAlpha(1)
+        end
+    end
+    SpellActivationOverlayFrame:SetAlpha(1)
+end
+
+-- The game clock some seconds ahead, for timers that read GetTime.
+function RikRenderAdvanceClock(seconds)
+    local base = GetTime
+    local started = base()
+    GetTime = function() return base() - started + started + seconds end
+end
+
+-- The game's cooldown manager entries, as the C_CooldownViewer API lists them: essential and utility
+-- spell ids. The settings provider is absent so the strip reads the API, as it does before that
+-- frame exists in the client.
+function RikRenderViewerEntries(essential, utility)
+    local set, infos, nextId = {}, {}, 1000
+    local categories = Enum.CooldownViewerCategory
+    for name, spells in pairs({ Essential = essential or {}, Utility = utility or {} }) do
+        local ids = {}
+        for _, spell in ipairs(spells) do
+            nextId = nextId + 1
+            ids[#ids + 1] = nextId
+            infos[nextId] = { spellID = spell, hasAura = false, selfAura = false, flags = 0, isKnown = true, isInvisible = false, linkedSpellIDs = {} }
+        end
+        set[categories[name]] = ids
+    end
+    C_CooldownViewer.GetCooldownViewerCategorySet = function(category) return set[category] or {} end
+    C_CooldownViewer.GetCooldownViewerCooldownInfo = function(id) return infos[id] end
+    if CooldownViewerSettings then CooldownViewerSettings.GetDataProvider = function() return nil end end
+    RikUI.Cooldowns.Rebuild()
+end
+
+-- The setup wizard's record that a preset was applied for a role, so empty preset slots show their
+-- ghost icons on the bars.
+function RikRenderGhosts(class, role)
+    RikUI.CharDB.applied = { class = class or "PALADIN", role = role or "dps" }
+    for _, bar in pairs(RikUI.Bars.Frames) do
+        if RikUI.Bars.RefreshGhosts then RikUI.Bars.RefreshGhosts(bar) end
+    end
+end
+
+-- The extra action button with a spell, as a quest or encounter grants it.
+function RikRenderExtraAction(spell)
+    C_ActionBar.HasExtraActionBar = function() return true end
+    A_Admin.SetActionSlot(169, spell or 20271)
+    ExtraActionBar_Update()
+    -- The intro animation would raise the alpha over time; the frame is shown at rest here.
+    if ExtraActionBarFrame.intro then ExtraActionBarFrame.intro:Stop() end
+    ExtraActionBarFrame:SetAlpha(1)
+    if ExtraActionButton1 and ExtraActionButton1.Update then pcall(ExtraActionButton1.Update, ExtraActionButton1) end
+end
+
+-- A zone ability button.
+function RikRenderZoneAbility(spell, icon)
+    C_ZoneAbility.GetActiveAbilities = function() return { { spellID = spell or 20271, textureKit = "genericaura", uiPriority = 1 } } end
+    C_ZoneAbility.GetZoneAbilityIcon = function() return icon or 135959 end
+    ZoneAbilityFrame:UpdateDisplayedZoneAbilities()
+    ZoneAbilityFrame:Show()
+end
+
+-- Blizzard's scrolling combat text with a few messages; RikUI supplies the font.
+-- messages: { { text, r, g, b, displayType }, ... }
+function RikRenderCombatText(messages)
+    if type(CombatText_LoadUI) == "function" then CombatText_LoadUI() end
+    local scroll = CombatTextUtil and CombatTextUtil.StandardScroll
+    for _, message in ipairs(messages) do
+        CombatText:AddMessage(message[1], scroll, message[2] or 1, message[3] or 1, message[4] or 1, message[5], false)
+    end
+    CombatText:Show()
+end
+
+-- The personal resource display (the player's own plate), shown as the client does when its setting is on.
+function RikRenderPersonalResource()
+    assert(C_AddOns.LoadAddOn("Blizzard_PersonalResourceDisplay"))
+    C_GameRules = C_GameRules or {}
+    C_GameRules.IsPersonalResourceDisplayEnabled = function() return true end
+    local frame = PersonalResourceDisplayFrame
+    frame:SetVisibleSetting(Enum.PersonalResourceDisplayVisibleSetting and Enum.PersonalResourceDisplayVisibleSetting.Always or 0)
+    frame:UpdateShownState()
+    frame:Show()
+    -- Edit Mode applies the class-colour setting in the client (default off: the plain health colour).
+    -- The default colour is a client-defined global; the simulator defines it as white, the client's is green.
+    PERSONAL_RESOURCE_DISPLAY_DEFAULT_HEALTH_COLOR = CreateColor(0, 1, 0)
+    frame:SetShowClassColor(false)
+    return frame
+end
+
+-- The combat timer some seconds into a fight, or just after it ended.
+function RikRenderCombatTimer(seconds, ended)
+    FlashClientIcon = FlashClientIcon or function() end -- Blizzard's low-health frame calls it on entering combat
+    A_Admin.FireEvent("PLAYER_REGEN_DISABLED")
+    RikRenderAdvanceClock(seconds)
+    if ended then A_Admin.FireEvent("PLAYER_REGEN_ENABLED") end
+    RikUI.CombatTimer.Refresh()
+end
+
+-- The session stopwatch running for some seconds.
+function RikRenderStopwatch(seconds)
+    RikUI.CombatTimer.StopwatchAction("start")
+    RikRenderAdvanceClock(seconds)
+    RikUI.CombatTimer.RefreshStopwatch()
+end
+
+-- A weapon swing bar in one state. kind: "MainHand", "OffHand" or "Ranged"; opts: { speed, elapsed,
+-- auto (ranged auto-shot running), moving, inRange (true, false or "unknown"), kiting }.
+function RikRenderSwingState(kind, opts)
+    opts = opts or {}
+    local swingType = Enum.PlayerSwingType[kind]
+    if opts.kiting ~= nil then RikUI.Profile.swingtimer.kiting = opts.kiting end
+    if opts.inRange ~= nil then
+        C_SwingTimer.IsTargetWithinSwingRange = function() if opts.inRange == "unknown" then return nil end return opts.inRange end
+    end
+    if opts.moving ~= nil then GetUnitSpeed = function() return opts.moving and 7 or 0 end end
+    local base = GetTime
+    local started = base()
+    if kind == "Ranged" and opts.auto then A_Admin.FireEvent("START_AUTOREPEAT_SPELL") end
+    A_Admin.FireEvent("PLAYER_SWING", opts.speed or 2.4, swingType)
+    GetTime = function() return started + (opts.elapsed or 1) end
+    local bar = RikUI.SwingTimer.Bars[swingType]
+    bar:GetScript("OnUpdate")(bar, 0)
+    return bar
+end
+
+-- A nameplate CVar as Blizzard's registry reports it (the simulator's SetCVar does not reach the registry).
+function RikRenderNameplateCVar(name, value)
+    local registry = CVarCallbackRegistry
+    local getBool, getValue = registry.GetCVarValueBool, registry.GetCVarValue
+    registry.GetCVarValueBool = function(self, cvar, ...)
+        if cvar == name then return value == "1" or value == true end
+        return getBool(self, cvar, ...)
+    end
+    if getValue then
+        registry.GetCVarValue = function(self, cvar, ...)
+            if cvar == name then return tostring(value) end
+            return getValue(self, cvar, ...)
+        end
+    end
+end
+
+-- Another unit's cast reads answer with the player's cast (the simulator casts only for the player):
+-- call RikRenderCast first, then this, then fire the unit's cast event.
+function RikRenderCastAlias(unit)
+    installPlateShims()
+    PLATE_CASTS[unit] = "player"
+    A_Admin.FireEvent("UNIT_SPELLCAST_START", unit)
+end
+
+-- A unit token the simulator lacks answers as another unit (target of target as the player).
+function RikRenderUnitAlias(token, unit)
+    installPlateShims()
+    PLATE_UNITS[token] = unit
+end
+
+-- A temporary weapon enchant on the main hand for the enchant slot of the buff row.
+function RikRenderWeaponEnchant(charges, minutes, icon)
+    local expiration = (minutes or 25) * 60 * 1000
+    GetWeaponEnchantInfo = function() return true, expiration, charges or 0, 2504, false, 0, 0, 0, false, 0, 0, 0 end
+    local texture = GetInventoryItemTexture
+    GetInventoryItemTexture = function(unit, slot)
+        if unit == "player" and slot == 16 then return icon or 135274 end
+        return texture(unit, slot)
+    end
+    A_Admin.FireEvent("WEAPON_ENCHANT_CHANGED")
+    RikRenderRefreshAuras()
+end
+
+-- The screen point of a creature in the world plate, by name (the nth match), one yard above its feet.
+function RikRenderActor(name, nth)
+    assert(RikRenderWorld, "This scenario has no world plate")
+    local seen = 0
+    for _, actor in ipairs(RikRenderWorld.actors) do
+        if actor.name == name then
+            seen = seen + 1
+            if seen == (nth or 1) then return actor end
+        end
+    end
+    error("No actor named " .. name .. " in plate " .. RikRenderWorld.plate)
+end
+
+-- The simulator measures a font string when its text is set; RikUI changes fonts afterwards, so a
+-- string keeps a stale width until its text is set again. This sets every string again, in place.
+function RikRenderRemeasure(root)
+    local function visit(frame)
+        local listed, regions = pcall(function() return { frame:GetRegions() } end)
+        if listed then
+            for _, region in ipairs(regions) do
+                if type(region.GetText) == "function" and type(region.SetText) == "function" then
+                    local text = region:GetText()
+                    if text and text ~= "" then region:SetText(text) end
+                end
+            end
+        end
+        local ok, children = pcall(function() return { frame:GetChildren() } end)
+        if not ok then return end
+        for _, child in ipairs(children) do visit(child) end
+    end
+    visit(root)
+end
+
+-- A creature the simulator does not have: readers answer for this token with fixed values.
+-- reaction: "hostile" (default), "neutral" or "friendly"; the colour and attackability follow it.
+local REACTIONS = {
+    hostile = { UnitReaction = { 2 }, UnitCanAttack = { true }, UnitIsEnemy = { true }, UnitIsFriend = { false }, UnitSelectionColor = { 1, 0, 0, 1 } },
+    neutral = { UnitReaction = { 4 }, UnitCanAttack = { true }, UnitIsEnemy = { false }, UnitIsFriend = { false }, UnitSelectionColor = { 1, 1, 0, 1 } },
+    friendly = { UnitReaction = { 5 }, UnitCanAttack = { false }, UnitIsEnemy = { false }, UnitIsFriend = { true }, UnitSelectionColor = { 0, 1, 0, 1 } },
+}
+function RikRenderCreature(name, level, health, healthMax, reaction, extra)
+    local readers = { UnitName = { name }, UnitLevel = { level }, UnitEffectiveLevel = { level },
+        UnitHealth = { health }, UnitHealthMax = { healthMax or health }, UnitIsPlayer = { false },
+        UnitClass = { nil }, UnitClassBase = { nil }, UnitIsTapDenied = { false }, UnitIsDead = { false },
+        UnitIsDeadOrGhost = { false }, UnitIsConnected = { true }, UnitExists = { true },
+        UnitCreatureType = { "Beast" }, UnitIsPVP = { false }, UnitPower = { 0 }, UnitPowerMax = { 0 } }
+    for key, value in pairs(REACTIONS[reaction or "hostile"]) do readers[key] = value end
+    for key, value in pairs(extra or {}) do readers[key] = value end
+    return readers
+end
+
+-- entries: { { unit = "target", actor = "Mangy Wolf", nth = 1, screen = { x, y }, classification = "elite",
+--              threat = 3, castFrom = "player", aurasFrom = "player", notTarget = true,
+--              readers = RikRenderCreature("Young Wolf", 1, 30) }, ... }
+-- The plates become children of a capture root covering the crop; the root is returned.
+local PLATE_LIFT = 26
+function RikRenderNameplates(entries, name, left, bottom, width, height)
+    installPlateShims()
+    local holder = CreateFrame("Frame", name or "RikRenderNameplates", UIParent)
+    holder:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left or 0, bottom or 0)
+    holder:SetSize(width or UIParent:GetWidth(), height or UIParent:GetHeight())
+    local plates, list, tokens = {}, {}, {}
+    C_NamePlate.GetNamePlateForUnit = function(unit) return plates[unit] end
+    C_NamePlate.GetNamePlates = function() return list end
+    local screenHeight = UIParent:GetHeight()
+    for index, entry in ipairs(entries) do
+        local token = "nameplate" .. index
+        PLATE_UNITS[token] = entry.unit or "target"
+        PLATE_CASTS[token], PLATE_AURAS[token] = entry.castFrom, entry.aurasFrom
+        PLATE_CLASS[token], PLATE_THREAT[token] = entry.classification, entry.threat
+        PLATE_READERS[token], PLATE_NOT_TARGET[token] = entry.readers, entry.notTarget
+        local spot = entry.screen or RikRenderActor(entry.actor, entry.nth)
+        local base = CreateFrame("Frame", "RikRenderNamePlate" .. index, holder)
+        base:SetSize(160, 50)
+        base:SetPoint("BOTTOM", UIParent, "BOTTOMLEFT", spot.x, screenHeight - spot.y + PLATE_LIFT)
+        Mixin(base, NamePlateScriptBaseMixin)
+        NamePlateDriverFrame:OnNamePlateCreated(base)
+        plates[token], list[#list + 1], tokens[#tokens + 1] = base, base, token
+    end
+    -- Blizzard's driver acquires the unit frame on this event; RikUI's handler follows it.
+    for _, token in ipairs(tokens) do A_Admin.FireEvent("NAME_PLATE_UNIT_ADDED", token) end
+    for _, token in ipairs(tokens) do
+        if PLATE_CASTS[token] then A_Admin.FireEvent("UNIT_SPELLCAST_START", token) end
+    end
+    RikRenderResize(holder)
+    RikRenderRemeasure(holder)
+    return holder, plates
 end
 
 -- Inputs for two items whose artwork was extracted from the current client.

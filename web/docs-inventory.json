@@ -1930,7 +1930,7 @@
       "page": "unitframes",
       "title": "Target",
       "width": 472,
-      "height": 120
+      "height": 160
     },
     {
       "id": "units-focus",
@@ -2062,8 +2062,8 @@
       "id": "hud-arrangement",
       "page": "combat-hud",
       "title": "The combat HUD",
-      "width": 830,
-      "height": 340
+      "width": 1000,
+      "height": 420
     },
     {
       "id": "hud-column",
@@ -2099,6 +2099,461 @@
       "title": "Frame scale",
       "width": 1000,
       "height": 420
+    },
+    {
+      "id": "plates-enemy",
+      "page": "nameplates",
+      "title": "Enemy plate",
+      "width": 600,
+      "height": 260
+    },
+    {
+      "id": "plates-target-focus",
+      "page": "nameplates",
+      "title": "Target and focus",
+      "width": 600,
+      "height": 260
+    },
+    {
+      "id": "plates-friendly",
+      "page": "nameplates",
+      "title": "Friendly name",
+      "width": 420,
+      "height": 130
+    },
+    {
+      "id": "plates-markers",
+      "page": "nameplates",
+      "title": "Elite and rare markers",
+      "width": 860,
+      "height": 280
+    },
+    {
+      "id": "plates-threat",
+      "page": "nameplates",
+      "title": "Threat indication",
+      "width": 520,
+      "height": 150
+    },
+    {
+      "id": "plates-debuffs",
+      "page": "nameplates",
+      "title": "Debuff row",
+      "width": 420,
+      "height": 180
+    },
+    {
+      "id": "plates-cast",
+      "page": "nameplates",
+      "title": "Nameplate cast",
+      "width": 420,
+      "height": 180
+    },
+    {
+      "id": "units-tot",
+      "page": "unitframes",
+      "title": "Target of target",
+      "width": 352,
+      "height": 104
+    },
+    {
+      "id": "units-pet",
+      "page": "unitframes",
+      "title": "Pet",
+      "width": 352,
+      "height": 104
+    },
+    {
+      "id": "units-party",
+      "page": "unitframes",
+      "title": "Party",
+      "width": 520,
+      "height": 520
+    },
+    {
+      "id": "units-raid",
+      "page": "unitframes",
+      "title": "Raid grid",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "cast-target",
+      "page": "castbars",
+      "title": "Target cast",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-focus",
+      "page": "castbars",
+      "title": "Focus cast",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-pet",
+      "page": "castbars",
+      "title": "Pet cast",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-channel",
+      "page": "castbars",
+      "title": "Channel",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "auras-buffs",
+      "page": "auras",
+      "title": "Player buffs",
+      "width": 300,
+      "height": 160
+    },
+    {
+      "id": "auras-debuffs",
+      "page": "auras",
+      "title": "Player debuffs",
+      "width": 300,
+      "height": 100
+    },
+    {
+      "id": "auras-target",
+      "page": "auras",
+      "title": "Target auras",
+      "width": 480,
+      "height": 240
+    },
+    {
+      "id": "auras-pet",
+      "page": "auras",
+      "title": "Pet auras",
+      "width": 480,
+      "height": 240
+    },
+    {
+      "id": "auras-focus",
+      "page": "auras",
+      "title": "Focus auras",
+      "width": 480,
+      "height": 240
+    },
+    {
+      "id": "hud-rogue",
+      "page": "combat-hud",
+      "title": "Rogue: combo points",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "hud-shaman",
+      "page": "combat-hud",
+      "title": "Shaman: totems",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "hud-druid",
+      "page": "combat-hud",
+      "title": "Druid: form mana",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "effects-player",
+      "page": "class-effects",
+      "title": "Player effects",
+      "width": 600,
+      "height": 160
+    },
+    {
+      "id": "effects-target",
+      "page": "class-effects",
+      "title": "Target effects",
+      "width": 600,
+      "height": 160
+    },
+    {
+      "id": "combo-empty",
+      "page": "combopoints",
+      "title": "Empty points",
+      "width": 400,
+      "height": 80
+    },
+    {
+      "id": "combo-three",
+      "page": "combopoints",
+      "title": "Three points",
+      "width": 400,
+      "height": 80
+    },
+    {
+      "id": "combo-full",
+      "page": "combopoints",
+      "title": "Full points",
+      "width": 400,
+      "height": 80
+    },
+    {
+      "id": "totems-slots",
+      "page": "totems",
+      "title": "Four totem slots",
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "totems-duration",
+      "page": "totems",
+      "title": "Active duration",
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "cooldowns-viewer",
+      "page": "cooldowns",
+      "title": "Essential and utility entries",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "cooldowns-class",
+      "page": "cooldowns",
+      "title": "Class cooldowns",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "cooldowns-rows",
+      "page": "cooldowns",
+      "title": "Additional rows",
+      "width": 600,
+      "height": 260
+    },
+    {
+      "id": "cooldowns-counter",
+      "page": "cooldowns",
+      "title": "Cooldown counter",
+      "width": 900,
+      "height": 260
+    },
+    {
+      "id": "cooldowns-tracked",
+      "page": "cooldowns",
+      "title": "Tracked spell selection",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "swing-off-hand",
+      "page": "swingtimer",
+      "title": "Off hand",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-ranged",
+      "page": "swingtimer",
+      "title": "Ranged cycle",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-move",
+      "page": "swingtimer",
+      "title": "Move window",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-stop",
+      "page": "swingtimer",
+      "title": "Stop window",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-unknown",
+      "page": "swingtimer",
+      "title": "Unknown range",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "bars-main",
+      "page": "bars",
+      "title": "Main action row",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-secondary",
+      "page": "bars",
+      "title": "Secondary action row",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-third",
+      "page": "bars",
+      "title": "Third action row",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-right",
+      "page": "bars",
+      "title": "Right action column",
+      "width": 40,
+      "height": 502
+    },
+    {
+      "id": "prd-health",
+      "page": "personalresource",
+      "title": "Health",
+      "width": 320,
+      "height": 72
+    },
+    {
+      "id": "prd-power",
+      "page": "personalresource",
+      "title": "Power",
+      "width": 320,
+      "height": 72
+    },
+    {
+      "id": "mirror-breath",
+      "page": "mirrortimers",
+      "title": "Breath",
+      "width": 480,
+      "height": 120
+    },
+    {
+      "id": "mirror-fatigue",
+      "page": "mirrortimers",
+      "title": "Fatigue",
+      "width": 480,
+      "height": 120
+    },
+    {
+      "id": "mirror-feign",
+      "page": "mirrortimers",
+      "title": "Feign death",
+      "width": 480,
+      "height": 120
+    },
+    {
+      "id": "loc-effect",
+      "page": "lossofcontrol",
+      "title": "Control effect",
+      "width": 600,
+      "height": 200
+    },
+    {
+      "id": "loc-remaining",
+      "page": "lossofcontrol",
+      "title": "Remaining duration",
+      "width": 600,
+      "height": 200
+    },
+    {
+      "id": "timer-elapsed",
+      "page": "combattimer",
+      "title": "Combat elapsed",
+      "width": 360,
+      "height": 80
+    },
+    {
+      "id": "timer-final",
+      "page": "combattimer",
+      "title": "Final duration",
+      "width": 360,
+      "height": 80
+    },
+    {
+      "id": "timer-stopwatch",
+      "page": "combattimer",
+      "title": "Session stopwatch",
+      "width": 360,
+      "height": 80
+    },
+    {
+      "id": "meter-rows",
+      "page": "damagemeter",
+      "title": "Damage rows",
+      "width": 600,
+      "height": 360
+    },
+    {
+      "id": "bars-left",
+      "page": "bars",
+      "title": "Left action column",
+      "width": 40,
+      "height": 502
+    },
+    {
+      "id": "bars-page",
+      "page": "bars",
+      "title": "Manual page overlay",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-stance-page",
+      "page": "bars",
+      "title": "Stance page overlay",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-stance",
+      "page": "bars",
+      "title": "Stance buttons",
+      "width": 108,
+      "height": 34
+    },
+    {
+      "id": "extra-zone",
+      "page": "extrabuttons",
+      "title": "Zone ability",
+      "width": 460,
+      "height": 200
+    },
+    {
+      "id": "proc-sides",
+      "page": "proc-overlay",
+      "title": "Left and right cues",
+      "width": 380,
+      "height": 440
+    },
+    {
+      "id": "bars-pet",
+      "page": "bars",
+      "title": "Pet actions",
+      "width": 360,
+      "height": 34
+    },
+    {
+      "id": "bars-ghost",
+      "page": "bars",
+      "title": "Empty preset slot",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "proc-vertical",
+      "page": "proc-overlay",
+      "title": "Upper and lower cues",
+      "width": 380,
+      "height": 440
+    },
+    {
+      "id": "proc-center",
+      "page": "proc-overlay",
+      "title": "Central cue",
+      "width": 380,
+      "height": 220
     }
   ]
 }

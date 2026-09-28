@@ -110,8 +110,22 @@ def lua_literal(value):
         return repr(value)
     return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"') + '"'
 
+def world_prelude(case):
+    """The plate's named creatures and their screen positions, so fixtures can put plates over them."""
+    if not case.get("world"):
+        return "RikRenderWorld = nil\n"
+    record = json.loads((WORLDS / (case["world"]["plate"] + ".json")).read_text(encoding="utf-8"))
+    actors = []
+    for actor in record.get("actors", []):
+        flags = ", ".join(f'{flag} = true' for flag in actor.get("flags", []))
+        actors.append("{ name = %s, level = %s, kind = %s, x = %d, y = %d, distance = %.1f%s }" % (
+            lua_literal(actor.get("name") or ""), actor.get("level") or "nil", lua_literal(actor.get("kind", "creature")),
+            actor["screen"]["x"], actor["screen"]["y"], actor.get("distance", 0), (", " + flags) if flags else ""))
+    return ("RikRenderWorld = { plate = %s, width = %d, height = %d, actors = {\n    %s\n} }\n"
+            % (lua_literal(record["name"]), record["width"], record["height"], ",\n    ".join(actors)))
+
 def scenario_script(case, common, value=None):
-    fixtures = "\n".join(case.get("fixtures", []))
+    fixtures = world_prelude(case) + "\n".join(case.get("fixtures", []))
     body = case.get("lua", "")
     # The setting is applied first, so the scenario composes its frame the way a player would see it.
     if value is not None:

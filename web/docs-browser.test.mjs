@@ -12,19 +12,31 @@ const placements={
  wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
  options:{"options-castbars":"ref-open-settings","options-general":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
  sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile"},
- unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text"},
- castbars:{"cast-interrupted":"ref-reading-a-cast-bar","cast-player":"ref-change-the-size"},
+ unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-tot":"ref-player-and-target","units-pet":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text","units-party":"ref-party-and-raid","units-raid":"ref-party-and-raid"},
+ castbars:{"cast-interrupted":"ref-reading-a-cast-bar","cast-channel":"ref-reading-a-cast-bar","cast-target":"ref-player-target-focus-and-pet","cast-focus":"ref-player-target-focus-and-pet","cast-pet":"ref-player-target-focus-and-pet","cast-player":"ref-change-the-size"},
  bags:{"bags-inventory":"ref-open-your-inventory","bags-search":"ref-search-and-filters","bags-empty-search":"ref-search-and-filters"},
  chat:{"chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history"},
  loot:{"loot-list":"ref-loot-an-item"},
  shell:{"shell-menu":"ref-the-rikui-button"},
- "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-scale":"ref-scale-the-hud"},
- cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip"},
- swingtimer:{"swing-main-hand":"ref-weapon-swings"}
+ "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-rogue":"ref-your-class-in-the-column","hud-shaman":"ref-your-class-in-the-column","hud-druid":"ref-your-class-in-the-column","hud-scale":"ref-scale-the-hud"},
+ cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip","cooldowns-viewer":"ref-your-cooldown-strip","cooldowns-class":"ref-your-cooldown-strip","cooldowns-rows":"ref-your-cooldown-strip","cooldowns-counter":"ref-your-cooldown-strip","cooldowns-tracked":"ref-choose-tracked-spells"},
+ swingtimer:{"swing-main-hand":"ref-weapon-swings","swing-off-hand":"ref-weapon-swings","swing-ranged":"ref-weapon-swings","swing-move":"ref-ranged-movement-cues","swing-stop":"ref-ranged-movement-cues","swing-unknown":"ref-ranged-movement-cues"},
+ bars:{"bars-main":"ref-arrange-your-bars","bars-secondary":"ref-arrange-your-bars","bars-third":"ref-arrange-your-bars","bars-right":"ref-arrange-your-bars","bars-left":"ref-arrange-your-bars","bars-ghost":"ref-labels-and-empty-slots","bars-page":"ref-pages-stances-and-pets","bars-stance-page":"ref-pages-stances-and-pets","bars-stance":"ref-pages-stances-and-pets","bars-pet":"ref-pages-stances-and-pets"},
+ auras:{"auras-buffs":"ref-player-buffs-and-debuffs","auras-debuffs":"ref-player-buffs-and-debuffs","auras-target":"ref-target-pet-and-focus","auras-pet":"ref-target-pet-and-focus","auras-focus":"ref-target-pet-and-focus"},
+ "class-effects":{"effects-player":"ref-follow-your-class-effects","effects-target":"ref-follow-your-class-effects"},
+ personalresource:{"prd-health":"ref-personal-resource-display","prd-power":"ref-personal-resource-display"},
+ nameplates:{"plates-enemy":"ref-enemy-nameplates","plates-debuffs":"ref-enemy-nameplates","plates-cast":"ref-enemy-nameplates","plates-target-focus":"ref-enemy-nameplates","plates-markers":"ref-enemy-nameplates","plates-threat":"ref-threat","plates-friendly":"ref-size-and-visibility"},
+ combopoints:{"combo-empty":"ref-combo-points","combo-three":"ref-combo-points","combo-full":"ref-combo-points"},
+ combattimer:{"timer-elapsed":"ref-combat-timer","timer-final":"ref-combat-timer","timer-stopwatch":"ref-stopwatch"},
+ mirrortimers:{"mirror-breath":"ref-breath-fatigue-and-feign-death","mirror-fatigue":"ref-breath-fatigue-and-feign-death","mirror-feign":"ref-breath-fatigue-and-feign-death"},
+ totems:{"totems-slots":"ref-active-totems","totems-duration":"ref-active-totems"},
+ lossofcontrol:{"loc-effect":"ref-control-effects","loc-remaining":"ref-control-effects"},
+ "proc-overlay":{"proc-sides":"ref-ability-cues","proc-vertical":"ref-ability-cues","proc-center":"ref-ability-cues"},
+ damagemeter:{"meter-rows":"ref-read-the-meter"},
+ extrabuttons:{"extra-zone":"ref-special-actions"}
 };
 const mockupPlacements={
  interiors:{"Mail inbox":"ref-buying-crafting-and-storage","Friends":"ref-social-and-group-panels","Calendar":"ref-other-game-panels"},
- nameplates:{"Enemy plate":"ref-enemy-nameplates","Debuff row":"ref-enemy-nameplates","Nameplate cast":"ref-enemy-nameplates"},
  layout:{"Frame mover":"ref-move-a-frame"}
 };
 const distinctCount=page=>[...distinctSurfaces(page)].filter(([index,canonical])=>index===canonical).length;
@@ -124,9 +136,9 @@ for(const width of [1440,768,390,320]){
 test("spell and item examples load the correct named images",async({page})=>{
  await page.goto("/docs/micromenu");
  await expect(page.locator("figure").first().locator("image")).toHaveCount(0);
- await page.goto("/docs/totems");
+ await page.goto("/docs/interiors");
  const paths=await page.locator("image").evaluateAll(images=>[...new Set(images.map(image=>image.getAttribute("href")))]);
- expect(paths).toHaveLength(4);
+ expect(paths).toHaveLength(5);
  for(const path of paths){expect((await page.request.get(path)).status()).toBe(200);}
 });
 

@@ -46,6 +46,41 @@ index 8824df3..258afba 100644
              max_lines: 0,
              alpha,
          },
+diff --git a/src/iced_app/quad_builders_cooldown.rs b/src/iced_app/quad_builders_cooldown.rs
+index 98304be..548bd2c 100644
+--- a/src/iced_app/quad_builders_cooldown.rs
++++ b/src/iced_app/quad_builders_cooldown.rs
+@@ -80,7 +80,12 @@ pub(super) fn parse_swipe_color(f: &crate::widget::Frame) -> [f32; 4] {
+ 
+ pub(super) fn emit_cooldown_edge_overlay(batch: &mut QuadBatch, frame: &FrameQuadEmit<'_>) {
+     let f = frame.widget;
+-    if !f.cooldown_draw_edge {
++    // The client draws the edge only while a cooldown is running; an idle cooldown frame draws nothing.
++    if !f.cooldown_draw_edge || f.cooldown_duration <= 0.0 {
++        return;
++    }
++    let elapsed_since_start = cooldown_elapsed_since_start(f, frame.elapsed_secs);
++    if elapsed_since_start / f.cooldown_duration >= 1.0 {
+         return;
+     }
+     let Some(path) = f.cooldown_edge_texture.as_deref() else {
+@@ -191,10 +196,13 @@ pub(super) fn cooldown_countdown_text(f: &crate::widget::Frame, remaining: f64)
+     if threshold > 0.0 && remaining >= threshold {
+         return Some(format!("{}s", remaining.ceil() as i64));
+     }
+-    if remaining >= 10.0 {
+-        Some(format!("{}", remaining.ceil() as i64))
++    // The client's countdown text: hours, then minutes, then whole seconds.
++    if remaining >= 3600.0 {
++        Some(format!("{}h", (remaining / 3600.0).ceil() as i64))
++    } else if remaining >= 60.0 {
++        Some(format!("{}m", (remaining / 60.0).ceil() as i64))
+     } else {
+-        Some(format!("{remaining:.1}"))
++        Some(format!("{}", remaining.ceil() as i64))
+     }
+ }
+ 
 diff --git a/src/iced_app/screenshot.rs b/src/iced_app/screenshot.rs
 index f4028fc..f8753a7 100644
 --- a/src/iced_app/screenshot.rs

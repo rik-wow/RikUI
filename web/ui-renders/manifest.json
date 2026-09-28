@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T00:59:51.658541+00:00",
-  "addonCommit": "09498de13839a3bbb10af8c727d019c3df5dcb7a",
+  "capturedAt": "2026-09-28T04:24:11.815868+00:00",
+  "addonCommit": "bd9dfe5f430e84679c10bb39d430b7c02e976096",
   "addonFiles": {
     "Bindings.xml": "f4de3bf073de7728bb45ceb353ffaeb1edc50eea3704a26743ef60887bbcb5e0",
     "RikUI.toc": "52bd13c43576ded42a9957dac09d9ada13cedeff7193ff5a0affe4073252be8e",
@@ -372,21 +372,21 @@
       "source": "casc-local-or-cdn",
       "fallback": "none"
     },
-    "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+    "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
   },
   "fixtureFiles": {
-    "common.lua": "fa3fa8d91a5ce9ae2f2254e52ead73003d15db6a15311163fbeffedfded10b30",
-    "seed.lua": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-    "scenarios.json": "218ef49613104cf94c4ab4f1b51ce29dfe2f01c8a55da6f87a034e48b86ffc69",
-    "render.py": "85b8ca498101d75b376159de1e5607c0ecca908f9b3cf88c983b4a8ea6244f4c",
-    "validate_capture.py": "b6b1b77221c76ce346335b79866b49bfaa0fc25b8b776760893e1ae910b432db",
-    "wow-ui-sim.patch": "3fa20147121415b4dc7c0a089ea1831a80f64aeed1dd4f53fe9bf901c11b3a41",
+    "common.lua": "c713df80095d0be05e23533c74f461c65d5b1542ce81a04cb1e19b3f63a51fb0",
+    "seed.lua": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+    "scenarios.json": "877b20d205105692a43fdb6aab58475d5ee44139944638c0d21f125a45bc54ea",
+    "render.py": "46fefac74fcb2e8543af89b1d3e0761be63019f2a8eba3a4c409ac727bd64150",
+    "validate_capture.py": "509ec263d9f177877b60eaedd1ffbff6d3d8b6765de336e8528c3e2e01b2c5da",
+    "wow-ui-sim.patch": "8ad051597b780266780ffa2111b2e26c0963c489a6428f10b093b76e7bf2c1bd",
     "plates.mjs": "609b794e9ed1c334dde26f86ebb5098f5124cba7736a96fd8aa37667934e6b3c",
     "schema.py": "ff00306cd8159a43d7eea5ba5d60fab57d4f441f128d8eb0fa34fa0dcd678af4"
   },
   "rendererCommit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f",
-  "rendererBinarySha256": "7a11eb8d1fb8397a2281c0cb9d8746946de8b6f8182824896a9b18f5b5ae6a29",
-  "rendererPatchSha256": "3fa20147121415b4dc7c0a089ea1831a80f64aeed1dd4f53fe9bf901c11b3a41",
+  "rendererBinarySha256": "59270dcaf0bd602b3be28c0debcc919320e0bc07aa6052ad5e28b61f7923516f",
+  "rendererPatchSha256": "8ad051597b780266780ffa2111b2e26c0963c489a6428f10b093b76e7bf2c1bd",
   "renders": [
     {
       "id": "options-general",
@@ -400,18 +400,18 @@
         "General"
       ],
       "diagnostics": {
-        "visibleTextCount": 72,
+        "visibleTextCount": 70,
         "root": {
           "x": 644.0,
           "y": 296.0,
           "w": 760.0,
           "h": 560.0
         },
-        "uniqueColors": 3469
+        "uniqueColors": 3390
       },
-      "sha256": "2b99b112e62b2d8c7cee50774fefc4216137e088768f6af09986a4510ec6712d",
-      "bytes": 34088,
-      "fixtureSha256": "777f95718dbe14b9421673612519110067df26403bbe4841d4c8c92b577fa85d",
+      "sha256": "8c9683f118e4e2c3275fa37a4e1fb5714e40567b4a50d0b2b96cda9dc039b6d7",
+      "bytes": 33610,
+      "fixtureSha256": "22916dbebf1c26b77575645659e2667711487928661dfa4fad12677bef972c42",
       "filename": "options-general.webp",
       "width": 800,
       "height": 600,
@@ -430,11 +430,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "2b99b112e62b2d8c7cee50774fefc4216137e088768f6af09986a4510ec6712d"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "8c9683f118e4e2c3275fa37a4e1fb5714e40567b4a50d0b2b96cda9dc039b6d7"
     },
     {
       "id": "options-modules",
@@ -448,18 +448,18 @@
         "Enabled modules"
       ],
       "diagnostics": {
-        "visibleTextCount": 175,
+        "visibleTextCount": 173,
         "root": {
           "x": 644.0,
           "y": 296.0,
           "w": 760.0,
           "h": 560.0
         },
-        "uniqueColors": 2898
+        "uniqueColors": 2839
       },
-      "sha256": "6026b60e13149fd131cfd2c33d95523afa68a2f70cea888368b7cf523c5c97ac",
-      "bytes": 24780,
-      "fixtureSha256": "8272af0ebe5c92f2b268dfd674bd1fbe71bc1eb572f844b26675ef91bead9dc4",
+      "sha256": "02567df2279da0ddc122d76c103c1fa9f146842259389c2332de002a91370330",
+      "bytes": 24530,
+      "fixtureSha256": "21881257bab3d0b479135d111327f6ca7e1efa52d21f5e8e3991db98b5f2f833",
       "filename": "options-modules.webp",
       "width": 800,
       "height": 600,
@@ -478,11 +478,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "6026b60e13149fd131cfd2c33d95523afa68a2f70cea888368b7cf523c5c97ac"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "02567df2279da0ddc122d76c103c1fa9f146842259389c2332de002a91370330"
     },
     {
       "id": "options-profiles",
@@ -496,18 +496,18 @@
         "Profiles"
       ],
       "diagnostics": {
-        "visibleTextCount": 78,
+        "visibleTextCount": 76,
         "root": {
           "x": 644.0,
           "y": 296.0,
           "w": 760.0,
           "h": 560.0
         },
-        "uniqueColors": 3244
+        "uniqueColors": 3182
       },
-      "sha256": "00bf39efb70f179ec9f9345e3a64ef69a35b9821f560cbddcbe0335a8824c675",
-      "bytes": 35386,
-      "fixtureSha256": "265b5a4f12ad8e4c4107701014c25b603d2b63de57a7185466b264ab35f42193",
+      "sha256": "9ec92fcc4ac12fa19cba54129816e058c0c3e72e65822cae4d1ed96b7ee16ca0",
+      "bytes": 35052,
+      "fixtureSha256": "3a605c79728fa92cc933525a872da2fdf7c60d0213e904b6cf222156b4fdd14d",
       "filename": "options-profiles.webp",
       "width": 800,
       "height": 600,
@@ -526,11 +526,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "00bf39efb70f179ec9f9345e3a64ef69a35b9821f560cbddcbe0335a8824c675"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "9ec92fcc4ac12fa19cba54129816e058c0c3e72e65822cae4d1ed96b7ee16ca0"
     },
     {
       "id": "options-setup",
@@ -544,18 +544,18 @@
         "Open wizard"
       ],
       "diagnostics": {
-        "visibleTextCount": 67,
+        "visibleTextCount": 65,
         "root": {
           "x": 644.0,
           "y": 296.0,
           "w": 760.0,
           "h": 560.0
         },
-        "uniqueColors": 3341
+        "uniqueColors": 3278
       },
-      "sha256": "36dc502adb6e1fabe2eb38677b88dc9fad96e039423e76dacf6ac2643459b0b2",
-      "bytes": 36024,
-      "fixtureSha256": "2265a26fca38e1202fb1f379fcb485813d098b7da9e6913750668d5b97679eb0",
+      "sha256": "a6cfa57b2ec9ba69f30ebecc2e53807beb9d35f1e2876285f1568c1283760867",
+      "bytes": 35708,
+      "fixtureSha256": "4de1e5dedc79032b321ad6317d88df6b480c90cf5aa9413da0b4afc0b26d3fd2",
       "filename": "options-setup.webp",
       "width": 800,
       "height": 600,
@@ -574,11 +574,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "36dc502adb6e1fabe2eb38677b88dc9fad96e039423e76dacf6ac2643459b0b2"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "a6cfa57b2ec9ba69f30ebecc2e53807beb9d35f1e2876285f1568c1283760867"
     },
     {
       "id": "options-castbars",
@@ -592,18 +592,18 @@
         "Show remaining cast time"
       ],
       "diagnostics": {
-        "visibleTextCount": 43,
+        "visibleTextCount": 41,
         "root": {
           "x": 644.0,
           "y": 296.0,
           "w": 760.0,
           "h": 560.0
         },
-        "uniqueColors": 2858
+        "uniqueColors": 2780
       },
-      "sha256": "643e282296180481f7b021229ff60f46b79c0a13ae497a4a0e63b2ae3430ec85",
-      "bytes": 23948,
-      "fixtureSha256": "bb4de5cffe9cea0a3a1802a61900e3b06c636e72b92664ebea4d1127ebb81580",
+      "sha256": "f0c4e63bf59c2dad0938ef66e221925c0c827419f0cf76e8ca2fa3027240fa9f",
+      "bytes": 23768,
+      "fixtureSha256": "3e4a378610690f7eb21ec1ad48270876713b00f3cf134d78227898b20e624d68",
       "filename": "options-castbars.webp",
       "width": 800,
       "height": 600,
@@ -622,11 +622,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "643e282296180481f7b021229ff60f46b79c0a13ae497a4a0e63b2ae3430ec85"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "f0c4e63bf59c2dad0938ef66e221925c0c827419f0cf76e8ca2fa3027240fa9f"
     },
     {
       "id": "units-player",
@@ -652,7 +652,7 @@
       },
       "sha256": "ea606267391721048bc4b10dc43a8e2e911a923a2abc4f7555b03a02b494da12",
       "bytes": 5406,
-      "fixtureSha256": "2d81c85b6acaa30083e94e9866147e8100914e411f1e888ba8584bdea5dee118",
+      "fixtureSha256": "b9744e71e281e6c7eaf3a88dde3b7e1bd3592541862ebce24f8df06d9450eda2",
       "filename": "units-player.webp",
       "width": 472,
       "height": 120,
@@ -671,10 +671,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "ea606267391721048bc4b10dc43a8e2e911a923a2abc4f7555b03a02b494da12"
     },
     {
@@ -701,7 +701,7 @@
       },
       "sha256": "f8f25c0dc9255916f266de33c066d8d61db12bfca6e99a9a455ad6d303935049",
       "bytes": 4636,
-      "fixtureSha256": "1427c7398b38e4b751df163b9c2fd2d22f709a79644a9d24662f8701ac6fa4c8",
+      "fixtureSha256": "3da1dcf726b99a8afd1fc07188104ed8b89f91a9e766a943e4116f0bbc14086a",
       "filename": "units-low-health.webp",
       "width": 472,
       "height": 120,
@@ -720,10 +720,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "f8f25c0dc9255916f266de33c066d8d61db12bfca6e99a9a455ad6d303935049"
     },
     {
@@ -731,7 +731,7 @@
       "page": "unitframes",
       "title": "Target",
       "frame": "RikUIUnit_target",
-      "crop": "472x120+788+516",
+      "crop": "472x160+788+476",
       "fixtures": [],
       "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_target,2)\n",
       "expectText": [
@@ -739,21 +739,21 @@
         "57"
       ],
       "diagnostics": {
-        "visibleTextCount": 4,
+        "visibleTextCount": 5,
         "root": {
           "x": 804.0,
           "y": 532.0,
           "w": 440.0,
           "h": 88.0
         },
-        "uniqueColors": 676
+        "uniqueColors": 2095
       },
-      "sha256": "16d33808bf815e86bac4ed51ff75d6871a8c2e44dd534e4f378bf994c58e4ba1",
-      "bytes": 5376,
-      "fixtureSha256": "6d037c8c2fec9d5d27677b1b15caf8a528fbf2661cdca94ca4d4d3cc423ad373",
+      "sha256": "e4e23e38a015b1c38f35fa6a4b7cde0439662db1b0e27881c609f2411b21e6e7",
+      "bytes": 11266,
+      "fixtureSha256": "c494eff392fdbd40867d276c2b6f5ea86934668c73441298226c55ea969cd18a",
       "filename": "units-target.webp",
       "width": 472,
-      "height": 120,
+      "height": 160,
       "client": {
         "version": "1.60.1.70009",
         "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
@@ -769,11 +769,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "16d33808bf815e86bac4ed51ff75d6871a8c2e44dd534e4f378bf994c58e4ba1"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "e4e23e38a015b1c38f35fa6a4b7cde0439662db1b0e27881c609f2411b21e6e7"
     },
     {
       "id": "units-focus",
@@ -799,7 +799,7 @@
       },
       "sha256": "ff8ab2b5f41cd17a0d3f72bfb39ec0593bcf8528f4fc23b44da88a858946cf24",
       "bytes": 2464,
-      "fixtureSha256": "c63239b8335815c4081edae3ef3894e83be38cd9d3c734a227b5aff93ae7ff0a",
+      "fixtureSha256": "8c5f80ad162a625f18e0fe619dc6b430fc1a636c106fd2b2aacc0589f9cfc616",
       "filename": "units-focus.webp",
       "width": 352,
       "height": 104,
@@ -818,10 +818,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "ff8ab2b5f41cd17a0d3f72bfb39ec0593bcf8528f4fc23b44da88a858946cf24"
     },
     {
@@ -850,7 +850,7 @@
       },
       "sha256": "0bc0c2e6079ac9c922a1251bc98218005d47bc7b52c1d1307d2a98e122bf7760",
       "bytes": 4942,
-      "fixtureSha256": "0accffa65026971ab2896f78a6edf03c76ae134df1e60b24a8cd7428d75d86c6",
+      "fixtureSha256": "8a9b82394ea71c020b1797a277a412d879194c4ceed9877e18c7eb366cba6ae8",
       "filename": "cast-player.webp",
       "width": 600,
       "height": 80,
@@ -869,10 +869,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "0bc0c2e6079ac9c922a1251bc98218005d47bc7b52c1d1307d2a98e122bf7760"
     },
     {
@@ -896,9 +896,9 @@
         },
         "uniqueColors": 744
       },
-      "sha256": "cd5ad0ed34df6a969107f4c63e783c6ffff3f2c73ffdd622225571abb789369d",
+      "sha256": "1c4dde9790fc32f108617cb0871f418975c3c4fa1ffa6b1a9ee93c701f094d05",
       "bytes": 4208,
-      "fixtureSha256": "23249467a485cb9175d0bdff219fbc3a7e837523e5d54adaab494e54ca5741db",
+      "fixtureSha256": "87d7db028fda951137b8833c2fd203271b19176a46e33eec9d0f69430c644c01",
       "filename": "cast-interrupted.webp",
       "width": 600,
       "height": 80,
@@ -917,11 +917,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "cd5ad0ed34df6a969107f4c63e783c6ffff3f2c73ffdd622225571abb789369d"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "1c4dde9790fc32f108617cb0871f418975c3c4fa1ffa6b1a9ee93c701f094d05"
     },
     {
       "id": "wizard-1",
@@ -946,7 +946,7 @@
       },
       "sha256": "fcb1283758599e9a967beb536bc195265427356ca009aff117ad245ea745ca18",
       "bytes": 21784,
-      "fixtureSha256": "5b9bbb83e284cfcf0266c9d0d61b1077857c852f160a02f1d1c862d2997261c6",
+      "fixtureSha256": "6415a905382fc23fab9281853a0d9342bb20a6718258d164617f67eca02d3889",
       "filename": "wizard-1.webp",
       "width": 860,
       "height": 624,
@@ -965,10 +965,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "fcb1283758599e9a967beb536bc195265427356ca009aff117ad245ea745ca18"
     },
     {
@@ -997,7 +997,7 @@
       },
       "sha256": "c3c07fb236229be9e887e1268ca3ee87e7f94cfe581bf20246f68377a7c624fb",
       "bytes": 52692,
-      "fixtureSha256": "b36cb23a2167535a0467a16c671f22b6834976be8a2ea3d5636349591dddd53f",
+      "fixtureSha256": "7e877baef3fb4076ae0a367e64eb7ad06e27e996daf7d5f0e12c5847b1ae34be",
       "filename": "wizard-2.webp",
       "width": 860,
       "height": 624,
@@ -1016,10 +1016,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "c3c07fb236229be9e887e1268ca3ee87e7f94cfe581bf20246f68377a7c624fb"
     },
     {
@@ -1045,7 +1045,7 @@
       },
       "sha256": "60541eca61252c7ddc923da90c7ea13994b9cc7d7494db6aec80356361f4a0e7",
       "bytes": 29644,
-      "fixtureSha256": "6af92bfd29bb8ec56ec9069d3758271add4e6a1afb2ab470674b552671806fb5",
+      "fixtureSha256": "68313f6991d4050b743a0e25affdb47799c7a40540a5c56086aae414bb9ddc6e",
       "filename": "wizard-3.webp",
       "width": 860,
       "height": 624,
@@ -1064,10 +1064,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "60541eca61252c7ddc923da90c7ea13994b9cc7d7494db6aec80356361f4a0e7"
     },
     {
@@ -1093,7 +1093,7 @@
       },
       "sha256": "99939502fd739ccf79785fd28eb9f5e1d395648dcc5d430c929bcc210a4780e3",
       "bytes": 30014,
-      "fixtureSha256": "7dd7bc7b146405d093a0c8b94a7ddb2e7653f53434c92589e4af46497705c3aa",
+      "fixtureSha256": "571d44875164d3a19ea32f2f5bbd9e5b7ccbaeaa06fc3b5c74fb6a8a30e38576",
       "filename": "wizard-4.webp",
       "width": 860,
       "height": 624,
@@ -1112,10 +1112,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "99939502fd739ccf79785fd28eb9f5e1d395648dcc5d430c929bcc210a4780e3"
     },
     {
@@ -1141,7 +1141,7 @@
       },
       "sha256": "28ab7286efa7f16560935866880e47ec07b3fd7e05f925038fd5c2f89528a90b",
       "bytes": 35250,
-      "fixtureSha256": "72b4b738d6a5003f1d001886083f9a5ab13d5e4d62b2f5b505609740c32d880e",
+      "fixtureSha256": "0f6af0b3e41713f84d32c6859389090070b38ef39272bdf37ae7957d9568e6fb",
       "filename": "wizard-5.webp",
       "width": 860,
       "height": 624,
@@ -1160,10 +1160,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "28ab7286efa7f16560935866880e47ec07b3fd7e05f925038fd5c2f89528a90b"
     },
     {
@@ -1190,7 +1190,7 @@
       },
       "sha256": "3d74e25f957fe0c2d997cef215f3df8a223b1107ccea1d0b7634080d1e00b3b6",
       "bytes": 28100,
-      "fixtureSha256": "35f764344c7a7bd2bee980cc2ae359dc54f0f917d7dbfb755f6f810b36d227f3",
+      "fixtureSha256": "8c92962647a0f069981e70fd4858e3fab055f862aeacb757047f1962188a6ac7",
       "filename": "wizard-6.webp",
       "width": 860,
       "height": 624,
@@ -1209,10 +1209,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "3d74e25f957fe0c2d997cef215f3df8a223b1107ccea1d0b7634080d1e00b3b6"
     },
     {
@@ -1236,7 +1236,7 @@
       },
       "sha256": "bd9ad92e589805578c2ac56849eb45df4e794d56ca1d0f0451b401ee7c52e86e",
       "bytes": 12024,
-      "fixtureSha256": "c822c8d1acffa7eb39f00098ab21db7214e658404cf90c66b8f64ecc4036208a",
+      "fixtureSha256": "6ce40522472dd18704fddae03a23204ea0e2ab617d4931a089885b0ffee73a12",
       "filename": "bags-inventory.webp",
       "width": 434,
       "height": 288,
@@ -1255,10 +1255,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "bd9ad92e589805578c2ac56849eb45df4e794d56ca1d0f0451b401ee7c52e86e"
     },
     {
@@ -1285,7 +1285,7 @@
       },
       "sha256": "45688048c93b9cb3372bbf75edbfb0d990251b327ab2d972521ce0eb6a6d84a6",
       "bytes": 13044,
-      "fixtureSha256": "c6988564578aee25b3b38daf66dc61279640c1a9ca9a473b39bb6dbe0b8c06dd",
+      "fixtureSha256": "31057db7e79d3d01aa62085d60d9c1909b228fb78806fb718b76cbb0ed94c02f",
       "filename": "bags-search.webp",
       "width": 434,
       "height": 288,
@@ -1304,10 +1304,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "45688048c93b9cb3372bbf75edbfb0d990251b327ab2d972521ce0eb6a6d84a6"
     },
     {
@@ -1334,7 +1334,7 @@
       },
       "sha256": "d3fd1558c648dda8f436f99eaccab41e0f2cb0410f42087de30cb4c6239df154",
       "bytes": 15746,
-      "fixtureSha256": "cc73012fe9716a0f5c775b7546d48f41db2de007ba3bd6a489367b6f2c98600e",
+      "fixtureSha256": "51f5e8b05b141575442d795d309b84322801cb4249cd4a82cddea10e8d81120f",
       "filename": "bags-empty-search.webp",
       "width": 434,
       "height": 288,
@@ -1353,10 +1353,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "d3fd1558c648dda8f436f99eaccab41e0f2cb0410f42087de30cb4c6239df154"
     },
     {
@@ -1379,7 +1379,7 @@
       },
       "sha256": "0a490965217e7fad9b33d784e7aab88a725ef4cad54e642e5a28e77c6e8fddf1",
       "bytes": 13116,
-      "fixtureSha256": "c619a889c6636e42b07e896dd4de6e666e616152bb391936b9e657e1bd775b11",
+      "fixtureSha256": "5cf206a0ac8b06436adbe35c14ce2c194d3a867b8d3c63023f5e87ae48d25b8e",
       "filename": "shell-menu.webp",
       "width": 360,
       "height": 680,
@@ -1398,10 +1398,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "0a490965217e7fad9b33d784e7aab88a725ef4cad54e642e5a28e77c6e8fddf1"
     },
     {
@@ -1424,7 +1424,7 @@
       },
       "sha256": "d1b3c1483091d84555637bad9aa4fb8b84d40b68af6d90dc5500fad1b8c57cc2",
       "bytes": 31528,
-      "fixtureSha256": "4033aa3a2f6b39819da30ea5f10536f99c15372bf0577fa862686ed4d7a226dc",
+      "fixtureSha256": "0d9b4605dcde88d928f274cb34995524cb23d57820d911d7271678f2e169733d",
       "filename": "sharing-export.webp",
       "width": 700,
       "height": 480,
@@ -1443,10 +1443,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "d1b3c1483091d84555637bad9aa4fb8b84d40b68af6d90dc5500fad1b8c57cc2"
     },
     {
@@ -1469,7 +1469,7 @@
       },
       "sha256": "1cc8d1aec17847bf8fd45cbbace5d57e4cb582c6eacb7bd80ea38a8e46f67294",
       "bytes": 5706,
-      "fixtureSha256": "1855088bb0677c5e68909f83eb325030f71a91e5455f76b09cffcfdfaeac318b",
+      "fixtureSha256": "6e4b78c27d7dc04e7556f3e7ee3513bc2ac6c8c8b5da478d3a0ab9287da1f39c",
       "filename": "sharing-import.webp",
       "width": 700,
       "height": 480,
@@ -1488,10 +1488,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "1cc8d1aec17847bf8fd45cbbace5d57e4cb582c6eacb7bd80ea38a8e46f67294"
     },
     {
@@ -1518,7 +1518,7 @@
       },
       "sha256": "07dfd8d45b045f8e8ad82a77779585133d0035a257a6c77529e91f2c45cb39a4",
       "bytes": 10312,
-      "fixtureSha256": "d6c7774125780f40c5375bf7664b6ff074c97fa2f6c7f2096733def5924de2ff",
+      "fixtureSha256": "61f9e4bee01d9114e7a1fac38f59471b9104e580387acf9ff8b4b793d5492579",
       "filename": "chat-copy.webp",
       "width": 600,
       "height": 440,
@@ -1537,10 +1537,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "07dfd8d45b045f8e8ad82a77779585133d0035a257a6c77529e91f2c45cb39a4"
     },
     {
@@ -1567,7 +1567,7 @@
       },
       "sha256": "50c72b0b643511609a90f63065590fa1ec8b62126e599ecaac773036abbd57bd",
       "bytes": 7454,
-      "fixtureSha256": "5cfa973ad4c841ad40d013d4a5019ce60f04a505781b2a4634824002872c3d5c",
+      "fixtureSha256": "e3fbb099bebd321d417f93ba9ad4d2ea90ee3634982796d12efb1035af156370",
       "filename": "chat-search.webp",
       "width": 600,
       "height": 440,
@@ -1586,10 +1586,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "50c72b0b643511609a90f63065590fa1ec8b62126e599ecaac773036abbd57bd"
     },
     {
@@ -1616,7 +1616,7 @@
       },
       "sha256": "34d1648b5416ba9f8e1ac0a1e170a1f440f2451bd9195db148f13cd36c09abc8",
       "bytes": 5428,
-      "fixtureSha256": "6f651da332dee7e05ce2279fcfe5a186f8bc10e3b54bf58aabaf5c552ba1d06a",
+      "fixtureSha256": "2254644317161e4f248aa698a88367f5a820b98819b4e7e99883c3fe11d66cde",
       "filename": "loot-list.webp",
       "width": 360,
       "height": 220,
@@ -1635,10 +1635,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "34d1648b5416ba9f8e1ac0a1e170a1f440f2451bd9195db148f13cd36c09abc8"
     },
     {
@@ -1646,7 +1646,7 @@
       "page": "combat-hud",
       "title": "The combat HUD",
       "frame": "RikRenderHUD",
-      "crop": "830x340+470+572",
+      "crop": "1000x420+385+540",
       "world": {
         "plate": "goldshire-road"
       },
@@ -1656,7 +1656,7 @@
         "RikRenderCast()",
         "RikRenderSwing()"
       ],
-      "lua": "RikRenderHUDGroup(\"RikRenderHUD\", 470, 240, 830, 340)\n",
+      "lua": "RikRenderHUDGroup(\"RikRenderHUD\", 385, 192, 1000, 420)\n",
       "expectText": [
         "Rik",
         "Mangy Wolf",
@@ -1666,21 +1666,21 @@
       ],
       "assertLua": "local ids = {}\nfor _, entry in ipairs(RikUI.Cooldowns.Entries) do ids[#ids + 1] = entry.id end\nassert(table.concat(ids, \",\") == \"20287,20271,853,1022,633,498,679\", \"Unexpected strip order: \" .. table.concat(ids, \",\"))\nassert(RikUI.Cooldowns.Buttons[2].icon:GetTexture() == 135959, \"Wrong Judgement icon\")\nassert(not RikUI.Cooldowns.Buttons[3].unknown:IsShown(), \"Hammer of Justice cooldown must be readable\")\n",
       "diagnostics": {
-        "visibleTextCount": 16,
+        "visibleTextCount": 17,
         "root": {
-          "x": 470.0,
-          "y": 572.0,
-          "w": 830.0,
-          "h": 340.0
+          "x": 385.0,
+          "y": 540.0,
+          "w": 1000.0,
+          "h": 420.0
         },
-        "uniqueColors": 5849
+        "uniqueColors": 6638
       },
-      "sha256": "8d2c1813e1c009fb1b71cfb44a67371baad5216cce3891346cb558f0685c3f13",
-      "bytes": 109816,
-      "fixtureSha256": "c7cb920d0c9b8a0414c1169c43300c92550b813545360ed30039f313713f868b",
+      "sha256": "dccde61d8c9a356e4c8092622f1c05801985e2a0fc1f2de5c3ea159b740f9d3a",
+      "bytes": 162842,
+      "fixtureSha256": "15f6d3190ba8909242f41a69eb89dceb345060e4cc2f6c68682befcdd29a59ae",
       "filename": "hud-arrangement.webp",
-      "width": 830,
-      "height": 340,
+      "width": 1000,
+      "height": 420,
       "plate": {
         "plate": "goldshire-road",
         "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
@@ -1710,11 +1710,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "8d2c1813e1c009fb1b71cfb44a67371baad5216cce3891346cb558f0685c3f13"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "dccde61d8c9a356e4c8092622f1c05801985e2a0fc1f2de5c3ea159b740f9d3a"
     },
     {
       "id": "hud-column",
@@ -1743,11 +1743,11 @@
           "w": 320.0,
           "h": 220.0
         },
-        "uniqueColors": 4837
+        "uniqueColors": 4840
       },
-      "sha256": "d21734235e827c7c7a6fec57b04ad229ed9d479a29bb635690797cbdc374f0ad",
-      "bytes": 19350,
-      "fixtureSha256": "c5d6741574c8e73f33b4017d1117570b20b10c5e65e05531966c4826eca09c41",
+      "sha256": "76889c1bbee145ba8c65f16674674b1b7d23fdacb65440c9856a0a653d29de45",
+      "bytes": 19384,
+      "fixtureSha256": "056ef85d6cbff32de1b17555322166813de5f2d69ab6db8d4fbf14f0b65891b2",
       "filename": "hud-column.webp",
       "width": 320,
       "height": 220,
@@ -1766,11 +1766,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "d21734235e827c7c7a6fec57b04ad229ed9d479a29bb635690797cbdc374f0ad"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "76889c1bbee145ba8c65f16674674b1b7d23fdacb65440c9856a0a653d29de45"
     },
     {
       "id": "cooldowns-strip",
@@ -1793,11 +1793,11 @@
           "w": 560.0,
           "h": 152.0
         },
-        "uniqueColors": 5232
+        "uniqueColors": 5236
       },
-      "sha256": "366ae1cfc80d6167ad8ac64de2cf94e3271b32c0ca38b37493110c3dc77e40ad",
-      "bytes": 31228,
-      "fixtureSha256": "83be8005231b530a5545dee78b04e9fd3179cb798a413d64548e7ef73be27602",
+      "sha256": "50b1a41f131508d4ea258e4d61834756eff8bd292af1863f1fab7699820cdd4c",
+      "bytes": 31258,
+      "fixtureSha256": "b1ce05da45041d8ab38440ce2783c33e4a57b373d5425d9e03afa45baa86294a",
       "filename": "cooldowns-strip.webp",
       "width": 600,
       "height": 180,
@@ -1816,11 +1816,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "366ae1cfc80d6167ad8ac64de2cf94e3271b32c0ca38b37493110c3dc77e40ad"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "50b1a41f131508d4ea258e4d61834756eff8bd292af1863f1fab7699820cdd4c"
     },
     {
       "id": "swing-main-hand",
@@ -1850,7 +1850,7 @@
       },
       "sha256": "14894c0725b86779ded63c49d442ee0ab598fbc581d4da8f247e3fb49bb2e734",
       "bytes": 2274,
-      "fixtureSha256": "2d2c8f8f1a25156085abf361dde1765989314513bd3d8f2f28058ffe44e8ff96",
+      "fixtureSha256": "bd02377f5eab286294f8455f04a21ae8447e90cbf874f892056ab58d69a60ecd",
       "filename": "swing-main-hand.webp",
       "width": 600,
       "height": 180,
@@ -1869,10 +1869,10 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
       "reviewedSha256": "14894c0725b86779ded63c49d442ee0ab598fbc581d4da8f247e3fb49bb2e734"
     },
     {
@@ -1884,27 +1884,23 @@
       "fixtures": [
         "RikRenderSpellbook()"
       ],
-      "lua": "RikUI.Options.Open(\"class-cooldowns\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class-cooldowns\")\n",
+      "lua": "RikUI.Options.Open(\"class\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class\")\n",
       "expectText": [
-        "Class: Paladin",
-        "Class list",
-        "Judgement",
-        "Add a spell",
-        "Tracked spells"
+        "which displays run"
       ],
       "diagnostics": {
-        "visibleTextCount": 74,
+        "visibleTextCount": 45,
         "root": {
           "x": 644.0,
           "y": 296.0,
           "w": 760.0,
           "h": 560.0
         },
-        "uniqueColors": 5535
+        "uniqueColors": 3699
       },
-      "sha256": "260796a2cc4fea2ace039a01bf1aa8726aa43b37d8bf536c0a92016f7729c4f1",
-      "bytes": 46716,
-      "fixtureSha256": "a933d2ac28a5393beee2e2956a24b40a48ebc56e40f3b3f4c5b7f03b78650a3c",
+      "sha256": "fb2e760fe65b5080091ae8f3185bab2a6c15ecefdcd383a914b72453510c5d57",
+      "bytes": 44792,
+      "fixtureSha256": "160a373b10c367a2f98222d74009da9192bf08a52d48cb7521fae94a0b5dc6c7",
       "filename": "options-class.webp",
       "width": 800,
       "height": 600,
@@ -1923,11 +1919,11 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "260796a2cc4fea2ace039a01bf1aa8726aa43b37d8bf536c0a92016f7729c4f1"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "fb2e760fe65b5080091ae8f3185bab2a6c15ecefdcd383a914b72453510c5d57"
     },
     {
       "id": "hud-scale",
@@ -1967,18 +1963,18 @@
         "apply": "RikRenderSetOption(\"general\", \"scale\", VALUE)"
       },
       "diagnostics": {
-        "visibleTextCount": 16,
+        "visibleTextCount": 17,
         "root": {
           "x": 385.0,
           "y": 540.0,
           "w": 1000.0,
           "h": 420.0
         },
-        "uniqueColors": 5848
+        "uniqueColors": 6642
       },
-      "sha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e",
-      "bytes": 162428,
-      "fixtureSha256": "05c795411492954770c8398f7d3fd5c201784f14c57211137db0bcd3f052d22a",
+      "sha256": "1e20c81a5ca61993cbbed69f67eba64578995041dbf15cb8f6819173d7a2905d",
+      "bytes": 162990,
+      "fixtureSha256": "8568fd1c5d7c535ceebcc0f436d3fe7c6d64d7c39317bae7d1a82a6f4ab87d3c",
       "filename": "hud-scale@1.webp",
       "width": 1000,
       "height": 420,
@@ -2000,18 +1996,18 @@
         {
           "value": 0.85,
           "diagnostics": {
-            "visibleTextCount": 16,
+            "visibleTextCount": 17,
             "root": {
               "x": 385.0,
               "y": 540.0,
               "w": 1000.0,
               "h": 420.0
             },
-            "uniqueColors": 5427
+            "uniqueColors": 6096
           },
-          "sha256": "85f9c2fbb6d5b1275717cdc05d48502d93e08c682a8fcdb80ce224b06c6df1b1",
-          "bytes": 163842,
-          "fixtureSha256": "d584a7a22287b4aab9c50438982bc9150415fe11da50ffb816a0c5396604f779",
+          "sha256": "e45c269a20ed5e34e793b779b5df3b04f06b7d889a29552a08a3f30b152c18b1",
+          "bytes": 164172,
+          "fixtureSha256": "ff11c78690887136df00ed026bb73304d8891206f65e203c970b93a76ac967dc",
           "filename": "hud-scale@0.85.webp",
           "width": 1000,
           "height": 420,
@@ -2029,23 +2025,23 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "85f9c2fbb6d5b1275717cdc05d48502d93e08c682a8fcdb80ce224b06c6df1b1"
+          "reviewedSha256": "e45c269a20ed5e34e793b779b5df3b04f06b7d889a29552a08a3f30b152c18b1"
         },
         {
           "value": 1,
           "diagnostics": {
-            "visibleTextCount": 16,
+            "visibleTextCount": 17,
             "root": {
               "x": 385.0,
               "y": 540.0,
               "w": 1000.0,
               "h": 420.0
             },
-            "uniqueColors": 5848
+            "uniqueColors": 6642
           },
-          "sha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e",
-          "bytes": 162428,
-          "fixtureSha256": "05c795411492954770c8398f7d3fd5c201784f14c57211137db0bcd3f052d22a",
+          "sha256": "1e20c81a5ca61993cbbed69f67eba64578995041dbf15cb8f6819173d7a2905d",
+          "bytes": 162990,
+          "fixtureSha256": "8568fd1c5d7c535ceebcc0f436d3fe7c6d64d7c39317bae7d1a82a6f4ab87d3c",
           "filename": "hud-scale@1.webp",
           "width": 1000,
           "height": 420,
@@ -2063,23 +2059,23 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e"
+          "reviewedSha256": "1e20c81a5ca61993cbbed69f67eba64578995041dbf15cb8f6819173d7a2905d"
         },
         {
           "value": 1.15,
           "diagnostics": {
-            "visibleTextCount": 16,
+            "visibleTextCount": 17,
             "root": {
               "x": 385.0,
               "y": 540.0,
               "w": 1000.0,
               "h": 420.0
             },
-            "uniqueColors": 6187
+            "uniqueColors": 6386
           },
-          "sha256": "2d7bb4eb50767b4dac775616b4375e3a4f6c911f386e925d7a44c293a96275f6",
-          "bytes": 161542,
-          "fixtureSha256": "04bccdefb32b7648a26c7cc7cbf2ff63d21d4b52956d96318b3777e4c78899e5",
+          "sha256": "61b042e8030af3a52b0708f0440782a6cda073e386c349031b6aa1bff54205f6",
+          "bytes": 161626,
+          "fixtureSha256": "35ddbeadf41531a6d455a5417cb5e42bb81c5cd9b994d8a03b767611e7a58907",
           "filename": "hud-scale@1.15.webp",
           "width": 1000,
           "height": 420,
@@ -2097,7 +2093,7 @@
             },
             "captured": "2026-09-28T00:55:06.916Z"
           },
-          "reviewedSha256": "2d7bb4eb50767b4dac775616b4375e3a4f6c911f386e925d7a44c293a96275f6"
+          "reviewedSha256": "61b042e8030af3a52b0708f0440782a6cda073e386c349031b6aa1bff54205f6"
         }
       ],
       "client": {
@@ -2115,12 +2111,3828 @@
           "source": "casc-local-or-cdn",
           "fallback": "none"
         },
-        "verifiedAt": "2026-09-28T00:59:51.486100+00:00"
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
       },
-      "seedSha256": "9a5fd1aa8f11f08e8f7c3c1a1fe516e3d46e9e3a420e7b5dd305015d912cfa0c",
-      "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb",
-      "reviewedSha256": "f3981121f46175a822e670847c522b6aa47033a877504061bfd6364f042a006e"
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "1e20c81a5ca61993cbbed69f67eba64578995041dbf15cb8f6819173d7a2905d"
+    },
+    {
+      "id": "plates-enemy",
+      "page": "nameplates",
+      "title": "Enemy plate",
+      "frame": "RikRenderPlatesEnemy",
+      "crop": "600x260+560+340",
+      "world": {
+        "plate": "elwynn-wolf"
+      },
+      "fixtures": [],
+      "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", notTarget = true }, { actor = \"Young Wolf\", nth = 1, unit = \"target\", notTarget = true, readers = RikRenderCreature(\"Young Wolf\", 1, 30, 30, \"neutral\") } }, \"RikRenderPlatesEnemy\", 560, 552, 600, 260)\n",
+      "expectText": [
+        "Mangy Wolf",
+        "Young Wolf"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 4,
+        "root": {
+          "x": 560.0,
+          "y": 340.0,
+          "w": 600.0,
+          "h": 260.0
+        },
+        "uniqueColors": 542
+      },
+      "sha256": "85c583333667754aeeef334b3d53c9150f0efa13de94c94dcb5dc1a33b706b07",
+      "bytes": 63470,
+      "fixtureSha256": "0c05f9315d03912819438dc482ecfca62cb8163a8c87a6402fef84c18049c2f6",
+      "filename": "plates-enemy.webp",
+      "width": 600,
+      "height": 260,
+      "plate": {
+        "plate": "elwynn-wolf",
+        "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": -52.3,
+          "y": 64.5762500915528,
+          "z": 9406,
+          "yaw": 0.023072827890143977,
+          "pitch": -0.3028609100331466,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:46.754Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "85c583333667754aeeef334b3d53c9150f0efa13de94c94dcb5dc1a33b706b07"
+    },
+    {
+      "id": "plates-target-focus",
+      "page": "nameplates",
+      "title": "Target and focus",
+      "frame": "RikRenderPlatesTarget",
+      "crop": "600x260+560+340",
+      "world": {
+        "plate": "elwynn-wolf"
+      },
+      "fixtures": [],
+      "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\" }, { actor = \"Young Wolf\", nth = 1, unit = \"focus\", readers = RikRenderCreature(\"Young Wolf\", 1, 30, 30, \"neutral\") } }, \"RikRenderPlatesTarget\", 560, 552, 600, 260)\n",
+      "expectText": [
+        "Mangy Wolf",
+        "Young Wolf"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 4,
+        "root": {
+          "x": 560.0,
+          "y": 340.0,
+          "w": 600.0,
+          "h": 260.0
+        },
+        "uniqueColors": 554
+      },
+      "sha256": "9845f251837942b97ba25eba28625933cfcef231ec7c3524b29f401766f989b6",
+      "bytes": 65242,
+      "fixtureSha256": "58a2de21cedd53b0b0d46dc71d6c078e4abb041de2e797d65161e4b76753f749",
+      "filename": "plates-target-focus.webp",
+      "width": 600,
+      "height": 260,
+      "plate": {
+        "plate": "elwynn-wolf",
+        "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": -52.3,
+          "y": 64.5762500915528,
+          "z": 9406,
+          "yaw": 0.023072827890143977,
+          "pitch": -0.3028609100331466,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:46.754Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "9845f251837942b97ba25eba28625933cfcef231ec7c3524b29f401766f989b6"
+    },
+    {
+      "id": "plates-friendly",
+      "page": "nameplates",
+      "title": "Friendly name",
+      "frame": "RikRenderPlatesFriendly",
+      "crop": "420x130+1300+20",
+      "world": {
+        "plate": "elwynn-wolf"
+      },
+      "fixtures": [],
+      "lua": "RikRenderNameplateCVar(\"nameplateShowOnlyNameForFriendlyPlayerUnits\", \"1\")\nRikRenderNameplates({ { actor = \"Stormwind Guard\", unit = \"focus\", readers = RikRenderCreature(\"Stormwind Guard\", 24, 1600, 1600, \"friendly\", { UnitIsPlayer = { true }, UnitClass = { \"Warrior\", \"WARRIOR\", 1 }, UnitClassBase = { \"WARRIOR\", 1 } }) } }, \"RikRenderPlatesFriendly\", 1300, 1002, 420, 130)\n",
+      "expectText": [
+        "Stormwind Guard"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 1300.0,
+          "y": 20.0,
+          "w": 420.0,
+          "h": 130.0
+        },
+        "uniqueColors": 535
+      },
+      "sha256": "b9f6efe5fed1f9a3fa8275c51d3bf2eeafcb10b295e334fcc4badc3a38820a1a",
+      "bytes": 16832,
+      "fixtureSha256": "d159499237a39fb64f0a42f432709e474e0695bfde01abf5e86dfacb097b29fc",
+      "filename": "plates-friendly.webp",
+      "width": 420,
+      "height": 130,
+      "plate": {
+        "plate": "elwynn-wolf",
+        "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": -52.3,
+          "y": 64.5762500915528,
+          "z": 9406,
+          "yaw": 0.023072827890143977,
+          "pitch": -0.3028609100331466,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:46.754Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "b9f6efe5fed1f9a3fa8275c51d3bf2eeafcb10b295e334fcc4badc3a38820a1a"
+    },
+    {
+      "id": "plates-markers",
+      "page": "nameplates",
+      "title": "Elite and rare markers",
+      "frame": "RikRenderPlatesMarkers",
+      "crop": "860x280+560+200",
+      "world": {
+        "plate": "elwynn-wolf"
+      },
+      "fixtures": [],
+      "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", notTarget = true, classification = \"elite\" }, { actor = \"Mangy Wolf\", nth = 2, unit = \"target\", notTarget = true, classification = \"rare\" }, { actor = \"Young Wolf\", nth = 2, unit = \"target\", notTarget = true, classification = \"rareelite\", readers = RikRenderCreature(\"Young Wolf\", 1, 30, 30, \"neutral\") } }, \"RikRenderPlatesMarkers\", 560, 672, 860, 280)\n",
+      "expectText": [
+        "Mangy Wolf",
+        "Young Wolf"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 6,
+        "root": {
+          "x": 560.0,
+          "y": 200.0,
+          "w": 860.0,
+          "h": 280.0
+        },
+        "uniqueColors": 596
+      },
+      "sha256": "c08de9ecaf8de6e560c7977c0228e9dabcec59d31d592559e3aa45073bf90358",
+      "bytes": 80758,
+      "fixtureSha256": "fc7b6837e913e10e6fcd774e80d621876af9536102a67dd0166d5865e013ae0a",
+      "filename": "plates-markers.webp",
+      "width": 860,
+      "height": 280,
+      "plate": {
+        "plate": "elwynn-wolf",
+        "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": -52.3,
+          "y": 64.5762500915528,
+          "z": 9406,
+          "yaw": 0.023072827890143977,
+          "pitch": -0.3028609100331466,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:46.754Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "c08de9ecaf8de6e560c7977c0228e9dabcec59d31d592559e3aa45073bf90358"
+    },
+    {
+      "id": "plates-threat",
+      "page": "nameplates",
+      "title": "Threat indication",
+      "frame": "RikRenderPlatesThreat",
+      "crop": "520x150+470+320",
+      "world": {
+        "plate": "elwynn-wolf"
+      },
+      "fixtures": [],
+      "lua": "A_Admin.SetInCombat(true)\nRikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", threat = 3 } }, \"RikRenderPlatesThreat\", 470, 682, 520, 150)\n",
+      "expectText": [
+        "Mangy Wolf"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 470.0,
+          "y": 320.0,
+          "w": 520.0,
+          "h": 150.0
+        },
+        "uniqueColors": 760
+      },
+      "sha256": "5c36881ed378ec1ddf429c5770739b0b8660e719daa53576c7d3435c72ddd98e",
+      "bytes": 30616,
+      "fixtureSha256": "498323b6c1cb31d63d974b1e8e81ec1d750ef521d6d5a873d989ea6c4bb8cfae",
+      "filename": "plates-threat.webp",
+      "width": 520,
+      "height": 150,
+      "plate": {
+        "plate": "elwynn-wolf",
+        "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": -52.3,
+          "y": 64.5762500915528,
+          "z": 9406,
+          "yaw": 0.023072827890143977,
+          "pitch": -0.3028609100331466,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:46.754Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "5c36881ed378ec1ddf429c5770739b0b8660e719daa53576c7d3435c72ddd98e"
+    },
+    {
+      "id": "plates-debuffs",
+      "page": "nameplates",
+      "title": "Debuff row",
+      "frame": "RikRenderPlatesDebuffs",
+      "crop": "420x180+520+300",
+      "world": {
+        "plate": "elwynn-wolf"
+      },
+      "fixtures": [],
+      "lua": "A_Admin.AddDebuff(853, \"Hammer of Justice\", 135963, 6, 0)\nA_Admin.AddDebuff(20271, \"Judgement\", 135959, 20, 0)\nRikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", aurasFrom = \"player\" } }, \"RikRenderPlatesDebuffs\", 520, 672, 420, 180)\n",
+      "expectText": [
+        "Mangy Wolf"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 520.0,
+          "y": 300.0,
+          "w": 420.0,
+          "h": 180.0
+        },
+        "uniqueColors": 818
+      },
+      "sha256": "d465ab409fdca7f54cfabf8430fbee4ae50a90a9472c2a15997a241aeae1ddc9",
+      "bytes": 28750,
+      "fixtureSha256": "9d0dfc39696641fc9e468925eed3345e616c82166c5d3247bb958b431ea5e842",
+      "filename": "plates-debuffs.webp",
+      "width": 420,
+      "height": 180,
+      "plate": {
+        "plate": "elwynn-wolf",
+        "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": -52.3,
+          "y": 64.5762500915528,
+          "z": 9406,
+          "yaw": 0.023072827890143977,
+          "pitch": -0.3028609100331466,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:46.754Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "d465ab409fdca7f54cfabf8430fbee4ae50a90a9472c2a15997a241aeae1ddc9"
+    },
+    {
+      "id": "plates-cast",
+      "page": "nameplates",
+      "title": "Nameplate cast",
+      "frame": "RikRenderPlatesCast",
+      "crop": "420x180+520+330",
+      "world": {
+        "plate": "elwynn-wolf"
+      },
+      "fixtures": [
+        "RikRenderCast(6016, \"Pierce Armor\", \"Interface\\\\Icons\\\\Ability_Warrior_Sunder\", 2, 0.8)"
+      ],
+      "lua": "RikRenderNameplates({ { actor = \"Mangy Wolf\", unit = \"target\", castFrom = \"player\" } }, \"RikRenderPlatesCast\", 520, 642, 420, 180)\n",
+      "expectText": [
+        "Mangy Wolf",
+        "Pierce Armor"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 520.0,
+          "y": 330.0,
+          "w": 420.0,
+          "h": 180.0
+        },
+        "uniqueColors": 818
+      },
+      "sha256": "7e9e66f39adc61e0fcf5e6ec3f1630ba3c82fe77812bc284f673a0b0303a74d4",
+      "bytes": 29642,
+      "fixtureSha256": "899912ab652e464848d07c54cf7c4e6ae92d2d8c3478c8f97a7e098ff1a424bc",
+      "filename": "plates-cast.webp",
+      "width": 420,
+      "height": 180,
+      "plate": {
+        "plate": "elwynn-wolf",
+        "sha256": "fb6d2b502600e62a5c90e2e3ddb0e135b953ce099f067d122527da4d27acfaae",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": -52.3,
+          "y": 64.5762500915528,
+          "z": 9406,
+          "yaw": 0.023072827890143977,
+          "pitch": -0.3028609100331466,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:46.754Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "7e9e66f39adc61e0fcf5e6ec3f1630ba3c82fe77812bc284f673a0b0303a74d4"
+    },
+    {
+      "id": "units-tot",
+      "page": "unitframes",
+      "title": "Target of target",
+      "frame": "RikUIUnit_tot",
+      "crop": "352x104+848+524",
+      "fixtures": [
+        "RikRenderUnitAlias(\"targettarget\", \"player\")"
+      ],
+      "lua": "RikUI.UnitFrames.Refresh()\nRikUIUnit_tot:Show()\nRikRenderCenter(RikUIUnit_tot, 2)\n",
+      "expectText": [
+        "Rik"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 914.0,
+          "y": 546.0,
+          "w": 220.0,
+          "h": 60.0
+        },
+        "uniqueColors": 822
+      },
+      "sha256": "9fb3c068d5bd343f9689636e794a4e909e46a379dc0de6eda0b05503b4fa8182",
+      "bytes": 3516,
+      "fixtureSha256": "51bb162347a53bc82731e37f2b710e8e2d42c83fe52499109c1e0a9a9b4761e4",
+      "filename": "units-tot.webp",
+      "width": 352,
+      "height": 104,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "9fb3c068d5bd343f9689636e794a4e909e46a379dc0de6eda0b05503b4fa8182"
+    },
+    {
+      "id": "units-pet",
+      "page": "unitframes",
+      "title": "Pet",
+      "frame": "RikUIUnit_petframe",
+      "crop": "352x104+848+524",
+      "fixtures": [],
+      "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_petframe, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 914.0,
+          "y": 546.0,
+          "w": 220.0,
+          "h": 60.0
+        },
+        "uniqueColors": 694
+      },
+      "sha256": "dd6eb814e797e399b3c813a490cfcf4d042dc5e857a14cb94ce09d9d4b14bba0",
+      "bytes": 3456,
+      "fixtureSha256": "feac53cd8e3a73943ce2e1fe7024e74cf35bdcc360bc7b96a16511f48da94e22",
+      "filename": "units-pet.webp",
+      "width": 352,
+      "height": 104,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "dd6eb814e797e399b3c813a490cfcf4d042dc5e857a14cb94ce09d9d4b14bba0"
+    },
+    {
+      "id": "units-party",
+      "page": "unitframes",
+      "title": "Party",
+      "frame": "RikUIParty",
+      "crop": "520x520+764+316",
+      "fixtures": [],
+      "lua": "assert(RikUI.UnitFrames.Party.SetTest(true))\nRikRenderCenter(RikUIParty, 1.5)\n",
+      "expectText": [
+        "Rik"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 8,
+        "root": {
+          "x": 911.0,
+          "y": 436.0,
+          "w": 225.0,
+          "h": 279.0
+        },
+        "uniqueColors": 718
+      },
+      "sha256": "886c0d8050a010195c1cf733e12231495656acec6fd23dc882801eb3ef920c8c",
+      "bytes": 2678,
+      "fixtureSha256": "594124e90076acfa1be3628ea7b4ec7973e58b46477858dbe845fb85a17f943f",
+      "filename": "units-party.webp",
+      "width": 520,
+      "height": 520,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "886c0d8050a010195c1cf733e12231495656acec6fd23dc882801eb3ef920c8c"
+    },
+    {
+      "id": "units-raid",
+      "page": "unitframes",
+      "title": "Raid grid",
+      "frame": "RikUIRaid",
+      "crop": "1000x420+524+366",
+      "fixtures": [],
+      "lua": "assert(RikUI.UnitFrames.Raid.SetTest(true))\nRikRenderCenter(RikUIRaid, 1)\n",
+      "expectText": [
+        "Rik"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 40,
+        "root": {
+          "x": 722.0,
+          "y": 493.0,
+          "w": 604.0,
+          "h": 166.0
+        },
+        "uniqueColors": 254
+      },
+      "sha256": "e3a5597593c5d83c69bbe60549d9d524d0e9f19e6946093f8ac99004f43b68cb",
+      "bytes": 1286,
+      "fixtureSha256": "091b26a370a282d763ee61860a9d2f8ea5a71ebdf6e8f587049e34d9b0f7032a",
+      "filename": "units-raid.webp",
+      "width": 1000,
+      "height": 420,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "e3a5597593c5d83c69bbe60549d9d524d0e9f19e6946093f8ac99004f43b68cb"
+    },
+    {
+      "id": "cast-target",
+      "page": "castbars",
+      "title": "Target cast",
+      "frame": "RikUICast_target",
+      "crop": "600x80+724+536",
+      "fixtures": [
+        "RikRenderCast(6016, \"Pierce Armor\", \"Interface\\\\Icons\\\\Ability_Warrior_Sunder\", 2, 0.8)",
+        "RikRenderCastAlias(\"target\")"
+      ],
+      "lua": "RikRenderCenter(RikUICast_target, 2)\n",
+      "expectText": [
+        "Pierce Armor"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 804.0,
+          "y": 554.0,
+          "w": 440.0,
+          "h": 44.0
+        },
+        "uniqueColors": 1054
+      },
+      "sha256": "6fea0653173375fefee8fef3da286b1fb2427b43ffa3dd80c9ff029296559265",
+      "bytes": 5548,
+      "fixtureSha256": "6549edbc3e1f7d9569cd08e43a4625ff8ccb69b472fbd74541c0cd9a563f5e2b",
+      "filename": "cast-target.webp",
+      "width": 600,
+      "height": 80,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "6fea0653173375fefee8fef3da286b1fb2427b43ffa3dd80c9ff029296559265"
+    },
+    {
+      "id": "cast-focus",
+      "page": "castbars",
+      "title": "Focus cast",
+      "frame": "RikUICast_focus",
+      "crop": "600x80+724+536",
+      "fixtures": [
+        "RikRenderCast(2050, \"Lesser Heal\", \"Interface\\\\Icons\\\\Spell_Holy_LesserHeal\", 2.5, 1)",
+        "RikRenderCastAlias(\"focus\")"
+      ],
+      "lua": "RikRenderCenter(RikUICast_focus, 2)\n",
+      "expectText": [
+        "Lesser Heal"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 864.0,
+          "y": 554.0,
+          "w": 320.0,
+          "h": 44.0
+        },
+        "uniqueColors": 899
+      },
+      "sha256": "0f55907fbb57d5389136fcb018dbcd05ca1eb076290644e1084f223930a63f49",
+      "bytes": 4600,
+      "fixtureSha256": "e136121122c90d40fc11e16111b9fbe4cc4313e3d06656b4a419f18b43826591",
+      "filename": "cast-focus.webp",
+      "width": 600,
+      "height": 80,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "0f55907fbb57d5389136fcb018dbcd05ca1eb076290644e1084f223930a63f49"
+    },
+    {
+      "id": "cast-pet",
+      "page": "castbars",
+      "title": "Pet cast",
+      "frame": "RikUICast_pet",
+      "crop": "600x80+724+536",
+      "fixtures": [
+        "RikRenderCast(2649, \"Growl\", \"Interface\\\\Icons\\\\Ability_Physical_Taunt\", 1.5, 0.5)",
+        "RikRenderCastAlias(\"pet\")"
+      ],
+      "lua": "RikRenderCenter(RikUICast_pet, 2)\n",
+      "expectText": [
+        "Growl"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 914.0,
+          "y": 554.0,
+          "w": 220.0,
+          "h": 44.0
+        },
+        "uniqueColors": 951
+      },
+      "sha256": "7078689f0dd82e4fc893429bd0ee4b7e514c6e8f1b2c70f5a48aa0df694c7ecd",
+      "bytes": 4722,
+      "fixtureSha256": "8077e13b21139fb0cb02989ea48ce1c5d90e00fb069c650cbbd10fafbc00206a",
+      "filename": "cast-pet.webp",
+      "width": 600,
+      "height": 80,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "7078689f0dd82e4fc893429bd0ee4b7e514c6e8f1b2c70f5a48aa0df694c7ecd"
+    },
+    {
+      "id": "cast-channel",
+      "page": "castbars",
+      "title": "Channel",
+      "frame": "RikUICast_player",
+      "crop": "600x80+724+536",
+      "fixtures": [
+        "RikRenderChannel()"
+      ],
+      "lua": "RikRenderCenter(RikUICast_player, 2)\n",
+      "expectText": [
+        "Mind Flay"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 744.0,
+          "y": 554.0,
+          "w": 560.0,
+          "h": 44.0
+        },
+        "uniqueColors": 1091
+      },
+      "sha256": "3f7640531f3b265228443c15249826f3b06879548ab78e9e24d13776014c975f",
+      "bytes": 5572,
+      "fixtureSha256": "af69602f51380f87f037353f893a38ffb99eb15f1d72ae0db4cb802c0747edfd",
+      "filename": "cast-channel.webp",
+      "width": 600,
+      "height": 80,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "3f7640531f3b265228443c15249826f3b06879548ab78e9e24d13776014c975f"
+    },
+    {
+      "id": "auras-buffs",
+      "page": "auras",
+      "title": "Player buffs",
+      "frame": "RikUIAuras_buffs",
+      "crop": "300x160+874+496",
+      "fixtures": [
+        "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600 }, { 465, \"Devotion Aura\", 135893, 0 }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 1459, \"Arcane Intellect\", 135932, 1800 }, { 1243, \"Power Word: Fortitude\", 135987, 1800 }, { 1126, \"Mark of the Wild\", 136078, 1800 } })"
+      ],
+      "lua": "RikRenderCenter(RikUIAuras_buffs)\nRikRenderResize(RikUIAuras_buffs)\nRikRenderRemeasure(RikUIAuras_buffs)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 890.0,
+          "y": 510.0,
+          "w": 268.0,
+          "h": 132.0
+        },
+        "uniqueColors": 2644
+      },
+      "sha256": "190fe06a094b641bfcb16aefd80669b7adea9c5555ac347ade77590f74c9ebfa",
+      "bytes": 10360,
+      "fixtureSha256": "aa3736a2372374263b10c2af84e0d7e60cbb4b3afc7218628a7f8b7df3a30105",
+      "filename": "auras-buffs.webp",
+      "width": 300,
+      "height": 160,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "190fe06a094b641bfcb16aefd80669b7adea9c5555ac347ade77590f74c9ebfa"
+    },
+    {
+      "id": "auras-debuffs",
+      "page": "auras",
+      "title": "Player debuffs",
+      "frame": "RikUIAuras_debuffs",
+      "crop": "300x100+874+526",
+      "fixtures": [
+        "RikRenderAuras({ { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true }, { 172, \"Corruption\", 136118, 12, harmful = true } })"
+      ],
+      "lua": "RikRenderCenter(RikUIAuras_debuffs)\nRikRenderResize(RikUIAuras_debuffs)\nRikRenderRemeasure(RikUIAuras_debuffs)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 890.0,
+          "y": 544.0,
+          "w": 268.0,
+          "h": 64.0
+        },
+        "uniqueColors": 1241
+      },
+      "sha256": "3a1eb7965e216f5f5215f67c6098d71932c8664f7a371ca8e0c19f6dd7020b07",
+      "bytes": 4696,
+      "fixtureSha256": "9f4b024fbc9e176e223c7a832197e437bed5e1e7317562b3bc8cbb4ef33996d0",
+      "filename": "auras-debuffs.webp",
+      "width": 300,
+      "height": 100,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "3a1eb7965e216f5f5215f67c6098d71932c8664f7a371ca8e0c19f6dd7020b07"
+    },
+    {
+      "id": "auras-target",
+      "page": "auras",
+      "title": "Target auras",
+      "frame": "RikUIUnit_target",
+      "crop": "480x240+784+440",
+      "fixtures": [
+        "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600, own = true }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true } }, { target = \"player\" })"
+      ],
+      "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_target, 1.5)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIUnit_target)\n",
+      "expectText": [
+        "Mangy Wolf"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 4,
+        "root": {
+          "x": 859.0,
+          "y": 543.0,
+          "w": 330.0,
+          "h": 66.0
+        },
+        "uniqueColors": 2689
+      },
+      "sha256": "44ed0dd1b53cd62cfa44e6d878979fc0c3c7346426ed3550a5068458320b326f",
+      "bytes": 13436,
+      "fixtureSha256": "3f750aad5100e25ec06649b663fc0e38065efbf846de375629618a743866ff3a",
+      "filename": "auras-target.webp",
+      "width": 480,
+      "height": 240,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "44ed0dd1b53cd62cfa44e6d878979fc0c3c7346426ed3550a5068458320b326f"
+    },
+    {
+      "id": "auras-pet",
+      "page": "auras",
+      "title": "Pet auras",
+      "frame": "RikUIUnit_petframe",
+      "crop": "480x240+784+440",
+      "fixtures": [
+        "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600, own = true }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true } }, { pet = \"player\" })"
+      ],
+      "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_petframe, 1.5)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIUnit_petframe)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 941.0,
+          "y": 553.0,
+          "w": 165.0,
+          "h": 45.0
+        },
+        "uniqueColors": 1391
+      },
+      "sha256": "2c1d4cc7ff3bbac24ee4261a0be9a8e2936fe59aee3e55a7493ad5c19390047f",
+      "bytes": 5784,
+      "fixtureSha256": "aff24c8375262c898fa65389d625beeaa1e1b5e0ad9556c55193a76e6382c160",
+      "filename": "auras-pet.webp",
+      "width": 480,
+      "height": 240,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "2c1d4cc7ff3bbac24ee4261a0be9a8e2936fe59aee3e55a7493ad5c19390047f"
+    },
+    {
+      "id": "auras-focus",
+      "page": "auras",
+      "title": "Focus auras",
+      "frame": "RikUIUnit_focus",
+      "crop": "480x240+784+440",
+      "fixtures": [
+        "RikRenderAuras({ { 19740, \"Blessing of Might\", 135906, 600, own = true }, { 20287, \"Seal of Righteousness\", 132325, 30 }, { 702, \"Curse of Weakness\", 136138, 120, harmful = true }, { 772, \"Rend\", 132155, 9, harmful = true } }, { focus = \"player\" })"
+      ],
+      "lua": "RikUI.UnitFrames.Refresh()\nRikRenderCenter(RikUIUnit_focus, 1.5)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIUnit_focus)\n",
+      "expectText": [
+        "Mira"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 904.0,
+          "y": 549.0,
+          "w": 240.0,
+          "h": 54.0
+        },
+        "uniqueColors": 1342
+      },
+      "sha256": "724a21c06b6e5aa5bfecaab883f396b1ca2180a497e5cf20ad27b16af3aedd35",
+      "bytes": 6408,
+      "fixtureSha256": "8f822c522b362b91d280e2fc6868e1c1bb46b4059d06529544cb4b0bf64f051b",
+      "filename": "auras-focus.webp",
+      "width": 480,
+      "height": 240,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "724a21c06b6e5aa5bfecaab883f396b1ca2180a497e5cf20ad27b16af3aedd35"
+    },
+    {
+      "id": "hud-rogue",
+      "page": "combat-hud",
+      "title": "Rogue: combo points",
+      "frame": "RikRenderHUDRogue",
+      "crop": "1000x420+385+540",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderPlayer(\"ROGUE\")",
+        "RikRenderHUDState(\"ROGUE\")",
+        "RikRenderSwing()"
+      ],
+      "lua": "RikRenderHUDGroup(\"RikRenderHUDRogue\", 385, 192, 1000, 420, { \"RikUICooldowns\", \"RikUICombatResource\", \"RikUICast_player\", \"RikUISwingTimer\", \"RikUIClassAuras_player\", \"RikUIClassAuras_target\", \"RikUIUnit_player\", \"RikUIUnit_target\", \"RikUIUnit_focus\", \"RikUIComboPoints\", \"RikUITotems\", \"RikUIDruidMana\" })\n",
+      "expectText": [
+        "Rik",
+        "Mangy Wolf",
+        "Main Hand"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 15,
+        "root": {
+          "x": 385.0,
+          "y": 540.0,
+          "w": 1000.0,
+          "h": 420.0
+        },
+        "uniqueColors": 3796
+      },
+      "sha256": "57fd5bd46b08bc5b0d75ff557d946eb3b7bd8150db497b320742e57923bd051f",
+      "bytes": 162086,
+      "fixtureSha256": "f37712841d31bc24c09dd59244e834ae42b20e5602d32a8507020d2c4e89d607",
+      "filename": "hud-rogue.webp",
+      "width": 1000,
+      "height": 420,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "57fd5bd46b08bc5b0d75ff557d946eb3b7bd8150db497b320742e57923bd051f"
+    },
+    {
+      "id": "hud-shaman",
+      "page": "combat-hud",
+      "title": "Shaman: totems",
+      "frame": "RikRenderHUDShaman",
+      "crop": "1000x420+385+540",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderPlayer(\"SHAMAN\")",
+        "RikRenderHUDState(\"SHAMAN\")",
+        "RikRenderCast(403, \"Lightning Bolt\", \"Interface\\Icons\\Spell_Nature_Lightning\", 2.5, 1)",
+        "RikRenderSwing()"
+      ],
+      "lua": "RikRenderHUDGroup(\"RikRenderHUDShaman\", 385, 192, 1000, 420, { \"RikUICooldowns\", \"RikUICombatResource\", \"RikUICast_player\", \"RikUISwingTimer\", \"RikUIClassAuras_player\", \"RikUIClassAuras_target\", \"RikUIUnit_player\", \"RikUIUnit_target\", \"RikUIUnit_focus\", \"RikUIComboPoints\", \"RikUITotems\", \"RikUIDruidMana\" })\n",
+      "expectText": [
+        "Rik",
+        "Mangy Wolf",
+        "Lightning Bolt"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 17,
+        "root": {
+          "x": 385.0,
+          "y": 540.0,
+          "w": 1000.0,
+          "h": 420.0
+        },
+        "uniqueColors": 5551
+      },
+      "sha256": "25286e2390044b32792fcd26acb943f70e858c067042150399ceb67848533dc8",
+      "bytes": 164218,
+      "fixtureSha256": "b389c7b0256db277f68629d1960253de9c9cb91d7c7fc63a6251d5d842326afe",
+      "filename": "hud-shaman.webp",
+      "width": 1000,
+      "height": 420,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "25286e2390044b32792fcd26acb943f70e858c067042150399ceb67848533dc8"
+    },
+    {
+      "id": "hud-druid",
+      "page": "combat-hud",
+      "title": "Druid: form mana",
+      "frame": "RikRenderHUDDruid",
+      "crop": "1000x420+385+540",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderPlayer(\"DRUID\")",
+        "RikRenderHUDState(\"DRUID\")",
+        "RikRenderCast(5185, \"Healing Touch\", \"Interface\\Icons\\Spell_Nature_HealingTouch\", 3, 1.2)",
+        "RikRenderSwing()"
+      ],
+      "lua": "RikRenderHUDGroup(\"RikRenderHUDDruid\", 385, 192, 1000, 420, { \"RikUICooldowns\", \"RikUICombatResource\", \"RikUICast_player\", \"RikUISwingTimer\", \"RikUIClassAuras_player\", \"RikUIClassAuras_target\", \"RikUIUnit_player\", \"RikUIUnit_target\", \"RikUIUnit_focus\", \"RikUIComboPoints\", \"RikUITotems\", \"RikUIDruidMana\" })\n",
+      "expectText": [
+        "Rik",
+        "Mangy Wolf",
+        "Healing Touch",
+        "Mana"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 18,
+        "root": {
+          "x": 385.0,
+          "y": 540.0,
+          "w": 1000.0,
+          "h": 420.0
+        },
+        "uniqueColors": 3398
+      },
+      "sha256": "42f27ffa216e35bf332ed81cc3b7c1570e72c6ad9d05e7ca7325d3e172da2f95",
+      "bytes": 163220,
+      "fixtureSha256": "fc96a213a28c5d0c4b93609ff271c39934b2b1ca666519160ec4049760747b1a",
+      "filename": "hud-druid.webp",
+      "width": 1000,
+      "height": 420,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "42f27ffa216e35bf332ed81cc3b7c1570e72c6ad9d05e7ca7325d3e172da2f95"
+    },
+    {
+      "id": "effects-player",
+      "page": "class-effects",
+      "title": "Player effects",
+      "frame": "RikUIClassAuras_player",
+      "crop": "600x160+724+496",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderAuras({ { 25780, \"Righteous Fury\", 135962, 1800 }, { 642, \"Divine Shield\", 135896, 8 } })"
+      ],
+      "lua": "RikRenderCenter(RikUIClassAuras_player, 2)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIClassAuras_player)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 836.0,
+          "y": 516.0,
+          "w": 376.0,
+          "h": 120.0
+        },
+        "uniqueColors": 1698
+      },
+      "sha256": "3f32e2d1324cfc8a59ba485c15161bd69f91e06c5a1d4750f11f3a4cf9c50236",
+      "bytes": 8192,
+      "fixtureSha256": "cf39c383e5ad1ccce8ec30608b37e841868be0a1dd00690401b6dab42f81803d",
+      "filename": "effects-player.webp",
+      "width": 600,
+      "height": 160,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "3f32e2d1324cfc8a59ba485c15161bd69f91e06c5a1d4750f11f3a4cf9c50236"
+    },
+    {
+      "id": "effects-target",
+      "page": "class-effects",
+      "title": "Target effects",
+      "frame": "RikUIClassAuras_target",
+      "crop": "600x160+724+496",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderAuras({ { 853, \"Hammer of Justice\", 135963, 6, harmful = true }, { 19740, \"Blessing of Might\", 135906, 600, own = true } }, { target = \"player\" })"
+      ],
+      "lua": "RikRenderCenter(RikUIClassAuras_target, 2)\nRikRenderRefreshAuras()\nRikRenderRemeasure(RikUIClassAuras_target)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 836.0,
+          "y": 516.0,
+          "w": 376.0,
+          "h": 120.0
+        },
+        "uniqueColors": 812
+      },
+      "sha256": "402fc3471f69a4f87245b2b16203614a69dd4de1a3b05e545ae0e4226062eb40",
+      "bytes": 4296,
+      "fixtureSha256": "6b4ed61ac96fd2088f0ba64cbbd02e4e2ca1d2b493424a1c4da0efa66a758b11",
+      "filename": "effects-target.webp",
+      "width": 600,
+      "height": 160,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "402fc3471f69a4f87245b2b16203614a69dd4de1a3b05e545ae0e4226062eb40"
+    },
+    {
+      "id": "combo-empty",
+      "page": "combopoints",
+      "title": "Empty points",
+      "frame": "RikUIComboPoints",
+      "crop": "400x80+824+536",
+      "fixtures": [
+        "RikRenderPlayer(\"ROGUE\")",
+        "A_Admin.SetPlayerPower(75, 100, 3)",
+        "RikRenderComboPoints(0)"
+      ],
+      "lua": "RikRenderCenter(RikUIComboPoints, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 966.0,
+          "y": 566.0,
+          "w": 116.0,
+          "h": 20.0
+        },
+        "uniqueColors": 3
+      },
+      "sha256": "48619f4a8c6986cdb700b336062db5c6b5a63dd69cf03768c7432d4bbfdfb61a",
+      "bytes": 94,
+      "fixtureSha256": "98e2eff0238fdf41451f874877869eaf691d89beb968614d8e8f6425a39bae39",
+      "filename": "combo-empty.webp",
+      "width": 400,
+      "height": 80,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "48619f4a8c6986cdb700b336062db5c6b5a63dd69cf03768c7432d4bbfdfb61a"
+    },
+    {
+      "id": "combo-three",
+      "page": "combopoints",
+      "title": "Three points",
+      "frame": "RikUIComboPoints",
+      "crop": "400x80+824+536",
+      "fixtures": [
+        "RikRenderPlayer(\"ROGUE\")",
+        "A_Admin.SetPlayerPower(75, 100, 3)",
+        "RikRenderComboPoints(3)"
+      ],
+      "lua": "RikRenderCenter(RikUIComboPoints, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 966.0,
+          "y": 566.0,
+          "w": 116.0,
+          "h": 20.0
+        },
+        "uniqueColors": 4
+      },
+      "sha256": "00005e2168195c3be9ff8f8b583c54d342d0941c0a45b5b65647343b6a3d184f",
+      "bytes": 108,
+      "fixtureSha256": "bec84a67a476ad03db04334d61164e72c6796f359db6cddfce78820127357109",
+      "filename": "combo-three.webp",
+      "width": 400,
+      "height": 80,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "00005e2168195c3be9ff8f8b583c54d342d0941c0a45b5b65647343b6a3d184f"
+    },
+    {
+      "id": "combo-full",
+      "page": "combopoints",
+      "title": "Full points",
+      "frame": "RikUIComboPoints",
+      "crop": "400x80+824+536",
+      "fixtures": [
+        "RikRenderPlayer(\"ROGUE\")",
+        "A_Admin.SetPlayerPower(75, 100, 3)",
+        "RikRenderComboPoints(5)"
+      ],
+      "lua": "RikRenderCenter(RikUIComboPoints, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 966.0,
+          "y": 566.0,
+          "w": 116.0,
+          "h": 20.0
+        },
+        "uniqueColors": 3
+      },
+      "sha256": "3f12b90800c8ae5e01f16dd3d059e732fc78ed4c3d9cb0c2a471695b6c7d9214",
+      "bytes": 84,
+      "fixtureSha256": "fa73f8499ff92fbd295a13b17f21e6314ead7195667db1c206ff444b8ecc453a",
+      "filename": "combo-full.webp",
+      "width": 400,
+      "height": 80,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "3f12b90800c8ae5e01f16dd3d059e732fc78ed4c3d9cb0c2a471695b6c7d9214"
+    },
+    {
+      "id": "totems-slots",
+      "page": "totems",
+      "title": "Four totem slots",
+      "frame": "RikUITotems",
+      "crop": "400x100+824+526",
+      "fixtures": [
+        "RikRenderPlayer(\"SHAMAN\")",
+        "RikRenderTotems({ { \"Searing Totem\", 135825, 55, 20 }, { \"Strength of Earth Totem\", 136023, 120, 30 }, { \"Healing Stream Totem\", 135127, 60, 10 }, { \"Windfury Totem\", 136114, 120, 45 } })"
+      ],
+      "lua": "RikRenderCenter(RikUITotems, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 903.0,
+          "y": 548.0,
+          "w": 242.0,
+          "h": 56.0
+        },
+        "uniqueColors": 3601
+      },
+      "sha256": "dffa3d798736f4c409a53548e6816beaae9396eb3900fa774b7a6b7fbfbc8229",
+      "bytes": 17582,
+      "fixtureSha256": "8e3b387b647a263ba84672ad069feaff7058bbd0024f64c212e5ec0d672af061",
+      "filename": "totems-slots.webp",
+      "width": 400,
+      "height": 100,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "dffa3d798736f4c409a53548e6816beaae9396eb3900fa774b7a6b7fbfbc8229"
+    },
+    {
+      "id": "totems-duration",
+      "page": "totems",
+      "title": "Active duration",
+      "frame": "RikUITotems",
+      "crop": "400x100+824+526",
+      "fixtures": [
+        "RikRenderPlayer(\"SHAMAN\")",
+        "RikRenderTotems({ { \"Searing Totem\", 135825, 55, 48 }, nil, { \"Healing Stream Totem\", 135127, 60, 3 } })"
+      ],
+      "lua": "RikRenderCenter(RikUITotems, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 903.0,
+          "y": 548.0,
+          "w": 242.0,
+          "h": 56.0
+        },
+        "uniqueColors": 1545
+      },
+      "sha256": "415e124b4ed0bc896d6746a41f5add198967c40545d0696c73ca89526110533a",
+      "bytes": 7982,
+      "fixtureSha256": "4703767c6b7bc258ac4d4d1c68d4b762edf57094699373d17acc4c815e80e35d",
+      "filename": "totems-duration.webp",
+      "width": 400,
+      "height": 100,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "415e124b4ed0bc896d6746a41f5add198967c40545d0696c73ca89526110533a"
+    },
+    {
+      "id": "cooldowns-viewer",
+      "page": "cooldowns",
+      "title": "Essential and utility entries",
+      "frame": "RikUICooldowns",
+      "crop": "600x180+724+486",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderViewerEntries({ 20271, 853 }, { 1022 })",
+        "RikRenderHUDState()"
+      ],
+      "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 5235
+      },
+      "sha256": "cb1a40d3a1d9683d5fdd2c80fba5ca15530ae0b4866ad8cf28031ddda2425de1",
+      "bytes": 31276,
+      "fixtureSha256": "05592964b4ee91baa68ee6b50a830463bf7b77510ebe9f28e8f7a89053052339",
+      "filename": "cooldowns-viewer.webp",
+      "width": 600,
+      "height": 180,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "cb1a40d3a1d9683d5fdd2c80fba5ca15530ae0b4866ad8cf28031ddda2425de1"
+    },
+    {
+      "id": "cooldowns-class",
+      "page": "cooldowns",
+      "title": "Class cooldowns",
+      "frame": "RikUICooldowns",
+      "crop": "600x180+724+486",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 } })",
+        "RikUI.Cooldowns.Rebuild()"
+      ],
+      "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 3894
+      },
+      "sha256": "eb6235b9335a8277d22e3b6290d3ad9b4d3a62118ae5cdf09bece01a130cb3a6",
+      "bytes": 27564,
+      "fixtureSha256": "5e0154fa9dcc63bab9d685b2ce7e3a40fb1ebde9085d68c9a90ec663188493eb",
+      "filename": "cooldowns-class.webp",
+      "width": 600,
+      "height": 180,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "eb6235b9335a8277d22e3b6290d3ad9b4d3a62118ae5cdf09bece01a130cb3a6"
+    },
+    {
+      "id": "cooldowns-rows",
+      "page": "cooldowns",
+      "title": "Additional rows",
+      "frame": "RikUICooldowns",
+      "crop": "600x260+724+446",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderViewerEntries({ 20271, 853, 1022, 498, 633 }, { 20217, 1152, 465 })",
+        "RikRenderHUDState()"
+      ],
+      "lua": "RikRenderCenter(RikUICooldowns, 2)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 6315
+      },
+      "sha256": "8dab481808dd814e16e02f9217154fda02979a08582a624711efdaacb842aa97",
+      "bytes": 39234,
+      "fixtureSha256": "017c4f59ad96745667fe95639cc36d4d20371a3d2f15be0364b4c2789fb8eeff",
+      "filename": "cooldowns-rows.webp",
+      "width": 600,
+      "height": 260,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "8dab481808dd814e16e02f9217154fda02979a08582a624711efdaacb842aa97"
+    },
+    {
+      "id": "cooldowns-counter",
+      "page": "cooldowns",
+      "title": "Cooldown counter",
+      "frame": "RikUICooldowns",
+      "crop": "900x260+574+446",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 55.2 }, { id = 1022, duration = 300, elapsed = 100 }, { id = 498, duration = 300, elapsed = 296 } })",
+        "RikUI.Cooldowns.Rebuild()"
+      ],
+      "lua": "RikRenderCenter(RikUICooldowns, 3)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 604.0,
+          "y": 462.0,
+          "w": 840.0,
+          "h": 228.0
+        },
+        "uniqueColors": 4711
+      },
+      "sha256": "f7992e8a4eb27d3a2a2bd3f0fc512134896159d90c72a58089428cf5309add1d",
+      "bytes": 30814,
+      "fixtureSha256": "cd46280f1097b2c284759dda29437cd809b355bacea59de281f560eb097c77a1",
+      "filename": "cooldowns-counter.webp",
+      "width": 900,
+      "height": 260,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "f7992e8a4eb27d3a2a2bd3f0fc512134896159d90c72a58089428cf5309add1d"
+    },
+    {
+      "id": "cooldowns-tracked",
+      "page": "cooldowns",
+      "title": "Tracked spell selection",
+      "frame": "RikUIOptionsPanel",
+      "crop": "800x600+624+276",
+      "fixtures": [
+        "RikRenderSpellbook()"
+      ],
+      "lua": "RikUI.Options.Open(\"class-cooldowns\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\nRikUI.Options.Open(\"class-cooldowns\")\n",
+      "expectText": [
+        "Class list",
+        "Add a spell"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 72,
+        "root": {
+          "x": 644.0,
+          "y": 296.0,
+          "w": 760.0,
+          "h": 560.0
+        },
+        "uniqueColors": 5476
+      },
+      "sha256": "e2829baa1cfb21a52ed663613ee539f1d5aa2a7035b1d93157cd8bbe404fa33a",
+      "bytes": 46400,
+      "fixtureSha256": "4ee68ef83064fe75695aeee902ade19fcf17146cffe21d4ed088f2a36a29bc1d",
+      "filename": "cooldowns-tracked.webp",
+      "width": 800,
+      "height": 600,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "e2829baa1cfb21a52ed663613ee539f1d5aa2a7035b1d93157cd8bbe404fa33a"
+    },
+    {
+      "id": "swing-off-hand",
+      "page": "swingtimer",
+      "title": "Off hand",
+      "frame": "RikUISwingTimer",
+      "crop": "600x180+724+486",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderSwingState(\"MainHand\", { speed = 2.6, elapsed = 0.9 })",
+        "RikRenderSwingState(\"OffHand\", { speed = 1.8, elapsed = 1.1 })"
+      ],
+      "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+      "expectText": [
+        "Off Hand"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 4,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 763
+      },
+      "sha256": "c087590182ac6e19a3993bbaf931867082780db9a5828634904d96cf79766338",
+      "bytes": 4264,
+      "fixtureSha256": "9c06008960f863bd45dae65c43887d6aa8336d25cf75b9095d8a290e1a5b7066",
+      "filename": "swing-off-hand.webp",
+      "width": 600,
+      "height": 180,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "c087590182ac6e19a3993bbaf931867082780db9a5828634904d96cf79766338"
+    },
+    {
+      "id": "swing-ranged",
+      "page": "swingtimer",
+      "title": "Ranged cycle",
+      "frame": "RikUISwingTimer",
+      "crop": "600x180+724+486",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 0.6, auto = true, kiting = false, inRange = true })"
+      ],
+      "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+      "expectText": [
+        "Ranged"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 508
+      },
+      "sha256": "e116a2fad340e80ecee4977cd3b4b15a1a613734ac32a6f9826f759093e1d7a0",
+      "bytes": 2440,
+      "fixtureSha256": "5cbb8cca50e9333e41b57f77f941bfb307fa7acbbf00fd02906612306f9dfba9",
+      "filename": "swing-ranged.webp",
+      "width": 600,
+      "height": 180,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "e116a2fad340e80ecee4977cd3b4b15a1a613734ac32a6f9826f759093e1d7a0"
+    },
+    {
+      "id": "swing-move",
+      "page": "swingtimer",
+      "title": "Move window",
+      "frame": "RikUISwingTimer",
+      "crop": "600x180+724+486",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 0.4, auto = true, kiting = true, inRange = true, moving = false })"
+      ],
+      "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+      "expectText": [
+        "Move window"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 712
+      },
+      "sha256": "63302db50cd25c136e9822460486c053f243bf98cf1e5cc42fdd26cb78e7aa7f",
+      "bytes": 4840,
+      "fixtureSha256": "31afaf2e26bffb7eea83f0594e8bc7ce5fb41fbd3556d4de150ce7f333cb1bf3",
+      "filename": "swing-move.webp",
+      "width": 600,
+      "height": 180,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "63302db50cd25c136e9822460486c053f243bf98cf1e5cc42fdd26cb78e7aa7f"
+    },
+    {
+      "id": "swing-stop",
+      "page": "swingtimer",
+      "title": "Stop window",
+      "frame": "RikUISwingTimer",
+      "crop": "600x180+724+486",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 1.6, auto = true, kiting = true, inRange = true, moving = true })"
+      ],
+      "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+      "expectText": [
+        "Stop moving"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 755
+      },
+      "sha256": "968aa79c07d50bdb31ea42c48c700cf440ac1131efcff33804613842264519c7",
+      "bytes": 4812,
+      "fixtureSha256": "8ba1c937906212db94d2b9fc96be1b604a427ec67f1d675a80508a11ebc1e571",
+      "filename": "swing-stop.webp",
+      "width": 600,
+      "height": 180,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "968aa79c07d50bdb31ea42c48c700cf440ac1131efcff33804613842264519c7"
+    },
+    {
+      "id": "swing-unknown",
+      "page": "swingtimer",
+      "title": "Unknown range",
+      "frame": "RikUISwingTimer",
+      "crop": "600x180+724+486",
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderHUDState()",
+        "RikRenderSwingState(\"Ranged\", { speed = 2.0, elapsed = 0.4, auto = true, kiting = true, inRange = \"unknown\", moving = false })"
+      ],
+      "lua": "RikRenderCenter(RikUISwingTimer, 2)\n",
+      "expectText": [
+        "Range unknown"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 744.0,
+          "y": 500.0,
+          "w": 560.0,
+          "h": 152.0
+        },
+        "uniqueColors": 707
+      },
+      "sha256": "584c79bc8de4fa66d054e53b496fc53f80697cca6360f32661cce77ab69fd8b5",
+      "bytes": 4520,
+      "fixtureSha256": "5a133a890f14c877529a680d35c55d08c3a6f75746b8d044a938b971e1badc80",
+      "filename": "swing-unknown.webp",
+      "width": 600,
+      "height": 180,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "584c79bc8de4fa66d054e53b496fc53f80697cca6360f32661cce77ab69fd8b5"
+    },
+    {
+      "id": "bars-main",
+      "page": "bars",
+      "title": "Main action row",
+      "frame": "RikRenderBars",
+      "crop": "504x40+772+1062",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+      ],
+      "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 772.0,
+          "y": 1062.0,
+          "w": 504.0,
+          "h": 40.0
+        },
+        "uniqueColors": 3003
+      },
+      "sha256": "6f556d357d755de1d5a24080c7f19002f59fe89d7bd8038dbe30dee592b9243c",
+      "bytes": 10642,
+      "fixtureSha256": "27558c7ecd31d827b3e909ee0b3b5a97259ab8dec2f4828566a8e19ed5cad6ca",
+      "filename": "bars-main.webp",
+      "width": 504,
+      "height": 40,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "6f556d357d755de1d5a24080c7f19002f59fe89d7bd8038dbe30dee592b9243c"
+    },
+    {
+      "id": "bars-secondary",
+      "page": "bars",
+      "title": "Secondary action row",
+      "frame": "RikRenderBars",
+      "crop": "504x40+772+1020",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+      ],
+      "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 92, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 772.0,
+          "y": 1020.0,
+          "w": 504.0,
+          "h": 40.0
+        },
+        "uniqueColors": 3
+      },
+      "sha256": "afc67d2d8992f4426ea841c39371a3ef073b7355fe5d91b4388404283494d242",
+      "bytes": 4898,
+      "fixtureSha256": "1cf2d15c77e5d9adc2d69ddac1ed3d427ec9ce6d0df5abe9a58a51a0c3098340",
+      "filename": "bars-secondary.webp",
+      "width": 504,
+      "height": 40,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "afc67d2d8992f4426ea841c39371a3ef073b7355fe5d91b4388404283494d242"
+    },
+    {
+      "id": "bars-third",
+      "page": "bars",
+      "title": "Third action row",
+      "frame": "RikRenderBars",
+      "crop": "504x40+772+978",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+      ],
+      "lua": "RikUIBar_bar3:SetAlpha(1)\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 134, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 772.0,
+          "y": 978.0,
+          "w": 504.0,
+          "h": 40.0
+        },
+        "uniqueColors": 3
+      },
+      "sha256": "169bbd23aa0b3ccc41c016525b252288e41adedebd2964a6566c57d8b6bf2905",
+      "bytes": 4716,
+      "fixtureSha256": "33290c7800f7ead07cc138294ead067b6653694e6efd71eb74052dfd0e684a79",
+      "filename": "bars-third.webp",
+      "width": 504,
+      "height": 40,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "169bbd23aa0b3ccc41c016525b252288e41adedebd2964a6566c57d8b6bf2905"
+    },
+    {
+      "id": "bars-right",
+      "page": "bars",
+      "title": "Right action column",
+      "frame": "RikRenderBars",
+      "crop": "40x502+1994+636",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+      ],
+      "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_bar4, RikUIBar_bar5 }, 1994, 14, 40, 502)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 1994.0,
+          "y": 636.0,
+          "w": 40.0,
+          "h": 502.0
+        },
+        "uniqueColors": 3
+      },
+      "sha256": "91ce850cdc096fcd89474169638567c76413363634452668559212b4cd59d3c3",
+      "bytes": 3124,
+      "fixtureSha256": "395d32af50511342879267d4c869568d5145efef3167542316c77cf603b8af36",
+      "filename": "bars-right.webp",
+      "width": 40,
+      "height": 502,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "91ce850cdc096fcd89474169638567c76413363634452668559212b4cd59d3c3"
+    },
+    {
+      "id": "prd-health",
+      "page": "personalresource",
+      "title": "Health",
+      "frame": "PersonalResourceDisplayFrame",
+      "crop": "320x72+864+540",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "A_Admin.SetPlayerHealth(146, 220)",
+        "RikRenderPersonalResource()"
+      ],
+      "lua": "RikRenderCenter(PersonalResourceDisplayFrame, 1.5)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 874.0,
+          "y": 550.0,
+          "w": 300.0,
+          "h": 51.0
+        },
+        "uniqueColors": 5
+      },
+      "sha256": "fa9d84d5e45454c0fc00cb062a92187177f50f66a795c72daa2e834027312269",
+      "bytes": 4296,
+      "fixtureSha256": "9caa37a60b90e40fe49c122e7a225b405b3084343d68e142980c5dc743af7e2b",
+      "filename": "prd-health.webp",
+      "width": 320,
+      "height": 72,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "fa9d84d5e45454c0fc00cb062a92187177f50f66a795c72daa2e834027312269"
+    },
+    {
+      "id": "prd-power",
+      "page": "personalresource",
+      "title": "Power",
+      "frame": "PersonalResourceDisplayFrame",
+      "crop": "320x72+864+540",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderPlayer(\"ROGUE\")",
+        "A_Admin.SetPlayerPower(45, 100, 3)",
+        "RikRenderPersonalResource()"
+      ],
+      "lua": "RikRenderCenter(PersonalResourceDisplayFrame, 1.5)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 874.0,
+          "y": 550.0,
+          "w": 300.0,
+          "h": 51.0
+        },
+        "uniqueColors": 5
+      },
+      "sha256": "a87f012b7422d38b144d840387c4eae5495e0601df2c25da7879d9653bd33a4a",
+      "bytes": 4358,
+      "fixtureSha256": "59c12af8cc47e5c0cfc2b277b486fa8014bbb14ce63734d152cd142d3a2721dd",
+      "filename": "prd-power.webp",
+      "width": 320,
+      "height": 72,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "a87f012b7422d38b144d840387c4eae5495e0601df2c25da7879d9653bd33a4a"
+    },
+    {
+      "id": "mirror-breath",
+      "page": "mirrortimers",
+      "title": "Breath",
+      "frame": "RikUIMirrorTimers",
+      "crop": "480x120+784+516",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderMirrorTimer(\"BREATH\", 41000, 60000, \"Breath\")"
+      ],
+      "lua": "RikRenderCenter(RikUIMirrorTimers, 1.5)\n",
+      "expectText": [
+        "Breath"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 859.0,
+          "y": 564.0,
+          "w": 330.0,
+          "h": 24.0
+        },
+        "uniqueColors": 439
+      },
+      "sha256": "6312292ed25ac83ca075319fac7165a8024b05c81d7590b8bb73f3730810c7c5",
+      "bytes": 18410,
+      "fixtureSha256": "dbe0de2eab7b5669f43104b05acd8f3d8f51039292df0b16fa969a60fbf8549d",
+      "filename": "mirror-breath.webp",
+      "width": 480,
+      "height": 120,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "6312292ed25ac83ca075319fac7165a8024b05c81d7590b8bb73f3730810c7c5"
+    },
+    {
+      "id": "mirror-fatigue",
+      "page": "mirrortimers",
+      "title": "Fatigue",
+      "frame": "RikUIMirrorTimers",
+      "crop": "480x120+784+516",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderMirrorTimer(\"EXHAUSTION\", 22000, 60000, \"Fatigue\")"
+      ],
+      "lua": "RikRenderCenter(RikUIMirrorTimers, 1.5)\n",
+      "expectText": [
+        "Fatigue"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 859.0,
+          "y": 564.0,
+          "w": 330.0,
+          "h": 24.0
+        },
+        "uniqueColors": 559
+      },
+      "sha256": "19b81cc145572ecb65d0e570dd614d9528707352dbbe8ed3d819fe8417c382b5",
+      "bytes": 18742,
+      "fixtureSha256": "62ae54ad48e5e8168913410dc7fdaad541b76f851298b9f45ed2313f6b15a9ff",
+      "filename": "mirror-fatigue.webp",
+      "width": 480,
+      "height": 120,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "19b81cc145572ecb65d0e570dd614d9528707352dbbe8ed3d819fe8417c382b5"
+    },
+    {
+      "id": "mirror-feign",
+      "page": "mirrortimers",
+      "title": "Feign death",
+      "frame": "RikUIMirrorTimers",
+      "crop": "480x120+784+516",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderMirrorTimer(\"FEIGNDEATH\", 210000, 360000, \"Feign Death\")"
+      ],
+      "lua": "RikRenderCenter(RikUIMirrorTimers, 1.5)\n",
+      "expectText": [
+        "Feign Death"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 859.0,
+          "y": 564.0,
+          "w": 330.0,
+          "h": 24.0
+        },
+        "uniqueColors": 701
+      },
+      "sha256": "09d91f9878c45e6a1e6eeed5ecfe10c46325b537134bef66336ee37de00b009e",
+      "bytes": 18862,
+      "fixtureSha256": "d6231612c6ff757806cef716cdbacbff1e84c9adb7b964d135cc322b1cc7b8e5",
+      "filename": "mirror-feign.webp",
+      "width": 480,
+      "height": 120,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "09d91f9878c45e6a1e6eeed5ecfe10c46325b537134bef66336ee37de00b009e"
+    },
+    {
+      "id": "loc-effect",
+      "page": "lossofcontrol",
+      "title": "Control effect",
+      "frame": "LossOfControlFrame",
+      "crop": "600x200+724+476",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderLossOfControl(\"STUN\", 853, \"Stunned\", 135963, 6, 4.2)"
+      ],
+      "lua": "RikRenderCenter(LossOfControlFrame, 1.5)\nRikRenderRemeasure(LossOfControlFrame)\n",
+      "expectText": [
+        "Stunned"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 832.0,
+          "y": 532.0,
+          "w": 384.0,
+          "h": 87.0
+        },
+        "uniqueColors": 1206
+      },
+      "sha256": "c907ef858f6d0f0320ca1c75bfc3807842a4b0047ae25c987e687c2467291569",
+      "bytes": 40824,
+      "fixtureSha256": "2dcff1d64e9158d58810254777ee174215b72eb809d7869bdf32fb64c3a7621f",
+      "filename": "loc-effect.webp",
+      "width": 600,
+      "height": 200,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "c907ef858f6d0f0320ca1c75bfc3807842a4b0047ae25c987e687c2467291569"
+    },
+    {
+      "id": "loc-remaining",
+      "page": "lossofcontrol",
+      "title": "Remaining duration",
+      "frame": "LossOfControlFrame",
+      "crop": "600x200+724+476",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderLossOfControl(\"SILENCE\", 15487, \"Silenced\", 458230, 5, 1.3)"
+      ],
+      "lua": "RikRenderCenter(LossOfControlFrame, 1.5)\nRikRenderRemeasure(LossOfControlFrame)\n",
+      "expectText": [
+        "Silenced"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 3,
+        "root": {
+          "x": 832.0,
+          "y": 532.0,
+          "w": 384.0,
+          "h": 87.0
+        },
+        "uniqueColors": 1254
+      },
+      "sha256": "2f1dedcbed7edee64f8614b72bb7c84a9bb17f7f3a4c0d6c04afcab9c5e5c591",
+      "bytes": 40662,
+      "fixtureSha256": "ea8524b2099ba1e28017ed057bfc3cb638c8cbfd59e3101c570866bce8c8448a",
+      "filename": "loc-remaining.webp",
+      "width": 600,
+      "height": 200,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "2f1dedcbed7edee64f8614b72bb7c84a9bb17f7f3a4c0d6c04afcab9c5e5c591"
+    },
+    {
+      "id": "timer-elapsed",
+      "page": "combattimer",
+      "title": "Combat elapsed",
+      "frame": "RikUICombatTimer",
+      "crop": "360x80+844+536",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSetOption(\"combattimer\", \"show\", true)",
+        "RikRenderCombatTimer(47)"
+      ],
+      "lua": "RikRenderCenter(RikUICombatTimer, 2)\n",
+      "expectText": [
+        "0:47"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 914.0,
+          "y": 556.0,
+          "w": 220.0,
+          "h": 40.0
+        },
+        "uniqueColors": 641
+      },
+      "sha256": "64e70b4e2b1e0342d47309a5a4a80200635b4593662e1112e87af42882a7568d",
+      "bytes": 8708,
+      "fixtureSha256": "53c9e3272702dd9c70812ae4699b9b791e8ccc360f6d8e64aa48104a7af12acf",
+      "filename": "timer-elapsed.webp",
+      "width": 360,
+      "height": 80,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "64e70b4e2b1e0342d47309a5a4a80200635b4593662e1112e87af42882a7568d"
+    },
+    {
+      "id": "timer-final",
+      "page": "combattimer",
+      "title": "Final duration",
+      "frame": "RikUICombatTimer",
+      "crop": "360x80+844+536",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSetOption(\"combattimer\", \"show\", true)",
+        "RikRenderCombatTimer(83, true)"
+      ],
+      "lua": "RikRenderCenter(RikUICombatTimer, 2)\n",
+      "expectText": [
+        "1:23"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 914.0,
+          "y": 556.0,
+          "w": 220.0,
+          "h": 40.0
+        },
+        "uniqueColors": 533
+      },
+      "sha256": "edf1c18225b74a4b9c4e1a713b748bf15a1474fce4eccb36a1dbe8ce36ab7cc8",
+      "bytes": 8090,
+      "fixtureSha256": "be8e1c4444d10f276e37950b9b9d372df3eb8a6173b9c89f83657bc48a863e92",
+      "filename": "timer-final.webp",
+      "width": 360,
+      "height": 80,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "edf1c18225b74a4b9c4e1a713b748bf15a1474fce4eccb36a1dbe8ce36ab7cc8"
+    },
+    {
+      "id": "timer-stopwatch",
+      "page": "combattimer",
+      "title": "Session stopwatch",
+      "frame": "RikUIStopwatch",
+      "crop": "360x80+844+536",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderStopwatch(754)"
+      ],
+      "lua": "RikRenderCenter(RikUIStopwatch, 2)\n",
+      "expectText": [
+        "12:34"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 2,
+        "root": {
+          "x": 914.0,
+          "y": 556.0,
+          "w": 220.0,
+          "h": 40.0
+        },
+        "uniqueColors": 517
+      },
+      "sha256": "5e2b0e42694e90174d2c0bc141021042c8ffd01a13eb56a641abc575cd74003e",
+      "bytes": 8202,
+      "fixtureSha256": "83a5c116333544e67ecb18bd84ddde662011a16c583a29583dcf12e295b7a3f8",
+      "filename": "timer-stopwatch.webp",
+      "width": 360,
+      "height": 80,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "5e2b0e42694e90174d2c0bc141021042c8ffd01a13eb56a641abc575cd74003e"
+    },
+    {
+      "id": "meter-rows",
+      "page": "damagemeter",
+      "title": "Damage rows",
+      "frame": "DamageMeter",
+      "crop": "600x360+724+396",
+      "fixtures": [],
+      "lua": "DamageMeter:Show()\nDamageMeterSessionWindow1:Show()\nRikRenderCenter(DamageMeter, 1.5)\nRikRenderResize(DamageMeter)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 7,
+        "root": {
+          "x": 724.0,
+          "y": 471.0,
+          "w": 600.0,
+          "h": 210.0
+        },
+        "uniqueColors": 2862
+      },
+      "sha256": "842b7e79cad4fe0445ce61b1a24aa9663cf5dadda27e12b73dcca65ae9ee190a",
+      "bytes": 17468,
+      "fixtureSha256": "e9f69729507e9e69855f77e53b34aa31b26af04ac2376a408a31e33c386da291",
+      "filename": "meter-rows.webp",
+      "width": 600,
+      "height": 360,
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "842b7e79cad4fe0445ce61b1a24aa9663cf5dadda27e12b73dcca65ae9ee190a"
+    },
+    {
+      "id": "bars-left",
+      "page": "bars",
+      "title": "Left action column",
+      "frame": "RikRenderBars",
+      "crop": "40x502+1952+636",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+      ],
+      "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_bar4, RikUIBar_bar5 }, 1952, 14, 40, 502)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 1952.0,
+          "y": 636.0,
+          "w": 40.0,
+          "h": 502.0
+        },
+        "uniqueColors": 3
+      },
+      "sha256": "79ddfaf6f3bdf75f852af7fa60b09466249dfe3acd0420ba952fc1d6584f2602",
+      "bytes": 3010,
+      "fixtureSha256": "171451742adeae9416f8dca91e26bd5f591ac483f86e1b958e802d5ae1f1bb6f",
+      "filename": "bars-left.webp",
+      "width": 40,
+      "height": 502,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "79ddfaf6f3bdf75f852af7fa60b09466249dfe3acd0420ba952fc1d6584f2602"
+    },
+    {
+      "id": "bars-page",
+      "page": "bars",
+      "title": "Manual page overlay",
+      "frame": "RikRenderBars",
+      "crop": "504x40+772+1062",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+      ],
+      "lua": "pcall(UnregisterStateDriver, RikUIBar_main, \"visibility\")\npcall(UnregisterStateDriver, RikUIBar_page2, \"visibility\")\nRikUIBar_main:Hide()\nRikUIBar_page2:Show()\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 772.0,
+          "y": 1062.0,
+          "w": 504.0,
+          "h": 40.0
+        },
+        "uniqueColors": 352
+      },
+      "sha256": "d639ad3e3775ef1a6bd903a3dde193cbbf939f99d575167f36a083a3ff476375",
+      "bytes": 5824,
+      "fixtureSha256": "ca827d6a427e21cd4a372739f2f1a017392a96f87abc06ba1457074e04d5d64e",
+      "filename": "bars-page.webp",
+      "width": 504,
+      "height": 40,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "d639ad3e3775ef1a6bd903a3dde193cbbf939f99d575167f36a083a3ff476375"
+    },
+    {
+      "id": "bars-stance-page",
+      "page": "bars",
+      "title": "Stance page overlay",
+      "frame": "RikRenderBars",
+      "crop": "504x40+772+1062",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })",
+        "RikRenderPlayer(\"DRUID\")",
+        "RikRenderForm(1, 40, 100, 180, 300)"
+      ],
+      "lua": "pcall(UnregisterStateDriver, RikUIBar_main, \"visibility\")\n-- Bear Form (the level 10 druid form) selects the bear bonus page: actions 97 to 108.\nlocal bear = RikUI.Bars.Frames.bear or RikUI.Bars.Create(\"bear\", 97, { positionKey = \"main\" })\nassert(bear, \"bear page missing\")\nfor index, spell in ipairs({ 6807, 99, 6795, 5487 }) do A_Admin.SetActionSlot(97 + index - 1, spell) end\nRikUIBar_main:Hide()\npcall(UnregisterStateDriver, bear, \"visibility\")\nbear:Show()\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6, bear }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 772.0,
+          "y": 1062.0,
+          "w": 504.0,
+          "h": 40.0
+        },
+        "uniqueColors": 2144
+      },
+      "sha256": "74a612a9ad58dbfff8b4faf6d020866ad156c92531ee3758b4fd6ee571ce1ea7",
+      "bytes": 8524,
+      "fixtureSha256": "a95b6d44d18b8beca9b635b6d5d63d853d506505180ba67d25e383be4637644d",
+      "filename": "bars-stance-page.webp",
+      "width": 504,
+      "height": 40,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "74a612a9ad58dbfff8b4faf6d020866ad156c92531ee3758b4fd6ee571ce1ea7"
+    },
+    {
+      "id": "bars-stance",
+      "page": "bars",
+      "title": "Stance buttons",
+      "frame": "RikRenderBars",
+      "crop": "108x34+772+942",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })"
+      ],
+      "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 176, 108, 34)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 772.0,
+          "y": 942.0,
+          "w": 108.0,
+          "h": 34.0
+        },
+        "uniqueColors": 1225
+      },
+      "sha256": "d43170ce30f9f3269c22c5718e887666241f892e92a816fd04d248d648b4e0fe",
+      "bytes": 2878,
+      "fixtureSha256": "16d8918fd94500800d0f272b92a01d263d4081d034b000cd57561ff0a689857e",
+      "filename": "bars-stance.webp",
+      "width": 108,
+      "height": 34,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "d43170ce30f9f3269c22c5718e887666241f892e92a816fd04d248d648b4e0fe"
+    },
+    {
+      "id": "extra-zone",
+      "page": "extrabuttons",
+      "title": "Zone ability",
+      "frame": "ZoneAbilityFrame",
+      "crop": "460x200+858+950",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderZoneAbility(20271, 135959)"
+      ],
+      "lua": "RikRenderResize(ZoneAbilityFrame)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 1,
+        "root": {
+          "x": 896.0,
+          "y": 971.0,
+          "w": 256.0,
+          "h": 128.0
+        },
+        "uniqueColors": 649
+      },
+      "sha256": "e41285a325d404db722622758b27a2cc9eaafb71b6d285a5ef9b4296d0c0548d",
+      "bytes": 40154,
+      "fixtureSha256": "c92345add475887770145815b356109014de2e8dcb4d69784146519230050aef",
+      "filename": "extra-zone.webp",
+      "width": 460,
+      "height": 200,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "e41285a325d404db722622758b27a2cc9eaafb71b6d285a5ef9b4296d0c0548d"
+    },
+    {
+      "id": "proc-sides",
+      "page": "proc-overlay",
+      "title": "Left and right cues",
+      "frame": "SpellActivationOverlayFrame",
+      "crop": "380x440+834+356",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderProc(Enum.ScreenLocationType.LeftRight)"
+      ],
+      "lua": "RikRenderCenter(SpellActivationOverlayFrame)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 921.0,
+          "y": 473.0,
+          "w": 204.0,
+          "h": 204.0
+        },
+        "uniqueColors": 2
+      },
+      "sha256": "00c341dbedfab76ae3781d3857a9c29cddef5ff4dda2d0301abb6faf9398f0e8",
+      "bytes": 65832,
+      "fixtureSha256": "3f837748d58dd2cc4298a78d0e1bfa4fdd52136c64bc0418dab61c3f015b01d5",
+      "filename": "proc-sides.webp",
+      "width": 380,
+      "height": 440,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "00c341dbedfab76ae3781d3857a9c29cddef5ff4dda2d0301abb6faf9398f0e8"
+    },
+    {
+      "id": "bars-pet",
+      "page": "bars",
+      "title": "Pet actions",
+      "frame": "RikRenderBars",
+      "crop": "360x34+772+906",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })",
+        "HasPetUI = function() return true, true end"
+      ],
+      "lua": "RikUIBar_pet:Show()\nRikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 212, 360, 34)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 12,
+        "root": {
+          "x": 772.0,
+          "y": 906.0,
+          "w": 360.0,
+          "h": 34.0
+        },
+        "uniqueColors": 3
+      },
+      "sha256": "4cda551c4fc451092e151b3aa2f88d7b782c661a187348c7535a2678eb511cc7",
+      "bytes": 3198,
+      "fixtureSha256": "9110a24c764d44b3382e4176285dd9912c3ee5ce56961d43b5a289829bbc1cfc",
+      "filename": "bars-pet.webp",
+      "width": 360,
+      "height": 34,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "4cda551c4fc451092e151b3aa2f88d7b782c661a187348c7535a2678eb511cc7"
+    },
+    {
+      "id": "bars-ghost",
+      "page": "bars",
+      "title": "Empty preset slot",
+      "frame": "RikRenderBars",
+      "crop": "504x40+772+1062",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderSpellbook()",
+        "RikRenderCooldowns({ { id = 853, duration = 60, elapsed = 19.1 }, { id = 20271, duration = 10, elapsed = 4 } })",
+        "RikRenderGhosts(\"PALADIN\", \"dps\")"
+      ],
+      "lua": "RikUI.Bars.Refresh()\nRikRenderGroup(\"RikRenderBars\", { RikUIBar_main, RikUIBar_bar2, RikUIBar_bar3, RikUIBar_bar4, RikUIBar_bar5, RikUIBar_stance, RikUIBar_pet, RikUIBar_page2, RikUIBar_page3, RikUIBar_page4, RikUIBar_page5, RikUIBar_page6 }, 772, 50, 504, 40)\nRikRenderResize(RikRenderBars)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 56,
+        "root": {
+          "x": 772.0,
+          "y": 1062.0,
+          "w": 504.0,
+          "h": 40.0
+        },
+        "uniqueColors": 5151
+      },
+      "sha256": "37a3570495c267fdea6ef33088b0afae570c60e50eb9ec829d3c4580b772a074",
+      "bytes": 13084,
+      "fixtureSha256": "040ff8ef0217451d51606907d3da39a53e8a9fdf121d466c022a8d21ef766dd6",
+      "filename": "bars-ghost.webp",
+      "width": 504,
+      "height": 40,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "37a3570495c267fdea6ef33088b0afae570c60e50eb9ec829d3c4580b772a074"
+    },
+    {
+      "id": "proc-vertical",
+      "page": "proc-overlay",
+      "title": "Upper and lower cues",
+      "frame": "SpellActivationOverlayFrame",
+      "crop": "380x440+834+356",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderProc(Enum.ScreenLocationType.TopBottom)"
+      ],
+      "lua": "RikRenderCenter(SpellActivationOverlayFrame)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 921.0,
+          "y": 473.0,
+          "w": 204.0,
+          "h": 204.0
+        },
+        "uniqueColors": 2
+      },
+      "sha256": "8548a61367c2e0d5b8c23dadaab9874d7ea9052055ac2d3e15c83d4590aba622",
+      "bytes": 65650,
+      "fixtureSha256": "2d1f5b254231ef772a04e68d18a5b58078d5482832140c1a714362324f3cc29b",
+      "filename": "proc-vertical.webp",
+      "width": 380,
+      "height": 440,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "8548a61367c2e0d5b8c23dadaab9874d7ea9052055ac2d3e15c83d4590aba622"
+    },
+    {
+      "id": "proc-center",
+      "page": "proc-overlay",
+      "title": "Central cue",
+      "frame": "SpellActivationOverlayFrame",
+      "crop": "380x220+834+466",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderProc(Enum.ScreenLocationType.Center)"
+      ],
+      "lua": "RikRenderCenter(SpellActivationOverlayFrame)\n",
+      "expectText": [],
+      "diagnostics": {
+        "visibleTextCount": 0,
+        "root": {
+          "x": 921.0,
+          "y": 473.0,
+          "w": 204.0,
+          "h": 204.0
+        },
+        "uniqueColors": 2
+      },
+      "sha256": "0a195d9d7080cbf0c1247ed39e3ada0c8eb3f54e20d68a76c2e611ef4cf2f200",
+      "bytes": 29054,
+      "fixtureSha256": "098671a10c15744dea1a912f3abcab2999f48d67587b30f8c6d3c71a0aa77c34",
+      "filename": "proc-center.webp",
+      "width": 380,
+      "height": 220,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "client": {
+        "version": "1.60.1.70009",
+        "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+        "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92",
+        "cache": {
+          "schema": "1",
+          "profile": "wowforever",
+          "product": "wow_classic_beta",
+          "version": "1.60.1.70009",
+          "build_key": "05215079e3905ef5922ae0b03ffefb73",
+          "install_key": "",
+          "manifest_sha256": "600033956c25deb66c439bbd96e4599e626e1c677af90b2282ba47be6121847b",
+          "source": "casc-local-or-cdn",
+          "fallback": "none"
+        },
+        "verifiedAt": "2026-09-28T04:24:11.674567+00:00"
+      },
+      "seedSha256": "75812b7d6233e3bb513761947d9d7e86b7278357675bed940630b396da55147c",
+      "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1",
+      "reviewedSha256": "0a195d9d7080cbf0c1247ed39e3ada0c8eb3f54e20d68a76c2e611ef4cf2f200"
     }
   ],
-  "generation": "7996b8aa5ff8c352b469f3d50e1c75008c49ce161c184a04852815365c203ebb"
+  "generation": "92bc9cb264032cdf93f0a0cffccaa28f9eaeecd04b85044649ad95d9319a65f1"
 }

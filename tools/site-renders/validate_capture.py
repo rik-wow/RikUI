@@ -50,16 +50,19 @@ def verify_pixels(case, image):
     width, height = image.size
     if image.mode == "RGBA" and image.getchannel("A").getextrema()[0] == 0:
         alpha = image.getchannel("A")
+        # A thin cue (two proc lines) covers under one percent of its crop; an empty layer covers none.
         drawn = sum(count for count, value in alpha.getcolors(width * height) if value > 8)
-        if drawn < width * height * 0.01:
+        if drawn < width * height * 0.002:
             raise RuntimeError(case["id"] + ": empty or nearly blank capture")
-        opaque = Image.composite(image.convert("RGB"), Image.new("RGB", image.size, "#ff00ff"), alpha.point(lambda a: 255 if a > 8 else 0))
-        colors = [entry for entry in opaque.getcolors(width * height) if entry[1] != (255, 0, 255)]
+        # A drawn layer may be one colour (two gold proc lines); coverage is the blank test here.
+        return len(image.getcolors(width * height))
     else:
         colors = image.convert("RGB").getcolors(width * height)
         if max(count for count, color in colors) > width * height * 0.985:
             raise RuntimeError(case["id"] + ": empty or nearly blank capture")
-    if len(colors) < 30:
+    # A flat control (five empty combo pips: backing, fill and edge) has three colours; an empty
+    # capture has one or two, and the dominance check above catches a lone speck.
+    if len(colors) < 3:
         raise RuntimeError(case["id"] + ": empty or nearly blank capture")
     return len(colors)
 
