@@ -19,7 +19,7 @@
   { "page": "extrabuttons", "surface": "Vehicle controls", "gap": "No fixture supplies a vehicle state yet." },
   { "page": "questplanner", "surface": "Map markers", "gap": "Drawn on the world map canvas, which waits on render-worldmap-canvas." },
   { "page": "questplanner", "surface": "Route line", "gap": "Drawn on the world map canvas, which waits on render-worldmap-canvas." },
-  { "page": "worldmap", "surface": "Map canvas and pins", "gap": "Seven Elwynn map tiles are not in the local client and the canvas has no map data in the simulator (render-worldmap-canvas)." },
+  { "page": "worldmap", "surface": "Map canvas and pins", "gap": "Seven of Forever's twelve Elwynn map tiles are not in the local client archives and the canvas has no map data in the simulator (render-worldmap-canvas)." },
   { "page": "worldmap", "surface": "Quest side panel", "gap": "The map window opens without map data in the simulator: its canvas errors on every frame and RikUI's map chrome does not apply (render-worldmap-canvas)." },
   { "page": "worldmap", "surface": "Breadcrumbs", "gap": "The map window opens without map data in the simulator: its canvas errors on every frame and RikUI's map chrome does not apply (render-worldmap-canvas)." },
   { "page": "worldmap", "surface": "Coordinates", "gap": "The map window opens without map data in the simulator: its canvas errors on every frame and RikUI's map chrome does not apply (render-worldmap-canvas)." },
