@@ -7,7 +7,7 @@
 local root=assert(arg[1]):gsub("\\","/"):gsub("/$","")
 RikUI={CharDB={},Changed=function() end};RikUI["Secret"]={IsSecret=function() return false end}
 local modules={"schema","builds","objectives","transfer","nav-geometry","nav-funnel","nav-follow","nav-search",
-    "path-codec","nav-attach","region-codec","terrain-packs","regions","navmesh",
+    "path-codec","inflate","nav-attach","region-codec","terrain-packs","regions","navmesh",
     "roads","road-patches","road-route","road-follow","road-navigate","road-travel","road-guidance",
     "steps","step-bindings","guide-data","observed-steps","hunts","targets",
     "optimizer","area-optimizer","semantic-data","waypoints","objective-guide","semantic-guidance","recommendations","guidance",

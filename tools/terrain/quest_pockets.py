@@ -112,11 +112,154 @@ MAX_PATCH_ADDON = 16 * 1048576
 NL = chr(10)
 TOC = ('## Interface: 16001' + NL + '## Title: RikUI Road Patches %d-%d' + NL + '## AllowLoadGameType: camelot' + NL
        + '## Dependencies: RikUI' + NL + '## LoadOnDemand: 1' + NL + NL)
-PATCH_CALL = 'RikUI.QuestPlanner.Roads.Patch(%s,%d,%d,%d,%d,%d,[[%s]],[[%s]])' + NL
+PATCH_CALL = 'RikUI.QuestPlanner.Roads.Patch2(%s,%d,%d,%d,%d,%d,[[%s]])' + NL
+# Streams of the compact cell, in file order, after a header of their eight byte lengths.
+COMPACT_STREAMS = ('x', 'z', 'y', 'ids', 'shapes', 'refs', 'targets', 'edges')
+EDGE_MIRROR, EDGE_REVERSED, EDGE_FREE = 8, 16, 7
 
 
 def pq(value):
     return int(round(value * PATCH_UNITS))
+
+
+def _zigzag(value):
+    return value * 2 if value >= 0 else -value * 2 - 1
+
+
+def _varint(out, value):
+    while value >= 128:
+        out.append(value % 128 + 128); value //= 128
+    out.append(value)
+
+
+def _records(records, polygons):
+    rows, at = [], 0
+    for _ in range(polygons):
+        ident, count = struct.unpack_from('<IB', records, at); at += 5
+        own = struct.unpack_from('<%dH' % count, records, at); at += 2 * count
+        portals = records[at]; at += 1
+        rows.append((ident, own, [struct.unpack_from('<IHH', records, at + 8 * k) for k in range(portals)]))
+        at += 8 * portals
+    need(at == len(records), 'patch record length')
+    return rows
+
+
+def compact_cell(cell):
+    """The same cell as encode_cell's vertices and records, in a form Deflate packs well.
+
+    Vertex columns and polygon ids are deltas, vertex references count back from the newest
+    vertex, and a portal names the polygon edge it lies on (in either direction), or its two
+    vertices when it lies on none. A portal whose twin was already
+    written by the polygon on the other side names only its edge; the reader finds the target
+    from that twin. Nothing is rounded or dropped: expand_cell returns the original bytes.
+    """
+    count = cell['vertexCount']
+    values = struct.unpack('<%di' % (3 * count), cell['vertices'])
+    streams = {name: bytearray() for name in COMPACT_STREAMS}
+    for column, name in enumerate(('x', 'z', 'y')):
+        previous = 0
+        for index in range(count):
+            current = values[3 * index + column]
+            _varint(streams[name], _zigzag(current - previous)); previous = current
+    previous, newest, twins = 0, -1, {}
+    for ident, own, portals in _records(cell['records'], cell['polygons']):
+        need(ident > previous or previous == 0 and ident >= 0, 'patch polygon order')
+        _varint(streams['ids'], ident - previous); previous = ident
+        streams['shapes'] += bytes((len(own), len(portals)))
+        for ref in own:
+            if ref == newest + 1:
+                streams['refs'].append(0); newest = ref
+            else:
+                need(ref <= newest, 'patch vertex order')
+                _varint(streams['refs'], newest - ref + 1)
+        for target, left, right in portals:
+            edge = next((k for k in range(len(own)) if own[k] == left and own[(k + 1) % len(own)] == right), None)
+            if edge is None:
+                edge = next((k + EDGE_REVERSED for k in range(len(own))
+                             if own[k] == right and own[(k + 1) % len(own)] == left), None)
+            if edge is None:
+                _varint(streams['targets'], _zigzag(target - ident))
+                streams['edges'] += bytes((EDGE_FREE,)) + struct.pack('<HH', left, right)
+                newest = max(newest, left, right)  # such a portal may be a vertex's first use
+            elif twins.get((left, right)) == target:
+                streams['edges'].append(edge + EDGE_MIRROR)
+            else:
+                _varint(streams['targets'], _zigzag(target - ident))
+                streams['edges'].append(edge)
+            twins[(right, left)] = ident
+    body = b''.join(bytes(streams[name]) for name in COMPACT_STREAMS)
+    return struct.pack('<8I', *(len(streams[name]) for name in COMPACT_STREAMS)) + body
+
+
+def expand_cell(raw, vertex_count, polygons):
+    """Reference reader for compact_cell: returns (vertices, records) as encode_cell wrote them."""
+    lengths = struct.unpack_from('<8I', raw, 0)
+    need(32 + sum(lengths) == len(raw), 'compact patch length')
+    cursors, at = {}, 32
+    for name, length in zip(COMPACT_STREAMS, lengths):
+        cursors[name] = [at, at + length]; at += length
+    def byte(name):
+        cursor = cursors[name]
+        need(cursor[0] < cursor[1], 'compact patch stream ' + name)
+        cursor[0] += 1
+        return raw[cursor[0] - 1]
+    def varint(name):
+        value, scale = 0, 1
+        while True:
+            part = byte(name)
+            value += part % 128 * scale; scale *= 128
+            if part < 128:
+                return value
+    def signed(name):
+        value = varint(name)
+        return value // 2 if value % 2 == 0 else -(value + 1) // 2
+    columns = []
+    for name in ('x', 'z', 'y'):
+        previous, column = 0, []
+        for _ in range(vertex_count):
+            previous += signed(name); column.append(previous)
+        columns.append(column)
+    vertices = b''.join(struct.pack('<iii', *row) for row in zip(*columns))
+    records, ident, newest, twins = bytearray(), 0, -1, {}
+    for _ in range(polygons):
+        ident += varint('ids')
+        count, portals = byte('shapes'), byte('shapes')
+        own = []
+        for _ in range(count):
+            back = varint('refs')
+            if back == 0:
+                newest += 1; own.append(newest)
+            else:
+                own.append(newest - back + 1)
+        records += struct.pack('<IB', ident, count) + struct.pack('<%dH' % count, *own) + bytes((portals,))
+        for _ in range(portals):
+            edge = byte('edges')
+            if edge == EDGE_FREE:
+                target = ident + signed('targets')
+                left, right = byte('edges') + byte('edges') * 256, byte('edges') + byte('edges') * 256
+                newest = max(newest, left, right)
+            else:
+                reverse = edge >= EDGE_REVERSED
+                edge -= EDGE_REVERSED if reverse else 0
+                mirror = edge >= EDGE_MIRROR
+                edge -= EDGE_MIRROR if mirror else 0
+                need(edge < count, 'compact patch edge')
+                left, right = own[edge], own[(edge + 1) % count]
+                if reverse:
+                    left, right = right, left
+                target = twins.get((left, right)) if mirror else ident + signed('targets')
+                need(target is not None, 'compact patch twin')
+            records += struct.pack('<IHH', target, left, right)
+            twins[(right, left)] = ident
+    need(all(cursor[0] == cursor[1] for cursor in cursors.values()), 'compact patch trailing bytes')
+    return vertices, bytes(records)
+
+
+def deflate(raw):
+    """A raw Deflate stream, what C_EncodingUtil's Deflate method and the addon's own reader take."""
+    import zlib
+    packer = zlib.compressobj(9, zlib.DEFLATED, -15)
+    return packer.compress(raw) + packer.flush()
 
 
 def encode_cell(polys, members, kept):
@@ -163,9 +306,12 @@ def build_patches(polys, reps, rects):
     return patches, len(chosen), len(kept)
 
 
-def patch_files(world, revision, patches, lua, encode):
+def patch_files(world, revision, patches, lua, encode=None):
     """Group cell patches into LoadOnDemand packs of at most MAX_PATCH_ADDON
-    bytes; returns files and a cell index stream (cell key -> pack number)."""
+    bytes; returns files and a cell index stream (cell key -> pack number).
+    Each cell is its compact form, Deflate-packed and written as base64 (`encode`
+    is the text encoder of the older two-string layout and is no longer used)."""
+    import base64
     files, rows, addon, body, names = {}, [], 1, [], []
     def flush():
         nonlocal addon, body, names
@@ -182,9 +328,11 @@ def patch_files(world, revision, patches, lua, encode):
     for cell in sorted(patches):
         p = patches[cell]
         key = net.cell_key(*cell)
+        raw = compact_cell(p)
+        need(expand_cell(raw, p['vertexCount'], p['polygons']) == (p['vertices'], p['records']), 'compact patch round trip')
         text = PATCH_CALL % (
-            lua(revision), key, p['vertexCount'], p['polygons'], p['portals'], len(p['records']),
-            encode(p['vertices']), encode(p['records']))
+            lua(revision), key, p['vertexCount'], p['polygons'], p['portals'], len(raw),
+            base64.b64encode(deflate(raw)).decode('ascii'))
         need(len(text) <= MAX_PATCH_FILE * 4, 'patch cell file bound')
         if body and size + len(text) > MAX_PATCH_ADDON:
             flush(); size = 0

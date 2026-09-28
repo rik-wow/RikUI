@@ -152,6 +152,7 @@ src/modules/questplanner/quest-nav-follow.lua
 src/modules/questplanner/quest-nav-search.lua
 src/modules/questplanner/quest-region-codec.lua
 src/modules/questplanner/quest-path-codec.lua
+src/modules/questplanner/quest-inflate.lua
 src/modules/questplanner/quest-regions.lua
 src/modules/questplanner/quest-nav-attach.lua
 src/modules/questplanner/quest-navmesh.lua

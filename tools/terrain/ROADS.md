@@ -242,6 +242,46 @@ Booty Bay, Kalimdor one of 22,108 from Orgrimmar to Thousand Needles. What
 stays apart is joined by travel links (lifts, the Darnassus portal, boats) or
 is an interior with no way in on foot.
 
+## Compact patch cells (2026-09-28)
+
+The patch packs were the last part over the 40 MB per continent budget. The
+cells themselves did not change: same inputs, same 48/24/160-yard coverage
+policy, same 4,706 and 7,013 cells and 1,701,596 and 2,192,842 polygons. Only
+how a cell is written changed.
+
+| | Eastern Kingdoms | Kalimdor |
+| --- | ---: | ---: |
+| Two base85 strings per cell (before) | 112.9 MB, 7 packs | 145.4 MB, 9 packs |
+| Deflate of the same bytes, base64 (measured, not shipped) | 59.9 MB | 77.6 MB |
+| Compact cell, Deflate, base64 (now) | 29.7 MB, 2 packs | 39.0 MB, 3 packs |
+
+`quest_pockets.compact_cell` turns `encode_cell`'s vertices and records into
+eight streams after a header of their lengths: x, z and y as deltas from the
+previous vertex, polygon ids as deltas, two shape bytes per polygon, vertex
+references counted back from the newest vertex, portal targets as deltas from
+the polygon's own id, and one edge byte per portal naming the polygon edge the
+portal lies on. A portal whose twin the polygon on the other side already wrote
+has only that edge byte; the reader takes the target from the twin. A portal
+that lies on no polygon edge (2,246 of 7.5 million) keeps its two vertex
+references. `expand_cell` is the reference reader, and `patch_files` refuses to
+write a cell that does not expand to the original bytes.
+
+The addon reads a cell with `Roads.Patch2` and `quest-inflate.lua`. It asks the
+client's `C_EncodingUtil.DecodeBase64` and `DecompressString` first and uses
+their answer only when it has the declared length; otherwise it reads the
+Deflate stream in Lua, in slices. Whether the client's Deflate method takes a
+raw stream has not been observed in game, which is why the Lua reader ships.
+The capture simulator passes those calls through unchanged, so captures use the
+Lua reader. Packs in the older layout still load (`Roads.Patch`).
+
+Kalimdor's 39.0 MB leaves 1.0 MB of room. More quest areas in a later corpus
+can take it over 40 MB again; `road_network.py` prints `patchBytes` per world.
+
+Build output: `C:/RikUI-local/70009-road-network-compact`, receipt SHA-256
+`4ced227a21d9e5c1161a13ae745a9619eca03da26e9bf2a2f39cb7012909a095`. The worlds
+without patches keep their revisions (Alterac Valley `a61bcc56…`), which shows
+the inputs are the ones of the embedded build below.
+
 ## Embedded layout (2026-09-25)
 
 The same 70009 inputs (road input `76de59ef…`, forever-corpus-build semantic

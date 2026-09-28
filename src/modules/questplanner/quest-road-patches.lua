@@ -31,6 +31,18 @@ function planner.Roads.Patch(revision,key,vertexCount,polygons,portals,recordByt
     return true
 end
 
+-- The compact layout (quest_pockets.py compact_cell): one Deflate stream in base64 per cell.
+function planner.Roads.Patch2(revision,key,vertexCount,polygons,portals,rawBytes,text)
+    if not hash(revision) or not schema.Integer(key,0,16777215) or not schema.Integer(vertexCount,1,65535)
+        or not schema.Integer(polygons,1,65535) or not schema.Integer(portals,0,1048575)
+        or not schema.Integer(rawBytes,32,4194304) or type(text)~="string" then
+        return nil,"invalid road patch"
+    end
+    local byKey=registered[revision] or {};registered[revision]=byKey
+    byKey[key]={compact=true,vertexCount=vertexCount,polygons=polygons,portals=portals,rawBytes=rawBytes,text=text}
+    return true
+end
+
 local function signed(value) if value>=2147483648 then return value-4294967296 end return value end
 
 -- The stream reader takes pages of at most 32000 characters.
@@ -41,8 +53,112 @@ local function pages(text)
     return out
 end
 
+-- The compact cell's streams, in file order after a header of their eight lengths. Vertex columns
+-- and polygon ids are deltas, a vertex reference counts back from the newest vertex, and a portal
+-- names the polygon edge it lies on. A portal whose twin the polygon on the other side already
+-- gave names only its edge, and the target is that polygon.
+local STREAMS={"x","z","y","ids","shapes","refs","targets","edges"}
+local EDGE_FREE,EDGE_MIRROR,EDGE_REVERSED=7,8,16
+local function decodeCompact(graph,key,row)
+    local units=graph.catalog.patchUnitsPerYard or 1024
+    local reader,why=planner.Inflate.Open(row.text,row.rawBytes)
+    if not reader then return nil,why end
+    local get,bad=reader.Get,false
+    local cursor,finish,at={}, {},33
+    for index,name in ipairs(STREAMS) do
+        local length,scale=0,1
+        for k=1,4 do length=length+get((index-1)*4+k)*scale;scale=scale*256 end
+        cursor[name],finish[name]=at,at+length
+        at=at+length
+    end
+    if at~=row.rawBytes+1 then return nil,"road patch length mismatch" end
+    local function byte(name)
+        local position=cursor[name]
+        if position>=finish[name] then bad=true;return 0 end
+        cursor[name]=position+1
+        return get(position)
+    end
+    local function varint(name)
+        local value,scale=0,1
+        for _=1,5 do
+            local part=byte(name)
+            value=value+part%128*scale;scale=scale*128
+            if part<128 then return value end
+        end
+        bad=true
+        return 0
+    end
+    local function delta(name)
+        local value=varint(name)
+        if value%2==0 then return value/2 end
+        return -(value+1)/2
+    end
+    local columns={}
+    for index=1,3 do
+        local column,previous={},0
+        for k=1,row.vertexCount do
+            previous=previous+delta(STREAMS[index]);column[k]=previous
+            if k%1024==0 then coroutine.yield() end
+        end
+        columns[index]=column
+    end
+    if bad then return nil,"road patch length mismatch" end
+    local cell=graph.cellYards
+    local ox,oz=(math.floor(key/4096)-2048)*cell,(key%4096-2048)*cell
+    local xs,zs,ys=columns[1],columns[2],columns[3]
+    local function vertex(i)
+        if i<0 or i>=row.vertexCount then bad=true;return {0,0,0} end
+        return {xs[i+1]/units+ox,ys[i+1]/units,zs[i+1]/units+oz}
+    end
+    local rows,id,newest,twins,total={},0,-1,{},0
+    for index=1,row.polygons do
+        if index%DECODE_SLICE==0 then coroutine.yield() end
+        id=id+varint("ids")
+        local count,links=byte("shapes"),byte("shapes")
+        if count<3 or count>6 or links>32 then return nil,"invalid road patch" end
+        local own,points={}, {}
+        for k=1,count do
+            local back=varint("refs")
+            if back==0 then newest=newest+1;own[k]=newest else own[k]=newest-back+1 end
+            points[k]=vertex(own[k])
+        end
+        local portals={}
+        for k=1,links do
+            local edge=byte("edges")
+            local to,left,right
+            if edge==EDGE_FREE then
+                to=id+delta("targets")
+                left=byte("edges");left=left+byte("edges")*256
+                right=byte("edges");right=right+byte("edges")*256
+                newest=math.max(newest,left,right)
+            else
+                local reversed=edge>=EDGE_REVERSED
+                if reversed then edge=edge-EDGE_REVERSED end
+                local mirror=edge>=EDGE_MIRROR
+                if mirror then edge=edge-EDGE_MIRROR end
+                if edge>=count then return nil,"invalid road patch" end
+                left,right=own[edge+1],own[(edge+1)%count+1]
+                if reversed then left,right=right,left end
+                if mirror then to=twins[left*65536+right] else to=id+delta("targets") end
+                if not to then return nil,"invalid road patch" end
+            end
+            twins[right*65536+left]=id
+            portals[k]={to=to,left=vertex(left),right=vertex(right)}
+        end
+        if bad then return nil,"road patch length mismatch" end
+        total=total+links
+        rows[#rows+1]={id=id,points=points,portals=portals}
+    end
+    for _,name in ipairs(STREAMS) do
+        if cursor[name]~=finish[name] then return nil,"road patch length mismatch" end
+    end
+    if total~=row.portals then return nil,"road patch length mismatch" end
+    return rows
+end
+
 -- Decode one cell into {id=,points=,portals=} rows; portals keep target IDs.
 local function decode(graph,key,row)
+    if row.compact then return decodeCompact(graph,key,row) end
     local units=graph.catalog.patchUnitsPerYard or 1024
     local vertices,why=planner.PathCodec.Open(pages(row.vertexText),row.vertexCount*12,12,row.vertexCount)
     if not vertices then return nil,why end
@@ -227,3 +343,10 @@ function patches.Begin(graph,view,points)
 end
 
 function patches.Stats() return schema.Clone(stats) end
+
+-- One registered cell's rows, for checks and replays. Must run inside a coroutine.
+function patches.Decode(graph,key)
+    local row=(registered[graph.revision] or {})[key]
+    if not row then return nil,"no-patch" end
+    return decode(graph,key,row)
+end

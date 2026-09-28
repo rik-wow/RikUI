@@ -9,6 +9,8 @@ tagging.
 
 ## Unreleased
 
+- Quest route patches take less disk space: 29.7 MB for the Eastern Kingdoms and 39.0 MB for Kalimdor, down from 112.9 MB and 145.4 MB, in five folders instead of sixteen. The geometry is the same, cell for cell. Reinstall them with `tools/terrain/install_roads.py install --addons ...` and restart the client; packs in the older format still load.
+
 - Added a Class area to the settings, between Interface and Gameplay, with a class chooser on every page so any class can be set up before you log over to it. Overview holds the class display switches and the class-only options (combo points, totems, form mana with its Cat and Bear option); Cooldown strip and Class effects let you add, remove and reorder the spells in the strip's class list and the three effect groups from RikUI's catalogue, per class, saved in the profile, with a reset to RikUI's lists. The separate Druid mana page is gone.
 
 - Tightened the combat HUD. The player cast bar and the weapon timers now take the combat column's width, so the strip, resource bar, cast bar and swing bars line up and the class effect rows sit beside them. The unit frames now sit directly above the target cast bar and only above the supporting rows your class uses, instead of leaving an empty band reserved for combo points, totems and form mana on every class.

@@ -99,6 +99,39 @@ class Tests(unittest.TestCase):
         first = struct.unpack_from('<H', cell['records'], 5)[0]
         self.assertEqual(tuple(v / qp.PATCH_UNITS for v in vertices[first]), (0.0, 0.0, 0.0))
 
+    def test_compact_cell_returns_the_same_bytes(self):
+        polys = Fake()
+        cell = qp.encode_cell(polys, {0, 1}, {0, 1})
+        raw = qp.compact_cell(cell)
+        self.assertEqual(qp.expand_cell(raw, cell['vertexCount'], cell['polygons']), (cell['vertices'], cell['records']))
+        lengths = dict(zip(qp.COMPACT_STREAMS, struct.unpack_from('<8I', raw, 0)))
+        # The second polygon's portal is the twin of the first one's: an edge byte and no target.
+        self.assertEqual((lengths['targets'], lengths['edges']), (1, 2))
+        self.assertEqual(raw[-1], 3 + qp.EDGE_MIRROR + qp.EDGE_REVERSED)
+        with self.assertRaises(Exception):
+            qp.expand_cell(raw + b'\0', cell['vertexCount'], cell['polygons'])
+        with self.assertRaises(Exception):
+            qp.expand_cell(raw[:-1], cell['vertexCount'], cell['polygons'])
+
+    def test_compact_cell_keeps_a_portal_that_is_not_a_polygon_edge(self):
+        polys = Fake()
+        polys.edges[0] = [(1, (32.0, 0.0, 32.0), (0.0, 0.0, 0.0))]  # a diagonal, and no twin on the other side
+        polys.edges[1] = []
+        cell = qp.encode_cell(polys, {0, 1}, {0, 1})
+        raw = qp.compact_cell(cell)
+        self.assertEqual(qp.expand_cell(raw, cell['vertexCount'], cell['polygons']), (cell['vertices'], cell['records']))
+
+    def test_patch_text_is_deflate_in_base64(self):
+        import base64, re, zlib
+        polys = Fake()
+        cell = qp.encode_cell(polys, {0, 1}, {0, 1})
+        files, _ = qp.patch_files(0, 'a' * 64, {(0, 0): cell}, net.lua)
+        text = files['RikUIQuestRoads_W0_P001/patch-001.lua'].decode()
+        found = re.fullmatch(r'RikUI\.QuestPlanner\.Roads\.Patch2\("a{64}",(\d+),6,2,2,(\d+),\[\[(.*)\]\]\)\n', text)
+        raw = zlib.decompress(base64.b64decode(found[3]), -15)
+        self.assertEqual(len(raw), int(found[2]))
+        self.assertEqual(raw, qp.compact_cell(cell))
+
     def test_patch_files_index_every_cell(self):
         polys = Fake()
         patches = {(0, 0): qp.encode_cell(polys, {0, 1}, {0, 1}), (1, 0): qp.encode_cell(polys, {2}, {2})}

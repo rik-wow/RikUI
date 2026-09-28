@@ -8,7 +8,7 @@ local root, mapID = arg[1], tonumber(arg[2])
 assert(root and mapID and #arg >= 6, "usage: <network dir> <uiMapID> sx sy gx gy ...")
 RikUI = {Secret = {IsSecret = function() return false end}}
 for _, name in ipairs({"schema", "builds", "nav-geometry", "nav-funnel", "nav-follow", "nav-search", "navmesh", "nav-attach",
-    "path-codec", "roads", "road-patches", "road-route", "road-follow", "road-navigate"}) do
+    "path-codec", "inflate", "roads", "road-patches", "road-route", "road-follow", "road-navigate"}) do
     dofile("src/modules/questplanner/quest-" .. name .. ".lua")
 end
 local p = RikUI.QuestPlanner
