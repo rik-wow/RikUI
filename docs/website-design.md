@@ -139,13 +139,9 @@ time, and without scripting the default frame shows alone), and one whose
 address is `mockup` places the catalogued SVG illustration named by its alt
 text. The build fails when a page's captures (or, for pages without captures,
 its catalogued surfaces) are not each placed exactly once, so there is no
-detached gallery. Forty-eight guides and the overview page currently use the 221 Lua captures (229
-images, four of them setting sequences), including every getting-started, combat, everyday,
-notification, questing, window and control guide except combat text and the world map; those 2 feature guides still use illustrative SVGs,
-whose sample values and conditional native surfaces are not evidence of a live
-client capture. The catalogue names 274 surfaces, but many share one drawing
-once text is ignored; the build shows only the first surface of each distinct
-drawing and rejects a guide that places a duplicate. The page inventory and module mapping are generated in
+detached gallery. All fifty guides and the overview page currently use the 223 Lua captures (231
+images, four of them setting sequences); combat text and the world map show only their settings pages, because the simulator cannot draw damage numbers or the map canvas. No guide
+places an SVG drawing any more. The page inventory and module mapping are generated in
 web/docs-inventory.json.
 
 Captures of world-anchored interface (the combat HUD, later nameplates, the

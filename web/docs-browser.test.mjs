@@ -36,6 +36,8 @@ const placements={
  "proc-overlay":{"proc-sides":"ref-ability-cues","proc-vertical":"ref-ability-cues","proc-center":"ref-ability-cues"},
  damagemeter:{"meter-rows":"ref-read-the-meter"},
  extrabuttons:{"extra-zone":"ref-special-actions"},
+ combattext:{"combattext-settings":"ref-damage-and-healing-numbers"},
+ worldmap:{"worldmap-settings":"ref-map-tools"},
  minimap:{"minimap-square":"ref-the-minimap","minimap-indicators":"ref-the-minimap","minimap-performance":"ref-rikui-menu"},
  xpbar:{"xp-experience":"ref-experience","xp-rested":"ref-experience","xp-gain":"ref-experience","xp-reputation":"ref-reputation"},
  durability:{"dur-worn":"ref-worn-and-broken-gear","dur-broken":"ref-worn-and-broken-gear","dur-tooltip":"ref-worn-and-broken-gear","dur-lowest":"ref-keep-durability-visible"},
@@ -157,10 +159,12 @@ for(const width of [1440,768,390,320]){
 test("spell and item examples load the correct named images",async({page})=>{
  await page.goto("/docs/micromenu");
  await expect(page.locator("figure").first().locator("image")).toHaveCount(0);
- await page.goto("/docs/worldmap");
- const paths=await page.locator("image").evaluateAll(images=>[...new Set(images.map(image=>image.getAttribute("href")))]);
- expect(paths).toHaveLength(12);
- for(const path of paths){expect((await page.request.get(path)).status()).toBe(200);}
+ for(const slug of ["worldmap","combattext"]){
+  await page.goto("/docs/"+slug);
+  const sources=await page.locator("figure img.ui-example").evaluateAll(images=>images.map(image=>image.getAttribute("src")));
+  expect(sources.length,slug).toBeGreaterThan(0);
+  for(const source of sources)expect((await page.request.get(source)).status(),source).toBe(200);
+ }
 });
 
 test("documentation works without JavaScript",async({browser})=>{

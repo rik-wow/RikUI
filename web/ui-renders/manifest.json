@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T17:51:46.236975+00:00",
-  "addonCommit": "a766bb81a1e5752e11322ed246298596c5ce75da",
+  "capturedAt": "2026-09-28T18:17:29.401708+00:00",
+  "addonCommit": "5406c69dfe8bdab122f7946c23a97ce456d35438",
   "addonFiles": {
     "Bindings.xml": "f4de3bf073de7728bb45ceb353ffaeb1edc50eea3704a26743ef60887bbcb5e0",
     "RikUI.toc": "52bd13c43576ded42a9957dac09d9ada13cedeff7193ff5a0affe4073252be8e",
@@ -372,7 +372,7 @@
       "source": "casc-local-or-cdn",
       "fallback": "none"
     },
-    "verifiedAt": "2026-09-28T17:51:44.914916+00:00"
+    "verifiedAt": "2026-09-28T18:17:28.956809+00:00"
   },
   "renderer": {
     "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -14065,6 +14065,112 @@
         "windows"
       ],
       "reviewedSha256": "71ad7544768a7b9962d6588ffb80ee6d8fd824a8ffc3d98d2edf177fdf4bcf9c"
+    },
+    {
+      "id": "worldmap-settings",
+      "page": "worldmap",
+      "title": "World map settings",
+      "frame": "RikUIOptionsPanel",
+      "crop": "800x600+624+276",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"worldmap\")\n",
+      "expectText": [
+        "World map",
+        "Fog of war"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 36,
+        "root": {
+          "x": 644.0,
+          "y": 296.0,
+          "w": 760.0,
+          "h": 560.0
+        },
+        "uniqueColors": 2380
+      },
+      "sha256": "fe8e2eeaf3ed888aefa162201691b6f4a0307ec4912316d93fe32f9442a5c361",
+      "bytes": 19654,
+      "fixtureSha256": "f09d5aa1455563fb468d9266cde2fef7ffbc0e8a723055c0fd835a0e49bb964c",
+      "filename": "worldmap-settings.webp",
+      "width": 800,
+      "height": 600,
+      "inputs": {
+        "script": "54930fd5f01ac710e9fc0965ccd4b60f53ae6f67dae704e88d6d1331d2e30370",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "26fa2b09f9e930aae564ced4b1c1ae41a88f274a481c3e5129c26b5a01c8e157",
+      "modules": [
+        "bags",
+        "core",
+        "optionsrows",
+        "windows"
+      ],
+      "reviewedSha256": "fe8e2eeaf3ed888aefa162201691b6f4a0307ec4912316d93fe32f9442a5c361"
+    },
+    {
+      "id": "combattext-settings",
+      "page": "combattext",
+      "title": "Combat text settings",
+      "frame": "RikUIOptionsPanel",
+      "crop": "800x600+624+276",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"combattext\")\n",
+      "expectText": [
+        "Combat text",
+        "Show native scrolling combat text"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 64,
+        "root": {
+          "x": 644.0,
+          "y": 296.0,
+          "w": 760.0,
+          "h": 560.0
+        },
+        "uniqueColors": 3510
+      },
+      "sha256": "f613f109861729e621fe8ef2623062d40599b13cd8ac0c37a85ac79895e4ce96",
+      "bytes": 37020,
+      "fixtureSha256": "dbc9ca91bfe7446fe3775eff15ba4a4a403dac57db163a0b2d14efb982977adb",
+      "filename": "combattext-settings.webp",
+      "width": 800,
+      "height": 600,
+      "inputs": {
+        "script": "545eb9dae2fc8560805b0951aad6d59410ff9501d60ef03b92f0d95106064613",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "6a6f2353e83abb74caba3c62906ae5a18c66c12d42d8c7e05db568cc2107a213",
+      "modules": [
+        "bags",
+        "core",
+        "optionsrows",
+        "windows"
+      ],
+      "reviewedSha256": "f613f109861729e621fe8ef2623062d40599b13cd8ac0c37a85ac79895e4ce96"
     }
   ]
 }

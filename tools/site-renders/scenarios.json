@@ -3076,5 +3076,31 @@
       "Rik",
       "Goldshire"
     ]
+  },
+  {
+    "id": "worldmap-settings",
+    "page": "worldmap",
+    "title": "World map settings",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"worldmap\")\n",
+    "expectText": [
+      "World map",
+      "Fog of war"
+    ]
+  },
+  {
+    "id": "combattext-settings",
+    "page": "combattext",
+    "title": "Combat text settings",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"combattext\")\n",
+    "expectText": [
+      "Combat text",
+      "Show native scrolling combat text"
+    ]
   }
 ]

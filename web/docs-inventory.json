@@ -3422,6 +3422,20 @@
       "title": "Remove imported preset",
       "width": 570,
       "height": 212
+    },
+    {
+      "id": "worldmap-settings",
+      "page": "worldmap",
+      "title": "World map settings",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "combattext-settings",
+      "page": "combattext",
+      "title": "Combat text settings",
+      "width": 800,
+      "height": 600
     }
   ]
 }
