@@ -372,6 +372,98 @@
     "assertLua": "local left, right = RikUIBags.search:GetTextInsets()\nassert(left == 16 and right == 20, \"Search text must clear its icon and button\")\nassert(RikUIBags.bagHint:GetWidth() > 100, \"Multiline label must fit its longest line\")"
   },
   {
+    "id": "layout-mover",
+    "page": "layout",
+    "title": "Frame mover",
+    "frame": "RikRenderMoverScreen",
+    "crop": "1060x592+470+560",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "RikRenderUnlocked()\nRikRenderScreen(\"RikRenderMoverScreen\", 470, 0, 1060, 592)\n",
+    "expectText": [
+      "Player frame",
+      "Main bar"
+    ]
+  },
+  {
+    "id": "layout-tags",
+    "page": "layout",
+    "title": "Frame tags",
+    "frame": "RikRenderTagsScreen",
+    "crop": "1160x560+470+592",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "RikRenderHeldTags()\nRikRenderScreen(\"RikRenderTagsScreen\", 470, 0, 1160, 560)\n",
+    "expectText": [
+      "Player frame",
+      "Main bar"
+    ]
+  },
+  {
+    "id": "layout-resize",
+    "page": "layout",
+    "title": "Resize handle",
+    "frame": "RikRenderResizeScreen",
+    "crop": "560x330+0+822",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "RikRenderUnlockedGroup(\"chat\")\nRikRenderScreen(\"RikRenderResizeScreen\", 0, 0, 560, 330)\n",
+    "expectText": [
+      "Chat"
+    ]
+  },
+  {
+    "id": "layout-presets",
+    "page": "layout",
+    "title": "Layout presets",
+    "frame": "RikRenderPresetRows",
+    "crop": "570x180+739+486",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"general\")\nRikRenderSettingsRows(\"general\", \"Layout\", \"RikRenderPresetRows\", 570, 180)\n",
+    "expectText": [
+      "Layout preset",
+      "Centered"
+    ]
+  },
+  {
+    "id": "layout-nudges",
+    "page": "layout",
+    "title": "Position nudges",
+    "frame": "RikRenderNudgeRows",
+    "crop": "570x350+739+401",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"general\")\nRikRenderNudgeState(\"player\")\nRikRenderSettingsRows(\"general\", \"layoutFrame\", \"RikRenderNudgeRows\", 570, 350)\n",
+    "expectText": [
+      "Frame to position",
+      "Move frame left"
+    ]
+  },
+  {
+    "id": "layout-undo",
+    "page": "layout",
+    "title": "Undo layout change",
+    "frame": "RikRenderUndoRows",
+    "crop": "570x60+739+546",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"general\")\nRikRenderUndoReady()\nRikRenderSettingsRows(\"general\", \"undoLayout\", \"RikRenderUndoRows\", 570, 60)\n",
+    "expectText": [
+      "Previous layout",
+      "Undo layout change"
+    ]
+  },
+  {
     "id": "shell-menu",
     "page": "shell",
     "title": "RikUI menu",
@@ -2810,5 +2902,60 @@
     "fixtures": [],
     "lua": "RikRenderControls()\n",
     "expectText": []
+  },
+  {
+    "id": "overview-layouts",
+    "page": "overview",
+    "title": "Screen layouts",
+    "frame": "UIParent",
+    "crop": "2048x1152+0+0",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "ChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+    "expectText": [
+      "Rik",
+      "Goldshire"
+    ],
+    "sequence": {
+      "control": "dropdown",
+      "label": "Layout",
+      "values": [
+        "centered",
+        "classic",
+        "hud",
+        "healer"
+      ],
+      "labels": [
+        "Centered",
+        "Classic",
+        "HUD",
+        "Healer"
+      ],
+      "default": "centered",
+      "apply": "RikRenderSetOption(\"general\", \"layoutPreset\", VALUE)"
+    }
+  },
+  {
+    "id": "overview-small-screen",
+    "page": "overview",
+    "title": "1366x768 screen",
+    "frame": "UIParent",
+    "crop": "1366x768+0+0",
+    "screen": "1366x768",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "RikRenderSetOption(\"general\", \"layoutPreset\", \"centered\")\nChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+    "expectText": [
+      "Rik",
+      "Goldshire"
+    ]
   }
 ]

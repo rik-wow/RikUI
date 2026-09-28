@@ -3303,6 +3303,62 @@
       "title": "Owned auctions",
       "width": 1096,
       "height": 676
+    },
+    {
+      "id": "layout-mover",
+      "page": "layout",
+      "title": "Frame mover",
+      "width": 1060,
+      "height": 592
+    },
+    {
+      "id": "layout-tags",
+      "page": "layout",
+      "title": "Frame tags",
+      "width": 1160,
+      "height": 560
+    },
+    {
+      "id": "layout-resize",
+      "page": "layout",
+      "title": "Resize handle",
+      "width": 560,
+      "height": 330
+    },
+    {
+      "id": "layout-presets",
+      "page": "layout",
+      "title": "Layout presets",
+      "width": 570,
+      "height": 180
+    },
+    {
+      "id": "layout-nudges",
+      "page": "layout",
+      "title": "Position nudges",
+      "width": 570,
+      "height": 350
+    },
+    {
+      "id": "layout-undo",
+      "page": "layout",
+      "title": "Undo layout change",
+      "width": 570,
+      "height": 60
+    },
+    {
+      "id": "overview-layouts",
+      "page": "overview",
+      "title": "Screen layouts",
+      "width": 2048,
+      "height": 1152
+    },
+    {
+      "id": "overview-small-screen",
+      "page": "overview",
+      "title": "1366x768 screen",
+      "width": 1366,
+      "height": 768
     }
   ]
 }

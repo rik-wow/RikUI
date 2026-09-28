@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T10:56:36.843556+00:00",
-  "addonCommit": "b9ac2bc6b81c8d9b5b176a081ab6774ecdd396cc",
+  "capturedAt": "2026-09-28T17:38:09.951666+00:00",
+  "addonCommit": "d549fc9cb1e7ae2f26a970f1d969e76112bf8435",
   "addonFiles": {
     "Bindings.xml": "f4de3bf073de7728bb45ceb353ffaeb1edc50eea3704a26743ef60887bbcb5e0",
     "RikUI.toc": "52bd13c43576ded42a9957dac09d9ada13cedeff7193ff5a0affe4073252be8e",
@@ -372,7 +372,7 @@
       "source": "casc-local-or-cdn",
       "fallback": "none"
     },
-    "verifiedAt": "2026-09-28T10:56:22.790201+00:00"
+    "verifiedAt": "2026-09-28T17:38:08.710346+00:00"
   },
   "renderer": {
     "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -12760,6 +12760,736 @@
         "windows"
       ],
       "reviewedSha256": "700114e528de2ae63a710e5776dd5e3185c23a6c8d3fc3a46c2e5a0531a24c15"
+    },
+    {
+      "id": "layout-mover",
+      "page": "layout",
+      "title": "Frame mover",
+      "frame": "RikRenderMoverScreen",
+      "crop": "1060x592+470+560",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderScreenState()"
+      ],
+      "lua": "RikRenderUnlocked()\nRikRenderScreen(\"RikRenderMoverScreen\", 470, 0, 1060, 592)\n",
+      "expectText": [
+        "Player frame",
+        "Main bar"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 106,
+        "root": {
+          "x": 470.0,
+          "y": 560.0,
+          "w": 1060.0,
+          "h": 592.0
+        },
+        "uniqueColors": 11941
+      },
+      "sha256": "33d25613812a9e53a28fc97aba6e3dcdda9873c6e9b6f0b34aa2c2c3ffb9a639",
+      "bytes": 241298,
+      "fixtureSha256": "28ce38baed2ac3fe3501b76cb44343f1a4b5ae28dcfd668d22094e014d64a230",
+      "filename": "layout-mover.webp",
+      "width": 1060,
+      "height": 592,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "inputs": {
+        "script": "4fc73e12b8009bac4594b051c3d677a406e74bbd029d11c9f615ef9ab45fd56d",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "world": {
+          "plate": "goldshire-road",
+          "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+        },
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "149f5551637a467be3c042a160c0ecdcc8763a96859ebe602fe0eb42db52890b",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing"
+      ],
+      "reviewedSha256": "33d25613812a9e53a28fc97aba6e3dcdda9873c6e9b6f0b34aa2c2c3ffb9a639"
+    },
+    {
+      "id": "layout-tags",
+      "page": "layout",
+      "title": "Frame tags",
+      "frame": "RikRenderTagsScreen",
+      "crop": "1160x560+470+592",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderScreenState()"
+      ],
+      "lua": "RikRenderHeldTags()\nRikRenderScreen(\"RikRenderTagsScreen\", 470, 0, 1160, 560)\n",
+      "expectText": [
+        "Player frame",
+        "Main bar"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 107,
+        "root": {
+          "x": 470.0,
+          "y": 592.0,
+          "w": 1160.0,
+          "h": 560.0
+        },
+        "uniqueColors": 10562
+      },
+      "sha256": "ace886c808987f5130c637c8b75d3301d61c75064a55bf8d16395e4b1d1992c1",
+      "bytes": 262054,
+      "fixtureSha256": "b39ca42f8f737753fb1798e3d49c0b903e375d71b9f51f0b6429a0b64dc3dffc",
+      "filename": "layout-tags.webp",
+      "width": 1160,
+      "height": 560,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "inputs": {
+        "script": "898625b2172fa5e179af2784d620a89488d3bfe22b22de1fe5ea845980b968cf",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "world": {
+          "plate": "goldshire-road",
+          "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+        },
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "7205eb26d37f213e284c64e8c909a07b9beabd6694045750503b9c9f94dd517b",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing"
+      ],
+      "reviewedSha256": "ace886c808987f5130c637c8b75d3301d61c75064a55bf8d16395e4b1d1992c1"
+    },
+    {
+      "id": "layout-resize",
+      "page": "layout",
+      "title": "Resize handle",
+      "frame": "RikRenderResizeScreen",
+      "crop": "560x330+0+822",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderScreenState()"
+      ],
+      "lua": "RikRenderUnlockedGroup(\"chat\")\nRikRenderScreen(\"RikRenderResizeScreen\", 0, 0, 560, 330)\n",
+      "expectText": [
+        "Chat"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 66,
+        "root": {
+          "x": 0.0,
+          "y": 822.0,
+          "w": 560.0,
+          "h": 330.0
+        },
+        "uniqueColors": 813
+      },
+      "sha256": "103b5e219996afe4b9ae20a95e51731863f8dcefc871d41d1543e6029d3a5366",
+      "bytes": 53862,
+      "fixtureSha256": "87663fda3e57776b87e026c74262db1b7199c374cd7a5cb41496c410a8502a35",
+      "filename": "layout-resize.webp",
+      "width": 560,
+      "height": 330,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "inputs": {
+        "script": "e1a2dd98387f10b4942d7a2711d195547ca4331c2ff2bb64be9c3178a6d3bded",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "world": {
+          "plate": "goldshire-road",
+          "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+        },
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "6ecd6a99300e1f7765cb1b6858b1ee7b39edccc430cb7c349dc0444431dc2d9a",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing"
+      ],
+      "reviewedSha256": "103b5e219996afe4b9ae20a95e51731863f8dcefc871d41d1543e6029d3a5366"
+    },
+    {
+      "id": "layout-presets",
+      "page": "layout",
+      "title": "Layout presets",
+      "frame": "RikRenderPresetRows",
+      "crop": "570x180+739+486",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"general\")\nRikRenderSettingsRows(\"general\", \"Layout\", \"RikRenderPresetRows\", 570, 180)\n",
+      "expectText": [
+        "Layout preset",
+        "Centered"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 70,
+        "root": {
+          "x": 739.0,
+          "y": 486.0,
+          "w": 570.0,
+          "h": 180.0
+        },
+        "uniqueColors": 1102
+      },
+      "sha256": "2f4c262ef66ce23fcd0179b548296d8cb09361df35cfd9919aef55319208620b",
+      "bytes": 6738,
+      "fixtureSha256": "951a54687baafdc85c03950b818f8c7b7b69767802fac745c2d25b59596dd703",
+      "filename": "layout-presets.webp",
+      "width": 570,
+      "height": 180,
+      "inputs": {
+        "script": "7e59eefe69aaa73f9c43594c2aeca310761dcbf63c2f422e2fefef8f6d2da8fa",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "b4d476aa6f217e915558eafc7703d8cfc56329e8adaeb7186aaf16f0a75410da",
+      "modules": [
+        "bags",
+        "core",
+        "optionsrows",
+        "windows"
+      ],
+      "reviewedSha256": "2f4c262ef66ce23fcd0179b548296d8cb09361df35cfd9919aef55319208620b"
+    },
+    {
+      "id": "layout-nudges",
+      "page": "layout",
+      "title": "Position nudges",
+      "frame": "RikRenderNudgeRows",
+      "crop": "570x350+739+401",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"general\")\nRikRenderNudgeState(\"player\")\nRikRenderSettingsRows(\"general\", \"layoutFrame\", \"RikRenderNudgeRows\", 570, 350)\n",
+      "expectText": [
+        "Frame to position",
+        "Move frame left"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 71,
+        "root": {
+          "x": 739.0,
+          "y": 401.0,
+          "w": 570.0,
+          "h": 350.0
+        },
+        "uniqueColors": 889
+      },
+      "sha256": "242a9009edfcc920fb838667193b67638ea47a9256064fba735db37714737207",
+      "bytes": 7894,
+      "fixtureSha256": "159471ae4aba4968f913f2ba0b798550bb86e66d6b3427dda5b5c7bbf75ad300",
+      "filename": "layout-nudges.webp",
+      "width": 570,
+      "height": 350,
+      "inputs": {
+        "script": "5000d35dc28f1b59f1355ddc6d3395203739ff1cb0255e43ed7f4718ca7b896a",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "19e66d00fe956220c58344ee49128ccdfcfd8591ec975f28936c0e36323bc445",
+      "modules": [
+        "bags",
+        "core",
+        "optionsrows",
+        "windows"
+      ],
+      "reviewedSha256": "242a9009edfcc920fb838667193b67638ea47a9256064fba735db37714737207"
+    },
+    {
+      "id": "layout-undo",
+      "page": "layout",
+      "title": "Undo layout change",
+      "frame": "RikRenderUndoRows",
+      "crop": "570x60+739+546",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"general\")\nRikRenderUndoReady()\nRikRenderSettingsRows(\"general\", \"undoLayout\", \"RikRenderUndoRows\", 570, 60)\n",
+      "expectText": [
+        "Previous layout",
+        "Undo layout change"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 70,
+        "root": {
+          "x": 739.0,
+          "y": 546.0,
+          "w": 570.0,
+          "h": 60.0
+        },
+        "uniqueColors": 369
+      },
+      "sha256": "7962894e20bf669c0bade2a7c0c10d5fdcfd31d74ff6e5b87c5ff0e872b44145",
+      "bytes": 2348,
+      "fixtureSha256": "c2c6e948ebc46feaba341dc884a891af193310b99b0430aec204133ddf55da5a",
+      "filename": "layout-undo.webp",
+      "width": 570,
+      "height": 60,
+      "inputs": {
+        "script": "5a11c0f3ba6103b94c79d2254ab1828e8d8d520e4485d1f2d7d0dd959486408a",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "a2c9a390c1023da17e1d136fd55b9bd00d46528edf088e66ddf31e56ce544f80",
+      "modules": [
+        "bags",
+        "core",
+        "optionsrows",
+        "windows"
+      ],
+      "reviewedSha256": "7962894e20bf669c0bade2a7c0c10d5fdcfd31d74ff6e5b87c5ff0e872b44145"
+    },
+    {
+      "id": "overview-layouts",
+      "page": "overview",
+      "title": "Screen layouts",
+      "frame": "UIParent",
+      "crop": "2048x1152+0+0",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderScreenState()"
+      ],
+      "lua": "ChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+      "expectText": [
+        "Rik",
+        "Goldshire"
+      ],
+      "sequence": {
+        "control": "dropdown",
+        "label": "Layout",
+        "values": [
+          "centered",
+          "classic",
+          "hud",
+          "healer"
+        ],
+        "labels": [
+          "Centered",
+          "Classic",
+          "HUD",
+          "Healer"
+        ],
+        "default": "centered",
+        "apply": "RikRenderSetOption(\"general\", \"layoutPreset\", VALUE)"
+      },
+      "diagnostics": {
+        "visibleTextCount": 65,
+        "root": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 2048.0,
+          "h": 1152.0
+        },
+        "uniqueColors": 20464
+      },
+      "sha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1",
+      "bytes": 862266,
+      "fixtureSha256": "7bfb307c3548abb2b8ff1f488298b4d62177bc3ebe9db9ac76a02506b043f7c3",
+      "filename": "overview-layouts@centered.webp",
+      "width": 2048,
+      "height": 1152,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "frames": [
+        {
+          "value": "centered",
+          "diagnostics": {
+            "visibleTextCount": 65,
+            "root": {
+              "x": 0.0,
+              "y": 0.0,
+              "w": 2048.0,
+              "h": 1152.0
+            },
+            "uniqueColors": 20464
+          },
+          "sha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1",
+          "bytes": 862266,
+          "fixtureSha256": "7bfb307c3548abb2b8ff1f488298b4d62177bc3ebe9db9ac76a02506b043f7c3",
+          "filename": "overview-layouts@centered.webp",
+          "width": 2048,
+          "height": 1152,
+          "plate": {
+            "plate": "goldshire-road",
+            "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+            "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+            "camera": {
+              "x": 8,
+              "y": 65.61634414672838,
+              "z": 9502,
+              "yaw": 0.9994588469612697,
+              "pitch": -0.08597929644384962,
+              "fov": 62
+            },
+            "captured": "2026-09-28T00:55:06.916Z"
+          },
+          "reviewedSha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1"
+        },
+        {
+          "value": "classic",
+          "diagnostics": {
+            "visibleTextCount": 65,
+            "root": {
+              "x": 0.0,
+              "y": 0.0,
+              "w": 2048.0,
+              "h": 1152.0
+            },
+            "uniqueColors": 20828
+          },
+          "sha256": "5557ca0c488a22ffabbaec6e5bd78f177a67fdd9a291326a08fdbf8c7d4376a9",
+          "bytes": 862140,
+          "fixtureSha256": "86134b7c8a9f7a2ce0c507866d8b5f92b318ff03739bee332cc79e9296b3a121",
+          "filename": "overview-layouts@classic.webp",
+          "width": 2048,
+          "height": 1152,
+          "plate": {
+            "plate": "goldshire-road",
+            "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+            "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+            "camera": {
+              "x": 8,
+              "y": 65.61634414672838,
+              "z": 9502,
+              "yaw": 0.9994588469612697,
+              "pitch": -0.08597929644384962,
+              "fov": 62
+            },
+            "captured": "2026-09-28T00:55:06.916Z"
+          },
+          "reviewedSha256": "5557ca0c488a22ffabbaec6e5bd78f177a67fdd9a291326a08fdbf8c7d4376a9"
+        },
+        {
+          "value": "hud",
+          "diagnostics": {
+            "visibleTextCount": 65,
+            "root": {
+              "x": 0.0,
+              "y": 0.0,
+              "w": 2048.0,
+              "h": 1152.0
+            },
+            "uniqueColors": 20769
+          },
+          "sha256": "8dfd1d731ef4f008cf0de3312f8d2c42d1beaaf5788c021fd187e551d25930fd",
+          "bytes": 863646,
+          "fixtureSha256": "aabc919025bad14afdb713e115b0ad1fe82d06eb684ae84ae9d26f7e21b8c33e",
+          "filename": "overview-layouts@hud.webp",
+          "width": 2048,
+          "height": 1152,
+          "plate": {
+            "plate": "goldshire-road",
+            "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+            "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+            "camera": {
+              "x": 8,
+              "y": 65.61634414672838,
+              "z": 9502,
+              "yaw": 0.9994588469612697,
+              "pitch": -0.08597929644384962,
+              "fov": 62
+            },
+            "captured": "2026-09-28T00:55:06.916Z"
+          },
+          "reviewedSha256": "8dfd1d731ef4f008cf0de3312f8d2c42d1beaaf5788c021fd187e551d25930fd"
+        },
+        {
+          "value": "healer",
+          "diagnostics": {
+            "visibleTextCount": 65,
+            "root": {
+              "x": 0.0,
+              "y": 0.0,
+              "w": 2048.0,
+              "h": 1152.0
+            },
+            "uniqueColors": 19907
+          },
+          "sha256": "046de5902d8a47e11752dadd239a8a86d2c4b41d9b20a78dbc60646642ae1ac3",
+          "bytes": 861640,
+          "fixtureSha256": "4a6424f7c357ac9c4a6f8e0305838f8ef39a26dd032366b53301dd972e213d1a",
+          "filename": "overview-layouts@healer.webp",
+          "width": 2048,
+          "height": 1152,
+          "plate": {
+            "plate": "goldshire-road",
+            "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+            "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+            "camera": {
+              "x": 8,
+              "y": 65.61634414672838,
+              "z": 9502,
+              "yaw": 0.9994588469612697,
+              "pitch": -0.08597929644384962,
+              "fov": 62
+            },
+            "captured": "2026-09-28T00:55:06.916Z"
+          },
+          "reviewedSha256": "046de5902d8a47e11752dadd239a8a86d2c4b41d9b20a78dbc60646642ae1ac3"
+        }
+      ],
+      "inputs": {
+        "script": "3e9461630ca324b4f176a7066c312a8c5947d3cf1d7581356b937f405819e8b7",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "world": {
+          "plate": "goldshire-road",
+          "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+        },
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "28ab7a2f8fffff0de43f12f801f7d35021a1277f5f672fa9de190bfa0ad89cfd",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing"
+      ],
+      "reviewedSha256": "0ae5529a69b83cc99e5fe4f3bdf38629238cb66b1792b98b6a05744bfb30b9a1"
+    },
+    {
+      "id": "overview-small-screen",
+      "page": "overview",
+      "title": "1366x768 screen",
+      "frame": "UIParent",
+      "crop": "1366x768+0+0",
+      "screen": "1366x768",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [
+        "RikRenderScreenState()"
+      ],
+      "lua": "RikRenderSetOption(\"general\", \"layoutPreset\", \"centered\")\nChatFrame1:Clear()\nRikRenderChatLines()\nRikRenderLayerBacking(UIParent)\n",
+      "expectText": [
+        "Rik",
+        "Goldshire"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 65,
+        "root": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 1366.0,
+          "h": 768.0
+        },
+        "uniqueColors": 21058
+      },
+      "sha256": "124b3653eb66d24727802c1f82215924ce3160b365c61ebbf8799eaae7259412",
+      "bytes": 388420,
+      "fixtureSha256": "7bfb307c3548abb2b8ff1f488298b4d62177bc3ebe9db9ac76a02506b043f7c3",
+      "filename": "overview-small-screen.webp",
+      "width": 1366,
+      "height": 768,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "inputs": {
+        "script": "d066bcc3ecd6d52b6b34d193c6d540c1d12170bd3e90d102d4fb3568d2ca4cc6",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "world": {
+          "plate": "goldshire-road",
+          "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+        },
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "0b495f383d207cfa545b766b94eee35e6b98e82e0a1973b9936d99871120a42f",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing"
+      ],
+      "reviewedSha256": "124b3653eb66d24727802c1f82215924ce3160b365c61ebbf8799eaae7259412"
     }
   ]
 }

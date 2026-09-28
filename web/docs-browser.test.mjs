@@ -18,6 +18,8 @@ const placements={
  chat:{"chat-history":"ref-read-and-send-messages","chat-input":"ref-read-and-send-messages","chat-scroll":"ref-read-and-send-messages","chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history","chat-resize":"ref-font-timestamps-and-size"},
  loot:{"loot-list":"ref-loot-an-item","loot-coins":"ref-loot-an-item","loot-roll":"ref-group-rolls","loot-confirm":"ref-group-rolls"},
  shell:{"shell-menu":"ref-the-rikui-button"},
+ layout:{"layout-mover":"ref-move-a-frame","layout-tags":"ref-move-a-frame","layout-resize":"ref-resize-a-frame","layout-nudges":"ref-fine-positioning","layout-presets":"ref-scale-and-presets","layout-undo":"ref-reset-or-undo"},
+ overview:{"overview-layouts":"ref-choose-a-layout","overview-small-screen":"ref-choose-a-layout"},
  "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-rogue":"ref-your-class-in-the-column","hud-shaman":"ref-your-class-in-the-column","hud-druid":"ref-your-class-in-the-column","hud-scale":"ref-scale-the-hud"},
  cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip","cooldowns-viewer":"ref-your-cooldown-strip","cooldowns-class":"ref-your-cooldown-strip","cooldowns-rows":"ref-your-cooldown-strip","cooldowns-counter":"ref-your-cooldown-strip","cooldowns-tracked":"ref-choose-tracked-spells"},
  swingtimer:{"swing-main-hand":"ref-weapon-swings","swing-off-hand":"ref-weapon-swings","swing-ranged":"ref-weapon-swings","swing-move":"ref-ranged-movement-cues","swing-stop":"ref-ranged-movement-cues","swing-unknown":"ref-ranged-movement-cues"},
@@ -57,9 +59,7 @@ const placements={
  widgets:{"widget-status":"ref-objectives-and-activity-displays","widget-double":"ref-objectives-and-activity-displays","widget-icon":"ref-objectives-and-activity-displays"},
  controls:{"ctl-button":"ref-buttons-and-fields","ctl-checkbox":"ref-buttons-and-fields","ctl-dropdown":"ref-buttons-and-fields","ctl-disabled":"ref-buttons-and-fields","ctl-textfield":"ref-buttons-and-fields","ctl-slider":"ref-buttons-and-fields","ctl-scrollbar":"ref-buttons-and-fields","ctl-colour":"ref-buttons-and-fields"}
 };
-const mockupPlacements={
- layout:{"Frame mover":"ref-move-a-frame"}
-};
+const mockupPlacements={};
 const distinctCount=page=>[...distinctSurfaces(page)].filter(([index,canonical])=>index===canonical).length;
 const figureSections=()=>{
  const article=document.querySelector("article.doc-prose");
