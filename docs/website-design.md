@@ -135,11 +135,14 @@ sit inside the guide text beside the instruction they illustrate: a Markdown
 image whose address is `render:<scenario-id>` places a reviewed Lua capture from
 web/ui-renders, one whose address is `preview:<scenario-id>` places a setting
 sequence (every frame is in the page; a range, switch or select shows one at a
-time, and without scripting the default frame shows alone), and one whose
-address is `mockup` places the catalogued SVG illustration named by its alt
-text. The build fails when a page's captures (or, for pages without captures,
-its catalogued surfaces) are not each placed exactly once, so there is no
-detached gallery. All fifty guides and the overview page currently use the 223 Lua captures (231
+time, and without scripting the default frame shows alone). The retired `mockup`
+address fails the build with the page's name. The build fails when a page's
+captures are not each placed exactly once, so there is no detached gallery.
+Every catalogued surface must also be the caption of a capture on its guide,
+or be listed in tools/site-renders/known-gaps.json either as shown inside a
+named capture on that guide or as a gap with its reason; an entry for a surface
+that has become a caption, or for an unknown page or surface, fails the build,
+which prints the surface, caption, in-capture and gap counts. All fifty guides and the overview page currently use the 223 Lua captures (231
 images, four of them setting sequences); combat text and the world map show only their settings pages, because the simulator cannot draw damage numbers or the map canvas. No guide
 places an SVG drawing any more. The page inventory and module mapping are generated in
 web/docs-inventory.json.
@@ -157,9 +160,8 @@ has the details.
 Named spell and item identities replace random icon selection. Spell identifiers
 come from RikUI catalogues; action placement also uses the selected preset and
 saved action snapshot. Glyphs come from media/icons. File IDs and texture hashes
-are retained in web/client-assets.json. Documentation map illustrations use
-Elwynn tiles extracted from the same installed client.
+are retained in web/client-assets.json.
 
 Run npm run build:docs before direct Wrangler commands. npm test, check, dev and
-deploy build the documentation automatically. Generated HTML and SVG outputs
+deploy build the documentation automatically. Generated HTML and copied captures
 stay under web/public; browser verification images stay under repository dist.

@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { documentation } from "./docs-generated.mjs";
 import { catalogue } from "./docs-catalogue.mjs";
-import { distinctSurfaces, drawingKey } from "./docs-visuals.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 const renders=JSON.parse(readFileSync(new URL("./ui-renders/manifest.json",import.meta.url),"utf8")).renders;
@@ -61,8 +60,6 @@ const placements={
  widgets:{"widget-status":"ref-objectives-and-activity-displays","widget-double":"ref-objectives-and-activity-displays","widget-icon":"ref-objectives-and-activity-displays"},
  controls:{"ctl-button":"ref-buttons-and-fields","ctl-checkbox":"ref-buttons-and-fields","ctl-dropdown":"ref-buttons-and-fields","ctl-disabled":"ref-buttons-and-fields","ctl-textfield":"ref-buttons-and-fields","ctl-slider":"ref-buttons-and-fields","ctl-scrollbar":"ref-buttons-and-fields","ctl-colour":"ref-buttons-and-fields"}
 };
-const mockupPlacements={};
-const distinctCount=page=>[...distinctSurfaces(page)].filter(([index,canonical])=>index===canonical).length;
 const figureSections=()=>{
  const article=document.querySelector("article.doc-prose");
  let heading=null;const result=[];
@@ -107,9 +104,10 @@ test("every documentation route and internal guide link resolves",async({request
  expect((await request.get("/docs/bags/",{maxRedirects:0})).status()).toBe(308);
  for(const guide of catalogue){
   expect(pages["/docs/"+guide.slug]).toContain('class="ui-example"');
-  expect(pages["/docs/"+guide.slug].match(/<figure /g)?.length,guide.slug).toBe(renders.filter(render=>render.page===guide.slug).length||distinctCount(guide));
-  const drawings=[...pages["/docs/"+guide.slug].matchAll(/<figure [\s\S]*?<\/figure>/g)].map(([figure])=>drawingKey(figure.match(/<svg[\s\S]*<\/svg>|<img [^>]*>/)[0]));
-  expect(new Set(drawings).size,guide.slug+" repeats a drawing").toBe(drawings.length);
+  expect(pages["/docs/"+guide.slug].match(/<figure /g)?.length,guide.slug).toBe(renders.filter(render=>render.page===guide.slug).length);
+  expect(pages["/docs/"+guide.slug],guide.slug+" still places a drawing").not.toMatch(/<svg|data-mockup/);
+  const images=[...pages["/docs/"+guide.slug].matchAll(/<figure [\s\S]*?<\/figure>/g)].map(([figure])=>figure.match(/<img [^>]*src="([^"]+)"/)[1]);
+  expect(new Set(images).size,guide.slug+" repeats an image").toBe(images.length);
  }
 });
 
@@ -122,11 +120,6 @@ test("examples sit beside the instructions they illustrate",async({page})=>{
   const captions=figures.map(figure=>figure.caption);
   expect(new Set(captions).size,slug+" repeats an example").toBe(captions.length);
   for(const render of renders.filter(render=>render.page===slug))await expect(page.locator('figure[data-render="'+render.id+'"] img').first()).toHaveAttribute("src",/\/assets\/docs\//);
- }
- for(const [slug,expected] of Object.entries(mockupPlacements)){
-  await page.goto("/docs/"+slug);
-  const figures=await page.evaluate(figureSections);
-  for(const [caption,heading] of Object.entries(expected))expect(figures.find(figure=>figure.caption===caption)?.heading,slug+": "+caption).toBe(heading);
  }
 });
 

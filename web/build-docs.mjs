@@ -3,8 +3,8 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { Marked } from "marked";
 import { catalogue, modulePages } from "./docs-catalogue.mjs";
-import { createHash } from "node:crypto";
-import { illustration, renderFigure, sequenceFigure, mockupFigure, distinctSurfaces, escapeHTML as esc } from "./docs-visuals.mjs";
+import { renderFigure, sequenceFigure, escapeHTML as esc } from "./docs-visuals.mjs";
+import { checkCoverage } from "./docs-coverage.mjs";
 import startGuides from "./guides-start.mjs";
 import combatGuides from "./guides-combat.mjs";
 import worldGuides from "./guides-world.mjs";
@@ -31,14 +31,6 @@ for(const capture of renderManifest.renders){
   visualPaths.set("render:"+stem,frame.url);
  }
  if(capture.frames)capture.url=capture.frames.find(frame=>frame.sha256===capture.sha256)?.url??capture.frames[0].url;
-}
-for(const page of catalogue)for(const [index,title] of page.surfaces.entries()){
- if(liveRenders.has(page.slug)||distinctSurfaces(page).get(index)!==index)continue;
- const svg=illustration(page.kind,title,index);
- const hash=createHash("sha256").update(svg).digest("hex").slice(0,12);
- const name=page.slug+"-"+index+"-"+hash+".svg";
- visualPaths.set(page.slug+":"+index,"/assets/docs/"+name);
- await writeFile(new URL("./public/assets/docs/"+name,import.meta.url),svg);
 }
 const root = fileURLToPath(new URL("../", import.meta.url));
 const git = "https://github.com/rik-wow/RikUI/blob/main/";
@@ -87,7 +79,10 @@ const groupOrder=["Getting started","Combat","Questing","Everyday interface","No
 const groups=groupOrder.filter(group=>pages.some(page=>page.group===group));
 const sidebar=current=>'<aside class="docs-sidebar"><details class="docs-nav-toggle" open><summary>Browse documentation</summary><div class="nav-content"><label for="docs-search">Find a guide</label><input id="docs-search" type="search" placeholder="Nameplates, bags, profiles…" autocomplete="off"><p id="search-empty" hidden>No matching guides.</p><nav aria-label="Documentation">'+groups.map(group=>'<section class="nav-group"><h2>'+esc(group)+'</h2>'+pages.filter(p=>p.group===group).map(p=>'<a data-doc-link data-keywords="'+esc(p.slug+' '+p.summary)+'" href="/docs/'+p.slug+'"'+(p.slug===current?' aria-current="page"':"")+'>'+esc(p.title)+'</a>').join("")+'</section>').join("")+'</nav></div></details></aside>';
 const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license.</p></footer></body></html>';
-const RENDER_REFERENCE="render:", PREVIEW_REFERENCE="preview:", MOCKUP_REFERENCE="mockup";
+const RENDER_REFERENCE="render:", PREVIEW_REFERENCE="preview:";
+// Surfaces no capture can show yet, and surfaces shown inside another capture; checked against the catalogue.
+const knownGaps=JSON.parse(await readFile(new URL("../tools/site-renders/known-gaps.json",import.meta.url),"utf8"));
+const placed={};
 function placeFigure(page,href,caption,used){
  if(href.startsWith(RENDER_REFERENCE)||href.startsWith(PREVIEW_REFERENCE)){
   const preview=href.startsWith(PREVIEW_REFERENCE);
@@ -98,21 +93,11 @@ function placeFigure(page,href,caption,used){
   used.add("render:"+id);
   return preview?sequenceFigure(page.feature,capture,caption):renderFigure(page.feature,capture,caption);
  }
- if(href===MOCKUP_REFERENCE){
-  const index=page.feature?.surfaces.indexOf(caption)??-1;
-  if(index<0||liveRenders.has(page.slug))throw Error(page.slug+": unknown mockup reference "+caption);
-  const canonical=distinctSurfaces(page.feature).get(index);
-  if(canonical!==index)throw Error(page.slug+": "+caption+" is the same drawing as "+page.feature.surfaces[canonical]+"; place only one of them");
-  used.add("mockup:"+index);
-  return mockupFigure(page.feature,caption,index,visualPaths.get(page.slug+":"+index));
- }
+ if(href==="mockup")throw Error(page.slug+": (mockup) drawings are retired; place a render: or preview: capture for "+caption);
  throw Error(page.slug+": unsupported image reference "+href);
 }
 function expectedFigures(page){
- const captures=liveRenders.get(page.slug);
- if(captures)return captures.map(capture=>"render:"+capture.id);
- if(!page.feature)return [];
- return [...distinctSurfaces(page.feature)].filter(([index,canonical])=>index===canonical).map(([index])=>"mockup:"+index);
+ return (liveRenders.get(page.slug)||[]).map(capture=>"render:"+capture.id);
 }
 function verifyPlacement(page,used){
  const expected=expectedFigures(page);
@@ -142,9 +127,12 @@ function render(page){
    return '<a href="'+esc(target)+'"'+(title?' title="'+esc(title)+'"':"")+'>'+this.parser.parseInline(tokens)+'</a>';
   },
   image({href,text}){
-   const key=(href||"").startsWith(RENDER_REFERENCE)?"render:"+href.slice(RENDER_REFERENCE.length):(href||"").startsWith(PREVIEW_REFERENCE)?"render:"+href.slice(PREVIEW_REFERENCE.length):"mockup:"+page.feature?.surfaces.indexOf(text);
+   const key=(href||"").startsWith(RENDER_REFERENCE)?"render:"+href.slice(RENDER_REFERENCE.length):(href||"").startsWith(PREVIEW_REFERENCE)?"render:"+href.slice(PREVIEW_REFERENCE.length):href;
    if(used.has(key))throw Error(page.slug+": example placed twice: "+text);
-   return placeFigure(page,href||"",text,used);
+   const figure=placeFigure(page,href||"",text,used);
+   const record=placed[page.slug]||(placed[page.slug]={captions:[],captures:[]});
+   record.captions.push(text);record.captures.push(key.slice("render:".length));
+   return figure;
   }
  }});
  const markdown=sources.get(page.file).replace(/^# .+\r?\n/,"");
@@ -155,6 +143,7 @@ function render(page){
  return shell(page.title,page.slug,header+'<article class="doc-prose">'+content+'</article>',toc);
 }
 const all = Object.fromEntries(pages.map(page=>["/docs/"+page.slug,render(page)]));
+const coverage=checkCoverage(catalogue,placed,knownGaps);
 const featureGroups=groups.filter(g=>g!=="About RikUI");
 const index='<div class="doc-breadcrumb">RikUI / Documentation</div><h1>Using RikUI</h1><p class="doc-lead">Set up your interface, learn the controls and see what each module changes.</p><div class="docs-start"><a href="/docs/installation">Install RikUI</a><a href="/docs/wizard">First setup</a><a href="/docs/layout">Arrange your frames</a><a href="/docs/options">Settings and profiles</a></div><h2 id="interface-guides">Interface guides</h2>'+featureGroups.map(group=>'<section class="guide-group"><h3>'+esc(group)+'</h3><dl>'+catalogue.filter(p=>p.group===group).map(p=>'<div data-guide><dt><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></dt><dd>'+esc(p.summary)+'</dd></div>').join("")+'</dl></section>').join("")+'<section class="guide-group"><h2>About RikUI</h2><p>Installation, support and artwork information.</p><ul class="reference-list">'+pages.filter(p=>p.group==="About RikUI").map(p=>'<li><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></li>').join("")+'</ul></section>';
 all["/docs"]=shell("Documentation","",index);
@@ -167,4 +156,5 @@ for(const [route,html] of Object.entries(all)){
 }
 await writeFile(new URL("./docs-generated.mjs",import.meta.url),"// Generated by build-docs.mjs.\nexport const documentation = "+JSON.stringify(documentation,null,2)+";\nexport const documentationImages = "+JSON.stringify([...visualPaths.values()])+";\n");
 await writeFile(new URL("./docs-inventory.json",import.meta.url),JSON.stringify({pages:pages.map(({slug,file,title})=>({slug,file,title})),...inventory},null,2)+"\n");
-console.log("Built "+pages.length+" documentation pages, "+registrations.length+" modules, "+inventory.surfaces.length+" UI elements, "+inventory.renders.length+" Lua renders.");
+console.log("Built "+pages.length+" documentation pages, "+registrations.length+" modules, "+inventory.renders.length+" Lua renders.");
+console.log("Catalogue: "+coverage.surfaces+" surfaces, "+coverage.captioned+" captioned, "+coverage.inCapture+" shown inside another capture, "+coverage.gaps+" known gaps.");

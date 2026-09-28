@@ -45,7 +45,7 @@ export const docsStyles = `
 .enlarge-example{display:block}
 .enlarge-example:focus-visible{outline:2px solid var(--link);outline-offset:3px}
 .example-grid figure{margin:0;min-width:0;border:1px solid #3c4533;background:#0c1117}
-.ui-example{width:100%;height:auto;display:block;font-family:Arial,sans-serif}
+.ui-example{width:100%;height:auto;display:block}
 .example-grid figcaption{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:11px 14px;background:#1c2218;border-top:1px solid #394232}
 .example-grid figcaption strong{font-size:13px;font-weight:500}
 .example-grid figcaption span{color:#9cab90;font-size:11px;text-align:right}
