@@ -10,14 +10,14 @@ const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
 // Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
 const placements={
  wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
- options:{"options-castbars":"ref-open-settings","options-general":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
- sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile"},
+ options:{"options-castbars":"ref-open-settings","options-search":"ref-open-settings","options-pending":"ref-open-settings","options-confirm":"ref-profiles","options-general":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
+ sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile","sharing-library":"ref-remove-an-imported-preset","sharing-remove":"ref-remove-an-imported-preset"},
  unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-tot":"ref-player-and-target","units-pet":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text","units-party":"ref-party-and-raid","units-raid":"ref-party-and-raid"},
  castbars:{"cast-interrupted":"ref-reading-a-cast-bar","cast-channel":"ref-reading-a-cast-bar","cast-target":"ref-player-target-focus-and-pet","cast-focus":"ref-player-target-focus-and-pet","cast-pet":"ref-player-target-focus-and-pet","cast-player":"ref-change-the-size"},
  bags:{"bags-inventory":"ref-open-your-inventory","bags-search":"ref-search-and-filters","bags-empty-search":"ref-search-and-filters","bags-filters":"ref-search-and-filters","bags-markers":"ref-favourites-and-item-markers","bags-merchant":"ref-vendors-and-repairs","bags-capacity":"ref-capacity-and-money"},
  chat:{"chat-history":"ref-read-and-send-messages","chat-input":"ref-read-and-send-messages","chat-scroll":"ref-read-and-send-messages","chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history","chat-resize":"ref-font-timestamps-and-size"},
  loot:{"loot-list":"ref-loot-an-item","loot-coins":"ref-loot-an-item","loot-roll":"ref-group-rolls","loot-confirm":"ref-group-rolls"},
- shell:{"shell-menu":"ref-the-rikui-button"},
+ shell:{"shell-menu":"ref-the-rikui-button","shell-launcher":"ref-the-rikui-button","shell-interface":"ref-the-rikui-button","shell-support":"ref-the-rikui-button","shell-tools":"ref-tracked-spells"},
  layout:{"layout-mover":"ref-move-a-frame","layout-tags":"ref-move-a-frame","layout-resize":"ref-resize-a-frame","layout-nudges":"ref-fine-positioning","layout-presets":"ref-scale-and-presets","layout-undo":"ref-reset-or-undo"},
  overview:{"overview-layouts":"ref-choose-a-layout","overview-small-screen":"ref-choose-a-layout"},
  "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-rogue":"ref-your-class-in-the-column","hud-shaman":"ref-your-class-in-the-column","hud-druid":"ref-your-class-in-the-column","hud-scale":"ref-scale-the-hud"},

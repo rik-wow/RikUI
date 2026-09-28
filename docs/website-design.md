@@ -139,7 +139,7 @@ time, and without scripting the default frame shows alone), and one whose
 address is `mockup` places the catalogued SVG illustration named by its alt
 text. The build fails when a page's captures (or, for pages without captures,
 its catalogued surfaces) are not each placed exactly once, so there is no
-detached gallery. Forty-eight guides and the overview page currently use the 212 Lua captures (220
+detached gallery. Forty-eight guides and the overview page currently use the 221 Lua captures (229
 images, four of them setting sequences), including every getting-started, combat, everyday,
 notification, questing, window and control guide except combat text and the world map; those 2 feature guides still use illustrative SVGs,
 whose sample values and conditional native surfaces are not evidence of a live

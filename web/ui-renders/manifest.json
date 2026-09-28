@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T17:38:09.951666+00:00",
-  "addonCommit": "d549fc9cb1e7ae2f26a970f1d969e76112bf8435",
+  "capturedAt": "2026-09-28T17:51:46.236975+00:00",
+  "addonCommit": "a766bb81a1e5752e11322ed246298596c5ce75da",
   "addonFiles": {
     "Bindings.xml": "f4de3bf073de7728bb45ceb353ffaeb1edc50eea3704a26743ef60887bbcb5e0",
     "RikUI.toc": "52bd13c43576ded42a9957dac09d9ada13cedeff7193ff5a0affe4073252be8e",
@@ -372,7 +372,7 @@
       "source": "casc-local-or-cdn",
       "fallback": "none"
     },
-    "verifiedAt": "2026-09-28T17:38:08.710346+00:00"
+    "verifiedAt": "2026-09-28T17:51:44.914916+00:00"
   },
   "renderer": {
     "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
@@ -13490,6 +13490,581 @@
         "questing"
       ],
       "reviewedSha256": "124b3653eb66d24727802c1f82215924ce3160b365c61ebbf8799eaae7259412"
+    },
+    {
+      "id": "options-search",
+      "page": "options",
+      "title": "Settings search",
+      "frame": "RikUIOptionsPanel",
+      "crop": "800x600+624+276",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"general\")\nRikRenderOptionsSearch(\"bags columns\")\nRikRenderResize(RikUIOptionsPanel)\n",
+      "expectText": [
+        "bags columns",
+        "Bag columns"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 14,
+        "root": {
+          "x": 644.0,
+          "y": 296.0,
+          "w": 760.0,
+          "h": 560.0
+        },
+        "uniqueColors": 2623
+      },
+      "sha256": "97e69ed3fe1dcb581d5f26d0077c6d7ded4276f649cfc57389cb2fd6feb15b36",
+      "bytes": 18266,
+      "fixtureSha256": "3ddc2dcf7b707facf7bd45bc7fd6e91d8b84cf2d6a2f2f46cc753454455a0cae",
+      "filename": "options-search.webp",
+      "width": 800,
+      "height": 600,
+      "inputs": {
+        "script": "6f35ce28e444b019950489fb4bad20b08584023863400c099f07ca72764a17a9",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "4f808d90487fa4bba2eefed9186d0b3394b8017590695e8eb8e43e4668312a65",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "optionsrows",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "97e69ed3fe1dcb581d5f26d0077c6d7ded4276f649cfc57389cb2fd6feb15b36"
+    },
+    {
+      "id": "options-pending",
+      "page": "options",
+      "title": "Pending reload",
+      "frame": "RikUIOptionsPanel",
+      "crop": "800x600+624+276",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"general\")\nRikRenderPendingReload()\nRikRenderResize(RikUIOptionsPanel)\n",
+      "expectText": [
+        "Reload UI",
+        "needs reload"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 15,
+        "root": {
+          "x": 644.0,
+          "y": 296.0,
+          "w": 760.0,
+          "h": 560.0
+        },
+        "uniqueColors": 2391
+      },
+      "sha256": "f36b27aac2cece4a4aad02a774cad0c81f9a77921718c78c1b23ff99356c00cf",
+      "bytes": 18200,
+      "fixtureSha256": "db0043e4581c955d8214df85e68092f9d6a07d284442560006de3975cf7356e7",
+      "filename": "options-pending.webp",
+      "width": 800,
+      "height": 600,
+      "inputs": {
+        "script": "a7a08ecd36ec62400cc8b9d2108fa48abb0bd92991f6d288b0f86a9c987f0f89",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "8ba5a3e50bcb74f487dcbf560848e07c756e22ba5b2bc84b4bdde4e6a46010c3",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "optionsrows",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "f36b27aac2cece4a4aad02a774cad0c81f9a77921718c78c1b23ff99356c00cf"
+    },
+    {
+      "id": "options-confirm",
+      "page": "options",
+      "title": "Profile confirmation",
+      "frame": "RikRenderProfileConfirm",
+      "crop": "570x170+739+491",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"profiles\")\nRikRenderSecondProfile(\"Healer\")\nRikRenderOptionsConfirm(\"profiles\", \"delete\")\nRikRenderSettingsRows(\"profiles\", \"Delete\", \"RikRenderProfileConfirm\", 570, 170)\n",
+      "expectText": [
+        "Delete Healer?",
+        "Confirm"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 79,
+        "root": {
+          "x": 739.0,
+          "y": 491.0,
+          "w": 570.0,
+          "h": 170.0
+        },
+        "uniqueColors": 787
+      },
+      "sha256": "59fd559da9ce5f95aaab9e40e32dc68bcb333e5caa05506c73b06292a630ed90",
+      "bytes": 5480,
+      "fixtureSha256": "fba9653ad7b77ea794cd583bc2a9a7e98ed4425a2198917710fb8e2f8b575cdb",
+      "filename": "options-confirm.webp",
+      "width": 570,
+      "height": 170,
+      "inputs": {
+        "script": "6cbe9ca955c7892d256ef647397206b95d5d3ae5ccb364b1e49d420eee10ea17",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "c1ea3767351972a4f58e309a18f7dc21ae54b815b4af97ee48c1c108dffc8d33",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "optionsrows",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "59fd559da9ce5f95aaab9e40e32dc68bcb333e5caa05506c73b06292a630ed90"
+    },
+    {
+      "id": "shell-launcher",
+      "page": "shell",
+      "title": "Minimap launcher",
+      "frame": "RikRenderLauncherGroup",
+      "crop": "260x310+1722+0",
+      "world": {
+        "plate": "goldshire-road"
+      },
+      "fixtures": [],
+      "lua": "RikRenderLauncher(\"RikRenderLauncherGroup\", 1722, 842, 260, 310)\n",
+      "expectText": [
+        "RikUI",
+        "Goldshire"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 4,
+        "root": {
+          "x": 1722.0,
+          "y": 0.0,
+          "w": 260.0,
+          "h": 310.0
+        },
+        "uniqueColors": 4639
+      },
+      "sha256": "65fb90e98383f0e79921429e338f3353b95f921ded8d9029869992b4881dad4a",
+      "bytes": 24870,
+      "fixtureSha256": "1a3f278b12f8405613580d5a2e2c3123c12de28fe589c1412b6e8df0700631cc",
+      "filename": "shell-launcher.webp",
+      "width": 260,
+      "height": 310,
+      "plate": {
+        "plate": "goldshire-road",
+        "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+        "appCommit": "c521c9323bb98a6d43cfc5f3836c71ac0f525c8f",
+        "camera": {
+          "x": 8,
+          "y": 65.61634414672838,
+          "z": 9502,
+          "yaw": 0.9994588469612697,
+          "pitch": -0.08597929644384962,
+          "fov": 62
+        },
+        "captured": "2026-09-28T00:55:06.916Z"
+      },
+      "inputs": {
+        "script": "f2f4244e8bdb5ae9f15a23870b2718c306ba4016cac2270b308317e9fbb267f9",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "world": {
+          "plate": "goldshire-road",
+          "sha256": "8e0cb7795dc1ab74e418ee66e0678c5e4e836301efe346bcdb247c3513a5a6b5",
+          "composite": "5877822464aa89d9c914e45b21b5986b0a927533dd256bcde4c145f7b19f4c21"
+        },
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "6c0d9fc62fd92abaecdb19d4213e9d786f19827dfe3c900b3005f6d29578c714",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "65fb90e98383f0e79921429e338f3353b95f921ded8d9029869992b4881dad4a"
+    },
+    {
+      "id": "shell-interface",
+      "page": "shell",
+      "title": "Interface actions",
+      "frame": "RikRenderShellInterface",
+      "crop": "320x250+864+451",
+      "fixtures": [],
+      "lua": "RikRenderShellGroup(\"Interface\", \"RikRenderShellInterface\", 320, 250)\n",
+      "expectText": [
+        "Interface",
+        "Move frames"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 20,
+        "root": {
+          "x": 864.0,
+          "y": 451.0,
+          "w": 320.0,
+          "h": 250.0
+        },
+        "uniqueColors": 732
+      },
+      "sha256": "2af3744e550ad291639078578aa1df450166f69bf4ef247ce3b2f371102e1284",
+      "bytes": 6226,
+      "fixtureSha256": "41f1112b96cf0f4061c6557e52787b1197f5fcafe227c3d4e6d3b0249774163e",
+      "filename": "shell-interface.webp",
+      "width": 320,
+      "height": 250,
+      "inputs": {
+        "script": "c4561730f1597011cffcbecb71cc50c23dd006eb9712263d6eb0c797e7c4c279",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "1f4b54885dafd408e96d87fb4d21a599033e1fe39e1f20887e77101c849c8058",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "2af3744e550ad291639078578aa1df450166f69bf4ef247ce3b2f371102e1284"
+    },
+    {
+      "id": "shell-tools",
+      "page": "shell",
+      "title": "Tools actions",
+      "frame": "RikRenderShellTools",
+      "crop": "320x140+864+506",
+      "fixtures": [],
+      "lua": "RikRenderShellGroup(\"Tools\", \"RikRenderShellTools\", 320, 140)\n",
+      "expectText": [
+        "Tools"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 20,
+        "root": {
+          "x": 864.0,
+          "y": 506.0,
+          "w": 320.0,
+          "h": 140.0
+        },
+        "uniqueColors": 583
+      },
+      "sha256": "4ea9eb084966472888c28d7b00817741d3197e4497c285782b9b7d7901ece840",
+      "bytes": 2972,
+      "fixtureSha256": "71761b9512ee3ad2a7d32bf02f48d4ed91bcafd2e76b2d00b2439d5d408bdd60",
+      "filename": "shell-tools.webp",
+      "width": 320,
+      "height": 140,
+      "inputs": {
+        "script": "2edf11cb64d5e20b651e570badeae5d0680cecd2f0cd754ebb43474974e85d70",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "e26063dc53f115b84c1fc9b4d54dc4e49d105a391f26b064a701d9a2c8772ec2",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "4ea9eb084966472888c28d7b00817741d3197e4497c285782b9b7d7901ece840"
+    },
+    {
+      "id": "shell-support",
+      "page": "shell",
+      "title": "Support actions",
+      "frame": "RikRenderShellSupport",
+      "crop": "320x160+864+496",
+      "fixtures": [],
+      "lua": "RikRenderShellGroup(\"Support\", \"RikRenderShellSupport\", 320, 160)\n",
+      "expectText": [
+        "Support",
+        "Reload interface"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 20,
+        "root": {
+          "x": 864.0,
+          "y": 496.0,
+          "w": 320.0,
+          "h": 160.0
+        },
+        "uniqueColors": 719
+      },
+      "sha256": "35aa3e67ce370b6399c3dd37bae04dde231406e161e83b223827f46167f81142",
+      "bytes": 4406,
+      "fixtureSha256": "6c4b1a67765e947d079af8ba54d6f77085b5de108695a370e316611f6510e292",
+      "filename": "shell-support.webp",
+      "width": 320,
+      "height": 160,
+      "inputs": {
+        "script": "8a76ae4602789aed3206311745f0c9b4d698e2bad28c3c6ad4c98e4932280a5c",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "7ccddfb7e99f2709af8c550643bf9981db2a926812b5c2a9687edad75c9640f2",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "35aa3e67ce370b6399c3dd37bae04dde231406e161e83b223827f46167f81142"
+    },
+    {
+      "id": "sharing-library",
+      "page": "sharing",
+      "title": "Preset library",
+      "frame": "RikRenderPresetLibrary",
+      "crop": "570x170+739+491",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"setup\")\nRikRenderImportedPreset(\"Mira's Retribution\")\nRikRenderSettingsRows(\"setup\", \"Imported presets\", \"RikRenderPresetLibrary\", 570, 170)\n",
+      "expectText": [
+        "Imported presets",
+        "Mira's Retribution"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 66,
+        "root": {
+          "x": 739.0,
+          "y": 491.0,
+          "w": 570.0,
+          "h": 170.0
+        },
+        "uniqueColors": 1386
+      },
+      "sha256": "43d8bf1d2aa02c32f05766ff6f4f211f859e4a4b316c4abf5efcab4004077271",
+      "bytes": 11200,
+      "fixtureSha256": "4015220c64d5292e795c9fde6c91d3c662242445818d4f6a6023a9af5b8ab02a",
+      "filename": "sharing-library.webp",
+      "width": 570,
+      "height": 170,
+      "inputs": {
+        "script": "110f5c68bf22e7c8e8b25c9bcd2991797b16a287b8eff1ad0e35cb3b1ba63f9c",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "ae1b5e16e620647248bf97e61f3dc212d4e93b2040bd11adc96d1d01d870dd7d",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "optionsrows",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "43d8bf1d2aa02c32f05766ff6f4f211f859e4a4b316c4abf5efcab4004077271"
+    },
+    {
+      "id": "sharing-remove",
+      "page": "sharing",
+      "title": "Remove imported preset",
+      "frame": "RikRenderPresetRemove",
+      "crop": "570x212+739+470",
+      "fixtures": [],
+      "lua": "RikRenderSettingsPage(\"setup\")\nRikRenderImportedPreset(\"Mira's Retribution\")\nRikRenderOptionsConfirm(\"setup\", \"removePreset\")\nRikRenderSettingsRows(\"setup\", \"Imported presets\", \"RikRenderPresetRemove\", 570, 212)\n",
+      "expectText": [
+        "Confirm",
+        "Mira's Retribution"
+      ],
+      "diagnostics": {
+        "visibleTextCount": 68,
+        "root": {
+          "x": 739.0,
+          "y": 470.0,
+          "w": 570.0,
+          "h": 212.0
+        },
+        "uniqueColors": 1956
+      },
+      "sha256": "71ad7544768a7b9962d6588ffb80ee6d8fd824a8ffc3d98d2edf177fdf4bcf9c",
+      "bytes": 15266,
+      "fixtureSha256": "45cb6f24f992f000b50be3912ce1f41fe5fb8ad07bdf8d591586a0c5c9b72daa",
+      "filename": "sharing-remove.webp",
+      "width": 570,
+      "height": 212,
+      "inputs": {
+        "script": "8114355ecece06287ec2566992984a7eee132c6a00e6446ece41b5c1729633f2",
+        "seed": "ec84e45025e3b59ef05082fcb8acfcf38f90d7bca7d0433561d83ffb0d18ad1c",
+        "addon": "f5962d424183e2c73fa2c8e1a1cee703f1177bdad868556d3a8c6535676d521b",
+        "validator": "c476cb6f9fa2327c2468e1137813da1baa00df91c8571fbdcc41a3b1c84966f2",
+        "renderer": {
+          "binary": "e56ac67c16da47ef356fa1ba0f6799cb2eb3abeff0f34fa970a902831cf4d2cf",
+          "patch": "b68da3f5f04f9b78fbb05b8effb1c4a6c463da12874428b6873b1ad9dc35a877",
+          "commit": "6a1d81b1c5a1f9771a1b1a7aec6c1361753b3d3f"
+        },
+        "client": {
+          "version": "1.60.1.70009",
+          "foreverCommit": "bd2470aed543f72697a044e989285b6c83e63f73",
+          "executableSha256": "5c00a0df416c5a94827617d9f11ad583273b0c109c7b543020edef1f8cb1fa92"
+        }
+      },
+      "key": "a6b154a6006ecfa1d606b3a48e7618ccbcbd4c99b69b2736d8f52b2ee0124b18",
+      "modules": [
+        "auras",
+        "bags",
+        "character",
+        "chat",
+        "core",
+        "hud",
+        "layout",
+        "minimap",
+        "optionsrows",
+        "progress",
+        "questing",
+        "settings",
+        "windows"
+      ],
+      "reviewedSha256": "71ad7544768a7b9962d6588ffb80ee6d8fd824a8ffc3d98d2edf177fdf4bcf9c"
     }
   ]
 }

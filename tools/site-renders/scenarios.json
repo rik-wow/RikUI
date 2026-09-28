@@ -150,6 +150,45 @@
     ]
   },
   {
+    "id": "options-search",
+    "page": "options",
+    "title": "Settings search",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"general\")\nRikRenderOptionsSearch(\"bags columns\")\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "bags columns",
+      "Bag columns"
+    ]
+  },
+  {
+    "id": "options-pending",
+    "page": "options",
+    "title": "Pending reload",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"general\")\nRikRenderPendingReload()\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "Reload UI",
+      "needs reload"
+    ]
+  },
+  {
+    "id": "options-confirm",
+    "page": "options",
+    "title": "Profile confirmation",
+    "frame": "RikRenderProfileConfirm",
+    "crop": "570x170+739+491",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"profiles\")\nRikRenderSecondProfile(\"Healer\")\nRikRenderOptionsConfirm(\"profiles\", \"delete\")\nRikRenderSettingsRows(\"profiles\", \"Delete\", \"RikRenderProfileConfirm\", 570, 170)\n",
+    "expectText": [
+      "Delete Healer?",
+      "Confirm"
+    ]
+  },
+  {
     "id": "units-player",
     "page": "unitframes",
     "title": "Player",
@@ -473,6 +512,60 @@
     "lua": "RikUI.Shell.Open()\nRikRenderCenter(RikUIUtilityPanel)\nRikRenderResize(RikUIUtilityPanel)\n"
   },
   {
+    "id": "shell-launcher",
+    "page": "shell",
+    "title": "Minimap launcher",
+    "frame": "RikRenderLauncherGroup",
+    "crop": "260x310+1722+0",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderLauncher(\"RikRenderLauncherGroup\", 1722, 842, 260, 310)\n",
+    "expectText": [
+      "RikUI",
+      "Goldshire"
+    ]
+  },
+  {
+    "id": "shell-interface",
+    "page": "shell",
+    "title": "Interface actions",
+    "frame": "RikRenderShellInterface",
+    "crop": "320x250+864+451",
+    "fixtures": [],
+    "lua": "RikRenderShellGroup(\"Interface\", \"RikRenderShellInterface\", 320, 250)\n",
+    "expectText": [
+      "Interface",
+      "Move frames"
+    ]
+  },
+  {
+    "id": "shell-tools",
+    "page": "shell",
+    "title": "Tools actions",
+    "frame": "RikRenderShellTools",
+    "crop": "320x140+864+506",
+    "fixtures": [],
+    "lua": "RikRenderShellGroup(\"Tools\", \"RikRenderShellTools\", 320, 140)\n",
+    "expectText": [
+      "Tools"
+    ]
+  },
+  {
+    "id": "shell-support",
+    "page": "shell",
+    "title": "Support actions",
+    "frame": "RikRenderShellSupport",
+    "crop": "320x160+864+496",
+    "fixtures": [],
+    "lua": "RikRenderShellGroup(\"Support\", \"RikRenderShellSupport\", 320, 160)\n",
+    "expectText": [
+      "Support",
+      "Reload interface"
+    ]
+  },
+  {
     "id": "sharing-export",
     "page": "sharing",
     "title": "Exporting a profile",
@@ -489,6 +582,32 @@
     "crop": "700x480+674+336",
     "fixtures": [],
     "lua": "assert(RikUI.Sharing.OpenProfileImport())\nRikRenderCenter(RikUISharing)\n"
+  },
+  {
+    "id": "sharing-library",
+    "page": "sharing",
+    "title": "Preset library",
+    "frame": "RikRenderPresetLibrary",
+    "crop": "570x170+739+491",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"setup\")\nRikRenderImportedPreset(\"Mira's Retribution\")\nRikRenderSettingsRows(\"setup\", \"Imported presets\", \"RikRenderPresetLibrary\", 570, 170)\n",
+    "expectText": [
+      "Imported presets",
+      "Mira's Retribution"
+    ]
+  },
+  {
+    "id": "sharing-remove",
+    "page": "sharing",
+    "title": "Remove imported preset",
+    "frame": "RikRenderPresetRemove",
+    "crop": "570x212+739+470",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"setup\")\nRikRenderImportedPreset(\"Mira's Retribution\")\nRikRenderOptionsConfirm(\"setup\", \"removePreset\")\nRikRenderSettingsRows(\"setup\", \"Imported presets\", \"RikRenderPresetRemove\", 570, 212)\n",
+    "expectText": [
+      "Confirm",
+      "Mira's Retribution"
+    ]
   },
   {
     "id": "chat-copy",

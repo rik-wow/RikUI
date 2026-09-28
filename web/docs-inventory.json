@@ -3359,6 +3359,69 @@
       "title": "1366x768 screen",
       "width": 1366,
       "height": 768
+    },
+    {
+      "id": "options-search",
+      "page": "options",
+      "title": "Settings search",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-pending",
+      "page": "options",
+      "title": "Pending reload",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-confirm",
+      "page": "options",
+      "title": "Profile confirmation",
+      "width": 570,
+      "height": 170
+    },
+    {
+      "id": "shell-launcher",
+      "page": "shell",
+      "title": "Minimap launcher",
+      "width": 260,
+      "height": 310
+    },
+    {
+      "id": "shell-interface",
+      "page": "shell",
+      "title": "Interface actions",
+      "width": 320,
+      "height": 250
+    },
+    {
+      "id": "shell-tools",
+      "page": "shell",
+      "title": "Tools actions",
+      "width": 320,
+      "height": 140
+    },
+    {
+      "id": "shell-support",
+      "page": "shell",
+      "title": "Support actions",
+      "width": 320,
+      "height": 160
+    },
+    {
+      "id": "sharing-library",
+      "page": "sharing",
+      "title": "Preset library",
+      "width": 570,
+      "height": 170
+    },
+    {
+      "id": "sharing-remove",
+      "page": "sharing",
+      "title": "Remove imported preset",
+      "width": 570,
+      "height": 212
     }
   ]
 }
