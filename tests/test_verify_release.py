@@ -57,6 +57,25 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsafe"):
             self.verify()
 
+    def test_packager_ignores_everything_that_is_not_runtime(self):
+        """The BigWigs packager copies every tracked path .pkgmeta does not ignore, so a new
+        development folder has to be listed there or the release gate stops the release."""
+        import subprocess
+        project = package_addon.PROJECT
+        tracked = subprocess.run(["git", "ls-files"], cwd=project, check=True, capture_output=True,
+                                 text=True).stdout.split("\n")
+        # The packager skips dot files and dot folders by itself.
+        tops = {name.split("/")[0] for name in tracked
+                if name and not any(part.startswith(".") for part in name.split("/"))}
+        paths, _ = package_addon.inventory(project)
+        runtime = {name.split("/")[0] for name in paths} | {"CHANGELOG.md"}
+        ignored = set()
+        for line in (project / ".pkgmeta").read_text(encoding="utf-8").splitlines():
+            entry = line.strip()
+            if entry.startswith("- "):
+                ignored.add(entry[2:].strip().strip('"').split("/")[0])
+        self.assertEqual(sorted(tops - runtime - ignored), [])
+
     def test_line_endings_are_portable(self):
         self.archive(lambda files: files.update({
             "RikUI/src/core/core.lua": files["RikUI/src/core/core.lua"].replace(b"\n", b"\r\n")}))

@@ -22,6 +22,7 @@ ignore:
   - SDD.md
   - workbench.toml
   - RikProbe
+  - automation
   - docs
   - tests
   - tools
