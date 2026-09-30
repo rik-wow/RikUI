@@ -213,7 +213,7 @@ index 7e46d2e..22db83b 100644
 +2212715;interface/worldmap/elwynn/stormwind3.blp
 +2212716;interface/worldmap/elwynn/stormwind4.blp
 diff --git a/data/wow-ui-sim-listfile.csv b/data/wow-ui-sim-listfile.csv
-index e7b431c..2985569 100644
+index e7b431c..67a79ca 100644
 --- a/data/wow-ui-sim-listfile.csv
 +++ b/data/wow-ui-sim-listfile.csv
 @@ -1,23 +1,9 @@
@@ -387,7 +387,27 @@ index e7b431c..2985569 100644
  5612683;interface/addons/blizzard_unitframe/wrath/alternatepowerbar.lua
  8263018;interface/addons/Blizzard_UnitPopup/Blizzard_UnitPopup.toc
  6716594;interface/addons/blizzard_unitpopup/blizzard_unitpopup_mainline.toc
-@@ -146359,3 +146364,18 @@
+@@ -92750,6 +92755,8 @@
+ 137138;interface/worldmap/elwynn/elwynnhighlight.blp
+ 271576;interface/worldmap/elwynn/fargodeepmine1.blp
+ 438414;interface/worldmap/elwynn/fargodeepmine2.blp
++2212708;interface/worldmap/elwynn/forestsedge1.blp
++2212709;interface/worldmap/elwynn/forestsedge2.blp
+ 271567;interface/worldmap/elwynn/goldshire1.blp
+ 438415;interface/worldmap/elwynn/goldshire2.blp
+ 271582;interface/worldmap/elwynn/jerodslanding1.blp
+@@ -92763,6 +92770,10 @@
+ 271565;interface/worldmap/elwynn/stonecairnlake2.blp
+ 438419;interface/worldmap/elwynn/stonecairnlake3.blp
+ 438420;interface/worldmap/elwynn/stonecairnlake4.blp
++2212713;interface/worldmap/elwynn/stormwind1.blp
++2212714;interface/worldmap/elwynn/stormwind2.blp
++2212715;interface/worldmap/elwynn/stormwind3.blp
++2212716;interface/worldmap/elwynn/stormwind4.blp
+ 438421;interface/worldmap/elwynn/stromwind1.blp
+ 438422;interface/worldmap/elwynn/stromwind2.blp
+ 438423;interface/worldmap/elwynn/stromwind3.blp
+@@ -146359,3 +146370,12 @@
  567407;sound/interface/uchatscrollbutton.ogg
  567464;sound/interface/uescapescreenclose.ogg
  567490;sound/interface/uescapescreenopen.ogg
@@ -400,12 +420,6 @@ index e7b431c..2985569 100644
 +204493;world/minimaps/azeroth/map32_48.blp
 +204494;world/minimaps/azeroth/map32_49.blp
 +204495;world/minimaps/azeroth/map32_50.blp
-+2212708;interface/worldmap/elwynn/forestsedge1.blp
-+2212709;interface/worldmap/elwynn/forestsedge2.blp
-+2212713;interface/worldmap/elwynn/stormwind1.blp
-+2212714;interface/worldmap/elwynn/stormwind2.blp
-+2212715;interface/worldmap/elwynn/stormwind3.blp
-+2212716;interface/worldmap/elwynn/stormwind4.blp
 diff --git a/src/bin/wow_sim/gui_commands.rs b/src/bin/wow_sim/gui_commands.rs
 index 38c5046..8421cdc 100644
 --- a/src/bin/wow_sim/gui_commands.rs
@@ -439,6 +453,40 @@ index 38c5046..8421cdc 100644
      if let Err(e) = std::fs::write(&output, &*mem) {
          eprintln!("Failed to save WebP: {}", e);
          std::process::exit(1);
+diff --git a/src/c_api/c_gamepad_ui.rs b/src/c_api/c_gamepad_ui.rs
+index 9823e82..5e2e18a 100644
+--- a/src/c_api/c_gamepad_ui.rs
++++ b/src/c_api/c_gamepad_ui.rs
+@@ -1,4 +1,4 @@
+-//! Forever Gamepad views use the existing logical pet-action slot space.
++//! Forever Gamepad views use isolated logical action slots and existing pet slots.
+ 
+ use crate::lua_api::state::FIRST_PET_ACTION_SLOT;
+ use crate::lua_bridge::table_set_rust_fn_static;
+@@ -7,6 +7,12 @@ use rilua::{LuaResult, Val};
+ 
+ pub(super) fn register(state: &mut LuaState) -> LuaResult<()> {
+     let table = super::helpers::ensure_namespace(state, "C_GamepadUI")?;
++    table_set_rust_fn_static(
++        state,
++        table,
++        "GetFirstGamepadActionStorageSlotIndex",
++        first_action_slot,
++    )?;
+     table_set_rust_fn_static(
+         state,
+         table,
+@@ -19,3 +25,10 @@ fn first_pet_slot(state: &mut LuaState) -> LuaResult<u32> {
+     state.push(Val::Num(FIRST_PET_ACTION_SLOT as f64));
+     Ok(1)
+ }
++
++// A synthetic, empty action range separate from the simulator's keyboard bars.
++// The current API requires a non-nil luaIndex; native numbering is unverified.
++fn first_action_slot(state: &mut LuaState) -> LuaResult<u32> {
++    state.push(Val::Num(1001.0));
++    Ok(1)
++}
 diff --git a/src/cvars.rs b/src/cvars.rs
 index b15e83f..e789097 100644
 --- a/src/cvars.rs
@@ -923,3 +971,40 @@ index ce2cb88..92b7d6d 100644
      // Premultiplied alpha output: pipeline uses src + dst * (1 - src.a).
      // Standard alpha: premultiply color by alpha for correct blending.
      // Additive: premultiply then zero alpha so dst is fully preserved (src + dst).
+diff --git a/tests/wowforever_gamepad_storage.rs b/tests/wowforever_gamepad_storage.rs
+new file mode 100644
+index 0000000..e13f037
+--- /dev/null
++++ b/tests/wowforever_gamepad_storage.rs
+@@ -0,0 +1,31 @@
++//! Current unmodified Forever binding code must initialize every standard page.
++use wow_ui_sim::lua_api::WowLuaEnv;
++
++#[test]
++#[cfg(feature = "client-wowforever")]
++fn standard_pages_use_non_nil_isolated_storage() {
++    let env = WowLuaEnv::new().unwrap();
++    let source = wow_ui_sim::blizzard_ui_sync::default_cache_addons_path()
++        .unwrap()
++        .join("Blizzard_GamepadActionBars/ActionBindingUtil.lua");
++    env.exec(&std::fs::read_to_string(source).unwrap()).unwrap();
++    env.exec(r#"
++        local seen = {}
++        local first = C_GamepadUI.GetFirstGamepadActionStorageSlotIndex()
++        assert(type(first) == 'number' and first > 180)
++        for page = 1, Constants.GamepadActionBarConstants.NUM_STANDARD_PAGES_PER_GAMEPAD_ACTION_BAR_PAGE_UNIT do
++            for slot = 1, Constants.GamepadActionBarConstants.NUM_PAGEABLE_SLOTS_PER_GAMEPAD_ACTION_BAR_PAGE_UNIT_STANDARD_PAGE do
++                local storage = GamepadActionBarBindingUtil.GetGamepadStorageSlotIndexFromPageAndPageUnitSlotID(page, slot)
++                if GamepadActionBarBindingUtil.IsBindablePageUnitSlotID(slot) then
++                    assert(type(storage) == 'number' and storage >= first and storage < first + 84)
++                    assert(not seen[storage]); seen[storage] = true
++                    assert(GetActionInfo(storage) == nil)
++                else
++                    assert(storage == nil)
++                end
++            end
++        end
++        local count = 0; for _ in pairs(seen) do count = count + 1 end
++        assert(count == 84)
++    "#).unwrap();
++}

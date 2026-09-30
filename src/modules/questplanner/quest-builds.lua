@@ -22,6 +22,17 @@ planner.Builds = builds
 local QUEST_DATA = {
     ["1.60.1.69977"] = "1.60.1.69913",
     ["1.60.1.70009"] = "1.60.1.69913",
+    ["1.60.1.70124"] = "1.60.1.69913",
+}
+
+-- Reviewed 2026-09-29 against the current Forever head and installed client:
+-- 70124's 14,291 extracted navigation assets and all ten geometry/travel DB2
+-- exports are byte-identical to the reviewed 70009 inputs. QuestV2 retains
+-- all 6,605 records unchanged. These are verified mappings, not build targets.
+-- Full evidence and coverage limits: tools/terrain/ROADS.md.
+local NAVIGATION_DATA = {
+    ["1.60.1.70009"] = "1.60.1.70009",
+    ["1.60.1.70124"] = "1.60.1.70009",
 }
 
 -- The build of the supported quest corpus, not the terrain geometry.
@@ -34,10 +45,11 @@ local clientBuild
 function builds.Client() return clientBuild end
 function builds.Observe(build) clientBuild = QUEST_DATA[build] and build or nil end
 
--- Navigation must use freshly compiled 70009 geometry and travel coordinates.
 -- Keep the quest snapshot immutable and preserve product/locale admission.
+-- Only separately verified navigation mappings can select a geometry build.
 function builds.NavigationIdentity(identity)
-    if clientBuild ~= "1.60.1.70009" or not identity or identity.product ~= "forever"
+    local navigationBuild = NAVIGATION_DATA[clientBuild]
+    if not navigationBuild or not identity or identity.product ~= "forever"
         or identity.build ~= "1.60.1.69913" then return identity end
-    return {product=identity.product, build=clientBuild, locale=identity.locale}
+    return {product=identity.product, build=navigationBuild, locale=identity.locale}
 end

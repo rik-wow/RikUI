@@ -11,6 +11,22 @@ tagging.
 
 Nothing yet.
 
+## 1.0.0-beta.2
+
+2026-09-29. Compatible with WoW: Forever beta **1.60.1.70124** (interface
+16001), verified against the current Blizzard UI source and installed client.
+
+- Admit the current build to the supported quest subset and the locally installed
+  road network. Its 6,605 QuestV2 records, 14,291 extracted navigation assets and
+  ten geometry/travel DB2 tables are unchanged from the previous reviewed inputs.
+  Historical data provenance is preserved; unknown future builds remain unverified.
+- Refresh and review the Lua UI captures using the current client inputs; run the
+  addon, render and packaging checks before publication.
+
+The public ZIP still contains the addon without quest and road datasets; their
+public distribution remains pending [licensing review](docs/corpus-licensing.md).
+No gameplay regression was reported for this update.
+
 ## 1.0.0-beta.1
 
 2026-09-28. The first public build: a beta for the WoW: Forever beta (interface

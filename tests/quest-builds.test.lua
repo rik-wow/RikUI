@@ -22,6 +22,20 @@ return function(check)
       {product='forever',build='1.60.1.70000',locale='enUS'}}) do
    check('unverified identity is never converted',builds.NavigationIdentity(other)==other)
   end
+  builds.Observe('1.60.1.70124')
+  local current={product='forever',build=builds.DataBuild('1.60.1.70124'),locale='enUS'}
+  local currentNavigation=builds.NavigationIdentity(current)
+  check('70124 retains the verified quest subset',current.build=='1.60.1.69913')
+  check('70124 retains the actual client identity',builds.Client()=='1.60.1.70124')
+  check('70124 admits byte-identical 70009 navigation',currentNavigation.build=='1.60.1.70009')
+  check('70124 does not mutate quest provenance',current.build=='1.60.1.69913' and currentNavigation~=current)
+  check('70124 preserves locale',builds.NavigationIdentity(locale).locale=='deDE')
+  for _,other in ipairs({{product='other',build='1.60.1.69913',locale='enUS'},
+      {product='forever',build='1.60.1.70000',locale='enUS'}}) do
+   check('70124 never converts unrelated identities',builds.NavigationIdentity(other)==other)
+  end
+  builds.Observe('1.60.1.70125')
+  check('an unverified future build clears prior admission',builds.Client()==nil and builds.NavigationIdentity(current)==current)
   builds.Observe('1.60.1.69977')
   check('byte-identical client still uses original navigation',builds.NavigationIdentity(quest)==quest)
   builds.Observe('1.60.1.69913')

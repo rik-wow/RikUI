@@ -217,6 +217,19 @@ def set_addon_state(sim_root, names, enabled):
     lines.extend(f"{name}: {'enabled' if enabled else 'disabled'}" for name in names)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+def isolate_addons(sim_root, wow_root, source=None):
+    """The simulator discovers installed/bundled addons even with an override path."""
+    source = source or sim_root / "source"
+    roots = (sim_root / "addons", wow_root / "_classic_beta_/Interface/AddOns",
+             source / "Interface/AddOns", source / "target/debug/Interface/AddOns")
+    names = {"Admin", "SimCommands", "TestFramework"}
+    for root in roots:
+        if root.is_dir():
+            names.update(path.name for path in root.iterdir()
+                         if path.is_dir() and not path.name.startswith("Blizzard_"))
+    set_addon_state(sim_root, sorted(names), False)
+    set_addon_state(sim_root, ["RikUI", "A_RikUIPreview"], True)
+
 def stage_corpus(sim_root, wow_root, wanted):
     """Copy the generated corpus, road data and road patch addons into the render copy for scenarios
     that need them, and take them out again for the rest, so ordinary captures keep the short startup."""
@@ -312,6 +325,7 @@ def main():
     print("Verified current Forever client " + client["version"], flush=True)
     addon_files = verify_addon(sim_root / "addons/RikUI")
     install_seed(sim_root)
+    isolate_addons(sim_root, wow_root)
     output = ROOT / "dist/ui-renders"
     output.mkdir(parents=True, exist_ok=True)
     scenarios = json.loads((FIXTURES / "scenarios.json").read_text(encoding="utf-8"))

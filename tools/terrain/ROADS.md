@@ -105,6 +105,58 @@ reads were identical to 1.60.1.69913, so `quest-builds.lua` maps 69977 to the
 69913 data build instead of rebuilding. A patch that changes sources needs a
 rebake of what they feed.
 
+## Forever 1.60.1.70124 compatibility (2026-09-29)
+
+The current `forever` branch head of
+[Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source/tree/forever)
+was `966519cf0ad2c10301ea011a88c14b25697c9687`, message `1.60.1 (70124)`;
+`version.txt` and the installed `WowB.exe` both report `1.60.1.70124`.
+The current `.build.info` beta row selects BuildConfig
+`dd3dfc2881c407299f46c2aaf34c130b`, CDNConfig
+`43061ca8e9f0e2603c8ab50bcae97c2d`, product `wow_classic_beta`, locale `enUS`.
+These identifiers record this review; they are not future build targets.
+
+Fresh extraction from that configuration with the hash-verified TACTTool
+compared **14,291 of 14,291 navigation assets** with the historical reviewed
+hashes: all identical, none missing. The historical profile supplies the
+comparison IDs and hashes only; every compared byte is extracted from 70124.
+The separate current texture/topology check verifies all 1,888 tex0 ADTs and
+seven WDTs as identical. One texture extraction was initially unavailable;
+a retry under the same current configuration recovered its exact matching hash.
+Current DB2 exports of Map, UiMap, UiMapAssignment, AreaTable,
+LiquidType, TaxiNodes, TaxiPath, TaxiPathNode, TransportAnimation and AreaTrigger
+are byte-identical to the previous reviewed exports. Current
+[QuestV2](https://wago.tools/db2/QuestV2/csv?build=1.60.1.70124) retains all
+6,605 records unchanged; SHA-256
+`4e9b81e10068d1077f145ead18bbe44068e30800646702564499e666a04d9319`.
+
+`quest-builds.lua` therefore admits 70124 to the supported quest subset under
+its original 69913 provenance and selects the verified 70009 navigation
+identity. It preserves the actual client build separately and never mutates
+the quest snapshot. Unverified future builds, other products and mismatched
+navigation identities remain excluded. ID continuity does not establish
+unchanged server quest behavior or complete objective coverage. Data-only
+unknown records stay unknown. The public addon release carries no extracted
+client assets or generated quest/road datasets.
+
+The current Blizzard source changes ten UI files since the previous review,
+mostly map/gamepad cursor handling, the tooltip gamepad guard and item-text
+paging. RikUI's used APIs remain present. Lua regressions exercise both
+addon-load and embedded road catalogs with the observed 70124 client, A*/Dijkstra
+agreement, data provenance, locale/product boundaries and future-build rejection.
+Native gameplay is accepted under the user's standing policy; the source,
+asset, automated and renderer evidence is not a claimed native playtest.
+
+Local review evidence (not distributable client assets):
+
+- `D:/RikUI-local/current-70124-world-verification/verification.json`.
+- `D:/RikUI-local/current-70124-texture-topology-verification/final-verification.json`
+  links the initial report and the exact-current retry evidence.
+- `D:/RikUI-local/current-70124-db2/comparison.json` and current CSV exports.
+- `D:/RikUI-local/current-70124-quest-refresh/comparison.json` and `resolution.json`.
+- Current-client Lua captures and their exact input/image hashes in
+  `web/ui-renders/manifest.json` after review and promotion.
+
 ## Forever 1.60.1.70009 (2026-09-24)
 
 The user's launcher screenshot and installed `.build.info` identify this client:

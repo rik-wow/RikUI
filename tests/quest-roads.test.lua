@@ -3,13 +3,14 @@
 return function(check)
  local saved,savedAddOns=RikUI,C_AddOns
  local ok,why=pcall(function()
-  for _,clientBuild in ipairs({'1.60.1.69913','1.60.1.70009'}) do
+  for _,clientBuild in ipairs({'1.60.1.69913','1.60.1.70009','1.60.1.70124'}) do
+  local navigationBuild=clientBuild=='1.60.1.70124' and '1.60.1.70009' or clientBuild
   RikUI={};RikUI['Secret']={IsSecret=function()return false end}
   for _,name in ipairs({'schema','builds','path-codec','roads','road-route','road-follow'})do dofile('src/modules/questplanner/quest-'..name..'.lua')end
   local p=RikUI.QuestPlanner;local identity={product='forever',build='1.60.1.69913',locale='enUS'}
   p.Builds.Observe(clientBuild)
   local requestIdentity=p.Schema.Clone(identity)
-  identity.build=clientBuild
+  identity.build=navigationBuild
   local ALPHABET='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~'
   local function b85(bytes)
    while #bytes%4~=0 do bytes=bytes..'\0' end
@@ -65,11 +66,11 @@ return function(check)
   local view={uiMapID=1426,projection={originX=1000,originY=1000,width=1000,height=1000},validUIRectangle={0,0,1,1}}
   check('road index installs',p.Roads.InstallIndex({format='rikui-road-index-v1',identity=identity,worlds={{worldMapID=0,revision=revision,addon='RikUIQuestRoads_W0',views={view}}}}))
   check('road index rejects bad format',not p.Roads.InstallIndex({format='x',identity=identity,worlds={}}))
-  if clientBuild=='1.60.1.70009' then
+  if clientBuild~='1.60.1.69913' then
    p.Roads.InstallIndex({format='rikui-road-index-v1',identity=requestIdentity,
        worlds={{worldMapID=0,revision=revision,addon='RikUIQuestRoads_W0',views={view}}}})
    local rejected,reason=p.Roads.Prepare(requestIdentity,0)
-   check('70009 refuses old terrain even with compatible quest data',not rejected and reason=='road-network-identity')
+   check(clientBuild..' refuses old terrain even with compatible quest data',not rejected and reason=='road-network-identity')
    p.Roads.InstallIndex({format='rikui-road-index-v1',identity=identity,
        worlds={{worldMapID=0,revision=revision,addon='RikUIQuestRoads_W0',views={view}}}})
   end
@@ -80,7 +81,7 @@ return function(check)
   check('road graph loads through its addon',graph~=nil and loads==1,state)
   -- Embedded layout: the index names no addon; the catalog is installed at addon load.
   do
-   local embedded={product='forever',build=clientBuild,locale='enUS'}
+   local embedded={product='forever',build=navigationBuild,locale='enUS'}
    local revision2=string.rep('b',64)
    local catalog2=p.Schema.Clone(catalog);catalog2.revision=revision2;catalog2.worldMapID=1;catalog2.identity=embedded
    for name,s in pairs(raw)do p.Roads.Page(revision2,name,1,b85(s[1]))end
