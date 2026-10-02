@@ -7,6 +7,7 @@ const engine=()=>createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,im
 test("dragging native groups settles, snaps and resets without source drift",async({page})=>{
  await page.goto("/studio");await expect(page.locator("#studio-app")).toBeVisible();
  await page.locator("#frame-group").selectOption("main");
+ await expect(page.locator("#geometry")).toHaveText(/main: (\\d+), (\\d+) · (\\d+) × (\\d+)/);
  const before=await page.locator("#geometry").innerText();
  const values=before.match(/main: (\d+), (\d+) · (\d+) × (\d+)/).slice(1).map(Number);
  await page.locator("#game-preview").scrollIntoViewIfNeeded();
