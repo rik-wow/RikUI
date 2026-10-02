@@ -9,6 +9,51 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.4
+
+2026-10-02. Setup Studio for WoW: Forever beta, reviewed against current client
+1.60.1.70170 (interface 16001). These versions record reviewed inputs, not a pinned target.
+
+- Share complete versioned Setup Packs with identity, revision, attribution, remix
+  ancestry, selected modules, ownership, supported appearance, source anchors,
+  viewport, device/activity variants and optional character setup. Legacy profile
+  and action-bar codes remain importable. Imported content is data and cannot run Lua.
+- Adopt appearance, HUD, nameplates, group frames, navigation and inventory separately.
+  Fit desktop, ultrawide and handheld screens with priorities, reservations and
+  explicit crowding conflicts; source packs retain their anchors without drift.
+- Open `/rik studio` for actual-frame try-on, scoped capture controls, theme editing,
+  readability recipes, manual/pinned activities and safe queued transitions.
+  Personal accessibility requirements survive imports and creator updates.
+- Keep creator defaults separate from personal changes. Review three-way update
+  conflicts, accept individual creator changes and recover through three bounded,
+  journaled restore slots. Character bars, macros and selected bindings require
+  separate explicit adoption and protected setup review.
+- Use the reviewed QuestTogether stock-nameplate compatibility recipe, with clear
+  ownership and reserved bubble space. Missing optional addons degrade cleanly.
+  Handheld modifier legends read supported APIs without assigning controller inputs.
+- Redesign rikwow.com around four curated setups, authentic pack pages and an
+  interactive editor. Drag or keyboard-adjust captured groups, undo/redo, select
+  components, themes, readability, device and activity, then export or share a remix.
+  Export an existing addon setup, edit it on the website and import it back.
+- Use the exact addon Lua contract in the browser and conformance fixtures.
+  Game previews use reviewed native component captures; the old public HTML/SVG
+  mock interface and obsolete assets are removed. Uncaptured imported appearance
+  has an explicit geometry-only preview and retains its settings.
+
+This remains a beta. Module, font, text-scale, theme and ownership changes can
+require reload. Representative preview contents can differ from live dynamic
+contents; some frame groups and custom appearance lack exact component captures.
+Capture controls cover only listed RikUI regions. Other names, windows, world
+imagery and addons remain outside their privacy scope. No unrestricted controller
+mapping or foreign-addon styling API is claimed.
+
+Pack payloads are bounded to 12,000 encoded bytes; installed state and independent
+restore banks use the 21,600-byte codec bound. Session editing keeps 20 undo states.
+The public ZIP excludes client source, quest/road datasets, renderer inputs,
+website/editor assets and private records. Current local quest coverage remains
+explicitly partial; no walking-route coverage is inferred. The Windows installer
+is unchanged and is not included in this release.
+
 ## 1.0.0-beta.3
 
 2026-10-02. UI compatibility reviewed with WoW: Forever beta **1.60.1.70170**
