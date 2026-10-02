@@ -3,9 +3,9 @@ export default {
 
 Copy a setup you like, fit your screen and keep personal changes. Open **/rik studio**, or start at [Setup Studio](https://rikwow.com/studio) before installing.
 
-![Setup Studio review](render:studio-controls)
+![Setup Studio review](preview:studio-controls)
 
-Choose a bundled or imported pack, select appearance/HUD/nameplates/group/navigation/inventory, fit, try on and review before Apply. Modules, fonts and themes can require reload. Geometry and activity changes use safe out-of-combat behavior.
+Start with **Use my current UI**, a curated layout or **Import a code**. Use the numbered pages to select parts, choose appearance, fit and preview, then review and apply. The selected theme and readability are highlighted. Frame groups and settings use named choices instead of cycling through hidden values. Modules, fonts and themes can require reload. Geometry and activity changes use safe out-of-combat behavior.
 
 ![Handheld presentation](render:studio-handheld)
 
@@ -15,7 +15,9 @@ Export live lets you edit an existing setup in the browser and import the result
 
 ![Complete live export copy window](render:studio-live-export)
 
-Try-on is temporary. Capture hides selected listed windows and restores their prior visibility on exit; names, world and external addons remain outside its privacy scope.
+![Unobstructed temporary try-on](render:studio-try-on)
+
+Try-on hides the editor and leaves **Back to Studio** at the top of the screen. It is temporary and restores normal presentation on exit. **More tools** contains character operations, restoration and capture. Capture hides selected listed windows and restores their prior visibility on exit; names, world and external addons remain outside its privacy scope.
 
 ![Selective adoption and theme review](render:studio-theme-review)
 

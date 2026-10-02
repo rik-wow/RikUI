@@ -52,6 +52,8 @@ local knownModules = {}
 for _,list in pairs(pack.Modules) do for _,name in ipairs(list) do knownModules[name] = true end end
 local function profile(t)
     local result = RikUI.ProfileSchema.Project(t, false)
+    -- Removed by the unified cooldown strip (5a8b6f1); stale saved flags have no current effect.
+    if result.modules then result.modules.classcooldowns=nil;result.modules.cooldownviewer=nil end
     for name in pairs(result.modules or {}) do if not knownModules[name] then fail("Unsupported pack module: " .. name) end end
     -- Personal records and observations are absent from the schema. Do not include pinned quest identities.
     if result.questtracker and result.questtracker.pins ~= nil then fail("Quest pins are personal; remove them from this pack") end
@@ -116,7 +118,11 @@ local function validate(value)
             if not key:match("^[%w%-]+$") or not action:match("^ACTIONBUTTON%d+$") or tonumber(action:match("%d+$"))<1 or tonumber(action:match("%d+$"))>12 then fail("Only explicit standard action-button bindings are portable") end
         end
     end
-    return pack.Copy(value)
+    local clean=pack.Copy(value)
+    clean.profile=profile(value.profile)
+    if value.adjustments then clean.adjustments=profile(value.adjustments) end
+    for _,kind in ipairs({"activities","devices"})do for name,p in pairs(clean[kind] or {})do clean[kind][name]=profile(p) end end
+    return clean
 end
 function pack.Validate(value)
     local ok,result=pcall(validate,value); if ok then return result end; return nil,tostring(result)

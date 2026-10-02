@@ -25,6 +25,10 @@ function RikUI.SetupPack.Conformance()
     assert(not p.Decode(code:sub(1,-2).."X"))
     local legacy=assert(RikUI.Sharing.Encode("profile",{scale=1.1,modules={chat=false}}))
     assert(p.Import(legacy).profile.modules.chat==false)
+    local retired=p.Copy(sample);retired.profile.modules={classcooldowns=false,cooldownviewer=true,cooldowns=false}
+    local canonical=assert(p.Decode(assert(p.Encode(retired))))
+    assert(canonical.profile.modules.classcooldowns==nil and canonical.profile.modules.cooldownviewer==nil and canonical.profile.modules.cooldowns==false)
+    assert(retired.profile.modules.classcooldowns==false)
     local cyclic={};cyclic.self=cyclic;assert(not p.Validate(cyclic))
-    return {code=code,fitted=RikUI.Codec.Encode(fitted,true),readable=RikUI.Codec.Encode(readable,true),update=RikUI.Codec.Encode(update,true)}
+    return {canonical=assert(p.Encode(canonical)),code=code,fitted=RikUI.Codec.Encode(fitted,true),readable=RikUI.Codec.Encode(readable,true),update=RikUI.Codec.Encode(update,true)}
 end

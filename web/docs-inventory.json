@@ -3182,16 +3182,16 @@
     {
       "id": "studio-controls",
       "page": "setup-studio",
-      "title": "Setup Studio review",
-      "width": 792,
-      "height": 772
+      "title": "Guided Setup Studio pages",
+      "width": 712,
+      "height": 592
     },
     {
       "id": "studio-edit-undo",
       "page": "setup-studio",
       "title": "Frame adjustment and undo",
-      "width": 792,
-      "height": 772
+      "width": 712,
+      "height": 592
     },
     {
       "id": "studio-extra-classic-readable",
@@ -3288,8 +3288,15 @@
       "id": "studio-theme-review",
       "page": "setup-studio",
       "title": "Selective adoption and theme review",
-      "width": 792,
-      "height": 772
+      "width": 712,
+      "height": 592
+    },
+    {
+      "id": "studio-try-on",
+      "page": "setup-studio",
+      "title": "Unobstructed temporary try-on",
+      "width": 2048,
+      "height": 1152
     },
     {
       "id": "swing-main-hand",

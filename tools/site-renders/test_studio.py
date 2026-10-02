@@ -20,15 +20,30 @@ class StudioChecks(unittest.TestCase):
         files={"src/setup/setup-pack.lua":"before","src/setup/setup-studio.lua":"before","src/ui/skin.lua":"same"}
         changed={**files,"src/setup/setup-pack.lua":"after"}
         self.assertEqual(addon_inputs({"page":"unitframes"},files),addon_inputs({"page":"unitframes"},changed))
-        for page in ("setup-studio","studio-atlas","studio-gallery"):
+        for page in ("setup-studio","studio-gallery"):
             self.assertNotEqual(addon_inputs({"page":page},files),addon_inputs({"page":page},changed))
-        for page in ("wizard","options","layout","sharing","overview"):
+        for page in ("wizard","options","layout","sharing","overview","studio-atlas"):
             self.assertEqual(addon_inputs({"page":page},files),addon_inputs({"page":page},changed))
         self.assertNotEqual(addon_inputs({"page":"unitframes"},files),addon_inputs({"page":"unitframes"},{**files,"src/ui/skin.lua":"after"}))
     def test_atlas_keeps_native_inputs_without_uninvoked_studio_operations(self):
         files={"src/setup/setup-studio.lua":"journal","src/configuration/options/setup-studio-view.lua":"window","src/ui/skin.lua":"skin","src/modules/chat/chat-move.lua":"chat","src/setup/setup-pack.lua":"contract"}
-        self.assertEqual(set(addon_inputs({"page":"studio-atlas"},files)),{"src/ui/skin.lua","src/modules/chat/chat-move.lua","src/setup/setup-pack.lua"})
+        self.assertEqual(set(addon_inputs({"page":"studio-atlas"},files)),{"src/ui/skin.lua","src/modules/chat/chat-move.lua"})
         self.assertEqual(addon_inputs({"page":"studio-gallery"},files),files)
+    def test_atlas_fixtures_do_not_invoke_excluded_pack_operations(self):
+        import json
+        directory=Path(__file__).parent
+        cases=json.loads((directory/"scenarios.json").read_text())
+        for case in cases:
+            if case.get("page")=="studio-atlas":
+                self.assertEqual(case.get("fixtures"),[])
+                self.assertEqual(case.get("lua"),"")
+                self.assertIn(case["sequence"]["apply"],("RikRenderStudioAtlas(VALUE)","RikRenderStudioExtra(VALUE)"))
+        # Review only invoked fixture bodies, not unused Studio functions in the same module.
+        atlas=(directory/"fixtures/studio.lua").read_text().split("function RikRenderStudioAtlas",1)[1]
+        extra=(directory/"fixtures/studio-components.lua").read_text().split("-- Assert positions",1)[0]
+        for invoked in (atlas,extra):
+            self.assertNotIn("RikUI.SetupPack",invoked)
+            self.assertNotIn("RikUI.Studio",invoked)
     def test_component_gate_requires_identity_bounds_and_retains_ordinary_duplicate_checks(self):
         import tempfile
         from check import verify_frame

@@ -5,6 +5,11 @@ local window,accepts,history,redo=nil,{}, {},{}
 local privacy={chat=true,planner=true,inventory=true,sharing=true}
 local attribution=true
 local returnFromSharing=false
+local previewMode=false
+local currentPage="choose"
+local picker
+local pages,refreshers,nav,buttons={},{},{},{}
+studio.Controls=buttons
 local function report(ok,reason)
     local detail=type(reason)=="table" and ((reason.status or "Result")..": "..tostring(reason.error or reason.reason or "settings written; review reload requirements")) or reason
     if window then window.status:SetText(ok and (type(detail)=="string" and detail or "Done. Review reload requirements below.") or tostring(detail)) end
@@ -29,14 +34,10 @@ local function sharingDialog(...)
     end
     return ok
 end
+local function snapshot() return {draft=pack.Copy(studio.Draft),selected=pack.Copy(studio.Selected),device=studio.Device,activity=studio.Activity} end
 local function remember()
-    if studio.Draft then history[#history+1]=pack.Copy(studio.Draft);if #history>20 then table.remove(history,1) end end
+    if studio.Draft then history[#history+1]=snapshot();if #history>20 then table.remove(history,1) end end
     redo={}
-end
-local function button(text,x,y,action,width)
-    local b=controls.Button(window,text,function() action();studio.RefreshWindow() end)
-    b:SetSize(width or 130,30);b:SetPoint("TOPLEFT",x,-y)
-    return b
 end
 function studio.Select(name)
     studio.State()
@@ -81,7 +82,8 @@ end
 function studio.DraftUndo(forward)
     local from,to=forward and redo or history,forward and history or redo
     if #from==0 then return nil,"No edit to undo" end
-    to[#to+1]=pack.Copy(studio.Draft);studio.Draft=table.remove(from);return true
+    to[#to+1]=snapshot();local saved=table.remove(from)
+    studio.Draft,studio.Selected,studio.Device,studio.Activity=saved.draft,saved.selected,saved.device,saved.activity;return true
 end
 local groupIndex,conflictIndex=1,1
 local function groupKeys()
@@ -96,127 +98,314 @@ function studio.MoveGroup(dx,dy)
     studio.Draft.adjustments.positions[key]=position
     return pack.Validate(studio.Draft)
 end
+
+local names={appearance="Appearance & chat",hud="Combat HUD",nameplates="Nameplates",group="Party & raid",navigation="Map & quests",inventory="Bags & loot",character="Character setup"}
+local groupNames={main="Main action bar",bar2="Action bar 2",bar3="Action bar 3",bar4="Action bar 4",bar5="Action bar 5",chat="Chat",bags="Bags",castplayer="Player cast bar",casttarget="Target cast bar",castfocus="Focus cast bar",castpet="Pet cast bar",player="Player",target="Target",tot="Target of target",petframe="Pet",stance="Stance bar",minimap="Minimap",questtracker="Quest tracker"}
+local steps={{"choose","1  Choose"},{"parts","2  Select parts"},{"look","3  Appearance"},{"layout","4  Fit & preview"},{"review","5  Review & apply"},{"share","6  Share"},{"advanced","More tools"}}
+local descriptions={
+ choose={"Choose your starting point","Start with your current UI, a curated layout, or an import. Nothing changes until you apply."},
+ parts={"Keep the parts you want","Unchecked areas keep your current settings. Character actions and bindings are always separate."},
+ look={"Make it yours","Choose a coordinated theme and personal readability. Selected values are highlighted."},
+ layout={"Fit your screen","Select a frame by name, then nudge it. Try-on hides this panel so you can see the real UI."},
+ review={"Review before applying","Check ownership and fit. A restore point is saved before settings change."},
+ share={"Take your setup with you","Export your current installed UI or share the draft you have been editing."},
+ advanced={"Optional tools","Character actions, capture privacy and restoration are separate from the main setup flow."},
+ details={"Fine-tune appearance","These settings are bounded. Meaningful health, warning and selection colors stay intact."}
+}
+local function text(parent,value,x,y,width,role,color)
+ local t=controls.Text(parent,role or "small",value,color);t:SetPoint("TOPLEFT",x,-y);t:SetWidth(width or 444);t:SetJustifyH("LEFT");return t
+end
+local function action(parent,id,label,x,y,fn,width)
+ local b=controls.Button(parent,label,function() fn();studio.RefreshWindow() end)
+ b:SetSize(width or 210,30);b:SetPoint("TOPLEFT",x,-y);buttons[id]=b;return b
+end
+local function closePicker() if picker then picker:Hide();picker=nil end end
+local function selector(parent,id,label,x,y,entries,get,set)
+ local caption=text(parent,label,x,y,210)
+ local b=action(parent,id,"",x,y+20,function()
+  if picker and picker.owner==id then closePicker();return end
+  closePicker()
+  local values=type(entries)=="function" and entries() or entries
+  if #values==0 then report(nil,"No movable frame groups");return end
+  local owner=buttons[id]
+  local list=owner.choiceList or CreateFrame("Frame",nil,window);owner.choiceList=list;picker=list;list.owner=id;list:SetFrameStrata("FULLSCREEN_DIALOG")
+  list:ClearAllPoints()
+  list:SetSize(230,math.min(180,#values*28+8));list:SetPoint("TOPLEFT",buttons[id],"BOTTOMLEFT",0,-4)
+  list:SetClampedToScreen(true)
+  if not list.backing then list.backing=core.Skin.Fill(list,{0.06,0.07,0.09,1});core.Skin.Outline(list)end
+  local pane=list.pane or core.Scroll.Create(list);list.pane=pane;pane:ClearAllPoints();pane:SetPoint("TOPLEFT",4,-4);pane:SetSize(222,list:GetHeight()-8)
+  list.buttons=list.buttons or {}
+  core.Scroll.Resize(pane,222,list:GetHeight()-8);core.Scroll.SetContentHeight(pane,#values*28)
+  list.entries=values;list.choose=function(index) local entry=values[index];closePicker();set(entry[1]);studio.RefreshWindow() end
+  for i,entry in ipairs(values)do
+   local item=list.buttons[i] or controls.Button(pane.content,entry[2],function() list.choose(i) end);list.buttons[i]=item
+   item.label:SetText(entry[2]);item:SetSize(208,28);item:ClearAllPoints();item:SetPoint("TOPLEFT",0,-(i-1)*28);item:Show()
+   if entry[1]==get() then list.cursor=i end
+  end
+  for i=#values+1,#list.buttons do list.buttons[i]:Hide()end
+  list.cursor=math.min(#values,list.cursor or 1);list:Show()
+  core.Scroll.Reveal(pane,(list.cursor-1)*28,28)
+ end)
+ refreshers[#refreshers+1]=function()
+  local value=get();local labelValue=tostring(value or "Not selected")
+  for _,entry in ipairs(type(entries)=="function" and entries() or entries)do if entry[1]==value then labelValue=entry[2] end end
+  b.label:SetText(labelValue.."  v")
+ end
+ b.caption=caption
+ return b
+end
+local function choices(parent,id,label,y,entries,get,set)
+ text(parent,label,0,y)
+ local width=(444-(#entries-1)*8)/#entries
+ for i,entry in ipairs(entries)do
+  local value,caption=entry[1],entry[2]
+  local b=controls.Card(parent,width,34,function() set(value);studio.RefreshWindow() end)
+  b:SetPoint("TOPLEFT",(i-1)*(width+8),-y-22);text(b,caption,6,8,width-12)
+  buttons[id.."-"..tostring(value)]=b
+  refreshers[#refreshers+1]=function()b:SetChosen(get()==value)end
+ end
+end
+local function effective() local r=studio.Resolve();return r and r.profile or (studio.Draft and studio.Draft.profile) or {} end
+function studio.ShowPage(key)
+ if not pages[key] then return nil,"Unknown Studio page" end
+ closePicker();currentPage=key
+ for name,page in pairs(pages)do page:SetShown(name==key) end
+ for name,b in pairs(nav)do b:SetChosen(name==key) end
+ local d=descriptions[key];window.pageTitle:SetText(d[1]);window.pageNote:SetText(d[2])
+ window.next.label:SetText(key=="review" and "Continue to sharing" or "Continue")
+ window.next:SetShown(key~="share" and key~="advanced" and key~="details")
+ window.back:SetShown(key~="choose");studio.RefreshWindow();return true
+end
+local function leavePreview()
+ studio.Capture(false)
+ local ok,reason=studio.ExitPreview()
+ if not ok then report(nil,reason);return end
+ previewMode=false;if studio.PreviewBar then studio.PreviewBar:Hide() end
+ studio.RefreshWindow();window:Show()
+end
+local function showPreview(scene,capturing)
+ closePicker()
+ local ok,reason
+ if capturing then ok,reason=studio.Capture(true,attribution,privacy)else ok,reason=studio.TryOn(scene)end
+ if not ok then report(nil,reason);return end
+ if not studio.PreviewBar then
+  local bar=CreateFrame("Frame","RikUIStudioPreviewBar",UIParent);studio.PreviewBar=bar
+  bar:SetSize(470,56);bar:SetPoint("TOP",0,-16);bar:SetFrameStrata("DIALOG");bar:EnableMouse(true)
+  core.Skin.Fill(bar,{0.06,0.07,0.09,1});core.Skin.Outline(bar)
+  bar.title=text(bar,"",12,10,285)
+  action(bar,"returnPreview","Back to Studio",310,12,leavePreview,146)
+  bar:SetScript("OnHide",function()if previewMode then leavePreview() end end)
+  if type(UISpecialFrames)=="table" then UISpecialFrames[#UISpecialFrames+1]="RikUIStudioPreviewBar" end
+ end
+ studio.PreviewBar.title:SetText(capturing and "Capture mode · listed windows hidden" or "Try-on · temporary layout")
+ previewMode=true;window:Hide();studio.PreviewBar:SetScale(window:GetScale());studio.PreviewBar:Show()
+end
 function studio.RefreshWindow()
-    if not window then return end
-    local p=studio.Draft
-    if not p then window.details:SetText("Choose a curated setup or import a code. No settings change until Apply.");return end
-    local review,reason=studio.Review(accepts)
-    local lines={p.title.."  ·  "..p.creator.."  ·  revision "..p.revision,
-        "Device: "..studio.Device.."  Activity: "..studio.Activity.."  "..(studio.Pinned and "(pinned)" or "(automatic)")}
-    for _,c in ipairs({"appearance","hud","nameplates","group","navigation","inventory","character"}) do
-        if studio.Selected[c] then lines[#lines+1]=c..": "..tostring(p.ownership[c]) end
-    end
-    if review then
-        lines[#lines+1]=review.reload and "Reload required for module/font/theme changes. Activity transitions do not reload." or "Geometry applies outside combat."
-        for _,conflict in ipairs(review.fit.conflicts) do lines[#lines+1]="Fit: "..conflict.key.." — "..conflict.reason end
-        for _,conflict in ipairs(review.conflicts) do lines[#lines+1]="Update: "..conflict.path.." — "..(accepts[conflict.path] and "take creator" or "keep personal edit") end
-        lines[#lines+1]="Restore slots: 3. One installed source, bounded to codec capacity. Export a portable backup for client restart."
-    else lines[#lines+1]=tostring(reason) end
-    local keys=groupKeys();if groupIndex>#keys then groupIndex=1 end
-    window.group:SetText("Adjust: "..(keys[groupIndex] or "no groups").." (8-unit snap)")
-    window.details:SetText(table.concat(lines,"\n"))
-    if window.checks then for _,check in ipairs(window.checks) do check:Refresh() end end
+ if not window then return end
+ for _,fn in ipairs(refreshers)do fn() end
+ local p=studio.Draft
+ window.source:SetText(p and (p.title.." · "..p.creator.." · r"..p.revision) or "Choose a setup")
+ if window.checks then for _,check in ipairs(window.checks)do check:Refresh() end end
+ local review,reason=studio.Review(accepts)
+ window.apply:SetDisabled(not review or #review.fit.conflicts>0)
+ window.undo:SetDisabled(#history==0);window.redo:SetDisabled(#redo==0)
+ local lines={}
+ if review then
+  for _,c in ipairs({"appearance","hud","nameplates","group","navigation","inventory","character"})do if studio.Selected[c]then
+   lines[#lines+1]=names[c].." — "..tostring((review.fit.effectivePack or p).ownership[c] or p.ownership[c])
+  end end
+  lines[#lines+1]=""
+  lines[#lines+1]=#review.fit.conflicts==0 and "Layout fits the selected screen." or "Adjust these frames before applying:"
+  for _,c in ipairs(review.fit.conflicts)do lines[#lines+1]=(groupNames[c.key] or c.key)..": "..c.reason end
+  lines[#lines+1]=review.reload and "Reload required after Apply for appearance or module changes." or "Geometry applies outside combat."
+  for _,c in ipairs(review.conflicts)do lines[#lines+1]="Update "..c.path..": "..(accepts[c.path] and "use creator change" or "keep your edit") end
+ else
+  local installed=studio.State().installed and pack.Decode(studio.State().installed)
+  if studio.LastResult and studio.LastResult.status=="applied" and installed and p and installed.id==p.id and installed.revision==p.revision then
+   lines[1]="Setup applied. Your selected settings are saved."
+   lines[2]=studio.LastResult.reload and "Reload UI to finish appearance or module changes." or "The layout is ready."
+  else lines[1]="Cannot apply: "..tostring(reason)end
+ end
+ window.details:SetText(table.concat(lines,"\n"))
+ core.Scroll.SetContentHeight(window.reviewPane,math.max(230,window.details:GetStringHeight()+12))
+ local keys=groupKeys();if groupIndex>#keys then groupIndex=1 end
+ window.group.label:SetText((groupNames[keys[groupIndex]] or keys[groupIndex] or "No frame groups").."  v")
+ local fit=studio.Resolve();local conflicts=fit and fit.conflicts or {}
+ window.fitStatus:SetText(#conflicts==0 and "No fitting conflicts. Select a sample to see the layout." or (#conflicts.." conflicts: see Review & apply for frame names."))
+ for _,id in ipairs({"tryOn","castSample","inventorySample"})do buttons[id]:SetDisabled(not fit or #conflicts>0) end
+ window.characterNote:SetText(p and p.character and "Imported character data is available. Review it before running the separate character operation." or "This pack has no character actions or bindings. Export your live bars on the Share page.")
 end
 local function build()
-    window=CreateFrame("Frame","RikUIStudio",UIParent);studio.Window=window
-    window:SetSize(760,740);window:SetPoint("CENTER");window:SetFrameStrata("DIALOG");window:EnableMouse(true)
-    core.Skin.Fill(window);core.Skin.Outline(window)
-    local title=controls.Text(window,"heading","RikUI Setup Studio");title:SetPoint("TOPLEFT",20,-18)
-    local note=controls.Text(window,"small","Choose > Select parts > Fit > Preview > Apply > Personalize > Share/update");note:SetPoint("TOPLEFT",20,-44)
-    for i,name in ipairs({"centered","classic","hud","healer"}) do button(name,20+(i-1)*145,68,function() report(studio.Select(name)) end) end
-    button("Import",600,68,function() sharingDialog("Import Setup Pack",nil,function(_,code) local ok,why=studio.Import(code);studio.RefreshWindow();return ok,why end,"Paste !RIKS1!, or a legacy UI/preset code. This only stages a review.","Imported for review in /rik studio.") end)
-    window.checks={}
-    for i,c in ipairs({"appearance","hud","nameplates","group","navigation","inventory"}) do
-        local check=controls.Check(window,118,c,function() return studio.Selected[c]==true end,function(on) studio.Selected[c]=on end)
-        check:SetPoint("TOPLEFT",20+(i-1)*120,-112);window.checks[#window.checks+1]=check
-    end
-    for i,name in ipairs({"classic","ocean","ink"}) do button(name.." theme",20+(i-1)*145,148,function()
-        remember();studio.Remix();studio.Draft.adjustments=pack.Merge(studio.Draft.adjustments or {},pack.Themes[name]);report(true,"Theme staged; reload after Apply")
-    end) end
-    button("Density +",455,148,function() report(studio.EditTheme("scale",math.min(1.3,((studio.Draft.adjustments or {}).scale or studio.Draft.profile.scale or 1)+0.05))) end)
-    button("Density -",600,148,function() report(studio.EditTheme("scale",math.max(0.85,((studio.Draft.adjustments or {}).scale or studio.Draft.profile.scale or 1)-0.05))) end)
-    for i,key in ipairs({"accent","border","texture","font","spacing"}) do button(key,20+(i-1)*145,188,function()
-        local choices={accent={"gold","blue","white"},border={1,2,3},texture={"bundled","flat"},font={"bundled","game"},spacing={"standard","relaxed"}}
-        local current=key=="font" and ((studio.Draft.adjustments or {}).font or studio.Draft.profile.font) or ((studio.Draft.adjustments or {}).theme or studio.Draft.profile.theme or {})[key]
-        local list=choices[key];local index=1;for n,value in ipairs(list)do if value==current then index=n%#list+1 end end
-        report(studio.EditTheme(key,list[index]))
-    end) end
-    for i,name in ipairs({"standard","readable","contrast","calm"}) do button(name,20+(i-1)*145,228,function() report(studio.Accessibility(name)) end) end
-    button("QT recipe",600,228,function() report(studio.IntegrationRecipe()) end)
-    for i,name in ipairs({"desktop","ultrawide","handheld"}) do button(name,20+(i-1)*145,268,function() studio.Device=name;report(true,studio.GamepadLegend()) end) end
-    button("Activity",455,268,function()
-        local order={"exploration","party","raid","town"};local nextIndex=1;for i,name in ipairs(order) do if name==studio.Activity then nextIndex=i%4+1 end end
-        report(studio.Presentation(order[nextIndex],studio.Device,true))
-    end)
-    button("Auto / pin",600,268,function() studio.Pinned=not studio.Pinned;studio.AutoActivity() end)
-    local recipes={"everything","appearance","hud","group","navigation"};local recipeIndex=1
-    button("Adopt parts",600,300,function()local name=recipes[recipeIndex];recipeIndex=recipeIndex%#recipes+1;report(studio.Recipe(name),"Adoption recipe: "..name)end)
-    window.group=controls.Text(window,"small","");window.group:SetPoint("TOPLEFT",20,-314)
-    button("Next frame",20,340,function() groupIndex=groupIndex%math.max(1,#groupKeys())+1 end)
-    button("Left",165,340,function() report(studio.MoveGroup(-8,0)) end,60)
-    button("Right",230,340,function() report(studio.MoveGroup(8,0)) end,60)
-    button("Up",295,340,function() report(studio.MoveGroup(0,8)) end,60)
-    button("Down",360,340,function() report(studio.MoveGroup(0,-8)) end,60)
-    button("Undo edit",455,340,function() report(studio.DraftUndo(false)) end)
-    button("Redo edit",600,340,function() report(studio.DraftUndo(true)) end)
-    window.scroll=CreateFrame("ScrollFrame",nil,window);window.scroll:SetPoint("TOPLEFT",20,-380);window.scroll:SetSize(720,145)
-    local body=CreateFrame("Frame",nil,window.scroll);body:SetSize(710,540);window.scroll:SetScrollChild(body)
-    window.details=controls.Text(body,"small","");window.details:SetPoint("TOPLEFT",0,0);window.details:SetWidth(700);window.details:SetJustifyH("LEFT")
-    window.scroll:EnableMouseWheel(true);window.scroll:SetScript("OnMouseWheel",function(self,delta) self:SetVerticalScroll(math.max(0,math.min(self:GetVerticalScrollRange(),self:GetVerticalScroll()-delta*36))) end)
-    button("Fit / review",20,540,function() studio.RefreshWindow() end)
-    button("Try on",165,540,function() report(studio.TryOn(studio.Activity)) end)
-    button("Cast sample",310,540,function() report(studio.TryOn("casting")) end)
-    button("Inventory",455,540,function() report(studio.TryOn("inventory")) end)
-    button("Exit try-on",600,540,function() report(studio.ExitPreview()) end)
-    button("Apply setup",20,578,function() report(studio.Apply(accepts)) end)
-    button("Update choice",165,578,function()
-        local review=studio.Review(accepts);local conflict=review and review.conflicts[conflictIndex]
-        conflictIndex=review and conflictIndex%math.max(1,#review.conflicts)+1 or 1
-        if conflict then accepts[conflict.path]=not accepts[conflict.path];report(true,conflict.path..": "..(accepts[conflict.path] and "take creator" or "keep personal")) end
-    end)
-    button("Restore",310,578,function() report(studio.Restore()) end)
-    button("Character",455,578,function() report(studio.PrepareCharacter()) end)
-    button("Bindings",600,578,function() report(studio.ApplyBindings()) end)
-    button("Export live",20,616,function() local code,why=studio.Export();if code then sharingDialog("Export current setup",code,nil,"Shares supported settings and geometry; no private records or restoration history.") else report(nil,why) end end)
-    button("Share draft",165,616,function() local value=pack.Copy(studio.Draft);value.components=pack.Copy(studio.Selected);if not value.components.character then value.character=nil end
-        local code,why=pack.Encode(value);if code then sharingDialog("Share Setup Pack",code,nil,"Open rikwow.com/studio to edit or create a shareable link.") else report(nil,why) end end)
-    button("Theme export",310,616,function() local code,why=studio.ThemeExport();if code then sharingDialog("Share theme",code,nil,"Appearance-only Setup Pack.") else report(nil,why) end end)
-    button("Capture",455,616,function() report(studio.Capture(true,attribution,privacy)) end)
-    button("Exit capture",600,616,function() report(studio.Capture(false)) end)
-    button("Export bars",20,656,function() local code,why=studio.ExportCharacter();if code then sharingDialog("Export live standard bars",code,nil,"Main and four standard pages, referenced macros only. Script macros and unknown catalogue spells are refused. Bindings excluded.") else report(nil,why) end end)
-    button("Bars + keys",165,656,function() local code,why=studio.ExportCharacter(nil,true);if code then sharingDialog("Export bars and main keys",code,nil,"Explicitly includes bindings for ACTIONBUTTON1..12 plus standard pages and referenced macros. Inspect character data before sharing.") else report(nil,why) end end)
-    for i,area in ipairs({"chat","planner","inventory"}) do
-        local check=controls.Check(window,110,"Hide "..area,function()return privacy[area]end,function(on)privacy[area]=on end)
-        check:SetPoint("TOPLEFT",310+(i-1)*140,-656);window.checks[#window.checks+1]=check
-    end
-    local credit=controls.Check(window,160,"Pack attribution",function()return attribution end,function(on)attribution=on end)
-    credit:SetPoint("TOPLEFT",575,-20);window.checks[#window.checks+1]=credit
-    window.status=controls.Text(window,"small","");window.status:SetPoint("BOTTOMLEFT",20,20);window.status:SetWidth(560);window.status:SetJustifyH("LEFT")
-    local close=controls.Button(window,"Close",function() window:Hide() end);close:SetPoint("BOTTOMRIGHT",-20,14)
-    window:EnableKeyboard(true)
-    window:SetPropagateKeyboardInput(true)
-    window:SetScript("OnKeyDown",function(self,key)
-        local delta={LEFT={-8,0},RIGHT={8,0},UP={0,8},DOWN={0,-8}}
-        if delta[key] then self:SetPropagateKeyboardInput(false);report(studio.MoveGroup(unpack(delta[key])))
-        elseif key=="TAB" then self:SetPropagateKeyboardInput(false);groupIndex=groupIndex%math.max(1,#groupKeys())+1;studio.RefreshWindow()
-        else self:SetPropagateKeyboardInput(true) end
-    end)
-    window:SetScript("OnHide",function() studio.Capture(false);studio.ExitPreview() end)
-    if type(UISpecialFrames)=="table" then UISpecialFrames[#UISpecialFrames+1]="RikUIStudio" end
+ window=CreateFrame("Frame","RikUIStudio",UIParent);studio.Window=window
+ window:SetSize(680,560);window:SetPoint("CENTER");window:SetFrameStrata("DIALOG");window:EnableMouse(true);window:SetClampedToScreen(true)
+ core.Skin.Fill(window,{0.06,0.07,0.09,1});core.Skin.Outline(window)
+ text(window,"RikUI Setup Studio",20,18,480,"heading")
+ window.source=text(window,"",20,48,620,nil,controls.MUTED)
+ action(window,"close","Close",578,16,function()window:Hide()end,82)
+ for i,step in ipairs(steps)do
+  local key=step[1];local b=controls.Card(window,156,34,function()studio.ShowPage(key)end);nav[key]=b
+  b:SetPoint("TOPLEFT",20,-88-(i-1)*42);text(b,step[2],10,9,140)
+  local page=CreateFrame("Frame",nil,window);page:SetSize(444,348);page:SetPoint("TOPLEFT",212,-154);pages[key]=page;page:Hide()
+ end
+ local detailsPage=CreateFrame("Frame",nil,window);detailsPage:SetSize(444,348);detailsPage:SetPoint("TOPLEFT",212,-154);pages.details=detailsPage;detailsPage:Hide()
+ window.pageTitle=text(window,"",212,88,444,"heading");window.pageNote=text(window,"",212,118,444)
+ window.status=text(window,"Edits are staged. Apply changes only on the Review page.",20,510,390)
+ window.back=action(window,"back","Back",432,514,function()
+  local previous="choose";for i,step in ipairs(steps)do if step[1]==currentPage then previous=steps[math.max(1,i-1)][1] end end
+  studio.ShowPage(currentPage=="details" and "look" or previous)
+ end,92)
+ window.next=action(window,"next","Continue",534,514,function()
+  for i,step in ipairs(steps)do if step[1]==currentPage and steps[i+1]then studio.ShowPage(steps[i+1][1]);break end end
+ end,122)
+ window.undo=action(window,"undo","Undo",20,418,function()report(studio.DraftUndo(false))end,74)
+ window.redo=action(window,"redo","Redo",102,418,function()report(studio.DraftUndo(true))end,74)
+ local page=pages.choose
+ action(page,"current","Use my current UI",0,0,function()
+  local code,why=studio.Export();if code then remember();report(studio.Import(code)) else report(nil,why)end
+ end,214)
+ action(page,"import","Import a code",230,0,function()
+  sharingDialog("Import Setup Pack",nil,function(_,code)local ok,why=studio.Import(code);if ok then studio.ShowPage("parts")end;return ok,why end,"Paste a Setup Pack or legacy UI code. Imports are staged before Apply.","Imported for review.")
+ end,214)
+ text(page,"Or choose a curated layout",0,50)
+ local captions={centered={"Centered","Combat frames close to the action."},classic={"Classic","Familiar corners and bottom bars."},hud={"HUD","A compact central combat display."},healer={"Healer","Room for party and raid frames."}}
+ for i,key in ipairs({"centered","classic","hud","healer"})do
+  local item=captions[key];local b=controls.Card(page,214,78,function()report(studio.Select(key))end)
+  b:SetPoint("TOPLEFT",(i-1)%2*230,-78-math.floor((i-1)/2)*90)
+  text(b,item[1],12,10,190,"label");text(b,item[2],12,36,190)
+  buttons["choose-"..key]=b
+  refreshers[#refreshers+1]=function()b:SetChosen(studio.Draft and studio.Draft.id=="rikui-"..key)end
+ end
+ text(page,"Continue to choose which areas to adopt.",0,280)
+ page=pages.parts;window.checks={}
+ selector(page,"recipe","Start with",0,0,{{"everything","All interface parts"},{"appearance","Appearance only"},{"hud","Combat HUD only"},{"group","Party & raid only"},{"navigation","Map & quests only"}},function()
+  local count,only=0;for key,on in pairs(studio.Selected)do if on then count=count+1;only=key end end
+  return count==6 and "everything" or count==1 and only or "Custom selection"
+ end,function(v)remember();studio.Recipe(v)end)
+ for i,c in ipairs({"appearance","hud","nameplates","group","navigation","inventory","character"})do
+  local key=c;local check=controls.Check(page,430,names[c],function()return studio.Selected[key]==true end,function(on)
+   if key=="character" and not studio.Draft.character then report(nil,"This pack contains no character data");return end
+   remember();studio.Selected[key]=on;studio.RefreshWindow()
+  end);check:SetPoint("TOPLEFT",0,-72-(i-1)*30);window.checks[#window.checks+1]=check
+ end
+ text(page,"Ownership and reload requirements are shown before Apply.",0,300)
+ page=pages.look
+ choices(page,"theme","Theme",0,{{"classic","Classic"},{"ocean","Ocean"},{"ink","Ink"}},function()
+  local p=effective();return p.theme and (p.theme.accent=="blue" and "ocean" or p.theme.accent=="white" and "ink" or "classic") or "classic"
+ end,function(v)remember();studio.Remix();studio.Draft.adjustments=pack.Merge(studio.Draft.adjustments or {},pack.Themes[v])end)
+ choices(page,"readability","Personal readability",76,{{"standard","Standard"},{"readable","Readable"},{"contrast","Contrast"},{"calm","Calm"}},function()return studio.State().accessibilityRecipe or studio.Draft.accessibilityRecipe or "standard"end,function(v)report(studio.Accessibility(v))end)
+ text(page,"Readable enlarges text and adds labels. Contrast also brightens borders; Calm reduces motion. Personal preferences survive imports.",0,138)
+ selector(page,"density","UI size",0,196,{{0.9,"Compact · 90%"},{1,"Standard · 100%"},{1.15,"Roomy · 115%"},{1.3,"Large · 130%"}},function()return effective().scale or 1 end,function(v)report(studio.EditTheme("scale",v))end)
+ action(page,"appearanceDetails","Fine-tune appearance",230,216,function()studio.ShowPage("details")end,214)
+ text(page,"Font, theme and text-size changes can require a reload after Apply. Try-on previews layout with your currently loaded appearance.",0,278)
+ page=pages.details
+ for i,spec in ipairs({
+  {"accent","Accent",{{"gold","Gold"},{"blue","Blue"},{"white","White"}}},{"border","Border",{{1,"Thin · 1"},{2,"Strong · 2"}}},
+  {"texture","Texture",{{"bundled","RikUI texture"},{"flat","Flat"}}},{"font","Font",{{"bundled","RikUI font"},{"game","Game font"}}},
+  {"spacing","Spacing",{{"standard","Standard"},{"relaxed","Relaxed"}}}
+ })do
+  local key=spec[1];selector(page,"detail-"..key,spec[2],(i-1)%2*230,math.floor((i-1)/2)*78,spec[3],function()local p=effective();return key=="font" and p.font or (p.theme or {})[key]end,function(v)report(studio.EditTheme(key,v))end)
+ end
+ action(page,"backAppearance","Back to appearance",0,258,function()studio.ShowPage("look")end)
+ page=pages.layout
+ selector(page,"device","Device",0,0,{{"desktop","Desktop"},{"ultrawide","Ultrawide"},{"handheld","Small screen / handheld"}},function()return studio.Device end,function(v)remember();studio.Device=v;report(true,studio.GamepadLegend())end)
+ selector(page,"activity","Activity",230,0,{{"exploration","Exploration"},{"party","Party / dungeon"},{"raid","Raid"},{"town","Town"}},function()return studio.Activity end,function(v)remember();studio.Activity=v;studio.Pinned=true end)
+ local pin=controls.Check(page,430,"Keep this activity selected (pin)",function()return studio.Pinned end,function(on)studio.Pinned=on;studio.AutoActivity();studio.RefreshWindow()end);pin:SetPoint("TOPLEFT",0,-64);window.checks[#window.checks+1]=pin
+ window.group=selector(page,"group","Frame group · 8-unit snap",0,100,function()
+  local entries={};for i,key in ipairs(groupKeys())do entries[#entries+1]={i,groupNames[key] or key}end;return entries
+ end,function()return groupIndex end,function(v)groupIndex=v end)
+ window.group:SetWidth(444)
+ for i,item in ipairs({{"Left",-8,0},{"Right",8,0},{"Up",0,8},{"Down",0,-8}})do action(page,"move-"..item[1],item[1],(i-1)*82,164,function()report(studio.MoveGroup(item[2],item[3]))end,74)end
+ action(page,"resetGroup","Reset frame",330,164,function()remember();local key=groupKeys()[groupIndex];if studio.Draft.adjustments and studio.Draft.adjustments.positions then studio.Draft.adjustments.positions[key]=nil end end,114)
+ window.fitStatus=text(page,"",0,212)
+ action(page,"tryOn","Try on layout",0,256,function()showPreview(studio.Activity)end,140)
+ action(page,"castSample","Casting sample",152,256,function()showPreview("casting")end,140)
+ action(page,"inventorySample","Inventory sample",304,256,function()showPreview("inventory")end,140)
+ text(page,"Preview is temporary. Back to Studio restores normal presentation.",0,302)
+ page=pages.review
+ window.reviewPane=core.Scroll.Create(page);window.reviewPane:SetPoint("TOPLEFT",0,0);window.reviewPane:SetSize(444,232);core.Scroll.Resize(window.reviewPane,444,232)
+ window.details=text(window.reviewPane.content,"",0,0,420)
+ window.apply=action(page,"apply","Apply setup",0,252,function()report(studio.Apply(accepts))end,214)
+ action(page,"reviewFit","Adjust layout",230,252,function()studio.ShowPage("layout")end,214)
+ local updateSelector=selector(page,"updateConflict","Creator update conflict",0,290,function()
+  local review=studio.Review(accepts);local entries={};for i,c in ipairs(review and review.conflicts or {})do entries[#entries+1]={i,c.path}end
+  return #entries>0 and entries or {{0,"No update conflicts"}}
+ end,function()local review=studio.Review(accepts);return review and #review.conflicts>0 and conflictIndex or 0 end,function(v)conflictIndex=v end)
+ local updateButton=action(page,"updateChoice","Use creator change",230,310,function()
+  local review=studio.Review(accepts);local conflict=review and review.conflicts[conflictIndex]
+  if conflict then accepts[conflict.path]=not accepts[conflict.path];report(true,conflict.path..": "..(accepts[conflict.path] and "use creator change" or "keep your edit"))end
+ end,214)
+ refreshers[#refreshers+1]=function()
+  local review=studio.Review(accepts);local conflict=review and review.conflicts[conflictIndex]
+  local has=review and #review.conflicts>0 or false
+  updateSelector:SetShown(has);updateSelector.caption:SetShown(has);updateButton:SetShown(has)
+  updateButton:SetDisabled(not conflict);updateButton.label:SetText(conflict and accepts[conflict.path] and "Keep my edit" or "Use creator change")
+ end
+ page=pages.share
+ text(page,"Current installed setup",0,0,444,"label");text(page,"Use this to edit your real UI on rikwow.com/studio.",0,24)
+ action(page,"exportLive","Export live",0,54,function()local code,why=studio.Export();if code then sharingDialog("Export current setup",code,nil,"Copy the entire code into rikwow.com/studio. Supported settings only; no private records.")else report(nil,why)end end,214)
+ text(page,"Your Studio draft",0,112,444,"label");text(page,"Share the staged parts, or just the coordinated theme.",0,136)
+ action(page,"shareDraft","Share draft",0,166,function()
+  local value=pack.Copy(studio.Draft);value.components=pack.Copy(studio.Selected);if not value.components.character then value.character=nil end
+  local code,why=pack.Encode(value);if code then sharingDialog("Share Setup Pack",code,nil,"Edit or create a shareable link at rikwow.com/studio.")else report(nil,why)end
+ end,214)
+ action(page,"themeExport","Export theme",230,166,function()local code,why=studio.ThemeExport();if code then sharingDialog("Share theme",code,nil,"Appearance-only Setup Pack.")else report(nil,why)end end,214)
+ text(page,"Optional character export",0,222,444,"label")
+ action(page,"exportBars","Export bars",0,252,function()local code,why=studio.ExportCharacter();if code then sharingDialog("Export live standard bars",code,nil,"Five standard pages and referenced macros. Bindings excluded.")else report(nil,why)end end,214)
+ action(page,"exportKeys","Export bars + keys",230,252,function()local code,why=studio.ExportCharacter(nil,true);if code then sharingDialog("Export bars and main keys",code,nil,"Includes ACTIONBUTTON1..12 bindings. Review before sharing.")else report(nil,why)end end,214)
+ page=pages.advanced
+ action(page,"restore","Restore last change",0,0,function()report(studio.Restore())end,214)
+ action(page,"integration","QuestTogether recipe",230,0,function()report(studio.IntegrationRecipe())end,214)
+ text(page,"Restoration has 3 bounded slots. Export a backup before client restart.",0,44)
+ window.characterNote=text(page,"",0,86)
+ action(page,"character","Review character setup",0,142,function()report(studio.PrepareCharacter())end,214)
+ action(page,"bindings","Apply selected bindings",230,142,function()report(studio.ApplyBindings())end,214)
+ text(page,"Capture privacy · only the listed windows",0,194,444,"label")
+ for i,area in ipairs({"chat","planner","inventory"})do
+  local check=controls.Check(page,140,"Hide "..area,function()return privacy[area]end,function(on)privacy[area]=on end)
+  check:SetPoint("TOPLEFT",(i-1)*148,-222);window.checks[#window.checks+1]=check
+ end
+ local credit=controls.Check(page,214,"Show pack attribution",function()return attribution end,function(on)attribution=on end);credit:SetPoint("TOPLEFT",0,-256);window.checks[#window.checks+1]=credit
+ action(page,"capture","Enter capture mode",230,250,function()showPreview(nil,true)end,214)
+ text(page,"Names, world imagery and other addons remain visible. Back to Studio restores the hidden windows.",0,300)
+ window:EnableKeyboard(true);window:SetPropagateKeyboardInput(true)
+ window:SetScript("OnKeyDown",function(self,key)
+  if picker then
+   self:SetPropagateKeyboardInput(false)
+   if key=="ESCAPE" or key=="TAB" then closePicker()
+   elseif key=="ENTER" or key=="SPACE" then picker.choose(picker.cursor)
+   elseif key=="UP" or key=="DOWN" or key=="HOME" or key=="END" then
+    picker.cursor=key=="HOME" and 1 or key=="END" and #picker.entries or math.max(1,math.min(#picker.entries,picker.cursor+(key=="UP" and -1 or 1)))
+    for i,item in ipairs(picker.buttons)do if picker.entries[i]then item.label:SetText((i==picker.cursor and "> " or "")..picker.entries[i][2])end end
+    core.Scroll.Reveal(picker.pane,(picker.cursor-1)*28,28)
+   end
+   return
+  end
+  local delta={LEFT={-8,0},RIGHT={8,0},UP={0,8},DOWN={0,-8}}
+  if currentPage=="layout" and delta[key]then self:SetPropagateKeyboardInput(false);report(studio.MoveGroup(unpack(delta[key])))
+  else self:SetPropagateKeyboardInput(true)end
+ end)
+ window:SetScript("OnHide",function()closePicker();if not previewMode then studio.Capture(false);studio.ExitPreview()end end)
+ if type(UISpecialFrames)=="table" then UISpecialFrames[#UISpecialFrames+1]="RikUIStudio" end
+ studio.ShowPage("choose")
 end
 function studio.Open()
-    if InCombatLockdown() then return nil,"Open Setup Studio out of combat" end
-    if not core.Profile then return nil,"Still loading" end
-    if not studio.Draft then studio.Select("centered") end
-    if not window then build() end
-    local screen=core.Layout.Screen()
-    window:SetScale(math.min(1,(screen.width-16)/760,(screen.height-16)/740))
-    studio.RefreshWindow();window:Show();return true
+ if InCombatLockdown() then return nil,"Open Setup Studio out of combat" end
+ if not core.Profile then return nil,"Still loading" end
+ local issue
+ if not studio.Draft then
+  local code,why=studio.Export()
+  if code then studio.Import(code)else studio.Select("centered");issue=why end
+ end
+ if not window then build()end
+ local screen=core.Layout.Screen();window:SetScale(math.min(1,(screen.width-16)/680,(screen.height-16)/560))
+ studio.RefreshWindow();window:Show()
+ if issue then window.status:SetText("Current UI could not be staged: "..tostring(issue))end
+ return true
 end
 core:RegisterCommand("studio",function(args)
-    if args=="" then report(studio.Open())
-    elseif args=="exit" then studio.ExitPreview();studio.Capture(false)
-    elseif args:match("^accept ") then accepts[args:sub(8)]=true;studio.RefreshWindow()
-    elseif args:match("^restore ") then report(studio.Restore(tonumber(args:sub(9))))
-    else core:Print("Usage: /rik studio [exit|accept <conflict path>|restore <1..3>]") end
+ if args=="" then report(studio.Open())
+ elseif args=="exit" then if previewMode then leavePreview()else studio.ExitPreview();studio.Capture(false)end
+ elseif args:match("^accept ")then accepts[args:sub(8)]=true;studio.RefreshWindow()
+ elseif args:match("^restore ")then report(studio.Restore(tonumber(args:sub(9))))
+ else core:Print("Usage: /rik studio [exit|accept <conflict path>|restore <1..3>]")end
 end,"Configure, fit, share and safely update Setup Packs",studio)

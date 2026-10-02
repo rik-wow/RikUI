@@ -140,4 +140,14 @@ check(exported and type(exportCode)=="string","live export normalizes partial pe
 check(RikUI.Profile.positions.main.point==nil,"export does not rewrite stored source anchors")
 local decoded=assert(p.Decode(exportCode))
 check(decoded.profile.positions.main.relativePoint=="BOTTOM","portable anchor is complete")
+RikUI.Profile.modules.classcooldowns=false;RikUI.Profile.modules.cooldownviewer=true;RikUI.Profile.modules.cooldowns=false
+local migrated=assert(p.Decode(assert(s.Export())))
+check(migrated.profile.modules.classcooldowns==nil and migrated.profile.modules.cooldownviewer==nil,"retired flags do not block live export")
+check(migrated.profile.modules.cooldowns==false,"current cooldown preference is preserved")
+check(RikUI.Profile.modules.classcooldowns==false,"migration never rewrites live profile")
+local old=p.Copy(migrated);old.profile.modules.classcooldowns=true
+local legacy=assert(p.Import(assert(RikUI.Sharing.Encode("profile",old.profile))))
+check(legacy.profile.modules.classcooldowns==nil,"legacy UI imports canonicalize retired flags")
+old.profile.modules.unregistered=true
+check(not p.Validate(old),"unknown active modules remain rejected")
 print("OK: "..checks.." Studio lifecycle checks")

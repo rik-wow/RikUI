@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-02",
+  "client": {
+    "version": "1.60.1.70170",
+    "foreverHead": "9a789c074b8e73c5d604ef2d6af3bb5b3aefb348",
+    "exeVersionMatched": true
+  },
+  "addonSource": "unchanged source staged by tools/site-renders/stage.py",
+  "nativeAcceptance": "User standing acceptance; no agent game-client playtest claimed.",
+  "criteria": [
+    "Original-size inspection of every affected native image; opaque focused pages and visible choices.",
+    "Apply appears only on Review; disabled for fitting conflicts; applied state explained.",
+    "Live export is isolated from editor and contains complete round-trippable settings.",
+    "Try-on hides editor and provides restoration bar; chat and actual layout remain visible.",
+    "Compared reviewed baselines; gallery/proof differences include representative cooldown countdowns."
+  ],
+  "unsupported": [
+    "Renderer does not simulate a world scene or unrestricted controller behavior.",
+    "Native try-on previews currently loaded appearance; module/font/theme changes may require reload after Apply.",
+    "Capture privacy applies only to listed RikUI windows."
+  ],
+  "captures": [
+    {
+      "id": "studio-controls@choose",
+      "filename": "studio-controls@choose.webp",
+      "sha256": "dd5df903b7eef145464072b9b0da73866112e7a79d39dea4236346fc51c5de90"
+    },
+    {
+      "id": "studio-controls@parts",
+      "filename": "studio-controls@parts.webp",
+      "sha256": "09150e7cdcd5e628a4f48c799f5e7d48c42f32e28fd5111289a88d7eb2390f3c"
+    },
+    {
+      "id": "studio-controls@look",
+      "filename": "studio-controls@look.webp",
+      "sha256": "711838c026ad55df9a22ea7dff8113b91b14813a56c67ebd9ab1f7be889c8d79"
+    },
+    {
+      "id": "studio-controls@details",
+      "filename": "studio-controls@details.webp",
+      "sha256": "e77b5b3613ed4b3512014788345cdb2ba952a87c7fc60f3f7bbf547002294c2a"
+    },
+    {
+      "id": "studio-controls@layout",
+      "filename": "studio-controls@layout.webp",
+      "sha256": "4d2feb8d01a37a9c1e131ed528195f78b06892b0a0028699f320323248db8ac1"
+    },
+    {
+      "id": "studio-controls@review",
+      "filename": "studio-controls@review.webp",
+      "sha256": "8928e3ba93b5e89eff9a04818103cdc13bbb8ba5577e2359260b6a1fde811930"
+    },
+    {
+      "id": "studio-controls@share",
+      "filename": "studio-controls@share.webp",
+      "sha256": "7f6d3f65eaa1c42ca9e80c2d48153f3e69c0aa7227ee9069b63cd9ce4ec3e3dd"
+    },
+    {
+      "id": "studio-controls@advanced",
+      "filename": "studio-controls@advanced.webp",
+      "sha256": "fae41a07d512abc097581cd1d3c509a5f9b31fd14bb608e7836da0a66fcd045d"
+    },
+    {
+      "id": "studio-controls@applied",
+      "filename": "studio-controls@applied.webp",
+      "sha256": "481ddcb5eb4a191ddcaa6f66a1ceca770369f11c1ea1aa300ed090a823232930"
+    },
+    {
+      "id": "studio-controls@conflict",
+      "filename": "studio-controls@conflict.webp",
+      "sha256": "27e372f623b5258c1d3e20c43dcb3de5fec9039b90c3c04327414941165e8673"
+    },
+    {
+      "id": "studio-handheld",
+      "filename": "studio-handheld.webp",
+      "sha256": "37bf08b8704dce97f8455aed4ec8637e45a698df15196d559faa0da119c0ed21"
+    },
+    {
+      "id": "studio-pack-centered",
+      "filename": "studio-pack-centered.webp",
+      "sha256": "1d1c3102e449f9f2b828be9e37445ac4805fc51d43e4d02707a2444dd6fca5cf"
+    },
+    {
+      "id": "studio-pack-classic",
+      "filename": "studio-pack-classic.webp",
+      "sha256": "983ded9f95b99a03ffddf35e0303a1c7eab4fa03508a3800244b18765610a391"
+    },
+    {
+      "id": "studio-pack-hud",
+      "filename": "studio-pack-hud.webp",
+      "sha256": "3baff3043897e0d63c93897d0da6595f7b98ed7697cd5148ecebcd5a6b61144d"
+    },
+    {
+      "id": "studio-pack-healer",
+      "filename": "studio-pack-healer.webp",
+      "sha256": "b9a5333284223ddd329e5ef76962c2007cb04538a64a2378697e66c93641245c"
+    },
+    {
+      "id": "studio-theme-review",
+      "filename": "studio-theme-review.webp",
+      "sha256": "ef3e699bba07e9b5ee8b07366ece317651e7951b9072a4a6d156b0947a37b394"
+    },
+    {
+      "id": "studio-edit-undo",
+      "filename": "studio-edit-undo.webp",
+      "sha256": "90ce5c29605b94993e11796e6d968ae411a00b853ee369fb5fc5a46f71ace32f"
+    },
+    {
+      "id": "studio-native-geometry@1",
+      "filename": "studio-native-geometry@1.webp",
+      "sha256": "28d1a3a50a4e9877042cf87e89e751e2e95deee646c495bcd710f62fc52c88fa"
+    },
+    {
+      "id": "studio-native-geometry@1.15",
+      "filename": "studio-native-geometry@1.15.webp",
+      "sha256": "0f72d54d1a60b7391f73ded3c53d50e506b3ac50fe886f2a03583022f0f77a7d"
+    },
+    {
+      "id": "studio-live-export",
+      "filename": "studio-live-export.webp",
+      "sha256": "b0cc8e97e93dfb674f87e70a75c052c67c150eb46b775eebef577ee742db4f1b"
+    },
+    {
+      "id": "studio-try-on",
+      "filename": "studio-try-on.webp",
+      "sha256": "7e837ebfe99fd8eadef2a041336badc70897fca3e7f3be463b85dbea578ba7fa"
+    }
+  ]
+}

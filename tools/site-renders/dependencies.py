@@ -79,7 +79,7 @@ def addon_inputs(case, files):
     if page == "studio-atlas":
         # Atlas fixtures invoke native components, never Studio import/application/window APIs.
         # Keep all native UI/source/media dependencies; journal and editor-window changes do not paint these roots.
-        return {name:value for name,value in files.items() if name not in {"src/setup/setup-studio.lua","src/configuration/options/setup-studio-view.lua"}}
+        return {name:value for name,value in files.items() if name not in {"src/setup/setup-pack.lua","src/setup/setup-pack-library.lua","src/setup/setup-studio.lua","src/configuration/options/setup-studio-view.lua"}}
     modules = PAGES.get(page, {page} if page in DIRECT else None)
     if modules is None and page not in GLOBAL_PAGES:
         return dict(files)
