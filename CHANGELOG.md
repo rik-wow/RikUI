@@ -9,6 +9,26 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.6
+
+2026-10-02. Guided Setup Studio for WoW: Forever beta.
+
+- Replace the native button matrix with focused Choose, Select parts, Appearance,
+  Fit & preview, Review & apply and Share pages. Show selected values, named
+  dropdowns, coordinated readability descriptions and a solid editor background.
+- Start with the current installed UI when exportable. Try-on hides the editor
+  and offers a compact return bar; sharing dialogs remain isolated. Keep character
+  setup, bindings, capture privacy and restoration in clearly labeled optional tools.
+- Guide the web editor through choosing an authentic setup, customizing Parts,
+  Appearance and Layout, then reviewing and sharing. Add keyboard tabs, selected
+  setup cards, preview zoom, useful mobile ordering and direct conflict-to-frame controls.
+- Fix live and legacy imports containing retired classcooldowns/cooldownviewer
+  flags without changing saved preferences or the current unified cooldown setting.
+  Keep unknown active module rejection and browser/addon conformance coverage.
+- Review authentic native page, successful-apply, fitting-conflict, try-on and
+  live export captures. Keep unsupported preview appearance and dynamic-content
+  limits explicit; device presentation preserves existing bindings.
+
 ## 1.0.0-beta.5
 
 2026-10-02. Setup Studio repair for WoW: Forever beta.
