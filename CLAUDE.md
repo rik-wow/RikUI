@@ -139,9 +139,9 @@ read while the work is happening.
 
 ## Verification
 
-This is a software project. Use these commands to verify changes:
+This is a Rust project. Use these commands to verify changes:
 
-- `echo 'no check configured'`
-- `echo 'no test configured'`
-- `echo 'no lint configured'`
+- `cargo check --workspace --all-targets`
+- `cargo nextest run --workspace`
+- `cargo clippy --workspace --all-targets -- -D warnings`
 <!-- /think-and-ship -->

@@ -9,6 +9,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+/target/
+**/*.rs.bk
 # ── end magistr ──
 
 # Reproducible local release output and Python caches.

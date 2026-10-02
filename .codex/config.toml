@@ -15,7 +15,3 @@ required = true
 [mcp_servers.workbench-mcp.tools.read]
 approval_mode = "approve"
 
-[mcp_servers.think-and-ship]
-command = "think-and-ship"
-args = ["serve"]
-enabled = false
