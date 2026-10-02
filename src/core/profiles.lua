@@ -78,11 +78,24 @@ function core:Changed()
     if self.Store and self.Store.Touch then runtime.Invoke("Save changed settings", self.Store.Touch) end
 end
 
-local STARTUP_SETTINGS = { "font", "textScale", "reducedMotion" }
+local STARTUP_SETTINGS = { "font", "textScale", "reducedMotion", "theme", "borderColor", "interfaceOwners" }
+
+local function copySetting(value)
+    if type(value) ~= "table" then return value end
+    local result = {}; for key,entry in pairs(value) do result[key] = copySetting(entry) end
+    return result
+end
+local function sameSetting(a,b)
+    if type(a) ~= type(b) then return false end
+    if type(a) ~= "table" then return a == b end
+    for key,value in pairs(a) do if not sameSetting(value,b[key]) then return false end end
+    for key in pairs(b) do if a[key] == nil then return false end end
+    return true
+end
 
 function runtime.CaptureProfileState()
     runtime.loadedProfile, runtime.loadedSettings = core.Profile, {}
-    for _, key in ipairs(STARTUP_SETTINGS) do runtime.loadedSettings[key] = core.Profile[key] end
+    for _, key in ipairs(STARTUP_SETTINGS) do runtime.loadedSettings[key] = copySetting(core.Profile[key]) end
 end
 
 function core:ProfileSelectionNeedsReload()
@@ -93,7 +106,7 @@ function core:ProfileNeedsReload()
     if not runtime.loadedProfile then return false end
     if self:ProfileSelectionNeedsReload() then return true end
     for _, key in ipairs(STARTUP_SETTINGS) do
-        if runtime.loadedSettings[key] ~= self.Profile[key] then return true end
+        if not sameSetting(runtime.loadedSettings[key], self.Profile[key]) then return true end
     end
     for name, module in pairs(self.Modules) do
         if (self.Profile.modules[name] ~= false) ~= (module.enabled ~= false) then return true end

@@ -70,6 +70,16 @@ def uses_preset_positions(case):
 
 def addon_inputs(case, files):
     page = case.get("page")
+    if page not in {"setup-studio", "studio-gallery", "studio-atlas"}:
+        # These files only define Studio APIs; ordinary wizard/options/layout/sharing
+        # fixtures never invoke them. Their startup performs no frame construction.
+        files = {name:value for name,value in files.items() if name not in {
+            "src/setup/setup-pack.lua", "src/setup/setup-pack-library.lua",
+            "src/setup/setup-studio.lua", "src/configuration/options/setup-studio-view.lua"}}
+    if page == "studio-atlas":
+        # Atlas fixtures invoke native components, never Studio import/application/window APIs.
+        # Keep all native UI/source/media dependencies; journal and editor-window changes do not paint these roots.
+        return {name:value for name,value in files.items() if name not in {"src/setup/setup-studio.lua","src/configuration/options/setup-studio-view.lua"}}
     modules = PAGES.get(page, {page} if page in DIRECT else None)
     if modules is None and page not in GLOBAL_PAGES:
         return dict(files)
@@ -80,6 +90,9 @@ def addon_inputs(case, files):
             and (page in GLOBAL_PAGES or relevant(name, modules, page))}
 
 def relevant(name, modules, page):
+    # Setup Pack operations do not construct ordinary addon UI until Studio is invoked.
+    if name in {"src/setup/setup-pack.lua", "src/setup/setup-pack-library.lua", "src/setup/setup-studio.lua", "src/configuration/options/setup-studio-view.lua"}:
+        return page in {"setup-studio", "studio-atlas", "studio-gallery", "sharing"}
     if name.startswith("src/modules/"):
         return name.split("/")[2] in modules
     # This validates serialized imports; it does not lay out ordinary UI regions.

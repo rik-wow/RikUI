@@ -1,5 +1,8 @@
 # RikUI
 
+`/rik studio` opens Setup Studio to select, fit, preview, apply, share and safely update Setup Packs. Pack imports are staged for review. Module, font and coordinated theme changes need a reload; activity and device changes queue outside combat.
+
+
 **Restart the game after installing or updating RikUI.** A `/reload` won't
 pick up new fonts or textures.
 
@@ -120,6 +123,7 @@ Setup and presets:
 
 | Command | What it does |
 | --- | --- |
+| `/rik studio` | Choose, fit, review, share and safely update Setup Packs. |
 | `/rik setup` | Open the setup wizard. |
 | `/rik apply [role]` | Apply your class preset without the wizard, for a role if you name one. |
 | `/rik undo` | Restore the bars, macros, bindings, game settings and frame positions from before the last Apply. |

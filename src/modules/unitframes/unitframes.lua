@@ -239,6 +239,8 @@ end
 
 function unitframes:OnEnable()
     core.Combat.Queue(function()
+        local owner=core.Profile.interfaceOwners and core.Profile.interfaceOwners.hud
+        if owner and owner~="rikui" then return end
         for _, spec in ipairs(UNITS) do
             if not unitframes.Frames[spec.key] then unitframes.Update(createFrame(spec)) end
         end
@@ -246,8 +248,11 @@ function unitframes:OnEnable()
     end)
     registerUnitEvents()
     registerTargetEvents()
-    if unitframes.Party then unitframes.Party.Enable() end
-    if unitframes.Raid then unitframes.Raid.Enable() end
+    local groupOwner=core.Profile.interfaceOwners and core.Profile.interfaceOwners.group
+    if not groupOwner or groupOwner=="rikui" then
+        if unitframes.Party then unitframes.Party.Enable() end
+        if unitframes.Raid then unitframes.Raid.Enable() end
+    end
 end
 
 function unitframes:Debug(sample)

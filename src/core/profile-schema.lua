@@ -55,6 +55,8 @@ local schema = {
         border=number(1,2,true), texture=function(v) return v=="bundled" or v=="flat" end,
         spacing=function(v) return v=="standard" or v=="relaxed" end },
     modules={ wildcard=boolean },
+    interfaceOwners={hud=function(v)return v=="rikui" or v=="stock" or v=="specialist"end,group=function(v)return v=="rikui" or v=="stock" or v=="specialist"end},
+    presentation={ hidden={ bar4=boolean,bar5=boolean,chat=boolean,damagemeter=boolean,focus=boolean,castfocus=boolean,buffs=boolean,debuffs=boolean,questtimers=boolean } },
     classes={ wildcard=classLists },
     positions={ wildcard={ point=anchor, relativePoint=anchor, x=number(-32768,32768), y=number(-32768,32768) } },
     borderColor={ [1]=number(0,1), [2]=number(0,1), [3]=number(0,1) },

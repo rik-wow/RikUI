@@ -6,6 +6,8 @@
 local GUILD_BANK = { [1] = { 2589, 2589, 117, 2070, 118, 6948 }, [2] = { 25, 4865, 3300 } }
 function RikRenderClientStubs()
     local stubs = {
+        -- Current Forever PaperDollFrame_OnShow reads this client API; the fixture paladin uses no ammunition.
+        UnitUsesAmmo = function() return false end,
         ResetSetMerchantFilter = function() end, FlashClientIcon = function() end,
         QuestIsFromAdventureMap = function() return false end, QuestGetAutoAccept = function() return false end,
         QuestIsFromAreaTrigger = function() return false end,

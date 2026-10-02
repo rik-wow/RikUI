@@ -2472,10 +2472,11 @@
     "world": {
       "plate": "goldshire-road"
     },
-    "fixtures": [],
+    "fixtures": ["RikRenderCurrentPlanner()"],
     "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikRenderCenter(RikUIQuestTracker)\n",
     "expectText": [
-      "yd remaining"
+      "Route coverage needs a nearer waypoint or retry",
+      "Partial quest data"
     ],
     "corpus": true
   },
@@ -2488,7 +2489,7 @@
     "world": {
       "plate": "goldshire-road"
     },
-    "fixtures": [],
+    "fixtures": ["RikRenderCurrentPlanner()"],
     "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikRenderPlannerArrow()\n",
     "expectText": [
       "yd"
@@ -2501,7 +2502,7 @@
     "title": "Current objective",
     "frame": "RikRenderSummary",
     "crop": "840x160+1108+892",
-    "fixtures": [],
+    "fixtures": ["RikRenderCurrentPlanner()"],
     "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\n-- The window stays shown in a corner so its cards keep refreshing; the captured card moves to a named holder.\nlocal function hold(name, card, width, height)\n    window:ClearAllPoints()\n    window:SetPoint(\"TOPLEFT\", UIParent, \"TOPLEFT\", 0, 0)\n    local holder = CreateFrame(\"Frame\", name, UIParent)\n    holder:SetSize(width, height)\n    holder:SetPoint(\"BOTTOMRIGHT\", UIParent, \"BOTTOMRIGHT\", -100, 100)\n    card:SetParent(holder)\n    card:ClearAllPoints()\n    card:SetPoint(\"TOPLEFT\", holder, \"TOPLEFT\", 8, -8)\n    RikRenderResize(holder)\n    return holder\nend\nhold(\"RikRenderSummary\", window.summary, 840, 160)\n",
     "expectText": [
       "CURRENT OBJECTIVE"
@@ -2514,7 +2515,7 @@
     "title": "Quest browser",
     "frame": "RikUIQuestPlannerWindow",
     "crop": "860x620+594+266",
-    "fixtures": [],
+    "fixtures": ["RikRenderCurrentPlanner()"],
     "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\nRikRenderResize(window)\nRikRenderCenter(window)\n",
     "expectText": [
       "Quests",
@@ -2528,7 +2529,7 @@
     "title": "Objective details",
     "frame": "RikUIQuestPlannerWindow",
     "crop": "860x620+594+266",
-    "fixtures": [],
+    "fixtures": ["RikRenderCurrentPlanner()"],
     "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\nRikUI.QuestPlanner.View.ToggleDetails()\nRikRenderResize(window)\nRikRenderCenter(window)\n",
     "expectText": [
       "Route details"
@@ -2541,7 +2542,7 @@
     "title": "Pin and skip controls",
     "frame": "RikRenderSelection",
     "crop": "480x420+1468+632",
-    "fixtures": [],
+    "fixtures": ["RikRenderCurrentPlanner()"],
     "lua": "RikRenderQuestLog()\nRikRenderPlannerWorld()\nRikUI.QuestPlanner.Command(\"arrow on\")\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\nRikUI.QuestPlanner.Controller.Toggle(\"pins\", 7)\nRikUI.QuestPlanner.Controller.Toggle(\"skips\", 62)\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.RefreshWindow()\nfor _, row in ipairs(window.rows) do if row.questID == 7 then RikUI.QuestPlanner.View.Browse(row) end end\n-- The window stays shown in a corner so its cards keep refreshing; the captured card moves to a named holder.\nlocal function hold(name, card, width, height)\n    window:ClearAllPoints()\n    window:SetPoint(\"TOPLEFT\", UIParent, \"TOPLEFT\", 0, 0)\n    local holder = CreateFrame(\"Frame\", name, UIParent)\n    holder:SetSize(width, height)\n    holder:SetPoint(\"BOTTOMRIGHT\", UIParent, \"BOTTOMRIGHT\", -100, 100)\n    card:SetParent(holder)\n    card:ClearAllPoints()\n    card:SetPoint(\"TOPLEFT\", holder, \"TOPLEFT\", 8, -8)\n    RikRenderResize(holder)\n    return holder\nend\nhold(\"RikRenderSelection\", window.selection, 480, 420)\n",
     "expectText": [
       "Unpin"
@@ -2554,7 +2555,7 @@
     "title": "Partial data state",
     "frame": "RikRenderSummary",
     "crop": "840x160+1108+892",
-    "fixtures": [],
+    "fixtures": ["RikRenderCurrentPlanner()"],
     "lua": "local quests = RikRenderElwynnQuests\nlocal short = { id = 33, title = \"Wolves Across the Border\", level = 5 }\nRikRenderQuestLog({ quests[1], short, quests[4] })\nRikRenderPlannerWorld()\nRikRenderPlannerSettle()\nRikUI.QuestPlanner.View.Open()\nlocal window = RikUI.QuestPlanner.View.Window\n-- The window stays shown in a corner so its cards keep refreshing; the captured card moves to a named holder.\nlocal function hold(name, card, width, height)\n    window:ClearAllPoints()\n    window:SetPoint(\"TOPLEFT\", UIParent, \"TOPLEFT\", 0, 0)\n    local holder = CreateFrame(\"Frame\", name, UIParent)\n    holder:SetSize(width, height)\n    holder:SetPoint(\"BOTTOMRIGHT\", UIParent, \"BOTTOMRIGHT\", -100, 100)\n    card:SetParent(holder)\n    card:ClearAllPoints()\n    card:SetPoint(\"TOPLEFT\", holder, \"TOPLEFT\", 8, -8)\n    RikRenderResize(holder)\n    return holder\nend\nhold(\"RikRenderSummary\", window.summary, 840, 160)\n",
     "expectText": [
       "Partial quest data"
@@ -3245,5 +3246,331 @@
       "default": "raid",
       "apply": "RikRenderLayoutGroup(VALUE)"
     }
-  }
+  },
+  {
+    "id": "studio-controls",
+    "page": "setup-studio",
+    "title": "Setup Studio review",
+    "frame": "RikUIStudio",
+    "crop": "792x772+628+190",
+    "fixtures": [],
+    "lua": "RikRenderStudio()",
+    "expectText": [
+      "RikUI Setup Studio",
+      "Apply setup",
+      "Share draft"
+    ]
+  },
+  {
+    "id": "studio-handheld",
+    "page": "setup-studio",
+    "title": "Handheld presentation",
+    "frame": "UIParent",
+    "screen": "1280x800",
+    "crop": "1280x800+0+0",
+    "fixtures": [],
+    "lua": "RikRenderStudioHandheld()",
+    "expectText": [
+      "Rik"
+    ],
+    "assertLua": "assert(RikUI.SetupPack.Decode(RikUI.Studio.State().installed).viewport.width == 1920)"
+  },
+  {
+    "id": "studio-atlas-classic-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "classic / standard authentic components",
+    "frame": "RikUIBar_main",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {"setting":"native filtered component","values":["nameplates","combatresource","party","raid","xpbar","main","bar2","bar3","bar4","bar5","player","target","focus","tot","castplayer","cooldowns","swingtimer","minimap","questtracker","questtrackerCollapsed","bags","micromenu","durability","buffs","debuffs"],"default":"main","apply":"RikRenderStudioAtlas(VALUE)","frames":{"nameplates":"RikRenderStudioPlates","combatresource":"RikUICombatResource","party":"RikUIParty","raid":"RikUIRaid","xpbar":"RikUIXPBar","main":"RikUIBar_main","bar2":"RikUIBar_bar2","bar3":"RikUIBar_bar3","bar4":"RikUIBar_bar4","bar5":"RikUIBar_bar5","player":"RikUIUnit_player","target":"RikUIUnit_target","focus":"RikUIUnit_focus","tot":"RikUIUnit_tot","castplayer":"RikUICast_player","cooldowns":"RikUICooldowns","swingtimer":"RikUISwingTimer","minimap":"RikUIMinimap","questtracker":"RikUIQuestTracker","questtrackerCollapsed":"RikUIQuestTracker","bags":"RikUIBags","micromenu":"RikUIMicroMenu","durability":"RikUIDurability","buffs":"RikUIAuras_buffs","debuffs":"RikUIAuras_debuffs"}},
+    "expectText": [],
+    "profile": {
+      "barFade": {"bar3": false},
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    }
+  },
+  {
+    "id": "studio-atlas-classic-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "classic / readable authentic components",
+    "frame": "RikUIBar_main",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {"setting":"native filtered component","values":["nameplates","combatresource","party","raid","xpbar","main","bar2","bar3","bar4","bar5","player","target","focus","tot","castplayer","cooldowns","swingtimer","minimap","questtracker","questtrackerCollapsed","bags","micromenu","durability","buffs","debuffs"],"default":"main","apply":"RikRenderStudioAtlas(VALUE)","frames":{"nameplates":"RikRenderStudioPlates","combatresource":"RikUICombatResource","party":"RikUIParty","raid":"RikUIRaid","xpbar":"RikUIXPBar","main":"RikUIBar_main","bar2":"RikUIBar_bar2","bar3":"RikUIBar_bar3","bar4":"RikUIBar_bar4","bar5":"RikUIBar_bar5","player":"RikUIUnit_player","target":"RikUIUnit_target","focus":"RikUIUnit_focus","tot":"RikUIUnit_tot","castplayer":"RikUICast_player","cooldowns":"RikUICooldowns","swingtimer":"RikUISwingTimer","minimap":"RikUIMinimap","questtracker":"RikUIQuestTracker","questtrackerCollapsed":"RikUIQuestTracker","bags":"RikUIBags","micromenu":"RikUIMicroMenu","durability":"RikUIDurability","buffs":"RikUIAuras_buffs","debuffs":"RikUIAuras_debuffs"}},
+    "expectText": [],
+    "profile": {
+      "barFade": {"bar3": false},
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    }
+  },
+  {
+    "id": "studio-atlas-ocean-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ocean / standard authentic components",
+    "frame": "RikUIBar_main",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {"setting":"native filtered component","values":["nameplates","combatresource","party","raid","xpbar","main","bar2","bar3","bar4","bar5","player","target","focus","tot","castplayer","cooldowns","swingtimer","minimap","questtracker","questtrackerCollapsed","bags","micromenu","durability","buffs","debuffs"],"default":"main","apply":"RikRenderStudioAtlas(VALUE)","frames":{"nameplates":"RikRenderStudioPlates","combatresource":"RikUICombatResource","party":"RikUIParty","raid":"RikUIRaid","xpbar":"RikUIXPBar","main":"RikUIBar_main","bar2":"RikUIBar_bar2","bar3":"RikUIBar_bar3","bar4":"RikUIBar_bar4","bar5":"RikUIBar_bar5","player":"RikUIUnit_player","target":"RikUIUnit_target","focus":"RikUIUnit_focus","tot":"RikUIUnit_tot","castplayer":"RikUICast_player","cooldowns":"RikUICooldowns","swingtimer":"RikUISwingTimer","minimap":"RikUIMinimap","questtracker":"RikUIQuestTracker","questtrackerCollapsed":"RikUIQuestTracker","bags":"RikUIBags","micromenu":"RikUIMicroMenu","durability":"RikUIDurability","buffs":"RikUIAuras_buffs","debuffs":"RikUIAuras_debuffs"}},
+    "expectText": [],
+    "profile": {
+      "barFade": {"bar3": false},
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    }
+  },
+  {
+    "id": "studio-atlas-ocean-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ocean / readable authentic components",
+    "frame": "RikUIBar_main",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {"setting":"native filtered component","values":["nameplates","combatresource","party","raid","xpbar","main","bar2","bar3","bar4","bar5","player","target","focus","tot","castplayer","cooldowns","swingtimer","minimap","questtracker","questtrackerCollapsed","bags","micromenu","durability","buffs","debuffs"],"default":"main","apply":"RikRenderStudioAtlas(VALUE)","frames":{"nameplates":"RikRenderStudioPlates","combatresource":"RikUICombatResource","party":"RikUIParty","raid":"RikUIRaid","xpbar":"RikUIXPBar","main":"RikUIBar_main","bar2":"RikUIBar_bar2","bar3":"RikUIBar_bar3","bar4":"RikUIBar_bar4","bar5":"RikUIBar_bar5","player":"RikUIUnit_player","target":"RikUIUnit_target","focus":"RikUIUnit_focus","tot":"RikUIUnit_tot","castplayer":"RikUICast_player","cooldowns":"RikUICooldowns","swingtimer":"RikUISwingTimer","minimap":"RikUIMinimap","questtracker":"RikUIQuestTracker","questtrackerCollapsed":"RikUIQuestTracker","bags":"RikUIBags","micromenu":"RikUIMicroMenu","durability":"RikUIDurability","buffs":"RikUIAuras_buffs","debuffs":"RikUIAuras_debuffs"}},
+    "expectText": [],
+    "profile": {
+      "barFade": {"bar3": false},
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    }
+  },
+  {
+    "id": "studio-atlas-ink-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ink / standard authentic components",
+    "frame": "RikUIBar_main",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {"setting":"native filtered component","values":["nameplates","combatresource","party","raid","xpbar","main","bar2","bar3","bar4","bar5","player","target","focus","tot","castplayer","cooldowns","swingtimer","minimap","questtracker","questtrackerCollapsed","bags","micromenu","durability","buffs","debuffs"],"default":"main","apply":"RikRenderStudioAtlas(VALUE)","frames":{"nameplates":"RikRenderStudioPlates","combatresource":"RikUICombatResource","party":"RikUIParty","raid":"RikUIRaid","xpbar":"RikUIXPBar","main":"RikUIBar_main","bar2":"RikUIBar_bar2","bar3":"RikUIBar_bar3","bar4":"RikUIBar_bar4","bar5":"RikUIBar_bar5","player":"RikUIUnit_player","target":"RikUIUnit_target","focus":"RikUIUnit_focus","tot":"RikUIUnit_tot","castplayer":"RikUICast_player","cooldowns":"RikUICooldowns","swingtimer":"RikUISwingTimer","minimap":"RikUIMinimap","questtracker":"RikUIQuestTracker","questtrackerCollapsed":"RikUIQuestTracker","bags":"RikUIBags","micromenu":"RikUIMicroMenu","durability":"RikUIDurability","buffs":"RikUIAuras_buffs","debuffs":"RikUIAuras_debuffs"}},
+    "expectText": [],
+    "profile": {
+      "barFade": {"bar3": false},
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    }
+  },
+  {
+    "id": "studio-atlas-ink-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ink / readable authentic components",
+    "frame": "RikUIBar_main",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {"setting":"native filtered component","values":["nameplates","combatresource","party","raid","xpbar","main","bar2","bar3","bar4","bar5","player","target","focus","tot","castplayer","cooldowns","swingtimer","minimap","questtracker","questtrackerCollapsed","bags","micromenu","durability","buffs","debuffs"],"default":"main","apply":"RikRenderStudioAtlas(VALUE)","frames":{"nameplates":"RikRenderStudioPlates","combatresource":"RikUICombatResource","party":"RikUIParty","raid":"RikUIRaid","xpbar":"RikUIXPBar","main":"RikUIBar_main","bar2":"RikUIBar_bar2","bar3":"RikUIBar_bar3","bar4":"RikUIBar_bar4","bar5":"RikUIBar_bar5","player":"RikUIUnit_player","target":"RikUIUnit_target","focus":"RikUIUnit_focus","tot":"RikUIUnit_tot","castplayer":"RikUICast_player","cooldowns":"RikUICooldowns","swingtimer":"RikUISwingTimer","minimap":"RikUIMinimap","questtracker":"RikUIQuestTracker","questtrackerCollapsed":"RikUIQuestTracker","bags":"RikUIBags","micromenu":"RikUIMicroMenu","durability":"RikUIDurability","buffs":"RikUIAuras_buffs","debuffs":"RikUIAuras_debuffs"}},
+    "expectText": [],
+    "profile": {
+      "barFade": {"bar3": false},
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    }
+  },
+{
+  "id": "studio-pack-centered",
+  "page": "studio-gallery",
+  "title": "centered Setup Pack",
+  "frame": "UIParent",
+  "screen": "1920x1080",
+  "crop": "1920x1080+0+0",
+  "fixtures": [
+    "RikRenderScreenState()"
+  ],
+  "lua": "assert(RikUI.Studio.Select(\"centered\"))\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+  "expectText": [
+    "Rik"
+  ]
+},
+{
+  "id": "studio-pack-classic",
+  "page": "studio-gallery",
+  "title": "classic Setup Pack",
+  "frame": "UIParent",
+  "screen": "1920x1080",
+  "crop": "1920x1080+0+0",
+  "fixtures": [
+    "RikRenderScreenState()"
+  ],
+  "lua": "assert(RikUI.Studio.Select(\"classic\"))\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+  "expectText": [
+    "Rik"
+  ]
+},
+{
+  "id": "studio-pack-hud",
+  "page": "studio-gallery",
+  "title": "hud Setup Pack",
+  "frame": "UIParent",
+  "screen": "1920x1080",
+  "crop": "1920x1080+0+0",
+  "fixtures": [
+    "RikRenderScreenState()"
+  ],
+  "lua": "assert(RikUI.Studio.Select(\"hud\"))\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+  "expectText": [
+    "Rik"
+  ]
+},
+{
+  "id": "studio-pack-healer",
+  "page": "studio-gallery",
+  "title": "healer Setup Pack",
+  "frame": "UIParent",
+  "screen": "1920x1080",
+  "crop": "1920x1080+0+0",
+  "fixtures": [
+    "RikRenderScreenState()"
+  ],
+  "lua": "assert(RikUI.Studio.Select(\"healer\"))\nRikUI.Studio.Activity=\"party\"\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nassert(RikUI.UnitFrames.Party.SetTest(true))\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+  "expectText": [
+    "Rik"
+  ]
+},
+{
+  "id": "studio-theme-review",
+  "page": "setup-studio",
+  "title": "Selective adoption and theme review",
+  "frame": "RikUIStudio",
+  "crop": "792x772+628+190",
+  "fixtures": [],
+  "lua": "RikRenderStudio()\nlocal function click(label) for _,child in ipairs({RikUIStudio:GetChildren()}) do if child.label and child.label:GetText()==label then assert(child:GetScript(\"OnClick\"),\"missing real control\")(child);return end end error(\"missing button: \"..label) end\nclick(\"ocean theme\")\nclick(\"readable\")\nclick(\"Adopt parts\")\nclick(\"Adopt parts\")\nclick(\"Fit / review\")\nassert(RikUI.Studio.Selected.appearance and not RikUI.Studio.Selected.hud)\nassert(RikUI.Studio.Draft.adjustments.theme.accent==\"blue\")",
+  "expectText": [
+    "RikUI Setup Studio",
+    "appearance: rikui",
+    "Reload required"
+  ]
+},
+{
+  "id": "studio-edit-undo",
+  "page": "setup-studio",
+  "title": "Frame adjustment and undo",
+  "frame": "RikUIStudio",
+  "crop": "792x772+628+190",
+  "fixtures": [],
+  "lua": "RikRenderStudio()\nlocal function click(label) for _,child in ipairs({RikUIStudio:GetChildren()}) do if child.label and child.label:GetText()==label then assert(child:GetScript(\"OnClick\"),\"missing real control\")(child);return end end error(\"missing button: \"..label) end\nclick(\"Right\")\nlocal moved=RikUI.SetupPack.Copy(RikUI.Studio.Draft.adjustments.positions)\nclick(\"Undo edit\")\nassert(not RikUI.Studio.Draft.adjustments)\nclick(\"Redo edit\")\nassert(RikUI.SetupPack.Equal(moved,RikUI.Studio.Draft.adjustments.positions))\nclick(\"Fit / review\")",
+  "expectText": [
+    "RikUI Setup Studio",
+    "remix",
+    "8-unit snap"
+  ]
+}
 ]

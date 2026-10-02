@@ -5,6 +5,7 @@ addon files, validator, world plate and compositing code) from the repository an
 the input that no longer match, authenticates each capture's original environment and addon inventory,
 and requires every image to be the one that was reviewed."""
 import json
+import math
 from pathlib import Path
 import subprocess
 import sys
@@ -67,6 +68,16 @@ def verify_frame(case, capture, frame, directory, errors, hashes):
     if case.get("world") or frame.get("plate"):
         verify_world(case, frame, name, errors)
     key = (case["page"], frame["sha256"])
+    if case["page"] == "studio-atlas":
+        # Distinct native roots can legitimately draw identical empty slots; authenticate
+        # their individual component geometry rather than inventing decorative differences.
+        value = str(frame.get("value"))
+        geometry = (frame.get("components") or {}).get(value)
+        if set(frame.get("components") or {}) != {value} or not case.get("sequence", {}).get("frames", {}).get(value) or not geometry:
+            errors.append("Missing native component identity: " + name)
+        elif any(not isinstance(geometry.get(k), (int,float)) or not math.isfinite(geometry[k]) for k in ("x","y","width","height")) or geometry["width"]<=0 or geometry["height"]<=0 or geometry["x"]<0 or geometry["y"]<0 or geometry["x"]+geometry["width"]>frame["width"]+0.002 or geometry["y"]+geometry["height"]>frame["height"]+0.002:
+            errors.append("Invalid native component geometry: " + name)
+        key = (case["page"], case["id"], value, frame["sha256"])
     if key in hashes:
         errors.append("Identical states: " + hashes[key] + " and " + name)
     hashes[key] = name

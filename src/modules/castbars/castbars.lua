@@ -147,6 +147,28 @@ local function createBar(spec)
     return frame
 end
 
+
+-- An isolated sample uses the real castbar decorator; it never replaces a unit reader.
+local sampleFrame
+function castbars.Preview(enabled)
+    if InCombatLockdown() then return nil,"Cast preview requires leaving combat" end
+    if not enabled then if sampleFrame then sampleFrame:Hide() end;return true end
+    if not sampleFrame then
+        sampleFrame=CreateFrame("Frame","RikUIStudioCast",UIParent)
+        sampleFrame.castHeight=HEIGHT;sampleFrame:SetSize(COLUMN_WIDTH,HEIGHT)
+        decorate(sampleFrame)
+    end
+    local position=core.Profile.positions.castplayer or DEFAULTS.castplayer
+    sampleFrame:ClearAllPoints();sampleFrame:SetScale(layout.GetScale())
+    sampleFrame:SetPoint(position.point,UIParent,position.relativePoint,position.x,position.y)
+    sampleFrame.icon:SetTexture(135913)
+    sampleFrame.bar:SetMinMaxValues(0,100);sampleFrame.bar:SetValue(65)
+    sampleFrame.bar:SetStatusBarColor(1,0.75,0.25)
+    sampleFrame.bar.text:SetText("Sample cast");sampleFrame.bar.time:SetText("1.2")
+    sampleFrame:SetAlpha(1);sampleFrame:Show()
+    return true
+end
+
 local function replacementsReady()
     for _, spec in ipairs(UNITS) do
         if not castbars.Bars[spec.key] then return false end

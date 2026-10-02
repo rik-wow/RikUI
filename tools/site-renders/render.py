@@ -34,6 +34,7 @@ KNOWN_STARTUP_ERRORS = (
 # Set once per run: the fixture modules and the verified client version every script is built from.
 MODULES = None
 CLIENT_VERSION = None
+CORPUS_SOURCE = None
 
 def addon_digest(path):
     return digest(path, normalized=True)
@@ -115,7 +116,7 @@ def environment(sim_root, wow_root, case):
            # each capture starts from an empty store of its own (render_frame removes it).
            "WOW_SIM_CVARS_PATH": str(cvar_store(sim_root))}
     # A world scenario renders RikUI alone on a transparent layer; the plate goes underneath afterwards.
-    env["WOW_SIM_TRANSPARENT_BACKGROUND" if case.get("world") else "WOW_SIM_PLAIN_BACKGROUND"] = "1"
+    env["WOW_SIM_TRANSPARENT_BACKGROUND" if case.get("world") or case.get("transparent") else "WOW_SIM_PLAIN_BACKGROUND"] = "1"
     return env
 
 def scenario_script(case, value=None):
@@ -152,8 +153,10 @@ def render_frame(case, binary, env, output, value=None, stem=None):
     stem = stem or case["id"]
     script, log = output / (stem + ".lua"), output / (stem + ".log")
     image = output / (stem + ".webp")
-    layer = output / (stem + ".layer.webp") if case.get("world") else image
+    # Write a separate file while viewers may still have the preceding capture mapped.
+    layer = output / (stem + ".pending.webp")
     script.write_text(scenario_script(case, value), encoding="utf-8")
+    case = {**case, "frame": (case.get("sequence") or {}).get("frames", {}).get(str(value), case["frame"])}
     store = Path(env["WOW_SIM_CVARS_PATH"])
     if store.exists():
         store.unlink()
@@ -169,10 +172,21 @@ def render_frame(case, binary, env, output, value=None, stem=None):
     if case.get("world"):
         plate, plate_image = plate_provenance(case)
         composite_world(layer, plate_image, case, image)
+        layer.unlink()
+    else:
+        layer.replace(image)
     dimensions = case["crop"].split("+", 1)[0].split("x")
     frame = {"diagnostics": diagnostics, "sha256": digest(image), "bytes": image.stat().st_size,
              "fixtureSha256": digest(script), "filename": image.name,
              "width": int(dimensions[0]), "height": int(dimensions[1])}
+    components = re.findall(r"STUDIO_GROUP (\w+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)", text)
+    if components:
+        frame["components"] = {key: dict(zip(("x", "y", "width", "height"), map(float, values))) for key, *values in components}
+        _, _, left, top = map(int, re.fullmatch(r"(\d+)x(\d+)\+(\d+)\+(\d+)", case["crop"]).groups())
+        bottom = screen_size(case)[1] - top - frame["height"]
+        for geometry in frame["components"].values():
+            geometry["x"] -= left
+            geometry["y"] -= bottom
     if plate:
         frame["plate"] = plate  # provenance of the world underneath; the scenario's own "world" key stays as written
     return frame
@@ -189,10 +203,34 @@ def render_case(case, binary, env, output):
     # The record carries the default frame's image like any capture, plus every frame.
     return {**case, **{key: default[key] for key in default if key != "value"}, "frames": frames}
 
-def install_seed(sim_root):
+def lua_data(value):
+    if isinstance(value, dict):
+        return "{" + ",".join("[" + lua_data(key) + "]=" + lua_data(entry) for key, entry in sorted(value.items())) + "}"
+    if isinstance(value, list):
+        return "{" + ",".join(lua_data(entry) for entry in value) + "}"
+    if isinstance(value, str):
+        # Lua 5.1 has byte escapes, not JSON Unicode escapes.
+        return chr(34) + "".join((chr(92) + ("%03d" % ord(c))) if ord(c)<32 else (chr(92)+c if c in (chr(34),chr(92)) else c) for c in value) + chr(34)
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        import math
+        if not math.isfinite(value):
+            raise RuntimeError("Invalid startup profile number")
+        return str(value)
+    raise RuntimeError("Startup profile must be bounded data")
+
+def install_seed(sim_root, case=None):
     seed = sim_root / "addons/A_RikUIPreview"
     seed.mkdir(parents=True, exist_ok=True)
-    (seed / "seed.lua").write_bytes((FIXTURES / "seed.lua").read_bytes())
+    content = (FIXTURES / "seed.lua").read_text(encoding="utf-8")
+    if case and case.get("profile") is not None:
+        profile = {"reducedMotion": True, **case["profile"]}
+        encoded = lua_data(profile)
+        if len(encoded) > 12000:
+            raise RuntimeError("Startup profile exceeds capacity")
+        content += "\nRikUIDB.profiles.Default = " + encoded + "\n"
+    (seed / "seed.lua").write_text(content, encoding="utf-8")
     (seed / "A_RikUIPreview.toc").write_text(
         "## Interface: 16001\n## Title: RikUI render inputs\n## LoadFirst: 1\nseed.lua\n", encoding="utf-8")
 
@@ -202,7 +240,7 @@ def renderer_provenance(sim_root, binary):
 
 def corpus_digest():
     """The quest corpus is installer-written and ignored by git; its catalogue names every part."""
-    catalog = ROOT / "generated/corpus/catalog.lua"
+    catalog = CORPUS_SOURCE / "catalog.lua" if CORPUS_SOURCE else ROOT / "generated/corpus/catalog.lua"
     return digest(catalog) if catalog.is_file() else None
 
 def road_patch_sources(wow_root):
@@ -236,6 +274,16 @@ def stage_corpus(sim_root, wow_root, wanted):
     """Copy the generated corpus, road data and road patch addons into the render copy for scenarios
     that need them, and take them out again for the rest, so ordinary captures keep the short startup."""
     addon = sim_root / "addons/RikUI/generated"
+    if CORPUS_SOURCE is not None:
+        from current_corpus import stage
+        # Current corpus screenshots explicitly exercise missing-navigation behavior;
+        # no old road files or LoadOnDemand road addons enter this renderer session.
+        stage(CORPUS_SOURCE if wanted else None, addon / "corpus")
+        if (addon / "roads").exists():
+            raise RuntimeError("Unverified road geometry is present in current corpus renderer")
+        return
+    if wanted:
+        raise RuntimeError("Current corpus inputs required: pass --corpus-root to a verified build output")
     staged_patches = sorted(p for p in (sim_root / "addons").iterdir() if p.name.startswith(ROAD_PATCH_PREFIX))
     present = all((addon / name).is_dir() for name in CORPUS_DIRS) and bool(staged_patches)
     if wanted == present:
@@ -304,6 +352,7 @@ def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, r
     failures = []
     try:
         for case in cases:
+            install_seed(sim_root, case)
             stage_corpus(sim_root, wow_root, case.get("corpus") is True)
             try:
                 capture = render_case(case, binary, environment(sim_root, wow_root, case), output)
@@ -336,7 +385,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sim-root", type=Path, required=True)
     parser.add_argument("--wow-root", type=Path, required=True)
+    parser.add_argument("--output", type=Path, default=ROOT / "dist/ui-renders", help="Isolated artifact directory for independent renderer sessions")
+    parser.add_argument("--skip-page",default="",help="Intermediate refresh excludes these page slugs; the complete gate still requires every scenario")
     parser.add_argument("--only", default="", help="Comma-separated scenario IDs or page slugs")
+    parser.add_argument("--corpus-root", type=Path, help="Verified exact-current corpus build output; historical road data stays excluded")
+    parser.add_argument("--probe-value",help="Diagnostic only: render one declared component value, without a manifest or baseline write")
+    parser.add_argument("--exclude-corpus", action="store_true", help="Refresh independent surfaces while current corpus inputs are being prepared")
     parser.add_argument("--all", action="store_true", help="Render every selected scenario, stale or not")
     parser.add_argument("--keep-going", action="store_true", help="Report failed captures at the end instead of stopping at the first")
     args = parser.parse_args()
@@ -348,17 +402,32 @@ def main():
     global CLIENT_VERSION, MODULES
     CLIENT_VERSION = client["version"]
     MODULES = load_modules()
+    global CORPUS_SOURCE
+    if args.corpus_root:
+        from current_corpus import verified_source
+        CORPUS_SOURCE = verified_source(args.corpus_root, client)
     print("Verified current Forever client " + client["version"], flush=True)
     addon_files = verify_addon(sim_root / "addons/RikUI")
     install_seed(sim_root)
     isolate_addons(sim_root, wow_root)
-    output = ROOT / "dist/ui-renders"
+    output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     scenarios = json.loads((FIXTURES / "scenarios.json").read_text(encoding="utf-8"))
     selected = set(args.only.split(",")) if args.only else None
-    cases = [s for s in scenarios if not selected or s["id"] in selected or s["page"] in selected]
+    cases = [s for s in scenarios if (not selected or s["id"] in selected or s["page"] in selected)
+             and (not args.exclude_corpus or not s.get("corpus")) and s["page"] not in args.skip_page.split(",")]
     if not cases:
         raise RuntimeError("No matching render scenarios")
+    if args.probe_value:
+        if len(cases)!=1 or args.probe_value not in cases[0].get("sequence",{}).get("values",[]) or args.output.resolve()==(ROOT/"dist/ui-renders").resolve():
+            raise RuntimeError("Component probes require one declared value and a separate output directory")
+        case=cases[0];install_seed(sim_root,case)
+        try:
+            stage_corpus(sim_root,wow_root,case.get("corpus") is True)
+            result=render_frame(case,binary,environment(sim_root,wow_root,case),output,args.probe_value,case["id"]+"@"+args.probe_value)
+            print(json.dumps(result,sort_keys=True));print("Diagnostic capture only; no manifest or reviewed baseline was written.")
+        finally:stage_corpus(sim_root,wow_root,False)
+        return
     manifest_path = output / "manifest.json"
     previous = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     known = {c["id"] for c in scenarios}

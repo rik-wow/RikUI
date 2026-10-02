@@ -18,6 +18,13 @@ skin.FADE_SECONDS = 0.15
 local EDGE, ICON_CROP = 1, 0.08
 local BUTTON_FONT_PREFIX = "RikUIControlFont"
 local BUTTON_FONT_COLORS = { Normal = { 1, 0.82, 0 }, Highlight = { 1, 1, 1 }, Disabled = { 0.5, 0.5, 0.5 } }
+function skin.Configure(theme)
+    theme = theme or {}
+    EDGE = theme.border or 1
+    local accent = theme.accent == "blue" and {0.3,0.75,1} or theme.accent == "white" and {1,1,1} or {1,0.82,0}
+    skin.GOLD = accent
+    skin.LINE = RikUI.Profile and RikUI.Profile.borderColor or {0.25,0.28,0.32,1}
+end
 local fonts
 -- The direction that moves each corner towards the middle of its owner.
 local CORNERS = { TOPLEFT = { 1, -1 }, TOPRIGHT = { -1, -1 }, BOTTOMLEFT = { 1, 1 }, BOTTOMRIGHT = { -1, 1 } }

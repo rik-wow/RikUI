@@ -148,8 +148,11 @@ def scenario_script(case, modules, client_version, value=None):
     common = "\n\n".join(modules[name] for name in resolve(case, modules))
     fixtures = client_prelude(client_version) + world_prelude(case) + "\n".join(case.get("fixtures", []))
     body = case.get("lua", "")
+    if case.get("profile") is not None:
+        body = "-- Startup profile: " + json.dumps(case["profile"], sort_keys=True) + "\n" + body
     # The setting is applied first, so the scenario composes its frame the way a player would see it.
     if value is not None:
         body = case["sequence"]["apply"].replace("VALUE", lua_literal(value)) + "\n" + body
-    checks = case.get("assertLua", "") + "\nRikRenderCheck(" + case["frame"] + ")\n"
+    root = (case.get("sequence") or {}).get("frames", {}).get(str(value), case["frame"])
+    checks = case.get("assertLua", "") + "\nRikRenderCheck(" + root + ")\n"
     return common + "\n" + fixtures + "\n" + body + "\nC_Timer.After(0, function()\n" + checks + "end)\n"

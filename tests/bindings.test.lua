@@ -306,6 +306,22 @@ return function(check)
         printedBefore = #env.printed
         SlashCmdList.RIKUI("binds")
         check("rik binds does not print a successful binding dump after failed save", #env.printed - printedBefore < 43)
+        service,state=fresh()
+        local selected={["ALT-1"]="ACTIONBUTTON1"}
+        local selectedSnapshot=assert(service.CaptureSelected(selected))
+        check("selected binding review performs no writes",#state.log==0)
+        check("selected bindings apply and retain unrelated keys",service.ApplySelected(selected,selectedSnapshot) and state.keys["ALT-1"]=="ACTIONBUTTON1" and state.keys.F12=="KEEP" and state.keys["1"]=="ORIGINAL_ONE")
+        local restoredSelected;RikUI.Combat.Queue(function()restoredSelected=service.Restore(selectedSnapshot)end)
+        check("selected bindings restore displaced owners",restoredSelected and state.keys["ALT-1"]=="ALT_ACTION")
+        service,state=fresh();selectedSnapshot=assert(service.CaptureSelected(selected));state.keys["ALT-1"]="EDITED"
+        local selectedOK=service.ApplySelected(selected,selectedSnapshot)
+        check("selected bindings reject stale review before writes",not selectedOK and #state.log==0)
+        service,state=fresh();selectedSnapshot=assert(service.CaptureSelected(selected));state.dropKey="ALT-1"
+        selectedOK=service.ApplySelected(selected,selectedSnapshot)
+        check("selected bindings detect silent writes and recover",not selectedOK and state.keys["ALT-1"]=="ALT_ACTION" and state.saves==0)
+        service,state=fresh();env.inCombat=true
+        check("selected bindings refuse combat without reads",not service.CaptureSelected(selected) and state.reads==0)
+        check("selected binding scope is bounded",not service.CaptureSelected({X="ACTIONBUTTON99"}))
         check("bindings routes every native mutation through the core queue", allWritesQueued)
     end
 

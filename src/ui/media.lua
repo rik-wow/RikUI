@@ -46,6 +46,9 @@ end
 function media.Configure()
     local choice = RikUI.Profile and RikUI.Profile.font
     media.font = root .. "font.ttf"
+    local theme = RikUI.Profile and RikUI.Profile.theme
+    media.statusbar = theme and theme.texture == "flat" and "Interface\\BUTTONS\\WHITE8X8" or root .. "statusbar.tga"
+    if RikUI.Skin and RikUI.Skin.Configure then RikUI.Skin.Configure(theme) end
     if choice == "game" then
         media.font = type(STANDARD_TEXT_FONT) == "string" and STANDARD_TEXT_FONT or FALLBACK_FONT
     end

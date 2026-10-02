@@ -50,6 +50,14 @@ local function applyFrame(frame, key)
         frame:SetPoint(saved.point, UIParent, saved.relativePoint, saved.x, saved.y)
     end
     if group.onApply then group.onApply(frame) end
+    local hidden=core.Profile.presentation and core.Profile.presentation.hidden
+    if key=="chat" and core.Chat and core.Chat.SetPresentationHidden then core.Chat.SetPresentationHidden(hidden and hidden.chat==true) end
+    if hidden and hidden[key] then
+        if not frame.rikStudioHidden then frame.rikStudioWasShown=frame:IsShown();frame.rikStudioHidden=true end
+        frame:Hide()
+    elseif frame.rikStudioHidden then
+        frame.rikStudioHidden=nil;if frame.rikStudioWasShown then frame:Show() end;frame.rikStudioWasShown=nil
+    end
 end
 
 local function applyRegistered()
@@ -124,6 +132,22 @@ function layout.Register(frame, key, defaults, opts)
     layout.Apply()
     if layout.Settle then layout.Settle(key) end
     return group
+end
+
+-- Temporary frame placement never enters saved profile state.
+function layout.Preview(profile,selected,definitions)
+    if InCombatLockdown() then return nil,"Preview unavailable in combat" end
+    local scale=profile.scale or layout.GetScale()
+    for key,definition in pairs(definitions or {}) do
+        local group=layout.Groups[key];local anchor=profile.positions and profile.positions[key]
+        if group and anchor and selected[definition.component] and not layout.Floats(group) then
+            for _,frame in ipairs(group.frames) do
+                frame:SetScale(scale);frame:ClearAllPoints()
+                frame:SetPoint(anchor.point,UIParent,anchor.relativePoint,anchor.x,anchor.y)
+            end
+        end
+    end
+    return true
 end
 
 function layout.Reset(selected)

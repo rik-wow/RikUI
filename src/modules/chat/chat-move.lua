@@ -51,6 +51,28 @@ local function scaleWindows()
     if chat.RefreshInputLayout then chat.RefreshInputLayout() end
 end
 
+-- Presentation hides the chat windows as well as their separate layout holder.
+local presentationHidden={}
+function chat.SetPresentationHidden(hidden)
+    local frames={}
+    for frame in pairs(chat.Frames) do
+        frames[#frames+1]=frame
+        local tab=_G[frame:GetName().."Tab"];if chat.IsFrame(tab) then frames[#frames+1]=tab end
+    end
+    for _,name in ipairs({"ChatFrame1EditBox","RikUIChatStrip","GeneralDockManager"}) do
+        if _G[name] then frames[#frames+1]=_G[name] end
+    end
+    if hidden then
+        for _,frame in ipairs(frames) do
+            if presentationHidden[frame]==nil then presentationHidden[frame]=frame:IsShown() end
+            frame:Hide()
+        end
+    else
+        for frame,shown in pairs(presentationHidden) do if shown then frame:Show() end end
+        presentationHidden={}
+    end
+end
+
 local function anchor()
     if InCombatLockdown() then core.Combat.Queue(anchor, "chat:anchor"); return end
     local frame = _G[MAIN]

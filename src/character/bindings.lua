@@ -315,6 +315,50 @@ function bindings.Apply(opts)
     return snapshot, reason
 end
 
+
+-- Setup Packs adopt only the keys explicitly selected in the review.
+function bindings.CaptureSelected(selected)
+    if InCombatLockdown() then return nil,"Binding review requires leaving combat" end
+    if type(selected)~="table" then return nil,"Expected selected bindings" end
+    local count=0;local resolved={}
+    for key,command in pairs(selected) do
+        count=count+1
+        local slot=type(command)=="string" and tonumber(command:match("^ACTIONBUTTON(%d+)$"))
+        if count>24 or type(key)~="string" or not key:match("^[%w%-]+$") or not slot or slot<1 or slot>12 then return nil,"Unsupported selected binding" end
+        resolved[command]=key
+    end
+    local snapshot,reason=captureSnapshot(resolved);if not snapshot then return nil,reason end
+    for key in pairs(selected) do
+        local ok,command=pcall(GetBindingAction,key);if not ok or type(command)~="string" then return nil,"Binding owner unavailable" end
+        snapshot.keys[key]=command
+        if command~="" then local captured,problem=captureCommand(snapshot,command);if not captured then return nil,problem end end
+    end
+    return verifySnapshot(snapshot)
+end
+function bindings.ApplySelected(selected,snapshot)
+    if InCombatLockdown() then return nil,"Binding apply requires leaving combat" end
+    local valid,reason=bindings.CaptureSelected(selected);if not valid then return nil,reason end
+    if not snapshot or not matchesSnapshot(snapshot) then return nil,"Bindings changed after review; review again" end
+    local result,failure,finished
+    local queued=core.Combat.Queue(function()
+        local function rollback(problem)
+            if not restore(snapshot) then problem=problem.."; runtime rollback incomplete" end
+            failure=problem;finished=true
+        end
+        for _,key in ipairs(sortedKeys(selected)) do
+            local ok,problem=setKey(key,selected[key])
+            if not ok then rollback(problem);return end
+            local read,actual=pcall(GetBindingAction,key)
+            if not read or actual~=selected[key] then rollback("Binding readback failed");return end
+        end
+        local saved,accepted=pcall(SaveBindings,CHARACTER_BINDINGS)
+        if not saved or accepted==false then rollback("Selected binding save failed");return end
+        result,finished=true,true
+    end)
+    if not queued or not finished then return nil,"Binding queue did not finish" end
+    return result,failure
+end
+
 local FALLBACK_KEYS = { MULTIACTIONBAR1BUTTON10 = "SHIFT-G", MULTIACTIONBAR1BUTTON11 = "CTRL-G" }
 
 local function preferredKey(command, ...)

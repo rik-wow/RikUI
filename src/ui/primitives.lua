@@ -11,6 +11,8 @@ local function edge(frame, first, second, horizontal, thickness, layer)
 end
 
 function core.UI.Edges(frame, thickness, layer)
+    local theme = core.Profile and core.Profile.theme
+    thickness = thickness * (theme and theme.border or 1)
     return {
         edge(frame, "TOPLEFT", "TOPRIGHT", true, thickness, layer),
         edge(frame, "BOTTOMLEFT", "BOTTOMRIGHT", true, thickness, layer),

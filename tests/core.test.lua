@@ -192,7 +192,7 @@ return function(check)
     local tocText = toc:read("*a"):gsub("\r\n", "\n")
     toc:close()
     check("TOC targets Forever 16001", tocText:find("## Interface: 16001", 1, true))
-    check("TOC declares account saved variables", tocText:find("## SavedVariables: RikUIDB\n", 1, true))
+    check("TOC declares account saved variables", tocText:find("## SavedVariables: RikUIDB, RikUIStudioDB\n", 1, true))
     check("TOC declares character saved variables", tocText:find("## SavedVariablesPerCharacter: RikUICharDB", 1, true))
     local core = loadCore()
     local files = {}
@@ -211,9 +211,9 @@ return function(check)
     end
     core = RikUI
     check("TOC loads the runtime bootstrap first", files[1] == "src/core/core.lua")
-    check("TOC ends with import/export after options", files[#files] == "src/configuration/options/importexport.lua"
-        and files[#files - 1] == "src/configuration/options/profile-sharing.lua"
-        and files[#files - 2] == "src/configuration/options/sharing.lua")
+    check("TOC loads Studio after sharing and its transaction service", files[#files] == "src/configuration/options/setup-studio-view.lua"
+        and files[#files - 1] == "src/setup/setup-studio.lua"
+        and files[#files - 2] == "src/configuration/options/importexport.lua")
     check("TOC loads data and preset namespaces", type(core.Data) == "table" and type(core.Presets) == "table")
 
     core = loadCore()
