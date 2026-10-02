@@ -7,6 +7,18 @@ const status=$("studio-status"),root=$("studio-app");
 const message=text=>{status.textContent=text;};
 const images=new Map();
 let model,data,resolved,selectedKey,drag,metadataStamp,renderEpoch=0,paintedKeys=new Set();
+let currentStep="choose",currentTab="parts";
+const partLabels={appearance:"Appearance & chat",hud:"Combat HUD",nameplates:"Nameplates",group:"Party & raid",navigation:"Map & quests",inventory:"Bags & loot",character:"Character setup"};
+function workflow(step=currentStep,tab=currentTab,focus=true){
+ currentStep=step;currentTab=tab;
+ for(const b of document.querySelectorAll("[data-step]")){if(b.closest(".studio-steps")){if(b.dataset.step===step)b.setAttribute("aria-current","step");else b.removeAttribute("aria-current");}}
+ for(const panel of document.querySelectorAll("[data-panel]"))panel.hidden=panel.dataset.panel!==step;
+ for(const panel of document.querySelectorAll("[data-custom]"))panel.hidden=panel.dataset.custom!==tab;
+ for(const b of document.querySelectorAll("[data-tab]")){const on=b.dataset.tab===tab;b.setAttribute("aria-selected",String(on));b.tabIndex=on?0:-1;}
+ $("show-movers").checked=step==="customize"&&tab==="layout";
+ if(focus)document.querySelector('[data-panel="'+step+'"] h2')?.focus({preventScroll:innerWidth>760});
+ render();
+}
 const asArray=value=>Array.isArray(value)?value:[];
 async function loadImage(url){
  if(!images.has(url))images.set(url,new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error("Preview image unavailable. Export and install are still available."));im.src=url;}));
@@ -40,13 +52,17 @@ async function render(){
   const stamp=JSON.stringify(metadata);if(stamp!==metadataStamp){$("pack-title").value=metadata.title;$("pack-creator").value=metadata.creator;$("pack-revision").value=metadata.revision;metadataStamp=stamp;}
   $("maintain-identity").checked=!!model.maintainIdentity;
   $("pack-description").textContent=model.source.title+" · "+model.source.creator+" · revision "+model.source.revision+(model.source.ancestry?" · remix of "+model.source.ancestry.id+" r"+model.source.ancestry.revision:"");
-  $("ownership").textContent=components.filter(c=>model.selected[c]).map(c=>c+": "+resolved.effectivePack.ownership[c]).join(" · ");
+  $("ownership").textContent="Adopting: "+components.filter(c=>model.selected[c]).map(c=>partLabels[c]+" ("+resolved.effectivePack.ownership[c]+")").join(" · ");
+  for(const b of document.querySelectorAll("[data-pack]"))b.setAttribute("aria-pressed",String(data.packs.find(p=>p.name===b.dataset.pack)?.pack.id===model.source.id));
   const conflicts=fitDetails(resolved,model.viewport);
   $("fit-status").textContent=conflicts.length?conflicts.length+" fitting conflict(s). Red outlines show affected footprints; select a conflict below.":"Fits within the declared group footprints. Dynamic contents can grow; review again in the addon.";
   $("fit-status").className=conflicts.length?"issue":"";
+  $("fit-badge").textContent=conflicts.length?conflicts.length+" fit issues to resolve":"Layout fits";$("fit-badge").className="fit-badge"+(conflicts.length?" issue":"");
+  $("export-help").textContent=conflicts.length?"Resolve the highlighted frames before exporting. Select an issue to open its layout controls.":"Export the code, then open /rik studio → Import in the addon. Review and apply there.";
   $("export").disabled=$("share").disabled=conflicts.length>0;
   $("character-details").textContent=model.source.character?JSON.stringify(model.source.character,null,2):"No action-bar preset, macros or bindings included.";
   const profile=resolved.profile,key=themeKey(profile),readability=(profile.textScale||1)>1?"readable":"standard";
+  $("theme-description").textContent={classic:"Gold accent · RikUI font · textured panels · thin border",ocean:"Blue accent · RikUI font · flat panels · thin border",ink:"White accent · game font · flat panels · strong border · relaxed spacing"}[key];
   $("theme").value=key;const density=String(profile.scale||1);if(!Array.from($("density").options).some(o=>o.value===density)){const o=document.createElement("option");o.value=density;o.textContent=Math.round(Number(density)*100)+"% (imported)";$("density").append(o);}$("density").value=density;
   $("questtogether").checked=!!model.integrationPresent;
   const atlas=structuredClone(data.atlases[key+"-"+readability]);
@@ -99,7 +115,7 @@ function renderAnnotations(groups,conflicts,covered){
   button.setAttribute("aria-label","Select "+labelFor(g.key)+" — "+state);
   button.title=labelFor(g.key)+" — "+state+"; outline is the reserved footprint";
   const label=document.createElement("span");label.textContent=labelFor(g.key);button.append(label);place(button,g.rect);
-  button.hidden=!$("show-movers").checked&&!troubled.has(g.key);
+  button.hidden=!$("show-movers").checked&&!troubled.has(g.key)&&g.key!==selectedKey;
   button.onclick=()=>selectGroup(g.key);layer.append(button);
   const entry=document.createElement("button");entry.type="button";entry.dataset.group=g.key;
   entry.textContent=labelFor(g.key)+" · "+state;entry.setAttribute("aria-pressed",String(g.key===selectedKey));
@@ -111,7 +127,7 @@ function renderAnnotations(groups,conflicts,covered){
  }
  for(const c of conflicts){
   const b=document.createElement("button");b.type="button";b.className="fit-conflict";b.dataset.group=c.key;
-  b.textContent=labelFor(c.key)+": "+c.reason;b.onclick=()=>{selectGroup(c.key);$("preview-stage").scrollIntoView({block:"nearest"});};issues.append(b);
+  b.textContent=labelFor(c.key)+": "+c.reason;b.onclick=()=>{selectedKey=c.key;workflow("customize","layout");$("preview-stage").scrollIntoView({block:"nearest"});};issues.append(b);
  }
 }
 
@@ -125,11 +141,17 @@ async function start(){
   data=await response.json();model=new StudioModel(createEngine(data.sources.map(s=>s.source)));model.choose("centered");
   const name=new URL(location.href).searchParams.get("pack");if(data.packs.some(p=>p.name===name))model.choose(name,data.packs.find(p=>p.name===name).pack);
   const scene=new URL(location.href).searchParams.get("activity");if(["exploration","party","raid","town"].includes(scene))model.activity=scene;
-  if(location.hash.length>1)model.import(decodeURIComponent(location.hash.slice(1)));
+  if(location.hash.length>1){model.import(decodeURIComponent(location.hash.slice(1)));currentStep="customize";}
   setOptions($("pack-picker"),[["","Imported / custom"],...data.packs.map(p=>[p.name,p.pack.title])]);
   for(const c of components)$("part-"+c).addEventListener("change",e=>operation(()=>model.change(s=>{s.selected[c]=e.target.checked;}),"Component choice staged."));
-  $("pack-picker").onchange=e=>{if(e.target.value)operation(()=>model.choose(e.target.value,data.packs.find(p=>p.name===e.target.value).pack));};
-  $("import").onclick=()=>operation(()=>model.import($("import-code").value),"Imported for editing. Nothing has been applied to your addon.");
+  const choose=name=>operation(()=>model.choose(name,data.packs.find(p=>p.name===name).pack),"Starting setup selected. Continue to choose parts.");
+  $("pack-picker").onchange=e=>{if(e.target.value)choose(e.target.value);};
+  for(const b of document.querySelectorAll("[data-pack]"))b.onclick=()=>choose(b.dataset.pack);
+  for(const b of document.querySelectorAll("[data-step]"))b.onclick=()=>workflow(b.dataset.step);
+  for(const b of document.querySelectorAll("[data-tab]")){b.onclick=()=>workflow("customize",b.dataset.tab);b.onkeydown=e=>{const order=["parts","style","layout"],index=order.indexOf(b.dataset.tab);let next;if(e.key==="ArrowRight")next=(index+1)%3;if(e.key==="ArrowLeft")next=(index+2)%3;if(e.key==="Home")next=0;if(e.key==="End")next=2;if(next!==undefined){e.preventDefault();workflow("customize",order[next],false);$("tab-"+order[next]).focus();}};}
+  $("edit-positions").onclick=()=>workflow("customize","layout");$("review-fit").onclick=()=>workflow("review");
+  $("preview-zoom").onchange=e=>{$("preview-stage").style.setProperty("--preview-zoom",e.target.value);};
+  $("import").onclick=()=>operation(()=>{model.import($("import-code").value);workflow("customize","parts");},"Imported for editing. Nothing has been applied to your addon.");
   for(const id of ["device","activity","accessibility"])$(id).onchange=e=>operation(()=>model.change(s=>{
    s[id]=e.target.value;if(id==="accessibility")s.accessibilityPinned=true;if(id==="device"){s.viewport=id&&s.device==="handheld"?{width:1280,height:800}:s.device==="ultrawide"?{width:3440,height:1440}:{width:1920,height:1080};}
   }));
@@ -166,7 +188,7 @@ async function start(){
   $("export").onclick=()=>operation(()=>{exportCode();message("Import this code in /rik studio. Review ownership, conflicts and reload requirements, then Apply. Your personal accessibility preferences remain in charge.");});
   $("copy-code").onclick=()=>copy($("result-code").value);
   $("download-code").onclick=()=>operation(()=>{const code=exportCode(),url=URL.createObjectURL(new Blob([code],{type:"text/plain"})),a=document.createElement("a");a.href=url;a.download="rikui-setup.txt";a.click();URL.revokeObjectURL(url);});
-  $("share").onclick=()=>operation(()=>{const code=exportCode(),url=new URL("/studio",location.origin);url.hash=encodeURIComponent(code);$("share-link").value=url.href;$("share-link").hidden=false;copy(url.href);message("Shareable result created. The pack is in the link fragment; no library or private records are stored on our server.");});
+  $("share").onclick=()=>operation(()=>{const code=exportCode(),url=new URL("/studio",location.origin);url.hash=encodeURIComponent(code);$("share-link").value=url.href;$("share-link").hidden=false;$("share-link-label").hidden=false;copy(url.href);message("Shareable result created. The pack is in the link fragment; no library or private records are stored on our server.");});
   $("theme-export").onclick=()=>operation(()=>{const p=model.pack();p.components={appearance:true};delete p.character;p.groups={};const resolved=model.resolve().profile;p.profile={theme:resolved.theme,font:resolved.font,borderColor:resolved.borderColor,textScale:resolved.textScale};delete p.adjustments;delete p.activities;delete p.devices;for(const k of Object.keys(p.profile))if(p.profile[k]===undefined)delete p.profile[k];p.id=p.id.slice(0,58)+"-theme";p.title=p.title.slice(0,74)+" theme";$("result-code").value=model.engine.call("Encode",p);$("result-panel").hidden=false;});
   $("maintain-identity").onchange=e=>operation(()=>model.change(s=>{s.maintainIdentity=e.target.checked;}));
   $("metadata-apply").onclick=()=>operation(()=>model.change(s=>{s.authorMetadata={title:$("pack-title").value,creator:$("pack-creator").value,revision:Number($("pack-revision").value)};}),"Attribution updated. Metadata changes do not rerender game captures.");
@@ -191,7 +213,7 @@ async function start(){
   });
   $("recipe").onchange=e=>operation(()=>model.change(s=>{for(const c of components)s.selected[c]=e.target.value==="all"?c!=="character":c===e.target.value;}));
   $("pack-title").value=model.source.title;$("pack-creator").value=model.source.creator;$("pack-revision").value=model.source.revision;
-  $("studio-loading").hidden=true;root.hidden=false;message("Ready. Choose parts and adjust the actual captured components.");await render();
+  $("studio-loading").hidden=true;root.hidden=false;message("Ready. Choose a starting setup or import your current UI.");workflow(currentStep,currentTab,false);await render();
  }catch(error){message(error.message);$("studio-loading").firstChild.textContent="Editor could not start. "; }
 }
 if(root)start();

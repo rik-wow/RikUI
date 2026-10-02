@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-02",
+  "command": "SITE_URL=http://127.0.0.1:8791 node web/studio-visual-review.mjs",
+  "screenshotsDirectory": "dist/studio-browser-review (local, not shipped)",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "width": 390,
+      "height": 1000
+    }
+  ],
+  "reducedMotion": true,
+  "criteria": [
+    "Reviewed actual browser screenshots at original size, with authentic Lua-rendered preview components.",
+    "Choose/Customize/Review reduces visible controls; selected cards and settings remain clear.",
+    "Parts, Appearance and Layout tabs use keyboard navigation; normal view limits movers and Layout reveals inactive footprints.",
+    "Mobile controls precede preview; Undo/Redo stay together; preview zoom scrolls within its shell.",
+    "Export offers copy/download and precise addon import instructions. Dynamic/world placement and unsupported preview coverage remain explicit."
+  ],
+  "screenshots": [
+    {
+      "id": "choose",
+      "sha256": "e3d22346351f79b7bbb6ebc7f5bc96cc183a217a21ce2765284bdfdd8b57d32b"
+    },
+    {
+      "id": "parts",
+      "sha256": "7791697f1885dd2addc6bbae82d9e901eed06e0c2acbf8f0b6f6be63b891ebe9"
+    },
+    {
+      "id": "appearance",
+      "sha256": "f6f78f1d6508e94f8c663fa0afa761233e7bec756906569480fd827236866ffb"
+    },
+    {
+      "id": "layout",
+      "sha256": "08770e3ecffe4eaac19092974100cca6b4014b589556d88e123d8da2b2f2b49d"
+    },
+    {
+      "id": "handheld",
+      "sha256": "165eb1e8a36316d22fd65afbd475891646da1d2b751fca35fbd37ffe3efef78e"
+    },
+    {
+      "id": "review-export",
+      "sha256": "51c1d6eb8ac6d02fa6b5c58883b1bbc5be2de78fd62487ed8b5d8602fe4ea29f"
+    },
+    {
+      "id": "mobile-choose",
+      "sha256": "c9969b6701d39b49d060f15767661b2ec57b3073bfa86cd698591d8f557f6311"
+    },
+    {
+      "id": "mobile-layout",
+      "sha256": "e755a254fc8dad1764f1bde94788aa19a45e41b5786c9d9b6d57969b5ec184c5"
+    }
+  ]
+}
