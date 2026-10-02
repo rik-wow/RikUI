@@ -976,7 +976,8 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         client_rows, client_raw = load_client_index(client_index, client_index_sha)
         add_client_records(records, client_rows, compiler.report, client_build)
         client_metadata = {"sha256": sha(client_raw), "build": client_build, "table": "QuestV2", "records": len(client_rows)}
-    revision = corpus_revision(sha(raw), compiler_hash, proof["manifestSHA256"] if proof else None, client_metadata["sha256"] if client_metadata else None, IDENTITY, partition_size, sha(event_raw) if event_raw else None, client_build if client_metadata else None)
+    identity = {**IDENTITY, "build": client_build} if client_metadata else dict(IDENTITY)
+    revision = corpus_revision(sha(raw), compiler_hash, proof["manifestSHA256"] if proof else None, client_metadata["sha256"] if client_metadata else None, identity, partition_size, sha(event_raw) if event_raw else None, client_build if client_metadata else None)
     output = safe_output(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=output.name + ".building-", dir=output.parent))
@@ -985,7 +986,7 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         for quest_id, row in records.items():
             partitions[quest_id // partition_size][quest_id] = row
         names = {}
-        catalog = {"version": 1, "identity": IDENTITY, "revision": revision, "providerRevision": data["provider"]["revision"], "sourceSHA256": sha(raw), "partitionSize": partition_size, "partitions": names, "counts": compiler.report["counts"], "baseSelector": "Alliance:WARRIOR", "selectors": sorted(selector_key(variant["selector"]) for variant in data.get("variants", [])), "terms": "private-use; upstream redistribution grant unresolved"}
+        catalog = {"version": 1, "identity": identity, "revision": revision, "providerRevision": data["provider"]["revision"], "sourceSHA256": sha(raw), "partitionSize": partition_size, "partitions": names, "counts": compiler.report["counts"], "baseSelector": "Alliance:WARRIOR", "selectors": sorted(selector_key(variant["selector"]) for variant in data.get("variants", [])), "terms": "private-use; upstream redistribution grant unresolved"}
         catalog["planning"] = planning_index(records)
         if event_metadata:
             catalog["eventMemberships"] = event_metadata
@@ -1017,7 +1018,7 @@ def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None,
         write_bytes(stage, "LOCAL_ONLY.txt", b"Locally generated from QuestieDB. No upstream redistribution grant has been established. Keep generated data private; do not publish publicly without resolving upstream terms.\n")
         folder = stage / EMBEDDED
         write_json(folder, OWNERSHIP_FILE, {"owner": "RikUI quest_corpus", "sourceSHA256": sha(raw), "files": owned_files(folder)})
-        manifest = {"schemaVersion": 1, "compilerVersion": 2, "compilerSHA256": compiler_hash, "corpusRevision": revision, "provider": data["provider"], "identity": IDENTITY, "sourceSHA256": sha(raw), "partitionSize": partition_size, "terms": catalog["terms"], "counts": compiler.report["counts"], "files": manifest_files(stage)}
+        manifest = {"schemaVersion": 1, "compilerVersion": 2, "compilerSHA256": compiler_hash, "corpusRevision": revision, "provider": data["provider"], "identity": identity, "sourceSHA256": sha(raw), "partitionSize": partition_size, "terms": catalog["terms"], "counts": compiler.report["counts"], "files": manifest_files(stage)}
         if proof:
             manifest["providerProof"] = proof
         if client_metadata:

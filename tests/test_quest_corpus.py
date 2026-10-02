@@ -327,6 +327,18 @@ class CorpusTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             corpus.sequence({"name": 3})
 
+    def test_explicit_client_index_keeps_exact_build_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);export=root/"export.json"
+            export.write_text(corpus.canonical(fixture()),encoding="utf8")
+            raw=b"ID,UniqueBitFlag,UiQuestDetailsThemeID\n99001,1,0\n"
+            index=root/"QuestV2.csv";index.write_bytes(raw)
+            manifest=corpus.build(export,root/"build",client_index=index,client_index_sha=corpus.sha(raw),client_build="1.60.1.99999")
+            self.assertEqual(manifest["identity"]["build"],"1.60.1.99999")
+            catalog=json.loads((root/"build/catalog.json").read_text())
+            self.assertEqual(catalog["identity"],manifest["identity"])
+            corpus.verify(root/"build")
+
     def test_build_repeat_stale_and_install_rollback(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
