@@ -4,10 +4,30 @@ local controls=core.WizardControls
 local window,accepts,history,redo=nil,{}, {},{}
 local privacy={chat=true,planner=true,inventory=true,sharing=true}
 local attribution=true
+local returnFromSharing=false
 local function report(ok,reason)
     local detail=type(reason)=="table" and ((reason.status or "Result")..": "..tostring(reason.error or reason.reason or "settings written; review reload requirements")) or reason
     if window then window.status:SetText(ok and (type(detail)=="string" and detail or "Done. Review reload requirements below.") or tostring(detail)) end
     if window then studio.RefreshWindow() end
+end
+local function sharingDialog(...)
+    local ok=core.Sharing.OpenDialog(...)
+    if ok and core.Sharing.Window then
+        local dialog=core.Sharing.Window
+        dialog:SetFrameStrata("FULLSCREEN_DIALOG")
+        if not dialog.rikStudioReturnHook then
+            dialog.rikStudioReturnHook=true
+            dialog:HookScript("OnHide",function()
+                if returnFromSharing then
+                    returnFromSharing=false
+                    if window and not InCombatLockdown() then studio.RefreshWindow();window:Show() end
+                end
+            end)
+        end
+        returnFromSharing=window and window:IsShown() or false
+        if returnFromSharing then window:Hide() end
+    end
+    return ok
 end
 local function remember()
     if studio.Draft then history[#history+1]=pack.Copy(studio.Draft);if #history>20 then table.remove(history,1) end end
@@ -104,7 +124,7 @@ local function build()
     local title=controls.Text(window,"heading","RikUI Setup Studio");title:SetPoint("TOPLEFT",20,-18)
     local note=controls.Text(window,"small","Choose > Select parts > Fit > Preview > Apply > Personalize > Share/update");note:SetPoint("TOPLEFT",20,-44)
     for i,name in ipairs({"centered","classic","hud","healer"}) do button(name,20+(i-1)*145,68,function() report(studio.Select(name)) end) end
-    button("Import",600,68,function() core.Sharing.OpenDialog("Import Setup Pack",nil,function(_,code) local ok,why=studio.Import(code);studio.RefreshWindow();return ok,why end,"Paste !RIKS1!, or a legacy UI/preset code. This only stages a review.","Imported for review in /rik studio.") end)
+    button("Import",600,68,function() sharingDialog("Import Setup Pack",nil,function(_,code) local ok,why=studio.Import(code);studio.RefreshWindow();return ok,why end,"Paste !RIKS1!, or a legacy UI/preset code. This only stages a review.","Imported for review in /rik studio.") end)
     window.checks={}
     for i,c in ipairs({"appearance","hud","nameplates","group","navigation","inventory"}) do
         local check=controls.Check(window,118,c,function() return studio.Selected[c]==true end,function(on) studio.Selected[c]=on end)
@@ -157,14 +177,14 @@ local function build()
     button("Restore",310,578,function() report(studio.Restore()) end)
     button("Character",455,578,function() report(studio.PrepareCharacter()) end)
     button("Bindings",600,578,function() report(studio.ApplyBindings()) end)
-    button("Export live",20,616,function() local code,why=studio.Export();if code then core.Sharing.OpenDialog("Export current setup",code,nil,"Shares supported settings and geometry; no private records or restoration history.") else report(nil,why) end end)
+    button("Export live",20,616,function() local code,why=studio.Export();if code then sharingDialog("Export current setup",code,nil,"Shares supported settings and geometry; no private records or restoration history.") else report(nil,why) end end)
     button("Share draft",165,616,function() local value=pack.Copy(studio.Draft);value.components=pack.Copy(studio.Selected);if not value.components.character then value.character=nil end
-        local code,why=pack.Encode(value);if code then core.Sharing.OpenDialog("Share Setup Pack",code,nil,"Open rikwow.com/studio to edit or create a shareable link.") else report(nil,why) end end)
-    button("Theme export",310,616,function() local code,why=studio.ThemeExport();if code then core.Sharing.OpenDialog("Share theme",code,nil,"Appearance-only Setup Pack.") else report(nil,why) end end)
+        local code,why=pack.Encode(value);if code then sharingDialog("Share Setup Pack",code,nil,"Open rikwow.com/studio to edit or create a shareable link.") else report(nil,why) end end)
+    button("Theme export",310,616,function() local code,why=studio.ThemeExport();if code then sharingDialog("Share theme",code,nil,"Appearance-only Setup Pack.") else report(nil,why) end end)
     button("Capture",455,616,function() report(studio.Capture(true,attribution,privacy)) end)
     button("Exit capture",600,616,function() report(studio.Capture(false)) end)
-    button("Export bars",20,656,function() local code,why=studio.ExportCharacter();if code then core.Sharing.OpenDialog("Export live standard bars",code,nil,"Main and four standard pages, referenced macros only. Script macros and unknown catalogue spells are refused. Bindings excluded.") else report(nil,why) end end)
-    button("Bars + keys",165,656,function() local code,why=studio.ExportCharacter(nil,true);if code then core.Sharing.OpenDialog("Export bars and main keys",code,nil,"Explicitly includes bindings for ACTIONBUTTON1..12 plus standard pages and referenced macros. Inspect character data before sharing.") else report(nil,why) end end)
+    button("Export bars",20,656,function() local code,why=studio.ExportCharacter();if code then sharingDialog("Export live standard bars",code,nil,"Main and four standard pages, referenced macros only. Script macros and unknown catalogue spells are refused. Bindings excluded.") else report(nil,why) end end)
+    button("Bars + keys",165,656,function() local code,why=studio.ExportCharacter(nil,true);if code then sharingDialog("Export bars and main keys",code,nil,"Explicitly includes bindings for ACTIONBUTTON1..12 plus standard pages and referenced macros. Inspect character data before sharing.") else report(nil,why) end end)
     for i,area in ipairs({"chat","planner","inventory"}) do
         local check=controls.Check(window,110,"Hide "..area,function()return privacy[area]end,function(on)privacy[area]=on end)
         check:SetPoint("TOPLEFT",310+(i-1)*140,-656);window.checks[#window.checks+1]=check

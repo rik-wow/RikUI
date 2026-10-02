@@ -6,13 +6,19 @@ export const accessibility={
  contrast:{scale:1.15,textScale:1.15,contrast:true,nonColor:true,reducedMotion:true},
  calm:{reducedMotion:true,nonColor:true}
 };
+export function normalizeImportCode(value){
+ if(typeof value!=="string"||value.length>24000)throw Error("Export exceeds the supported copy/paste capacity.");
+ const code=value.replace(/\s+/g,""),header=code.match(/^!RIKS1!([0-9]+):[0-9a-fA-F]{8}:(.*)$/);
+ if(header&&Number(header[1])>header[2].length)throw Error("Incomplete export: missing "+(Number(header[1])-header[2].length)+" characters. Select all text in the addon export box and copy again.");
+ return code;
+}
 export class StudioModel {
  constructor(engine){this.engine=engine;this.authorMetadata=undefined;this.history=[];this.future=[];this.accessibility="standard";this.viewport={width:1920,height:1080};this.activity="exploration";this.device="desktop";}
  snapshot(){return clone({source:this.source,overrides:this.overrides,selected:this.selected,viewport:this.viewport,device:this.device,activity:this.activity,accessibility:this.accessibility,accessibilityPinned:this.accessibilityPinned,remixId:this.remixId,integrationPresent:this.integrationPresent,authorMetadata:this.authorMetadata,maintainIdentity:this.maintainIdentity,baseline:this.baseline});}
  restore(state){Object.assign(this,clone(state));}
  remember(){if(this.source)this.history.push(this.snapshot());if(this.history.length>20)this.history.shift();this.future=[];}
  choose(name,pack){this.remember();this.remixId=undefined;this.authorMetadata=undefined;this.source=pack?this.engine.call("Validate",pack):this.engine.call("Bundled",name);this.maintainIdentity=false;this.baseline=this.engine.call("Merge",this.engine.call("Copy",this.source.profile),this.source.adjustments||{});this.overrides={};this.selected=clone(this.source.components);this.selected.character=false;}
- import(code){const pack=this.engine.call("Import",code.trim());this.remember();this.remixId=undefined;this.authorMetadata=undefined;this.source=pack;this.maintainIdentity=false;this.baseline=this.engine.call("Merge",this.engine.call("Copy",this.source.profile),this.source.adjustments||{});this.overrides={};this.selected=clone(pack.components);this.selected.character=false;this.device=pack.defaultDevice||this.device;this.activity=pack.defaultActivity||this.activity;if(!this.accessibilityPinned&&this.accessibility==="standard"&&accessibility[pack.accessibilityRecipe])this.accessibility=pack.accessibilityRecipe;}
+ import(code){const pack=this.engine.call("Import",normalizeImportCode(code));this.remember();this.remixId=undefined;this.authorMetadata=undefined;this.source=pack;this.viewport=clone(pack.viewport);this.maintainIdentity=false;this.baseline=this.engine.call("Merge",this.engine.call("Copy",this.source.profile),this.source.adjustments||{});this.overrides={};this.selected=clone(pack.components);this.selected.character=false;this.device=pack.defaultDevice||this.device;this.activity=pack.defaultActivity||this.activity;if(!this.accessibilityPinned&&this.accessibility==="standard"&&accessibility[pack.accessibilityRecipe])this.accessibility=pack.accessibilityRecipe;}
  change(fn){const before=this.snapshot();const oldFuture=this.future;const oldHistory=[...this.history];this.remember();try{fn(this);this.engine.call("Validate",this.pack(false));}catch(error){this.restore(before);this.history=oldHistory;this.future=oldFuture;throw error;}}
  undo(forward=false){const from=forward?this.future:this.history,to=forward?this.history:this.future;if(!from.length)return false;to.push(this.snapshot());this.restore(from.pop());return true;}
  resolve(){return this.resolveWith(this.source,this.overrides);}
@@ -41,8 +47,8 @@ export class StudioModel {
  pack(remix=true){
   const p=this.engine.call("Copy",this.source);
   p.adjustments=this.engine.call("Merge",p.adjustments||{},this.overrides);
-  p.components=clone(this.selected);if(!p.components.character)delete p.character;p.defaultDevice=this.device;p.defaultActivity=this.activity;p.accessibilityRecipe=this.accessibility;
-  const edited=Object.keys(this.overrides||{}).length || JSON.stringify(p.components)!==JSON.stringify(this.source.components) || this.authorMetadata || this.device!==(this.source.defaultDevice||"desktop") || this.activity!==(this.source.defaultActivity||"exploration") || this.accessibility!==(this.source.accessibilityRecipe||"standard");
+  p.components=clone(this.selected);if(!p.components.character)delete p.character;p.viewport=clone(this.viewport);p.defaultDevice=this.device;p.defaultActivity=this.activity;p.accessibilityRecipe=this.accessibility;
+  const edited=JSON.stringify(p.viewport)!==JSON.stringify(this.source.viewport) || Object.keys(this.overrides||{}).length || JSON.stringify(p.components)!==JSON.stringify(this.source.components) || this.authorMetadata || this.device!==(this.source.defaultDevice||"desktop") || this.activity!==(this.source.defaultActivity||"exploration") || this.accessibility!==(this.source.accessibilityRecipe||"standard");
   if(remix && edited && !this.maintainIdentity){
    p.ancestry={id:this.source.id,revision:this.source.revision,creator:this.source.creator};
    this.remixId??="remix-"+crypto.randomUUID();p.id=this.remixId;p.revision=1;p.creator="You";p.title=this.source.title.slice(0,72)+" remix";

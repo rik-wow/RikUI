@@ -14,6 +14,7 @@ const hash=value=>createHash("sha256").update(value).digest("hex");
 const sources=await Promise.all(sourcePaths.map(p=>readFile(new URL("../"+p,import.meta.url),"utf8")));
 const engine=createEngine(sources);
 const manifest=JSON.parse(await readFile(new URL("manifest.json",captureRoot),"utf8"));
+const paintBounds=JSON.parse(execFileSync(process.env.PYTHON||"python",[fileURLToPath(new URL("../tools/site-renders/paint_bounds.py",import.meta.url)),"--root",fileURLToPath(captureRoot)],{encoding:"utf8"}));
 const assets=[],atlases={},packs=[];
 await mkdir(new URL("./public/assets/studio/",import.meta.url),{recursive:true});
 async function asset(id,frame){
@@ -25,14 +26,16 @@ async function asset(id,frame){
  return {...c,url};
 }
 for(const theme of ["classic","ocean","ink"])for(const readability of ["standard","readable"]){
- const id="studio-atlas-"+theme+"-"+readability,record=manifest.renders.find(c=>c.id===id),components={};
- if(!record?.frames || record.frames.length!==25)throw Error("Missing individually filtered native component captures: "+id);
- for(const frame of record.frames){const c=await asset(id,frame);if(!c.components)throw Error("Missing native geometry: "+id);
-  for(const [key,geometry] of Object.entries(c.components))components[key]={...geometry,url:c.url,atlasHeight:c.height,sha256:c.sha256};
+ const components={};
+ for(const prefix of ["studio-atlas-","studio-extra-"]){
+  const id=prefix+theme+"-"+readability,record=manifest.renders.find(c=>c.id===id);
+  if(!record?.frames || (prefix==="studio-atlas-"&&record.frames.length!==25))throw Error("Missing individually filtered native component captures: "+id);
+  for(const frame of record.frames){const c=await asset(id,frame);if(!c.components)throw Error("Missing native geometry: "+id);
+   const paint=paintBounds[c.filename];if(!paint)throw Error("Missing native paint extent: "+c.filename);
+   for(const [key,geometry]of Object.entries(c.components))components[key]={...geometry,paint,url:c.url,atlasHeight:c.height,sha256:c.sha256};
+  }
  }
- // The chat holder has UIParent siblings; its coverage remains explicit.
- delete components.chat;
- atlases[theme+"-"+readability]={components,inputs:record.inputs};
+ atlases[theme+"-"+readability]={components};
 }
 const collection=JSON.parse(await readFile(new URL("./setup-collection.json",import.meta.url),"utf8"));
 if(collection.version!==1||!Array.isArray(collection.packs)||collection.packs.length<1||collection.packs.length>32)throw Error("Invalid curated collection");

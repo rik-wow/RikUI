@@ -3194,11 +3194,67 @@
       "height": 772
     },
     {
+      "id": "studio-extra-classic-readable",
+      "page": "studio-atlas",
+      "title": "classic / readable native chat and conditional components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-extra-classic-standard",
+      "page": "studio-atlas",
+      "title": "classic / standard native chat and conditional components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-extra-ink-readable",
+      "page": "studio-atlas",
+      "title": "ink / readable native chat and conditional components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-extra-ink-standard",
+      "page": "studio-atlas",
+      "title": "ink / standard native chat and conditional components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-extra-ocean-readable",
+      "page": "studio-atlas",
+      "title": "ocean / readable native chat and conditional components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-extra-ocean-standard",
+      "page": "studio-atlas",
+      "title": "ocean / standard native chat and conditional components",
+      "width": 640,
+      "height": 540
+    },
+    {
       "id": "studio-handheld",
       "page": "setup-studio",
       "title": "Handheld presentation",
       "width": 1280,
       "height": 800
+    },
+    {
+      "id": "studio-live-export",
+      "page": "setup-studio",
+      "title": "Actual Studio Apply geometry conformance",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "studio-native-geometry",
+      "page": "studio-gallery",
+      "title": "Actual Studio Apply geometry conformance",
+      "width": 1920,
+      "height": 1080
     },
     {
       "id": "studio-pack-centered",

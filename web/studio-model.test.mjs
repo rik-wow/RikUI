@@ -4,8 +4,16 @@ import {readFileSync,readdirSync} from "node:fs";
 import {createEngine} from "./pack-engine.mjs";
 import {sourcePaths} from "./pack-sources.mjs";
 import {StudioModel} from "./studio-model.mjs";
-import {sampleAppearanceCovered} from "./preview-coverage.mjs";
+import {sampleAppearanceCovered,componentAppearanceCovered} from "./preview-coverage.mjs";
 const engine=()=>createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
+test("import restores the source viewport and export retains an edited viewport",()=>{
+ const e=engine(),m=new StudioModel(e),p=e.call("Bundled","centered");p.viewport={width:2560,height:1440};
+ m.import(e.call("Encode",p));assert.deepEqual(m.viewport,{width:2560,height:1440});
+ m.change(s=>{s.viewport={width:1280,height:800};s.device="handheld";});
+ const source=e.call("Encode",m.source),code=m.export(),n=new StudioModel(e);n.import(code);
+ assert.deepEqual(n.viewport,m.viewport);assert.equal(e.call("Encode",m.source),source);
+ assert.deepEqual(n.resolve().profile.positions,m.resolve().profile.positions);
+});
 test("visual edits round-trip through the actual pack engine without source drift",()=>{
  const e=engine(),model=new StudioModel(e);model.choose("hud");
  const original=e.call("Encode",model.source);
@@ -71,6 +79,15 @@ test("native preview coverage refuses uncaptured imported appearance",()=>{
  for(const change of [{unitframes:{powerText:"percent"}},{castbars:{height:36}},{bags:{columns:8}},{minimap:{coordinates:false}},{nameplates:{adaptiveNames:false}}]){
   assert.equal(sampleAppearanceCovered({...p,...change},e,"classic"),false);
  }
+});
+test("uncaptured settings only affect their own component",()=>{
+ const e=engine(),m=new StudioModel(e);m.choose("centered");const p=m.resolve().profile;
+ const custom={...p,nameplates:{adaptiveNames:false}};
+ assert.equal(componentAppearanceCovered("nameplates",custom,e,"classic"),false);
+ assert.equal(componentAppearanceCovered("chat",custom,e,"classic"),true);
+ assert.equal(componentAppearanceCovered("main",custom,e,"classic"),true);
+ assert.equal(componentAppearanceCovered("player",{...p,castbars:{height:36}},e,"classic"),true);
+ assert.equal(componentAppearanceCovered("casttarget",{...p,castbars:{height:36}},e,"classic"),false);
 });
 test("all module registrations belong to the shared component contract",()=>{
  const e=engine();const pack=e.call("Bundled","centered");

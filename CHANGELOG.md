@@ -9,6 +9,30 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.5
+
+2026-10-02. Setup Studio repair for WoW: Forever beta.
+
+- Restore chat, stance/aura, pet, target/focus/pet casting and loot samples in
+  the browser’s authentic component preview. Preserve native paint outside
+  holder roots, including target auras, reputation and the micro-menu bag strip.
+- Show labeled movers for inactive and uncaptured groups, with an accessible
+  frame list. Highlight fitting conflicts and neighboring footprints in red,
+  explain the required clearance and show specialist space reservations.
+- Respect imported screen dimensions, retain edited viewport dimensions in
+  exports, and limit unsupported appearance fallback to affected components.
+  Inventory samples follow the selected scene; disabled modules stay disabled.
+- Normalize partial saved anchors when exporting live settings without
+  rewriting the saved profile. Accept wrapped pasted codes and explain missing
+  characters in incomplete copies.
+- Hide Studio while its copy/import dialog is open, restore it on close, and
+  keep the dialog above other editor windows.
+- Add native Export live → browser editing → native import conformance checks,
+  applied-position assertions at 100%/115% scale, browser regressions and
+  individually reviewed native component captures. Geometry-only preview
+  coverage remains explicitly labeled; no native gameplay claim is made.
+
+
 ## 1.0.0-beta.4
 
 2026-10-02. Setup Studio for WoW: Forever beta, reviewed against current client

@@ -1,0 +1,52 @@
+import {test,expect} from "@playwright/test";
+import {readFileSync} from "node:fs";
+import {createEngine} from "./pack-engine.mjs";
+import {sourcePaths} from "./pack-sources.mjs";
+const engine=()=>createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
+const ready=page=>expect(page.locator("#game-preview")).toHaveAttribute("data-preview-ready","true");
+test("all movers are discoverable and chat is an authentic visible sample",async({page})=>{
+ await page.goto("/studio");await ready(page);
+ const painted=JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"));
+ expect(painted).toContain("chat");expect(painted).toContain("stance");expect(painted).not.toContain("bags");
+ for(const key of ["chat","castfocus","casttarget","loot","questtimers"])
+  await expect(page.locator('#mover-layer [data-group="'+key+'"]')).toBeVisible();
+ await page.locator('#mover-layer [data-group="questtimers"]').click({position:{x:4,y:4}});await ready(page);
+ await expect(page.locator("#frame-group")).toHaveValue("questtimers");
+ await expect(page.locator("#undo")).toBeDisabled();
+ await page.getByText("All movable frames, including inactive groups",{exact:true}).click();
+ const target=page.locator('#frame-list [data-group="casttarget"]');
+ await target.focus();await page.keyboard.press("Enter");await ready(page);
+ await expect(page.locator("#frame-group")).toHaveValue("casttarget");
+ expect(JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"))).toContain("casttarget");
+ await page.locator("#game-preview").focus();const before=await page.locator("#geometry").innerText();
+ await page.keyboard.press("ArrowRight");await expect(page.locator("#geometry")).not.toHaveText(before);
+ await page.locator("#undo").click();await expect(page.locator("#geometry")).toHaveText(before);
+ await page.locator("#show-conditional").check();await ready(page);
+ expect(JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"))).toContain("loot");
+});
+test("conflicting invisible footprints identify their neighbors and remain highlighted",async({page})=>{
+ const e=engine(),p=e.call("Bundled","centered");
+ p.adjustments={positions:{main:{point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:500,y:100},player:{point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:500,y:100}}};
+ await page.goto("/studio");await ready(page);
+ await page.locator("#import-code").fill(e.call("Encode",p));await page.locator("#import").click();await ready(page);
+ await expect(page.locator("#fit-conflicts")).toContainText(/clearance from/);
+ await expect(page.locator("#mover-layer .conflict")).not.toHaveCount(0);
+ await expect(page.locator("#export")).toBeDisabled();
+ const conflict=page.locator("#fit-conflicts button").first(),key=await conflict.getAttribute("data-group");
+ await conflict.click();await expect(page.locator("#frame-group")).toHaveValue(key);
+ await page.locator("#show-movers").uncheck();await ready(page);
+ await expect(page.locator("#mover-layer .conflict").first()).toBeVisible();
+});
+test("imported viewport and per-component coverage survive export without blanking unrelated UI",async({page})=>{
+ const e=engine(),p=e.call("Bundled","centered");p.viewport={width:2560,height:1440};p.profile.nameplates={adaptiveNames:false};
+ await page.goto("/studio");await ready(page);
+ await page.locator("#import-code").fill(e.call("Encode",p));await page.locator("#import").click();await ready(page);
+ await expect(page.locator("#viewport")).toHaveValue("2560x1440");
+ await expect(page.locator("#game-preview")).toHaveAttribute("width","2560");
+ expect(JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"))).toContain("chat");
+ expect(JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"))).toContain("main");
+ await page.locator("#export").click();
+ expect(e.call("Decode",await page.locator("#result-code").inputValue()).viewport).toEqual(p.viewport);
+ await page.locator("#activity").selectOption("town");await ready(page);
+ expect(JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"))).toContain("bags");
+});

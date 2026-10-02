@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test worker.test.mjs docs-coverage.test.mjs pack-engine.test.mjs studio-model.test.mjs",
+    "test": "node --test worker.test.mjs docs-coverage.test.mjs pack-engine.test.mjs studio-model.test.mjs studio-preview.test.mjs studio-live-import.test.mjs",
     "test:browser": "playwright test",
     "check": "wrangler deploy --dry-run",
     "dev": "wrangler dev",

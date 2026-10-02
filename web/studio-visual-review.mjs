@@ -12,7 +12,7 @@ await page.goto(site+"/studio");await page.locator("#studio-app").waitFor();
 await page.waitForFunction(()=>document.querySelector("#geometry").textContent.includes("×"));
 for(const [name,settings] of [["desktop",{}],["party-ocean",{activity:"party",theme:"ocean"}],["raid-ink",{activity:"raid",theme:"ink"}],["handheld",{device:"handheld",theme:"classic"}]]){
  for(const [key,value] of Object.entries(settings))await page.locator("#"+key).selectOption(value);
- await page.waitForTimeout(300);await page.locator("#game-preview").scrollIntoViewIfNeeded();
+ await page.waitForFunction(()=>document.querySelector("#game-preview").dataset.previewReady==="true");await page.locator("#game-preview").scrollIntoViewIfNeeded();
  await page.locator("#game-preview").screenshot({path:new URL(name+"-canvas.png",root).pathname.replace(/^\/(\w:)/,"$1")});
  await page.screenshot({path:new URL(name+".png",root).pathname.replace(/^\/(\w:)/,"$1"),fullPage:true});
 }

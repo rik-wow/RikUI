@@ -1,0 +1,21 @@
+import {test,expect} from "@playwright/test";
+import {readFileSync} from "node:fs";
+import {createEngine} from "./pack-engine.mjs";
+import {sourcePaths} from "./pack-sources.mjs";
+const fixture=JSON.parse(readFileSync(new URL("../tests/studio-native-export.json",import.meta.url)));
+test("native game export imports in the browser, edits and returns a complete pack",async({page})=>{
+ await page.goto("/studio");await expect(page.locator("#game-preview")).toHaveAttribute("data-preview-ready","true");
+ await page.locator("#import-code").fill(fixture.code.match(/.{1,100}/g).join("\n"));
+ await page.locator("#import").click();await expect(page.locator("#pack-description")).toContainText("My RikUI setup");
+ await expect(page.locator("#mover-layer [data-group=chat]")).toBeVisible();
+ await page.locator("#frame-group").selectOption("main");
+ await page.locator("#game-preview").focus();await page.keyboard.press("ArrowRight");
+ await page.locator("#export").click();
+ const e=createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
+ const p=e.call("Import",await page.locator("#result-code").inputValue());
+ expect(p.groups.chat).toBeTruthy();expect(p.adjustments.positions.main).toBeTruthy();
+ expect(p.viewport).toEqual({width:1920,height:1080});
+ await page.locator("#import-code").fill(fixture.code.slice(0,-17));await page.locator("#import").click();
+ await expect(page.locator("#studio-status")).toContainText("missing 17 characters");
+ await expect(page.locator("#pack-description")).toContainText("My RikUI setup");
+});

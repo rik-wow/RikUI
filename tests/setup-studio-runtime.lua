@@ -130,4 +130,14 @@ ChatFrame2={IsShown=function()return extraShown end,Hide=function()extraShown=fa
 check(s.Capture(true,false,{chat=true}),"capture covers additional chat windows")
 check(not extraShown,"additional chat window hidden")
 check(s.Capture(false) and extraShown,"additional chat window restored")
+-- Live frames resolve partial persisted anchors from layout defaults; exports must do the same.
+RikUI.Layout.Groups.main={frames={{GetWidth=function()return 498 end,GetHeight=function()return 36 end}}}
+RikUI.Layout.GetPosition=function()return {point="BOTTOM",relativePoint="BOTTOM",x=32,y=40} end
+RikUI.Layout.Floats=function()return false end
+RikUI.Profile.positions.main={x=32}
+local exported,exportCode=pcall(s.Export)
+check(exported and type(exportCode)=="string","live export normalizes partial persisted anchors")
+check(RikUI.Profile.positions.main.point==nil,"export does not rewrite stored source anchors")
+local decoded=assert(p.Decode(exportCode))
+check(decoded.profile.positions.main.relativePoint=="BOTTOM","portable anchor is complete")
 print("OK: "..checks.." Studio lifecycle checks")

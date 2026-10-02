@@ -3573,4 +3573,433 @@
     "8-unit snap"
   ]
 }
+,
+  {
+    "id": "studio-extra-classic-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "classic / standard native chat and conditional components",
+    "frame": "RikUIChatHolder",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "chat": {
+        "size": {
+          "width": 430,
+          "height": 136
+        }
+      }
+    },
+    "sequence": {
+      "setting": "native filtered component",
+      "values": [
+        "chat",
+        "stance",
+        "petframe",
+        "casttarget",
+        "castfocus",
+        "castpet",
+        "loot",
+        "bagspace"
+      ],
+      "default": "chat",
+      "apply": "RikRenderStudioExtra(VALUE)",
+      "frames": {
+        "chat": "RikUIChatHolder",
+        "stance": "RikUIBar_stance",
+        "petframe": "RikUIUnit_petframe",
+        "casttarget": "RikUICast_target",
+        "castfocus": "RikUICast_focus",
+        "castpet": "RikUICast_pet",
+        "loot": "RikUILoot",
+        "bagspace": "RikUIBagCapacity"
+      }
+    }
+  },
+  {
+    "id": "studio-extra-classic-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "classic / readable native chat and conditional components",
+    "frame": "RikUIChatHolder",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "chat": {
+        "size": {
+          "width": 430,
+          "height": 136
+        }
+      }
+    },
+    "sequence": {
+      "setting": "native filtered component",
+      "values": [
+        "chat",
+        "stance",
+        "petframe",
+        "casttarget",
+        "castfocus",
+        "castpet",
+        "loot",
+        "bagspace"
+      ],
+      "default": "chat",
+      "apply": "RikRenderStudioExtra(VALUE)",
+      "frames": {
+        "chat": "RikUIChatHolder",
+        "stance": "RikUIBar_stance",
+        "petframe": "RikUIUnit_petframe",
+        "casttarget": "RikUICast_target",
+        "castfocus": "RikUICast_focus",
+        "castpet": "RikUICast_pet",
+        "loot": "RikUILoot",
+        "bagspace": "RikUIBagCapacity"
+      }
+    }
+  },
+  {
+    "id": "studio-extra-ocean-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ocean / standard native chat and conditional components",
+    "frame": "RikUIChatHolder",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "chat": {
+        "size": {
+          "width": 430,
+          "height": 136
+        }
+      }
+    },
+    "sequence": {
+      "setting": "native filtered component",
+      "values": [
+        "chat",
+        "stance",
+        "petframe",
+        "casttarget",
+        "castfocus",
+        "castpet",
+        "loot",
+        "bagspace"
+      ],
+      "default": "chat",
+      "apply": "RikRenderStudioExtra(VALUE)",
+      "frames": {
+        "chat": "RikUIChatHolder",
+        "stance": "RikUIBar_stance",
+        "petframe": "RikUIUnit_petframe",
+        "casttarget": "RikUICast_target",
+        "castfocus": "RikUICast_focus",
+        "castpet": "RikUICast_pet",
+        "loot": "RikUILoot",
+        "bagspace": "RikUIBagCapacity"
+      }
+    }
+  },
+  {
+    "id": "studio-extra-ocean-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ocean / readable native chat and conditional components",
+    "frame": "RikUIChatHolder",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "chat": {
+        "size": {
+          "width": 430,
+          "height": 136
+        }
+      }
+    },
+    "sequence": {
+      "setting": "native filtered component",
+      "values": [
+        "chat",
+        "stance",
+        "petframe",
+        "casttarget",
+        "castfocus",
+        "castpet",
+        "loot",
+        "bagspace"
+      ],
+      "default": "chat",
+      "apply": "RikRenderStudioExtra(VALUE)",
+      "frames": {
+        "chat": "RikUIChatHolder",
+        "stance": "RikUIBar_stance",
+        "petframe": "RikUIUnit_petframe",
+        "casttarget": "RikUICast_target",
+        "castfocus": "RikUICast_focus",
+        "castpet": "RikUICast_pet",
+        "loot": "RikUILoot",
+        "bagspace": "RikUIBagCapacity"
+      }
+    }
+  },
+  {
+    "id": "studio-extra-ink-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ink / standard native chat and conditional components",
+    "frame": "RikUIChatHolder",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "chat": {
+        "size": {
+          "width": 430,
+          "height": 136
+        }
+      }
+    },
+    "sequence": {
+      "setting": "native filtered component",
+      "values": [
+        "chat",
+        "stance",
+        "petframe",
+        "casttarget",
+        "castfocus",
+        "castpet",
+        "loot",
+        "bagspace"
+      ],
+      "default": "chat",
+      "apply": "RikRenderStudioExtra(VALUE)",
+      "frames": {
+        "chat": "RikUIChatHolder",
+        "stance": "RikUIBar_stance",
+        "petframe": "RikUIUnit_petframe",
+        "casttarget": "RikUICast_target",
+        "castfocus": "RikUICast_focus",
+        "castpet": "RikUICast_pet",
+        "loot": "RikUILoot",
+        "bagspace": "RikUIBagCapacity"
+      }
+    }
+  },
+  {
+    "id": "studio-extra-ink-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ink / readable native chat and conditional components",
+    "frame": "RikUIChatHolder",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "chat": {
+        "size": {
+          "width": 430,
+          "height": 136
+        }
+      }
+    },
+    "sequence": {
+      "setting": "native filtered component",
+      "values": [
+        "chat",
+        "stance",
+        "petframe",
+        "casttarget",
+        "castfocus",
+        "castpet",
+        "loot",
+        "bagspace"
+      ],
+      "default": "chat",
+      "apply": "RikRenderStudioExtra(VALUE)",
+      "frames": {
+        "chat": "RikUIChatHolder",
+        "stance": "RikUIBar_stance",
+        "petframe": "RikUIUnit_petframe",
+        "casttarget": "RikUICast_target",
+        "castfocus": "RikUICast_focus",
+        "castpet": "RikUICast_pet",
+        "loot": "RikUILoot",
+        "bagspace": "RikUIBagCapacity"
+      }
+    }
+  },
+  {
+    "id": "studio-native-geometry",
+    "page": "studio-gallery",
+    "title": "Actual Studio Apply geometry conformance",
+    "frame": "UIParent",
+    "screen": "1920x1080",
+    "crop": "1920x1080+0+0",
+    "fixtures": [],
+    "lua": "",
+    "expectText": [],
+    "sequence": {
+      "setting": "Native applied scale",
+      "values": [
+        1,
+        1.15
+      ],
+      "default": 1,
+      "apply": "RikRenderStudioGeometryProof(VALUE)"
+    }
+  }
+,
+{
+  "id": "studio-live-export",
+  "page": "setup-studio",
+  "title": "Actual Studio Apply geometry conformance",
+  "frame": "UIParent",
+  "screen": "1920x1080",
+  "crop": "1920x1080+0+0",
+  "fixtures": [],
+  "lua": "RikRenderStudioLiveExport()",
+  "expectText": []
+}
 ]

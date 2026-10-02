@@ -1,0 +1,295 @@
+{
+  "reviewedAt": "2026-10-02",
+  "clientVersion": "1.60.1.70170",
+  "foreverCommit": "9a789c074b8e73c5d604ef2d6af3bb5b3aefb348",
+  "inputPolicy": "Recorded provenance; resolve latest inputs again for future captures.",
+  "review": "Every listed image viewed at original size. New native chat/stance/pet/cast/loot/capacity samples retain native text, icons and extents. Applied native positions asserted against shared resolver at scale 1 and 1.15. Export fixture activates actual control, verifies full copy text, hides Studio during copying and verifies closing/reopening restores the right window. Existing studio images compared to reviewed baseline; changed timed aura/cooldown digits accepted. Unchanged captures retain original evidence.",
+  "nativeAcceptance": "User standing acceptance; renderer execution is automated verification, not native gameplay observation.",
+  "limitations": [
+    "Representative fixture identities and sample dynamic data.",
+    "Uncaptured movable groups remain explicit geometry-only labeled footprints.",
+    "World imagery and third-party widgets are outside browser preview."
+  ],
+  "images": [
+    {
+      "id": "studio-extra-classic-readable@chat",
+      "filename": "studio-extra-classic-readable@chat.webp",
+      "sha256": "c308e5895f7fc8e51cb9e1f612d2f7593d3d0c47b98a552838bd66e8306132f4"
+    },
+    {
+      "id": "studio-extra-classic-readable@stance",
+      "filename": "studio-extra-classic-readable@stance.webp",
+      "sha256": "bcf2cf0f8ede9e2a68cd1530b1a025f9436d13d8db74f83ce3bc49fac8af1c24"
+    },
+    {
+      "id": "studio-extra-classic-readable@petframe",
+      "filename": "studio-extra-classic-readable@petframe.webp",
+      "sha256": "c3557d57197c97f3d56f6b6ea28f76e3c7a9994477bffb24c372b478570dddb2"
+    },
+    {
+      "id": "studio-extra-classic-readable@casttarget",
+      "filename": "studio-extra-classic-readable@casttarget.webp",
+      "sha256": "61c838d7af2b19d53e77585840618667d6f641138db69f1740238a9bd64d9fab"
+    },
+    {
+      "id": "studio-extra-classic-readable@castfocus",
+      "filename": "studio-extra-classic-readable@castfocus.webp",
+      "sha256": "e009b98225a637eaad4014cbfdb6bee14cb6633d2e800f032d189723c98ba8d5"
+    },
+    {
+      "id": "studio-extra-classic-readable@castpet",
+      "filename": "studio-extra-classic-readable@castpet.webp",
+      "sha256": "90ceb8eea2ee72f96bdd534bca107afaf4808f8c99d54bb90cfe1ae5f44b3609"
+    },
+    {
+      "id": "studio-extra-classic-readable@loot",
+      "filename": "studio-extra-classic-readable@loot.webp",
+      "sha256": "503188f099aae78f52f4e9037015d0bd7233c866279ab716d86ded3f75a6248a"
+    },
+    {
+      "id": "studio-extra-classic-readable@bagspace",
+      "filename": "studio-extra-classic-readable@bagspace.webp",
+      "sha256": "a555912e1e91ed48a7ce1d83d10248824198a8b0f993fc4712571b2178b97c0f"
+    },
+    {
+      "id": "studio-extra-classic-standard@chat",
+      "filename": "studio-extra-classic-standard@chat.webp",
+      "sha256": "da4b20d76fa35b7bab8a78eac7393c33aea4d7e299c51e9c7cc2e0c275b73510"
+    },
+    {
+      "id": "studio-extra-classic-standard@stance",
+      "filename": "studio-extra-classic-standard@stance.webp",
+      "sha256": "bcf2cf0f8ede9e2a68cd1530b1a025f9436d13d8db74f83ce3bc49fac8af1c24"
+    },
+    {
+      "id": "studio-extra-classic-standard@petframe",
+      "filename": "studio-extra-classic-standard@petframe.webp",
+      "sha256": "81a8f2ed5f91fb32cd3372d067dd50f142407422ff0029c5f0317bc66b4d556d"
+    },
+    {
+      "id": "studio-extra-classic-standard@casttarget",
+      "filename": "studio-extra-classic-standard@casttarget.webp",
+      "sha256": "13d7b32beae5c35446a1a094bced4ee1c472dd2af0bf49c48e2dde074518a32b"
+    },
+    {
+      "id": "studio-extra-classic-standard@castfocus",
+      "filename": "studio-extra-classic-standard@castfocus.webp",
+      "sha256": "445ac2b1919b748b416f6af528175313b9fde8f81c0d4a4ba2564e01ba329e3f"
+    },
+    {
+      "id": "studio-extra-classic-standard@castpet",
+      "filename": "studio-extra-classic-standard@castpet.webp",
+      "sha256": "aab49e0e09d9b25d3e8c712f691deb37db6acb7711b916ed56608233630e2ae4"
+    },
+    {
+      "id": "studio-extra-classic-standard@loot",
+      "filename": "studio-extra-classic-standard@loot.webp",
+      "sha256": "5800aef7d3f8b1a979032556ce365ba8a0f2a368154ed2305887a9426a5b21aa"
+    },
+    {
+      "id": "studio-extra-classic-standard@bagspace",
+      "filename": "studio-extra-classic-standard@bagspace.webp",
+      "sha256": "2aba5f40987ed4ceb08aec408e36038f06ec8bdc0f91b36c3cd8e42af8b8c491"
+    },
+    {
+      "id": "studio-extra-ink-readable@chat",
+      "filename": "studio-extra-ink-readable@chat.webp",
+      "sha256": "0c8e37d0cac26409dbb245954cd671927e9cb1816b9434b54999bfec11f15ed1"
+    },
+    {
+      "id": "studio-extra-ink-readable@stance",
+      "filename": "studio-extra-ink-readable@stance.webp",
+      "sha256": "02a29b06b585c672c2bed805d072a1204f50e470cff323be0859b5955d99f05e"
+    },
+    {
+      "id": "studio-extra-ink-readable@petframe",
+      "filename": "studio-extra-ink-readable@petframe.webp",
+      "sha256": "7ba2afd5db4a823c0dbeb983f443ed32c235521d0a36e5983d278c497da53bde"
+    },
+    {
+      "id": "studio-extra-ink-readable@casttarget",
+      "filename": "studio-extra-ink-readable@casttarget.webp",
+      "sha256": "613c85c9e8007efb92ef9bf39e791758c6ecf345ec51da75d1c60c311c33a5d9"
+    },
+    {
+      "id": "studio-extra-ink-readable@castfocus",
+      "filename": "studio-extra-ink-readable@castfocus.webp",
+      "sha256": "6e062374e119506d8f0c10e8476f41636c9b3c9b0bbc0c84e970cef160959dec"
+    },
+    {
+      "id": "studio-extra-ink-readable@castpet",
+      "filename": "studio-extra-ink-readable@castpet.webp",
+      "sha256": "9cacc16d60eb245201054b77565cdb127104d0e3c91619ccb56bceb676a1ebea"
+    },
+    {
+      "id": "studio-extra-ink-readable@loot",
+      "filename": "studio-extra-ink-readable@loot.webp",
+      "sha256": "d3517d71e9b0cac1af07a2aeb89cf92dee44bf663dd8afa29f064bb7926a30f9"
+    },
+    {
+      "id": "studio-extra-ink-readable@bagspace",
+      "filename": "studio-extra-ink-readable@bagspace.webp",
+      "sha256": "81d113a7a8665e60525d22fc29e8a7961ae73bec7e9dabd7615a15dc9459dd45"
+    },
+    {
+      "id": "studio-extra-ink-standard@chat",
+      "filename": "studio-extra-ink-standard@chat.webp",
+      "sha256": "d456ddb6f4b7b271047ac89e84cb48c5ed380d9cb80747a887cfc5cad5a38a05"
+    },
+    {
+      "id": "studio-extra-ink-standard@stance",
+      "filename": "studio-extra-ink-standard@stance.webp",
+      "sha256": "02a29b06b585c672c2bed805d072a1204f50e470cff323be0859b5955d99f05e"
+    },
+    {
+      "id": "studio-extra-ink-standard@petframe",
+      "filename": "studio-extra-ink-standard@petframe.webp",
+      "sha256": "e94104cd843b8eff011dc31cb572891ff90c0d86e52987e633f659677d519e0e"
+    },
+    {
+      "id": "studio-extra-ink-standard@casttarget",
+      "filename": "studio-extra-ink-standard@casttarget.webp",
+      "sha256": "facb17f7797d0a2759ade475f4a0c627a46e33b23d09e5557c6cbe88582f62fb"
+    },
+    {
+      "id": "studio-extra-ink-standard@castfocus",
+      "filename": "studio-extra-ink-standard@castfocus.webp",
+      "sha256": "81653d2e163e87c68720f59ce3cedd5a8d77edfa5a36e0a3da60d1eda760fce6"
+    },
+    {
+      "id": "studio-extra-ink-standard@castpet",
+      "filename": "studio-extra-ink-standard@castpet.webp",
+      "sha256": "42bb3a20b9d7aefae8868d57a4134901daffaa9bbf738f54895ff5e0e2d1aaa7"
+    },
+    {
+      "id": "studio-extra-ink-standard@loot",
+      "filename": "studio-extra-ink-standard@loot.webp",
+      "sha256": "0e23479c6d20f23821253b6c489183827e01e9f7561ad24d9bca839bd1717cc2"
+    },
+    {
+      "id": "studio-extra-ink-standard@bagspace",
+      "filename": "studio-extra-ink-standard@bagspace.webp",
+      "sha256": "52134733e1be650e37da274ba707b08144ef8bb3ad7b2993dddbf930c76245d3"
+    },
+    {
+      "id": "studio-extra-ocean-readable@chat",
+      "filename": "studio-extra-ocean-readable@chat.webp",
+      "sha256": "c308e5895f7fc8e51cb9e1f612d2f7593d3d0c47b98a552838bd66e8306132f4"
+    },
+    {
+      "id": "studio-extra-ocean-readable@stance",
+      "filename": "studio-extra-ocean-readable@stance.webp",
+      "sha256": "42cc6dc6e9f7fe4c7eab37abfd1070fae7ef67e831e8d3ba350bded6e8e08b1f"
+    },
+    {
+      "id": "studio-extra-ocean-readable@petframe",
+      "filename": "studio-extra-ocean-readable@petframe.webp",
+      "sha256": "c3557d57197c97f3d56f6b6ea28f76e3c7a9994477bffb24c372b478570dddb2"
+    },
+    {
+      "id": "studio-extra-ocean-readable@casttarget",
+      "filename": "studio-extra-ocean-readable@casttarget.webp",
+      "sha256": "61c838d7af2b19d53e77585840618667d6f641138db69f1740238a9bd64d9fab"
+    },
+    {
+      "id": "studio-extra-ocean-readable@castfocus",
+      "filename": "studio-extra-ocean-readable@castfocus.webp",
+      "sha256": "e009b98225a637eaad4014cbfdb6bee14cb6633d2e800f032d189723c98ba8d5"
+    },
+    {
+      "id": "studio-extra-ocean-readable@castpet",
+      "filename": "studio-extra-ocean-readable@castpet.webp",
+      "sha256": "90ceb8eea2ee72f96bdd534bca107afaf4808f8c99d54bb90cfe1ae5f44b3609"
+    },
+    {
+      "id": "studio-extra-ocean-readable@loot",
+      "filename": "studio-extra-ocean-readable@loot.webp",
+      "sha256": "52e2a59df37e704d3bf70a3695a58e3a9a15ebe8909d13d66734c9c0a07c9edd"
+    },
+    {
+      "id": "studio-extra-ocean-readable@bagspace",
+      "filename": "studio-extra-ocean-readable@bagspace.webp",
+      "sha256": "22e51439fb9d52ebba98e19389a4f76e5264f2402c75d4d0cb1f288b8ea93604"
+    },
+    {
+      "id": "studio-extra-ocean-standard@chat",
+      "filename": "studio-extra-ocean-standard@chat.webp",
+      "sha256": "da4b20d76fa35b7bab8a78eac7393c33aea4d7e299c51e9c7cc2e0c275b73510"
+    },
+    {
+      "id": "studio-extra-ocean-standard@stance",
+      "filename": "studio-extra-ocean-standard@stance.webp",
+      "sha256": "42cc6dc6e9f7fe4c7eab37abfd1070fae7ef67e831e8d3ba350bded6e8e08b1f"
+    },
+    {
+      "id": "studio-extra-ocean-standard@petframe",
+      "filename": "studio-extra-ocean-standard@petframe.webp",
+      "sha256": "81a8f2ed5f91fb32cd3372d067dd50f142407422ff0029c5f0317bc66b4d556d"
+    },
+    {
+      "id": "studio-extra-ocean-standard@casttarget",
+      "filename": "studio-extra-ocean-standard@casttarget.webp",
+      "sha256": "13d7b32beae5c35446a1a094bced4ee1c472dd2af0bf49c48e2dde074518a32b"
+    },
+    {
+      "id": "studio-extra-ocean-standard@castfocus",
+      "filename": "studio-extra-ocean-standard@castfocus.webp",
+      "sha256": "445ac2b1919b748b416f6af528175313b9fde8f81c0d4a4ba2564e01ba329e3f"
+    },
+    {
+      "id": "studio-extra-ocean-standard@castpet",
+      "filename": "studio-extra-ocean-standard@castpet.webp",
+      "sha256": "aab49e0e09d9b25d3e8c712f691deb37db6acb7711b916ed56608233630e2ae4"
+    },
+    {
+      "id": "studio-extra-ocean-standard@loot",
+      "filename": "studio-extra-ocean-standard@loot.webp",
+      "sha256": "763c957727c33c0057d375b61382cf318e31f91681ffe98ff7618a6b23d2d22d"
+    },
+    {
+      "id": "studio-extra-ocean-standard@bagspace",
+      "filename": "studio-extra-ocean-standard@bagspace.webp",
+      "sha256": "7713aaa5eef89fae68d09455ac07ad94bce460764d89db465a5c9e59cde907ec"
+    },
+    {
+      "id": "studio-handheld",
+      "filename": "studio-handheld.webp",
+      "sha256": "a44343e5fc9db1d55d29cfab6c3a6a1da493860e46eaa3411bdda61adc57c83f"
+    },
+    {
+      "id": "studio-live-export",
+      "filename": "studio-live-export.webp",
+      "sha256": "2b1241ee3b8e2f87d8b144a7c9ba50dba697593f6a8fb5dea1c07e0a9c04a49d"
+    },
+    {
+      "id": "studio-native-geometry@1",
+      "filename": "studio-native-geometry@1.webp",
+      "sha256": "470a1926a725f1530063539fe489ff85d5142587c7fab28cfdf55a4d26235b61"
+    },
+    {
+      "id": "studio-native-geometry@1.15",
+      "filename": "studio-native-geometry@1.15.webp",
+      "sha256": "211084388d99d265d2accc2b21b4d7075bcc7b287d50b9eb677d70483ae6af71"
+    },
+    {
+      "id": "studio-pack-centered",
+      "filename": "studio-pack-centered.webp",
+      "sha256": "1ba568aa4c184c6e558c9144a36515ad9d2ad9ab27d9ea3620b852e047544160"
+    },
+    {
+      "id": "studio-pack-classic",
+      "filename": "studio-pack-classic.webp",
+      "sha256": "5359ea7ec7679070521499dd3f9f6e2ddf4e7ec4ead0d14d11bdf8da820265f3"
+    },
+    {
+      "id": "studio-pack-healer",
+      "filename": "studio-pack-healer.webp",
+      "sha256": "8b453b39a9c9bd1912cbc7eeb0d7f49fffbaff7e949893ca9e15854217404972"
+    },
+    {
+      "id": "studio-pack-hud",
+      "filename": "studio-pack-hud.webp",
+      "sha256": "2858a03e114e837e3378842f672fde4744e8233726fb229a7acdaa6a28fb865d"
+    }
+  ]
+}

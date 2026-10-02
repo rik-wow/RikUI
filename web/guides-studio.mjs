@@ -11,7 +11,9 @@ Choose a bundled or imported pack, select appearance/HUD/nameplates/group/naviga
 
 Desktop, ultrawide and handheld use the same source pack and preserve bindings. Handheld keeps readable controls and collapses secondary information. Personal readable, contrast and calm preferences remain in charge of imports and updates.
 
-Export live lets you edit an existing setup in the browser and import the result back. Preview components derive from actual Lua captures; unsupported imported appearance, unrepresented groups and dynamic contents remain explicit. Character bars, macros and bindings require separate review; imports never execute Lua.
+Export live lets you edit an existing setup in the browser and import the result back. The copy window temporarily hides Studio and restores it on close. Copy the complete code; wrapped lines are accepted. Imported screen dimensions are preserved. Labeled movers and the accessible frame list include inactive groups. Red conflict outlines identify reserved footprints and neighbors, including the required 8-unit clearance. Town shows inventory; Show inactive samples reveals supported conditional fixture states. Preview components derive from actual Lua captures; unsupported imported appearance, unrepresented groups and dynamic contents remain explicit. Character bars, macros and bindings require separate review; imports never execute Lua.
+
+![Complete live export copy window](render:studio-live-export)
 
 Try-on is temporary. Capture hides selected listed windows and restores their prior visibility on exit; names, world and external addons remain outside its privacy scope.
 

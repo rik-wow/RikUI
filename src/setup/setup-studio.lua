@@ -49,7 +49,14 @@ function studio.Export(meta)
                 activity=key=="party" and "party" or key=="raid" and "raid" or nil}
         end
     end
-    local p=portable()
+    -- Saved anchors may be partial; live layout already fills them from defaults.
+    -- Normalize the export copy before strict projection, without changing the live profile.
+    local source=copy(core.Profile);source.positions=source.positions or {}
+    for key in pairs(core.Layout.Groups) do
+        if source.positions[key] then source.positions[key]=core.Layout.GetPosition(key) end
+    end
+    local p=core.ProfileSchema.Project(source,true)
+    if p.questtracker then p.questtracker.pins=nil end
     for key in pairs(groups) do p.positions[key]=core.Layout.GetPosition(key) end
     meta=meta or {id="personal-"..core.Codec.Checksum(core.CharDB.profile or "Default"),title="My RikUI setup",creator="Anonymous"}
     meta.viewport=core.Layout.Screen() or {width=1920,height=1080}

@@ -8,6 +8,12 @@ Open `/rik studio`, or configure a setup at [rikwow.com/studio](https://rikwow.c
 
 Export live shares supported current settings and registered frame geometry. It excludes quest pins, observations, chat history, character/account records and restoration history. Paste the code into the browser editor, adjust groups with snapping or keyboard arrows, choose a coordinated theme, and export a validated addon code. Import it in Studio for review before Apply. Legacy profile and preset codes remain importable; old profile exports have no complete group geometry.
 
+The copy dialog temporarily hides Studio and restores it when closed. Select all text in the export box and copy the complete code. The browser accepts wrapped pasted codes and reports how many characters are missing from an incomplete copy. Export normalizes live layout anchors in a copy; it does not rewrite your saved positions.
+
+The browser initially uses your exported viewport. Every currently editable group has a labeled mover, including frames inactive in the chosen scene. The **All movable frames** list provides full names and keyboard access when labels are small or overlapping. **Show inactive samples** displays supported conditional fixture states; inventory normally appears in the town scene. **Show all labeled movers** can be disabled for a cleaner preview; fitting conflicts remain visible.
+
+Red outlines identify conflicting reserved footprints and their neighbors. Select a conflict to inspect its group. Clearance includes an 8-unit gap, so two visible widgets need not overlap to conflict. Reserved footprints can exceed a sample’s painted content. A specialist reservation is visible separately and remains controlled by its owning addon.
+
 The browser uses RikUI's exact Setup Pack Lua engine in Fengari, plus reviewed authentic Lua component captures. HTML provides editor controls; game widgets are captured addon output. Imported settings outside the capture coverage are preserved and identified. Dynamic contents, other addon widgets, live names, protected measurements and unrepresented groups can differ from the sample. Final declared fit conflicts must be resolved before applying. Source packs keep their original viewport; device fitting does not rewrite them.
 
 ## Personal preferences and activities

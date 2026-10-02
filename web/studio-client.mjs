@@ -1,11 +1,12 @@
 import {createEngine} from "./pack-engine.mjs";
 import {StudioModel,components} from "./studio-model.mjs";
-import {sampleAppearanceCovered} from "./preview-coverage.mjs";
+import {componentAppearanceCovered} from "./preview-coverage.mjs";
+import {labelFor,paintPlacement,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
 const $=id=>document.getElementById(id);
 const status=$("studio-status"),root=$("studio-app");
 const message=text=>{status.textContent=text;};
 const images=new Map();
-let model,data,resolved,selectedKey,drag,metadataStamp,renderEpoch=0;
+let model,data,resolved,selectedKey,drag,metadataStamp,renderEpoch=0,paintedKeys=new Set();
 const asArray=value=>Array.isArray(value)?value:[];
 async function loadImage(url){
  if(!images.has(url))images.set(url,new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error("Preview image unavailable. Export and install are still available."));im.src=url;}));
@@ -26,20 +27,22 @@ async function render(){
   resolved=model.resolve();
   const groups=visibleGroups();
   if(!groups.some(g=>g.key===selectedKey))selectedKey=groups[0]?.key;
-  setOptions($("frame-group"),groups.map(g=>[g.key,g.key]));
+  setOptions($("frame-group"),groups.map(g=>[g.key,labelFor(g.key)]));
   $("frame-group").value=selectedKey||"";
   $("pack-picker").value=data.packs.find(p=>p.pack.id===model.source.id)?.name||"";
   for(const c of components){const check=$("part-"+c);check.checked=!!model.selected[c];check.disabled=c==="character"&&!model.source.character;}
   for(const id of ["device","activity","accessibility"])$(id).value=model[id];
-  $("viewport").value=model.viewport.width+"x"+model.viewport.height;
+  const viewportValue=model.viewport.width+"x"+model.viewport.height;
+  if(!Array.from($("viewport").options).some(o=>o.value===viewportValue)){const o=document.createElement("option");o.value=viewportValue;o.textContent=model.viewport.width+" × "+model.viewport.height+" (imported)";$("viewport").append(o);}
+  $("viewport").value=viewportValue;
   $("undo").disabled=!model.history.length;$("redo").disabled=!model.future.length;
   const metadata=model.authorMetadata||{...model.source,revision:model.maintainIdentity?model.source.revision+1:model.source.revision};
   const stamp=JSON.stringify(metadata);if(stamp!==metadataStamp){$("pack-title").value=metadata.title;$("pack-creator").value=metadata.creator;$("pack-revision").value=metadata.revision;metadataStamp=stamp;}
   $("maintain-identity").checked=!!model.maintainIdentity;
   $("pack-description").textContent=model.source.title+" · "+model.source.creator+" · revision "+model.source.revision+(model.source.ancestry?" · remix of "+model.source.ancestry.id+" r"+model.source.ancestry.revision:"");
   $("ownership").textContent=components.filter(c=>model.selected[c]).map(c=>c+": "+resolved.effectivePack.ownership[c]).join(" · ");
-  const conflicts=asArray(resolved.conflicts);
-  $("fit-status").textContent=conflicts.length?conflicts.map(c=>c.key+": "+c.reason).join("; "):"Fits within the declared group footprints. Dynamic contents can grow; review again in the addon.";
+  const conflicts=fitDetails(resolved,model.viewport);
+  $("fit-status").textContent=conflicts.length?conflicts.length+" fitting conflict(s). Red outlines show affected footprints; select a conflict below.":"Fits within the declared group footprints. Dynamic contents can grow; review again in the addon.";
   $("fit-status").className=conflicts.length?"issue":"";
   $("export").disabled=$("share").disabled=conflicts.length>0;
   $("character-details").textContent=model.source.character?JSON.stringify(model.source.character,null,2):"No action-bar preset, macros or bindings included.";
@@ -48,33 +51,70 @@ async function render(){
   $("questtogether").checked=!!model.integrationPresent;
   const atlas=structuredClone(data.atlases[key+"-"+readability]);
   if(profile.questtracker?.collapsed)atlas.components.questtracker=atlas.components.questtrackerCollapsed;
-  const appearanceCovered=sampleAppearanceCovered(profile,model.engine,key);
-  const unsupported=groups.filter(g=>!atlas.components[g.key]).map(g=>g.key);
-  $("preview-limit").textContent=(appearanceCovered?"Authentic captured appearance.":"This appearance has no exact component capture. Geometry-only view; settings are preserved. Choose a captured coordinated theme and text size to restore the visual preview.")+
-   (unsupported.length?" Groups without a component capture: "+unsupported.join(", ")+".":"")+
-   " Representative fixture data. World imagery, live names and optional addon widgets are outside this preview.";
-  const showPlates=appearanceCovered&&model.selected.nameplates&&resolved.effectivePack?.ownership?.nameplates!=="specialist"&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false;
-  const bitmap=new Map(await Promise.all([...groups.filter(g=>atlas.components[g.key]),...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage(atlas.components[g.key].url)])));if(epoch!==renderEpoch)return;
+  const covered=g=>!!atlas.components[g.key]&&componentAppearanceCovered(g.key,profile,model.engine,key);
+  const shown=g=>sampleEnabled(g.key,profile)&&covered(g)&&sampleShown(g.key,model.activity,selectedKey,$("show-conditional").checked);
+  const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
+  $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
+   (unsupported.length?" Geometry-only (no exact capture): "+unsupported.join(", ")+".":"")+
+   " Representative fixture data; world imagery, live names and optional addon widgets are outside this preview.";
+  const showPlates=model.selected.nameplates&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false&&componentAppearanceCovered("nameplates",profile,model.engine,key);
+  const drawn=groups.filter(shown);
+  $("game-preview").dataset.previewReady="false";
+  const bitmap=new Map(await Promise.all([...drawn,...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage(atlas.components[g.key].url)])));if(epoch!==renderEpoch)return;
   const canvas=$("game-preview"),ctx=canvas.getContext("2d");
   canvas.width=model.viewport.width;canvas.height=model.viewport.height;
   ctx.fillStyle="#0c1117";ctx.fillRect(0,0,canvas.width,canvas.height);
-  const scale=profile.scale||1;
-  for(const g of groups){
-   const r=g.rect,component=atlas.components[g.key];
-   if(component&&appearanceCovered){
-    // Native sample bitmap; no game widget is reconstructed by the browser.
-    const topPad=g.key==="target"?32:0,pad=3;
-    const sx=Math.max(0,component.x-pad),sy=Math.max(0,component.atlasHeight-component.y-component.height-topPad-pad);
-    const w=component.width+pad*2,h=component.height+topPad+pad*2;
-    ctx.drawImage(bitmap.get(g.key),sx,sy,w,h,r.x-pad*scale,canvas.height-r.y-(component.height+topPad+pad)*scale,w*scale,h*scale);
-   }
-   if(g.key===selectedKey){ctx.strokeStyle="#ecc98a";ctx.lineWidth=2;ctx.strokeRect(r.x,canvas.height-r.y-r.height,r.width,r.height);}
+  const scale=profile.scale||1;paintedKeys=new Set(drawn.map(g=>g.key));
+  for(const g of drawn){
+   const c=atlas.components[g.key],p=paintPlacement(c,g.rect,scale,canvas.height);
+   ctx.drawImage(bitmap.get(g.key),p.sx,p.sy,p.width,p.height,p.x,p.y,p.drawWidth,p.drawHeight);
   }
-  if(showPlates&&atlas.components.nameplates){const c=atlas.components.nameplates,im=bitmap.get("nameplates");ctx.drawImage(im,c.x,c.atlasHeight-c.y-c.height,c.width,c.height,canvas.width/2-c.width/2,Math.max(8,canvas.height*0.16),c.width,c.height);}
+  if(showPlates&&atlas.components.nameplates){
+   const c=atlas.components.nameplates,p=paintPlacement(c,{x:canvas.width/2-c.width*scale/2,y:canvas.height*0.7},scale,canvas.height);
+   ctx.drawImage(bitmap.get("nameplates"),p.sx,p.sy,p.width,p.height,p.x,p.y,p.drawWidth,p.drawHeight);
+  }
+  renderAnnotations(groups,conflicts,covered);
+  canvas.dataset.paintedGroups=JSON.stringify([...paintedKeys]);canvas.dataset.previewReady="true";
   canvas.setAttribute("aria-label","Authentic RikUI preview. Selected group "+(selectedKey||"none")+". Use frame controls or arrow keys to adjust it.");
   $("geometry").textContent=selectedKey?(()=>{const r=groups.find(g=>g.key===selectedKey).rect;return selectedKey+": "+Math.round(r.x)+", "+Math.round(r.y)+" · "+Math.round(r.width)+" × "+Math.round(r.height);})():"No selected movable groups.";
  }catch(error){message(error.message);}
 }
+
+function selectGroup(key){selectedKey=key;render();}
+function renderAnnotations(groups,conflicts,covered){
+ const layer=$("mover-layer"),list=$("frame-list"),issues=$("fit-conflicts");
+ layer.replaceChildren();list.replaceChildren();issues.replaceChildren();
+ const troubled=new Set(conflicts.flatMap(c=>[c.key,...c.with]));
+ const place=(node,r)=>{
+  const w=model.viewport.width,h=model.viewport.height;
+  node.style.left=100*Math.max(0,Math.min(w-4,r.x))/w+"%";
+  node.style.top=100*Math.max(0,Math.min(h-4,h-r.y-r.height))/h+"%";
+  node.style.width=100*Math.max(4,Math.min(r.width,w-Math.max(0,r.x)))/w+"%";
+  node.style.height=100*Math.max(4,Math.min(r.height,h-Math.max(0,h-r.y-r.height)))/h+"%";
+ };
+ for(const g of groups){
+  const state=!sampleEnabled(g.key,resolved.profile)?"disabled module":paintedKeys.has(g.key)?"sample":covered(g)?"inactive sample":"geometry only";
+  const button=document.createElement("button");button.type="button";button.dataset.group=g.key;
+  button.className="studio-mover"+(g.key===selectedKey?" selected":"")+(troubled.has(g.key)?" conflict":"");
+  button.setAttribute("aria-label","Select "+labelFor(g.key)+" — "+state);
+  button.title=labelFor(g.key)+" — "+state+"; outline is the reserved footprint";
+  const label=document.createElement("span");label.textContent=labelFor(g.key);button.append(label);place(button,g.rect);
+  button.hidden=!$("show-movers").checked&&!troubled.has(g.key);
+  button.onclick=()=>selectGroup(g.key);layer.append(button);
+  const entry=document.createElement("button");entry.type="button";entry.dataset.group=g.key;
+  entry.textContent=labelFor(g.key)+" · "+state;entry.setAttribute("aria-pressed",String(g.key===selectedKey));
+  entry.onclick=()=>selectGroup(g.key);list.append(entry);
+ }
+ for(const g of asArray(resolved.groups).filter(g=>!model.source.groups[g.key])){
+  const box=document.createElement("div");box.className="studio-reservation"+(troubled.has(g.key)?" conflict":"");
+  const label=document.createElement("span");label.textContent=labelFor(g.key);box.append(label);place(box,g.rect);layer.append(box);
+ }
+ for(const c of conflicts){
+  const b=document.createElement("button");b.type="button";b.className="fit-conflict";b.dataset.group=c.key;
+  b.textContent=labelFor(c.key)+": "+c.reason;b.onclick=()=>{selectGroup(c.key);$("preview-stage").scrollIntoView({block:"nearest"});};issues.append(b);
+ }
+}
+
 function point(event){const bounds=$("game-preview").getBoundingClientRect();return {x:(event.clientX-bounds.left)/bounds.width*model.viewport.width,y:(bounds.bottom-event.clientY)/bounds.height*model.viewport.height};}
 function move(dx,dy){const group=visibleGroups().find(g=>g.key===selectedKey);if(group)model.move(selectedKey,group.rect.x+dx,group.rect.y+dy);}
 function exportCode(){const code=model.export();$("result-code").value=code;$("result-panel").hidden=false;return code;}
@@ -105,14 +145,19 @@ async function start(){
   for(const b of document.querySelectorAll("[data-move]"))b.onclick=()=>operation(()=>move(...b.dataset.move.split(",").map(Number)));
   $("reset-frame").onclick=()=>operation(()=>model.reset(selectedKey));
   $("align-center").onclick=()=>operation(()=>{const g=visibleGroups().find(g=>g.key===selectedKey);if(g)model.move(g.key,(model.viewport.width-g.rect.width)/2,g.rect.y);});
-  $("game-preview").onpointerdown=e=>{
-   const p=point(e),group=[...visibleGroups()].reverse().find(g=>p.x>=g.rect.x&&p.x<=g.rect.x+g.rect.width&&p.y>=g.rect.y&&p.y<=g.rect.y+g.rect.height);
-   if(!group)return;selectedKey=group.key;drag={key:group.key,offset:{x:p.x-group.rect.x,y:p.y-group.rect.y},point:p,base:e.currentTarget.getContext("2d").getImageData(0,0,e.currentTarget.width,e.currentTarget.height),rect:group.rect};
-   e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.focus({preventScroll:true});render();
+  $("show-movers").onchange=()=>render();$("show-conditional").onchange=()=>render();
+  const stage=$("preview-stage"),canvas=$("game-preview");
+  stage.onpointerdown=e=>{
+   if(e.button!==0||canvas.dataset.previewReady!=="true")return;
+   const p=point(e),explicit=e.target.closest("[data-group]")?.dataset.group;
+   const group=explicit?visibleGroups().find(g=>g.key===explicit):[...visibleGroups()].reverse().find(g=>($("show-movers").checked||paintedKeys.has(g.key)||g.key===selectedKey)&&p.x>=g.rect.x&&p.x<=g.rect.x+g.rect.width&&p.y>=g.rect.y&&p.y<=g.rect.y+g.rect.height);
+   if(!group)return;selectedKey=group.key;
+   drag={start:{x:e.clientX,y:e.clientY},moved:false,key:group.key,offset:{x:p.x-group.rect.x,y:p.y-group.rect.y},point:p,base:canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height),rect:group.rect};
+   stage.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});e.preventDefault();
   };
-  $("game-preview").onpointermove=e=>{if(drag){drag.point=point(e);const canvas=e.currentTarget,ctx=canvas.getContext("2d");ctx.putImageData(drag.base,0,0);ctx.strokeStyle="#75cedb";ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.strokeRect(drag.point.x-drag.offset.x,canvas.height-(drag.point.y-drag.offset.y)-drag.rect.height,drag.rect.width,drag.rect.height);ctx.setLineDash([]);$("geometry").textContent="Move "+drag.key+" to "+Math.round(drag.point.x-drag.offset.x)+", "+Math.round(drag.point.y-drag.offset.y)+" (snaps when released)";}};
-  $("game-preview").onpointerup=()=>{if(drag){const d=drag;drag=null;operation(()=>model.move(d.key,d.point.x-d.offset.x,d.point.y-d.offset.y));}};
-  $("game-preview").onpointercancel=()=>{drag=null;render();};
+  stage.onpointermove=e=>{if(drag){if(!drag.moved&&Math.hypot(e.clientX-drag.start.x,e.clientY-drag.start.y)<3)return;drag.moved=true;drag.point=point(e);const ctx=canvas.getContext("2d");ctx.putImageData(drag.base,0,0);ctx.strokeStyle="#75cedb";ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.strokeRect(drag.point.x-drag.offset.x,canvas.height-(drag.point.y-drag.offset.y)-drag.rect.height,drag.rect.width,drag.rect.height);ctx.setLineDash([]);$("geometry").textContent="Move "+labelFor(drag.key)+" to "+Math.round(drag.point.x-drag.offset.x)+", "+Math.round(drag.point.y-drag.offset.y)+" (snaps when released)";}};
+  stage.onpointerup=e=>{if(drag){const d=drag;drag=null;stage.releasePointerCapture(e.pointerId);if(d.moved)operation(()=>model.move(d.key,d.point.x-d.offset.x,d.point.y-d.offset.y));else render();}};
+  stage.onpointercancel=()=>{drag=null;render();};
   $("game-preview").onkeydown=e=>{
    const directions={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,8],ArrowDown:[0,-8]};
    if(directions[e.key]){e.preventDefault();operation(()=>move(...directions[e.key]));}
