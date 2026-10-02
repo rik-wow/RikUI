@@ -9,6 +9,7 @@ const captureRoot=new URL(reviewOnly?(process.argv.includes("--isolated")?"../di
 import {build} from "esbuild";
 import {sourcePaths} from "./pack-sources.mjs";
 import {createEngine} from "./pack-engine.mjs";
+import {prunePublicAssets} from "./prune-public-assets.mjs";
 const hash=value=>createHash("sha256").update(value).digest("hex");
 const sources=await Promise.all(sourcePaths.map(p=>readFile(new URL("../"+p,import.meta.url),"utf8")));
 const engine=createEngine(sources);
@@ -59,4 +60,5 @@ const result=await build({entryPoints:[fileURLToPath(new URL("./studio-client.mj
 const js=result.outputFiles[0].contents,scriptURL="/assets/studio/editor-"+hash(js).slice(0,12)+".js";
 await writeFile(new URL("./public"+scriptURL,import.meta.url),js);assets.push(scriptURL);
 await writeFile(new URL("./studio-generated.mjs",import.meta.url),"// Generated from authentic Lua captures; local review builds are never publishable.\nexport const studioReviewOnly="+reviewOnly+";\nexport const studioAssets="+JSON.stringify(assets)+";\nexport const studioDataURL="+JSON.stringify(dataURL)+";\nexport const studioScriptURL="+JSON.stringify(scriptURL)+";\nexport const gallery="+JSON.stringify(packs)+";\n");
+if(!reviewOnly)await prunePublicAssets(new URL("./public/assets/studio/",import.meta.url),assets,"studio");
 console.log("Built Studio: "+packs.length+" packs, "+Object.keys(atlases).length+" authentic atlases; public addon Lua only.");
