@@ -22,6 +22,8 @@ jobs:
           python tools/site-renders/check.py
       - name: Test independent normalization and comparison
         run: python3 -B -m unittest discover -s tools/upstream -p 'test_*.py'
+      - name: Install LuaJIT for browser/addon conformance
+        run: sudo apt-get update && sudo apt-get install -y luajit
       - name: Install website dependencies
         working-directory: web
         run: npm ci
