@@ -165,6 +165,28 @@ return function(check)
             end
         end
 
+        -- A clean packed audit must not conceal a displaced preset combat row.
+        for _, name in ipairs({ "classic", "healer" }) do
+            for _, screen in ipairs(SCREENS) do
+                for _, class in ipairs(CLASSES) do
+                    local recipe, fitted = layouts.Recipe(name, screen, class), layouts.Positions(name, screen, class)
+                    local moved = {}
+                    local keys = {}
+                    for _, key in ipairs(CLUSTER) do keys[#keys + 1] = key end
+                    if name == "healer" then keys[#keys + 1], keys[#keys + 2] = "raid", "party" end
+                    for _, key in ipairs(keys) do
+                        if not hidden(key, class) and (not near(recipe[key].x, fitted[key].x)
+                            or not near(recipe[key].y, fitted[key].y)) then
+                            moved[#moved + 1] = string.format("%s %+d,%+d", key, fitted[key].x - recipe[key].x,
+                                fitted[key].y - recipe[key].y)
+                        end
+                    end
+                    check(name .. " keeps a " .. class:lower() .. "'s preset combat places on " .. screen.name,
+                        #moved == 0, table.concat(moved, "; "))
+                end
+            end
+        end
+
         for _, name in ipairs(layouts.Order) do
             for _, screen in ipairs({ SCREENS[4], SCREENS[5] }) do
                 local positions = layouts.Positions(name, screen)
@@ -339,9 +361,16 @@ return function(check)
 
         for _, name in ipairs(everything.Order) do
             everything, layout = loadEverything(NARROW.width)
-            for key, position in pairs(everything[name].positions) do
-                if layout.Groups[key] then RikUI.Profile.positions[key] = RikUI.Setup.CopyState(position) end
+            -- Player aura proxies are obstacles even when minimal stubs lack containers.
+            for _, key in ipairs({ "buffs", "debuffs" }) do
+                if not layout.Groups[key] then
+                    local frame = CreateFrame("Frame", nil, UIParent)
+                    frame:SetSize(everything.Sizes[key].width, everything.Sizes[key].height)
+                    layout.Register(frame, key, everything.centered.positions[key])
+                end
             end
+            -- Use the real preset path, including compact recipes and fitting to this screen.
+            assert(layout.ApplyPreset(name))
             env.fire("PLAYER_ENTERING_WORLD")
             local overlaps = {}
             for key in pairs(layout.Groups) do
@@ -350,7 +379,9 @@ return function(check)
                     -- The 604-wide raid grid is left out: a 1024-wide screen has no free place for it beside
                     -- a full chat, and it only exists in a raid. Everything else must settle clear.
                     if key < other.key and key ~= "raid" and other.key ~= "raid" and RikUI.Geometry.Overlaps(own, other) then
-                        overlaps[#overlaps + 1] = key .. "x" .. other.key
+                        overlaps[#overlaps + 1] = string.format("%s(%.0f,%.0f %.0fx%.0f)x%s(%.0f,%.0f %.0fx%.0f)",
+                            key, own.left, own.bottom, own.right-own.left, own.top-own.bottom,
+                            other.key, other.left, other.bottom, other.right-other.left, other.top-other.bottom)
                     end
                 end
                 if own and (own.left < 0 or own.bottom < 0 or own.right > NARROW.width or own.top > 768) then

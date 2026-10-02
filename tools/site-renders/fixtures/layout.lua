@@ -75,3 +75,12 @@ end
 function RikRenderHeldTags()
     RikUI.Layout.HoldKey("down")
 end
+
+-- Exercise the real party/raid preview controls and preset setter.
+function RikRenderLayoutGroup(kind)
+    assert(RikUI.UnitFrames.Party.SetTest(false))
+    assert(RikUI.UnitFrames.Raid.SetTest(false))
+    local group = kind == "party" and RikUI.UnitFrames.Party or RikUI.UnitFrames.Raid
+    assert(group.SetTest(true))
+    RikRenderSetOption("general", "layoutPreset", "healer")
+end

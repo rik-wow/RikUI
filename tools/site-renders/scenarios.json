@@ -776,6 +776,7 @@
   },
   {
     "id": "hud-druid",
+    "assertLua": "local _, class = UnitClass(\"player\")\nassert(class == \"DRUID\", \"Druid fixture class: \" .. tostring(class))\nlocal expected = RAID_CLASS_COLORS.DRUID\nlocal colour = RikUI.UI.HealthColor(\"player\")\nlocal r, g, b = RikUIUnit_player.health:GetStatusBarColor()\nprint(\"DRUID_COLOUR\", class, colour.r, colour.g, colour.b, r, g, b)\nassert(math.abs(colour.r - expected.r) < 0.01 and math.abs(colour.g - expected.g) < 0.01 and math.abs(colour.b - expected.b) < 0.01, \"Druid unit reader colour mismatch\")\nassert(math.abs(r - expected.r) < 0.01 and math.abs(g - expected.g) < 0.01 and math.abs(b - expected.b) < 0.01, \"Druid health sink colour mismatch\")\n",
     "page": "combat-hud",
     "title": "Druid: form mana",
     "frame": "RikRenderHUDDruid",
@@ -3178,5 +3179,71 @@
       "Combat text",
       "Show native scrolling combat text"
     ]
+  },
+  {
+    "id": "layout-short-presets",
+    "page": "layout",
+    "title": "Classic and Healer on a short screen",
+    "frame": "UIParent",
+    "crop": "1228x768+0+0",
+    "screen": "1228x768",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "assert(RikUI.UnitFrames.Raid.SetTest(true))\nRikUI.Layout.Apply()\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+    "expectText": [
+      "Rik",
+      "Goldshire"
+    ],
+    "sequence": {
+      "control": "dropdown",
+      "label": "Layout",
+      "values": [
+        "classic",
+        "healer"
+      ],
+      "labels": [
+        "Classic",
+        "Healer"
+      ],
+      "default": "classic",
+      "apply": "RikRenderSetOption(\"general\", \"layoutPreset\", VALUE)"
+    }
+  },
+  {
+    "id": "layout-healer-groups",
+    "page": "layout",
+    "title": "Healer party and raid placement",
+    "frame": "UIParent",
+    "crop": "2560x1440+0+0",
+    "screen": "2560x1440",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "ChatFrame1:Clear()\nRikRenderChatLines()\n",
+    "expectText": [
+      "Rik",
+      "Goldshire"
+    ],
+    "sequence": {
+      "control": "dropdown",
+      "label": "Group preview",
+      "values": [
+        "party",
+        "raid"
+      ],
+      "labels": [
+        "Party",
+        "Raid"
+      ],
+      "default": "raid",
+      "apply": "RikRenderLayoutGroup(VALUE)"
+    }
   }
 ]

@@ -238,6 +238,35 @@ class DependencyChecks(unittest.TestCase):
             self.assertEqual([c["id"] for c in stale], ["plate"])
             self.assertIn("addon", reasons["plate"])
 
+
+    def test_preset_changes_only_expire_captures_using_preset_positions(self):
+        from dependencies import addon_inputs
+        files = {name: "before" for name in (
+            "data/layouts.lua", "src/layout/layout-audit.lua",
+            "src/layout/layout-geometry.lua", "src/layout/layout-rects.lua", "src/layout/layout.lua")}
+        cases = [
+            {"page": "nameplates", "frame": "Plate", "lua": ""},
+            {"page": "interiors", "frame": "CharacterFrame", "lua": ""},
+            {"page": "bags", "frame": "RikUIBags", "lua": "RikRenderCenter(RikUIBags)"},
+            {"page": "questplanner", "frame": "RikUIQuestPlannerWindow",
+             "lua": "local window = RikUI.QuestPlanner.View.Window\nRikRenderCenter(window)"},
+            {"page": "questplanner", "frame": "RikRenderArrow", "lua": "RikRenderPlannerArrow()"},
+            {"page": "questplanner", "frame": "RikRenderSummary",
+             "lua": 'card:ClearAllPoints()\ncard:SetPoint("TOPLEFT", holder, "TOPLEFT", 8, -8)\nhold("RikRenderSummary", window.summary, 840, 160)'},
+        ]
+        changed = dict(files, **{"data/layouts.lua": "after", "src/layout/layout-audit.lua": "after"})
+        for case in cases:
+            self.assertEqual(addon_inputs(case, files), addon_inputs(case, changed))
+            geometry = dict(files, **{"src/layout/layout-geometry.lua": "after"})
+            self.assertNotEqual(addon_inputs(case, files), addon_inputs(case, geometry))
+        for case in ({"page": "layout"}, {"page": "combat-hud"}, {"page": "chat"}, {"page": "swingtimer"},
+                     {"page": "sharing"}, {"page": "unknown"},
+                     {"page": "questplanner", "frame": "UIParent"},
+                     {"page": "bags", "frame": "RikUIBags", "lua": ""},
+                     {"page": "nameplates", "frame": "Holder", "fixtures": ["RikRenderHUDGroup()"]},
+                     {"page": "bags", "frame": "RikUIBags", "lua": "RikRenderCenter(Other)"}):
+            self.assertNotEqual(addon_inputs(case, files), addon_inputs(case, changed))
+
     def test_unknown_surfaces_are_conservative(self):
         from dependencies import addon_inputs
         files = {"src/modules/questplanner/new.lua": "new"}

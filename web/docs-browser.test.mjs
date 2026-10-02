@@ -17,7 +17,7 @@ const placements={
  chat:{"chat-history":"ref-read-and-send-messages","chat-input":"ref-read-and-send-messages","chat-scroll":"ref-read-and-send-messages","chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history","chat-resize":"ref-font-timestamps-and-size"},
  loot:{"loot-list":"ref-loot-an-item","loot-coins":"ref-loot-an-item","loot-roll":"ref-group-rolls","loot-confirm":"ref-group-rolls"},
  shell:{"shell-menu":"ref-the-rikui-button","shell-launcher":"ref-the-rikui-button","shell-interface":"ref-the-rikui-button","shell-support":"ref-the-rikui-button","shell-tools":"ref-tracked-spells"},
- layout:{"layout-mover":"ref-move-a-frame","layout-tags":"ref-move-a-frame","layout-resize":"ref-resize-a-frame","layout-nudges":"ref-fine-positioning","layout-presets":"ref-scale-and-presets","layout-undo":"ref-reset-or-undo"},
+ layout:{"layout-mover":"ref-move-a-frame","layout-tags":"ref-move-a-frame","layout-resize":"ref-resize-a-frame","layout-nudges":"ref-fine-positioning","layout-presets":"ref-scale-and-presets","layout-short-presets":"ref-scale-and-presets","layout-healer-groups":"ref-scale-and-presets","layout-undo":"ref-reset-or-undo"},
  overview:{"overview-layouts":"ref-choose-a-layout","overview-small-screen":"ref-choose-a-layout"},
  "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-rogue":"ref-your-class-in-the-column","hud-shaman":"ref-your-class-in-the-column","hud-druid":"ref-your-class-in-the-column","hud-scale":"ref-scale-the-hud"},
  cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip","cooldowns-viewer":"ref-your-cooldown-strip","cooldowns-class":"ref-your-cooldown-strip","cooldowns-rows":"ref-your-cooldown-strip","cooldowns-counter":"ref-your-cooldown-strip","cooldowns-tracked":"ref-choose-tracked-spells"},
@@ -215,6 +215,23 @@ test("nameplate previews respond to keyboard controls on a narrow screen",async(
  await page.keyboard.press("End");
  await expect(width.locator('[data-frame="2"]')).toBeVisible();
  await expect(width.locator(".preview-control output")).toHaveText("400");
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+test("layout previews select both presets and group types by keyboard",async({page})=>{
+ await page.setViewportSize({width:390,height:1000});
+ await page.goto("/docs/layout");
+ for(const id of ["layout-short-presets","layout-healer-groups"]){
+  const preview=page.locator('figure[data-render="'+id+'"]');
+  const control=preview.getByRole("combobox");
+  await control.focus();
+  await page.keyboard.press("Home");
+  await expect(preview.locator('[data-frame="0"]')).toBeVisible();
+  const first=await preview.locator("[data-frame]:visible img").getAttribute("src");
+  await page.keyboard.press("End");
+  await expect(preview.locator('[data-frame="1"]')).toBeVisible();
+  await expect(preview.locator("[data-frame]:visible")).toHaveCount(1);
+  expect(await preview.locator("[data-frame]:visible img").getAttribute("src")).not.toBe(first);
+ }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 test("Lua examples serve the reviewed images with their original proportions",async({request,page})=>{

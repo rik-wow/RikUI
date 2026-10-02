@@ -65,10 +65,7 @@ end
 
 -- Fit complete presets before applying them. Combat frames keep their intended places;
 -- supporting windows yield as screen dimensions and widget footprints change.
-local PRIORITY = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar",
-    "swingtimer", "combatresource", "cooldowns", "castplayer",
-    "raid", "party", "chat", "minimap", "micromenu", "bagspace" }
--- The layouts with a combat column (Centered, HUD) keep all of it in place, unit frames included.
+-- Every preset keeps its combat column and unit frames ahead of supporting windows.
 -- The order is who keeps its place first: the bars, the column with the player and target, the
 -- corner furniture, the smaller unit frames, then the group frames; everything else follows by area.
 local COLUMN_PRIORITY = { "main", "bar2", "bar3", "bar4", "bar5", "stance", "pet", "xpbar",
@@ -82,7 +79,7 @@ local function ranks(order)
     for index, key in ipairs(order) do rank[key] = index end
     return rank
 end
-local RANK, COLUMN_RANK = ranks(PRIORITY), ranks(COLUMN_PRIORITY)
+local COLUMN_RANK = ranks(COLUMN_PRIORITY)
 
 local function copyPositions(source)
     local positions = {}
@@ -94,7 +91,7 @@ end
 
 local function orderedKeys(name, positions)
     local keys = sortedKeys(positions)
-    local rank = layouts.CombatRowLayouts[name] and COLUMN_RANK or RANK
+    local rank = COLUMN_RANK
     table.sort(keys, function(a, b)
         local first, second = rank[a] or math.huge, rank[b] or math.huge
         if first ~= second then return first < second end

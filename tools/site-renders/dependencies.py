@@ -30,13 +30,53 @@ NAVIGATION_FILES = {
 }
 NAVIGATION_PAGES = {"questplanner", "questtracker", "worldmap"}
 
+# Preset recipes/packing change top-level placement, not frame contents. Only
+# reviewed fixture overrides may remove them; shared geometry stays global.
+PRESET_FILES = {"data/layouts.lua", "src/layout/layout-audit.lua"}
+# These surfaces use Blizzard/native anchors or fixture-owned holders, rather
+# than registered arrangement groups. Their own module/fixture inputs still apply.
+NATIVE_POSITION_PAGES = {
+    "nameplates", "interiors", "panels", "dialogs", "controls", "widgets",
+    "chatbubbles", "screentext", "alerts", "banners", "popups", "menus",
+    "auction-house", "combattext", "worldmap",
+}
+
+def uses_preset_positions(case):
+    import re
+    page, root = case.get("page"), case.get("frame", "")
+    if page in GLOBAL_PAGES | {"combat-hud", "unitframes", "auras", "castbars", "sharing", "chat", "swingtimer"} or root == "UIParent":
+        return True
+    lua = case.get("lua", "")
+    setup = lua + "\n" + "\n".join(case.get("fixtures", [])) + "\n" + case.get("sequence", {}).get("apply", "")
+    # Group holders preserve each child's screen anchors; centering the holder
+    # does not isolate those children from preset placement.
+    if any(name in setup for name in ("RikRenderGroup(", "RikRenderHUDGroup(", "RikRenderScreen(")):
+        return True
+    if page in NATIVE_POSITION_PAGES:
+        return False
+    if root and re.search(r"RikRenderCenter\(\s*" + re.escape(root) + r"\s*[,)]", lua):
+        return False
+    if page == "questplanner":
+        if root == "RikUIQuestPlannerWindow" and "local window = RikUI.QuestPlanner.View.Window" in lua and "RikRenderCenter(window)" in lua:
+            return False
+        if root == "RikRenderArrow" and "RikRenderPlannerArrow()" in lua:
+            return False
+        # These card fixtures reparent and explicitly anchor the captured card.
+        if root in {"RikRenderSummary", "RikRenderSelection"} and all(part in lua for part in (
+                "card:ClearAllPoints()", 'card:SetPoint("TOPLEFT", holder, "TOPLEFT", 8, -8)',
+                'hold("' + root + '", window.')):
+            return False
+    return True
+
 def addon_inputs(case, files):
     page = case.get("page")
     modules = PAGES.get(page, {page} if page in DIRECT else None)
     if modules is None and page not in GLOBAL_PAGES:
         return dict(files)
+    preset_positions = uses_preset_positions(case)
     return {name: value for name, value in files.items()
             if (name not in NAVIGATION_FILES or page in NAVIGATION_PAGES)
+            and (name not in PRESET_FILES or preset_positions)
             and (page in GLOBAL_PAGES or relevant(name, modules, page))}
 
 def relevant(name, modules, page):

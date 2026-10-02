@@ -8,7 +8,10 @@ Your saved custom positions stay until you choose to arrange them.
 
 Every preset includes the [core combat HUD](combat-hud.md): central cooldowns,
 a resource strip and cast bar, with class effects and supporting timers nearby.
-Its main column gets priority when fitting windows into the available space.
+Its main column and unit frames get priority when fitting windows into the available space.
+Classic keeps player and target in the corner on short screens. Healer reserves
+room above the combat column for party and raid frames, with your own unit and
+cast rows above them and focus and pet frames beside them.
 
 All four presets include bag capacity and the cooldown strip, which sits on the
 central stack above the resource strip and grows upward when it needs a third

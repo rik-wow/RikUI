@@ -9,6 +9,8 @@ tagging.
 
 ## Unreleased
 
+- Keep Classic and Healer combat frames in their preset positions on short screens. Healer's party and raid grid now clears the central combat column; supporting windows fit around the combat frames.
+
 - Adaptive nameplate labels give Forever's long names and surnames more room above compact health bars. Settings > Nameplates offers minimum and maximum label widths and a fixed-width toggle. Labels shrink when a plate is reused; protected text measurements keep the fixed layout.
 
 - Scope visual verification to each capture's relevant inputs. Navigation changes no longer require a full image rebuild; unchanged captures retain their reviewed client and renderer provenance.

@@ -3464,6 +3464,20 @@
       "title": "Nameplate readability settings",
       "width": 800,
       "height": 600
+    },
+    {
+      "id": "layout-short-presets",
+      "page": "layout",
+      "title": "Classic and Healer on a short screen",
+      "width": 1228,
+      "height": 768
+    },
+    {
+      "id": "layout-healer-groups",
+      "page": "layout",
+      "title": "Healer party and raid placement",
+      "width": 2560,
+      "height": 1440
     }
   ]
 }

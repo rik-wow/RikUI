@@ -189,31 +189,34 @@ layouts.hud = layout("HUD", "A central stack of cooldowns, resources, casts and 
     party = topLeft(MARGIN, -120),
 })
 
--- Healer: the group over the bars where the eyes are, your own frames in rows above its left end.
+local CORE_HALF = layouts.Sizes.cooldowns.width / 2
+local CORE_SWING = STACK_TOP + GAP
+local CORE_CAST = CORE_SWING + layouts.Sizes.swingtimer.height + GAP
+local CORE_POWER = CORE_CAST + CAST_HEIGHT + GAP
+local CORE_COOLDOWNS = CORE_POWER + layouts.Sizes.combatresource.height + GAP
+local CORE_EXTRA = CORE_COOLDOWNS + layouts.Sizes.cooldowns.height + GAP
+-- Healer: the grid clears the combat column; own units sit above, focus and pets beside it.
 local GRID_LEFT = -layouts.Sizes.raid.width / 2
-local GRID_Y = STACK_TOP + GAP
-local ROW_A = GRID_Y + layouts.Sizes.party.height + GAP
-local ROW_B = ROW_A + UNIT_HEIGHT + GAP
-local ROW_C = ROW_B + CAST_HEIGHT + GAP
-local ROW_D = ROW_C + FOCUS_HEIGHT + GAP
-local ROW_E = ROW_D + CAST_HEIGHT + GAP
+-- Reserve the tallest supporting stack, including the gaps after combo points and form mana.
+local GRID_Y = CORE_EXTRA + layouts.Sizes.combopoints.height + layouts.Sizes.druidmana.height + 2 * GAP
+local HEALER_CAST = GRID_Y + layouts.Sizes.party.height + GAP
+local HEALER_UNITS = HEALER_CAST + CAST_HEIGHT + GAP
+local HEALER_PET = HEALER_CAST - SMALL_HEIGHT - GAP
 local SECOND_X = GRID_LEFT + UNIT_WIDTH + GAP
 local THIRD_X = SECOND_X + UNIT_WIDTH + GAP
 
 layouts.healer = layout("Healer", "Party and raid frames over the action bars, where a healer looks, with your own "
-    .. "frames in rows above them.", {
+    .. "frames above them and focus and pet frames beside them.", {
     combattimer = topLeft(MARGIN, -MARGIN), stopwatch = topLeft(MARGIN, -MARGIN - 20 - GAP),
-    classbuffs = bottomLeftOfCentre(-328, 612), classeffects = bottomLeftOfCentre(-520, 488),
     raid = bottom(0, GRID_Y), party = bottom(0, GRID_Y),
-    player = bottomLeftOfCentre(GRID_LEFT, ROW_A), target = bottomLeftOfCentre(SECOND_X, ROW_A),
-    tot = bottomLeftOfCentre(THIRD_X, ROW_A),
-    castplayer = bottomLeftOfCentre(GRID_LEFT, ROW_B), casttarget = bottomLeftOfCentre(SECOND_X, ROW_B),
-    petframe = bottomLeftOfCentre(GRID_LEFT, ROW_C), castpet = bottomLeftOfCentre(GRID_LEFT, ROW_D),
-    focus = bottomLeftOfCentre(SECOND_X, ROW_C), castfocus = bottomLeftOfCentre(SECOND_X, ROW_D),
-    totems = bottomLeftOfCentre(GRID_LEFT, ROW_E),
-    druidmana = bottomLeftOfCentre(THIRD_X, ROW_A + SMALL_HEIGHT + GAP),
-    combopoints = bottomLeftOfCentre(GRID_LEFT + layouts.Sizes.totems.width + GAP, ROW_E),
-    swingtimer = bottomLeftOfCentre(SECOND_X, ROW_E),
+    player = bottomLeftOfCentre(GRID_LEFT, HEALER_UNITS),
+    target = bottomLeftOfCentre(SECOND_X, HEALER_UNITS),
+    tot = bottomLeftOfCentre(THIRD_X, HEALER_UNITS),
+    casttarget = bottomLeftOfCentre(SECOND_X, HEALER_CAST),
+    focus = bottomRightOfCentre(GRID_LEFT - GAP, HEALER_UNITS),
+    castfocus = bottomRightOfCentre(GRID_LEFT - GAP, HEALER_CAST),
+    petframe = bottomRightOfCentre(GRID_LEFT - GAP, HEALER_PET),
+    castpet = bottomRightOfCentre(GRID_LEFT - GAP, HEALER_PET - CAST_HEIGHT - GAP),
     loot = at("TOPLEFT", "LEFT", MARGIN, 100),
 })
 -- On 16:10 the grid reaches under the tracker's column, so this layout keeps room for a header and one quest;
@@ -223,12 +226,6 @@ layouts.healer.sizes = { questtracker = { width = 240, height = 56 } }
 -- The same combat information belongs in the same viewing area for every class
 -- and every preset. The cooldown strip owns the middle; the class effect rows flank
 -- the cast bar and the resource strip on either side.
-local CORE_HALF = layouts.Sizes.cooldowns.width / 2
-local CORE_SWING = STACK_TOP + GAP
-local CORE_CAST = CORE_SWING + layouts.Sizes.swingtimer.height + GAP
-local CORE_POWER = CORE_CAST + CAST_HEIGHT + GAP
-local CORE_COOLDOWNS = CORE_POWER + layouts.Sizes.combatresource.height + GAP
-local CORE_EXTRA = CORE_COOLDOWNS + layouts.Sizes.cooldowns.height + GAP
 layouts.CombatPositions = {
     castplayer = bottom(0, CORE_CAST),
     combatresource = bottom(0, CORE_POWER),
@@ -310,7 +307,7 @@ end
 -- target close in until the target clears that column.
 layouts.SHORT_SCREEN = 900
 local function short(name, screen)
-    return screen ~= nil and screen.height < layouts.SHORT_SCREEN and layouts.CombatRowLayouts[name] == true
+    return screen ~= nil and screen.height < layouts.SHORT_SCREEN
 end
 -- Where the class effect row reaches under the tracker's column (16:10), the tracker takes the quest
 -- timers' place under the minimap and keeps the room down to that row; the tracker caps itself.
@@ -326,9 +323,20 @@ function layouts.CompactSizes(name, screen)
 end
 function layouts.Compact(name, screen, positions)
     if not short(name, screen) then return positions end
+    if crowded(screen) then positions.questtracker = topRight(COLUMN, TIMERS_Y) end
+    if name == "classic" then
+        -- Keep corner units fixed and fit the wide raid footprint between them and the column.
+        local focusX = TARGET_X + UNIT_WIDTH + GAP
+        positions.focus = topLeft(focusX, -MARGIN)
+        positions.castfocus = topLeft(focusX, -MARGIN - FOCUS_HEIGHT - GAP)
+        positions.tot = topLeft(focusX + FOCUS_WIDTH + GAP, -MARGIN)
+        positions.castpet = topLeft(MARGIN + SMALL_WIDTH + GAP, UNDER_UNITS)
+        positions.raid, positions.party = topLeft(MARGIN, UNDER_UNITS - SMALL_HEIGHT - GAP),
+            topLeft(MARGIN, UNDER_UNITS - SMALL_HEIGHT - GAP)
+    end
+    if not layouts.CombatRowLayouts[name] then return positions end
     local half = screen.width / 2
     local column = screen.width + COLUMN - layouts.Sizes.minimap.width - GAP
-    if crowded(screen) then positions.questtracker = topRight(COLUMN, TIMERS_Y) end
     if name == "hud" then
         local spread = math.max(0, math.min(HUD_SPREAD, math.floor(column - half - UNIT_WIDTH)))
         local x = spread + UNIT_WIDTH / 2
