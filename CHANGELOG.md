@@ -9,11 +9,22 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+2026-10-02. UI compatibility reviewed with WoW: Forever beta **1.60.1.70170**
+(interface 16001), using the current UI source, installed client and authentic
+Lua-rendered examples. The build number records reviewed inputs.
+
 - Keep Classic and Healer combat frames in their preset positions on short screens. Healer's party and raid grid now clears the central combat column; supporting windows fit around the combat frames.
 
 - Adaptive nameplate labels give Forever's long names and surnames more room above compact health bars. Settings > Nameplates offers minimum and maximum label widths and a fixed-width toggle. Labels shrink when a plate is reused; protected text measurements keep the fixed layout.
 
 - Scope visual verification to each capture's relevant inputs. Navigation changes no longer require a full image rebuild; unchanged captures retain their reviewed client and renderer provenance.
+
+The public ZIP contains the addon without quest and road datasets. Existing
+locally installed data and settings are preserved. This release does not refresh
+navigation dataset admission for the current client; unsupported data remains
+explicitly unverified. The Windows installer is not part of this release.
 
 ## 1.0.0-beta.2
 

@@ -17,7 +17,7 @@ datasets. Their public distribution is pending the
 only where that data is installed locally. No quest data has been removed from
 the project.
 
-1. Download `RikUI-v1.0.0-beta.2-forever.zip` from the
+1. Download `RikUI-v1.0.0-beta.3-forever.zip` from the
    [releases page](https://github.com/rik-wow/RikUI/releases). It is marked as
    a pre-release. You can also build a ZIP yourself with the
    [packaging guide](docs/packaging.md).
@@ -28,10 +28,11 @@ the project.
    There shouldn't be another folder between `RikUI` and the TOC.
 4. Start the game and enable RikUI in the AddOns list.
 
-Compatible with WoW: Forever beta **1.60.1.70124**, interface `16001`.
-Automated compatibility was verified on 2026-09-29 against the current Blizzard
-UI source and installed client, including quest/navigation input checks and Lua
+UI compatibility reviewed with WoW: Forever beta **1.60.1.70170**, interface `16001`,
+on 2026-10-02 against the current UI source, installed client and reviewed Lua
 renders. This records the build reviewed; future client updates are checked again.
+Quest and road datasets require separate current-build validation; unsupported
+builds remain unverified.
 What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
 ### Native Windows installer
