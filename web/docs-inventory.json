@@ -196,6 +196,11 @@
       "title": "Screen messages"
     },
     {
+      "slug": "setup-studio",
+      "file": "docs/setup-studio.md",
+      "title": "Setup Studio"
+    },
+    {
       "slug": "sharing",
       "file": "docs/sharing.md",
       "title": "Import and export"
@@ -504,6 +509,16 @@
     }
   ],
   "surfaces": [
+    {
+      "page": "setup-studio",
+      "name": "Setup Studio review",
+      "kind": "settings"
+    },
+    {
+      "page": "setup-studio",
+      "name": "Handheld presentation",
+      "kind": "settings"
+    },
     {
       "page": "wizard",
       "name": "Welcome",
@@ -1877,6 +1892,1630 @@
   ],
   "renders": [
     {
+      "id": "ah-browse",
+      "page": "auction-house",
+      "title": "Buying and search",
+      "width": 1096,
+      "height": 676
+    },
+    {
+      "id": "ah-item",
+      "page": "auction-house",
+      "title": "Item summary",
+      "width": 1096,
+      "height": 676
+    },
+    {
+      "id": "ah-owned",
+      "page": "auction-house",
+      "title": "Owned auctions",
+      "width": 1096,
+      "height": 676
+    },
+    {
+      "id": "ah-sell",
+      "page": "auction-house",
+      "title": "Selling",
+      "width": 1096,
+      "height": 676
+    },
+    {
+      "id": "alert-achievement",
+      "page": "alerts",
+      "title": "Achievement alert",
+      "width": 400,
+      "height": 170
+    },
+    {
+      "id": "alert-loot",
+      "page": "alerts",
+      "title": "Loot alert",
+      "width": 400,
+      "height": 170
+    },
+    {
+      "id": "alert-money",
+      "page": "alerts",
+      "title": "Money alert",
+      "width": 400,
+      "height": 170
+    },
+    {
+      "id": "auras-buffs",
+      "page": "auras",
+      "title": "Player buffs",
+      "width": 300,
+      "height": 160
+    },
+    {
+      "id": "auras-debuffs",
+      "page": "auras",
+      "title": "Player debuffs",
+      "width": 300,
+      "height": 100
+    },
+    {
+      "id": "auras-focus",
+      "page": "auras",
+      "title": "Focus auras",
+      "width": 480,
+      "height": 240
+    },
+    {
+      "id": "auras-pet",
+      "page": "auras",
+      "title": "Pet auras",
+      "width": 480,
+      "height": 240
+    },
+    {
+      "id": "auras-target",
+      "page": "auras",
+      "title": "Target auras",
+      "width": 480,
+      "height": 240
+    },
+    {
+      "id": "bags-capacity",
+      "page": "bags",
+      "title": "Capacity indicator",
+      "width": 240,
+      "height": 50
+    },
+    {
+      "id": "bags-empty-search",
+      "page": "bags",
+      "title": "No matching items",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-filters",
+      "page": "bags",
+      "title": "Quick filters",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-inventory",
+      "page": "bags",
+      "title": "Inventory and item stacks",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-markers",
+      "page": "bags",
+      "title": "Quest-item marker",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-merchant",
+      "page": "bags",
+      "title": "Sell junk",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "bags-search",
+      "page": "bags",
+      "title": "Searching for a potion",
+      "width": 434,
+      "height": 288
+    },
+    {
+      "id": "banner-objective",
+      "page": "banners",
+      "title": "Objective banner",
+      "width": 800,
+      "height": 200
+    },
+    {
+      "id": "bars-ghost",
+      "page": "bars",
+      "title": "Empty preset slot",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-left",
+      "page": "bars",
+      "title": "Left action column",
+      "width": 40,
+      "height": 502
+    },
+    {
+      "id": "bars-main",
+      "page": "bars",
+      "title": "Main action row",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-page",
+      "page": "bars",
+      "title": "Manual page overlay",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-pet",
+      "page": "bars",
+      "title": "Pet actions",
+      "width": 360,
+      "height": 34
+    },
+    {
+      "id": "bars-right",
+      "page": "bars",
+      "title": "Right action column",
+      "width": 40,
+      "height": 502
+    },
+    {
+      "id": "bars-secondary",
+      "page": "bars",
+      "title": "Secondary action row",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-stance",
+      "page": "bars",
+      "title": "Stance buttons",
+      "width": 108,
+      "height": 34
+    },
+    {
+      "id": "bars-stance-page",
+      "page": "bars",
+      "title": "Stance page overlay",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bars-third",
+      "page": "bars",
+      "title": "Third action row",
+      "width": 504,
+      "height": 40
+    },
+    {
+      "id": "bubble-npc",
+      "page": "chatbubbles",
+      "title": "NPC speech",
+      "width": 420,
+      "height": 140
+    },
+    {
+      "id": "bubble-player",
+      "page": "chatbubbles",
+      "title": "Player speech",
+      "width": 420,
+      "height": 140
+    },
+    {
+      "id": "cast-channel",
+      "page": "castbars",
+      "title": "Channel",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-focus",
+      "page": "castbars",
+      "title": "Focus cast",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-interrupted",
+      "page": "castbars",
+      "title": "Interrupted cast",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-pet",
+      "page": "castbars",
+      "title": "Pet cast",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-player",
+      "page": "castbars",
+      "title": "Remaining time hidden",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "cast-target",
+      "page": "castbars",
+      "title": "Target cast",
+      "width": 600,
+      "height": 80
+    },
+    {
+      "id": "chat-copy",
+      "page": "chat",
+      "title": "Copying a conversation",
+      "width": 600,
+      "height": 440
+    },
+    {
+      "id": "chat-history",
+      "page": "chat",
+      "title": "Message history",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "chat-input",
+      "page": "chat",
+      "title": "Input bar",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "chat-resize",
+      "page": "chat",
+      "title": "Resize handle",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "chat-scroll",
+      "page": "chat",
+      "title": "History scrolling",
+      "width": 500,
+      "height": 280
+    },
+    {
+      "id": "chat-search",
+      "page": "chat",
+      "title": "Finding a line in chat",
+      "width": 600,
+      "height": 440
+    },
+    {
+      "id": "combattext-settings",
+      "page": "combattext",
+      "title": "Combat text settings",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "combo-empty",
+      "page": "combopoints",
+      "title": "Empty points",
+      "width": 400,
+      "height": 80
+    },
+    {
+      "id": "combo-full",
+      "page": "combopoints",
+      "title": "Full points",
+      "width": 400,
+      "height": 80
+    },
+    {
+      "id": "combo-three",
+      "page": "combopoints",
+      "title": "Three points",
+      "width": 400,
+      "height": 80
+    },
+    {
+      "id": "cooldowns-class",
+      "page": "cooldowns",
+      "title": "Class cooldowns",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "cooldowns-counter",
+      "page": "cooldowns",
+      "title": "Cooldown counter",
+      "width": 900,
+      "height": 260
+    },
+    {
+      "id": "cooldowns-rows",
+      "page": "cooldowns",
+      "title": "Additional rows",
+      "width": 600,
+      "height": 260
+    },
+    {
+      "id": "cooldowns-strip",
+      "page": "cooldowns",
+      "title": "The cooldown strip",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "cooldowns-tracked",
+      "page": "cooldowns",
+      "title": "Tracked spell selection",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "cooldowns-viewer",
+      "page": "cooldowns",
+      "title": "Essential and utility entries",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "ctl-button",
+      "page": "controls",
+      "title": "Button",
+      "width": 136,
+      "height": 38
+    },
+    {
+      "id": "ctl-checkbox",
+      "page": "controls",
+      "title": "Checkbox",
+      "width": 170,
+      "height": 48
+    },
+    {
+      "id": "ctl-colour",
+      "page": "controls",
+      "title": "Colour control",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "ctl-disabled",
+      "page": "controls",
+      "title": "Disabled control",
+      "width": 166,
+      "height": 38
+    },
+    {
+      "id": "ctl-dropdown",
+      "page": "controls",
+      "title": "Dropdown",
+      "width": 176,
+      "height": 53
+    },
+    {
+      "id": "ctl-scrollbar",
+      "page": "controls",
+      "title": "Scrollbar",
+      "width": 40,
+      "height": 196
+    },
+    {
+      "id": "ctl-slider",
+      "page": "controls",
+      "title": "Slider",
+      "width": 266,
+      "height": 64
+    },
+    {
+      "id": "ctl-textfield",
+      "page": "controls",
+      "title": "Text field",
+      "width": 220,
+      "height": 40
+    },
+    {
+      "id": "dlg-addfriend",
+      "page": "dialogs",
+      "title": "Add friend",
+      "width": 466,
+      "height": 343
+    },
+    {
+      "id": "dlg-autocomplete",
+      "page": "dialogs",
+      "title": "Autocomplete",
+      "width": 256,
+      "height": 146
+    },
+    {
+      "id": "dlg-colorpicker",
+      "page": "dialogs",
+      "title": "Colour picker",
+      "width": 404,
+      "height": 226
+    },
+    {
+      "id": "dlg-queueready",
+      "page": "dialogs",
+      "title": "Queue ready",
+      "width": 322,
+      "height": 226
+    },
+    {
+      "id": "dlg-readycheck",
+      "page": "dialogs",
+      "title": "Ready check",
+      "width": 339,
+      "height": 128
+    },
+    {
+      "id": "dlg-report",
+      "page": "dialogs",
+      "title": "Report",
+      "width": 416,
+      "height": 286
+    },
+    {
+      "id": "dlg-rolepoll",
+      "page": "dialogs",
+      "title": "Role poll",
+      "width": 322,
+      "height": 176
+    },
+    {
+      "id": "dlg-stacksplit",
+      "page": "dialogs",
+      "title": "Stack split",
+      "width": 188,
+      "height": 112
+    },
+    {
+      "id": "dur-broken",
+      "page": "durability",
+      "title": "Broken gear",
+      "width": 180,
+      "height": 40
+    },
+    {
+      "id": "dur-lowest",
+      "page": "durability",
+      "title": "Lowest durability",
+      "width": 180,
+      "height": 40
+    },
+    {
+      "id": "dur-tooltip",
+      "page": "durability",
+      "title": "Gear tooltip",
+      "width": 320,
+      "height": 200
+    },
+    {
+      "id": "dur-worn",
+      "page": "durability",
+      "title": "Worn gear",
+      "width": 180,
+      "height": 40
+    },
+    {
+      "id": "effects-player",
+      "page": "class-effects",
+      "title": "Player effects",
+      "width": 600,
+      "height": 160
+    },
+    {
+      "id": "effects-target",
+      "page": "class-effects",
+      "title": "Target effects",
+      "width": 600,
+      "height": 160
+    },
+    {
+      "id": "extra-zone",
+      "page": "extrabuttons",
+      "title": "Zone ability",
+      "width": 460,
+      "height": 200
+    },
+    {
+      "id": "hud-arrangement",
+      "page": "combat-hud",
+      "title": "The combat HUD",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "hud-column",
+      "page": "combat-hud",
+      "title": "Cooldowns, resource, cast and swing",
+      "width": 320,
+      "height": 220
+    },
+    {
+      "id": "hud-druid",
+      "page": "combat-hud",
+      "title": "Druid: form mana",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "hud-framerate",
+      "page": "hudframes",
+      "title": "Framerate label",
+      "width": 160,
+      "height": 60
+    },
+    {
+      "id": "hud-navigation",
+      "page": "hudframes",
+      "title": "Quest navigation marker",
+      "width": 260,
+      "height": 180
+    },
+    {
+      "id": "hud-queue",
+      "page": "hudframes",
+      "title": "Queue status",
+      "width": 480,
+      "height": 420
+    },
+    {
+      "id": "hud-rogue",
+      "page": "combat-hud",
+      "title": "Rogue: combo points",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "hud-scale",
+      "page": "combat-hud",
+      "title": "Frame scale",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "hud-shaman",
+      "page": "combat-hud",
+      "title": "Shaman: totems",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "int-achievements",
+      "page": "interiors",
+      "title": "Achievements",
+      "width": 784,
+      "height": 516
+    },
+    {
+      "id": "int-calendar",
+      "page": "interiors",
+      "title": "Calendar",
+      "width": 675,
+      "height": 640
+    },
+    {
+      "id": "int-character",
+      "page": "interiors",
+      "title": "Character equipment",
+      "width": 720,
+      "height": 500
+    },
+    {
+      "id": "int-collections",
+      "page": "interiors",
+      "title": "Collections",
+      "width": 719,
+      "height": 622
+    },
+    {
+      "id": "int-communities",
+      "page": "interiors",
+      "title": "Guild and communities",
+      "width": 830,
+      "height": 442
+    },
+    {
+      "id": "int-friends",
+      "page": "interiors",
+      "title": "Friends",
+      "width": 401,
+      "height": 440
+    },
+    {
+      "id": "int-gossip",
+      "page": "interiors",
+      "title": "Gossip choices",
+      "width": 354,
+      "height": 512
+    },
+    {
+      "id": "int-inbox",
+      "page": "interiors",
+      "title": "Mail inbox",
+      "width": 354,
+      "height": 440
+    },
+    {
+      "id": "int-inspect",
+      "page": "interiors",
+      "title": "Inspect",
+      "width": 354,
+      "height": 440
+    },
+    {
+      "id": "int-merchant",
+      "page": "interiors",
+      "title": "Merchant",
+      "width": 352,
+      "height": 460
+    },
+    {
+      "id": "int-quest",
+      "page": "interiors",
+      "title": "Quest dialogue",
+      "width": 354,
+      "height": 512
+    },
+    {
+      "id": "int-raidinfo",
+      "page": "interiors",
+      "title": "Raid information",
+      "width": 361,
+      "height": 266
+    },
+    {
+      "id": "int-reputation",
+      "page": "interiors",
+      "title": "Reputation and skills",
+      "width": 647,
+      "height": 500
+    },
+    {
+      "id": "int-spellbook",
+      "page": "interiors",
+      "title": "Spellbook",
+      "width": 1634,
+      "height": 899
+    },
+    {
+      "id": "int-stats",
+      "page": "interiors",
+      "title": "Character stats",
+      "width": 220,
+      "height": 372
+    },
+    {
+      "id": "int-trade",
+      "page": "interiors",
+      "title": "Trade",
+      "width": 360,
+      "height": 462
+    },
+    {
+      "id": "layout-healer-groups",
+      "page": "layout",
+      "title": "Healer party and raid placement",
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "id": "layout-mover",
+      "page": "layout",
+      "title": "Frame mover",
+      "width": 1060,
+      "height": 592
+    },
+    {
+      "id": "layout-nudges",
+      "page": "layout",
+      "title": "Position nudges",
+      "width": 570,
+      "height": 350
+    },
+    {
+      "id": "layout-presets",
+      "page": "layout",
+      "title": "Layout presets",
+      "width": 570,
+      "height": 180
+    },
+    {
+      "id": "layout-resize",
+      "page": "layout",
+      "title": "Resize handle",
+      "width": 560,
+      "height": 330
+    },
+    {
+      "id": "layout-short-presets",
+      "page": "layout",
+      "title": "Classic and Healer on a short screen",
+      "width": 1228,
+      "height": 768
+    },
+    {
+      "id": "layout-tags",
+      "page": "layout",
+      "title": "Frame tags",
+      "width": 1160,
+      "height": 560
+    },
+    {
+      "id": "layout-undo",
+      "page": "layout",
+      "title": "Undo layout change",
+      "width": 570,
+      "height": 60
+    },
+    {
+      "id": "loc-effect",
+      "page": "lossofcontrol",
+      "title": "Control effect",
+      "width": 600,
+      "height": 200
+    },
+    {
+      "id": "loc-remaining",
+      "page": "lossofcontrol",
+      "title": "Remaining duration",
+      "width": 600,
+      "height": 200
+    },
+    {
+      "id": "loot-coins",
+      "page": "loot",
+      "title": "Currency row",
+      "width": 360,
+      "height": 220
+    },
+    {
+      "id": "loot-confirm",
+      "page": "loot",
+      "title": "Loot confirmation",
+      "width": 360,
+      "height": 140
+    },
+    {
+      "id": "loot-list",
+      "page": "loot",
+      "title": "Looting items",
+      "width": 360,
+      "height": 220
+    },
+    {
+      "id": "loot-roll",
+      "page": "loot",
+      "title": "Need and greed roll",
+      "width": 360,
+      "height": 120
+    },
+    {
+      "id": "menu-context",
+      "page": "menus",
+      "title": "Context menu",
+      "width": 192,
+      "height": 272
+    },
+    {
+      "id": "meter-rows",
+      "page": "damagemeter",
+      "title": "Damage rows",
+      "width": 600,
+      "height": 360
+    },
+    {
+      "id": "micro-bags",
+      "page": "micromenu",
+      "title": "Backpack",
+      "width": 500,
+      "height": 110
+    },
+    {
+      "id": "micro-menu",
+      "page": "micromenu",
+      "title": "Micro menu",
+      "width": 260,
+      "height": 70
+    },
+    {
+      "id": "minimap-indicators",
+      "page": "minimap",
+      "title": "Mail and queue indicators",
+      "width": 240,
+      "height": 300
+    },
+    {
+      "id": "minimap-performance",
+      "page": "minimap",
+      "title": "Performance readout",
+      "width": 240,
+      "height": 300
+    },
+    {
+      "id": "minimap-square",
+      "page": "minimap",
+      "title": "Square minimap",
+      "width": 240,
+      "height": 300
+    },
+    {
+      "id": "mirror-breath",
+      "page": "mirrortimers",
+      "title": "Breath",
+      "width": 480,
+      "height": 120
+    },
+    {
+      "id": "mirror-fatigue",
+      "page": "mirrortimers",
+      "title": "Fatigue",
+      "width": 480,
+      "height": 120
+    },
+    {
+      "id": "mirror-feign",
+      "page": "mirrortimers",
+      "title": "Feign death",
+      "width": 480,
+      "height": 120
+    },
+    {
+      "id": "options-castbars",
+      "page": "options",
+      "title": "Cast-bar settings",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-class",
+      "page": "options",
+      "title": "Your class area",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-confirm",
+      "page": "options",
+      "title": "Profile confirmation",
+      "width": 570,
+      "height": 170
+    },
+    {
+      "id": "options-general",
+      "page": "options",
+      "title": "General",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-modules",
+      "page": "options",
+      "title": "Module selection",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-pending",
+      "page": "options",
+      "title": "Pending reload",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-profiles",
+      "page": "options",
+      "title": "Profiles",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-search",
+      "page": "options",
+      "title": "Settings search",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "options-setup",
+      "page": "options",
+      "title": "Setup and support",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "overview-layouts",
+      "page": "overview",
+      "title": "Screen layouts",
+      "width": 2048,
+      "height": 1152
+    },
+    {
+      "id": "overview-small-screen",
+      "page": "overview",
+      "title": "1366x768 screen",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "id": "panels-close",
+      "page": "panels",
+      "title": "Close button",
+      "width": 127,
+      "height": 46
+    },
+    {
+      "id": "panels-inset",
+      "page": "panels",
+      "title": "Content inset",
+      "width": 376,
+      "height": 216
+    },
+    {
+      "id": "panels-tabs",
+      "page": "panels",
+      "title": "Selected tab",
+      "width": 346,
+      "height": 66
+    },
+    {
+      "id": "panels-window",
+      "page": "panels",
+      "title": "Title and accent rule",
+      "width": 720,
+      "height": 500
+    },
+    {
+      "id": "planner-arrow",
+      "page": "questplanner",
+      "title": "Direction arrow",
+      "width": 300,
+      "height": 110
+    },
+    {
+      "id": "planner-browser",
+      "page": "questplanner",
+      "title": "Quest browser",
+      "width": 860,
+      "height": 620
+    },
+    {
+      "id": "planner-details",
+      "page": "questplanner",
+      "title": "Objective details",
+      "width": 860,
+      "height": 620
+    },
+    {
+      "id": "planner-guidance",
+      "page": "questplanner",
+      "title": "Guidance row",
+      "width": 260,
+      "height": 420
+    },
+    {
+      "id": "planner-objective",
+      "page": "questplanner",
+      "title": "Current objective",
+      "width": 840,
+      "height": 160
+    },
+    {
+      "id": "planner-partial",
+      "page": "questplanner",
+      "title": "Partial data state",
+      "width": 840,
+      "height": 160
+    },
+    {
+      "id": "planner-pins",
+      "page": "questplanner",
+      "title": "Pin and skip controls",
+      "width": 480,
+      "height": 420
+    },
+    {
+      "id": "planner-preferences",
+      "page": "questplanner",
+      "title": "Preferences",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "plates-adaptive-names",
+      "page": "nameplates",
+      "title": "Adaptive and fixed name labels",
+      "width": 600,
+      "height": 240
+    },
+    {
+      "id": "plates-cast",
+      "page": "nameplates",
+      "title": "Nameplate cast",
+      "width": 420,
+      "height": 180
+    },
+    {
+      "id": "plates-debuffs",
+      "page": "nameplates",
+      "title": "Debuff row",
+      "width": 420,
+      "height": 180
+    },
+    {
+      "id": "plates-enemy",
+      "page": "nameplates",
+      "title": "Enemy plate",
+      "width": 600,
+      "height": 260
+    },
+    {
+      "id": "plates-friendly",
+      "page": "nameplates",
+      "title": "Friendly name",
+      "width": 420,
+      "height": 130
+    },
+    {
+      "id": "plates-markers",
+      "page": "nameplates",
+      "title": "Elite and rare markers",
+      "width": 860,
+      "height": 280
+    },
+    {
+      "id": "plates-name-options",
+      "page": "nameplates",
+      "title": "Nameplate readability settings",
+      "width": 800,
+      "height": 600
+    },
+    {
+      "id": "plates-name-width-limit",
+      "page": "nameplates",
+      "title": "Bounded long name labels",
+      "width": 600,
+      "height": 240
+    },
+    {
+      "id": "plates-pooled-short-name",
+      "page": "nameplates",
+      "title": "Reused plate with a short name",
+      "width": 600,
+      "height": 240
+    },
+    {
+      "id": "plates-target-focus",
+      "page": "nameplates",
+      "title": "Target and focus",
+      "width": 600,
+      "height": 260
+    },
+    {
+      "id": "plates-threat",
+      "page": "nameplates",
+      "title": "Threat indication",
+      "width": 520,
+      "height": 150
+    },
+    {
+      "id": "popup-confirm",
+      "page": "popups",
+      "title": "Confirmation text",
+      "width": 352,
+      "height": 132
+    },
+    {
+      "id": "popup-invite",
+      "page": "popups",
+      "title": "Accept and cancel",
+      "width": 352,
+      "height": 132
+    },
+    {
+      "id": "popup-item",
+      "page": "popups",
+      "title": "Item confirmation",
+      "width": 352,
+      "height": 207
+    },
+    {
+      "id": "popup-text",
+      "page": "popups",
+      "title": "Text entry",
+      "width": 352,
+      "height": 162
+    },
+    {
+      "id": "prd-health",
+      "page": "personalresource",
+      "title": "Health",
+      "width": 320,
+      "height": 72
+    },
+    {
+      "id": "prd-power",
+      "page": "personalresource",
+      "title": "Power",
+      "width": 320,
+      "height": 72
+    },
+    {
+      "id": "proc-center",
+      "page": "proc-overlay",
+      "title": "Central cue",
+      "width": 380,
+      "height": 220
+    },
+    {
+      "id": "proc-sides",
+      "page": "proc-overlay",
+      "title": "Left and right cues",
+      "width": 380,
+      "height": 440
+    },
+    {
+      "id": "proc-vertical",
+      "page": "proc-overlay",
+      "title": "Upper and lower cues",
+      "width": 380,
+      "height": 440
+    },
+    {
+      "id": "sharing-export",
+      "page": "sharing",
+      "title": "Exporting a profile",
+      "width": 700,
+      "height": 480
+    },
+    {
+      "id": "sharing-import",
+      "page": "sharing",
+      "title": "Importing a profile",
+      "width": 700,
+      "height": 480
+    },
+    {
+      "id": "sharing-library",
+      "page": "sharing",
+      "title": "Preset library",
+      "width": 570,
+      "height": 170
+    },
+    {
+      "id": "sharing-remove",
+      "page": "sharing",
+      "title": "Remove imported preset",
+      "width": 570,
+      "height": 212
+    },
+    {
+      "id": "shell-interface",
+      "page": "shell",
+      "title": "Interface actions",
+      "width": 320,
+      "height": 250
+    },
+    {
+      "id": "shell-launcher",
+      "page": "shell",
+      "title": "Minimap launcher",
+      "width": 260,
+      "height": 310
+    },
+    {
+      "id": "shell-menu",
+      "page": "shell",
+      "title": "RikUI menu",
+      "width": 360,
+      "height": 680
+    },
+    {
+      "id": "shell-support",
+      "page": "shell",
+      "title": "Support actions",
+      "width": 320,
+      "height": 160
+    },
+    {
+      "id": "shell-tools",
+      "page": "shell",
+      "title": "Tools actions",
+      "width": 320,
+      "height": 140
+    },
+    {
+      "id": "studio-atlas-classic-readable",
+      "page": "studio-atlas",
+      "title": "classic / readable authentic components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-atlas-classic-standard",
+      "page": "studio-atlas",
+      "title": "classic / standard authentic components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-atlas-ink-readable",
+      "page": "studio-atlas",
+      "title": "ink / readable authentic components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-atlas-ink-standard",
+      "page": "studio-atlas",
+      "title": "ink / standard authentic components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-atlas-ocean-readable",
+      "page": "studio-atlas",
+      "title": "ocean / readable authentic components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-atlas-ocean-standard",
+      "page": "studio-atlas",
+      "title": "ocean / standard authentic components",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-controls",
+      "page": "setup-studio",
+      "title": "Setup Studio review",
+      "width": 792,
+      "height": 772
+    },
+    {
+      "id": "studio-edit-undo",
+      "page": "setup-studio",
+      "title": "Frame adjustment and undo",
+      "width": 792,
+      "height": 772
+    },
+    {
+      "id": "studio-handheld",
+      "page": "setup-studio",
+      "title": "Handheld presentation",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "id": "studio-pack-centered",
+      "page": "studio-gallery",
+      "title": "centered Setup Pack",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "studio-pack-classic",
+      "page": "studio-gallery",
+      "title": "classic Setup Pack",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "studio-pack-healer",
+      "page": "studio-gallery",
+      "title": "healer Setup Pack",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "studio-pack-hud",
+      "page": "studio-gallery",
+      "title": "hud Setup Pack",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "studio-theme-review",
+      "page": "setup-studio",
+      "title": "Selective adoption and theme review",
+      "width": 792,
+      "height": 772
+    },
+    {
+      "id": "swing-main-hand",
+      "page": "swingtimer",
+      "title": "Main hand swing",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-move",
+      "page": "swingtimer",
+      "title": "Move window",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-off-hand",
+      "page": "swingtimer",
+      "title": "Off hand",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-ranged",
+      "page": "swingtimer",
+      "title": "Ranged cycle",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-stop",
+      "page": "swingtimer",
+      "title": "Stop window",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "swing-unknown",
+      "page": "swingtimer",
+      "title": "Unknown range",
+      "width": 600,
+      "height": 180
+    },
+    {
+      "id": "text-error",
+      "page": "screentext",
+      "title": "Error message",
+      "width": 800,
+      "height": 120
+    },
+    {
+      "id": "text-raid",
+      "page": "screentext",
+      "title": "Raid warning",
+      "width": 800,
+      "height": 110
+    },
+    {
+      "id": "text-subzone",
+      "page": "screentext",
+      "title": "Subzone name",
+      "width": 800,
+      "height": 160
+    },
+    {
+      "id": "text-zone",
+      "page": "screentext",
+      "title": "Zone name",
+      "width": 800,
+      "height": 160
+    },
+    {
+      "id": "timer-elapsed",
+      "page": "combattimer",
+      "title": "Combat elapsed",
+      "width": 360,
+      "height": 80
+    },
+    {
+      "id": "timer-final",
+      "page": "combattimer",
+      "title": "Final duration",
+      "width": 360,
+      "height": 80
+    },
+    {
+      "id": "timer-stopwatch",
+      "page": "combattimer",
+      "title": "Session stopwatch",
+      "width": 360,
+      "height": 80
+    },
+    {
+      "id": "timers-final",
+      "page": "questtimers",
+      "title": "Final ten seconds",
+      "width": 240,
+      "height": 40
+    },
+    {
+      "id": "timers-timed",
+      "page": "questtimers",
+      "title": "Timed objective",
+      "width": 240,
+      "height": 40
+    },
+    {
+      "id": "timers-warning",
+      "page": "questtimers",
+      "title": "Thirty-second warning",
+      "width": 240,
+      "height": 40
+    },
+    {
+      "id": "tip-aura",
+      "page": "tooltip",
+      "title": "Aura tooltip",
+      "width": 460,
+      "height": 220
+    },
+    {
+      "id": "tip-item",
+      "page": "tooltip",
+      "title": "Item tooltip",
+      "width": 460,
+      "height": 220
+    },
+    {
+      "id": "tip-unit",
+      "page": "tooltip",
+      "title": "Unit tooltip",
+      "width": 460,
+      "height": 220
+    },
+    {
+      "id": "toast-friend",
+      "page": "toasts",
+      "title": "Friend notification",
+      "width": 300,
+      "height": 100
+    },
+    {
+      "id": "toast-time",
+      "page": "toasts",
+      "title": "Play-time notice",
+      "width": 300,
+      "height": 100
+    },
+    {
+      "id": "toast-voice",
+      "page": "toasts",
+      "title": "Voice notice",
+      "width": 300,
+      "height": 120
+    },
+    {
+      "id": "totems-duration",
+      "page": "totems",
+      "title": "Active duration",
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "totems-slots",
+      "page": "totems",
+      "title": "Four totem slots",
+      "width": 400,
+      "height": 100
+    },
+    {
+      "id": "tracker-active",
+      "page": "questtracker",
+      "title": "Active objective",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "tracker-complete",
+      "page": "questtracker",
+      "title": "Completed quest",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "tracker-failed",
+      "page": "questtracker",
+      "title": "Failed quest",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "tracker-header",
+      "page": "questtracker",
+      "title": "Tracker header",
+      "width": 260,
+      "height": 40
+    },
+    {
+      "id": "tracker-overflow",
+      "page": "questtracker",
+      "title": "Overflow count",
+      "width": 260,
+      "height": 200
+    },
+    {
+      "id": "units-focus",
+      "page": "unitframes",
+      "title": "Focus",
+      "width": 352,
+      "height": 104
+    },
+    {
+      "id": "units-low-health",
+      "page": "unitframes",
+      "title": "Low health",
+      "width": 472,
+      "height": 120
+    },
+    {
+      "id": "units-party",
+      "page": "unitframes",
+      "title": "Party",
+      "width": 520,
+      "height": 520
+    },
+    {
+      "id": "units-pet",
+      "page": "unitframes",
+      "title": "Pet",
+      "width": 352,
+      "height": 104
+    },
+    {
+      "id": "units-player",
+      "page": "unitframes",
+      "title": "Player",
+      "width": 472,
+      "height": 120
+    },
+    {
+      "id": "units-raid",
+      "page": "unitframes",
+      "title": "Raid grid",
+      "width": 1000,
+      "height": 420
+    },
+    {
+      "id": "units-target",
+      "page": "unitframes",
+      "title": "Target",
+      "width": 472,
+      "height": 160
+    },
+    {
+      "id": "units-tot",
+      "page": "unitframes",
+      "title": "Target of target",
+      "width": 352,
+      "height": 104
+    },
+    {
+      "id": "widget-double",
+      "page": "widgets",
+      "title": "Double status bar",
+      "width": 230,
+      "height": 90
+    },
+    {
+      "id": "widget-icon",
+      "page": "widgets",
+      "title": "Icon and text",
+      "width": 152,
+      "height": 56
+    },
+    {
+      "id": "widget-status",
+      "page": "widgets",
+      "title": "Status bar",
+      "width": 263,
+      "height": 81
+    },
+    {
       "id": "wizard-1",
       "page": "wizard",
       "title": "Welcome",
@@ -1919,786 +3558,16 @@
       "height": 624
     },
     {
-      "id": "options-general",
-      "page": "options",
-      "title": "General",
+      "id": "worldmap-settings",
+      "page": "worldmap",
+      "title": "World map settings",
       "width": 800,
       "height": 600
-    },
-    {
-      "id": "options-modules",
-      "page": "options",
-      "title": "Module selection",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "options-profiles",
-      "page": "options",
-      "title": "Profiles",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "options-setup",
-      "page": "options",
-      "title": "Setup and support",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "options-castbars",
-      "page": "options",
-      "title": "Cast-bar settings",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "options-class",
-      "page": "options",
-      "title": "Your class area",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "options-search",
-      "page": "options",
-      "title": "Settings search",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "options-pending",
-      "page": "options",
-      "title": "Pending reload",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "options-confirm",
-      "page": "options",
-      "title": "Profile confirmation",
-      "width": 570,
-      "height": 170
-    },
-    {
-      "id": "units-player",
-      "page": "unitframes",
-      "title": "Player",
-      "width": 472,
-      "height": 120
-    },
-    {
-      "id": "units-low-health",
-      "page": "unitframes",
-      "title": "Low health",
-      "width": 472,
-      "height": 120
-    },
-    {
-      "id": "units-target",
-      "page": "unitframes",
-      "title": "Target",
-      "width": 472,
-      "height": 160
-    },
-    {
-      "id": "units-focus",
-      "page": "unitframes",
-      "title": "Focus",
-      "width": 352,
-      "height": 104
-    },
-    {
-      "id": "units-tot",
-      "page": "unitframes",
-      "title": "Target of target",
-      "width": 352,
-      "height": 104
-    },
-    {
-      "id": "units-pet",
-      "page": "unitframes",
-      "title": "Pet",
-      "width": 352,
-      "height": 104
-    },
-    {
-      "id": "units-party",
-      "page": "unitframes",
-      "title": "Party",
-      "width": 520,
-      "height": 520
-    },
-    {
-      "id": "units-raid",
-      "page": "unitframes",
-      "title": "Raid grid",
-      "width": 1000,
-      "height": 420
-    },
-    {
-      "id": "cast-player",
-      "page": "castbars",
-      "title": "Remaining time hidden",
-      "width": 600,
-      "height": 80
-    },
-    {
-      "id": "cast-interrupted",
-      "page": "castbars",
-      "title": "Interrupted cast",
-      "width": 600,
-      "height": 80
-    },
-    {
-      "id": "cast-target",
-      "page": "castbars",
-      "title": "Target cast",
-      "width": 600,
-      "height": 80
-    },
-    {
-      "id": "cast-focus",
-      "page": "castbars",
-      "title": "Focus cast",
-      "width": 600,
-      "height": 80
-    },
-    {
-      "id": "cast-pet",
-      "page": "castbars",
-      "title": "Pet cast",
-      "width": 600,
-      "height": 80
-    },
-    {
-      "id": "cast-channel",
-      "page": "castbars",
-      "title": "Channel",
-      "width": 600,
-      "height": 80
-    },
-    {
-      "id": "bags-inventory",
-      "page": "bags",
-      "title": "Inventory and item stacks",
-      "width": 434,
-      "height": 288
-    },
-    {
-      "id": "bags-search",
-      "page": "bags",
-      "title": "Searching for a potion",
-      "width": 434,
-      "height": 288
-    },
-    {
-      "id": "bags-empty-search",
-      "page": "bags",
-      "title": "No matching items",
-      "width": 434,
-      "height": 288
-    },
-    {
-      "id": "layout-mover",
-      "page": "layout",
-      "title": "Frame mover",
-      "width": 1060,
-      "height": 592
-    },
-    {
-      "id": "layout-tags",
-      "page": "layout",
-      "title": "Frame tags",
-      "width": 1160,
-      "height": 560
-    },
-    {
-      "id": "layout-resize",
-      "page": "layout",
-      "title": "Resize handle",
-      "width": 560,
-      "height": 330
-    },
-    {
-      "id": "layout-presets",
-      "page": "layout",
-      "title": "Layout presets",
-      "width": 570,
-      "height": 180
-    },
-    {
-      "id": "layout-nudges",
-      "page": "layout",
-      "title": "Position nudges",
-      "width": 570,
-      "height": 350
-    },
-    {
-      "id": "layout-undo",
-      "page": "layout",
-      "title": "Undo layout change",
-      "width": 570,
-      "height": 60
-    },
-    {
-      "id": "shell-menu",
-      "page": "shell",
-      "title": "RikUI menu",
-      "width": 360,
-      "height": 680
-    },
-    {
-      "id": "shell-launcher",
-      "page": "shell",
-      "title": "Minimap launcher",
-      "width": 260,
-      "height": 310
-    },
-    {
-      "id": "shell-interface",
-      "page": "shell",
-      "title": "Interface actions",
-      "width": 320,
-      "height": 250
-    },
-    {
-      "id": "shell-tools",
-      "page": "shell",
-      "title": "Tools actions",
-      "width": 320,
-      "height": 140
-    },
-    {
-      "id": "shell-support",
-      "page": "shell",
-      "title": "Support actions",
-      "width": 320,
-      "height": 160
-    },
-    {
-      "id": "sharing-export",
-      "page": "sharing",
-      "title": "Exporting a profile",
-      "width": 700,
-      "height": 480
-    },
-    {
-      "id": "sharing-import",
-      "page": "sharing",
-      "title": "Importing a profile",
-      "width": 700,
-      "height": 480
-    },
-    {
-      "id": "sharing-library",
-      "page": "sharing",
-      "title": "Preset library",
-      "width": 570,
-      "height": 170
-    },
-    {
-      "id": "sharing-remove",
-      "page": "sharing",
-      "title": "Remove imported preset",
-      "width": 570,
-      "height": 212
-    },
-    {
-      "id": "chat-copy",
-      "page": "chat",
-      "title": "Copying a conversation",
-      "width": 600,
-      "height": 440
-    },
-    {
-      "id": "chat-search",
-      "page": "chat",
-      "title": "Finding a line in chat",
-      "width": 600,
-      "height": 440
-    },
-    {
-      "id": "loot-list",
-      "page": "loot",
-      "title": "Looting items",
-      "width": 360,
-      "height": 220
-    },
-    {
-      "id": "hud-arrangement",
-      "page": "combat-hud",
-      "title": "The combat HUD",
-      "width": 1000,
-      "height": 420
-    },
-    {
-      "id": "hud-column",
-      "page": "combat-hud",
-      "title": "Cooldowns, resource, cast and swing",
-      "width": 320,
-      "height": 220
-    },
-    {
-      "id": "hud-scale",
-      "page": "combat-hud",
-      "title": "Frame scale",
-      "width": 1000,
-      "height": 420
-    },
-    {
-      "id": "hud-rogue",
-      "page": "combat-hud",
-      "title": "Rogue: combo points",
-      "width": 1000,
-      "height": 420
-    },
-    {
-      "id": "hud-shaman",
-      "page": "combat-hud",
-      "title": "Shaman: totems",
-      "width": 1000,
-      "height": 420
-    },
-    {
-      "id": "hud-druid",
-      "page": "combat-hud",
-      "title": "Druid: form mana",
-      "width": 1000,
-      "height": 420
-    },
-    {
-      "id": "cooldowns-strip",
-      "page": "cooldowns",
-      "title": "The cooldown strip",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "cooldowns-viewer",
-      "page": "cooldowns",
-      "title": "Essential and utility entries",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "cooldowns-class",
-      "page": "cooldowns",
-      "title": "Class cooldowns",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "cooldowns-rows",
-      "page": "cooldowns",
-      "title": "Additional rows",
-      "width": 600,
-      "height": 260
-    },
-    {
-      "id": "cooldowns-counter",
-      "page": "cooldowns",
-      "title": "Cooldown counter",
-      "width": 900,
-      "height": 260
-    },
-    {
-      "id": "cooldowns-tracked",
-      "page": "cooldowns",
-      "title": "Tracked spell selection",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "swing-main-hand",
-      "page": "swingtimer",
-      "title": "Main hand swing",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "swing-off-hand",
-      "page": "swingtimer",
-      "title": "Off hand",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "swing-ranged",
-      "page": "swingtimer",
-      "title": "Ranged cycle",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "swing-move",
-      "page": "swingtimer",
-      "title": "Move window",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "swing-stop",
-      "page": "swingtimer",
-      "title": "Stop window",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "swing-unknown",
-      "page": "swingtimer",
-      "title": "Unknown range",
-      "width": 600,
-      "height": 180
-    },
-    {
-      "id": "plates-enemy",
-      "page": "nameplates",
-      "title": "Enemy plate",
-      "width": 600,
-      "height": 260
-    },
-    {
-      "id": "plates-target-focus",
-      "page": "nameplates",
-      "title": "Target and focus",
-      "width": 600,
-      "height": 260
-    },
-    {
-      "id": "plates-friendly",
-      "page": "nameplates",
-      "title": "Friendly name",
-      "width": 420,
-      "height": 130
-    },
-    {
-      "id": "plates-markers",
-      "page": "nameplates",
-      "title": "Elite and rare markers",
-      "width": 860,
-      "height": 280
-    },
-    {
-      "id": "plates-threat",
-      "page": "nameplates",
-      "title": "Threat indication",
-      "width": 520,
-      "height": 150
-    },
-    {
-      "id": "plates-debuffs",
-      "page": "nameplates",
-      "title": "Debuff row",
-      "width": 420,
-      "height": 180
-    },
-    {
-      "id": "plates-cast",
-      "page": "nameplates",
-      "title": "Nameplate cast",
-      "width": 420,
-      "height": 180
-    },
-    {
-      "id": "auras-buffs",
-      "page": "auras",
-      "title": "Player buffs",
-      "width": 300,
-      "height": 160
-    },
-    {
-      "id": "auras-debuffs",
-      "page": "auras",
-      "title": "Player debuffs",
-      "width": 300,
-      "height": 100
-    },
-    {
-      "id": "auras-target",
-      "page": "auras",
-      "title": "Target auras",
-      "width": 480,
-      "height": 240
-    },
-    {
-      "id": "auras-pet",
-      "page": "auras",
-      "title": "Pet auras",
-      "width": 480,
-      "height": 240
-    },
-    {
-      "id": "auras-focus",
-      "page": "auras",
-      "title": "Focus auras",
-      "width": 480,
-      "height": 240
-    },
-    {
-      "id": "effects-player",
-      "page": "class-effects",
-      "title": "Player effects",
-      "width": 600,
-      "height": 160
-    },
-    {
-      "id": "effects-target",
-      "page": "class-effects",
-      "title": "Target effects",
-      "width": 600,
-      "height": 160
-    },
-    {
-      "id": "combo-empty",
-      "page": "combopoints",
-      "title": "Empty points",
-      "width": 400,
-      "height": 80
-    },
-    {
-      "id": "combo-three",
-      "page": "combopoints",
-      "title": "Three points",
-      "width": 400,
-      "height": 80
-    },
-    {
-      "id": "combo-full",
-      "page": "combopoints",
-      "title": "Full points",
-      "width": 400,
-      "height": 80
-    },
-    {
-      "id": "totems-slots",
-      "page": "totems",
-      "title": "Four totem slots",
-      "width": 400,
-      "height": 100
-    },
-    {
-      "id": "totems-duration",
-      "page": "totems",
-      "title": "Active duration",
-      "width": 400,
-      "height": 100
-    },
-    {
-      "id": "bars-main",
-      "page": "bars",
-      "title": "Main action row",
-      "width": 504,
-      "height": 40
-    },
-    {
-      "id": "bars-secondary",
-      "page": "bars",
-      "title": "Secondary action row",
-      "width": 504,
-      "height": 40
-    },
-    {
-      "id": "bars-third",
-      "page": "bars",
-      "title": "Third action row",
-      "width": 504,
-      "height": 40
-    },
-    {
-      "id": "bars-right",
-      "page": "bars",
-      "title": "Right action column",
-      "width": 40,
-      "height": 502
-    },
-    {
-      "id": "bars-left",
-      "page": "bars",
-      "title": "Left action column",
-      "width": 40,
-      "height": 502
-    },
-    {
-      "id": "bars-page",
-      "page": "bars",
-      "title": "Manual page overlay",
-      "width": 504,
-      "height": 40
-    },
-    {
-      "id": "bars-stance-page",
-      "page": "bars",
-      "title": "Stance page overlay",
-      "width": 504,
-      "height": 40
-    },
-    {
-      "id": "bars-stance",
-      "page": "bars",
-      "title": "Stance buttons",
-      "width": 108,
-      "height": 34
-    },
-    {
-      "id": "bars-pet",
-      "page": "bars",
-      "title": "Pet actions",
-      "width": 360,
-      "height": 34
-    },
-    {
-      "id": "bars-ghost",
-      "page": "bars",
-      "title": "Empty preset slot",
-      "width": 504,
-      "height": 40
-    },
-    {
-      "id": "prd-health",
-      "page": "personalresource",
-      "title": "Health",
-      "width": 320,
-      "height": 72
-    },
-    {
-      "id": "prd-power",
-      "page": "personalresource",
-      "title": "Power",
-      "width": 320,
-      "height": 72
-    },
-    {
-      "id": "mirror-breath",
-      "page": "mirrortimers",
-      "title": "Breath",
-      "width": 480,
-      "height": 120
-    },
-    {
-      "id": "mirror-fatigue",
-      "page": "mirrortimers",
-      "title": "Fatigue",
-      "width": 480,
-      "height": 120
-    },
-    {
-      "id": "mirror-feign",
-      "page": "mirrortimers",
-      "title": "Feign death",
-      "width": 480,
-      "height": 120
-    },
-    {
-      "id": "loc-effect",
-      "page": "lossofcontrol",
-      "title": "Control effect",
-      "width": 600,
-      "height": 200
-    },
-    {
-      "id": "loc-remaining",
-      "page": "lossofcontrol",
-      "title": "Remaining duration",
-      "width": 600,
-      "height": 200
-    },
-    {
-      "id": "proc-sides",
-      "page": "proc-overlay",
-      "title": "Left and right cues",
-      "width": 380,
-      "height": 440
-    },
-    {
-      "id": "proc-vertical",
-      "page": "proc-overlay",
-      "title": "Upper and lower cues",
-      "width": 380,
-      "height": 440
-    },
-    {
-      "id": "proc-center",
-      "page": "proc-overlay",
-      "title": "Central cue",
-      "width": 380,
-      "height": 220
-    },
-    {
-      "id": "timer-elapsed",
-      "page": "combattimer",
-      "title": "Combat elapsed",
-      "width": 360,
-      "height": 80
-    },
-    {
-      "id": "timer-final",
-      "page": "combattimer",
-      "title": "Final duration",
-      "width": 360,
-      "height": 80
-    },
-    {
-      "id": "timer-stopwatch",
-      "page": "combattimer",
-      "title": "Session stopwatch",
-      "width": 360,
-      "height": 80
-    },
-    {
-      "id": "extra-zone",
-      "page": "extrabuttons",
-      "title": "Zone ability",
-      "width": 460,
-      "height": 200
-    },
-    {
-      "id": "meter-rows",
-      "page": "damagemeter",
-      "title": "Damage rows",
-      "width": 600,
-      "height": 360
-    },
-    {
-      "id": "minimap-square",
-      "page": "minimap",
-      "title": "Square minimap",
-      "width": 240,
-      "height": 300
-    },
-    {
-      "id": "minimap-indicators",
-      "page": "minimap",
-      "title": "Mail and queue indicators",
-      "width": 240,
-      "height": 300
-    },
-    {
-      "id": "minimap-performance",
-      "page": "minimap",
-      "title": "Performance readout",
-      "width": 240,
-      "height": 300
     },
     {
       "id": "xp-experience",
       "page": "xpbar",
       "title": "Experience",
-      "width": 540,
-      "height": 60
-    },
-    {
-      "id": "xp-rested",
-      "page": "xpbar",
-      "title": "Rested experience",
-      "width": 540,
-      "height": 60
-    },
-    {
-      "id": "xp-reputation",
-      "page": "xpbar",
-      "title": "Watched reputation",
       "width": 540,
       "height": 60
     },
@@ -2710,774 +3579,18 @@
       "height": 90
     },
     {
-      "id": "dur-lowest",
-      "page": "durability",
-      "title": "Lowest durability",
-      "width": 180,
-      "height": 40
-    },
-    {
-      "id": "dur-worn",
-      "page": "durability",
-      "title": "Worn gear",
-      "width": 180,
-      "height": 40
-    },
-    {
-      "id": "dur-broken",
-      "page": "durability",
-      "title": "Broken gear",
-      "width": 180,
-      "height": 40
-    },
-    {
-      "id": "dur-tooltip",
-      "page": "durability",
-      "title": "Gear tooltip",
-      "width": 320,
-      "height": 200
-    },
-    {
-      "id": "tip-unit",
-      "page": "tooltip",
-      "title": "Unit tooltip",
-      "width": 460,
-      "height": 220
-    },
-    {
-      "id": "tip-item",
-      "page": "tooltip",
-      "title": "Item tooltip",
-      "width": 460,
-      "height": 220
-    },
-    {
-      "id": "tip-aura",
-      "page": "tooltip",
-      "title": "Aura tooltip",
-      "width": 460,
-      "height": 220
-    },
-    {
-      "id": "micro-menu",
-      "page": "micromenu",
-      "title": "Micro menu",
-      "width": 260,
-      "height": 70
-    },
-    {
-      "id": "micro-bags",
-      "page": "micromenu",
-      "title": "Backpack",
-      "width": 500,
-      "height": 110
-    },
-    {
-      "id": "chat-history",
-      "page": "chat",
-      "title": "Message history",
-      "width": 500,
-      "height": 280
-    },
-    {
-      "id": "chat-input",
-      "page": "chat",
-      "title": "Input bar",
-      "width": 500,
-      "height": 280
-    },
-    {
-      "id": "chat-scroll",
-      "page": "chat",
-      "title": "History scrolling",
-      "width": 500,
-      "height": 280
-    },
-    {
-      "id": "chat-resize",
-      "page": "chat",
-      "title": "Resize handle",
-      "width": 500,
-      "height": 280
-    },
-    {
-      "id": "bubble-npc",
-      "page": "chatbubbles",
-      "title": "NPC speech",
-      "width": 420,
-      "height": 140
-    },
-    {
-      "id": "bubble-player",
-      "page": "chatbubbles",
-      "title": "Player speech",
-      "width": 420,
-      "height": 140
-    },
-    {
-      "id": "hud-queue",
-      "page": "hudframes",
-      "title": "Queue status",
-      "width": 480,
-      "height": 420
-    },
-    {
-      "id": "hud-framerate",
-      "page": "hudframes",
-      "title": "Framerate label",
-      "width": 160,
+      "id": "xp-reputation",
+      "page": "xpbar",
+      "title": "Watched reputation",
+      "width": 540,
       "height": 60
     },
     {
-      "id": "hud-navigation",
-      "page": "hudframes",
-      "title": "Quest navigation marker",
-      "width": 260,
-      "height": 180
-    },
-    {
-      "id": "text-zone",
-      "page": "screentext",
-      "title": "Zone name",
-      "width": 800,
-      "height": 160
-    },
-    {
-      "id": "text-subzone",
-      "page": "screentext",
-      "title": "Subzone name",
-      "width": 800,
-      "height": 160
-    },
-    {
-      "id": "text-error",
-      "page": "screentext",
-      "title": "Error message",
-      "width": 800,
-      "height": 120
-    },
-    {
-      "id": "text-raid",
-      "page": "screentext",
-      "title": "Raid warning",
-      "width": 800,
-      "height": 110
-    },
-    {
-      "id": "alert-loot",
-      "page": "alerts",
-      "title": "Loot alert",
-      "width": 400,
-      "height": 170
-    },
-    {
-      "id": "alert-money",
-      "page": "alerts",
-      "title": "Money alert",
-      "width": 400,
-      "height": 170
-    },
-    {
-      "id": "alert-achievement",
-      "page": "alerts",
-      "title": "Achievement alert",
-      "width": 400,
-      "height": 170
-    },
-    {
-      "id": "banner-objective",
-      "page": "banners",
-      "title": "Objective banner",
-      "width": 800,
-      "height": 200
-    },
-    {
-      "id": "toast-friend",
-      "page": "toasts",
-      "title": "Friend notification",
-      "width": 300,
-      "height": 100
-    },
-    {
-      "id": "toast-time",
-      "page": "toasts",
-      "title": "Play-time notice",
-      "width": 300,
-      "height": 100
-    },
-    {
-      "id": "toast-voice",
-      "page": "toasts",
-      "title": "Voice notice",
-      "width": 300,
-      "height": 120
-    },
-    {
-      "id": "bags-filters",
-      "page": "bags",
-      "title": "Quick filters",
-      "width": 434,
-      "height": 288
-    },
-    {
-      "id": "bags-markers",
-      "page": "bags",
-      "title": "Quest-item marker",
-      "width": 434,
-      "height": 288
-    },
-    {
-      "id": "bags-capacity",
-      "page": "bags",
-      "title": "Capacity indicator",
-      "width": 240,
-      "height": 50
-    },
-    {
-      "id": "bags-merchant",
-      "page": "bags",
-      "title": "Sell junk",
-      "width": 434,
-      "height": 288
-    },
-    {
-      "id": "loot-coins",
-      "page": "loot",
-      "title": "Currency row",
-      "width": 360,
-      "height": 220
-    },
-    {
-      "id": "loot-roll",
-      "page": "loot",
-      "title": "Need and greed roll",
-      "width": 360,
-      "height": 120
-    },
-    {
-      "id": "loot-confirm",
-      "page": "loot",
-      "title": "Loot confirmation",
-      "width": 360,
-      "height": 140
-    },
-    {
-      "id": "tracker-header",
-      "page": "questtracker",
-      "title": "Tracker header",
-      "width": 260,
-      "height": 40
-    },
-    {
-      "id": "tracker-active",
-      "page": "questtracker",
-      "title": "Active objective",
-      "width": 260,
-      "height": 200
-    },
-    {
-      "id": "tracker-complete",
-      "page": "questtracker",
-      "title": "Completed quest",
-      "width": 260,
-      "height": 200
-    },
-    {
-      "id": "tracker-failed",
-      "page": "questtracker",
-      "title": "Failed quest",
-      "width": 260,
-      "height": 200
-    },
-    {
-      "id": "tracker-overflow",
-      "page": "questtracker",
-      "title": "Overflow count",
-      "width": 260,
-      "height": 200
-    },
-    {
-      "id": "timers-timed",
-      "page": "questtimers",
-      "title": "Timed objective",
-      "width": 240,
-      "height": 40
-    },
-    {
-      "id": "timers-warning",
-      "page": "questtimers",
-      "title": "Thirty-second warning",
-      "width": 240,
-      "height": 40
-    },
-    {
-      "id": "timers-final",
-      "page": "questtimers",
-      "title": "Final ten seconds",
-      "width": 240,
-      "height": 40
-    },
-    {
-      "id": "planner-guidance",
-      "page": "questplanner",
-      "title": "Guidance row",
-      "width": 260,
-      "height": 420
-    },
-    {
-      "id": "planner-arrow",
-      "page": "questplanner",
-      "title": "Direction arrow",
-      "width": 300,
-      "height": 110
-    },
-    {
-      "id": "planner-objective",
-      "page": "questplanner",
-      "title": "Current objective",
-      "width": 840,
-      "height": 160
-    },
-    {
-      "id": "planner-browser",
-      "page": "questplanner",
-      "title": "Quest browser",
-      "width": 860,
-      "height": 620
-    },
-    {
-      "id": "planner-details",
-      "page": "questplanner",
-      "title": "Objective details",
-      "width": 860,
-      "height": 620
-    },
-    {
-      "id": "planner-pins",
-      "page": "questplanner",
-      "title": "Pin and skip controls",
-      "width": 480,
-      "height": 420
-    },
-    {
-      "id": "planner-partial",
-      "page": "questplanner",
-      "title": "Partial data state",
-      "width": 840,
-      "height": 160
-    },
-    {
-      "id": "planner-preferences",
-      "page": "questplanner",
-      "title": "Preferences",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "panels-window",
-      "page": "panels",
-      "title": "Title and accent rule",
-      "width": 720,
-      "height": 500
-    },
-    {
-      "id": "panels-close",
-      "page": "panels",
-      "title": "Close button",
-      "width": 127,
-      "height": 46
-    },
-    {
-      "id": "panels-tabs",
-      "page": "panels",
-      "title": "Selected tab",
-      "width": 346,
-      "height": 66
-    },
-    {
-      "id": "panels-inset",
-      "page": "panels",
-      "title": "Content inset",
-      "width": 376,
-      "height": 216
-    },
-    {
-      "id": "int-character",
-      "page": "interiors",
-      "title": "Character equipment",
-      "width": 720,
-      "height": 500
-    },
-    {
-      "id": "int-stats",
-      "page": "interiors",
-      "title": "Character stats",
-      "width": 220,
-      "height": 372
-    },
-    {
-      "id": "int-reputation",
-      "page": "interiors",
-      "title": "Reputation and skills",
-      "width": 647,
-      "height": 500
-    },
-    {
-      "id": "int-spellbook",
-      "page": "interiors",
-      "title": "Spellbook",
-      "width": 1634,
-      "height": 899
-    },
-    {
-      "id": "int-quest",
-      "page": "interiors",
-      "title": "Quest dialogue",
-      "width": 354,
-      "height": 512
-    },
-    {
-      "id": "int-gossip",
-      "page": "interiors",
-      "title": "Gossip choices",
-      "width": 354,
-      "height": 512
-    },
-    {
-      "id": "int-merchant",
-      "page": "interiors",
-      "title": "Merchant",
-      "width": 352,
-      "height": 460
-    },
-    {
-      "id": "int-inbox",
-      "page": "interiors",
-      "title": "Mail inbox",
-      "width": 354,
-      "height": 440
-    },
-    {
-      "id": "int-trade",
-      "page": "interiors",
-      "title": "Trade",
-      "width": 360,
-      "height": 462
-    },
-    {
-      "id": "int-friends",
-      "page": "interiors",
-      "title": "Friends",
-      "width": 401,
-      "height": 440
-    },
-    {
-      "id": "int-communities",
-      "page": "interiors",
-      "title": "Guild and communities",
-      "width": 830,
-      "height": 442
-    },
-    {
-      "id": "int-raidinfo",
-      "page": "interiors",
-      "title": "Raid information",
-      "width": 361,
-      "height": 266
-    },
-    {
-      "id": "int-inspect",
-      "page": "interiors",
-      "title": "Inspect",
-      "width": 354,
-      "height": 440
-    },
-    {
-      "id": "int-calendar",
-      "page": "interiors",
-      "title": "Calendar",
-      "width": 675,
-      "height": 640
-    },
-    {
-      "id": "int-achievements",
-      "page": "interiors",
-      "title": "Achievements",
-      "width": 784,
-      "height": 516
-    },
-    {
-      "id": "int-collections",
-      "page": "interiors",
-      "title": "Collections",
-      "width": 719,
-      "height": 622
-    },
-    {
-      "id": "ah-browse",
-      "page": "auction-house",
-      "title": "Buying and search",
-      "width": 1096,
-      "height": 676
-    },
-    {
-      "id": "ah-item",
-      "page": "auction-house",
-      "title": "Item summary",
-      "width": 1096,
-      "height": 676
-    },
-    {
-      "id": "ah-sell",
-      "page": "auction-house",
-      "title": "Selling",
-      "width": 1096,
-      "height": 676
-    },
-    {
-      "id": "ah-owned",
-      "page": "auction-house",
-      "title": "Owned auctions",
-      "width": 1096,
-      "height": 676
-    },
-    {
-      "id": "dlg-readycheck",
-      "page": "dialogs",
-      "title": "Ready check",
-      "width": 339,
-      "height": 128
-    },
-    {
-      "id": "dlg-rolepoll",
-      "page": "dialogs",
-      "title": "Role poll",
-      "width": 322,
-      "height": 176
-    },
-    {
-      "id": "dlg-stacksplit",
-      "page": "dialogs",
-      "title": "Stack split",
-      "width": 188,
-      "height": 112
-    },
-    {
-      "id": "dlg-queueready",
-      "page": "dialogs",
-      "title": "Queue ready",
-      "width": 322,
-      "height": 226
-    },
-    {
-      "id": "dlg-colorpicker",
-      "page": "dialogs",
-      "title": "Colour picker",
-      "width": 404,
-      "height": 226
-    },
-    {
-      "id": "dlg-addfriend",
-      "page": "dialogs",
-      "title": "Add friend",
-      "width": 466,
-      "height": 343
-    },
-    {
-      "id": "dlg-report",
-      "page": "dialogs",
-      "title": "Report",
-      "width": 416,
-      "height": 286
-    },
-    {
-      "id": "dlg-autocomplete",
-      "page": "dialogs",
-      "title": "Autocomplete",
-      "width": 256,
-      "height": 146
-    },
-    {
-      "id": "popup-confirm",
-      "page": "popups",
-      "title": "Confirmation text",
-      "width": 352,
-      "height": 132
-    },
-    {
-      "id": "popup-invite",
-      "page": "popups",
-      "title": "Accept and cancel",
-      "width": 352,
-      "height": 132
-    },
-    {
-      "id": "popup-text",
-      "page": "popups",
-      "title": "Text entry",
-      "width": 352,
-      "height": 162
-    },
-    {
-      "id": "popup-item",
-      "page": "popups",
-      "title": "Item confirmation",
-      "width": 352,
-      "height": 207
-    },
-    {
-      "id": "menu-context",
-      "page": "menus",
-      "title": "Context menu",
-      "width": 192,
-      "height": 272
-    },
-    {
-      "id": "widget-status",
-      "page": "widgets",
-      "title": "Status bar",
-      "width": 263,
-      "height": 81
-    },
-    {
-      "id": "widget-double",
-      "page": "widgets",
-      "title": "Double status bar",
-      "width": 230,
-      "height": 90
-    },
-    {
-      "id": "widget-icon",
-      "page": "widgets",
-      "title": "Icon and text",
-      "width": 152,
-      "height": 56
-    },
-    {
-      "id": "ctl-button",
-      "page": "controls",
-      "title": "Button",
-      "width": 136,
-      "height": 38
-    },
-    {
-      "id": "ctl-disabled",
-      "page": "controls",
-      "title": "Disabled control",
-      "width": 166,
-      "height": 38
-    },
-    {
-      "id": "ctl-checkbox",
-      "page": "controls",
-      "title": "Checkbox",
-      "width": 170,
-      "height": 48
-    },
-    {
-      "id": "ctl-textfield",
-      "page": "controls",
-      "title": "Text field",
-      "width": 220,
-      "height": 40
-    },
-    {
-      "id": "ctl-slider",
-      "page": "controls",
-      "title": "Slider",
-      "width": 266,
-      "height": 64
-    },
-    {
-      "id": "ctl-dropdown",
-      "page": "controls",
-      "title": "Dropdown",
-      "width": 176,
-      "height": 53
-    },
-    {
-      "id": "ctl-colour",
-      "page": "controls",
-      "title": "Colour control",
-      "width": 40,
-      "height": 40
-    },
-    {
-      "id": "ctl-scrollbar",
-      "page": "controls",
-      "title": "Scrollbar",
-      "width": 40,
-      "height": 196
-    },
-    {
-      "id": "overview-layouts",
-      "page": "overview",
-      "title": "Screen layouts",
-      "width": 2048,
-      "height": 1152
-    },
-    {
-      "id": "overview-small-screen",
-      "page": "overview",
-      "title": "1366x768 screen",
-      "width": 1366,
-      "height": 768
-    },
-    {
-      "id": "worldmap-settings",
-      "page": "worldmap",
-      "title": "World map settings",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "combattext-settings",
-      "page": "combattext",
-      "title": "Combat text settings",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "plates-adaptive-names",
-      "page": "nameplates",
-      "title": "Adaptive and fixed name labels",
-      "width": 600,
-      "height": 240
-    },
-    {
-      "id": "plates-name-width-limit",
-      "page": "nameplates",
-      "title": "Bounded long name labels",
-      "width": 600,
-      "height": 240
-    },
-    {
-      "id": "plates-pooled-short-name",
-      "page": "nameplates",
-      "title": "Reused plate with a short name",
-      "width": 600,
-      "height": 240
-    },
-    {
-      "id": "plates-name-options",
-      "page": "nameplates",
-      "title": "Nameplate readability settings",
-      "width": 800,
-      "height": 600
-    },
-    {
-      "id": "layout-short-presets",
-      "page": "layout",
-      "title": "Classic and Healer on a short screen",
-      "width": 1228,
-      "height": 768
-    },
-    {
-      "id": "layout-healer-groups",
-      "page": "layout",
-      "title": "Healer party and raid placement",
-      "width": 2560,
-      "height": 1440
+      "id": "xp-rested",
+      "page": "xpbar",
+      "title": "Rested experience",
+      "width": 540,
+      "height": 60
     }
   ]
 }

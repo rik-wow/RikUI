@@ -2,6 +2,7 @@
 const entry = (slug, title, group, modules, summary, kind, surfaces) =>
   ({ slug, title, group, modules: modules.split(" ").filter(Boolean), summary, kind, surfaces: surfaces.split("|") });
 export const catalogue = [
+entry("setup-studio","Setup Studio","Getting started","","Choose, fit, import and share real Setup Packs.","settings","Setup Studio review|Handheld presentation"),
 entry("wizard","Setup wizard","Getting started","wizard","Type /rik setup to open the wizard.","wizard","Welcome|Your role|Keybinds|Screen layout|Modules and settings|Review and apply"),
 entry("options","Settings and profiles","Getting started","","Type /rik config, or click RikUI beside the minimap and choose Settings.","settings","General|Module selection|Profiles|Setup and support|Settings search|Pending reload|Profile confirmation"),
 entry("layout","Move and resize frames","Getting started","","Type /rik move.","layout","Frame mover|Resize handle|Layout presets|Position nudges|Undo layout change"),

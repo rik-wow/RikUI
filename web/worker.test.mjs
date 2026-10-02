@@ -2,14 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import worker, { byteRange } from "./worker.mjs";
 import { catalog } from "./releases.mjs";
+import {studioAssets,studioScriptURL} from "./studio-generated.mjs";
 
 const request = (path, options) => new Request("https://rikwow.com" + path, options);
 test("site, CSS, manifest, redirects, and method boundaries", async () => {
   const home = await worker.fetch(request("/"), {});
   assert.equal(home.status, 200);
   assert.match(home.headers.get("Cache-Control"), /no-transform/);
-  assert.match(await home.text(), /RikUI for WoW Forever/);
-  const script = await worker.fetch(request("/site.js"), {});
+  assert.match(await home.text(), /RikUI Setup Studio for WoW Forever/);
+  const script = await worker.fetch(request(studioScriptURL), {ASSETS:{fetch:async()=>new Response("ArrowRight",{headers:{"Content-Type":"text/javascript"}})}});
   assert.match(script.headers.get("Content-Type"), /text\/javascript/);
   assert.match(await script.text(), /ArrowRight/);
   assert.match(home.headers.get("Content-Security-Policy"), /default-src 'none'/);
@@ -26,7 +27,7 @@ test("site, CSS, manifest, redirects, and method boundaries", async () => {
 });
 
 
-test("world asset preserves conditional responses, security and method boundaries", async () => {
+test("reviewed Studio asset preserves conditional responses, security and method boundaries", async () => {
   let reads = 0;
   const env = { ASSETS: { fetch: async req => {
     reads++;
@@ -35,7 +36,7 @@ test("world asset preserves conditional responses, security and method boundarie
     return new Response(req.method === "HEAD" ? null : "jpeg fixture",
       { headers: { "Content-Type": "image/jpeg", ETag: '"world"' } });
   } } };
-  const path = "/assets/world-20260927-120706.jpg";
+  const path = studioAssets.find(p=>p.endsWith(".webp"));
   const image = await worker.fetch(request(path), env);
   assert.equal(await image.text(), "jpeg fixture");
   assert.match(image.headers.get("Cache-Control"), /immutable/);

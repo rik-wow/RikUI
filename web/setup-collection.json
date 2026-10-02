@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "name": "centered",
+      "bundled": "centered",
+      "capture": "studio-pack-centered",
+      "description": "Everything within reach. A familiar center stack, clean edges and room for the world."
+    },
+    {
+      "name": "classic",
+      "bundled": "classic",
+      "capture": "studio-pack-classic",
+      "description": "Keep the Classic rhythm. Familiar unit frames with RikUI’s consistent skin and controls."
+    },
+    {
+      "name": "hud",
+      "bundled": "hud",
+      "capture": "studio-pack-hud",
+      "description": "Bring the essentials closer. A compact combat focus with secondary information at the edges."
+    },
+    {
+      "name": "healer",
+      "bundled": "healer",
+      "capture": "studio-pack-healer",
+      "scene": "party",
+      "description": "Make space for your group. A considered starting point for party and raid presentation."
+    }
+  ]
+}

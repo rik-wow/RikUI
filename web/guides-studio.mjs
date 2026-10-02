@@ -1,0 +1,26 @@
+export default {
+"setup-studio":`# Setup Studio
+
+Copy a setup you like, fit your screen and keep personal changes. Open **/rik studio**, or start at [Setup Studio](https://rikwow.com/studio) before installing.
+
+![Setup Studio review](render:studio-controls)
+
+Choose a bundled or imported pack, select appearance/HUD/nameplates/group/navigation/inventory, fit, try on and review before Apply. Modules, fonts and themes can require reload. Geometry and activity changes use safe out-of-combat behavior.
+
+![Handheld presentation](render:studio-handheld)
+
+Desktop, ultrawide and handheld use the same source pack and preserve bindings. Handheld keeps readable controls and collapses secondary information. Personal readable, contrast and calm preferences remain in charge of imports and updates.
+
+Export live lets you edit an existing setup in the browser and import the result back. Preview components derive from actual Lua captures; unsupported imported appearance, unrepresented groups and dynamic contents remain explicit. Character bars, macros and bindings require separate review; imports never execute Lua.
+
+Try-on is temporary. Capture hides selected listed windows and restores their prior visibility on exit; names, world and external addons remain outside its privacy scope.
+
+![Selective adoption and theme review](render:studio-theme-review)
+
+![Frame adjustment and undo](render:studio-edit-undo)
+
+Creator updates compare installed defaults, the incoming revision and your personal settings. Choose creator changes selectively. Three bounded restore points journal affected settings before mutation and refuse to overwrite newer personal edits. Export a portable code for full client restart recovery.
+
+Read the [complete guide](https://github.com/rik-wow/RikUI/blob/main/docs/setup-studio.md) for compatibility, storage capacity, QuestTogether recipe and the [gallery submission process](https://rikwow.com/setups/submit).
+`
+};

@@ -1,16 +1,15 @@
 import { documentation, documentationImages } from "./docs-generated.mjs";
 import { docsStyles } from "./docs-styles.mjs";
 import { docsScript } from "./docs-client.mjs";
-import { page } from "./page.mjs";
-import { styles } from "./styles.mjs";
+import { home as page, setups, packPage, submit, editor } from "./studio-pages.mjs";
+import { styles } from "./studio-styles.mjs";
 import { catalog } from "./releases.mjs";
-import { clientAssetUrls as assetUrls } from "./icon-map.mjs";
-import { clientScript } from "./client.mjs";
+import { studioAssets } from "./studio-generated.mjs";
 
 const SECURITY = {
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   "Strict-Transport-Security": "max-age=31536000",
 };
@@ -87,8 +86,11 @@ async function route(request, env) {
     return Response.redirect("https://rikwow.com" + url.pathname + url.search, 308);
   if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8",
     { "Cache-Control": "public, max-age=60, no-transform" });
-  if (new Set([...assetUrls, ...documentationImages, "/assets/world-20260927-120706.jpg",
-    "/assets/combat-20260927-122246.jpg", "/assets/combat-20260927-122242.jpg"]).has(url.pathname)) return worldAsset(request, env);
+  if (url.pathname === "/studio") return respond(editor,200,"text/html; charset=utf-8");
+  if (url.pathname === "/setups") return respond(setups,200,"text/html; charset=utf-8");
+  if (url.pathname === "/setups/submit") return respond(submit,200,"text/html; charset=utf-8");
+  if (url.pathname.startsWith("/setups/")) { const html=packPage(url.pathname.slice(8));if(html)return respond(html,200,"text/html; charset=utf-8"); }
+  if (new Set([...studioAssets,...documentationImages]).has(url.pathname)) return worldAsset(request, env);
   if (url.pathname.endsWith("/") && documentation[url.pathname.slice(0,-1)]) return Response.redirect(url.origin+url.pathname.slice(0,-1),308);
   if (Object.hasOwn(documentation,url.pathname)) {
     const source=new URL(documentation[url.pathname],url.origin);
@@ -98,7 +100,6 @@ async function route(request, env) {
   }
   if (url.pathname === "/docs.css") return respond(docsStyles,200,"text/css; charset=utf-8");
   if (url.pathname === "/docs.js") return respond(docsScript,200,"text/javascript; charset=utf-8");
-  if (url.pathname === "/site.js") return respond(clientScript, 200, "text/javascript; charset=utf-8");
   if (url.pathname === "/site.css") return respond(styles, 200, "text/css; charset=utf-8");
   if (url.pathname === "/healthz") return json({ status: "ok", service: "rik-wow-site" });
   if (url.pathname === "/api/v1/releases") return json(catalog);

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {execFileSync} from "node:child_process";
 import {createEngine} from "./pack-engine.mjs";
-export const sourcePaths=["src/core/profile-schema.lua","src/persistence/codec.lua","src/setup/setup.lua","src/setup/preset-schema.lua","src/setup/setup-pack.lua","src/configuration/options/sharing.lua"];
+import {sourcePaths} from "./pack-sources.mjs";
 export const sources=sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8"));
 test("Exact shared Lua resolves packs identically in browser VM and LuaJIT",()=>{
  const engine=createEngine([...sources,readFileSync(new URL("../tests/setup-pack-cases.lua",import.meta.url),"utf8")]);

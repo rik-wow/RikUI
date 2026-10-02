@@ -3,11 +3,13 @@ import { documentation } from "./docs-generated.mjs";
 import { catalogue } from "./docs-catalogue.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-const renders=JSON.parse(readFileSync(new URL("./ui-renders/manifest.json",import.meta.url),"utf8")).renders;
+const docPages=new Set(catalogue.map(guide=>guide.slug));
+const renders=JSON.parse(readFileSync(new URL("./ui-renders/manifest.json",import.meta.url),"utf8")).renders.filter(render=>docPages.has(render.page));
 const sequences=renders.filter(render=>render.frames);
 const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
 // Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
 const placements={
+ "setup-studio":{"studio-controls":null,"studio-handheld":null,"studio-theme-review":null,"studio-edit-undo":null},
  wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
  options:{"options-castbars":"ref-open-settings","options-search":"ref-open-settings","options-pending":"ref-open-settings","options-confirm":"ref-profiles","options-general":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
  sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile","sharing-library":"ref-remove-an-imported-preset","sharing-remove":"ref-remove-an-imported-preset"},
