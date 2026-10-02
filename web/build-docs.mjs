@@ -22,8 +22,10 @@ for(const capture of renderManifest.renders){
  const list=liveRenders.get(capture.page)||[];list.push(capture);liveRenders.set(capture.page,list);
 }
 await mkdir(new URL("./public/assets/docs/",import.meta.url),{recursive:true});
+// Publish only captures placed in an actual guide. Studio owns its gallery/component assets.
 // A capture is one image, or a sequence of frames (one per setting value) whose default frame stands for it.
 for(const capture of renderManifest.renders){
+ if(!Object.hasOwn(guides,capture.page))continue;
  for(const frame of capture.frames||[capture]){
   // Public asset names keep to letters, digits and dashes; a frame's value joins the id that way.
   const stem=capture.frames?capture.id+"-"+String(frame.value).replace(/[^a-z0-9]+/gi,"-"):capture.id;
