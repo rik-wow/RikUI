@@ -3436,6 +3436,34 @@
       "title": "Combat text settings",
       "width": 800,
       "height": 600
+    },
+    {
+      "id": "plates-adaptive-names",
+      "page": "nameplates",
+      "title": "Adaptive and fixed name labels",
+      "width": 600,
+      "height": 240
+    },
+    {
+      "id": "plates-name-width-limit",
+      "page": "nameplates",
+      "title": "Bounded long name labels",
+      "width": 600,
+      "height": 240
+    },
+    {
+      "id": "plates-pooled-short-name",
+      "page": "nameplates",
+      "title": "Reused plate with a short name",
+      "width": 600,
+      "height": 240
+    },
+    {
+      "id": "plates-name-options",
+      "page": "nameplates",
+      "title": "Nameplate readability settings",
+      "width": 800,
+      "height": 600
     }
   ]
 }

@@ -1,7 +1,8 @@
 """Capture RikUI's Lua output using verified current client inputs.
 
 By default only stale captures render: those whose recorded inputs (script, seed, addon, validator,
-world plate, simulator, client, corpus) or scenario differ from the current tree and environment.
+world plate, corpus) or scenario differ from the current tree. Unchanged captures retain their own
+simulator and client evidence; every new capture uses verified current inputs.
 `--all` renders everything; `--only` names scenario ids or page slugs."""
 import argparse
 from datetime import datetime, timezone
@@ -11,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+from dependencies import inventory_history, recorded_addon_inputs, addon_inputs, compact_inventories
 from schema import CORPUS_DIRS
 from fixtures import load_modules, resolve, scenario_script as build_script
 from provenance import digest, tree_inputs, environment_inputs, capture_key, stale_reasons, scenario_record, plate_record
@@ -262,12 +264,35 @@ def capture_inputs(case, addon_files, renderer, client):
     corpus = corpus_digest() if case.get("corpus") is True else None
     return {**tree_inputs(case, scenario_script(case), addon_files), **environment_inputs(renderer, client, corpus)}
 
-def select_stale(cases, renders, addon_files, renderer, client):
+def select_stale(cases, renders, addon_files, renderer, client, manifest=None):
     """Cases whose recorded capture no longer stands, with the reasons, and the inputs for each case."""
     stale, inputs, reasons = [], {}, {}
     for case in cases:
         inputs[case["id"]] = capture_inputs(case, addon_files, renderer, client)
-        why = stale_reasons(case, renders.get(case["id"]), inputs[case["id"]])
+        capture = renders.get(case["id"])
+        comparison = dict(inputs[case["id"]])
+        if capture:
+            # Compare the tree in the capture's recorded environment. Any recapture
+            # still uses inputs built above from the verified latest client.
+            old = capture.get("inputs", {})
+            comparison["renderer"], comparison["client"] = old.get("renderer"), old.get("client")
+            comparison["script"] = tree_inputs(case, build_script(case, MODULES, (old.get("client") or {}).get("version")), addon_files)["script"]
+            try:
+                if recorded_addon_inputs(case, capture, manifest or {}) == addon_inputs(case, addon_files):
+                    comparison["addon"] = old["addon"]
+                comparison["addonFiles"] = old.get("addonFiles")
+                if "addonFiles" not in old:
+                    comparison.pop("addonFiles", None)
+            except RuntimeError:
+                pass
+        why = stale_reasons(case, capture, comparison)
+        if capture and (not all((capture.get("inputs", {}).get("client") or {}).get(k)
+                               for k in ("version", "foreverCommit", "executableSha256"))
+                        or not all((capture.get("inputs", {}).get("renderer") or {}).get(k)
+                                   for k in ("binary", "patch"))):
+            why.append("environment")
+        if capture and capture.get("key") != capture_key(capture.get("inputs", {})):
+            why.append("provenance")
         if why:
             stale.append(case)
             reasons[case["id"]] = why
@@ -292,6 +317,7 @@ def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, r
                            modules=resolve(case, MODULES))
             renders[case["id"]] = capture
             manifest["renders"] = list(renders.values())
+            compact_inventories(manifest)
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             print("Rendered " + case["id"] + (f" ({len(capture['frames'])} frames)" if capture.get("frames") else ""), flush=True)
     finally:
@@ -337,13 +363,19 @@ def main():
     previous = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     known = {c["id"] for c in scenarios}
     renders = {r["id"]: r for r in previous.get("renders", []) if r["id"] in known}
+    history = inventory_history(previous)
+    baseline_path = ROOT / "web/ui-renders/manifest.json"
+    if baseline_path.is_file():
+        history.update(inventory_history(json.loads(baseline_path.read_text(encoding="utf-8"))))
+    previous["addonInventories"] = history
     renderer = renderer_provenance(sim_root, binary)
-    stale, inputs, reasons = select_stale(cases, renders, addon_files, renderer, client)
+    stale, inputs, reasons = select_stale(cases, renders, addon_files, renderer, client, previous)
     todo = cases if args.all else stale
     print(f"{len(stale)} of {len(cases)} selected captures stale ({summarize(reasons) or 'none'}); rendering {len(todo)}", flush=True)
     manifest = {"capturedAt": datetime.now(timezone.utc).isoformat(),
                 "addonCommit": checked(["git", "rev-parse", "HEAD"], cwd=ROOT),
-                "addonFiles": addon_files, "client": client, "renderer": renderer, "renders": list(renders.values())}
+                "addonFiles": addon_files, "addonInventories": history,
+                "client": client, "renderer": renderer, "renders": list(renders.values())}
     if not todo:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         print("Nothing to render", flush=True)

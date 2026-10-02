@@ -981,6 +981,82 @@
     ]
   },
   {
+    "id": "plates-adaptive-names",
+    "page": "nameplates",
+    "title": "Adaptive and fixed name labels",
+    "frame": "RikRenderAdaptivePlate",
+    "crop": "600x240+724+450",
+    "fixtures": [],
+    "lua": "local readers = RikRenderCreature(\"Alexandria Silvermoon Dawnwhisper\", 24, 1600, 1600, \"hostile\", { UnitIsPlayer = { true }, UnitClass = { \"Warrior\", \"WARRIOR\", 1 }, UnitClassBase = { \"WARRIOR\", 1 } })\nRikRenderNameplates({ { screen = { x = 1024, y = 575 }, unit = \"focus\", readers = readers } }, \"RikRenderAdaptivePlate\", 724, 462, 600, 240)\n",
+    "expectText": [
+      "Alexandria Silvermoon Dawnwhisper"
+    ],
+    "sequence": {
+      "control": "toggle",
+      "label": "Adaptive name width",
+      "values": [
+        false,
+        true
+      ],
+      "labels": [
+        "Fixed",
+        "Adaptive"
+      ],
+      "default": true,
+      "apply": "RikRenderSetOption(\"nameplates\", \"adaptiveNames\", VALUE)"
+    }
+  },
+  {
+    "id": "plates-name-width-limit",
+    "page": "nameplates",
+    "title": "Bounded long name labels",
+    "frame": "RikRenderAdaptivePlate",
+    "crop": "600x240+724+450",
+    "fixtures": [],
+    "lua": "local readers = RikRenderCreature(\"Alexandria Silvermoon Dawnwhisper of the Stormwind Royal Guard\", 24, 1600, 1600, \"hostile\", { UnitIsPlayer = { true }, UnitClass = { \"Warrior\", \"WARRIOR\", 1 }, UnitClassBase = { \"WARRIOR\", 1 } })\nRikRenderNameplates({ { screen = { x = 1024, y = 575 }, unit = \"focus\", readers = readers } }, \"RikRenderAdaptivePlate\", 724, 462, 600, 240)\n",
+    "expectText": [
+      "Alexandria Silvermoon Dawnwhisper of the Stormwind Royal Guard"
+    ],
+    "sequence": {
+      "control": "slider",
+      "label": "Maximum name width",
+      "values": [
+        200,
+        280,
+        400
+      ],
+      "default": 280,
+      "apply": "RikRenderSetOption(\"nameplates\", \"nameMaxWidth\", VALUE)"
+    }
+  },
+  {
+    "id": "plates-pooled-short-name",
+    "page": "nameplates",
+    "title": "Reused plate with a short name",
+    "frame": "RikRenderAdaptivePlate",
+    "crop": "600x240+724+450",
+    "fixtures": [],
+    "lua": "local readers = RikRenderCreature(\"Alexandria Silvermoon Dawnwhisper\", 24, 1600, 1600, \"hostile\", { UnitIsPlayer = { true }, UnitClass = { \"Warrior\", \"WARRIOR\", 1 }, UnitClassBase = { \"WARRIOR\", 1 } })\nRikRenderNameplates({ { screen = { x = 1024, y = 575 }, unit = \"focus\", readers = readers } }, \"RikRenderAdaptivePlate\", 724, 462, 600, 240)\nRikRenderPlateReuse(\"nameplate1\", \"Rik\")\n",
+    "expectText": [
+      "Rik"
+    ],
+    "assertLua": "local f = RikUI.Nameplates.Active.nameplate1\nassert(f and RikUI.Nameplates.Parts[f].plaque:GetWidth() < 200, \"Pooled label did not shrink\")"
+  },
+  {
+    "id": "plates-name-options",
+    "page": "nameplates",
+    "title": "Nameplate readability settings",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikUI.Options.Open(\"nameplates\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
+    "expectText": [
+      "Adaptive name width",
+      "Minimum name width",
+      "Maximum name width"
+    ]
+  },
+  {
     "id": "plates-enemy",
     "page": "nameplates",
     "title": "Enemy plate",

@@ -186,6 +186,94 @@ class ProvenanceChecks(unittest.TestCase):
         script = scenario_script(self.case, MODULES, None)
         self.assertEqual(self.inputs["script"], text_digest(script))
 
+class DependencyChecks(unittest.TestCase):
+    def test_navigation_changes_do_not_invalidate_nameplates(self):
+        from dependencies import addon_inputs
+        files = {"src/modules/nameplates/nameplates.lua": "plate",
+                 "src/modules/questplanner/quest-navmesh.lua": "nav",
+                 "data/map-terrain.lua": "terrain", "src/ui/primitives.lua": "shared"}
+        plate = {"page": "nameplates"}
+        quest = {"page": "questplanner"}
+        before = addon_inputs(plate, files)
+        changed = dict(files, **{"src/modules/questplanner/quest-navmesh.lua": "new",
+                                "data/map-terrain.lua": "new"})
+        self.assertEqual(before, addon_inputs(plate, changed))
+        for page in ("wizard", "options", "layout", "overview", "bags"):
+            self.assertEqual(addon_inputs({"page": page}, files), addon_inputs({"page": page}, changed))
+        self.assertNotEqual(addon_inputs(quest, files), addon_inputs(quest, changed))
+        terrain_changed = dict(files, **{"data/map-terrain.lua": "new"})
+        for page in ("questplanner", "questtracker", "worldmap"):
+            self.assertNotEqual(addon_inputs({"page": page}, files), addon_inputs({"page": page}, terrain_changed))
+        self.assertNotEqual(before, addon_inputs(plate, dict(files, **{"src/ui/primitives.lua": "new"})))
+        self.assertNotEqual(before, addon_inputs(plate, dict(files, **{"src/modules/nameplates/nameplates.lua": "new"})))
+        self.assertNotEqual(before, addon_inputs(plate, dict(files, **{"media/new.tga": "new"})))
+        self.assertNotEqual(before, addon_inputs(plate, {k: v for k, v in files.items() if "nameplates" not in k}))
+
+    def test_real_selection_reuses_unrelated_legacy_capture(self):
+        import render
+        from provenance import environment_inputs, json_digest
+        case = {"id": "plate", "page": "nameplates", "frame": "Plate", "lua": ""}
+        files = {"src/modules/nameplates/nameplates.lua": "plate",
+                 "src/modules/questplanner/quest-navmesh.lua": "old"}
+        old_client = {"version": "1.60.1.1", "foreverCommit": "old", "executableSha256": "old"}
+        new_client = dict(old_client, version="1.60.1.2", foreverCommit="new")
+        old_renderer = {"binary": "old", "patch": "old"}
+        new_renderer = {"binary": "new", "patch": "new"}
+        inputs = tree_inputs(case, scenario_script(case, MODULES, old_client["version"]), files)
+        inputs.pop("addonFiles")
+        inputs["addon"] = json_digest(files)
+        inputs.update(environment_inputs(old_renderer, old_client))
+        from provenance import capture_key
+        capture = dict(case, inputs=inputs, key=capture_key(inputs))
+        changed = dict(files, **{"src/modules/questplanner/quest-navmesh.lua": "new"})
+        with patch.object(render, "MODULES", MODULES), patch.object(render, "CLIENT_VERSION", new_client["version"]):
+            stale, new_inputs, reasons = render.select_stale(
+                [case], {"plate": capture}, changed, new_renderer, new_client, {"addonFiles": files})
+            self.assertEqual(stale, [])
+            self.assertEqual(reasons, {})
+            self.assertEqual(new_inputs["plate"]["client"], new_client)
+            changed["src/modules/nameplates/nameplates.lua"] = "new"
+            stale, _, reasons = render.select_stale(
+                [case], {"plate": capture}, changed, new_renderer, new_client, {"addonFiles": files})
+            self.assertEqual([c["id"] for c in stale], ["plate"])
+            self.assertIn("addon", reasons["plate"])
+
+    def test_unknown_surfaces_are_conservative(self):
+        from dependencies import addon_inputs
+        files = {"src/modules/questplanner/new.lua": "new"}
+        self.assertEqual(addon_inputs({"page": "future-surface"}, files), files)
+
+    def test_compaction_preserves_original_sources_pixels_and_authentication(self):
+        from dependencies import compact_inventories, recorded_addon_inputs
+        from provenance import json_digest, capture_key
+        files = {"src/modules/nameplates/nameplates.lua": "original"}
+        inputs = {"addon": json_digest(files), "addonFiles": files}
+        capture = {"id": "plate", "page": "nameplates", "inputs": inputs,
+                   "sha256": "reviewed-pixels", "key": capture_key(inputs)}
+        manifest = {"renders": [capture]}
+        capture["key"] = "tampered"
+        with self.assertRaisesRegex(RuntimeError, "capture provenance"):
+            compact_inventories(manifest)
+        capture["key"] = capture_key(inputs)
+        compact_inventories(manifest)
+        self.assertNotIn("addonFiles", inputs)
+        self.assertEqual(recorded_addon_inputs(capture, capture, manifest), files)
+        self.assertEqual(capture["sha256"], "reviewed-pixels")
+        self.assertEqual(capture["key"], capture_key(inputs))
+        inputs["addon"] = "tampered"
+        with self.assertRaisesRegex(RuntimeError, "addon provenance"):
+            recorded_addon_inputs(capture, capture, manifest)
+
+    def test_legacy_inventory_must_match_its_recorded_digest(self):
+        from dependencies import recorded_addon_inputs
+        from provenance import json_digest
+        files = {"src/modules/nameplates/nameplates.lua": "old"}
+        capture = {"inputs": {"addon": json_digest(files)}}
+        case = {"id": "s", "page": "nameplates"}
+        self.assertEqual(recorded_addon_inputs(case, capture, {"addonFiles": files}), files)
+        with self.assertRaisesRegex(RuntimeError, "addon provenance"):
+            recorded_addon_inputs(case, capture, {"addonFiles": dict(files, extra="new")})
+
 class ClientChecks(unittest.TestCase):
     def test_stale_source(self):
         with patch("render.checked", side_effect=["current refs/heads/forever", "stale"]):
@@ -242,15 +330,22 @@ class EvidenceChecks(unittest.TestCase):
         self.case["title"] = "New state"
         self.assertTrue(any("Stale capture sample: scenario" in error for error in self.errors()))
 
-    def test_mixed_environment(self):
+    def test_historical_environments_remain_valid_but_missing_provenance_fails(self):
         from check import verify_environment
         manifest = {"renderer": {"binary": "b", "patch": "p"}, "client": {"version": "v", "foreverCommit": "c", "executableSha256": "e"},
                     "renders": [{"id": "one", "inputs": {"renderer": {"binary": "b", "patch": "p"}, "client": {"version": "v", "foreverCommit": "c", "executableSha256": "e"}}},
                                 {"id": "two", "inputs": {"renderer": {"binary": "old", "patch": "p"}, "client": {"version": "v", "foreverCommit": "c", "executableSha256": "e"}}}]}
+        from provenance import capture_key
+        for capture in manifest["renders"]:
+            capture["key"] = capture_key(capture["inputs"])
         errors = []
         with patch("check.digest", return_value="p"):
             verify_environment(manifest, errors)
-        self.assertEqual(errors, ["Mixed render environment: two"])
+        self.assertEqual(errors, [])
+        manifest["renders"][1]["inputs"]["client"].pop("foreverCommit")
+        verify_environment(manifest, errors)
+        self.assertIn("Missing render environment: two", errors)
+        self.assertIn("Changed capture provenance: two", errors)
 
     def test_world_plate_must_match_its_record(self):
         import check

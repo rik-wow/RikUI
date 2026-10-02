@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import shutil
 from check import BASELINE, ROOT, check
+from dependencies import inventory_history, compact_inventories
 from schema import frames_of, frame_id
 
 def reviewed_baseline():
@@ -26,6 +27,12 @@ def main():
     already = reviewed_baseline()
     source = ROOT / "dist/ui-renders"
     manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+    history = inventory_history(manifest)
+    baseline_path = BASELINE / "manifest.json"
+    if baseline_path.is_file():
+        history.update(inventory_history(json.loads(baseline_path.read_text(encoding="utf-8"))))
+    manifest["addonInventories"] = history
+    compact_inventories(manifest)
     carried, fresh = 0, 0
     for capture in manifest["renders"]:
         for frame in frames_of(capture):

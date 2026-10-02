@@ -2,8 +2,9 @@
 
 Tree inputs can be recomputed from the repository at any time: the script, the character seed, the
 addon files, the validator, and for a world capture its plate and the compositing code. Environment
-inputs (simulator, client, installer-written corpus) are recorded at render time; the gate checks that
-every capture shares one environment and that the simulator patch matches the fixture's copy."""
+inputs (simulator, client, installer-written corpus) retain each capture's original provenance.
+Unrelated historical captures are not relabeled when another surface is refreshed."""
+from dependencies import addon_inputs
 import hashlib
 import json
 from pathlib import Path
@@ -32,8 +33,10 @@ def plate_record(name):
 
 def tree_inputs(case, script, addon_files):
     """The inputs the gate can rebuild: `script` is the capture's Lua text, `addon_files` the addon inventory digests."""
+    addon_files = addon_inputs(case, addon_files)
     inputs = {"script": text_digest(script), "seed": digest(FIXTURES / "seed.lua"),
-              "addon": json_digest(addon_files), "validator": digest(FIXTURES / "validate_capture.py")}
+              "addon": json_digest(addon_files), "addonFiles": addon_files,
+              "validator": digest(FIXTURES / "validate_capture.py")}
     if case.get("world"):
         name = case["world"]["plate"]
         inputs["world"] = {"plate": name, "sha256": plate_record(name)["sha256"],

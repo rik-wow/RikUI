@@ -70,22 +70,70 @@ local function createLevel(parts, level)
     parts.levelBorder = nameplates.Outline(level, parts.levelBox, LINE)
 end
 
--- The name's own box: same backing and edge as the bar and the level box, and exactly as wide
--- as the row below it. Blizzard hides the name on some plates (CompactUnitFrame_UpdateName), and
--- src/modules/nameplates/nameplates.lua syncs the box after it.
+-- The name's own box: same backing and edge as the bar and the level box. Blizzard hides the
+-- name on some plates; nameplates.lua syncs the box after CompactUnitFrame_UpdateName.
 local function createPlaque(parts, frame)
     if not isRegion(frame.name) then return end
     parts.plaque = nameplates.Block(frame, "BACKGROUND", BACKING)
     parts.plaqueBorder = nameplates.Outline(frame, parts.plaque, LINE)
 end
 
-function skin.SyncPlaque(frame)
+-- Profile bounds are geometry preferences, never unit values.
+function skin.NameWidth(key, fallback)
+    local value = core.Profile.nameplates[key]
+    if core.Secret.IsSecret(value) or type(value) ~= "number" or value ~= value
+        or value == math.huge or value == -math.huge then return fallback end
+    return math.max(120, math.min(400, math.floor(value + 0.5)))
+end
+
+local function readableWidth(region, method)
+    if type(region[method]) ~= "function" then return nil end
+    local ok, value = pcall(region[method], region)
+    if not ok or core.Secret.IsSecret(value) or type(value) ~= "number" then return nil end
+    if value ~= value or value <= 0 or value == math.huge then return nil end
+    return value
+end
+
+-- Reset the original two-anchor geometry before measuring so a pooled plaque can shrink again.
+-- Only the decoration grows; the plate's bar, badge and mouse area keep their native geometry.
+function skin.LayoutPlaque(frame, parts, size)
+    local plaque, backing = parts.plaque, frame.HealthBarsContainer.healthBar.bgTexture
+    plaque:ClearAllPoints()
+    plaque:SetWidth(0)
+    plaque:SetPoint("BOTTOMLEFT", backing, "TOPLEFT", 0, -size)
+    plaque:SetPoint("BOTTOMRIGHT", parts.levelBox or backing, "TOPRIGHT", 0, -size)
+    plaque:SetHeight(skin.Dimension("nameHeight", PLAQUE_HEIGHT))
+    nameplates.Resize(parts.plaqueBorder, size)
+    if core.Profile.nameplates.adaptiveNames ~= false then
+        local base = readableWidth(plaque, "GetWidth")
+        local text = readableWidth(frame.name, "GetUnboundedStringWidth")
+        if base and text then
+            local low = math.max(base, skin.NameWidth("nameMinWidth", 160))
+            local high = math.max(low, skin.NameWidth("nameMaxWidth", 280))
+            local width = math.max(low, math.min(high, math.ceil(text + PLAQUE_PAD_X * 2)))
+            if width > base then
+                plaque:ClearAllPoints()
+                plaque:SetPoint("BOTTOMLEFT", backing, "TOPLEFT", -(width - base) / 2, -size)
+                plaque:SetWidth(width)
+            end
+        end
+    end
+    local name = frame.name
+    name:ClearAllPoints()
+    name:SetJustifyH("CENTER")
+    name:SetWordWrap(false)
+    name:SetPoint("LEFT", plaque, "LEFT", PLAQUE_PAD_X, 0)
+    name:SetPoint("RIGHT", plaque, "RIGHT", -PLAQUE_PAD_X, 0)
+end
+
+function skin.SyncPlaque(frame, visibilityOnly)
     local parts = nameplates.Parts[frame]
     if not parts or not parts.plaque then return end
     local nameOnly = type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true
     local shown = not nameOnly and frame.name:IsShown() == true
     parts.plaque:SetShown(shown)
     for _, line in ipairs(parts.plaqueBorder) do line:SetShown(shown) end
+    if shown and not visibilityOnly then skin.LayoutPlaque(frame, parts, nameplates.Pixel(parts.bar)) end
 end
 
 local function createCast(parts, castBar)
@@ -133,27 +181,17 @@ local function applyHealthText(bar, own)
 end
 
 -- Percent inside the bar, name in its plaque on top. The plaque spans the bar and the level box
--- and sits on the backing's top edge, so the two rows share one line; a name too long for it
--- truncates. A name-only plate keeps Blizzard's name placement and gets no plaque.
+-- and sits on the backing's top edge. Adaptive labels grow for long names up to their limit;
+-- text beyond that limit truncates. A name-only plate keeps Blizzard's placement and no plaque.
 local function applyText(frame, parts, size)
     local name = frame.name
     applyHealthText(frame.HealthBarsContainer.healthBar, parts.bar)
     if not isRegion(name) then return end
     font(name, "small")
-    skin.SyncPlaque(frame)
+    skin.SyncPlaque(frame, true)
     if type(frame.IsShowOnlyName) == "function" and frame:IsShowOnlyName() == true then return end
     if not parts.plaque then return end
-    local plaque, backing = parts.plaque, frame.HealthBarsContainer.healthBar.bgTexture
-    plaque:ClearAllPoints()
-    plaque:SetPoint("BOTTOMLEFT", backing, "TOPLEFT", 0, -size)
-    plaque:SetPoint("BOTTOMRIGHT", parts.levelBox or backing, "TOPRIGHT", 0, -size)
-    plaque:SetHeight(skin.Dimension("nameHeight", PLAQUE_HEIGHT))
-    nameplates.Resize(parts.plaqueBorder, size)
-    name:ClearAllPoints()
-    name:SetJustifyH("CENTER")
-    name:SetWordWrap(false)
-    name:SetPoint("LEFT", plaque, "LEFT", PLAQUE_PAD_X, 0)
-    name:SetPoint("RIGHT", plaque, "RIGHT", -PLAQUE_PAD_X, 0)
+    skin.LayoutPlaque(frame, parts, size)
 end
 
 -- The box takes Blizzard's width for the badge and the bar's exact height, outer edge included.
@@ -197,8 +235,8 @@ function skin.Apply(frame)
     if not parts then return end
     local size = nameplates.Pixel(parts.bar)
     applyBar(frame, parts, size)
-    applyText(frame, parts, size)
     applyLevel(frame, parts, size)
+    applyText(frame, parts, size)
     applyCast(frame, parts, size)
     nameplates.Target.Resize(frame, parts, size)
 end

@@ -207,3 +207,11 @@ function RikRenderNameplates(entries, name, left, bottom, width, height)
     RikRenderRemeasure(holder)
     return holder, plates
 end
+-- Recycle the driver's plate for a new public sample name. Blizzard updates text and RikUI
+-- receives the real removal/addition events; no addon regions are resized by the fixture.
+function RikRenderPlateReuse(token, name)
+    assert(PLATE_READERS[token], "No sample readers for " .. token)
+    A_Admin.FireEvent("NAME_PLATE_UNIT_REMOVED", token)
+    PLATE_READERS[token].UnitName = { name }
+    A_Admin.FireEvent("NAME_PLATE_UNIT_ADDED", token)
+end

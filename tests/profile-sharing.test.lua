@@ -20,6 +20,8 @@ return function(check)
         RikUI.Profile.bags.capacityThreshold = 7
         RikUI.Profile.durability = { showPercent = false }
         RikUI.Profile.panels.questTextSize = 20
+        RikUI.Profile.nameplates.adaptiveNames = false
+        RikUI.Profile.nameplates.nameMinWidth, RikUI.Profile.nameplates.nameMaxWidth = 180, 300
         RikUI.Profile.panels.skins = { spells = false }
         RikUI.Profile.positions.main = { point="CENTER", relativePoint="CENTER", x=120, y=-30 }
         local text, err = sharing.ExportProfile()
@@ -39,6 +41,8 @@ return function(check)
         end
         defaultCoverage(RikUI.Defaults.profile, data, "profile")
         check("quest prose size round trips", data.panels.questTextSize == 20)
+        check("adaptive label mode and both bounds round trip", data.nameplates.adaptiveNames == false
+            and data.nameplates.nameMinWidth == 180 and data.nameplates.nameMaxWidth == 300)
         check("window selection round trips", data.panels.skins.spells == false)
         local active = RikUI.Profile
         check("import creates a separate profile", sharing.ImportProfile("Backup", text) == true
@@ -61,6 +65,10 @@ return function(check)
             function(p) p.bags.capacityThreshold = 21 end,
             function(p) p.bags.capacityThreshold = 1.5 end,
             function(p) p.durability.showPercent = "yes" end,
+            function(p) p.nameplates.adaptiveNames = "yes" end,
+            function(p) p.nameplates.nameMinWidth = 119 end,
+            function(p) p.nameplates.nameMaxWidth = 401 end,
+            function(p) p.nameplates.nameMaxWidth = 200.5 end,
             function(p) p.borderColor[4] = 1 end,
         }
         for i, mutate in ipairs(mutations) do

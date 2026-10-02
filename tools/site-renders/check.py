@@ -2,15 +2,16 @@
 
 Every capture records the inputs its pixels came from. The gate rebuilds the tree inputs (script, seed,
 addon files, validator, world plate and compositing code) from the repository and names the capture and
-the input that no longer match, requires one environment (simulator, client) across the set with the
-simulator patch matching the fixture's copy, and requires every image to be the one that was reviewed."""
+the input that no longer match, authenticates each capture's original environment and addon inventory,
+and requires every image to be the one that was reviewed."""
 import json
 from pathlib import Path
 import subprocess
 import sys
+from dependencies import addon_inputs, recorded_addon_inputs
 from schema import frames_of, frame_id, SCENARIO_KEYS
 from fixtures import load_modules, scenario_script
-from provenance import digest, tree_inputs, scenario_record, TREE_FIELDS, plate_record, WORLDS
+from provenance import digest, tree_inputs, scenario_record, TREE_FIELDS, plate_record, WORLDS, capture_key
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = Path(__file__).resolve().parent
@@ -23,24 +24,20 @@ def addon_inventory():
                                    cwd=ROOT, text=True).splitlines()
 
 def current_addon_files(manifest, errors):
-    """The addon inventory as it is now; the manifest's copy must describe the same files."""
+    """Read current files; per-capture checks compare only the relevant dependencies."""
     files = {name: digest(ROOT / name, normalized=True) for name in addon_inventory() if (ROOT / name).is_file()}
-    if set(files) != set(manifest.get("addonFiles", {})):
-        errors.append("Addon file inventory changed; render the current addon")
-    for name, value in files.items():
-        if manifest.get("addonFiles", {}).get(name) != value:
-            errors.append("Stale addon input: " + name)
     return files
 
 def verify_environment(manifest, errors):
-    """One simulator and one client across the set, and the simulator patch the fixture carries."""
-    renderer = manifest.get("renderer") or {}
-    if renderer.get("patch") != digest(FIXTURES / "wow-ui-sim.patch"):
-        errors.append("Renderer patch provenance does not match the fixture")
+    """Historical captures keep their environment; new runs verify the latest client separately."""
     for capture in manifest.get("renders", []):
         inputs = capture.get("inputs") or {}
-        if inputs.get("renderer") != renderer or inputs.get("client") != {key: manifest["client"].get(key) for key in ("version", "foreverCommit", "executableSha256")}:
-            errors.append("Mixed render environment: " + capture["id"])
+        renderer, client = inputs.get("renderer") or {}, inputs.get("client") or {}
+        if not all(renderer.get(key) for key in ("binary", "patch")) or not all(
+                client.get(key) for key in ("version", "foreverCommit", "executableSha256")):
+            errors.append("Missing render environment: " + capture["id"])
+        if capture.get("key") != capture_key(inputs):
+            errors.append("Changed capture provenance: " + capture["id"])
 
 def verify_world(case, frame, name, errors):
     """A world capture names the plate it was composited over; the plate and its record must still match."""
@@ -93,8 +90,15 @@ def verify_capture(case, capture, expected, directory, errors, hashes):
         verify_frame(case, capture, frame, directory, errors, hashes)
 
 def expected_tree_inputs(case, manifest, modules, addon_files):
-    script = scenario_script(case, modules, manifest["client"]["version"])
-    return tree_inputs(case, script, addon_files)
+    capture = next(c for c in manifest["renders"] if c["id"] == case["id"])
+    script = scenario_script(case, modules, capture["inputs"]["client"]["version"])
+    expected = tree_inputs(case, script, addon_files)
+    recorded = recorded_addon_inputs(case, capture, manifest)
+    # Legacy captures hashed the entire addon. Authenticate the original inventory
+    # before comparing only the relevant files; do not relabel old pixels.
+    if recorded == addon_inputs(case, addon_files):
+        expected["addon"] = capture["inputs"]["addon"]
+    return expected
 
 def verify_captures(manifest, cases, directory, errors, addon_files):
     renders = {r["id"]: r for r in manifest["renders"]}

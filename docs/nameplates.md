@@ -7,6 +7,38 @@ them. The client still creates, positions, stacks and drives every plate.
 the target and threat indicators. Disable the `nameplates` module in
 `/rik config` and reload to get the stock plates back.
 
+## Readable names
+
+**Adaptive name width** is on by default under Settings > Nameplates. Long
+names and surnames get a wider label above the health bar; short names stay
+compact. The health bar, level badge and clickable area keep their original size.
+
+**Minimum name width** and **Maximum name width** set the label's bounds,
+defaulting to 160 and 280 UI units. Both sliders range from 120 to 400. A label
+never becomes narrower than its health bar and level badge. If you put the
+maximum below the minimum, the minimum wins. Text beyond the maximum still
+truncates. Turn adaptive width off to use the original fixed row.
+
+Changes apply to visible plates, and a reused plate shrinks for its new name.
+Native name-only plates keep their existing placement. If the client hides
+the text measurement, RikUI keeps the fixed row. These preferences travel
+with shared profiles.
+
+![Adaptive and fixed name labels](preview:plates-adaptive-names)
+
+![Maximum label width](preview:plates-name-width-limit)
+
+![A reused plate with a short name](render:plates-pooled-short-name)
+
+![Nameplate readability settings](render:plates-name-options)
+
+Community research reviewed 2026-10-01: a [September 27 Forever player
+request](https://eu.forums.blizzard.com/en/wow/t/few-suggestions-quality-of-life-and-proposals/631992)
+asks for dynamic minimum/maximum nameplate lengths because full names
+truncate. This addition addresses that request. Current addon descriptions
+reviewed did not document the exact adaptive-label behavior; global
+uniqueness is unknown.
+
 ## Row sizes
 
 Nameplates settings offer health bar and name row heights from 12 to 24, defaulting to 14 and 13. The preferences apply to active and reused plates and survive native layout resets. They change the existing cosmetic row layout, not the client's hit area or stacking rules. Profile sharing validates integer bounds.
@@ -17,10 +49,9 @@ Research reviewed 2026-09-24: [Forever UI feedback](https://us.forums.blizzard.c
 
 A 14px flat bar on a dark backing with a one-pixel edge, with the health
 percent centred inside it. The unit's name sits in its own plaque on top of the
-bar: a flat dark box with the same one-pixel edge, exactly as wide as the bar
-and level box together and sharing their top line, so the two rows stack as one
-block on every mob. The name is centred in it and a name too long for the row
-truncates. Both texts use the RikUI font. The bar is coloured by reaction, or by class for players, and goes grey for tapped
+bar: a flat dark box with the same one-pixel edge. It spans the bar and level
+box and can grow symmetrically to fit a long name, up to your maximum width.
+The name is centred and truncates only beyond that limit. Both texts use the RikUI font. The bar is coloured by reaction, or by class for players, and goes grey for tapped
 and disconnected units. The level is a flat dark box flush with the bar's right
 end, exactly as tall as the bar, with the number in Blizzard's difficulty
 colour and the skull kept for high-level units. Left of the bar, outside the target arrow, a small glyph
@@ -163,8 +194,9 @@ is cleared.
 
 Raid target icon, quest and widget art and the dimming overlay Blizzard draws
 on non-targets are left stock. The cast bar's fill texture stays Blizzard's.
-There is no plate resizing beyond the bar height and no tank-style threat
-colouring, which would need threat values addon code cannot read.
+Adaptive sizing changes the name decoration. Health bar width, click geometry
+and native stacking stay under the client's control. Tank-style threat
+colouring would need threat values addon code cannot read.
 
 ## Diagnostics
 
@@ -172,7 +204,7 @@ colouring, which would need threat values addon code cannot read.
 
 ## Verification
 
-`tests/nameplates.test.lua` builds fake plates with the 69913 region names, an
+`tests/nameplates.test.lua` builds fake plates with the reviewed region names, an
 `UpdateAnchors` that restores the stock look, recorders for animation groups
 and a fake `C_CVar`. It proves: the three client settings written with the
 originals saved; the own bar, faded fill, 14px height and pixel backing;
@@ -188,31 +220,27 @@ layout surviving a layout pass; the name-only case; the debuff container, its
 fade of the stock list, removal and pooled reuse without new hooks; a
 forbidden plate; a plate missing every optional region; the debug line; a
 combat login deferring the settings and the container; a client without the
-container template; a disabled module restoring the saved settings.
+container template; a disabled module restoring the saved settings. Adaptive
+label regressions also cover padded expansion, bounds, shrinking, unavailable
+or protected measurements, and live setters. Profile-sharing regressions
+validate and round-trip the mode and both bounds.
 
-The stub cannot show how any of this looks, or settle these client questions:
-whether re-parenting Blizzard's name and health text is tolerated, whether
-`SetHeight` on `HealthBarsContainer` disturbs plate stacking or click areas,
-whether the two target CVars exist on 69913, whether `SetValue` accepts the
-easing argument here, whether `UnitClassification` is readable for nameplate
-units in combat, and whether the hooks taint plate layout. Beta checklist:
-
-1. Fully restart the client (two new TOC entries). Target a mob: chunky bar
-   with the percent centred, the name in its plaque on top, level box flush right, arrows and a pulsing line,
-   the plate a little larger and the others dimmer.
-2. Hit the mob: the lost portion should flash as the health decrement starts. Let it hit you: a red line
-   should appear over its bar.
-3. Find an elite or a rare and check the marker. Watch a caster: the cast bar
-   should be flat with the spell name in the RikUI font.
-4. Fight two or three mobs with a debuff on each and watch for errors, plates
-   that stop following their mobs, or names that vanish. `/rik debug` should
-   print the three counts with no `Nameplates ...` error line.
-5. Disable the module, reload, and confirm the stock plates and the stock
-   target scale return.
+Native gameplay is accepted under the user's standing policy. Stub tests and
+Lua renders provide automated and visual evidence, without claiming an
+agent-observed native playtest. Readable geometry and classification coverage
+may vary with the client's protected values; guarded fallbacks preserve the
+fixed row and omit unavailable classification markers.
 
 ## Source evidence
 
-Reviewed against the Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
+Adaptive label work reviewed 2026-10-01 against the latest Forever head,
+[1.60.1 (70170)](https://github.com/Gethe/wow-ui-source/commit/9a789c074b8e73c5d604ef2d6af3bb5b3aefb348),
+matching the installed executable. The current `CompactUnitFrame_UpdateName`
+still sets the native FontString, and the current nameplate anchors, health
+bar, badge and native hit-area layout remain the owning surfaces. This is
+review provenance, not a client target; resolve current source before future work.
+
+Original implementation evidence, retained as historical review: Forever [1.60.1 (69913) commit](https://github.com/Gethe/wow-ui-source/commit/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e):
 
 - [Blizzard_NamePlates.toc: the shared files plus the Camelot level frame, constants and option overrides](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_NamePlates/Blizzard_NamePlates.toc)
 - [Blizzard_NamePlates.xml: BaseNamePlateUnitFrameTemplate's region names](https://github.com/Gethe/wow-ui-source/blob/70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e/Interface/AddOns/Blizzard_NamePlates/Blizzard_NamePlates.xml)

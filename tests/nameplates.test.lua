@@ -241,6 +241,53 @@ return function(check)
             and parts.plaqueBorder[3].shown == false)
         nameShown(frame, true)
         check("and returns with it", parts.plaque.shown == true)
+        -- Model the native anchored row width separately from an explicitly sized expanded row.
+        function parts.plaque:GetWidth() return #self.points == 2 and 176 or self.width end
+        local measured = 220
+        function frame.name:GetUnboundedStringWidth() return measured end
+        CompactUnitFrame_UpdateName(frame)
+        check("a long native label expands with padding while the health bar and frame stay untouched",
+            parts.plaque.width == 228 and #parts.plaque.points == 1
+            and parts.plaque.points[1][4] == -26 and rawget(bar, "width") == nil
+            and rawget(frame, "width") == nil)
+        measured = 900
+        CompactUnitFrame_UpdateName(frame)
+        check("very long labels stop at the maximum width", parts.plaque.width == 280)
+        measured = 30
+        CompactUnitFrame_UpdateName(frame)
+        check("a reused short label shrinks back to its anchored row", #parts.plaque.points == 2)
+        RikUI.Profile.nameplates.nameMinWidth, RikUI.Profile.nameplates.nameMaxWidth = 220, 200
+        CompactUnitFrame_UpdateName(frame)
+        check("reversed bounds safely use the minimum as the effective maximum", parts.plaque.width == 220)
+        RikUI.Profile.nameplates.nameMinWidth, RikUI.Profile.nameplates.nameMaxWidth = 0/0, math.huge
+        measured = 900
+        CompactUnitFrame_UpdateName(frame)
+        check("invalid saved widths return to defaults", parts.plaque.width == 280)
+        RikUI.Profile.nameplates.nameMinWidth, RikUI.Profile.nameplates.nameMaxWidth = nil, nil
+        for _, bad in ipairs({ env.SECRET, -1, 0/0, math.huge, false }) do
+            measured = bad
+            CompactUnitFrame_UpdateName(frame)
+            check("unreadable or invalid text geometry keeps native anchored layout", #parts.plaque.points == 2)
+        end
+        frame.name.GetUnboundedStringWidth = function() error("geometry unavailable") end
+        local measuredOK = pcall(CompactUnitFrame_UpdateName, frame)
+        check("refused geometry reads preserve the fixed layout without errors", measuredOK and #parts.plaque.points == 2)
+        frame.name.GetUnboundedStringWidth = function() return 220 end
+        for _, spec in ipairs(module.Options.settings) do
+            if spec.key == "adaptiveNames" then spec.set(false) end
+        end
+        env.flushTimers()
+        check("the fixed-width control restores the original row", #parts.plaque.points == 2)
+        for _, spec in ipairs(module.Options.settings) do
+            if spec.key == "adaptiveNames" then spec.set(true) end
+            if spec.key == "nameMinWidth" then spec.set(240) end
+            if spec.key == "nameMaxWidth" then spec.set(260) end
+        end
+        env.flushTimers()
+        check("width controls immediately resize active labels", parts.plaque.width == 240)
+        RikUI.Profile.nameplates.nameMinWidth, RikUI.Profile.nameplates.nameMaxWidth = nil, nil
+        frame.name.GetUnboundedStringWidth = function() return 30 end
+        module.Skin.Apply(frame)
         check("all three of Blizzard's health texts are centred inside the bar", bar.LeftText.parent == own
             and bar.LeftText.fontPath == media.font and bar.LeftText.points[1][1] == "CENTER"
             and bar.LeftText.points[1][2] == own and bar.RightText.points[1][2] == own

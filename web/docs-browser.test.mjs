@@ -26,7 +26,7 @@ const placements={
  auras:{"auras-buffs":"ref-player-buffs-and-debuffs","auras-debuffs":"ref-player-buffs-and-debuffs","auras-target":"ref-target-pet-and-focus","auras-pet":"ref-target-pet-and-focus","auras-focus":"ref-target-pet-and-focus"},
  "class-effects":{"effects-player":"ref-follow-your-class-effects","effects-target":"ref-follow-your-class-effects"},
  personalresource:{"prd-health":"ref-personal-resource-display","prd-power":"ref-personal-resource-display"},
- nameplates:{"plates-enemy":"ref-enemy-nameplates","plates-debuffs":"ref-enemy-nameplates","plates-cast":"ref-enemy-nameplates","plates-target-focus":"ref-enemy-nameplates","plates-markers":"ref-enemy-nameplates","plates-threat":"ref-threat","plates-friendly":"ref-size-and-visibility"},
+ nameplates:{"plates-enemy":"ref-enemy-nameplates","plates-debuffs":"ref-enemy-nameplates","plates-cast":"ref-enemy-nameplates","plates-target-focus":"ref-enemy-nameplates","plates-markers":"ref-enemy-nameplates","plates-threat":"ref-threat","plates-friendly":"ref-size-and-visibility","plates-adaptive-names":"ref-readable-names","plates-name-width-limit":"ref-readable-names","plates-pooled-short-name":"ref-readable-names","plates-name-options":"ref-readable-names"},
  combopoints:{"combo-empty":"ref-combo-points","combo-three":"ref-combo-points","combo-full":"ref-combo-points"},
  combattimer:{"timer-elapsed":"ref-combat-timer","timer-final":"ref-combat-timer","timer-stopwatch":"ref-stopwatch"},
  mirrortimers:{"mirror-breath":"ref-breath-fatigue-and-feign-death","mirror-fatigue":"ref-breath-fatigue-and-feign-death","mirror-feign":"ref-breath-fatigue-and-feign-death"},
@@ -197,6 +197,25 @@ test("setting previews swap frames in place",async({page})=>{
  await control.fill("2");
  await expect(preview.locator(".preview-control output")).toHaveText("115%");
  await expect(preview.locator('[data-frame="2"]')).toBeVisible();
+});
+test("nameplate previews respond to keyboard controls on a narrow screen",async({page})=>{
+ await page.setViewportSize({width:390,height:1000});
+ await page.goto("/docs/nameplates");
+ const adaptive=page.locator('figure[data-render="plates-adaptive-names"]');
+ const toggle=adaptive.getByRole("switch");
+ await expect(toggle).toBeChecked();
+ await toggle.focus();
+ const before=await adaptive.locator("[data-frame]:visible img").getAttribute("src");
+ await page.keyboard.press("Space");
+ await expect(adaptive.locator("[data-frame]:visible")).toHaveCount(1);
+ expect(await adaptive.locator("[data-frame]:visible img").getAttribute("src")).not.toBe(before);
+ const width=page.locator('figure[data-render="plates-name-width-limit"]');
+ const slider=width.getByRole("slider");
+ await slider.focus();
+ await page.keyboard.press("End");
+ await expect(width.locator('[data-frame="2"]')).toBeVisible();
+ await expect(width.locator(".preview-control output")).toHaveText("400");
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 test("Lua examples serve the reviewed images with their original proportions",async({request,page})=>{
  for(const render of renders)for(const frame of render.frames||[render]){
