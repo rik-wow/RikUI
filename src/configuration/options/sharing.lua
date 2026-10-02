@@ -7,7 +7,7 @@ core.Sharing = sharing
 function sharing.Encode(kind, data)
     local text, reason = core.Serialize({ kind = kind, data = data })
     if not text then return nil, reason end
-    return sharing.Prefix .. #text .. ":" .. string.format("%08x", core.Codec.Checksum(text)) .. ":" .. text
+    return sharing.Prefix .. #text .. ":" .. core.Codec.ChecksumHex(text) .. ":" .. text
 end
 
 local function payload(text)
@@ -18,7 +18,7 @@ local function payload(text)
     if not length or #length > 5 or #sum ~= 8 or tonumber(length) ~= #body then
         return nil, "Sharing text is incomplete or has an invalid header."
     end
-    if core.Codec.Checksum(body) ~= tonumber(sum, 16) then return nil, "Sharing checksum mismatch. Copy the full export again." end
+    if core.Codec.ChecksumHex(body) ~= sum:lower() then return nil, "Sharing checksum mismatch. Copy the full export again." end
     return body
 end
 

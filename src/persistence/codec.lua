@@ -15,12 +15,17 @@ local WORDS = { "point", "relativePoint", "x", "y", "CENTER", "TOP", "BOTTOM", "
     "minimap", "micromenu", "durability", "mirrortimers", "swingtimer", "combopoints", "totems", "questtimers", "loot",
     "bags", "damagemeter", "WARRIOR", "dps", "tank", "nameplateCVars" }
 function codec.Checksum(text)
-    local a, b = 1, 0
+    local a, b = 1.0, 0.0 -- float arithmetic also preserves unsigned sums in the browser Lua VM
     for index = 1, #text do
         a = (a + text:byte(index)) % 65521
         b = (b + a) % 65521
     end
     return b * 65536 + a
+end
+
+function codec.ChecksumHex(text)
+    local sum = codec.Checksum(text)
+    return string.format("%04x%04x", math.floor(sum / 65536), sum % 65536)
 end
 
 local DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
@@ -45,7 +50,7 @@ local function unarmour(text)
 end
 
 local function numberText(value)
-    local short = tostring(value)
+    local short = tostring(value):gsub("%.0$", "")
     return tonumber(short) == value and short or string.format("%.17g", value)
 end
 

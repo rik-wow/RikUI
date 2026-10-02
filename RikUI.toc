@@ -57,6 +57,7 @@ src/layout/layout.lua
 src/layout/layout-rects.lua
 src/platform/editmode.lua
 src/persistence/codec.lua
+src/setup/setup-pack.lua
 src/setup/preset-schema.lua
 src/setup/preset-library.lua
 src/persistence/store.lua

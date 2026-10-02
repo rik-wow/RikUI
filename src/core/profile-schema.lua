@@ -51,6 +51,9 @@ local anchors = { TOP=true, BOTTOM=true, LEFT=true, RIGHT=true, CENTER=true,
 local function anchor(value) return type(value) == "string" and anchors[value] == true end
 local schema = {
     scale=number(0.25,3), textScale=number(0.85,1.3), font=fontChoice, reducedMotion=boolean, gryphons=boolean, showEmptySlots=boolean, showHotkeys=boolean, showCooldownNumbers=boolean, ghosts=boolean, showStockBars=boolean, lootAtCursor=boolean,
+    theme={ accent=function(v) return v=="gold" or v=="blue" or v=="white" end,
+        border=number(1,2,true), texture=function(v) return v=="bundled" or v=="flat" end,
+        spacing=function(v) return v=="standard" or v=="relaxed" end },
     modules={ wildcard=boolean },
     classes={ wildcard=classLists },
     positions={ wildcard={ point=anchor, relativePoint=anchor, x=number(-32768,32768), y=number(-32768,32768) } },

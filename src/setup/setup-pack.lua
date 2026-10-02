@@ -1,0 +1,254 @@
+-- Shared data-only Setup Pack contract. Also bundled unchanged into the browser Lua VM.
+local pack = { Version = 1, Limit = 12000 }
+RikUI.SetupPack = pack
+local function fail(message) error(message, 0) end
+local function plain(t) if type(t) ~= "table" or getmetatable(t) then fail("Expected plain pack data") end end
+local function fields(t, allowed)
+    plain(t)
+    for k in pairs(t) do if not allowed[k] then fail("Unknown pack field: " .. tostring(k)) end end
+end
+local function text(s, maximum)
+    if type(s) ~= "string" or #s < 1 or #s > maximum or s:find("[%c|]") then fail("Invalid pack text") end
+    return s
+end
+local function id(s) text(s, 64); if not s:match("^[%w_.-]+$") then fail("Invalid pack identity") end; return s end
+local function number(n, low, high)
+    if type(n) ~= "number" or n ~= n or n < low or n > high then fail("Invalid pack number") end
+    return n
+end
+local function integer(n, low, high) number(n, low, high); if n % 1 ~= 0 then fail("Expected pack integer") end end
+local function count(t, maximum)
+    plain(t); local n = 0; for _ in pairs(t) do n = n + 1 end
+    if n > maximum then fail("Pack capacity exceeded") end
+end
+function pack.Copy(t)
+    if type(t) ~= "table" then return t end
+    local r = {}; for k,v in pairs(t) do r[k] = pack.Copy(v) end; return r
+end
+function pack.Equal(a,b)
+    if type(a) ~= type(b) then return false end
+    if type(a) ~= "table" then return a == b end
+    for k,v in pairs(a) do if not pack.Equal(v,b[k]) then return false end end
+    for k in pairs(b) do if a[k] == nil then return false end end
+    return true
+end
+pack.Components = { appearance=true, hud=true, nameplates=true, group=true, navigation=true, inventory=true, character=true }
+pack.Modules = {
+    hud={"bars","unitframes","castbars","auras","cooldowns","swingtimer","combopoints","totems","personalresource","hudframes","xpbar"},
+    nameplates={"nameplates"}, group={"unitframes"}, navigation={"minimap","questtracker","questplanner","worldmap","questtimers"},
+    inventory={"bags","micromenu","loot","durability"}, appearance={"panels","controls","dialogs","popups","tooltip","menus","chat","alerts","banners","widgets","screentext","toasts","chatbubbles","damagemeter","combattext","combattimer","lossofcontrol","extrabuttons","mirrortimers"},
+}
+pack.Activities = { exploration=true, party=true, raid=true, town=true }
+pack.Devices = { desktop=true, ultrawide=true, handheld=true }
+pack.Themes = {
+    classic={borderColor={0.25,0.28,0.32},font="bundled",theme={accent="gold",border=1,texture="bundled",spacing="standard"}},
+    ocean={borderColor={0.18,0.65,0.85},font="bundled",theme={accent="blue",border=1,texture="flat",spacing="standard"}},
+    ink={borderColor={0.85,0.85,0.85},font="game",theme={accent="white",border=2,texture="flat",spacing="relaxed"}},
+}
+local knownModules = {}
+for _,list in pairs(pack.Modules) do for _,name in ipairs(list) do knownModules[name] = true end end
+local function profile(t)
+    local result = RikUI.ProfileSchema.Project(t, false)
+    for name in pairs(result.modules or {}) do if not knownModules[name] then fail("Unsupported pack module: " .. name) end end
+    -- Personal records and observations are absent from the schema. Do not include pinned quest identities.
+    if result.questtracker and result.questtracker.pins ~= nil then fail("Quest pins are personal; remove them from this pack") end
+    return result
+end
+local function viewport(v)
+    fields(v,{width=true,height=true}); number(v.width,640,8192); number(v.height,360,4320)
+end
+local function validate(value)
+    local encoded, reason = RikUI.Codec.Encode(value,true)
+    if not encoded or #encoded > pack.Limit then fail(reason or "Setup Pack exceeds 12000 encoded bytes") end
+    fields(value,{version=true,id=true,revision=true,title=true,creator=true,ancestry=true,components=true,ownership=true,profile=true,
+        groups=true,viewport=true,activities=true,devices=true,capabilities=true,integration=true,character=true})
+    if value.version ~= pack.Version then fail("Unsupported Setup Pack version") end
+    id(value.id); integer(value.revision,1,1000000); text(value.title,80); text(value.creator,80)
+    fields(value.ancestry or {},{id=true,revision=true,creator=true})
+    if value.ancestry and next(value.ancestry) then id(value.ancestry.id); integer(value.ancestry.revision,1,1000000); text(value.ancestry.creator,80) end
+    count(value.components,7)
+    for k,v in pairs(value.components) do if not pack.Components[k] or type(v) ~= "boolean" then fail("Invalid component choice") end end
+    count(value.ownership,7)
+    for k,v in pairs(value.ownership) do if not pack.Components[k] or (v ~= "rikui" and v ~= "specialist" and v ~= "stock") then fail("Invalid interface owner") end end
+    profile(value.profile); viewport(value.viewport); count(value.groups,64)
+    for k,g in pairs(value.groups) do
+        id(k); fields(g,{component=true,width=true,height=true,priority=true,exclusive=true,minimum=true})
+        if not pack.Components[g.component] or g.component == "character" then fail("Invalid frame component") end
+        number(g.width,1,2048); number(g.height,1,2048); integer(g.priority,1,1000)
+        if g.minimum then number(g.minimum,0.5,2) end
+        if g.exclusive then id(g.exclusive) end
+        if not value.profile.positions or not value.profile.positions[k] then fail("Frame group needs source anchor: " .. k) end
+    end
+    for _,kind in ipairs({"activities","devices"}) do
+        count(value[kind] or {},kind == "activities" and 4 or 3)
+        local known = kind == "activities" and pack.Activities or pack.Devices
+        for k,p in pairs(value[kind] or {}) do if not known[k] then fail("Unsupported presentation") end; profile(p)
+            if p.modules or p.font or p.textScale or p.reducedMotion or p.theme then fail("Variants must not require a reload") end
+        end
+    end
+    count(value.capabilities or {},8)
+    local caps={layout=true,themes=true,readability=true,gamepadLegend=true,character=true}
+    for k,v in pairs(value.capabilities or {}) do if not caps[k] or type(v) ~= "boolean" then fail("Unknown capability") end end
+    if value.integration ~= nil and value.integration ~= "questtogether" then fail("Unsupported integration recipe") end
+    if value.character then
+        fields(value.character,{preset=true,bindings=true})
+        if value.character.preset then
+            if not RikUI.Setup or not RikUI.Setup.ValidateSharedPreset then fail("Character preset validation unavailable") end
+            local issues = RikUI.Setup.ValidateSharedPreset(value.character.preset)
+            if #issues > 0 then fail(table.concat(issues,"; ")) end
+            for _,macro in pairs(value.character.preset.macros or {}) do
+                for command in (macro.body or ""):gmatch("/([%a]+)") do
+                    if command:lower()=="run" or command:lower()=="script" then fail("Script macros are not portable") end
+                end
+            end
+        end
+        count(value.character.bindings or {},24)
+        for key,action in pairs(value.character.bindings or {}) do
+            text(key,32); text(action,64)
+            if not key:match("^[%w%-]+$") or not action:match("^ACTIONBUTTON%d+$") then fail("Only explicit standard action-button bindings are portable") end
+        end
+    end
+    return pack.Copy(value)
+end
+function pack.Validate(value)
+    local ok,result=pcall(validate,value); if ok then return result end; return nil,tostring(result)
+end
+function pack.Encode(value)
+    local clean,reason=pack.Validate(value); if not clean then return nil,reason end
+    local body=RikUI.Codec.Encode({kind="setup",data=clean},true)
+    if not body or #body > pack.Limit then return nil,"Setup Pack exceeds encoded capacity" end
+    return "!RIKS1!" .. #body .. ":" .. RikUI.Codec.ChecksumHex(body) .. ":" .. body
+end
+function pack.Decode(code)
+    if type(code)~="string" or #code > pack.Limit+32 then return nil,"Setup code exceeds capacity" end
+    local length,sum,body=code:match("^!RIKS1!(%d+):(%x+):([%w_]+)$")
+    if not length or #length>5 or #sum~=8 or tonumber(length)~=#body or RikUI.Codec.ChecksumHex(body)~=sum:lower() then return nil,"Invalid Setup Pack header or checksum" end
+    local value,reason=RikUI.Codec.Decode(body)
+    if not value then return nil,reason end
+    if value.kind~="setup" then return nil,"Expected Setup Pack" end
+    for k in pairs(value) do if k~="kind" and k~="data" then return nil,"Unknown setup envelope field" end end
+    return pack.Validate(value.data)
+end
+function pack.Merge(target,source)
+    for k,v in pairs(source or {}) do
+        if type(v)=="table" then
+            if type(target[k])~="table" then target[k]={} end
+            pack.Merge(target[k],v)
+        else target[k]=v end
+    end
+    return target
+end
+local points={TOPLEFT={0,1},TOP={0.5,1},TOPRIGHT={1,1},LEFT={0,0.5},CENTER={0.5,0.5},RIGHT={1,0.5},BOTTOMLEFT={0,0},BOTTOM={0.5,0},BOTTOMRIGHT={1,0}}
+local function rect(anchor,g,scale,screen)
+    local a,b=points[anchor.point],points[anchor.relativePoint]
+    local w,h=g.width*scale,g.height*scale
+    return {x=b[1]*screen.width+anchor.x*scale-a[1]*w,y=b[2]*screen.height+anchor.y*scale-a[2]*h,width=w,height=h}
+end
+local function overlap(a,b)
+    return a.x < b.x+b.width+8 and a.x+a.width+8 > b.x and a.y < b.y+b.height+8 and a.y+a.height+8 > b.y
+end
+function pack.Resolve(value,options)
+    local clean,reason=pack.Validate(value); if not clean then return nil,reason end
+    options=options or {}; local screen=options.viewport or clean.viewport
+    local ok,problem=pcall(viewport,screen); if not ok then return nil,problem end
+    local activity,device=options.activity or "exploration",options.device or "desktop"
+    if not pack.Activities[activity] or not pack.Devices[device] then return nil,"Unsupported presentation" end
+    local p=pack.Merge(pack.Copy(clean.profile),clean.activities and clean.activities[activity])
+    pack.Merge(p,clean.devices and clean.devices[device])
+    pack.Merge(p,options.overrides)
+    local access=options.accessibility or {}
+    if access.scale then p.scale=math.max(p.scale or 1,access.scale) end
+    if access.textScale then p.textScale=math.max(p.textScale or 1,access.textScale) end
+    if access.reducedMotion then p.reducedMotion=true end
+    if access.contrast then p.borderColor={0.85,0.85,0.85} end
+    if access.nonColor then p.unitframes={healthText="both",powerText="both"}; p.nameplates=p.nameplates or {}; p.nameplates.threatText=true; p.showHotkeys=true end
+    local projected,err=pcall(profile,p); if not projected then return nil,err end
+    p=err; local scale=p.scale or 1; p.positions=p.positions or {}
+    local keys={}; local selected=options.components or clean.components
+    for k,g in pairs(clean.groups) do if selected[g.component] and clean.ownership[g.component]=="rikui" then keys[#keys+1]=k end end
+    table.sort(keys,function(a,b) return clean.groups[a].priority==clean.groups[b].priority and a<b or clean.groups[a].priority<clean.groups[b].priority end)
+    local placed,conflicts={},{}
+    local reservations=options.reservations or {}
+    for _,r in ipairs(reservations) do
+        fields(r,{x=true,y=true,width=true,height=true}); number(r.x,0,8192); number(r.y,0,4320); number(r.width,1,8192); number(r.height,1,4320)
+        placed[#placed+1]={rect=r,key="Reserved specialist area"}
+    end
+    for _,key in ipairs(keys) do
+        local g=clean.groups[key]; local original=rect(p.positions[key],g,scale,screen)
+        local r=pack.Copy(original)
+        r.x=math.max(8,math.min(screen.width-r.width-8,r.x)); r.y=math.max(8,math.min(screen.height-r.height-8,r.y))
+        local fixed=options.overrides and options.overrides.positions and options.overrides.positions[key]
+        local function clear(candidate)
+            if candidate.x<8 or candidate.y<8 or candidate.x+candidate.width>screen.width-8 or candidate.y+candidate.height>screen.height-8 then return false end
+            for _,other in ipairs(placed) do if (not g.exclusive or g.exclusive~=other.exclusive) and overlap(candidate,other.rect) then return false end end
+            return true
+        end
+        if fixed then r=original
+        elseif not clear(r) then
+            local best,distance
+            for _,other in ipairs(placed) do
+                for _,xy in ipairs({{other.rect.x-r.width-8,r.y},{other.rect.x+other.rect.width+8,r.y},{r.x,other.rect.y-r.height-8},{r.x,other.rect.y+other.rect.height+8}}) do
+                    local c={x=xy[1],y=xy[2],width=r.width,height=r.height}; local d=(c.x-original.x)^2+(c.y-original.y)^2
+                    if clear(c) and (not distance or d<distance) then best,distance=c,d end
+                end
+            end
+            if best then r=best end
+        end
+        if scale<(g.minimum or 0.85) then conflicts[#conflicts+1]={key=key,reason="Below readable minimum"} end
+        if not clear(r) then conflicts[#conflicts+1]={key=key,reason=fixed and "Personal position conflicts" or "Crowded or off-screen"} end
+        p.positions[key]={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=math.floor(r.x/scale*1000+0.5)/1000,y=math.floor(r.y/scale*1000+0.5)/1000}
+        placed[#placed+1]={key=key,rect=r,exclusive=g.exclusive}
+    end
+    return {profile=p,groups=placed,conflicts=conflicts,activity=activity,device=device}
+end
+
+pack.GroupComponents = {
+    main="hud",bar2="hud",bar3="hud",bar4="hud",bar5="hud",stance="hud",pet="hud",player="hud",target="hud",tot="hud",focus="hud",petframe="hud",
+    castplayer="hud",casttarget="hud",castfocus="hud",castpet="hud",buffs="hud",debuffs="hud",cooldowns="hud",swingtimer="hud",
+    combatresource="hud",combopoints="hud",totems="hud",xpbar="hud",party="group",raid="group",minimap="navigation",
+    questtracker="navigation",questtimers="navigation",chat="appearance",damagemeter="appearance",bags="inventory",loot="inventory",micromenu="inventory",durability="inventory",
+}
+function pack.FromProfile(p,meta,groups)
+    meta=meta or {}
+    local clean=RikUI.ProfileSchema.Project(p,true)
+    if clean.questtracker then clean.questtracker.pins=nil end
+    local result={version=1,id=meta.id or "personal-setup",revision=meta.revision or 1,title=meta.title or "My setup",
+        creator=meta.creator or "Anonymous",profile=clean,viewport=meta.viewport or {width=1920,height=1080},groups=groups or {},
+        components={},ownership={},capabilities={layout=true,themes=true,readability=true}}
+    for c in pairs(pack.Components) do result.components[c]=c~="character"; result.ownership[c]="rikui" end
+    return pack.Validate(result)
+end
+function pack.Import(code,meta)
+    if type(code)=="string" and code:sub(1,7)=="!RIKS1!" then return pack.Decode(code) end
+    local p,reason=RikUI.Sharing.Decode(code,"profile")
+    if p then return pack.FromProfile(p,meta,{}) end
+    local preset=RikUI.Sharing.Decode(code,"preset")
+    if preset then
+        local result=pack.FromProfile({},meta,{})
+        result.components={character=true}; result.character={preset=preset}
+        return pack.Validate(result)
+    end
+    return nil,reason or "Unsupported sharing code"
+end
+
+-- Three-way leaf comparison preserves edits and explains concurrent creator changes.
+function pack.Update(previous,incoming,current,accept)
+    local out,changes,conflicts=pack.Copy(current),{},{}
+    local function walk(old,new,live,target,path)
+        local keys={}; for k in pairs(old or {}) do keys[k]=true end; for k in pairs(new or {}) do keys[k]=true end
+        local order={}; for k in pairs(keys) do order[#order+1]=k end; table.sort(order,function(a,b)return tostring(a)<tostring(b)end)
+        for _,k in ipairs(order) do
+            local a,b,c=old and old[k],new and new[k],live and live[k]; local name=path=="" and tostring(k) or path.."."..tostring(k)
+            if type(a)=="table" and type(b)=="table" and type(c)=="table" then walk(a,b,c,target[k],name)
+            elseif not pack.Equal(a,b) then
+                local edited=not pack.Equal(a,c)
+                if edited then conflicts[#conflicts+1]={path=name,previous=pack.Copy(a),incoming=pack.Copy(b),personal=pack.Copy(c)} end
+                if (not edited and (not accept or accept[name]~=false)) or (accept and accept[name]==true) then
+                    target[k]=pack.Copy(b); changes[#changes+1]=name
+                end
+            end
+        end
+    end
+    walk(previous,incoming,current,out,"")
+    return {profile=out,changes=changes,conflicts=conflicts}
+end
