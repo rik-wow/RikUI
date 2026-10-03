@@ -30,19 +30,40 @@ local function preset(state)
     end
     return source
 end
-
 local function resolved(state)
     if not preset(state) then return nil end
     return (core.Setup.Resolve(state.class, state.role, state.presetName))
 end
 
--- 1. Welcome
-wizard.AddPage({ key = "welcome", title = "Welcome to RikUI", build = function(page, state)
-    page.lead = paragraph(page, "heading", className(state) .. " detected.")
-    page.body = paragraph(page, "label", "RikUI will set up your action bars, keybinds, macros, game settings and screen "
-        .. "layout in one go.\n\nThe next pages ask what you want. Nothing is applied until the last page, and "
-        .. "/rik undo reverts all of it afterwards.\n\nSkip setup closes this for good on this character; /rik setup "
-        .. "brings it back.", page.lead, 16)
+-- 1. Character setup: current interface is the default, not a replacement preset.
+local function startCard(page, state, path, left, title, detail, icon)
+    local card = controls.Card(page, 384, 156, function() wizard.ChoosePath(path) end)
+    card:SetPoint("TOPLEFT",  left, -94)
+    card.icon = core.Media.Icon(card, icon, 28, "ARTWORK")
+    card.icon:SetPoint("TOPLEFT", 16, -16)
+    card.label = controls.Text(card, "heading", title)
+    card.label:SetPoint("TOPLEFT", 16, -54); card.label:SetWidth(352); card.label:SetJustifyH("LEFT")
+    card.detail = controls.Text(card, "label", detail, controls.MUTED)
+    card.detail:SetPoint("TOPLEFT", 16, -84); card.detail:SetWidth(352); card.detail:SetJustifyH("LEFT")
+    return card
+end
+
+wizard.AddPage({ key = "welcome", title = "Set up this character", build = function(page, state)
+    page.lead = paragraph(page, "heading", className(state) .. " · level " .. UnitLevel("player"))
+    page.body = paragraph(page, "label", "Keep the interface you already use, or choose actions for this character.\nNothing is applied until the last page.", page.lead, 12)
+    page.keepCard = startCard(page, state, "keep", 0, "Keep my setup",
+        "Keep actions, macros and bindings.\nReview layout, then finish.", "character")
+    page.actionsCard = startCard(page, state, "actions", 396, "Set up character actions",
+        "Preview a class preset and role.\nChoose bindings separately.", "talents")
+    page.advanced = controls.Check(page, 760, "Also review modules and game settings",
+        function() return state.advanced end, function(value) state.advanced = value; wizard.Go(1) end)
+    page.advanced:SetPoint("TOPLEFT", 0, -276)
+    page.scope = paragraph(page, "small", "Your current profile is shared with any characters using it.\nBars and bindings are character-specific; layout and modules belong to the profile.\nGame settings may affect your account. Skip setup leaves everything as it is.")
+    page.scope:ClearAllPoints(); page.scope:SetPoint("TOPLEFT", 0, -316)
+end, refresh = function(page, state)
+    page.keepCard:SetChosen(state.path == "keep")
+    page.actionsCard:SetChosen(state.path == "actions")
+    page.advanced:Refresh()
 end })
 
 -- 2. Role
@@ -61,11 +82,10 @@ local function paintRole(page, state)
     page.previewIndex = math.min(page.previewIndex or 1, math.max(1, #choices))
     local choice = choices[page.previewIndex]
     page.barTitle:SetText(choice and (choice.label .. " · " .. page.previewIndex .. " / " .. #choices) or "")
-    page.previous:SetDisabled(not choice or page.previewIndex == 1)
-    page.following:SetDisabled(not choice or page.previewIndex == #choices)
+    page.previous:SetDisabled(not choice or page.previewIndex == 1)    page.following:SetDisabled(not choice or page.previewIndex == #choices)
     page.previous:SetShown(choice ~= nil)
     page.following:SetShown(choice ~= nil)
-    page.detail:SetText(choice and "Hover an ability for its name, key and learning status. Dim slots are not learned yet." or "")
+    page.detail:SetText(choice and "Click or hover an ability to inspect it. Dim slots are not learned yet; key labels preview the optional binding scheme." or "")
     preview.FillBar(page.bar, known, UnitLevel("player"), choice and choice.key, { mouse45 = state.mouse45 })
 end
 
@@ -93,8 +113,7 @@ local function refreshRoles(page, state)
     local sourceLabel = state.presetName ~= "" and state.presetName or "Bundled"
     for _, entry in ipairs(core.PresetLibrary and core.PresetLibrary.Entries(state.class) or {}) do
         if entry.value == state.presetName then sourceLabel = entry.text end
-    end
-    page.presetButton.label:SetText(sourceLabel .. " (click to change)")
+    end    page.presetButton.label:SetText(sourceLabel .. " (click to change)")
     page.note:SetText(known and "" or (state.presetName ~= "" and "Preset unavailable. Choose another preset."
         or "There is no preset for " .. className(state) .. " yet; bars stay as they are."))
     if state.role == nil then state.role = guessedRole(state) end
@@ -125,8 +144,7 @@ wizard.AddPage({ key = "role", title = "Your role", build = function(page, state
     page.barTitle:SetPoint("TOPLEFT", page.intro, "BOTTOMLEFT", 0, -(32 + math.ceil(#page.cards / 3) * 68))
     page.bar = preview.Bar(page)
     page.bar:SetPoint("TOPLEFT", page.barTitle, "BOTTOMLEFT", 0, -12)
-    page.previous = controls.Button(page, "Previous bar", function()
-        page.previewIndex = page.previewIndex - 1; paintRole(page, state)
+    page.previous = controls.Button(page, "Previous bar", function()        page.previewIndex = page.previewIndex - 1; paintRole(page, state)
     end)
     page.previous:SetPoint("TOPLEFT", page.bar, "BOTTOMLEFT", 0, -30)
     page.following = controls.Button(page, "Next bar", function()
@@ -157,8 +175,7 @@ local function capRow(page, texts, top, left)
     end
     return row
 end
-
-local function tierRow(page, tier, top)
+local function tierRow(page, tier, top)
     local texts = {}
     for index = 1, tier[2] do texts[index] = shortKey(core.Bindings.Scheme[tier[1] .. index]) end
     local title = controls.Text(page, "small", tier[3], controls.MUTED)
@@ -167,6 +184,7 @@ local function tierRow(page, tier, top)
 end
 
 local function paintKeys(page, state)
+    if page.adopt then page.adopt:Refresh() end
     for _, cap in ipairs(page.mouse) do cap:SetActive(state.mouse45) end
     for _, cap in ipairs(page.strafe) do cap:SetActive(state.strafe) end
     local known = resolved(state)
@@ -178,37 +196,50 @@ local function paintKeys(page, state)
 end
 
 wizard.AddPage({ key = "keys", title = "Keybinds", build = function(page, state)
-    page.intro = paragraph(page, "label", "Every ability sits on a key you reach without moving your hand: 1-5 and the "
-        .. "keys around WASD, then the same keys with Shift and with Ctrl.")
+    page.intro = paragraph(page, "label", "Keep your current bindings, or use the scheme below.\nHover a key to inspect its action; Shift and Ctrl select the other bars.")
+    page.adopt = controls.Check(page, 760, "Replace this character's bindings with these keys",
+        function() return state.steps.binds end, function(value) state.steps.binds = value; paintKeys(page, state) end)
+    page.adopt:SetPoint("TOPLEFT", 0, -52)
     page.tiers = {}
     for index, tier in ipairs(TIERS) do
-        page.tiers[index] = tierRow(page, tier, 50 + (index - 1) * (CAP_HEIGHT + TIER_GAP))
+        page.tiers[index] = tierRow(page, tier, 88 + (index - 1) * (CAP_HEIGHT + TIER_GAP))
     end
-    local extras = 50 + #TIERS * (CAP_HEIGHT + TIER_GAP) + 16
+    local extras = 88 + #TIERS * (CAP_HEIGHT + TIER_GAP) + 16
     page.mouse = capRow(page, { "M4", "M5" }, extras, 130)
     page.strafe = capRow(page, { "A", "D" }, extras, 130 + 3 * (CAP_WIDTH + CAP_GAP))
     page.mouseCheck = controls.Check(page, 760, "",
         function() return state.mouse45 end, function(value) state.mouse45 = value; paintKeys(page, state) end)
-    page.mouseCheck:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -extras - CAP_HEIGHT - 24)
-    page.strafeCheck = controls.Check(page, 520, "Also rebind A/D to strafe instead of turn",
+    page.mouseCheck:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -extras - CAP_HEIGHT - 24)    page.strafeCheck = controls.Check(page, 520, "Also rebind A/D to strafe instead of turn",
         function() return state.strafe end, function(value) state.strafe = value; paintKeys(page, state) end)
     page.fallback = paragraph(page, "small", "", page.mouseCheck, 6)
     page.strafeCheck:SetPoint("TOPLEFT", page.fallback, "BOTTOMLEFT", 0, -10)
+    page.inspect = paragraph(page, "small", "Preview only. Bindings change only when the replacement checkbox is checked.", page.strafeCheck, 14)
+    for row, caps in ipairs(page.tiers) do
+        for index, cap in ipairs(caps) do
+            cap:EnableMouse(true)
+            cap:SetScript("OnEnter", function()
+                local known = resolved(state)
+                local key = ({ "main", "bar2", "bar3" })[row]
+                local entry = known and known.bars[key] and known.bars[key][index]
+                page.inspect:SetText(cap.label:GetText() .. " · " .. preview.Name(entry) .. " (proposed binding)")
+            end)
+        end
+    end
 end, refresh = paintKeys })
 
 -- 4. Layout
 local CARD_WIDTH, CARD_GAP, PICTURE_INSET = 186, 12, 8
 
 local function paintLayout(page, state)
-    for _, card in ipairs(page.cards) do card:SetChosen(card.name == state.layoutPreset) end
-    page.description:SetText(layouts[state.layoutPreset].description)
+    for _, card in ipairs(page.cards) do card:SetChosen(not state.keepPositions and card.name == state.layoutPreset) end
+    page.description:SetText(state.keepPositions and "Current positions kept. You can adjust individual frames after finishing." or layouts[state.layoutPreset].description)
     page.keep:Refresh()
 end
 
 local function layoutCard(page, state, name, index)
     local width = CARD_WIDTH - 2 * PICTURE_INSET
     local card = controls.Card(page, CARD_WIDTH, width * 768 / 1365 + 2 * PICTURE_INSET + 22, function(self)
-        state.layoutPreset = self.name
+        state.layoutPreset, state.keepPositions, state.steps.layout = self.name, false, true
         paintLayout(page, state)
     end)
     card.name = name
@@ -221,8 +252,7 @@ local function layoutCard(page, state, name, index)
 end
 
 local function legend(page, anchor)
-    local left = 0
-    for _, entry in ipairs(preview.Legend) do
+    local left = 0    for _, entry in ipairs(preview.Legend) do
         local swatch = page:CreateTexture(nil, "ARTWORK")
         swatch:SetTexture(RikUI.Skin.FLAT)
         swatch:SetVertexColor(entry[2][1], entry[2][2], entry[2][3], 1)
@@ -235,14 +265,13 @@ local function legend(page, anchor)
 end
 
 wizard.AddPage({ key = "layout", title = "Screen layout", build = function(page, state)
-    page.intro = paragraph(page, "label", "Where everything sits. Every frame has a place in each layout, with the same "
-        .. "margins and gaps. Hold the lock key afterwards to move a single frame.")
+    page.intro = paragraph(page, "label", "Keep your current arrangement, or select a layout map.\nThe maps show frame groups, not live game contents. You can practice moving actual frames after finishing.")
     page.cards = {}
     for index, name in ipairs(layouts.Order) do page.cards[index] = layoutCard(page, state, name, index) end
     page.description = paragraph(page, "label", "", page.cards[1], 14)
     legend(page, page.description)
     page.keep = controls.Check(page, 420, "Keep my current positions (skip the layout)",
-        function() return state.keepPositions end, function(value) state.keepPositions = value end)
+        function() return state.keepPositions end, function(value) state.keepPositions, state.steps.layout = value, not value; paintLayout(page, state) end)
     page.keep:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
 end, refresh = paintLayout })
 
@@ -253,8 +282,7 @@ local function moduleLabel(name)
     local module = core.Modules[name]
     return module and module.title or (name:sub(1, 1):upper() .. name:sub(2))
 end
-
-local function moduleEntries(state)
+local function moduleEntries(state)
     local entries = {}
     for _, name in ipairs(core.Setup.StateKeys(state.modules)) do
         entries[#entries + 1] = { name = name, text = moduleLabel(name), get = function() return state.modules[name] end,
@@ -285,12 +313,15 @@ end
 
 wizard.AddPage({ key = "modules", title = "Modules and settings", build = function(page, state)
     page.modules = column(page, "Interface pieces RikUI replaces (a change needs a reload)", moduleEntries(state),
-        MODULE_COLUMNS, MODULE_WIDTH, 0)
-    page.settings = column(page, "Game settings", settingEntries(state), 1, SETTING_WIDTH,
+        MODULE_COLUMNS, MODULE_WIDTH, 0)    page.settings = column(page, "Game settings (account-wide)", settingEntries(state), 1, SETTING_WIDTH,
         MODULE_COLUMNS * MODULE_WIDTH + 20)
+    page.enableSettings = controls.Check(page, 760, "Apply checked game settings (otherwise leave them unchanged)",
+        function() return state.steps.cvars end, function(value) state.steps.cvars = value end)
+    page.enableSettings:SetPoint("BOTTOMLEFT", 0, 0)
 end, refresh = function(page)
     for _, check in ipairs(page.modules) do check:Refresh() end
     for _, check in ipairs(page.settings) do check:Refresh() end
+    page.enableSettings:Refresh()
 end })
 
 -- 6. Summary
@@ -317,8 +348,7 @@ local function macrosLine(known)
 end
 
 local function bindsLine(state)
-    return "Keybinds: the three key tiers, " .. (state.mouse45 and "with Mouse 4/5" or "without Mouse 4/5")
-        .. (state.strafe and ", A/D strafe" or ", A/D left alone") .. "; saved for this character only"
+    return "Keybinds: the three key tiers, " .. (state.mouse45 and "with Mouse 4/5" or "without Mouse 4/5")        .. (state.strafe and ", A/D strafe" or ", A/D left alone") .. "; saved for this character only"
 end
 
 local function settingsLine(state)
@@ -343,14 +373,14 @@ end
 -- What Apply will change, one line per step; a step switched off says so.
 function pages.Summary(state)
     local known = resolved(state)
+    if known and not state.role then state.role = known.role end
     local byStep = { macros = macrosLine(known), bars = barsLine(state, known), binds = bindsLine(state),
         cvars = settingsLine(state), layout = state.keepPositions and "Layout: your positions are kept"
             or "Layout: " .. layouts[state.layoutPreset].label }
     local lines = {}
     for _, step in ipairs(STEP_ORDER) do
         lines[#lines + 1] = state.steps[step] and byStep[step] or STEP_LABELS[step] .. ": skipped"
-    end
-    lines[#lines + 1] = modulesLine(state)
+    end    lines[#lines + 1] = modulesLine(state)
     return lines
 end
 
@@ -359,8 +389,8 @@ local function paintSummary(page, state)
     for _, check in ipairs(page.steps) do check:Refresh() end
 end
 
-wizard.AddPage({ key = "summary", title = "Summary", build = function(page, state)
-    page.intro = paragraph(page, "label", "This is what Apply changes. Untick a step to leave that part alone.")
+wizard.AddPage({ key = "summary", title = "Review changes", build = function(page, state)
+    page.intro = paragraph(page, "label", "Only checked steps will change. Uncheck anything you want to keep.\nLayout and module changes affect characters using this profile.")
     local entries = {}
     for index, step in ipairs(STEP_ORDER) do
         entries[index] = { text = STEP_LABELS[step], get = function() return state.steps[step] end,
@@ -372,3 +402,90 @@ wizard.AddPage({ key = "summary", title = "Summary", build = function(page, stat
     page.steps = controls.CheckGrid(holder, entries, #entries, 150)
     page.body = paragraph(page, "label", "", holder, 16)
 end, refresh = paintSummary })
+-- Completion has real next actions. These open existing settings/movers, never a second editor.
+function wizard.ShowCompletion(parent, result, needsReload)
+    for _, page in ipairs(wizard.Pages) do if page.frame then page.frame:Hide() end end
+    local panel = wizard.Completion
+    if not panel then
+        panel = CreateFrame("Frame", nil, parent); panel:SetAllPoints()
+        wizard.Completion = panel
+        panel.heading = paragraph(panel, "heading", "Character setup complete")
+        panel.detail = paragraph(panel, "label", "", panel.heading, 12)
+        local function action(left, title, body, icon, callback)
+            local card = controls.Card(panel, 240, 170, callback)
+            card:SetPoint("TOPLEFT", left, -130)
+            core.Media.Icon(card, icon, 28, "ARTWORK"):SetPoint("TOPLEFT", 16, -16)
+            card.title = controls.Text(card, "label", title)
+            card.title:SetPoint("TOPLEFT", 16, -60); card.title:SetWidth(208); card.title:SetJustifyH("LEFT")
+            card.note = controls.Text(card, "small", body, controls.MUTED)
+            card.note:SetPoint("TOPLEFT", 16, -90); card.note:SetWidth(208); card.note:SetJustifyH("LEFT")
+            return card
+        end
+        action(0, "Practice moving frames", "Drag your player frame,\naction bar and chat.\nFinish when you're ready.", "settings", function() wizard.BeginPractice() end)
+        action(264, "Configure features", "Enable or disable modules\nin regular settings.\nChanges show reload status.", "character", function()
+            wizard.Close(); core.Options.Open("modules")
+        end)
+        action(528, "Appearance and text", "Adjust fonts, text size,\ncontrast and density\nin regular settings.", "talents", function()
+            wizard.Close(); core.Options.Open("appearance")
+        end)
+        panel.help = paragraph(panel, "small", "/rik setup reopens character setup. /rik config opens settings.")
+        panel.help:ClearAllPoints(); panel.help:SetPoint("TOPLEFT", 0, -332)
+    end
+    panel.detail:SetText((result.unchanged and "Your current actions, bindings and positions were kept."
+        or "Selected setup operations finished. /rik undo restores their previous values.")
+        .. (needsReload and "\nModule changes need a reload. You can adjust other settings first." or "\nChoose an optional next step, or close and play."))
+    panel:Show()
+end
+
+local PRACTICE = {
+    { key = "player", title = "Move your player frame", text = "Drag the labeled player frame.\nRelease to save its position.\nShift or Alt bypasses snapping." },
+    { key = "main", title = "Position your action bar", text = "Drag the main action bar.\nKeep your actions and bindings.\nBar shape is in Settings > Bars." },
+    { key = "chat", title = "Position chat", text = "Drag chat to a comfortable spot.\nGrid, snapping and exact coordinates\nare in Settings > General." },
+}
+local practice, ownedKey
+local function restorePractice()
+    if ownedKey then core.Layout.SetUnlocked(ownedKey, false); ownedKey = nil end
+end
+function wizard.EndPractice()
+    restorePractice()
+    if practice then practice:Hide() end
+end
+local function practiceStep(index)
+    restorePractice()
+    local item = PRACTICE[index]
+    if not item then wizard.EndPractice(); return end
+    practice.index = index
+    practice.title:SetText(index .. " / " .. #PRACTICE .. " · " .. item.title)
+    practice.body:SetText(item.text)
+    practice.next.label:SetText(index == #PRACTICE and "Finish" or "Next frame")
+    if core.Layout.Groups[item.key] and core.Layout.Rect(item.key) then
+        if not core.Layout.IsUnlocked(item.key) and core.Layout.SetUnlocked(item.key, true) then ownedKey = item.key end
+    else
+        practice.body:SetText("This frame is not available with your enabled modules.\nUse Next frame or Finish to continue.")
+    end
+end
+function wizard.BeginPractice()
+    if InCombatLockdown() then return false end
+    if not practice then
+        practice = CreateFrame("Frame", "RikUICharacterPractice", UIParent)
+        practice:SetSize(360, 176); practice:SetPoint("TOPRIGHT", -20, -110)
+        practice:SetFrameStrata("DIALOG"); practice:SetClampedToScreen(true); practice:EnableMouse(true)
+        core.Skin.WindowChrome(practice, 36, 40)
+        practice.title = controls.Text(practice, "label", "", core.Skin.GOLD)
+        practice.title:SetPoint("TOPLEFT", 16, -12); practice.title:SetWidth(328); practice.title:SetJustifyH("LEFT")
+        practice.body = controls.Text(practice, "label", "")
+        practice.body:SetPoint("TOPLEFT", 16, -50); practice.body:SetWidth(328); practice.body:SetJustifyH("LEFT")
+        practice.next = controls.Button(practice, "Next frame", function()
+            if not InCombatLockdown() then practiceStep(practice.index + 1) end
+        end)
+        practice.next:SetPoint("BOTTOMRIGHT", -16, 12)
+        practice.close = controls.Button(practice, "Stop", wizard.EndPractice)
+        practice.close:SetPoint("BOTTOMLEFT", 16, 12)
+        practice:SetScript("OnHide", restorePractice)
+        if type(UISpecialFrames) == "table" then UISpecialFrames[#UISpecialFrames + 1] = "RikUICharacterPractice" end
+        wizard.Practice = practice
+    end
+    wizard.Close(); practice:Show(); practiceStep(1)
+    return true
+end
+core:RegisterEvent("PLAYER_REGEN_DISABLED", wizard.EndPractice)

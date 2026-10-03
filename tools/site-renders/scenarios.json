@@ -6,9 +6,11 @@
     "frame": "RikUIWizard",
     "crop": "860x624+594+264",
     "fixtures": [],
-    "lua": "RikUI.Wizard.Open()\nfor step=1,1 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "lua": "RikUI.Wizard.Open()\nassert(RikUI.Wizard.Go(1))\nRikRenderCenter(RikUIWizard)\n",
     "expectText": [
-      "Welcome to RikUI"
+      "Set up this character",
+      "Keep my setup",
+      "Set up character actions"
     ]
   },
   {
@@ -18,7 +20,7 @@
     "frame": "RikUIWizard",
     "crop": "860x624+594+264",
     "fixtures": [],
-    "lua": "RikUI.Wizard.Open()\nfor step=1,2 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "lua": "RikUI.Wizard.Open()\nRikUI.Wizard.ChoosePath(\"actions\")\nassert(RikUI.Wizard.Go(2))\nassert(RikUI.Wizard.Go(2))\nRikRenderCenter(RikUIWizard)\n",
     "expectText": [
       "Retribution",
       "Protection",
@@ -33,7 +35,7 @@
     "frame": "RikUIWizard",
     "crop": "860x624+594+264",
     "fixtures": [],
-    "lua": "RikUI.Wizard.Open()\nfor step=1,3 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "lua": "RikUI.Wizard.Open()\nRikUI.Wizard.ChoosePath(\"actions\")\nassert(RikUI.Wizard.Go(2))\nassert(RikUI.Wizard.Go(3))\nRikRenderCenter(RikUIWizard)\n",
     "expectText": [
       "Mouse 4/5"
     ]
@@ -45,7 +47,7 @@
     "frame": "RikUIWizard",
     "crop": "860x624+594+264",
     "fixtures": [],
-    "lua": "RikUI.Wizard.Open()\nfor step=1,4 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "lua": "RikUI.Wizard.Open()\nassert(RikUI.Wizard.Go(4))\nRikRenderCenter(RikUIWizard)\n",
     "expectText": [
       "Screen layout"
     ]
@@ -57,7 +59,7 @@
     "frame": "RikUIWizard",
     "crop": "860x624+594+264",
     "fixtures": [],
-    "lua": "RikUI.Wizard.Open()\nfor step=1,5 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "lua": "RikUI.Wizard.Open()\nRikUI.Wizard.State.advanced=true\nassert(RikUI.Wizard.Go(5))\nRikRenderCenter(RikUIWizard)\n",
     "expectText": [
       "Modules and settings"
     ]
@@ -69,11 +71,38 @@
     "frame": "RikUIWizard",
     "crop": "860x624+594+264",
     "fixtures": [],
-    "lua": "RikUI.Wizard.Open()\nfor step=1,6 do assert(RikUI.Wizard.Go(step)) end\nRikRenderCenter(RikUIWizard)\n",
+    "lua": "RikUI.Wizard.Open()\nRikUI.Wizard.ChoosePath(\"actions\")\nassert(RikUI.Wizard.Go(2))\nRikUI.Wizard.State.steps.binds=true\nassert(RikUI.Wizard.Go(6))\nRikRenderCenter(RikUIWizard)\n",
     "expectText": [
-      "Summary",
+      "Review changes",
       "Apply"
     ]
+  },
+  {
+    "id": "wizard-complete",
+    "page": "wizard",
+    "title": "Optional next steps",
+    "frame": "RikUIWizard",
+    "crop": "860x624+594+264",
+    "fixtures": [],
+    "lua": "RikUI.Wizard.Open()\nRikUI.Wizard.Go(6)\nRikUI.Wizard.Apply()\nRikRenderCenter(RikUIWizard)",
+    "expectText": [
+      "Character setup complete",
+      "Practice moving frames"
+    ],
+    "assertLua": "assert(RikUI.CharDB.wizardDone, \"No-op onboarding was not completed\")"
+  },
+  {
+    "id": "wizard-practice",
+    "page": "wizard",
+    "title": "Practice with the real player mover",
+    "frame": "UIParent",
+    "crop": "2048x1152+0+0",
+    "fixtures": [],
+    "lua": "RikUI.Wizard.Open()\nRikUI.Wizard.Go(6)\nRikUI.Wizard.Apply()\nassert(RikUI.Wizard.BeginPractice())",
+    "expectText": [
+      "Move your player frame"
+    ],
+    "assertLua": "assert(RikUI.Layout.IsUnlocked(\"player\"), \"Practice did not unlock player frame\")"
   },
   {
     "id": "options-general",

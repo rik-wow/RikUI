@@ -1,0 +1,21 @@
+{
+  "reviewedAt": "2026-10-03",
+  "client": "1.60.1.70205",
+  "foreverHead": "e3ecc27b64d30fdc735a3f6579b866858f9f9df1",
+  "review": "Viewed all eight actual Lua fixture images at original resolution; checked route labels, opt-in choices, completion controls and native mover tutorial.",
+  "images": {
+    "wizard-1": "975fb3c2e1cc7f550ba44e75355e5cd37f250eb0ce5e85a2924cb2aa5357b4c4",
+    "wizard-2": "0302e6902bf586cfd644f29f4b468f3549c5f480505256e5d5646f1c24d84fb2",
+    "wizard-3": "30b93d42fd2ca2a8bc8571bacb5bbe7335e00a1df78eaa52abdaa776e598e7fe",
+    "wizard-4": "a3ef99a8fb2c3ee3cd00d286a8a04f761e2c2ce30edec41a67f51e237c381de0",
+    "wizard-5": "c66938094dd336146b04e28c72d509613f04adcb8269c58c5e4c356c8dcda166",
+    "wizard-6": "5ef099cb64c9b57f76123f176db000b9d09c42ec2fced0415050967b84c4849c",
+    "wizard-complete": "e5d3085f21bd6c02eac9a171e43dc17ea7bbb9d5200128644de3894a4e2dadab",
+    "wizard-practice": "0410f8513c258291c8da891cb58c458d8e0b10bb7777e5b8dfda35bb5732ddc0"
+  },
+  "limitations": [
+    "Layout cards are maps of frame groups, not a live world preview.",
+    "Fixtures verify rendering and scripted controls; native gameplay follows the user's standing acceptance.",
+    "Class preset coverage is unchanged; no new spell or controller behavior is claimed."
+  ]
+}

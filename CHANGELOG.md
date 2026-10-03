@@ -9,6 +9,12 @@ tagging.
 
 ## Unreleased
 
+- Streamline new-character setup: keep current actions, keys and positions by
+  default; offer optional role previews and separately selected bindings.
+- Add completion shortcuts and an optional tutorial using the real player, action
+  bar and chat movers. Keep existing unlocked movers and stop safely in combat.
+- Update the canonical character setup guide and reviewed Lua examples.
+
 ## 1.0.0-beta.11
 
 2026-10-03. Regular in-game configuration for WoW: Forever beta.

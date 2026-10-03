@@ -91,6 +91,11 @@ def addon_inputs(case, files):
         name in scene for name in ("RikRenderUnlocked", "RikRenderHeldTags", "BeginDrag", "HoldKey(", "SetUnlocked", "UnlockAll", "SnapDrag", "RefreshGrid"))
     if page in DIRECT | set(PAGES) | {"studio-gallery", "studio-atlas"} and not movers:
         files = {name:value for name,value in files.items() if name not in {"src/layout/layout-drag.lua", "src/layout/layout-unlock.lua"}}
+    # Known captures do not paint the wizard or optional coach unless opened.
+    # Unknown scenes remain conservative.
+    if page in DIRECT | GLOBAL_PAGES | set(PAGES) | {"setup-studio", "studio-gallery", "studio-atlas"} and page != "wizard" and not any(
+            name in scene for name in ("RikUI.Wizard", "RikUIWizard", "BeginPractice", "RikUICharacterPractice")):
+        files = {name:value for name,value in files.items() if not name.startswith("src/configuration/wizard/")}
     banner = any(name in scene for name in ("RikRenderObjectiveBanner", "RikRenderBossBanner", "RikRenderEventToast"))
     banner = banner or any(name in case.get("frame", "") for name in ("Banner", "Toast"))
     if page in GLOBAL_PAGES | {"setup-studio", "studio-gallery", "studio-atlas"} and not banner:

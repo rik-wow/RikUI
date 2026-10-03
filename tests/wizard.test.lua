@@ -75,6 +75,7 @@ return function(check)
         local state = wizard.State
         state.strafe, state.mouse45, state.layoutPreset = true, false, "hud"
         state.cvars.autoLootDefault, state.steps.macros = false, false
+        state.steps.bars, state.steps.binds, state.steps.cvars, state.steps.layout, state.keepPositions = true, true, true, true, false
         env.click(window.next)
         local call = applied[1]
         check("Apply hands setup the class, the role and every choice", call ~= nil and call.class == "WARRIOR"
@@ -96,6 +97,7 @@ return function(check)
         load()
         wizard.Open()
         wizard.State.keepPositions = true
+        wizard.State.steps.bars = true
         wizard.Go(3)
         env.click(wizard.Window.next)
         check("keeping your positions switches the layout step off", applied[1].opts.layout == false
@@ -110,9 +112,10 @@ return function(check)
         local modules = RikUI.Profile.modules
         modules.minimap = true
         wizard.State.modules.minimap = false
+        wizard.State.steps.bars = true
         wizard.Go(3)
         env.click(wizard.Window.next)
-        check("module choices are written to the profile", modules.minimap == false)
+        check("module choices wait for successful completion", modules.minimap == true)
         complete("applied")
         check("a changed module turns Close into Reload UI", wizard.Window.next.label.text == "Reload UI")
         env.click(wizard.Window.next)
@@ -151,9 +154,9 @@ return function(check)
         load()
         wizard.Open()
         local fresh = wizard.State
-        check("a fresh state has every module and setting on, Mouse 4/5 on, strafe off and the current layout",
-            fresh.class == "WARRIOR" and fresh.mouse45 == true and fresh.strafe == false and fresh.keepPositions == false
-            and fresh.layoutPreset == "centered" and fresh.cvars.autoLootDefault == true and fresh.steps.layout == true)
+        check("a fresh state keeps current positions and leaves replacement steps off",
+            fresh.class == "WARRIOR" and fresh.mouse45 == true and fresh.strafe == false and fresh.keepPositions == true
+            and fresh.layoutPreset == "centered" and fresh.cvars.autoLootDefault == true and fresh.steps.layout == false)
         env.printed = {}
         SlashCmdList.RIKUI("debug")
         check("debug reports the wizard", widgets.printedContains(env, "Wizard open=true page=1/3 done=false"))

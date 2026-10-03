@@ -10,12 +10,12 @@ core.Wizard = wizard
 local WINDOW_NAME, WIDTH, HEIGHT, PAD = "RikUIWizard", 820, 584, 20
 local HEADER_HEIGHT, FOOTER_HEIGHT, RULE_HEIGHT = 88, 44, 2
 local PAGE_FADE, STEP_GAP, STEP_HEIGHT = 0.18, 6, 30
-local STEP_LABELS = { welcome = "Welcome", role = "Role", keys = "Keybinds", layout = "Layout", modules = "Modules", summary = "Review" }
+local STEP_LABELS = { welcome = "Character", role = "Role", keys = "Keybinds", layout = "Layout", modules = "Modules", summary = "Review" }
 local STEPS = { "macros", "bars", "binds", "cvars", "layout" }
 local TEXT = { next = "Next", apply = "Apply", close = "Close", reload = "Reload UI", back = "Back", skip = "Skip setup" }
 local SKIPPED = "Setup skipped. /rik setup opens it again; /rik apply sets up without it."
 local PAUSED = "Setup paused for combat; it returns when combat ends."
-local DONE = "Done. Type /rik undo to revert everything the setup changed."
+local DONE = "Setup complete. /rik undo restores the last setup operation."
 local window, open, paused, applying, finished, reloadNeeded = nil, false, false, false, false, false
 
 function wizard.IsOpen() return open end
@@ -29,23 +29,22 @@ end
 
 local function moduleChoices()
     local choices = {}
-    for name in pairs(core.Modules) do
-        if name ~= "wizard" then choices[name] = core.Profile.modules[name] ~= false end
+    for name in pairs(core.Modules) do        if name ~= "wizard" then choices[name] = core.Profile.modules[name] ~= false end
     end
     return choices
 end
 
--- Everything on, as the design says; the layout starts on whatever the screen looks like now.
+-- A new character may belong to an experienced player. Replacements are opt-in.
 function wizard.NewState()
     local _, class = UnitClass("player")
     local marker = core.CharDB and core.CharDB.applied
     local state = { class = class, role = nil, presetName = type(marker) == "table" and marker.class == class and marker.presetName or "",
-        strafe = false, mouse45 = true, keepPositions = false,
+        path = "keep", advanced = false, strafe = false, mouse45 = true, keepPositions = true,
         layoutPreset = core.Layout.MatchingPreset and core.Layout.MatchingPreset() or nil,
         modules = moduleChoices(), cvars = {}, steps = {} }
     state.layoutPreset = state.layoutPreset or core.Layouts.Order[1]
     for _, entry in ipairs(core.CVars.List) do state.cvars[entry.name] = true end
-    for _, step in ipairs(STEPS) do state.steps[step] = true end
+    for _, step in ipairs(STEPS) do state.steps[step] = false end
     return state
 end
 
@@ -61,13 +60,12 @@ function wizard.SelectPreset(name)
         if #issues > 0 then return nil, issues[1] end
     end
     state.presetName, state.role = name, nil
-    wizard.Go(wizard.Index)
-    return true
+    wizard.Go(wizard.Index)    return true
 end
 
 function wizard.Options()
     local state = wizard.State
-    local opts = { strafe = state.strafe, mouse45 = state.mouse45, allowEmpty = true, cvarSelection = {}, presetName = state.presetName }
+    local opts = { strafe = state.strafe, mouse45 = state.mouse45, allowEmpty = true, cvarSelection = {}, presetName = state.presetName ~= "" and state.presetName or nil }
     for _, step in ipairs(STEPS) do opts[step] = state.steps[step] == true end
     for name, chosen in pairs(state.cvars) do
         if chosen then opts.cvarSelection[name] = true end
@@ -76,14 +74,51 @@ function wizard.Options()
     return opts
 end
 
+function wizard.VisiblePages()
+    local result, state = {}, wizard.State
+    for index, page in ipairs(wizard.Pages) do
+        local visible = not state or ((page.key ~= "role" and page.key ~= "keys") or state.path == "actions")
+        if page.key == "modules" then visible = state and state.advanced == true end
+        if visible then result[#result + 1] = index end
+    end
+    return result
+end
+
+function wizard.ChoosePath(path)
+    if applying or finished or (path ~= "keep" and path ~= "actions") then return false end
+    local state = wizard.State
+    if not state then return false end
+    state.path = path
+    state.steps.macros, state.steps.bars = path == "actions", path == "actions"
+    if path == "keep" then state.steps.binds = false end
+    wizard.Go(wizard.Index)
+    return true
+end
+
+local function pageNumber()
+    local route = wizard.VisiblePages()
+    for number, index in ipairs(route) do if index == wizard.Index then return number, #route end end
+    return wizard.Index, #wizard.Pages
+end
+
 local function paintSteps()
+    local route = wizard.VisiblePages()
+    local width = (WIDTH - PAD * 2 - (#route - 1) * STEP_GAP) / #route
     for index, dot in ipairs(window.stepBackings) do
+        window.stepItems[index]:Hide()
         local active, reviewed = not finished and index == wizard.Index, finished or index < wizard.Index
         dot:SetVertexColor(active and 0.1 or 0.065, active and 0.23 or 0.08, active and 0.3 or 0.11, 1)
         window.stepRails[index]:SetShown(active)
         window.stepChecks[index]:SetShown(reviewed)
         local color = (active or reviewed) and skin.INK or controls.MUTED
         window.stepLabels[index]:SetTextColor(unpack(color))
+    end
+    for number, index in ipairs(route) do
+        local item = window.stepItems[index]
+        item:ClearAllPoints(); item:SetSize(width, STEP_HEIGHT)
+        item:SetPoint("TOPLEFT", PAD + (number - 1) * (width + STEP_GAP), -42)
+        window.stepLabels[index]:SetText(number .. "  " .. (STEP_LABELS[wizard.Pages[index].key] or wizard.Pages[index].title))
+        item:Show()
     end
 end
 
@@ -94,7 +129,7 @@ local function paintFooter()
     window.next:SetDisabled(applying)
     window.back:SetDisabled(applying or finished or wizard.Index == 1)
     window.skip:SetShown(not finished)
-end
+    window.skip:SetDisabled(applying)end
 
 local function pageFrame(page)
     if page.frame then return page.frame end
@@ -118,15 +153,23 @@ function wizard.Go(index)
     frame:Show()
     motion.Play(frame.fade)
     window.title:SetText(page.title)
-    window.step:SetText("Step " .. index .. " of " .. #wizard.Pages)
+    local number, total = pageNumber()
+    window.step:SetText("Step " .. number .. " of " .. total)
     paintSteps()
     paintFooter()
     return true
 end
 
-function wizard.Back() return wizard.Go(wizard.Index - 1) end
+local function movePage(direction)
+    local route = wizard.VisiblePages()
+    for number, index in ipairs(route) do
+        if index == wizard.Index and route[number + direction] then return wizard.Go(route[number + direction]) end
+    end
+    return false
+end
 
-function wizard.Close()
+function wizard.Back() return movePage(-1) end
+function wizard.Close()
     open, paused = false, false
     if window then window:Hide() end
 end
@@ -157,13 +200,15 @@ local function stepLine(result)
     return table.concat(parts, ", ")
 end
 
-local function onComplete(result)
-    applying = false
+local function onComplete(result)    applying = false
     if result.status == "applied" then
+        reloadNeeded = writeModules(wizard.State) > 0
         finished = true
         paintSteps()
         core.CharDB.wizardDone = true
-        window.status:SetText(DONE .. "\n" .. stepLine(result) .. (reloadNeeded and "\nSwitched modules need a reload." or ""))
+        core:Changed()
+        window.status:SetText(reloadNeeded and "Module changes need a reload." or (result.unchanged and "Current setup kept." or DONE))
+        if wizard.ShowCompletion then wizard.ShowCompletion(window.content, result, reloadNeeded) end
     else
         window.status:SetText("Setup stopped: " .. tostring(result.error) .. "\nNothing after that step was changed. Go back or try again.")
     end
@@ -172,11 +217,14 @@ end
 
 function wizard.Apply()
     if applying or finished then return end
+    if InCombatLockdown() then window.status:SetText("Wait until combat ends."); return end
+    local changes = false
+    local opts = wizard.Options()
+    for _, step in ipairs(STEPS) do if opts[step] then changes = true end end
+    if not changes then onComplete({ status = "applied", unchanged = true }); return end
     applying = true
-    reloadNeeded = writeModules(wizard.State) > 0
     paintFooter()
     window.status:SetText("Applying...")
-    local opts = wizard.Options()
     opts.onComplete = onComplete
     local result, reason = core.Setup.Apply(wizard.State.class, wizard.State.role, opts)
     if not result then onComplete({ status = "failed", error = reason }) end
@@ -189,8 +237,7 @@ function wizard.Next()
         return
     end
     if wizard.Index == #wizard.Pages then return wizard.Apply() end
-    wizard.Go(wizard.Index + 1)
-end
+    movePage(1)end
 
 local function header()
     window.title = controls.Text(window, "heading", "", skin.GOLD)
@@ -209,20 +256,20 @@ local function header()
 end
 
 local function stepTrack()
-    window.stepBackings, window.stepLabels, window.stepRails, window.stepChecks = {}, {}, {}, {}
+    window.stepBackings, window.stepLabels, window.stepRails, window.stepChecks, window.stepItems = {}, {}, {}, {}, {}
     local width = (WIDTH - PAD * 2 - (#wizard.Pages - 1) * STEP_GAP) / #wizard.Pages
     for index, page in ipairs(wizard.Pages) do
         local item = CreateFrame("Frame", nil, window)
         item:SetSize(width, STEP_HEIGHT)
         item:SetPoint("TOPLEFT", PAD + (index - 1) * (width + STEP_GAP), -42)
+        window.stepItems[index] = item
         window.stepBackings[index] = skin.Fill(item)
         local label = controls.Text(item, "small", index .. "  " .. (STEP_LABELS[page.key] or page.title))
         label:SetPoint("LEFT", 8, 0); label:SetPoint("RIGHT", -24, 0)
         label:SetJustifyH("LEFT"); label:SetWordWrap(false)
         local rail = item:CreateTexture(nil, "OVERLAY")
         rail:SetTexture(skin.FLAT); rail:SetVertexColor(unpack(controls.ACCENT))
-        rail:SetPoint("BOTTOMLEFT"); rail:SetPoint("BOTTOMRIGHT"); rail:SetHeight(2)
-        local mark = item:CreateTexture(nil, "OVERLAY")
+        rail:SetPoint("BOTTOMLEFT"); rail:SetPoint("BOTTOMRIGHT"); rail:SetHeight(2)        local mark = item:CreateTexture(nil, "OVERLAY")
         mark:SetTexture(core.Media.checked); mark:SetSize(12, 12); mark:SetPoint("RIGHT", -6, 0)
         mark:SetVertexColor(unpack(controls.ACCENT))
         window.stepLabels[index], window.stepRails[index], window.stepChecks[index] = label, rail, mark
@@ -253,8 +300,7 @@ local function build()
     window:EnableMouse(true)
     window:SetClampedToScreen(true)
     window.chrome = skin.WindowChrome(window, HEADER_HEIGHT, FOOTER_HEIGHT)
-    window.fade = motion.Tween(window, 0, 1, PAGE_FADE)
-    window.content = CreateFrame("Frame", nil, window)
+    window.fade = motion.Tween(window, 0, 1, PAGE_FADE)    window.content = CreateFrame("Frame", nil, window)
     window.content:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -HEADER_HEIGHT - 12)
     window.content:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, FOOTER_HEIGHT + 8)
     header()
@@ -268,8 +314,13 @@ end
 local function show()
     if not core.Profile or #wizard.Pages == 0 then return end
     if not window then build() end
-    wizard.State = wizard.NewState()
+    local fresh = wizard.NewState()
+    if wizard.State then
+        for key in pairs(wizard.State) do wizard.State[key] = nil end
+        for key, value in pairs(fresh) do wizard.State[key] = value end
+    else wizard.State = fresh end
     open, paused, applying, finished, reloadNeeded = true, false, false, false, false
+    if wizard.Completion then wizard.Completion:Hide() end
     window.status:SetText("")
     window:Show()
     motion.Play(window.fade)
@@ -278,6 +329,8 @@ end
 
 -- Opening waits out combat: the last page's Apply could not run there anyway.
 function wizard.Open()
+    if applying then return false end
+    if wizard.EndPractice then wizard.EndPractice() end
     if open then return true end
     core.Combat.Queue(show)
     return true
@@ -285,8 +338,7 @@ end
 
 local function firstLogin()
     local character = core.CharDB
-    if open or not character or character.applied ~= nil or character.wizardDone then return end
-    wizard.Open()
+    if open or not character or character.applied ~= nil or character.wizardDone then return end    wizard.Open()
 end
 
 function wizard:OnEnable()
@@ -315,4 +367,4 @@ core:RegisterCommand("setup", function()
     wizard.Open()
 end, "Open the setup wizard")
 
-core:RegisterModule("wizard", wizard)
+core:RegisterModule("wizard", wizard)

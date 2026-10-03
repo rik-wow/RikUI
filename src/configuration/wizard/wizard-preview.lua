@@ -66,6 +66,9 @@ local function slotFrame(parent, index)
     slot:SetScript("OnEnter", function(self)
         if parent.onInspect then parent.onInspect(self.description or "Empty slot") end
     end)
+    slot:SetScript("OnMouseDown", function(self)
+        if parent.onInspect then parent.onInspect(self.description or "Empty slot") end
+    end)
     return slot
 end
 

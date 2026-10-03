@@ -5,6 +5,14 @@ from pathlib import Path
 import render
 from dependencies import addon_inputs
 class StudioChecks(unittest.TestCase):
+    def test_onboarding_pixels_only_expire_invoked_windows(self):
+        files={"src/configuration/wizard/wizard.lua":"shell",
+               "src/configuration/wizard/wizard-pages.lua":"pages","src/ui/skin.lua":"skin"}
+        for page in ("options","layout","unitframes","studio-atlas","setup-studio"):
+            self.assertEqual(addon_inputs({"page":page},files),{"src/ui/skin.lua":"skin"})
+        for case in ({"page":"wizard"},{"page":"future"},{"page":"layout","lua":"RikUI.Wizard.BeginPractice()"}):
+            self.assertEqual(addon_inputs(case,files),files)
+
     def test_fixture_literal_is_data_even_with_quotes_control_and_utf8(self):
         value='quoted " and \\; café\n\x00 after'
         literal=render.lua_data(value)

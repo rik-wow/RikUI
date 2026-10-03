@@ -3,7 +3,7 @@ const entry = (slug, title, group, modules, summary, kind, surfaces) =>
   ({ slug, title, group, modules: modules.split(" ").filter(Boolean), summary, kind, surfaces: surfaces.split("|") });
 export const catalogue = [
 entry("setup-studio","Setup Studio","Getting started","","Choose, fit, import and share real Setup Packs.","settings","Setup Studio review|Handheld presentation"),
-entry("wizard","Setup wizard","Getting started","wizard","Type /rik setup to open the wizard.","wizard","Welcome|Your role|Keybinds|Screen layout|Modules and settings|Review and apply"),
+entry("wizard","Character setup","Getting started","wizard","Keep this character’s setup or preview optional changes with /rik setup.","wizard","Choose what this character needs|Role and ability icons|Optional binding scheme|Layout choices|Optional advanced choices|Selected changes|Completion actions|Player mover and tutorial"),
 entry("options","Settings and profiles","Getting started","","Type /rik config, or click RikUI beside the minimap and choose Settings.","settings","General|Appearance settings|Independent bar settings|Module selection|Profiles|Setup and support|Settings search|Pending reload|Profile confirmation"),
 entry("layout","Move and resize frames","Getting started","","Type /rik move.","layout","Frame mover|Resize handle|Layout presets|Position nudges|Snapping settings|Native movement grid|Undo layout change"),
 entry("shell","RikUI menu","Getting started","","Click RikUI beside the minimap to open the menu.","menu","Minimap launcher|Interface actions|Tools actions|Support actions|Tracked spells"),

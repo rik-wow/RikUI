@@ -10,7 +10,7 @@ const sequences=renders.filter(render=>render.frames);
 const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
 // Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
 const placements={
- wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
+ wizard:{"wizard-1":"ref-start-with-this-character","wizard-2":"ref-preview-character-actions","wizard-3":"ref-choose-bindings-separately","wizard-4":"ref-keep-or-choose-a-layout","wizard-5":"ref-optional-modules-and-account-settings","wizard-6":"ref-review-changes","wizard-complete":"ref-optional-hands-on-tutorial","wizard-practice":"ref-optional-hands-on-tutorial"},
  options:{"options-castbars":"ref-open-settings","options-search":"ref-open-settings","options-pending":"ref-open-settings","options-confirm":"ref-profiles","options-general":"ref-appearance","options-appearance":"ref-appearance","options-bar-configuration":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
  sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile","sharing-library":"ref-remove-an-imported-preset","sharing-remove":"ref-remove-an-imported-preset"},
  unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-tot":"ref-player-and-target","units-pet":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text","units-party":"ref-party-and-raid","units-raid":"ref-party-and-raid"},
@@ -238,14 +238,16 @@ test("Lua examples serve the reviewed images with their original proportions",as
  }
  await page.goto("/docs/wizard");
  const images=page.locator("figure img.ui-example");
- await expect(images).toHaveCount(6);
+ await expect(images).toHaveCount(8);
  for(const img of await images.all()){
   await img.scrollIntoViewIfNeeded();
-  await expect(img).toHaveJSProperty("naturalWidth",WIZARD_WIDTH);
+  const practice=await img.evaluate(node=>node.closest("figure").dataset.render==="wizard-practice");
+  const width=practice?2048:WIZARD_WIDTH, height=practice?1152:WIZARD_HEIGHT;
+  await expect(img).toHaveJSProperty("naturalWidth",width);
   const geometry=await img.evaluate(node=>({w:node.getBoundingClientRect().width,h:node.getBoundingClientRect().height,filter:getComputedStyle(node).filter}));
-  expect(geometry.w/geometry.h).toBeCloseTo(WIZARD_WIDTH/WIZARD_HEIGHT,2);
+  expect(geometry.w/geometry.h).toBeCloseTo(width/height,2);
   expect(geometry.filter).toBe("none");
-  expect(geometry.w).toBeLessThanOrEqual(WIZARD_WIDTH);
+  expect(geometry.w).toBeLessThanOrEqual(width);
  } for(const slug of ["bags","unitframes"]){
   await page.goto("/docs/"+slug);
   for(const img of await page.locator("figure img.ui-example").all()){

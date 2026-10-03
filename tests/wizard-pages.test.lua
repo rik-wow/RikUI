@@ -6,6 +6,7 @@ return function(check)
     local widgets = require("widget_stub")
     local restore = widgets.install()
     local savedClass, savedLevel = UnitClass, UnitLevel
+    local savedWidth, savedHeight = UIParent.GetWidth, UIParent.GetHeight
     local FILES = { "data/spells.lua", "data/spells-hunter.lua", "data/spells-mage.lua", "data/spells-rogue.lua", "data/spells-priest.lua", "data/spells-warlock.lua", "data/spells-shaman.lua", "data/spells-paladin.lua", "data/spells-druid.lua", "data/cvars.lua", "presets/warrior.lua", "presets/hunter.lua", "presets/mage.lua", "presets/rogue.lua", "presets/priest.lua", "presets/warlock.lua", "presets/shaman.lua", "presets/paladin.lua", "presets/druid.lua", "src/character/bindings.lua", "src/setup/setup-talents.lua",
         "data/layouts.lua", "src/layout/layout-audit.lua", "src/ui/skin.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/layout/layout-presets.lua",
         "src/configuration/wizard/wizard-controls.lua", "src/configuration/wizard/wizard.lua", "src/configuration/wizard/wizard-preview.lua", "src/configuration/wizard/wizard-pages.lua" }
@@ -34,6 +35,22 @@ return function(check)
 
     local ok, reason = pcall(function()
         load()
+        local fresh = wizard.State
+        check("new character keeps character actions and account settings by default",
+            fresh.path == "keep" and fresh.keepPositions and not fresh.steps.macros
+            and not fresh.steps.bars and not fresh.steps.binds and not fresh.steps.cvars)
+        check("keep-current walkthrough has three visible decisions", #wizard.VisiblePages() == 3)
+        wizard.Next()
+        check("keep-current skips role and bindings", wizard.Pages[wizard.Index].key == "layout")
+        wizard.Back()
+        check("Back follows the visible route", wizard.Index == 1)
+        wizard.ChoosePath("actions")
+        check("character actions are explicit but bindings remain opt-in", fresh.steps.macros and fresh.steps.bars
+            and not fresh.steps.binds and #wizard.VisiblePages() == 5)
+        wizard.ChoosePath("keep")
+        check("switching back clears proposed character replacement", not fresh.steps.macros and not fresh.steps.bars and not fresh.steps.binds)
+        wizard.ChoosePath("actions")
+        fresh.steps.binds, fresh.steps.cvars, fresh.steps.layout, fresh.keepPositions, fresh.advanced = true, true, true, false, true
         local keys = {}
         for index, entry in ipairs(wizard.Pages) do keys[index] = entry.key end
         check("six pages in the order of the decisions", table.concat(keys, " ") == "welcome role keys layout modules summary")
@@ -140,6 +157,7 @@ return function(check)
         local none = page("role")
         check("a class without a preset gets an explanation instead of roles", #none.cards == 0 and wizard.State.role == nil
             and none.note.text:find("no preset for Evoker yet", 1, true) ~= nil and not none.bar:IsShown())
+        wizard.State.steps.bars = true
         local priest = page("summary").body.text
         check("and its summary says bars and macros have nothing to do", priest:find("Bars: no preset", 1, true) ~= nil, priest)
         check("no page printed anything", #env.printed == 0, env.printed[1])
@@ -194,11 +212,66 @@ return function(check)
         _, description, ready = preview.Details({ spell = "Ice Block" }, current, 60)
         check("learned status checks the selected class catalogue", ready and description:find("Learned", 1, true))
         RikUI.Spells.HighestKnownRank = savedKnown
+
+        -- Finishing the keep-current route must not replace an older restore point or applied marker.
+        load("Mage", 10)
+        local beforeUndo, beforeApplied = { sentinel = "undo" }, { class = "MAGE", role = "frost" }
+        RikUI.CharDB.undo, RikUI.CharDB.applied = beforeUndo, beforeApplied
+        local kept = wizard.State
+        wizard.Next(); wizard.Next()
+        check("short route reaches review in two clicks", wizard.Pages[wizard.Index].key == "summary"
+            and wizard.Window.step.text == "Step 3 of 3")
+        env.click(wizard.Window.next)
+        check("keep-current finish performs no setup write", #applied == 0 and RikUI.CharDB.undo == beforeUndo
+            and RikUI.CharDB.applied == beforeApplied and RikUI.CharDB.wizardDone)
+        check("completion offers optional native guidance", wizard.Completion:IsShown()
+            and wizard.Completion.detail.text:find("were kept", 1, true))
+        env.click(wizard.Window.next)
+        wizard.Open()
+        local start = page("welcome")
+        env.click(start.actionsCard)
+        check("reopened controls write the active state", wizard.State == kept and wizard.State.path == "actions"
+            and wizard.State.steps.bars)
+        local bindingPage = page("keys")
+        env.click(bindingPage.adopt)
+        check("bindings require an explicit separate choice", wizard.Options().binds)
+        env.runScript(bindingPage.tiers[1][1], "OnEnter")
+        check("interactive key preview names its proposed action", bindingPage.inspect.text:find("proposed binding", 1, true))
+        page("welcome")
+        env.click(start.keepCard)
+        check("returning to keep-current removes proposed bindings", not wizard.Options().binds and not wizard.Options().bars)
+        env.click(start.advanced)
+        check("advanced choices add only their optional page", #wizard.VisiblePages() == 4)
+        local settings = page("modules")
+        check("account setting changes remain opt-in", not wizard.Options().cvars)
+        env.click(settings.enableSettings)
+        check("account setting checkbox explicitly includes them", wizard.Options().cvars)
+        UIParent.GetWidth, UIParent.GetHeight = function() return 1365 end, function() return 768 end
+        local layout = RikUI.Layout
+        local player = CreateFrame("Frame", nil, UIParent); player:SetSize(200, 50)
+        layout.Register(player, "player", { point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=100,y=300 })
+        local target = CreateFrame("Frame", nil, UIParent); target:SetSize(200, 50)
+        layout.Register(target, "target", { point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=500,y=300 })
+        layout.SetUnlocked("target", true)
+        check("practice opens the actual player mover", wizard.BeginPractice() and layout.IsUnlocked("player")
+            and layout.Overlays.player:IsShown() and not wizard.IsOpen())
+        env.click(wizard.Practice.next)
+        check("practice locks only the frame it owns and skips an unavailable bar", not layout.IsUnlocked("player")
+            and layout.IsUnlocked("target") and wizard.Practice.body.text:find("not available", 1, true))
+        env.click(wizard.Practice.next); env.click(wizard.Practice.next)
+        check("practice finish leaves existing mover state intact", not wizard.Practice:IsShown() and layout.IsUnlocked("target"))
+        wizard.BeginPractice()
+        env.inCombat = true; env.fire("PLAYER_REGEN_DISABLED")
+        check("combat closes practice and restores owned locks", not wizard.Practice:IsShown()
+            and not layout.IsUnlocked("player") and not wizard.BeginPractice())
+        env.inCombat = false
+
         UnitClass = nil
         check("unavailable class never falls back to Warrior spells", next(RikUI.Spells.Catalog()) == nil)
 
     end)
     UnitClass, UnitLevel = savedClass, savedLevel
+    UIParent.GetWidth, UIParent.GetHeight = savedWidth, savedHeight
     restore()
     env.inCombat = false
     check("wizard pages suite completes", ok, reason)

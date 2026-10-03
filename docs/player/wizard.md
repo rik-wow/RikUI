@@ -1,47 +1,73 @@
-# Setup wizard
+# Character setup
 
-## First setup
+## Start with this character
 
-Type `/rik setup` to open the wizard. It has six pages. Work through them in order, then check the summary before clicking **Apply**. You can go back to change a choice at any time. **Skip setup** closes the wizard without applying anything; `/rik setup` brings it back. Run setup outside combat.
+RikUI opens setup once for a character that has not completed or skipped it. You can also type `/rik setup`. Keeping your current interface is the default. Nothing changes until **Apply**.
 
-### 1. Welcome
+![Choose what this character needs](render:wizard-1)
 
-The first page names your class and lists what setup will change: action bars, keybinds, macros, game settings and screen layout. Nothing is applied until the last page, and `/rik undo` reverts all of it afterwards.
+**Keep my setup** keeps actions, macros and bindings. It takes three steps: choose, review layout, then review changes.
 
-![Welcome](render:wizard-1)
+**Set up character actions** adds role and binding previews. The preset uses learned abilities and reserves later abilities. This does not automatically replace your bindings.
 
-### 2. Your role
+Check **Also review modules and game settings** only if you want those extra choices. Skip setup applies nothing and stops the automatic prompt on this character. You can reopen it later.
 
-Pick what you play. The role decides which abilities go on the bars. The preview below the choices shows each bar page; **Previous bar** and **Next bar** page through them, and dim slots are abilities you have not learned yet. Hover an ability for its name, key and learning status. You can switch roles later with `/rik role`.
+## Preview character actions
 
-![Your role](render:wizard-2)
+Choose a preset and role. Click or hover an ability to read its name and learning status. **Previous bar** and **Next bar** show other pages, including supported forms or stances. Dim icons are not learned yet.
 
-### 3. Keybinds
+![Role and ability icons](render:wizard-2)
 
-Every ability sits on a key you can reach without moving your hand: 1–5 and the keys around WASD on the main bar, the same keys with Shift for cooldowns and with Ctrl for utility. Untick **Mouse 4/5** if your mouse has no side buttons; those two abilities then use Shift-G and Ctrl-G. **Also rebind A/D to strafe** is optional.
+Key labels preview RikUI's optional binding scheme. They do not indicate that your current bindings have changed. Existing class preset coverage applies.
 
-![Keybinds](render:wizard-3)
+## Choose bindings separately
 
-### 4. Screen layout
+Keep current bindings by leaving **Replace this character's bindings with these keys** unchecked. To adopt the displayed scheme, check it explicitly. Hover a key to inspect its proposed action.
 
-Choose **Centered**, **Classic**, **HUD** or **Healer**. Each picture shows where the action bars, unit frames, cast bars, auras, minimap, chat and tracker will sit. Tick **Keep my current positions** to leave your frames where they are. You can still move single frames later with [Move frames](layout.md).
+![Optional binding scheme](render:wizard-3)
 
-![Screen layout](render:wizard-4)
+Main keys, Shift and Ctrl use separate action bars. Mouse 4/5 and A/D strafing are separate options. Without mouse side buttons, their actions use the stated keyboard fallback. Bindings are saved for this character.
 
-### 5. Modules and settings
+## Keep or choose a layout
 
-The left columns list the interface pieces RikUI replaces. Untick any you would rather keep from the game; a module change needs a reload. The right column lists the game settings the preset applies, such as camera zoom, nameplate options and auto loot. Untick a setting to leave it as it is.
+Current positions are kept by default. Clicking a layout card selects a new arrangement; **Keep my current positions** switches that change off again. These maps show frame groups, rather than live game contents.
 
-![Modules and settings](render:wizard-5)
+![Layout choices](render:wizard-4)
 
-### 6. Review and apply
+Layout and modules belong to the active profile and can affect other characters using it. You can adjust actual frames after finishing.
 
-The summary lists what **Apply** will change: macros, action bars, keybinds, game settings and layout. Untick a step to leave that part alone, click **Back** to change a choice, or click **Apply** to finish.
+## Optional modules and account settings
 
-![Review and apply](render:wizard-6)
+This page appears only when requested on the first page. Module changes need a reload. Checked game settings apply only when **Apply checked game settings** is also checked; otherwise they are kept. Game settings may affect the account.
 
-## Changing your mind
+![Optional advanced choices](render:wizard-5)
 
-Use `/rik undo` to undo the last setup. To move a few frames without running setup again, use [Move frames](layout.md).
+Module choices are written only after setup succeeds. A failed operation retains existing module flags.
 
-Turn off the **Wizard** module in Settings if you do not want it to open automatically. You can still open setup yourself.
+## Review changes
+
+Review selected operations and uncheck anything to keep. **Back** follows the chosen route. Choosing to keep everything does not replace an existing setup restore point.
+
+![Selected changes](render:wizard-6)
+
+Setup operations retain the existing `/rik undo` recovery. A failure reports where setup stopped; completed operations may already have changed. Module switches are separate profile settings.
+
+## Optional hands-on tutorial
+
+After finishing, close and play, or open the existing configuration tools.
+
+![Completion actions](render:wizard-complete)
+
+**Practice moving frames** opens the real player mover, followed by the main action bar and chat. Drag and release to save a position. Next frame moves on; Finish, Stop or Escape ends the tutorial. Shift or Alt bypasses snapping. Already-unlocked movers keep their state.
+
+![Player mover and tutorial](render:wizard-practice)
+
+Combat stops practice and locks only movers opened by the tutorial. Missing or disabled frames can be skipped. Practice adjusts current positions and does not apply another character preset.
+
+**Configure features** opens modules. **Appearance and text** opens themes, font size, contrast and density. Grid and exact coordinates are in [General settings](options.md); bar shapes are in [Bars](bars.md).
+
+## Returning later
+
+Type `/rik setup` to reopen setup. `/rik config` opens ordinary settings. Changes requiring a reload are shown before the completion button reloads.
+
+Setup waits for combat and preserves the page when interrupted. The **Wizard** module controls the automatic prompt; manual setup remains available.
