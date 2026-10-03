@@ -65,7 +65,8 @@ test("public native component bytes match reviewed hashes and private client inp
  expect(data.reviewOnly).toBe(false);expect(Object.keys(data.atlases)).toHaveLength(6);
  for(const atlas of Object.values(data.atlases))for(const component of Object.values(atlas.components)){
   const image=await request.get(component.url);expect(image.status()).toBe(200);
-  expect(createHash("sha256").update(await image.body()).digest("hex")).toBe(component.sha256);
+  // Public lossless crops have their own byte hash; source capture SHA remains unchanged provenance.
+  expect(createHash("sha256").update(await image.body()).digest("hex")).toBe(component.bitmap?.sha256??component.sha256);
  }
  for(const path of ["/assets/forever-20260927/spells/holy_light.png","/assets/studio/WowB.exe","/assets/studio/forever-source.lua"])expect((await request.get(path)).status()).toBe(404);
 });
