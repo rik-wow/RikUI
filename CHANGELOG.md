@@ -9,6 +9,28 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.7
+
+2026-10-02. Character clearance and consistent Studio controls for WoW: Forever beta.
+
+- Reserve screen-center character viewing space in the shared addon/browser fitting engine.
+  Update all four curated packs to revision 2, keep the combat column beside the character,
+  and fit persistent frames around it. Preserve personal positions and explain obstructions.
+  Small desktop screens with full chat and raid panels can still require fewer parts or handheld presentation.
+- Reuse RikUI's actual Settings dropdowns throughout native Studio, including arrow textures,
+  checked choices, scrolling, keyboard selection/cancellation and outside dismissal.
+  Keep existing shared wizard buttons, checkboxes and cards.
+- Mark character viewing space in authentic browser previews. Make explicit reset remove
+  imported personal position adjustments without rewriting their source; preserve undo/redo
+  and addon-importable exports.
+- Generate all 55 public guides from canonical Markdown, with release-derived installation
+  links and checked source/output hashes. Remove duplicate JavaScript guide bodies, correct
+  stale Studio/profile instructions and repair desktop/mobile sidebar and page navigation.
+- Review 23 changed authentic Lua images and desktop/mobile browser screenshots.
+  Preview coverage remains representative: dynamic contents, world characters and optional
+  addon widgets are explicit limits. Floating windows can temporarily cover character space.
+
+
 ## 1.0.0-beta.6
 
 2026-10-02. Guided Setup Studio for WoW: Forever beta.
