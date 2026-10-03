@@ -39,9 +39,28 @@ export class StudioModel {
   const xs=[8,this.viewport.width-r.width-8,this.viewport.width/2-r.width/2],ys=[8,this.viewport.height-r.height-8];
   for(const g of Array.from(resolved.groups||[]))if(g.key!==key){xs.push(g.rect.x,g.rect.x+g.rect.width+8,g.rect.x-r.width-8);ys.push(g.rect.y,g.rect.y+g.rect.height+8,g.rect.y-r.height-8);}
   const snap=(v,lines)=>lines.reduce((best,line)=>Math.abs(line-v)<6?line:best,Math.round(v/8)*8);
-  this.change(s=>{s.overrides.positions??={};delete s.resetPositions[key];s.overrides.positions[key]={point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:Math.round(snap(x,xs)/scale*1000)/1000,y:Math.round(snap(y,ys)/scale*1000)/1000};});
+  this.change(s=>{s.overrides.positions??={};delete s.resetPositions[key];s.overrides.positions[key]={point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:Math.round((snap(x,xs)/scale+(entry.geometry?.padding?.left||0))*1000)/1000,y:Math.round((snap(y,ys)/scale+(entry.geometry?.padding?.bottom||0))*1000)/1000};});
  }
  reset(key){this.change(s=>{if(s.overrides.positions)delete s.overrides.positions[key];if(s.source.adjustments?.positions?.[key])s.resetPositions[key]=true;});}
+ optimize(){
+  const {value,options}=this.optimizationInputs();
+  const result=this.engine.call("Optimize",value,options);this.applyOptimization(result);return result;
+ }
+ optimizationInputs(){
+  const overrides=clone(this.overrides);
+  if(!this.selected.appearance){const base={...this.engine.call("Theme","classic"),textScale:1,scale:1,...this.baseline};for(const k of ["theme","font","borderColor","textScale","scale"])overrides[k]=base[k];}
+  return {value:this.resolve().effectivePack,options:{overrides,components:this.selected,viewport:this.viewport,device:this.device,activity:this.activity,accessibility:accessibility[this.accessibility],
+   reservations:this.source.integration==="questtogether"&&this.integrationPresent?[{x:8,y:this.viewport.height-200,width:320,height:180}]:[]}};
+ }
+ applyOptimization(result){
+  if(Array.from(result.changes||[]).length)this.change(s=>{s.overrides=result.overrides;});
+ }
+ setBar(key,field,value){
+  if(!["main","bar2","bar3","bar4","bar5","stance","pet"].includes(key)||!["columns","size","spacing"].includes(field))throw Error("Unsupported bar setting");
+  if(!this.selected.hud||this.resolve().effectivePack.ownership.hud!=="rikui")throw Error("Adopt Combat HUD to edit action bars.");
+  this.change(s=>{s.overrides.barLayout??={};s.overrides.barLayout[key]??={};s.overrides.barLayout[key][field]=Number(value);});
+ }
+ resetBar(key){this.change(s=>{if(s.overrides.barLayout)delete s.overrides.barLayout[key];});}
  setModule(name,on){
   const choice=this.moduleChoices.find(c=>c.key===name);if(!choice)throw Error("Unknown feature");
   if(!Array.from(choice.components).some(c=>this.selected[c]&&this.resolve().effectivePack.ownership[c]==="rikui"))throw Error("Adopt this feature’s area before changing it.");

@@ -4,7 +4,7 @@ import {createEngine} from "./pack-engine.mjs";
 import {StudioModel,components} from "./studio-model.mjs";
 import {componentAppearanceCovered} from "./preview-coverage.mjs";
 import {renderModules} from "./studio-modules.mjs";
-import {labelFor,paintPlacement,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
+import {labelFor,paintPlacement,paintGrid,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
 const $=id=>document.getElementById(id);
 const status=$("studio-status"),root=$("studio-app");
 const message=text=>{status.textContent=text;if($("workspace-status"))$("workspace-status").textContent=text;};
@@ -79,7 +79,25 @@ async function render(){
   const atlas=structuredClone(data.atlases[key+"-"+readability]);
   if(profile.questtracker?.collapsed)atlas.components.questtracker=atlas.components.questtrackerCollapsed;
   if(profile.modules?.unitauras===false)for(const key of ["target","focus","petframe"])atlas.components[key]=atlas.components[key+"NoUnitAuras"];
-  const covered=g=>!!atlas.components[g.key]&&componentAppearanceCovered(g.key,profile,model.engine,key);
+  const gridSprite=g=>g.geometry?.grid&&atlas.grids?.[g.geometry.grid.size]?.[g.key];
+  const covered=g=>!!(gridSprite(g)||atlas.components[g.key])&&componentAppearanceCovered(g.key,profile,model.engine,key)&&
+   (!g.geometry?.grid||(!!gridSprite(g)&&g.geometry.grid.count<=gridSprite(g).cells.count));
+  const picked=groups.find(g=>g.key===selectedKey),barShape=model.engine.call("BarOptions",selectedKey||"main",profile);
+  const isBar=["main","bar2","bar3","bar4","bar5","stance","pet"].includes(selectedKey);
+  $("frame-shape").hidden=!isBar;
+  if(isBar){
+   $("frame-shape-title").textContent=labelFor(selectedKey)+" · shape";
+   for(const field of ["columns","size","spacing"]){
+    const control=$("bar-"+field);
+    if(field==="size"&&!Array.from(control.options).some(o=>Number(o.value)===barShape.size)){
+     const option=document.createElement("option");option.value=barShape.size;option.textContent=barShape.size+" · imported (geometry only)";control.append(option);
+    }
+    control.value=barShape[field];control.disabled=!model.selected.hud||resolved.effectivePack.ownership.hud!=="rikui";
+   }
+   $("bar-columns").max=["pet","stance"].includes(selectedKey)?10:12;
+   const grid=picked?.geometry?.grid;
+   $("shape-summary").textContent=grid?grid.columns+" columns × "+grid.rows+" rows · "+grid.count+" actions · "+grid.width+" × "+grid.height+" units. "+(covered(picked)?"Authentic native button sample.":"Exact appearance not captured; labeled footprint shows applied geometry."):"Choose a supported native bar shape to replace this observed rectangle.";
+  }
   const shown=g=>sampleEnabled(g.key,profile,model.engine)&&covered(g)&&sampleShown(g.key,model.activity,selectedKey,$("show-conditional").checked);
   const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
   $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
@@ -89,18 +107,21 @@ async function render(){
   const drawn=groups.filter(shown);
   await renderModules({model,data,resolved,atlas,loadImage,selectedKey,selectGroup,toggle:(name,on)=>operation(()=>model.setModule(name,on),"Feature choice staged. Reload RikUI after applying to activate module changes.")});if(epoch!==renderEpoch)return;
   const canvas=$("game-preview"),ctx=canvas.getContext("2d");
-  const nextPaint=JSON.stringify([model.viewport,profile.scale,$("world-background").value,drawn.map(g=>[g.key,g.rect,atlas.components[g.key].url]),showPlates&&atlas.components.nameplates?.url]);
+  const nextPaint=JSON.stringify([model.viewport,profile.scale,$("world-background").value,drawn.map(g=>[g.key,g.rect,g.geometry?.grid,(gridSprite(g)||atlas.components[g.key]).url]),showPlates&&atlas.components.nameplates?.url]);
   if(nextPaint!==paintStamp){
   canvas.dataset.previewReady="false";
-  const bitmap=new Map(await Promise.all([...drawn,...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage(atlas.components[g.key].url)])));if(epoch!==renderEpoch)return;
+  const bitmap=new Map(await Promise.all([...drawn,...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage((gridSprite(g)||atlas.components[g.key]).url)])));if(epoch!==renderEpoch)return;
   canvas.width=model.viewport.width;canvas.height=model.viewport.height;
   const background=await paintBackground(ctx,data.background,$("world-background").value,loadImage,()=>epoch===renderEpoch);if(epoch!==renderEpoch)return;
   canvas.dataset.background=background;
   $("background-status").textContent=background==="unavailable"?"Screenshot unavailable. Editing continues on a plain backdrop.":background==="plain"?"Plain backdrop; changes only this browser’s preview.":"Supplied game screenshot · centered crop for this screen · changes only this browser’s preview.";
   const scale=profile.scale||1;paintedKeys=new Set(drawn.map(g=>g.key));
   for(const g of drawn){
-   const c=atlas.components[g.key],p=paintPlacement(c,g.rect,scale,canvas.height);
-   ctx.drawImage(bitmap.get(g.key),p.sx,p.sy,p.width,p.height,p.x,p.y,p.drawWidth,p.drawHeight);
+   if(gridSprite(g))paintGrid(ctx,bitmap.get(g.key),gridSprite(g),g,scale,canvas.height);
+   else {
+    const c=atlas.components[g.key],p=paintPlacement(c,g.bodyRect||g.rect,scale,canvas.height);
+    ctx.drawImage(bitmap.get(g.key),p.sx,p.sy,p.width,p.height,p.x,p.y,p.drawWidth,p.drawHeight);
+   }
   }
   if(showPlates&&atlas.components.nameplates){
    const c=atlas.components.nameplates,p=paintPlacement(c,{x:canvas.width/2-c.width*scale/2,y:canvas.height*0.7},scale,canvas.height);
@@ -111,7 +132,7 @@ async function render(){
   renderAnnotations(groups,conflicts,covered);
   canvas.dataset.paintedGroups=JSON.stringify([...paintedKeys]);canvas.dataset.previewReady="true";
   canvas.setAttribute("aria-label","Authentic RikUI preview. Selected group "+(selectedKey||"none")+". Use frame controls or arrow keys to adjust it.");
-  $("geometry").textContent=selectedKey?(()=>{const r=groups.find(g=>g.key===selectedKey).rect;return selectedKey+": "+Math.round(r.x)+", "+Math.round(r.y)+" · "+Math.round(r.width)+" × "+Math.round(r.height);})():"No selected movable groups.";
+  $("geometry").textContent=selectedKey?(()=>{const entry=groups.find(g=>g.key===selectedKey),r=entry.rect;return labelFor(selectedKey)+": "+Math.round(r.x)+", "+Math.round(r.y)+" · "+Math.round(r.width)+" × "+Math.round(r.height)+(entry.geometry?.note?" · "+entry.geometry.note:"");})():"No selected movable groups.";
  }catch(error){message(error.message);}
 }
 
@@ -161,6 +182,7 @@ async function copy(text){try{await navigator.clipboard.writeText(text);message(
 async function start(){
  try{
   setupWorkspace(root,message);
+  $("geometry").before($("frame-shape"));
   const response=await fetch(root.dataset.source);if(!response.ok)throw Error("Editor data is unavailable. Use a gallery import code or install RikUI directly.");
   data=await response.json();model=new StudioModel(createEngine(data.sources.map(s=>s.source)));model.choose("centered");
   const name=new URL(location.href).searchParams.get("pack");if(data.packs.some(p=>p.name===name))model.choose(name,data.packs.find(p=>p.name===name).pack);
@@ -169,6 +191,33 @@ async function start(){
   setOptions($("pack-picker"),[["","Imported / custom"],...data.packs.map(p=>[p.name,p.pack.title])]);
   for(const c of components)$("part-"+c).addEventListener("change",e=>operation(()=>model.change(s=>{s.selected[c]=e.target.checked;}),"Component choice staged."));
   const choose=name=>operation(()=>model.choose(name,data.packs.find(p=>p.name===name).pack),"Starting setup selected. Continue to choose parts.");
+  for(const field of ["columns","size","spacing"])$("bar-"+field).onchange=e=>operation(()=>model.setBar(selectedKey,field,e.target.value),"Bar shape staged; actions and bindings preserved.");
+  let optimizing=false;
+  $("optimize-shapes").onclick=async()=>{
+   if(optimizing)return;
+   optimizing=true;$("optimize-shapes").disabled=true;
+   message("Trying bar shapes… You can keep editing while this runs.");
+   const stamp=JSON.stringify(model.snapshot());let worker,timer;
+   try {
+    if(typeof Worker!=="function")throw Error("Optimization is unavailable in this browser. Independent bar controls remain available.");
+    worker=new Worker(data.optimizerURL,{type:"module"});
+    const {value,options}=model.optimizationInputs();
+    const result=await new Promise((resolve,reject)=>{
+     timer=setTimeout(()=>reject(Error("Optimization reached its time limit. Your setup is unchanged; use the bar controls to continue.")),15000);
+     worker.onmessage=e=>e.data.error?reject(Error(e.data.error)):resolve(e.data.result);
+     worker.onerror=()=>reject(Error("Optimization could not run. Your setup is unchanged."));
+     worker.postMessage({sources:data.sources.map(s=>s.source),pack:value,options});
+    });
+    if(JSON.stringify(model.snapshot())!==stamp){message("Your setup changed during optimization. Kept your newer edits.");return;}
+    model.applyOptimization(result);
+    const changes=Array.from(result.changes||[]);
+    const summary=changes.length?changes.map(c=>labelFor(c.key)+": "+c.before+" → "+c.after+" buttons per row").join("; ")+". Undo restores your previous arrangement.":
+     "No better column arrangement found. Your personal shapes, button sizes and bindings are preserved. Remaining conflicts need manual adjustment.";
+    $("optimization-summary").textContent=summary;message(summary);render();
+   }catch(error){message(error.message);}
+   finally{clearTimeout(timer);worker?.terminate();optimizing=false;$("optimize-shapes").disabled=false;}
+  };
+  $("bar-shape-reset").onclick=()=>operation(()=>model.resetBar(selectedKey),"Setup shape restored.");
   $("pack-picker").onchange=e=>{if(e.target.value)choose(e.target.value);};
   for(const b of document.querySelectorAll("[data-pack]"))b.onclick=()=>choose(b.dataset.pack);
   for(const b of document.querySelectorAll("[data-step]"))b.onclick=()=>workflow(b.dataset.step);

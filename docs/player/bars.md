@@ -2,7 +2,7 @@
 
 ## Arrange your bars
 
-RikUI provides three action rows and two side columns, with separate stance and pet controls. Use `/rik move` to place each group.
+RikUI starts with three action rows and two side columns, with separate stance and pet controls. Use `/rik move` to place each group. Every bar can have a different number of buttons per row, button size and spacing; these are independent of its action page and bindings.
 
 ![Main action row](render:bars-main)
 
@@ -15,6 +15,14 @@ The two side columns hold the same kind of buttons in a vertical arrangement.
 ![Right action column](render:bars-right) ![Left action column](render:bars-left)
 
 Your normal action-bar keys and buttons still work. Drag spells and items onto buttons outside combat.
+
+## Change each bar's shape
+
+Open **Settings → Bars and layout**, or select a bar in **Setup Studio → Layout → Shape selected bar**. Choose 1–12 buttons per row for action bars, or up to 10 for pet/stance controls; buttons range from 24–64 units with 0–16 units between them. Actions wrap left to right and retain slot order. Protected geometry waits until combat ends and does not require a reload.
+
+The [online Studio](https://rikwow.com/studio) offers independent grids with authentic button samples at sizes 30, 36, 42 and 48. Other imported sizes retain their exact geometry and are identified as uncaptured appearance. **Find a better bar arrangement** tries alternate column counts for unedited bars without shrinking your buttons or changing your bindings. Personal shapes remain yours, and Undo restores the prior arrangement.
+
+![Independent bar grids](render:bars-independent-grids)
 
 ## Labels and empty slots
 

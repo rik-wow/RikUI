@@ -6,6 +6,19 @@ import {sourcePaths} from "./pack-sources.mjs";
 import {StudioModel} from "./studio-model.mjs";
 import {sampleAppearanceCovered,componentAppearanceCovered} from "./preview-coverage.mjs";
 const engine=()=>createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
+test("independent grid edits undo, preserve source, and round-trip exact configured bounds",()=>{
+ const e=engine(),m=new StudioModel(e);m.choose("centered");const source=e.call("Encode",m.source);
+ m.setBar("main","columns",4);m.setBar("main","size",42);m.setBar("main","spacing",2);
+ m.setBar("bar2","columns",6);
+ let r=m.resolve(),main=Array.from(r.groups).find(g=>g.key==="main"),bar2=Array.from(r.groups).find(g=>g.key==="bar2");
+ assert.equal(main.rect.width,174);assert.equal(main.rect.height,130);assert.equal(bar2.geometry.grid.columns,6);
+ const restored=new StudioModel(e);restored.import(m.export());
+ assert.deepEqual(restored.resolve().profile.barLayout,r.profile.barLayout);assert.equal(e.call("Encode",m.source),source);
+ m.undo();assert.equal(m.resolve().profile.barLayout.bar2,undefined);m.undo(true);assert.equal(m.resolve().profile.barLayout.bar2.columns,6);
+ assert.throws(()=>m.setBar("main","columns",13));assert.equal(m.resolve().profile.barLayout.main.columns,4);
+ const before=structuredClone(m.overrides.barLayout);m.optimize();assert.equal(m.overrides.barLayout.main.columns,before.main.columns);assert.equal(m.overrides.barLayout.bar2.columns,before.bar2.columns);
+ m.resetBar("main");assert.equal(m.resolve().profile.barLayout.main,undefined);
+});
 test("individual module switches preserve source, remove disabled space, and round-trip with dependency and ownership rules",()=>{
  const e=engine(),m=new StudioModel(e);m.choose("centered");const original=e.call("Encode",m.source);
  assert.equal(m.moduleChoices.length,46);m.setModule("chat",false);

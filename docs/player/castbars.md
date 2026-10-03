@@ -23,7 +23,7 @@ Use `/rik move` to reposition each one.
 
 ## Change the size
 
-Open **Settings → Castbars**. Width ranges from 75% to 150%, and height from 16 to 36 pixels. Reload after changing the size.
+Open **Settings → Castbars**. Width ranges from 75% to 150%, and height from 16 to 36 pixels. Geometry takes effect outside combat without reloading. Setup Studio fitting uses these configured dimensions.
 
 **Show remaining cast time** takes effect immediately. Turning it off hides the number while the progress bar keeps running.
 

@@ -4,7 +4,17 @@ import {createEngine} from "./pack-engine.mjs";
 import {sourcePaths} from "./pack-sources.mjs";
 const shared=createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
 import assert from "node:assert/strict";
-import {paintPlacement,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
+import {paintPlacement,paintGrid,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
+test("native button pixels reflow without stretching labels or borrowing other action slots",()=>{
+ const calls=[],ctx={drawImage:(...args)=>calls.push(args)},image={};
+ const sprite={x:8,y:700,width:186,height:138,atlasHeight:1400,cells:{count:12,columns:4,size:42,spacing:6}};
+ const entry={rect:{x:100,y:100,width:278,height:86},geometry:{grid:{count:12,columns:6,size:42,spacing:5}}};
+ paintGrid(ctx,image,sprite,entry,1,1080);
+ assert.equal(calls.length,12);
+ assert.deepEqual(calls[4],[image,8,610,42,42,288,894,42,42]);
+ assert.deepEqual(calls[6],[image,104,610,42,42,100,941,42,42]);
+ assert.throws(()=>paintGrid(ctx,image,sprite,{...entry,geometry:{grid:{count:12,columns:6,size:36,spacing:5}}},1,1080),/exact/);
+});
 test("paint extents retain native children beyond a holder without stretching its root",()=>{
  const c={x:100,y:100,width:200,height:18,atlasHeight:300,paint:{x:98,y:180,width:204,height:34}};
  const p=paintPlacement(c,{x:600,y:80,width:230,height:21},1.15,800);

@@ -9,6 +9,18 @@ export function paintPlacement(component,rect,scale,canvasHeight){
   y:canvasHeight-rect.y-(component.atlasHeight-paint.y-component.y)*scale,
   drawWidth:paint.width*scale,drawHeight:paint.height*scale};
 }
+// Reflow authentic native button pixels using the grid supplied by the shared Lua model.
+export function paintGrid(ctx,image,sprite,entry,scale,canvasHeight){
+ const source=sprite.cells,grid=entry.geometry.grid,body=entry.bodyRect||entry.rect;
+ if(grid.size!==source.size||grid.count>source.count)throw Error("No exact native grid sample");
+ for(let i=0;i<grid.count;i++){
+  const sx=sprite.x+(i%source.columns)*(source.size+source.spacing);
+  const sy=sprite.atlasHeight-sprite.y-sprite.height+Math.floor(i/source.columns)*(source.size+source.spacing);
+  const x=body.x+(i%grid.columns)*(grid.size+grid.spacing)*scale;
+  const y=canvasHeight-body.y-body.height+Math.floor(i/grid.columns)*(grid.size+grid.spacing)*scale;
+  ctx.drawImage(image,sx,sy,grid.size,grid.size,x,y,grid.size*scale,grid.size*scale);
+ }
+}
 const overlaps=(a,b)=>a.x<b.x+b.width+7.998 && a.x+a.width+7.998>b.x && a.y<b.y+b.height+7.998 && a.y+a.height+7.998>b.y;
 export function fitDetails(resolved,viewport){
  const groups=Array.from(resolved.groups||[]);

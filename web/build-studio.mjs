@@ -43,7 +43,20 @@ for(const theme of ["classic","ocean","ink"])for(const readability of ["standard
    for(const [key,geometry]of Object.entries(c.components))components[key+(prefix==="studio-unitauras-off-"?"NoUnitAuras":"")]={...geometry,paint,bitmap:c.bitmap,url:c.url,atlasHeight:c.height,sha256:c.sha256};
   }
  }
- atlases[theme+"-"+readability]={components};
+ const gridRecord=manifest.renders.find(c=>c.id==="studio-grids-"+theme+"-"+readability),grids={};
+ if(!gridRecord?.frames||gridRecord.frames.length!==4)throw Error("Missing native grid captures");
+ for(const frame of gridRecord.frames){
+  const capture=await asset(gridRecord.id,frame),size=Number(frame.value),sprites={};
+  for(const [key,geometry] of Object.entries(capture.components||{})){
+   const columns=Math.min(4,Math.round((geometry.width+6)/(size+6))),rows=Math.round((geometry.height+6)/(size+6));
+   const count=key==="stance"?columns: key==="pet"?10:12;
+   if(columns<1||rows!==Math.ceil(count/columns))throw Error("Native grid bounds disagree: "+key);
+   sprites[key]={...geometry,url:capture.url,atlasHeight:capture.height,
+    cells:{count,columns,size,spacing:6},bitmap:{x:0,y:0}};
+  }
+  grids[size]=sprites;
+ }
+ atlases[theme+"-"+readability]={components,grids};
 }
 const collection=JSON.parse(await readFile(new URL("./setup-collection.json",import.meta.url),"utf8"));
 if(collection.version!==1||!Array.isArray(collection.packs)||collection.packs.length<1||collection.packs.length>32)throw Error("Invalid curated collection");
@@ -76,7 +89,10 @@ const {record:world,raw:worldBytes}=await reviewedWorld();
 const worldURL="/assets/studio/background-"+world.sha256.slice(0,12)+".jpg";
 await writeFile(new URL("./public"+worldURL,import.meta.url),worldBytes);assets.push(worldURL);
 const background={url:worldURL,width:world.width,height:world.height,sha256:world.sha256,caption:world.caption,source:"User-supplied game screenshot. Fixed image shared by all setups, devices and sample scenes; its original character and overhead names remain part of the image."};
-const data={version:1,reviewOnly,background,modules,sources:sourcePaths.map((path,i)=>({path,sha256:hash(sources[i]),source:sources[i]})),atlases,packs,
+const optimizerBuild=await build({entryPoints:[fileURLToPath(new URL("./studio-optimizer-worker.mjs",import.meta.url))],bundle:true,platform:"browser",format:"esm",write:false,minify:true,define:{"process":"undefined","process.env.FENGARICONF":"undefined"},external:["fs","path","os","crypto","child_process"]});
+const optimizerBytes=optimizerBuild.outputFiles[0].contents,optimizerURL="/assets/studio/optimizer-"+hash(optimizerBytes).slice(0,12)+".js";
+await writeFile(new URL("./public"+optimizerURL,import.meta.url),optimizerBytes);assets.push(optimizerURL);
+const data={version:1,reviewOnly,background,modules,optimizerURL,sources:sourcePaths.map((path,i)=>({path,sha256:hash(sources[i]),source:sources[i]})),atlases,packs,
  limitations:["Representative player data is fixture data, not your character.","Dynamic quest, target aura and inventory contents may grow beyond the sample. Review fitting conflicts in the addon.","Only captured coordinated themes and text sizes have appearance previews. Other imported settings are preserved and identified.","QuestTogether uses a compatibility recipe, not a styling API. Missing addons retain RikUI ownership."]};
 const dataText=JSON.stringify(data),dataURL="/assets/studio/data-"+hash(dataText).slice(0,12)+".json";
 await writeFile(new URL("./public"+dataURL,import.meta.url),dataText);assets.push(dataURL);

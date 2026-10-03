@@ -9,7 +9,7 @@ const sequences=renders.filter(render=>render.frames);
 const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
 // Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
 const placements={
- "setup-studio":{"studio-controls":null,"studio-handheld":null,"studio-theme-review":null,"studio-edit-undo":null,"studio-live-export":null,"studio-try-on":null},
+ "setup-studio":{"studio-bar-shapes-editor":null,"studio-controls":null,"studio-handheld":null,"studio-theme-review":null,"studio-edit-undo":null,"studio-live-export":null,"studio-try-on":null},
  wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
  options:{"options-castbars":"ref-open-settings","options-search":"ref-open-settings","options-pending":"ref-open-settings","options-confirm":"ref-profiles","options-general":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
  sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile","sharing-library":"ref-remove-an-imported-preset","sharing-remove":"ref-remove-an-imported-preset"},
@@ -24,7 +24,7 @@ const placements={
  "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-rogue":"ref-your-class-in-the-column","hud-shaman":"ref-your-class-in-the-column","hud-druid":"ref-your-class-in-the-column","hud-scale":"ref-scale-the-hud"},
  cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip","cooldowns-viewer":"ref-your-cooldown-strip","cooldowns-class":"ref-your-cooldown-strip","cooldowns-rows":"ref-your-cooldown-strip","cooldowns-counter":"ref-your-cooldown-strip","cooldowns-tracked":"ref-choose-tracked-spells"},
  swingtimer:{"swing-main-hand":"ref-weapon-swings","swing-off-hand":"ref-weapon-swings","swing-ranged":"ref-weapon-swings","swing-move":"ref-ranged-movement-cues","swing-stop":"ref-ranged-movement-cues","swing-unknown":"ref-ranged-movement-cues"},
- bars:{"bars-main":"ref-arrange-your-bars","bars-secondary":"ref-arrange-your-bars","bars-third":"ref-arrange-your-bars","bars-right":"ref-arrange-your-bars","bars-left":"ref-arrange-your-bars","bars-ghost":"ref-labels-and-empty-slots","bars-page":"ref-pages-stances-and-pets","bars-stance-page":"ref-pages-stances-and-pets","bars-stance":"ref-pages-stances-and-pets","bars-pet":"ref-pages-stances-and-pets"},
+ bars:{"bars-independent-grids":"ref-change-each-bar-39-s-shape","bars-main":"ref-arrange-your-bars","bars-secondary":"ref-arrange-your-bars","bars-third":"ref-arrange-your-bars","bars-right":"ref-arrange-your-bars","bars-left":"ref-arrange-your-bars","bars-ghost":"ref-labels-and-empty-slots","bars-page":"ref-pages-stances-and-pets","bars-stance-page":"ref-pages-stances-and-pets","bars-stance":"ref-pages-stances-and-pets","bars-pet":"ref-pages-stances-and-pets"},
  auras:{"auras-buffs":"ref-player-buffs-and-debuffs","auras-debuffs":"ref-player-buffs-and-debuffs","auras-target":"ref-target-pet-and-focus","auras-pet":"ref-target-pet-and-focus","auras-focus":"ref-target-pet-and-focus"},
  "class-effects":{"effects-player":"ref-follow-your-class-effects","effects-target":"ref-follow-your-class-effects"},
  personalresource:{"prd-health":"ref-personal-resource-display","prd-power":"ref-personal-resource-display"},
