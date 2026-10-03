@@ -1,4 +1,8 @@
 import test from "node:test";
+import {readFileSync} from "node:fs";
+import {createEngine} from "./pack-engine.mjs";
+import {sourcePaths} from "./pack-sources.mjs";
+const shared=createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
 import assert from "node:assert/strict";
 import {paintPlacement,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
 test("paint extents retain native children beyond a holder without stretching its root",()=>{
@@ -28,7 +32,7 @@ test("scene visibility keeps inventory and inactive samples out of exploration w
  assert.equal(sampleShown("casttarget","exploration","casttarget"),true);
  assert.equal(sampleShown("loot","exploration","main",true),true);
  assert.equal(sampleShown("chat","exploration","main"),true);
- assert.equal(sampleEnabled("chat",{modules:{chat:false}}),false);
- assert.equal(sampleEnabled("main",{modules:{bars:false}}),false);
- assert.equal(sampleEnabled("main",{presentation:{hidden:{main:true}}}),false);
+ assert.equal(sampleEnabled("chat",{modules:{chat:false}},shared),false);
+ assert.equal(sampleEnabled("main",{modules:{bars:false}},shared),false);
+ assert.equal(sampleEnabled("main",{presentation:{hidden:{main:true}}},shared),false);
 });

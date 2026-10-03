@@ -39,5 +39,16 @@ function RikUI.SetupPack.Conformance()
     local floating=p.Copy(sample);floating.groups.target.floating=true
     assert(#assert(p.Resolve(floating,{overrides=override})).conflicts==0)
     local cyclic={};cyclic.self=cyclic;assert(not p.Validate(cyclic))
-    return {canonical=assert(p.Encode(canonical)),code=code,fitted=RikUI.Codec.Encode(fitted,true),readable=RikUI.Codec.Encode(readable,true),update=RikUI.Codec.Encode(update,true)}
+    local choices=p.ModuleChoices();assert(#choices==46)
+    local moduleSample=p.Copy(sample);moduleSample.profile.modules={bars=false}
+    local off=assert(p.Resolve(moduleSample,{overrides={positions={main={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=-1000,y=-1000}}}}))
+    assert(#off.disabledGroups==1 and off.disabledGroups[1].key=="main")
+    assert(off.profile.positions.main.x==-1000 and #off.conflicts==0)
+    assert(not p.GroupEnabled("main",off.profile) and p.GroupEnabled("target",off.profile))
+    local blocked=assert(p.Resolve(sample,{overrides={modules={unitframes=false,unitauras=true}}}))
+    assert(not p.ModuleEnabled(blocked.profile,"unitauras") and #blocked.disabledGroups==1)
+    local flags=assert(p.SetModule({modules={unitframes=false}},"unitauras",true))
+    assert(flags.modules.unitframes and flags.modules.unitauras)
+    assert(not p.SetModule({},"unknown",true) and not p.SetModule({},"chat","on"))
+    return {modules=RikUI.Codec.Encode({choices=choices,off=off,blocked=blocked,flags=flags},true),canonical=assert(p.Encode(canonical)),code=code,fitted=RikUI.Codec.Encode(fitted,true),readable=RikUI.Codec.Encode(readable,true),update=RikUI.Codec.Encode(update,true)}
 end

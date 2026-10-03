@@ -6,6 +6,22 @@ import {sourcePaths} from "./pack-sources.mjs";
 import {StudioModel} from "./studio-model.mjs";
 import {sampleAppearanceCovered,componentAppearanceCovered} from "./preview-coverage.mjs";
 const engine=()=>createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
+test("individual module switches preserve source, remove disabled space, and round-trip with dependency and ownership rules",()=>{
+ const e=engine(),m=new StudioModel(e);m.choose("centered");const original=e.call("Encode",m.source);
+ assert.equal(m.moduleChoices.length,46);m.setModule("chat",false);
+ let r=m.resolve();assert.equal(r.profile.modules.chat,false);assert.ok(!Array.from(r.groups).some(g=>g.key==="chat"));
+ assert.ok(Array.from(r.disabledGroups).some(g=>g.key==="chat"));assert.equal(e.call("Encode",m.source),original);
+ const n=new StudioModel(e);n.import(m.export());assert.equal(n.resolve().profile.modules.chat,false);
+ m.undo();assert.notEqual(m.resolve().profile.modules.chat,false);m.undo(true);assert.equal(m.resolve().profile.modules.chat,false);
+ m.change(s=>{s.selected.appearance=false;});assert.throws(()=>m.setModule("chat",true),/Adopt/);
+ m.choose("centered");m.change(s=>{s.selected.group=false;});assert.throws(()=>m.setModule("unitframes",false),/shared/);
+ m.change(s=>{s.selected.group=true;});m.setModule("unitauras",false);m.setModule("unitframes",false);assert.ok(!Array.from(m.resolve().groups).some(g=>["player","target","party","raid"].includes(g.key)));
+ m.setModule("unitauras",true);assert.equal(m.resolve().profile.modules.unitframes,true);
+ m.setModule("unitframes",false);assert.ok(Array.from(m.resolve().conflicts).some(c=>c.key==="module.unitauras"));
+ m.setModule("unitauras",false);assert.ok(!Array.from(m.resolve().conflicts).some(c=>c.key.startsWith("module.")));
+ m.choose("centered");m.change(s=>{s.source.integration="questtogether";s.source.ownership.nameplates="specialist";s.integrationPresent=true;});
+ assert.throws(()=>m.setModule("nameplates",false),/Adopt/);m.change(s=>{s.integrationPresent=false;});m.setModule("nameplates",false);assert.equal(m.resolve().profile.modules.nameplates,false);
+});
 test("curated layouts reserve the character center and preserve conflicting personal edits",()=>{
  const e=engine(),m=new StudioModel(e);
  for(const name of ["centered","classic","hud","healer"]){

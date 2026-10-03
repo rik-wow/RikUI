@@ -13,7 +13,7 @@ export function normalizeImportCode(value){
  return code;
 }
 export class StudioModel {
- constructor(engine){this.engine=engine;this.authorMetadata=undefined;this.history=[];this.future=[];this.accessibility="standard";this.viewport={width:1920,height:1080};this.activity="exploration";this.device="desktop";}
+ constructor(engine){this.engine=engine;this.moduleChoices=Array.from(engine.call("ModuleChoices"));this.authorMetadata=undefined;this.history=[];this.future=[];this.accessibility="standard";this.viewport={width:1920,height:1080};this.activity="exploration";this.device="desktop";}
  snapshot(){return clone({source:this.source,overrides:this.overrides,selected:this.selected,viewport:this.viewport,device:this.device,activity:this.activity,accessibility:this.accessibility,accessibilityPinned:this.accessibilityPinned,remixId:this.remixId,integrationPresent:this.integrationPresent,authorMetadata:this.authorMetadata,maintainIdentity:this.maintainIdentity,baseline:this.baseline,resetPositions:this.resetPositions});}
  restore(state){Object.assign(this,clone(state));}
  remember(){if(this.source)this.history.push(this.snapshot());if(this.history.length>20)this.history.shift();this.future=[];}
@@ -25,7 +25,7 @@ export class StudioModel {
  resolveWith(source,overrides={}){const value=this.engine.call("Copy",source);overrides=this.engine.call("Copy",overrides);for(const key of Object.keys(this.resetPositions||{}))if(value.adjustments?.positions)delete value.adjustments.positions[key];
   if(!this.selected.appearance){const base={...this.engine.call("Theme","classic"),textScale:1,scale:1,...this.baseline};for(const k of ["theme","font","borderColor","textScale","scale"])overrides[k]=base[k];}if(value.integration==="questtogether"&&!this.integrationPresent){value.ownership.nameplates="rikui";value.profile.modules??={};value.profile.modules.nameplates=true;}const result=this.engine.call("Resolve",value,{overrides,components:this.selected,viewport:this.viewport,device:this.device,activity:this.activity,accessibility:accessibility[this.accessibility],
   reservations:source.integration==="questtogether" && this.integrationPresent?[{x:8,y:this.viewport.height-200,width:320,height:180}]:[]});result.effectivePack=value;return result;}
- move(key,x,y){const resolved=this.resolve(),entry=Array.from(resolved.groups||[]).find(g=>g.key===key);if(!entry)throw Error("Choose a visible movable group");
+ move(key,x,y){const resolved=this.resolve(),entry=[...Array.from(resolved.groups||[]),...Array.from(resolved.disabledGroups||[])].find(g=>g.key===key);if(!entry)throw Error("Choose a visible movable group");
   const scale=resolved.profile.scale||1;const r=entry.rect;
   x=Math.max(8,Math.min(this.viewport.width-r.width-8,x));y=Math.max(8,Math.min(this.viewport.height-r.height-8,y));
   const xs=[8,this.viewport.width-r.width-8,this.viewport.width/2-r.width/2],ys=[8,this.viewport.height-r.height-8];
@@ -34,6 +34,12 @@ export class StudioModel {
   this.change(s=>{s.overrides.positions??={};delete s.resetPositions[key];s.overrides.positions[key]={point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:Math.round(snap(x,xs)/scale*1000)/1000,y:Math.round(snap(y,ys)/scale*1000)/1000};});
  }
  reset(key){this.change(s=>{if(s.overrides.positions)delete s.overrides.positions[key];if(s.source.adjustments?.positions?.[key])s.resetPositions[key]=true;});}
+ setModule(name,on){
+  const choice=this.moduleChoices.find(c=>c.key===name);if(!choice)throw Error("Unknown feature");
+  if(!Array.from(choice.components).some(c=>this.selected[c]&&this.resolve().effectivePack.ownership[c]==="rikui"))throw Error("Adopt this feature’s area before changing it.");
+  if(name==="unitframes"&&!on&&(!this.selected.hud||!this.selected.group||this.resolve().effectivePack.ownership.hud!=="rikui"||this.resolve().effectivePack.ownership.group!=="rikui"))throw Error("Unit frames are shared. Adopt both Combat HUD and Party & raid to disable them together.");
+  this.change(s=>{s.overrides=s.engine.call("SetModule",s.overrides,name,on);});
+ }
  personalDifference(baseline,current){
   const overrides={};for(const entry of Array.from(this.engine.call("Diff",baseline,current)||[])){
    if(entry.after===undefined)continue;

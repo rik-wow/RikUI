@@ -20,8 +20,7 @@ export function fitDetails(resolved,viewport){
   return {...issue,reason,with:neighbors,rect:r};
  });
 }
-const modules={main:"bars",bar2:"bars",bar3:"bars",bar4:"bars",bar5:"bars",stance:"bars",pet:"bars",player:"unitframes",target:"unitframes",focus:"unitframes",tot:"unitframes",petframe:"unitframes",party:"unitframes",raid:"unitframes",castplayer:"castbars",casttarget:"castbars",castfocus:"castbars",castpet:"castbars",buffs:"auras",debuffs:"auras",cooldowns:"cooldowns",swingtimer:"swingtimer",combatresource:"combatresource",combopoints:"combopoints",totems:"totems",xpbar:"xpbar",chat:"chat",bags:"bags",bagspace:"bags",loot:"loot",minimap:"minimap",questtracker:"questtracker",questtimers:"questtimers",micromenu:"micromenu",durability:"durability",damagemeter:"damagemeter"};
-export const sampleEnabled=(key,profile)=>profile.modules?.[modules[key]]!==false&&!profile.presentation?.hidden?.[key];
+export const sampleEnabled=(key,profile,engine)=>engine.call("GroupEnabled",key,profile)&&!profile.presentation?.hidden?.[key];
 const conditional=new Set(["bags","loot","pet","petframe","casttarget","castfocus","castpet","combopoints","totems","questtimers","damagemeter"]);
 export function sampleShown(key,activity,selected,showConditional=false){
  if(key==="bags")return activity==="town"||key===selected||showConditional;

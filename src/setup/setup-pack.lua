@@ -59,6 +59,57 @@ local function profile(t)
     if result.questtracker and result.questtracker.pins ~= nil then fail("Quest pins are personal; remove them from this pack") end
     return result
 end
+-- Shared module-to-frame ownership drives both browser controls and fitting.
+pack.GroupModules = {
+    main="bars",bar2="bars",bar3="bars",bar4="bars",bar5="bars",stance="bars",pet="bars",
+    player="unitframes",target="unitframes",tot="unitframes",focus="unitframes",petframe="unitframes",party="unitframes",raid="unitframes",
+    castplayer="castbars",casttarget="castbars",castfocus="castbars",castpet="castbars",buffs="auras",debuffs="auras",
+    cooldowns="cooldowns",swingtimer="swingtimer",combatresource="combatresource",combopoints="combopoints",totems="totems",xpbar="xpbar",
+    chat="chat",damagemeter="damagemeter",bags="bags",bagspace="bags",loot="loot",minimap="minimap",questtracker="questtracker",
+    questtimers="questtimers",micromenu="micromenu",durability="durability",
+}
+-- The browser loads only the data contract. Native fixtures verify this fallback
+-- against the actual registered dependency graph before publication.
+local MODULE_DEPENDENCIES={unitauras={"unitframes"}}
+function pack.ModuleRequirements(name)
+    if not knownModules[name] then return nil,"Unsupported pack module" end
+    if RikUI.GetModuleRequirements then return RikUI:GetModuleRequirements(name) end
+    return pack.Copy(MODULE_DEPENDENCIES[name] or {})
+end
+function pack.ModuleChoices()
+    local choices={}
+    for name in pairs(knownModules) do
+        local components,groups={},{}
+        for component,list in pairs(pack.Modules) do for _,key in ipairs(list) do
+            if key==name then components[#components+1]=component end
+        end end
+        for key,owner in pairs(pack.GroupModules) do if owner==name then groups[#groups+1]=key end end
+        table.sort(components);table.sort(groups)
+        choices[#choices+1]={key=name,components=components,groups=groups,dependencies=assert(pack.ModuleRequirements(name))}
+    end
+    table.sort(choices,function(a,b)return a.key<b.key end)
+    return choices
+end
+function pack.ModuleEnabled(p,name)
+    if p.modules and p.modules[name]==false then return false end
+    local requirements=pack.ModuleRequirements(name)
+    if not requirements then return false end
+    for _,required in ipairs(requirements) do if p.modules and p.modules[required]==false then return false end end
+    return true
+end
+function pack.GroupEnabled(key,p)
+    local owner=pack.GroupModules[key]
+    return not owner or pack.ModuleEnabled(p,owner)
+end
+function pack.SetModule(p,name,on)
+    if not knownModules[name] or type(on)~="boolean" then return nil,"Unsupported module choice" end
+    local result=profile(p);result.modules=result.modules or {};result.modules[name]=on
+    if on then
+        local requirements,reason=pack.ModuleRequirements(name);if not requirements then return nil,reason end
+        for _,required in ipairs(requirements) do result.modules[required]=true end
+    end
+    return profile(result)
+end
 local function viewport(v)
     fields(v,{width=true,height=true}); number(v.width,640,8192); number(v.height,360,4320)
 end
@@ -199,9 +250,13 @@ local function resolve(value,options)
     if access.nonColor then p.unitframes={healthText="both",powerText="both"}; p.nameplates=p.nameplates or {}; p.nameplates.threatText=true; p.showHotkeys=true end
     local projected,err=pcall(profile,p); if not projected then return nil,err end
     p=err; local scale=p.scale or 1; p.positions=p.positions or {}
-    local keys={}; local selected=options.components or clean.components
+    local keys,disabledGroups={},{}; local selected=options.components or clean.components
     for k,g in pairs(clean.groups) do if selected[g.component] and clean.ownership[g.component]=="rikui" and (not g.activity or g.activity==activity)
-        and not (p.presentation and p.presentation.hidden and p.presentation.hidden[k]) then keys[#keys+1]=k end end
+        and not (p.presentation and p.presentation.hidden and p.presentation.hidden[k]) then
+        if pack.GroupEnabled(k,p) then keys[#keys+1]=k
+        else disabledGroups[#disabledGroups+1]={key=k,rect=rect(p.positions[k],g,scale,screen),disabled=true,module=pack.GroupModules[k],floating=g.floating} end
+    end end
+    table.sort(disabledGroups,function(a,b)return a.key<b.key end)
     table.sort(keys,function(a,b) return clean.groups[a].priority==clean.groups[b].priority and a<b or clean.groups[a].priority<clean.groups[b].priority end)
     local placed,conflicts={{rect=pack.CharacterArea(screen),key="Character viewing area",character=true}},{}
     local reservations=options.reservations or {}
@@ -252,7 +307,20 @@ local function resolve(value,options)
         p.positions[key]={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=math.floor(r.x/scale*1000+0.5)/1000,y=math.floor(r.y/scale*1000+0.5)/1000}
         placed[#placed+1]={key=key,rect=r,exclusive=g.exclusive,floating=g.floating}
     end
-    return {profile=p,groups=placed,conflicts=conflicts,activity=activity,device=device}
+    for name in pairs(knownModules) do if p.modules and p.modules[name]~=false then
+        local adopted=false
+        for component,list in pairs(pack.Modules) do if selected[component] and clean.ownership[component]=="rikui" then
+            for _,key in ipairs(list) do if key==name then adopted=true end end
+        end end
+        if adopted then for _,required in ipairs(assert(pack.ModuleRequirements(name))) do
+            if p.modules[required]==false then conflicts[#conflicts+1]={key="module."..name,reason="Requires enabled module: "..required} end
+        end end
+    end end
+    if p.modules and p.modules.unitframes==false and (selected.hud or selected.group)
+        and not (selected.hud and selected.group and clean.ownership.hud=="rikui" and clean.ownership.group=="rikui") then
+        conflicts[#conflicts+1]={key="module.unitframes",reason="Unit frames are shared: adopt both Combat HUD and Party & raid to disable them together"}
+    end
+    return {profile=p,groups=placed,disabledGroups=disabledGroups,conflicts=conflicts,activity=activity,device=device}
 end
 
 function pack.Resolve(value,options)

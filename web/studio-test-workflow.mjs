@@ -12,6 +12,7 @@ export async function studioControl(page,id){
   await page.locator('.studio-steps [data-step="'+step+'"]').click();
   if(step==="customize")await page.locator("#tab-"+(style.has(id)?"style":layout.has(id)?"layout":"parts")).click();
  }
+ if((id.startsWith("part-")||id==="recipe")&&!await page.locator("#adopt-areas").evaluate(el=>el.open))await page.locator("#adopt-areas>summary").click();
  if(choose.has(id)&&id!=="pack-picker"){
   if(!await page.locator("#import-section").evaluate(el=>el.open))await page.locator("#import-section>summary").click();
   if(id==="creator-update"&&!await target.isVisible())await page.getByText("Update this creator pack",{exact:true}).click();

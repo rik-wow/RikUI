@@ -10,6 +10,8 @@ import {build} from "esbuild";
 import {sourcePaths} from "./pack-sources.mjs";
 import {createEngine} from "./pack-engine.mjs";
 import {prunePublicAssets} from "./prune-public-assets.mjs";
+import {loadGuides} from "./docs-source.mjs";
+import {modulePages} from "./docs-catalogue.mjs";
 const hash=value=>createHash("sha256").update(value).digest("hex");
 const sources=await Promise.all(sourcePaths.map(p=>readFile(new URL("../"+p,import.meta.url),"utf8")));
 const engine=createEngine(sources);
@@ -27,12 +29,12 @@ async function asset(id,frame){
 }
 for(const theme of ["classic","ocean","ink"])for(const readability of ["standard","readable"]){
  const components={};
- for(const prefix of ["studio-atlas-","studio-extra-"]){
+ for(const prefix of ["studio-atlas-","studio-extra-","studio-unitauras-off-"]){
   const id=prefix+theme+"-"+readability,record=manifest.renders.find(c=>c.id===id);
   if(!record?.frames || (prefix==="studio-atlas-"&&record.frames.length!==25))throw Error("Missing individually filtered native component captures: "+id);
   for(const frame of record.frames){const c=await asset(id,frame);if(!c.components)throw Error("Missing native geometry: "+id);
    const paint=paintBounds[c.filename];if(!paint)throw Error("Missing native paint extent: "+c.filename);
-   for(const [key,geometry]of Object.entries(c.components))components[key]={...geometry,paint,url:c.url,atlasHeight:c.height,sha256:c.sha256};
+   for(const [key,geometry]of Object.entries(c.components))components[key+(prefix==="studio-unitauras-off-"?"NoUnitAuras":"")]={...geometry,paint,url:c.url,atlasHeight:c.height,sha256:c.sha256};
   }
  }
  atlases[theme+"-"+readability]={components};
@@ -55,7 +57,16 @@ for(const entry of collection.packs){
  }
  packs.push({name:entry.name,description:entry.description,scene,pack,code:engine.call("Encode",pack),image:capture.url,sha256:capture.sha256});
 }
-const data={version:1,reviewOnly,sources:sourcePaths.map((path,i)=>({path,sha256:hash(sources[i]),source:sources[i]})),atlases,packs,
+const {pages:guides}=await loadGuides();
+const modules=[];
+for(const choice of Array.from(engine.call("ModuleChoices"))){
+ const guide=guides.find(p=>p.slug===modulePages[choice.key]);if(!guide)throw Error("Module needs a canonical guide: "+choice.key);
+ const title={unitauras:"Target, focus & pet auras",druidmana:"Druid mana in forms",combatresource:"Combat resource"}[choice.key]||guide.title;
+ const native=manifest.renders.find(c=>c.page===guide.slug);
+ const sample=native?await asset(native.id,native.frames?.find(f=>f.sha256===native.sha256)||native.frames?.[0]):undefined;
+ modules.push({...choice,title,summary:guide.summary,guide:"/docs/"+guide.slug,...(sample?{guideSample:{url:sample.url,title:sample.title,sha256:sample.sha256}}:{})});
+}
+const data={version:1,reviewOnly,modules,sources:sourcePaths.map((path,i)=>({path,sha256:hash(sources[i]),source:sources[i]})),atlases,packs,
  limitations:["Representative player data is fixture data, not your character.","Dynamic quest, target aura and inventory contents may grow beyond the sample. Review fitting conflicts in the addon.","Only captured coordinated themes and text sizes have appearance previews. Other imported settings are preserved and identified.","QuestTogether uses a compatibility recipe, not a styling API. Missing addons retain RikUI ownership."]};
 const dataText=JSON.stringify(data),dataURL="/assets/studio/data-"+hash(dataText).slice(0,12)+".json";
 await writeFile(new URL("./public"+dataURL,import.meta.url),dataText);assets.push(dataURL);

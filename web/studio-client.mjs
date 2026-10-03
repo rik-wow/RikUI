@@ -1,6 +1,7 @@
 import {createEngine} from "./pack-engine.mjs";
 import {StudioModel,components} from "./studio-model.mjs";
 import {componentAppearanceCovered} from "./preview-coverage.mjs";
+import {renderModules} from "./studio-modules.mjs";
 import {labelFor,paintPlacement,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
 const $=id=>document.getElementById(id);
 const status=$("studio-status"),root=$("studio-app");
@@ -25,7 +26,7 @@ async function loadImage(url){
  return images.get(url);
 }
 function operation(fn,success,keepUpdate=false){try{if(!keepUpdate)$("update-conflicts")?.replaceChildren();fn();if(success)message(success);render();}catch(error){message(error.message);render();}}
-function visibleGroups(){return asArray(resolved?.groups).filter(g=>model.source.groups[g.key]);}
+function visibleGroups(){return [...asArray(resolved?.groups),...asArray(resolved?.disabledGroups)].filter(g=>model.source.groups[g.key]);}
 function setOptions(select,items){select.replaceChildren(...items.map(([value,label])=>{const o=document.createElement("option");o.value=value;o.textContent=label;return o;}));}
 function themeKey(profile){
  if(profile.theme?.accent==="blue")return "ocean";
@@ -35,6 +36,7 @@ function themeKey(profile){
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 async function render(){
  const epoch=++renderEpoch;
+ $("game-preview").dataset.previewReady="false";
  try{
   resolved=model.resolve();
   const groups=visibleGroups();
@@ -55,7 +57,7 @@ async function render(){
   $("ownership").textContent="Adopting: "+components.filter(c=>model.selected[c]).map(c=>partLabels[c]+" ("+resolved.effectivePack.ownership[c]+")").join(" · ");
   for(const b of document.querySelectorAll("[data-pack]"))b.setAttribute("aria-pressed",String(data.packs.find(p=>p.name===b.dataset.pack)?.pack.id===model.source.id));
   const conflicts=fitDetails(resolved,model.viewport);
-  $("fit-status").textContent=conflicts.length?conflicts.length+" fitting conflict(s). Red outlines show affected footprints; select a conflict below.":"Keeps the character viewing area clear and fits the declared frame footprints. Dynamic contents can grow; review again in the addon.";
+  $("fit-status").textContent=conflicts.length?conflicts.length+" setup issue(s). Red outlines identify layout footprints; dependency issues appear on feature cards. Select an issue below.":"Keeps the character viewing area clear and fits the declared frame footprints. Dynamic contents can grow; review again in the addon.";
   $("fit-status").className=conflicts.length?"issue":"";
   $("fit-badge").textContent=conflicts.length?conflicts.length+" fit issues to resolve":"Layout fits";$("fit-badge").className="fit-badge"+(conflicts.length?" issue":"");
   $("export-help").textContent=conflicts.length?"Resolve the highlighted frames before exporting. Select an issue to open its layout controls.":"Export the code, then open /rik studio → Import in the addon. Review and apply there.";
@@ -74,14 +76,16 @@ async function render(){
   $("questtogether").checked=!!model.integrationPresent;
   const atlas=structuredClone(data.atlases[key+"-"+readability]);
   if(profile.questtracker?.collapsed)atlas.components.questtracker=atlas.components.questtrackerCollapsed;
+  if(profile.modules?.unitauras===false)for(const key of ["target","focus","petframe"])atlas.components[key]=atlas.components[key+"NoUnitAuras"];
   const covered=g=>!!atlas.components[g.key]&&componentAppearanceCovered(g.key,profile,model.engine,key);
-  const shown=g=>sampleEnabled(g.key,profile)&&covered(g)&&sampleShown(g.key,model.activity,selectedKey,$("show-conditional").checked);
+  const shown=g=>sampleEnabled(g.key,profile,model.engine)&&covered(g)&&sampleShown(g.key,model.activity,selectedKey,$("show-conditional").checked);
   const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
   $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
    (unsupported.length?" Geometry-only (no exact capture): "+unsupported.join(", ")+".":"")+
-   " The center guide reserves character viewing space; it is an editor annotation, not a rendered character. Representative fixture data; world imagery, live names and optional addon widgets are outside this preview.";
+   " The center guide reserves character viewing space; it is an editor annotation, not a rendered character. Representative fixture data; world imagery, live names, optional addon widgets and stock game elements restored by disabling RikUI are outside this preview.";
   const showPlates=model.selected.nameplates&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false&&componentAppearanceCovered("nameplates",profile,model.engine,key);
   const drawn=groups.filter(shown);
+  await renderModules({model,data,resolved,atlas,loadImage,selectedKey,selectGroup,toggle:(name,on)=>operation(()=>model.setModule(name,on),"Feature choice staged. Reload RikUI after applying to activate module changes.")});if(epoch!==renderEpoch)return;
   $("game-preview").dataset.previewReady="false";
   const bitmap=new Map(await Promise.all([...drawn,...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage(atlas.components[g.key].url)])));if(epoch!==renderEpoch)return;
   const canvas=$("game-preview"),ctx=canvas.getContext("2d");
@@ -116,12 +120,12 @@ function renderAnnotations(groups,conflicts,covered){
   node.style.height=100*Math.max(4,Math.min(r.height,h-Math.max(0,h-r.y-r.height)))/h+"%";
  };
  for(const g of groups){
-  const state=!sampleEnabled(g.key,resolved.profile)?"disabled module":paintedKeys.has(g.key)?"sample":covered(g)?"inactive sample":"geometry only";
+  const state=g.disabled?"off · not reserved":!sampleEnabled(g.key,resolved.profile,model.engine)?"disabled module":paintedKeys.has(g.key)?"sample":covered(g)?"inactive sample":"geometry only";
   const button=document.createElement("button");button.type="button";button.dataset.group=g.key;
-  button.className="studio-mover"+(g.key===selectedKey?" selected":"")+(troubled.has(g.key)?" conflict":"");
+  button.className="studio-mover"+(g.disabled?" disabled":"")+(g.key===selectedKey?" selected":"")+(troubled.has(g.key)?" conflict":"");
   button.setAttribute("aria-label","Select "+labelFor(g.key)+" — "+state);
-  button.title=labelFor(g.key)+" — "+state+"; outline is the reserved footprint";
-  const label=document.createElement("span");label.textContent=labelFor(g.key);button.append(label);place(button,g.rect);
+  button.title=labelFor(g.key)+" — "+state+(g.disabled?"; stored position, no fitting space reserved":"; outline is the reserved footprint");
+  const label=document.createElement("span");label.textContent=labelFor(g.key)+(g.disabled?" · off":"");button.append(label);place(button,g.rect);
   button.hidden=!$("show-movers").checked&&!troubled.has(g.key)&&g.key!==selectedKey;
   button.onclick=()=>selectGroup(g.key);layer.append(button);
   const entry=document.createElement("button");entry.type="button";entry.dataset.group=g.key;
@@ -136,7 +140,9 @@ function renderAnnotations(groups,conflicts,covered){
  }
  for(const c of conflicts){
   const b=document.createElement("button");b.type="button";b.className="fit-conflict";b.dataset.group=c.key;
-  b.textContent=labelFor(c.key)+": "+c.reason;b.onclick=()=>{selectedKey=c.key;workflow("customize","layout");$("preview-stage").scrollIntoView({block:"nearest"});};issues.append(b);
+  const feature=c.key.startsWith("module.")?data.modules.find(m=>m.key===c.key.slice(7)):undefined;
+  const reason=c.reason.replace(/Requires enabled module: ([a-z]+)/,(_,key)=>"Enable "+(data.modules.find(m=>m.key===key)?.title||key)+" or turn this feature off.");
+  b.textContent=(feature?.title||labelFor(c.key))+": "+reason;b.onclick=()=>{selectedKey=c.key;workflow("customize",c.key.startsWith("module.")?"parts":"layout");if(c.key.startsWith("module.")){$("module-search").value=c.key.slice(7);render();}$("preview-stage").scrollIntoView({block:"nearest"});};issues.append(b);
  }
 }
 
@@ -158,6 +164,7 @@ async function start(){
   for(const b of document.querySelectorAll("[data-pack]"))b.onclick=()=>choose(b.dataset.pack);
   for(const b of document.querySelectorAll("[data-step]"))b.onclick=()=>workflow(b.dataset.step);
   for(const b of document.querySelectorAll("[data-tab]")){b.onclick=()=>workflow("customize",b.dataset.tab);b.onkeydown=e=>{const order=["parts","style","layout"],index=order.indexOf(b.dataset.tab);let next;if(e.key==="ArrowRight")next=(index+1)%3;if(e.key==="ArrowLeft")next=(index+2)%3;if(e.key==="Home")next=0;if(e.key==="End")next=2;if(next!==undefined){e.preventDefault();workflow("customize",order[next],false);$("tab-"+order[next]).focus();}};}
+  $("module-search").oninput=()=>render();$("module-area").onchange=()=>render();
   $("edit-positions").onclick=()=>workflow("customize","layout");$("review-fit").onclick=()=>workflow("review");
   $("preview-zoom").onchange=e=>{$("preview-stage").style.setProperty("--preview-zoom",e.target.value);};
   $("import").onclick=()=>operation(()=>{model.import($("import-code").value);workflow("customize","parts");},"Imported for editing. Nothing has been applied to your addon.");
@@ -189,6 +196,7 @@ async function start(){
    const p=point(e),explicit=e.target.closest("[data-group]")?.dataset.group;
    const group=explicit?visibleGroups().find(g=>g.key===explicit):[...visibleGroups()].reverse().find(g=>($("show-movers").checked||paintedKeys.has(g.key)||g.key===selectedKey)&&p.x>=g.rect.x&&p.x<=g.rect.x+g.rect.width&&p.y>=g.rect.y&&p.y<=g.rect.y+g.rect.height);
    if(!group)return;selectedKey=group.key;
+   if(group.disabled){render();return;}
    drag={start:{x:e.clientX,y:e.clientY},moved:false,key:group.key,offset:{x:p.x-group.rect.x,y:p.y-group.rect.y},point:p,base:canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height),rect:group.rect};
    stage.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});e.preventDefault();
   };

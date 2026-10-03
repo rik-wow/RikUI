@@ -4418,5 +4418,329 @@
       "Back to Studio",
       "Try-on"
     ]
+  },
+  {
+    "id": "studio-unitauras-off-classic-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "classic / standard native unit frames without aura module",
+    "frame": "RikUIUnit_target",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {
+      "setting": "native unit frames without aura module",
+      "values": [
+        "target",
+        "focus",
+        "petframe"
+      ],
+      "default": "target",
+      "apply": "RikRenderStudioModules(VALUE)",
+      "frames": {
+        "target": "RikUIUnit_target",
+        "focus": "RikUIUnit_focus",
+        "petframe": "RikUIUnit_petframe"
+      }
+    },
+    "expectText": [],
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "modules": {
+        "unitauras": false
+      }
+    }
+  },
+  {
+    "id": "studio-unitauras-off-classic-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "classic / readable native unit frames without aura module",
+    "frame": "RikUIUnit_target",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {
+      "setting": "native unit frames without aura module",
+      "values": [
+        "target",
+        "focus",
+        "petframe"
+      ],
+      "default": "target",
+      "apply": "RikRenderStudioModules(VALUE)",
+      "frames": {
+        "target": "RikUIUnit_target",
+        "focus": "RikUIUnit_focus",
+        "petframe": "RikUIUnit_petframe"
+      }
+    },
+    "expectText": [],
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "modules": {
+        "unitauras": false
+      }
+    }
+  },
+  {
+    "id": "studio-unitauras-off-ocean-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ocean / standard native unit frames without aura module",
+    "frame": "RikUIUnit_target",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {
+      "setting": "native unit frames without aura module",
+      "values": [
+        "target",
+        "focus",
+        "petframe"
+      ],
+      "default": "target",
+      "apply": "RikRenderStudioModules(VALUE)",
+      "frames": {
+        "target": "RikUIUnit_target",
+        "focus": "RikUIUnit_focus",
+        "petframe": "RikUIUnit_petframe"
+      }
+    },
+    "expectText": [],
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "modules": {
+        "unitauras": false
+      }
+    }
+  },
+  {
+    "id": "studio-unitauras-off-ocean-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ocean / readable native unit frames without aura module",
+    "frame": "RikUIUnit_target",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {
+      "setting": "native unit frames without aura module",
+      "values": [
+        "target",
+        "focus",
+        "petframe"
+      ],
+      "default": "target",
+      "apply": "RikRenderStudioModules(VALUE)",
+      "frames": {
+        "target": "RikUIUnit_target",
+        "focus": "RikUIUnit_focus",
+        "petframe": "RikUIUnit_petframe"
+      }
+    },
+    "expectText": [],
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "modules": {
+        "unitauras": false
+      }
+    }
+  },
+  {
+    "id": "studio-unitauras-off-ink-standard",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ink / standard native unit frames without aura module",
+    "frame": "RikUIUnit_target",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {
+      "setting": "native unit frames without aura module",
+      "values": [
+        "target",
+        "focus",
+        "petframe"
+      ],
+      "default": "target",
+      "apply": "RikRenderStudioModules(VALUE)",
+      "frames": {
+        "target": "RikUIUnit_target",
+        "focus": "RikUIUnit_focus",
+        "petframe": "RikUIUnit_petframe"
+      }
+    },
+    "expectText": [],
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "modules": {
+        "unitauras": false
+      }
+    }
+  },
+  {
+    "id": "studio-unitauras-off-ink-readable",
+    "page": "studio-atlas",
+    "transparent": true,
+    "title": "ink / readable native unit frames without aura module",
+    "frame": "RikUIUnit_target",
+    "screen": "2048x1152",
+    "crop": "640x540+704+306",
+    "fixtures": [],
+    "lua": "",
+    "sequence": {
+      "setting": "native unit frames without aura module",
+      "values": [
+        "target",
+        "focus",
+        "petframe"
+      ],
+      "default": "target",
+      "apply": "RikRenderStudioModules(VALUE)",
+      "frames": {
+        "target": "RikUIUnit_target",
+        "focus": "RikUIUnit_focus",
+        "petframe": "RikUIUnit_petframe"
+      }
+    },
+    "expectText": [],
+    "profile": {
+      "barFade": {
+        "bar3": false
+      },
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1.15,
+      "unitframes": {
+        "healthText": "both",
+        "powerText": "both"
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true,
+      "modules": {
+        "unitauras": false
+      }
+    }
   }
 ]

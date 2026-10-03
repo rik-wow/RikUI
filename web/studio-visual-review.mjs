@@ -10,6 +10,9 @@ const capture=async name=>{
 };
 await page.goto(site+"/studio");await page.locator("#studio-app").waitFor();await capture("choose");
 await page.getByRole("button",{name:"Make this setup mine"}).click();await capture("parts");
+await page.locator("#module-search").fill("chat");await page.getByRole("button",{name:"Show Chat in preview",exact:true}).click();await capture("module-chat");
+await page.locator("#module-chat").uncheck();await capture("module-chat-off");await page.locator("#module-chat").check();
+await page.locator("#module-search").fill("");await page.locator("#module-area").selectOption("inventory");await capture("module-inventory");await page.locator("#module-area").selectOption("");
 await page.locator("#tab-style").click();await page.locator("#theme").selectOption("ocean");await page.locator("#activity").selectOption("party");await capture("appearance");
 await page.locator("#tab-layout").click();await page.locator("#frame-group").selectOption("casttarget");await capture("layout");
 await page.locator("#device").selectOption("handheld");await capture("handheld");

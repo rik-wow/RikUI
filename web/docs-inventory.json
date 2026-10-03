@@ -12,9 +12,9 @@
       "slug": "setup-studio",
       "file": "docs/player/setup-studio.md",
       "title": "Setup Studio",
-      "sourceSha256": "b5462334527c613282a172cbb297eda79069c811e799c0bb65fd6596da787827",
-      "buildSha256": "b5462334527c613282a172cbb297eda79069c811e799c0bb65fd6596da787827",
-      "htmlSha256": "ca4f1b3a67b4a45576b5522dc76cd891d1226bff6f3b80b612e334bcb8dc4307"
+      "sourceSha256": "62b71f517d5ff62658959b0351a3b7e6af367290d78d7297d03d40ff73c366ad",
+      "buildSha256": "62b71f517d5ff62658959b0351a3b7e6af367290d78d7297d03d40ff73c366ad",
+      "htmlSha256": "5feacf54b75debefb161033bbbea633d75a389ddbeb3615da8a436912604f45c"
     },
     {
       "slug": "wizard",
@@ -3470,6 +3470,48 @@
       "title": "Unobstructed temporary try-on",
       "width": 2048,
       "height": 1152
+    },
+    {
+      "id": "studio-unitauras-off-classic-readable",
+      "page": "studio-atlas",
+      "title": "classic / readable native unit frames without aura module",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-unitauras-off-classic-standard",
+      "page": "studio-atlas",
+      "title": "classic / standard native unit frames without aura module",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-unitauras-off-ink-readable",
+      "page": "studio-atlas",
+      "title": "ink / readable native unit frames without aura module",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-unitauras-off-ink-standard",
+      "page": "studio-atlas",
+      "title": "ink / standard native unit frames without aura module",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-unitauras-off-ocean-readable",
+      "page": "studio-atlas",
+      "title": "ocean / readable native unit frames without aura module",
+      "width": 640,
+      "height": 540
+    },
+    {
+      "id": "studio-unitauras-off-ocean-standard",
+      "page": "studio-atlas",
+      "title": "ocean / standard native unit frames without aura module",
+      "width": 640,
+      "height": 540
     },
     {
       "id": "swing-main-hand",

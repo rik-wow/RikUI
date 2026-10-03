@@ -76,10 +76,21 @@ def addon_inputs(case, files):
         files = {name:value for name,value in files.items() if name not in {
             "src/setup/setup-pack.lua", "src/setup/setup-pack-library.lua",
             "src/setup/setup-studio.lua", "src/configuration/options/setup-studio-view.lua"}}
+    scene = "\n".join([case.get("lua", ""), *case.get("fixtures", []), case.get("sequence", {}).get("apply", "")])
+    banner = any(name in scene for name in ("RikRenderObjectiveBanner", "RikRenderBossBanner", "RikRenderEventToast"))
+    banner = banner or any(name in case.get("frame", "") for name in ("Banner", "Toast"))
+    if page in GLOBAL_PAGES | {"setup-studio", "studio-gallery", "studio-atlas"} and not banner:
+        # The settings/layout/overview and Studio fixtures display no banners unless invoked above. Hidden
+        # banner hooks cannot paint the editor, layout scenes or filtered component roots.
+        files = {name:value for name,value in files.items() if not name.startswith("src/modules/banners/")}
     if page == "studio-atlas":
-        # Atlas fixtures invoke native components, never Studio import/application/window APIs.
-        # Keep all native UI/source/media dependencies; journal and editor-window changes do not paint these roots.
-        return {name:value for name,value in files.items() if name not in {"src/setup/setup-pack.lua","src/setup/setup-pack-library.lua","src/setup/setup-studio.lua","src/configuration/options/setup-studio-view.lua"}}
+        # Ordinary atlases invoke native components only. Module variants also assert the
+        # portable contract against native registrations, so those pack inputs must count.
+        portable = "RikRenderStudioModules(" in case.get("sequence", {}).get("apply", "")
+        unused = {"src/setup/setup-studio.lua", "src/configuration/options/setup-studio-view.lua"}
+        if not portable:
+            unused.update({"src/setup/setup-pack.lua", "src/setup/setup-pack-library.lua"})
+        return {name:value for name,value in files.items() if name not in unused}
     modules = PAGES.get(page, {page} if page in DIRECT else None)
     if modules is None and page not in GLOBAL_PAGES:
         return dict(files)

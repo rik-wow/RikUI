@@ -37,13 +37,24 @@ class StudioChecks(unittest.TestCase):
             if case.get("page")=="studio-atlas":
                 self.assertEqual(case.get("fixtures"),[])
                 self.assertEqual(case.get("lua"),"")
-                self.assertIn(case["sequence"]["apply"],("RikRenderStudioAtlas(VALUE)","RikRenderStudioExtra(VALUE)"))
+                self.assertIn(case["sequence"]["apply"],("RikRenderStudioAtlas(VALUE)","RikRenderStudioExtra(VALUE)","RikRenderStudioModules(VALUE)"))
         # Review only invoked fixture bodies, not unused Studio functions in the same module.
         atlas=(directory/"fixtures/studio.lua").read_text().split("function RikRenderStudioAtlas",1)[1]
         extra=(directory/"fixtures/studio-components.lua").read_text().split("-- Assert positions",1)[0]
         for invoked in (atlas,extra):
             self.assertNotIn("RikUI.SetupPack",invoked)
             self.assertNotIn("RikUI.Studio",invoked)
+    def test_module_variants_track_contract_and_hidden_banners_do_not_expire_components(self):
+        files={"src/setup/setup-pack.lua":"pack","src/setup/setup-pack-library.lua":"recipes",
+               "src/setup/setup-studio.lua":"window","src/ui/skin.lua":"skin","src/modules/banners/banners.lua":"banner"}
+        case={"page":"studio-atlas","sequence":{"apply":"RikRenderStudioModules(VALUE)"}}
+        inputs=addon_inputs(case,files)
+        self.assertEqual(set(inputs),{"src/setup/setup-pack.lua","src/setup/setup-pack-library.lua","src/ui/skin.lua"})
+        self.assertNotEqual(inputs,addon_inputs(case,{**files,"src/setup/setup-pack.lua":"changed"}))
+        for page in ("studio-gallery","setup-studio","studio-atlas","wizard","options","layout","overview"):
+            self.assertEqual(addon_inputs({"page":page},files),addon_inputs({"page":page},{**files,"src/modules/banners/banners.lua":"changed"}))
+        for case in ({"page":"banners"},{"page":"studio-gallery","lua":'RikRenderObjectiveBanner("Quest")'}):
+            self.assertNotEqual(addon_inputs(case,files),addon_inputs(case,{**files,"src/modules/banners/banners.lua":"changed"}))
     def test_component_gate_requires_identity_bounds_and_retains_ordinary_duplicate_checks(self):
         import tempfile
         from check import verify_frame
