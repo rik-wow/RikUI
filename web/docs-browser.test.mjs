@@ -29,8 +29,7 @@ const placements={
  "class-effects":{"effects-player":"ref-follow-your-class-effects","effects-target":"ref-follow-your-class-effects"},
  personalresource:{"prd-health":"ref-personal-resource-display","prd-power":"ref-personal-resource-display"},
  nameplates:{"plates-enemy":"ref-enemy-nameplates","plates-debuffs":"ref-enemy-nameplates","plates-cast":"ref-enemy-nameplates","plates-target-focus":"ref-enemy-nameplates","plates-markers":"ref-enemy-nameplates","plates-threat":"ref-threat","plates-friendly":"ref-size-and-visibility","plates-adaptive-names":"ref-readable-names","plates-name-width-limit":"ref-readable-names","plates-pooled-short-name":"ref-readable-names","plates-name-options":"ref-readable-names"},
- combopoints:{"combo-empty":"ref-combo-points","combo-three":"ref-combo-points","combo-full":"ref-combo-points"},
- combattimer:{"timer-elapsed":"ref-combat-timer","timer-final":"ref-combat-timer","timer-stopwatch":"ref-stopwatch"},
+ combopoints:{"combo-empty":"ref-combo-points","combo-three":"ref-combo-points","combo-full":"ref-combo-points"}, combattimer:{"timer-elapsed":"ref-combat-timer","timer-final":"ref-combat-timer","timer-stopwatch":"ref-stopwatch"},
  mirrortimers:{"mirror-breath":"ref-breath-fatigue-and-feign-death","mirror-fatigue":"ref-breath-fatigue-and-feign-death","mirror-feign":"ref-breath-fatigue-and-feign-death"},
  totems:{"totems-slots":"ref-active-totems","totems-duration":"ref-active-totems"},
  lossofcontrol:{"loc-effect":"ref-control-effects","loc-remaining":"ref-control-effects"},
@@ -61,8 +60,7 @@ const placements={
  menus:{"menu-context":"ref-context-menus"},
  widgets:{"widget-status":"ref-objectives-and-activity-displays","widget-double":"ref-objectives-and-activity-displays","widget-icon":"ref-objectives-and-activity-displays"},
  controls:{"ctl-button":"ref-buttons-and-fields","ctl-checkbox":"ref-buttons-and-fields","ctl-dropdown":"ref-buttons-and-fields","ctl-disabled":"ref-buttons-and-fields","ctl-textfield":"ref-buttons-and-fields","ctl-slider":"ref-buttons-and-fields","ctl-scrollbar":"ref-buttons-and-fields","ctl-colour":"ref-buttons-and-fields"}
-};
-const figureSections=()=>{
+};const figureSections=()=>{
  const article=document.querySelector("article.doc-prose");
  let heading=null;const result=[];
  for(const node of article.querySelectorAll("h2,h3,figure")){
@@ -93,8 +91,7 @@ test("every documentation route and internal guide link resolves",async({request
    }
    if(doc.querySelector(".visual-guide,#visual-guide,.more-examples")||/Visual guide/.test(doc.body.textContent))result.push(route+" still has a detached gallery");
    const figures=doc.querySelectorAll("figure");
-   if(doc.querySelectorAll("article.doc-prose figure").length!==figures.length)result.push(route+" has figures outside the article");
-   for(const figure of figures){
+   if(doc.querySelectorAll("article.doc-prose figure").length!==figures.length)result.push(route+" has figures outside the article");   for(const figure of figures){
     if(figure.closest("p"))result.push(route+" places a figure inside a paragraph");
     if(!figure.closest(".example-grid"))result.push(route+" has an ungrouped figure");
    }
@@ -125,8 +122,7 @@ test("examples sit beside the instructions they illustrate",async({page})=>{
  }
 });
 
-for(const width of [1440,768,390,320]){
- test("documentation navigation and layout at "+width+"px",async({page})=>{
+for(const width of [1440,768,390,320]){ test("documentation navigation and layout at "+width+"px",async({page})=>{
   await page.setViewportSize({width,height:1000});
   const errors=[];page.on("pageerror",error=>errors.push(error.message));
   await page.goto("/docs/unitframes");
@@ -157,8 +153,7 @@ test("spell and item examples load the correct named images",async({page})=>{
  for(const slug of ["worldmap","combattext"]){
   await page.goto("/docs/"+slug);
   const sources=await page.locator("figure img.ui-example").evaluateAll(images=>images.map(image=>image.getAttribute("src")));
-  expect(sources.length,slug).toBeGreaterThan(0);
-  for(const source of sources)expect((await page.request.get(source)).status(),source).toBe(200);
+  expect(sources.length,slug).toBeGreaterThan(0);  for(const source of sources)expect((await page.request.get(source)).status(),source).toBe(200);
  }
 });
 
@@ -189,8 +184,7 @@ test("setting previews swap frames in place",async({page})=>{
  await expect(preview.locator("[data-frame]:visible")).toHaveCount(1);
  await expect(preview.locator(".preview-control output")).toHaveText("100%");
  const before=await preview.locator("[data-frame]:visible img").getAttribute("src");
- await control.fill("0");
- await expect(preview.locator(".preview-control output")).toHaveText("85%");
+ await control.fill("0"); await expect(preview.locator(".preview-control output")).toHaveText("85%");
  await expect(preview.locator('[data-frame="0"]')).toBeVisible();
  await expect(preview.locator('[data-frame="1"]')).toBeHidden();
  const after=await preview.locator("[data-frame]:visible img").getAttribute("src");
@@ -221,8 +215,7 @@ test("nameplate previews respond to keyboard controls on a narrow screen",async(
 });
 test("layout previews select both presets and group types by keyboard",async({page})=>{
  await page.setViewportSize({width:390,height:1000});
- await page.goto("/docs/layout");
- for(const id of ["layout-short-presets","layout-healer-groups"]){
+ await page.goto("/docs/layout"); for(const id of ["layout-short-presets","layout-healer-groups"]){
   const preview=page.locator('figure[data-render="'+id+'"]');
   const control=preview.getByRole("combobox");
   await control.focus();
@@ -253,8 +246,7 @@ test("Lua examples serve the reviewed images with their original proportions",as
   expect(geometry.w/geometry.h).toBeCloseTo(WIZARD_WIDTH/WIZARD_HEIGHT,2);
   expect(geometry.filter).toBe("none");
   expect(geometry.w).toBeLessThanOrEqual(WIZARD_WIDTH);
- }
- for(const slug of ["bags","unitframes"]){
+ } for(const slug of ["bags","unitframes"]){
   await page.goto("/docs/"+slug);
   for(const img of await page.locator("figure img.ui-example").all()){
    await img.scrollIntoViewIfNeeded();
@@ -262,4 +254,34 @@ test("Lua examples serve the reviewed images with their original proportions",as
    expect(size.display).toBeLessThanOrEqual(size.natural);
   }
  }
+});
+
+test("desktop guide groups and page contents are vertical and independently bounded",async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await page.goto("/docs/setup-studio");
+ const nav=page.getByRole("navigation",{name:"Documentation",exact:true});
+ const geometry=await nav.evaluate(node=>({w:node.clientWidth,sw:node.scrollWidth,h:node.clientHeight,sh:node.scrollHeight,
+  groups:[...node.querySelectorAll(".nav-group")].map(g=>{const r=g.getBoundingClientRect();return {x:r.x,y:r.y};})}));
+ expect(geometry.sw).toBeLessThanOrEqual(geometry.w);expect(geometry.sh).toBeGreaterThan(geometry.h);
+ for(let i=1;i<geometry.groups.length;i++){expect(Math.abs(geometry.groups[i].x-geometry.groups[0].x)).toBeLessThan(1);expect(geometry.groups[i].y).toBeGreaterThan(geometry.groups[i-1].y);}
+ const before=await page.evaluate(()=>scrollY);await nav.evaluate(node=>{node.scrollTop=node.scrollHeight;});
+ expect(await page.evaluate(()=>scrollY)).toBe(before);await expect(page.getByLabel("Find a guide")).toBeInViewport();
+ const toc=page.getByRole("navigation",{name:"On this page",exact:true});
+ expect(await toc.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);
+ await page.goto("/docs/controls");await expect(nav.locator('[aria-current="page"]')).toBeInViewport();
+ expect(await page.evaluate(()=>scrollY)).toBe(0);
+});
+for(const width of [320,390,768])test("mobile documentation keyboard disclosure at "+width,async({page})=>{
+ await page.setViewportSize({width,height:900});await page.goto("/docs/setup-studio");
+ const details=page.locator(".docs-nav-toggle"),summary=details.locator("summary");
+ await expect(details).not.toHaveAttribute("open","");await summary.focus();await page.keyboard.press("Enter");
+ await expect(details).toHaveAttribute("open","");await page.getByLabel("Find a guide").fill("inventory");
+ await expect(page.locator("[data-doc-link]:visible")).toHaveCount(1);
+ await page.keyboard.press("Escape");await expect(details).not.toHaveAttribute("open","");await expect(summary).toBeFocused();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+});
+test("mobile documentation retains native navigation without JavaScript",async({browser})=>{
+ const context=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:900}});
+ const page=await context.newPage();await page.goto((process.env.SITE_URL||"http://127.0.0.1:8787")+"/docs/setup-studio");
+ await expect(page.getByRole("navigation",{name:"Documentation",exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);await context.close();
 });

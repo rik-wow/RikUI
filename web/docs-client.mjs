@@ -3,6 +3,17 @@ const nav = document.querySelector(".docs-nav-toggle");
 const wide = matchMedia("(min-width:781px)");
 function sizeNav(){ if(nav) nav.open = wide.matches; }
 sizeNav(); wide.addEventListener("change",sizeNav);
+nav?.addEventListener("keydown",event=>{
+ if(event.key==="Escape"&&!wide.matches&&nav.open){
+  event.preventDefault();nav.open=false;nav.querySelector("summary").focus();
+ }
+});
+const guideNav=document.querySelector('.docs-sidebar nav');
+const current=guideNav?.querySelector('[aria-current="page"]');
+if(wide.matches&&current){
+ const item=current.getBoundingClientRect(),area=guideNav.getBoundingClientRect();
+ if(item.top<area.top||item.bottom>area.bottom)guideNav.scrollTop+=item.top-area.top-area.height/2+item.height/2;
+}
 const input = document.querySelector("#docs-search");
 const links = [...document.querySelectorAll("[data-doc-link]")];
 input?.addEventListener("input",()=>{

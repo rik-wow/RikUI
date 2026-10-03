@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-03",
+  "source": "Actual local Worker/Chromium pages; screenshots inspected at original size.",
+  "checks": [
+    "Vertical bounded sidebar and TOC",
+    "Independent navigation scrolling and active-page reveal",
+    "320/390 mobile disclosure/search; keyboard Escape focus",
+    "390 no-JavaScript native navigation",
+    "Canonical source/release/hash drift checks",
+    "Authentic reviewed Lua examples"
+  ],
+  "images": [
+    {
+      "name": "desktop-index",
+      "sha256": "b17a10023f92ca4fc6f0f1a607a3c2d7de7717907f9e19f6365c63ff1cfaf017"
+    },
+    {
+      "name": "desktop-setup-studio",
+      "sha256": "ba904e2adeea5311f3ee3e8473c95aa4061c5ee3f21611fac7d4c3aee9a197d0"
+    },
+    {
+      "name": "desktop-installation",
+      "sha256": "27f77161b5f8dbc0f462f848a3a5a264fef6214b1e89b335a2aaf7e754dde8e8"
+    },
+    {
+      "name": "desktop-options",
+      "sha256": "6b70655f9e45119018508596486593f1af0890978108393dea73d9e0457525a1"
+    },
+    {
+      "name": "mobile-320-closed",
+      "sha256": "cdde4f22ad24d23c038d8d7dc26ae9e5dc5a798bd1b569d782e8091f8fb19822"
+    },
+    {
+      "name": "mobile-320-open",
+      "sha256": "7b4fb4d3bb439e9da909747647b6c26f3d79adffe930626a5b39a30588ca59fe"
+    },
+    {
+      "name": "mobile-320-search",
+      "sha256": "304d3ad5889536c8aa5900bde55a2c5bb938ec4c86a8a1edf31056e3ab296d92"
+    },
+    {
+      "name": "mobile-390-closed",
+      "sha256": "ecb5c95731c87a851017a7e8c81984001448a062470d6aa452cf7fa31834dbcc"
+    },
+    {
+      "name": "mobile-390-open",
+      "sha256": "e7654cd75767ecfd3a8116e659c25c6d00e5db558ff7de0c22e7ca3a9eb869da"
+    },
+    {
+      "name": "mobile-390-search",
+      "sha256": "5f96813ad8b2ff73f89850915b6d2c7507af9dc3950ff333687a4906891d3b5b"
+    },
+    {
+      "name": "mobile-nojs",
+      "sha256": "e7654cd75767ecfd3a8116e659c25c6d00e5db558ff7de0c22e7ca3a9eb869da"
+    }
+  ]
+}

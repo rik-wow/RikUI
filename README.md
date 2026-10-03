@@ -20,7 +20,7 @@ datasets. Their public distribution is pending the
 only where that data is installed locally. No quest data has been removed from
 the project.
 
-1. Download `RikUI-v1.0.0-beta.3-forever.zip` from the
+1. Download the installable RikUI ZIP from the
    [releases page](https://github.com/rik-wow/RikUI/releases). It is marked as
    a pre-release. You can also build a ZIP yourself with the
    [packaging guide](docs/packaging.md).
@@ -48,7 +48,9 @@ Existing data is preserved.
 
 ## First login
 
-The setup wizard opens the first time you use RikUI on a character. Pick a
+Open `/rik studio` to choose, fit, preview and apply a setup, or [configure it on the website](https://rikwow.com/studio). See the canonical [installation](docs/player/installation.md) and [Setup Studio](docs/player/setup-studio.md) guides.
+
+The separate character setup wizard opens the first time you use RikUI on a character. Pick a
 preset, look over the bars and keybinds, and choose which parts to apply. You can
 keep your current frame positions or skip setup altogether.
 

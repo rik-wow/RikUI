@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["src/**", "media/**", "data/**", "presets/**", "RikUI.toc", "Bindings.xml", "web/**", "tools/site-renders/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
+    paths: ["src/**", "media/**", "data/**", "presets/**", "RikUI.toc", "Bindings.xml", "web/**", "docs/**", "tools/site-renders/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
   pull_request:
-    paths: ["src/**", "media/**", "data/**", "presets/**", "RikUI.toc", "Bindings.xml", "web/**", "tools/site-renders/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
+    paths: ["src/**", "media/**", "data/**", "presets/**", "RikUI.toc", "Bindings.xml", "web/**", "docs/**", "tools/site-renders/**", "tools/upstream/**", ".github/workflows/infrastructure.yml"]
 permissions:
   contents: read
 jobs:

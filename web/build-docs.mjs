@@ -6,15 +6,11 @@ import { catalogue, modulePages } from "./docs-catalogue.mjs";
 import { renderFigure, sequenceFigure, escapeHTML as esc } from "./docs-visuals.mjs";
 import { checkCoverage } from "./docs-coverage.mjs";
 import {prunePublicAssets} from "./prune-public-assets.mjs";
-import startGuides from "./guides-start.mjs";
-import studioGuides from "./guides-studio.mjs";
-import combatGuides from "./guides-combat.mjs";
-import worldGuides from "./guides-world.mjs";
-import windowGuides from "./guides-windows.mjs";
-import extraGuides from "./guides-extra.mjs";
+import {loadGuides,digest} from "./docs-source.mjs";
 import { execFileSync } from "node:child_process";
 execFileSync(process.env.PYTHON || "python", [fileURLToPath(new URL("../tools/site-renders/check.py",import.meta.url))], {stdio:"inherit"});
-const guides={...studioGuides,...startGuides,...combatGuides,...worldGuides,...windowGuides,...extraGuides};
+const {pages,release,releaseSha256}=await loadGuides();
+const guides=Object.fromEntries(pages.map(page=>[page.slug,page.markdown]));
 const visualPaths=new Map();
 const renderManifest=JSON.parse(await readFile(new URL("./ui-renders/manifest.json",import.meta.url),"utf8"));
 const liveRenders=new Map();
@@ -38,30 +34,10 @@ for(const capture of renderManifest.renders){
 }
 const root = fileURLToPath(new URL("../", import.meta.url));
 const git = "https://github.com/rik-wow/RikUI/blob/main/";
-let files = [];
-async function scan(dir) {
- for (const entry of await readdir(path.join(root,dir), { withFileTypes:true })) {
-  if (["node_modules","target",".venv","__pycache__"].includes(entry.name)) continue;
-  const name=path.posix.join(dir,entry.name);
-  if(entry.isDirectory()) await scan(name);
-  else if(entry.name.endsWith(".md")) files.push(name);
- }
-}
-await scan("docs"); await scan("tools"); await scan("installer");
-files.push("README.md","CONTRIBUTING.md","CHANGELOG.md","SDD.md","web/ASSET-NOTICE.md");
-const slugOf = file => file.startsWith("docs/") ? path.posix.basename(file,".md")
- : file==="README.md" ? "overview" : file==="installer/README.md" ? "installation"
- : file.toLowerCase().replace(/\.md$/,"").replaceAll("/","--");
-files = files.filter(file=>Object.hasOwn(guides,slugOf(file)));
-const sources = new Map(files.map(file=>[file,guides[slugOf(file)]]));
-const routes = new Map(files.map(file=>[file,"/docs/"+slugOf(file)]));
-const pages=files.map(file=>{
- const feature=catalogue.find(entry=>entry.slug===slugOf(file));
- const markdown=sources.get(file);
- return {file,slug:slugOf(file),title:feature?.title||markdown.match(/^#\s+(.+)/m)?.[1]||file,
- group:feature?.group||"About RikUI",summary:feature?.summary||"",feature};
-});
-for(const guide of catalogue)if(!pages.some(page=>page.slug===guide.slug))throw Error("Missing Markdown guide: "+guide.slug);
+const sources=new Map(pages.map(page=>[page.file,page.markdown]));
+const routes=new Map(pages.flatMap(page=>[[page.file,"/docs/"+page.slug],["docs/"+page.slug+".md","/docs/"+page.slug]]));
+routes.set("README.md","/docs/overview");routes.set("CONTRIBUTING.md","/docs/contributing");
+routes.set("installer/README.md","/docs/installation");routes.set("web/ASSET-NOTICE.md","/docs/web--asset-notice");
 const sourceFiles=[];
 async function luaFiles(dir) {
  for(const entry of await readdir(path.join(root,dir),{withFileTypes:true})){
@@ -82,7 +58,7 @@ const inventory={modules:registrations,surfaces:catalogue.flatMap(page=>page.sur
 const groupOrder=["Getting started","Combat","Questing","Everyday interface","Notifications","Windows and controls","About RikUI"];
 const groups=groupOrder.filter(group=>pages.some(page=>page.group===group));
 const sidebar=current=>'<aside class="docs-sidebar"><details class="docs-nav-toggle" open><summary>Browse documentation</summary><div class="nav-content"><label for="docs-search">Find a guide</label><input id="docs-search" type="search" placeholder="Nameplates, bags, profiles…" autocomplete="off"><p id="search-empty" hidden>No matching guides.</p><nav aria-label="Documentation">'+groups.map(group=>'<section class="nav-group"><h2>'+esc(group)+'</h2>'+pages.filter(p=>p.group===group).map(p=>'<a data-doc-link data-keywords="'+esc(p.slug+' '+p.summary)+'" href="/docs/'+p.slug+'"'+(p.slug===current?' aria-current="page"':"")+'>'+esc(p.title)+'</a>').join("")+'</section>').join("")+'</nav></div></details></aside>';
-const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license.</p></footer></body></html>';
+const shell=(title,slug,body,toc="")=>'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+' · RikUI</title><meta name="description" content="'+esc(title+' — RikUI documentation, controls and visual examples.')+'"><link rel="canonical" href="https://rikwow.com/docs'+(slug?'/'+slug:"")+'"><link rel="stylesheet" href="/site.css"><link rel="stylesheet" href="/docs.css"><script defer src="/docs.js"></script></head><body class="docs-page"><a class="skip" href="#main">Skip to content</a><header class="site-header wrap"><a class="brand" href="/">RikUI</a><nav aria-label="Main navigation"><a href="/studio">Setup Studio</a><a href="/docs/installation">Installation</a><a href="/docs" aria-current="page">Documentation</a><a href="https://github.com/rik-wow/RikUI">GitHub</a></nav></header><div class="docs-layout wrap">'+sidebar(slug)+'<main id="main" tabindex="-1">'+body+'</main>'+toc+'</div><footer class="wrap"><p>RikUI · <a href="/docs/web--asset-notice">Artwork notice</a> · <a href="/docs/contributing">Contributing</a></p><p id="asset-notice">World of Warcraft imagery and game icons © Blizzard Entertainment, Inc. RikUI is an independent fan project, not affiliated with or endorsed by Blizzard. Blizzard artwork is excluded from RikUI’s MIT code license.</p></footer></body></html>';
 const RENDER_REFERENCE="render:", PREVIEW_REFERENCE="preview:";
 // Surfaces no capture can show yet, and surfaces shown inside another capture; checked against the catalogue.
 const knownGaps=JSON.parse(await readFile(new URL("../tools/site-renders/known-gaps.json",import.meta.url),"utf8"));
@@ -144,12 +120,12 @@ function render(page){
  verifyPlacement(page,used);
  const toc='<aside class="docs-toc"><nav aria-label="On this page"><h2>On this page</h2>'+headings.map(h=>'<a href="#'+h.id+'" class="toc-depth-'+h.depth+'">'+esc(h.text)+'</a>').join("")+'</nav></aside>';
  const header='<div class="doc-breadcrumb"><a href="/docs">Documentation</a><span>/</span>'+esc(page.group)+'</div><h1>'+esc(page.title)+'</h1>'+(!page.feature&&page.summary?'<p class="doc-lead">'+esc(page.summary)+'</p>':"");
- return shell(page.title,page.slug,header+'<article class="doc-prose">'+content+'</article>',toc);
+ return shell(page.title,page.slug,header+'<article class="doc-prose" data-guide-source="'+esc(page.file)+'" data-source-sha256="'+page.sourceSha256+'" data-build-sha256="'+page.buildSha256+'" data-release-sha256="'+page.releaseSha256+'">'+content+'</article><p class="doc-source"><a href="'+git+page.file+'">View or improve this guide</a> · RikUI '+esc(release["release.version"])+'</p>',toc);
 }
 const all = Object.fromEntries(pages.map(page=>["/docs/"+page.slug,render(page)]));
 const coverage=checkCoverage(catalogue,placed,knownGaps);
 const featureGroups=groups.filter(g=>g!=="About RikUI");
-const index='<div class="doc-breadcrumb">RikUI / Documentation</div><h1>Using RikUI</h1><p class="doc-lead">Set up your interface, learn the controls and see what each module changes.</p><div class="docs-start"><a href="/docs/installation">Install RikUI</a><a href="/docs/wizard">First setup</a><a href="/docs/layout">Arrange your frames</a><a href="/docs/options">Settings and profiles</a></div><h2 id="interface-guides">Interface guides</h2>'+featureGroups.map(group=>'<section class="guide-group"><h3>'+esc(group)+'</h3><dl>'+catalogue.filter(p=>p.group===group).map(p=>'<div data-guide><dt><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></dt><dd>'+esc(p.summary)+'</dd></div>').join("")+'</dl></section>').join("")+'<section class="guide-group"><h2>About RikUI</h2><p>Installation, support and artwork information.</p><ul class="reference-list">'+pages.filter(p=>p.group==="About RikUI").map(p=>'<li><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></li>').join("")+'</ul></section>';
+const index='<div class="doc-breadcrumb">RikUI / Documentation</div><h1>Using RikUI</h1><p class="doc-lead">Set up your interface, learn the controls and see what each module changes.</p><div class="docs-start"><a href="/docs/installation">Install RikUI</a><a href="/docs/setup-studio">Choose a setup</a><a href="/docs/wizard">Character setup</a><a href="/docs/layout">Arrange your frames</a><a href="/docs/options">Settings and profiles</a></div><h2 id="interface-guides">Interface guides</h2>'+featureGroups.map(group=>'<section class="guide-group"><h3>'+esc(group)+'</h3><dl>'+pages.filter(p=>p.feature&&p.group===group).map(p=>'<div data-guide><dt><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></dt><dd>'+esc(p.summary)+'</dd></div>').join("")+'</dl></section>').join("")+'<section class="guide-group"><h2>About RikUI</h2><p>Installation, support and artwork information.</p><ul class="reference-list">'+pages.filter(p=>p.group==="About RikUI").map(p=>'<li><a href="/docs/'+p.slug+'">'+esc(p.title)+'</a></li>').join("")+'</ul></section>';
 all["/docs"]=shell("Documentation","",index);
 await mkdir(new URL("./public/docs/",import.meta.url),{recursive:true});
 const documentation={};
@@ -159,7 +135,7 @@ for(const [route,html] of Object.entries(all)){
  await writeFile(new URL("./public/docs/"+file+".html",import.meta.url),html);
 }
 await writeFile(new URL("./docs-generated.mjs",import.meta.url),"// Generated by build-docs.mjs.\nexport const documentation = "+JSON.stringify(documentation,null,2)+";\nexport const documentationImages = "+JSON.stringify([...visualPaths.values()])+";\n");
-await writeFile(new URL("./docs-inventory.json",import.meta.url),JSON.stringify({pages:pages.map(({slug,file,title})=>({slug,file,title})),...inventory},null,2)+"\n");
+await writeFile(new URL("./docs-inventory.json",import.meta.url),JSON.stringify({release,releaseSha256,pages:pages.map(({slug,file,title,sourceSha256,buildSha256})=>({slug,file,title,sourceSha256,buildSha256,htmlSha256:digest(all["/docs/"+slug])})),...inventory},null,2)+"\n");
 await prunePublicAssets(new URL("./public/assets/docs/",import.meta.url),[...visualPaths.values()],"docs");
 console.log("Built "+pages.length+" documentation pages, "+registrations.length+" modules, "+inventory.renders.length+" Lua renders.");
 console.log("Catalogue: "+coverage.surfaces+" surfaces, "+coverage.captioned+" captioned, "+coverage.inCapture+" shown inside another capture, "+coverage.gaps+" known gaps.");

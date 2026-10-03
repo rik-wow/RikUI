@@ -1,279 +1,452 @@
 {
+  "release": {
+    "release.version": "1.0.0-beta.6",
+    "release.channel": "beta",
+    "release.zip": "RikUI-v1.0.0-beta.6-forever.zip",
+    "release.url": "https://github.com/rik-wow/RikUI/releases/tag/v1.0.0-beta.6",
+    "release.download": "https://github.com/rik-wow/RikUI/releases/download/v1.0.0-beta.6/RikUI-v1.0.0-beta.6-forever.zip"
+  },
+  "releaseSha256": "2356cd1768ff79223e922c29c8e1a371afe4ed95c25b2e67ed96a7307c25d1a4",
   "pages": [
     {
-      "slug": "alerts",
-      "file": "docs/alerts.md",
-      "title": "Alert toasts"
-    },
-    {
-      "slug": "auction-house",
-      "file": "docs/auction-house.md",
-      "title": "Auction house"
-    },
-    {
-      "slug": "auras",
-      "file": "docs/auras.md",
-      "title": "Buffs and debuffs"
-    },
-    {
-      "slug": "bags",
-      "file": "docs/bags.md",
-      "title": "Inventory"
-    },
-    {
-      "slug": "banners",
-      "file": "docs/banners.md",
-      "title": "Event banners"
-    },
-    {
-      "slug": "bars",
-      "file": "docs/bars.md",
-      "title": "Action bars"
-    },
-    {
-      "slug": "castbars",
-      "file": "docs/castbars.md",
-      "title": "Cast bars"
-    },
-    {
-      "slug": "chat",
-      "file": "docs/chat.md",
-      "title": "Chat"
-    },
-    {
-      "slug": "chatbubbles",
-      "file": "docs/chatbubbles.md",
-      "title": "Chat bubbles"
-    },
-    {
-      "slug": "class-effects",
-      "file": "docs/class-effects.md",
-      "title": "Class effects"
-    },
-    {
-      "slug": "combat-hud",
-      "file": "docs/combat-hud.md",
-      "title": "Combat HUD"
-    },
-    {
-      "slug": "combattext",
-      "file": "docs/combattext.md",
-      "title": "Combat text"
-    },
-    {
-      "slug": "combattimer",
-      "file": "docs/combattimer.md",
-      "title": "Combat timer and stopwatch"
-    },
-    {
-      "slug": "combopoints",
-      "file": "docs/combopoints.md",
-      "title": "Combo points"
-    },
-    {
-      "slug": "controls",
-      "file": "docs/controls.md",
-      "title": "Shared controls"
-    },
-    {
-      "slug": "cooldowns",
-      "file": "docs/cooldowns.md",
-      "title": "Cooldowns"
-    },
-    {
-      "slug": "damagemeter",
-      "file": "docs/damagemeter.md",
-      "title": "Damage meter"
-    },
-    {
-      "slug": "dialogs",
-      "file": "docs/dialogs.md",
-      "title": "Small dialogs"
-    },
-    {
-      "slug": "durability",
-      "file": "docs/durability.md",
-      "title": "Durability"
-    },
-    {
-      "slug": "extrabuttons",
-      "file": "docs/extrabuttons.md",
-      "title": "Extra action buttons"
-    },
-    {
-      "slug": "hudframes",
-      "file": "docs/hudframes.md",
-      "title": "Small HUD elements"
-    },
-    {
-      "slug": "interiors",
-      "file": "docs/interiors.md",
-      "title": "Window interiors"
-    },
-    {
-      "slug": "layout",
-      "file": "docs/layout.md",
-      "title": "Move and resize frames"
-    },
-    {
-      "slug": "loot",
-      "file": "docs/loot.md",
-      "title": "Loot and rolls"
-    },
-    {
-      "slug": "lossofcontrol",
-      "file": "docs/lossofcontrol.md",
-      "title": "Loss of control"
-    },
-    {
-      "slug": "menus",
-      "file": "docs/menus.md",
-      "title": "Context menus"
-    },
-    {
-      "slug": "micromenu",
-      "file": "docs/micromenu.md",
-      "title": "Micro menu and bag strip"
-    },
-    {
-      "slug": "minimap",
-      "file": "docs/minimap.md",
-      "title": "Minimap"
-    },
-    {
-      "slug": "mirrortimers",
-      "file": "docs/mirrortimers.md",
-      "title": "Breath and fatigue"
-    },
-    {
-      "slug": "nameplates",
-      "file": "docs/nameplates.md",
-      "title": "Nameplates"
-    },
-    {
-      "slug": "options",
-      "file": "docs/options.md",
-      "title": "Settings and profiles"
-    },
-    {
-      "slug": "panels",
-      "file": "docs/panels.md",
-      "title": "Window chrome"
-    },
-    {
-      "slug": "personalresource",
-      "file": "docs/personalresource.md",
-      "title": "Personal resource display"
-    },
-    {
-      "slug": "popups",
-      "file": "docs/popups.md",
-      "title": "Confirmation popups"
-    },
-    {
-      "slug": "proc-overlay",
-      "file": "docs/proc-overlay.md",
-      "title": "Proc indicators"
-    },
-    {
-      "slug": "questplanner",
-      "file": "docs/questplanner.md",
-      "title": "Quest planner"
-    },
-    {
-      "slug": "questtimers",
-      "file": "docs/questtimers.md",
-      "title": "Quest timers"
-    },
-    {
-      "slug": "questtracker",
-      "file": "docs/questtracker.md",
-      "title": "Quest tracker"
-    },
-    {
-      "slug": "screentext",
-      "file": "docs/screentext.md",
-      "title": "Screen messages"
-    },
-    {
       "slug": "setup-studio",
-      "file": "docs/setup-studio.md",
-      "title": "Setup Studio"
-    },
-    {
-      "slug": "sharing",
-      "file": "docs/sharing.md",
-      "title": "Import and export"
-    },
-    {
-      "slug": "shell",
-      "file": "docs/shell.md",
-      "title": "RikUI menu"
-    },
-    {
-      "slug": "swingtimer",
-      "file": "docs/swingtimer.md",
-      "title": "Weapon timers"
-    },
-    {
-      "slug": "toasts",
-      "file": "docs/toasts.md",
-      "title": "Social notifications"
-    },
-    {
-      "slug": "tooltip",
-      "file": "docs/tooltip.md",
-      "title": "Tooltips"
-    },
-    {
-      "slug": "totems",
-      "file": "docs/totems.md",
-      "title": "Totems"
-    },
-    {
-      "slug": "unitframes",
-      "file": "docs/unitframes.md",
-      "title": "Unit frames"
-    },
-    {
-      "slug": "widgets",
-      "file": "docs/widgets.md",
-      "title": "Objective widgets"
+      "file": "docs/player/setup-studio.md",
+      "title": "Setup Studio",
+      "sourceSha256": "ae6e90431d253c98824ce4f5a7607fbb88d50c7b79d20f4745b610f4fdea9749",
+      "buildSha256": "ae6e90431d253c98824ce4f5a7607fbb88d50c7b79d20f4745b610f4fdea9749",
+      "htmlSha256": "c3151af4f6ff295f39fd38068299d73e001d62b032882fcc6dd63332dbc49e43"
     },
     {
       "slug": "wizard",
-      "file": "docs/wizard.md",
-      "title": "Setup wizard"
+      "file": "docs/player/wizard.md",
+      "title": "Setup wizard",
+      "sourceSha256": "f719652fe1371987c8a2fe832a25953293b7897aaf184d665ab119a80ff48549",
+      "buildSha256": "f719652fe1371987c8a2fe832a25953293b7897aaf184d665ab119a80ff48549",
+      "htmlSha256": "8b3f1002dd3bdc7e1b950eee5a3ff9a6b2d9c6392cbeb3416bc61eb407a3a906"
+    },
+    {
+      "slug": "options",
+      "file": "docs/player/options.md",
+      "title": "Settings and profiles",
+      "sourceSha256": "8674af70e4944de98188bd182da88e5ba4b5506bea4781169517e4b37bbef66a",
+      "buildSha256": "8674af70e4944de98188bd182da88e5ba4b5506bea4781169517e4b37bbef66a",
+      "htmlSha256": "cc74da36cc17a74fe1ceeba7bb6092b509167752b287532989fb5209bb78d282"
+    },
+    {
+      "slug": "layout",
+      "file": "docs/player/layout.md",
+      "title": "Move and resize frames",
+      "sourceSha256": "edbff55ffbedb4e8411ea61b4c416cc87285d39a126d19efb9af38b9638e6e3a",
+      "buildSha256": "edbff55ffbedb4e8411ea61b4c416cc87285d39a126d19efb9af38b9638e6e3a",
+      "htmlSha256": "58c34e0ca1cdcb3e9b8188cee444d9c8be458ef86c468b3ed235b6bd3626ee81"
+    },
+    {
+      "slug": "shell",
+      "file": "docs/player/shell.md",
+      "title": "RikUI menu",
+      "sourceSha256": "c0dea26c6ff6c4166193711e686c14913c9488723bc5f6d0ace20bb790c495c7",
+      "buildSha256": "c0dea26c6ff6c4166193711e686c14913c9488723bc5f6d0ace20bb790c495c7",
+      "htmlSha256": "c0ec74cd6bf5cd76843e151027c7351895557734a3784b7b7c147d387db7d27a"
+    },
+    {
+      "slug": "sharing",
+      "file": "docs/player/sharing.md",
+      "title": "Import and export",
+      "sourceSha256": "0f964b1d905383c9295764cefe8852e7d19c50ca236110fb08c2e4c879c6d254",
+      "buildSha256": "0f964b1d905383c9295764cefe8852e7d19c50ca236110fb08c2e4c879c6d254",
+      "htmlSha256": "06a5423dc3424cb00c0139a4fcfaa74050ed1f49b095c63cf0cfb953a49f7680"
+    },
+    {
+      "slug": "bars",
+      "file": "docs/player/bars.md",
+      "title": "Action bars",
+      "sourceSha256": "88cfe1a64f53701d3cd8cc7e5031c88884beeacb09bafd60dd9ba2d49fb6da61",
+      "buildSha256": "88cfe1a64f53701d3cd8cc7e5031c88884beeacb09bafd60dd9ba2d49fb6da61",
+      "htmlSha256": "084bf4791fe88d3b084ec409b74b03fc6ce1e94cfee10652f61c46063b6ddb29"
+    },
+    {
+      "slug": "unitframes",
+      "file": "docs/player/unitframes.md",
+      "title": "Unit frames",
+      "sourceSha256": "b2ea3f2cd3ecaf520ec31861941984ae735078a68338587ed7ba85362e942ff3",
+      "buildSha256": "b2ea3f2cd3ecaf520ec31861941984ae735078a68338587ed7ba85362e942ff3",
+      "htmlSha256": "0ae997cbb10d2f7ddd3d0f170958663e1a99a2bf1a1ebd7d787ded843d482571"
+    },
+    {
+      "slug": "castbars",
+      "file": "docs/player/castbars.md",
+      "title": "Cast bars",
+      "sourceSha256": "036f74762c1603443d8c2d8c3fe9b5b33a696d803b52a80730ef1cbee3d28d45",
+      "buildSha256": "036f74762c1603443d8c2d8c3fe9b5b33a696d803b52a80730ef1cbee3d28d45",
+      "htmlSha256": "428fc8643d5c57ec13fd985c872fd357562fc1c722f5afaa6d35a2b5169e851c"
+    },
+    {
+      "slug": "auras",
+      "file": "docs/player/auras.md",
+      "title": "Buffs and debuffs",
+      "sourceSha256": "d100fcffec61ed5cd921bf3af9449dc3792dc95990797e790289ce3870c19a1d",
+      "buildSha256": "d100fcffec61ed5cd921bf3af9449dc3792dc95990797e790289ce3870c19a1d",
+      "htmlSha256": "264ed9c8ff0c54d259ec3c7b16effc1b6310c6165b9e0a78639d8aa5a533568f"
+    },
+    {
+      "slug": "class-effects",
+      "file": "docs/player/class-effects.md",
+      "title": "Class effects",
+      "sourceSha256": "c3ec3e8a293760f3e1fb0586084cf6413b0364f7136dab885f97b18de5287a70",
+      "buildSha256": "c3ec3e8a293760f3e1fb0586084cf6413b0364f7136dab885f97b18de5287a70",
+      "htmlSha256": "10d3a654db053454e8342102a13c585f9d316c30895edcb94c8819e2672b53d1"
+    },
+    {
+      "slug": "cooldowns",
+      "file": "docs/player/cooldowns.md",
+      "title": "Cooldowns",
+      "sourceSha256": "ba86e49c65091d414492caf6e3a81e92a5b4b0b1523213a39a287189f05da0ce",
+      "buildSha256": "ba86e49c65091d414492caf6e3a81e92a5b4b0b1523213a39a287189f05da0ce",
+      "htmlSha256": "1c306473b5deaf70b373e07e2baf17d17f810ecbebde86647fd9844be32ed115"
+    },
+    {
+      "slug": "combat-hud",
+      "file": "docs/player/combat-hud.md",
+      "title": "Combat HUD",
+      "sourceSha256": "f5feb1e4c67e787a0454e654d60d8b204a3cfaf8b4f821864f1c560195e3b13a",
+      "buildSha256": "f5feb1e4c67e787a0454e654d60d8b204a3cfaf8b4f821864f1c560195e3b13a",
+      "htmlSha256": "db077801450b6992fe3eb2d53b0bf8aa51f398312926ec27b7bf85502adba295"
+    },
+    {
+      "slug": "personalresource",
+      "file": "docs/player/personalresource.md",
+      "title": "Personal resource display",
+      "sourceSha256": "ad0e78547cf50324b26477e6662d40facedf1219f55c892b545a5bcfac8e88ca",
+      "buildSha256": "ad0e78547cf50324b26477e6662d40facedf1219f55c892b545a5bcfac8e88ca",
+      "htmlSha256": "4c8383b11481770bb880de9dcbab3e670c7769ac0b48e575952417635d8ce575"
+    },
+    {
+      "slug": "nameplates",
+      "file": "docs/player/nameplates.md",
+      "title": "Nameplates",
+      "sourceSha256": "6ce0b4474d4e6a082ffb3717b5392de5f007b64ba1dd25a34dab53bce9150078",
+      "buildSha256": "6ce0b4474d4e6a082ffb3717b5392de5f007b64ba1dd25a34dab53bce9150078",
+      "htmlSha256": "be1f5fc6c07d3e3001b1449241df642ad8ce1d7df8a2b25a2e07cdbad0387e3a"
+    },
+    {
+      "slug": "combopoints",
+      "file": "docs/player/combopoints.md",
+      "title": "Combo points",
+      "sourceSha256": "837c00b90741f810b3b78a3090568c6db070ef8da693e900d1907cd594e825fa",
+      "buildSha256": "837c00b90741f810b3b78a3090568c6db070ef8da693e900d1907cd594e825fa",
+      "htmlSha256": "98364d5ccdfbfdb669e7ac019086a60bcd9a423f1554750c8df10b747be9c247"
+    },
+    {
+      "slug": "swingtimer",
+      "file": "docs/player/swingtimer.md",
+      "title": "Weapon timers",
+      "sourceSha256": "bda0dfc1500967d4bd583fdb7f72816eb165914c8bfca9291d2711e44aa976c6",
+      "buildSha256": "bda0dfc1500967d4bd583fdb7f72816eb165914c8bfca9291d2711e44aa976c6",
+      "htmlSha256": "c36229525abce4ef74282e4da5b7d739715658bc209a447913ce4daa544a0322"
+    },
+    {
+      "slug": "combattimer",
+      "file": "docs/player/combattimer.md",
+      "title": "Combat timer and stopwatch",
+      "sourceSha256": "343e8f253e303c904877f535f006b41a8f29e36a4cd56647a09f0a4082995072",
+      "buildSha256": "343e8f253e303c904877f535f006b41a8f29e36a4cd56647a09f0a4082995072",
+      "htmlSha256": "cf65e223fa32d9128c87804c000a267934a2a4c40d50808934ebe5b4da5a5088"
+    },
+    {
+      "slug": "mirrortimers",
+      "file": "docs/player/mirrortimers.md",
+      "title": "Breath and fatigue",
+      "sourceSha256": "8ba25faf87a8a64919450a2255525b41b7d420d637859c30c90bbcbf8845e0b1",
+      "buildSha256": "8ba25faf87a8a64919450a2255525b41b7d420d637859c30c90bbcbf8845e0b1",
+      "htmlSha256": "1c1481bd596c5e57f7a674f2768bb47dd785d76540b7b3d6cc0533b38154e88b"
+    },
+    {
+      "slug": "totems",
+      "file": "docs/player/totems.md",
+      "title": "Totems",
+      "sourceSha256": "ade60c9da3b9d4b4a4623ad2d34271b4a432dafe5760c97516604f5364bf79fe",
+      "buildSha256": "ade60c9da3b9d4b4a4623ad2d34271b4a432dafe5760c97516604f5364bf79fe",
+      "htmlSha256": "02d061ad63513f71e389d4a690beecb8575ee8a12f1ee2b1ae0aeffeb2cf4a65"
+    },
+    {
+      "slug": "lossofcontrol",
+      "file": "docs/player/lossofcontrol.md",
+      "title": "Loss of control",
+      "sourceSha256": "44a8491d8afb0a75e4ce76e8e405c5f41d9b98946192ce8bd36db93d30ff7fa3",
+      "buildSha256": "44a8491d8afb0a75e4ce76e8e405c5f41d9b98946192ce8bd36db93d30ff7fa3",
+      "htmlSha256": "e0768c1128d423294c22f2cecbabd13ae501ea9eecb33b32930cac61fb117b5e"
+    },
+    {
+      "slug": "proc-overlay",
+      "file": "docs/player/proc-overlay.md",
+      "title": "Proc indicators",
+      "sourceSha256": "2920a56de4af86cf39c6892165df7f63127c951b8628e32d7745925a13a27c50",
+      "buildSha256": "2920a56de4af86cf39c6892165df7f63127c951b8628e32d7745925a13a27c50",
+      "htmlSha256": "8e8c6bb4d28ce7835fc98d0985e4327881cc97fc628b03c3778be2d29d575034"
+    },
+    {
+      "slug": "damagemeter",
+      "file": "docs/player/damagemeter.md",
+      "title": "Damage meter",
+      "sourceSha256": "5e05b17114923e344a78a76f7c30814d8bde4d8c99faf5b3591a68cde8b5cd89",
+      "buildSha256": "5e05b17114923e344a78a76f7c30814d8bde4d8c99faf5b3591a68cde8b5cd89",
+      "htmlSha256": "6a408ed2a4527d408df3dc36b74a058d583d4a6a3bb2e14c14759306ad71eff9"
+    },
+    {
+      "slug": "combattext",
+      "file": "docs/player/combattext.md",
+      "title": "Combat text",
+      "sourceSha256": "7be07abefe1b76edd06a85310388e4a94319855e2195ea3cb83a630b97e43935",
+      "buildSha256": "7be07abefe1b76edd06a85310388e4a94319855e2195ea3cb83a630b97e43935",
+      "htmlSha256": "2042c4fae95a39f40d3b90915889d06047ffcb7691c7d891f9004e520188fcad"
+    },
+    {
+      "slug": "extrabuttons",
+      "file": "docs/player/extrabuttons.md",
+      "title": "Extra action buttons",
+      "sourceSha256": "54f2737fd5a317429c0d801109a1801d654133c7f32e433a21ce7e24fb58633b",
+      "buildSha256": "54f2737fd5a317429c0d801109a1801d654133c7f32e433a21ce7e24fb58633b",
+      "htmlSha256": "58a1efb38b6168baae5414b07f392434cf0e3f4520fe25ea83d1f3ca38ab23ed"
+    },
+    {
+      "slug": "questtracker",
+      "file": "docs/player/questtracker.md",
+      "title": "Quest tracker",
+      "sourceSha256": "a84ef75147a7c75ddbe0d111f464c72e710791bb9525975d079ebc1da5a67e8d",
+      "buildSha256": "a84ef75147a7c75ddbe0d111f464c72e710791bb9525975d079ebc1da5a67e8d",
+      "htmlSha256": "8a42f7ae8140b4f1ebe1d05598d93b8cf390ed5ba92c89301edd8482c8cf3add"
+    },
+    {
+      "slug": "questplanner",
+      "file": "docs/player/questplanner.md",
+      "title": "Quest planner",
+      "sourceSha256": "fcb21936834a73009cf71dd2e30f1c75fa54a37a70170624506208da8c9bd698",
+      "buildSha256": "fcb21936834a73009cf71dd2e30f1c75fa54a37a70170624506208da8c9bd698",
+      "htmlSha256": "2ed2a8a2c70be072be472b39c263390e46a3399fb9914987c9039a6d38846bd8"
+    },
+    {
+      "slug": "questtimers",
+      "file": "docs/player/questtimers.md",
+      "title": "Quest timers",
+      "sourceSha256": "cacd44a1ad858f852e4d139b7aec4001dcde42b7229fc5404d6e5dd0ade058da",
+      "buildSha256": "cacd44a1ad858f852e4d139b7aec4001dcde42b7229fc5404d6e5dd0ade058da",
+      "htmlSha256": "d1531b04f86dc2eb095bc570ed3ca7148ef2df37076c9a74dda63feafeef168d"
     },
     {
       "slug": "worldmap",
-      "file": "docs/worldmap.md",
-      "title": "World map"
+      "file": "docs/player/worldmap.md",
+      "title": "World map",
+      "sourceSha256": "2485b83b05327557406bdde3ef93e761883a3ba215febd857fc7e4f9a50cc633",
+      "buildSha256": "2485b83b05327557406bdde3ef93e761883a3ba215febd857fc7e4f9a50cc633",
+      "htmlSha256": "8def8add9b002e86607dfb5a2b4165f460628a38642b08c7b2294d3ee4013d70"
+    },
+    {
+      "slug": "minimap",
+      "file": "docs/player/minimap.md",
+      "title": "Minimap",
+      "sourceSha256": "0bc11ba84b5c45277693cd4c07d8a5ecf830299b863fcae396aa52c09dde39b5",
+      "buildSha256": "0bc11ba84b5c45277693cd4c07d8a5ecf830299b863fcae396aa52c09dde39b5",
+      "htmlSha256": "13ae6288e4f8a24a1947d461e33f873c1da69d786ba3ed0514f074627bc4b19a"
+    },
+    {
+      "slug": "bags",
+      "file": "docs/player/bags.md",
+      "title": "Inventory",
+      "sourceSha256": "c231dba55ec1da27c20eb7b0e00ff8c0adedea4ae2d8d2bdd60694073653655c",
+      "buildSha256": "c231dba55ec1da27c20eb7b0e00ff8c0adedea4ae2d8d2bdd60694073653655c",
+      "htmlSha256": "06c9f182ce5d81b4b49d7c4ec16ee52288385f8f8fa0babceb08c80a516dbca2"
+    },
+    {
+      "slug": "loot",
+      "file": "docs/player/loot.md",
+      "title": "Loot and rolls",
+      "sourceSha256": "2688658cb3aeb44df6bf9a47ca709266dc2d273b50ae735a5ae1e621b5134390",
+      "buildSha256": "2688658cb3aeb44df6bf9a47ca709266dc2d273b50ae735a5ae1e621b5134390",
+      "htmlSha256": "6552165f15118fa488d3f1ac414dcd190daeb5fba635eb0979f102d2de4068b0"
+    },
+    {
+      "slug": "chat",
+      "file": "docs/player/chat.md",
+      "title": "Chat",
+      "sourceSha256": "1caefdaea54f23638090a16b1f7d23eb2a974922505e90e5cf830073307a8593",
+      "buildSha256": "1caefdaea54f23638090a16b1f7d23eb2a974922505e90e5cf830073307a8593",
+      "htmlSha256": "c59f6918a117e45b059b0269dc6070f5e96e64be5f7c2bf26fe7d47b35fc60a1"
+    },
+    {
+      "slug": "chatbubbles",
+      "file": "docs/player/chatbubbles.md",
+      "title": "Chat bubbles",
+      "sourceSha256": "34c9c55bc7a1398e2dcbcf584eeb0b9e16ba77c1ab590791dcf977f1dec3e2b3",
+      "buildSha256": "34c9c55bc7a1398e2dcbcf584eeb0b9e16ba77c1ab590791dcf977f1dec3e2b3",
+      "htmlSha256": "b7a6a54be0c4297e3049ac1c1024a554ab2562fdb2e957203096016eb26340ce"
+    },
+    {
+      "slug": "micromenu",
+      "file": "docs/player/micromenu.md",
+      "title": "Micro menu and bag strip",
+      "sourceSha256": "35f71b4763ef6437af6219f072ecaada5e23493338b2f7a91ad1e22ad46da9c3",
+      "buildSha256": "35f71b4763ef6437af6219f072ecaada5e23493338b2f7a91ad1e22ad46da9c3",
+      "htmlSha256": "dab4129a0463a339643ebcaba2c3342a461ec49f62e65c218df9f05304eb4e53"
     },
     {
       "slug": "xpbar",
-      "file": "docs/xpbar.md",
-      "title": "Experience and reputation"
+      "file": "docs/player/xpbar.md",
+      "title": "Experience and reputation",
+      "sourceSha256": "444d0713a420860f1a030f530c5e6b364b413b1a69f54a85a2f63bc18a410683",
+      "buildSha256": "444d0713a420860f1a030f530c5e6b364b413b1a69f54a85a2f63bc18a410683",
+      "htmlSha256": "067772401beb8c933afda4aaef715a8b7293f6b4f32a18cd6d3f94c83c1b4b68"
+    },
+    {
+      "slug": "durability",
+      "file": "docs/player/durability.md",
+      "title": "Durability",
+      "sourceSha256": "66f6c9b0c9962b5580a75c725b9d41982417a2cb82513a66e2ea40da4ab07ec1",
+      "buildSha256": "66f6c9b0c9962b5580a75c725b9d41982417a2cb82513a66e2ea40da4ab07ec1",
+      "htmlSha256": "1c2b951800ddf7412f98e2899d668c57f02d0c55f2a46de62f849db7be50f756"
+    },
+    {
+      "slug": "tooltip",
+      "file": "docs/player/tooltip.md",
+      "title": "Tooltips",
+      "sourceSha256": "1135add21e9cca8399c79fdd67de576a99d86e40cf4139936beab25fecd71ee9",
+      "buildSha256": "1135add21e9cca8399c79fdd67de576a99d86e40cf4139936beab25fecd71ee9",
+      "htmlSha256": "e6255522fc79155c6faca881879242d4bd2080e74f0d17cd37ebcc06d5a6b754"
+    },
+    {
+      "slug": "hudframes",
+      "file": "docs/player/hudframes.md",
+      "title": "Small HUD elements",
+      "sourceSha256": "72c8913de4735c38957301ab9c8b2c9db23ae9c14446fb33c491b83b651574f3",
+      "buildSha256": "72c8913de4735c38957301ab9c8b2c9db23ae9c14446fb33c491b83b651574f3",
+      "htmlSha256": "8756d2d3ee8d4d0d7a274eae82ab0c5515d10ca3d1a4e30ba2200c125676e01d"
+    },
+    {
+      "slug": "screentext",
+      "file": "docs/player/screentext.md",
+      "title": "Screen messages",
+      "sourceSha256": "a292caa4c2bd9c41862be6f67077d2973079f5580ecc6dfb6763125f63315979",
+      "buildSha256": "a292caa4c2bd9c41862be6f67077d2973079f5580ecc6dfb6763125f63315979",
+      "htmlSha256": "e470a6c719a2922d12b956211be392952326c37250cc0ce3c6be4fc08c7b249f"
+    },
+    {
+      "slug": "alerts",
+      "file": "docs/player/alerts.md",
+      "title": "Alert toasts",
+      "sourceSha256": "7f07df33632344b16b34dc612376367f5d8cc635eaafc9a82f74f57363230fc1",
+      "buildSha256": "7f07df33632344b16b34dc612376367f5d8cc635eaafc9a82f74f57363230fc1",
+      "htmlSha256": "eaaf54952ad9d4cf730289308ae23f91d8d083815fd67c820303261aad7a0e64"
+    },
+    {
+      "slug": "banners",
+      "file": "docs/player/banners.md",
+      "title": "Event banners",
+      "sourceSha256": "7a09d8d3ce229000d39ce00fb12e577da73b3c73251f956a1df3b8e383c71857",
+      "buildSha256": "7a09d8d3ce229000d39ce00fb12e577da73b3c73251f956a1df3b8e383c71857",
+      "htmlSha256": "ca5cc0967b364027b8c1e5d8ec7a7023a2e1e53f2bb1a5cf4459ffb93fdd6cec"
+    },
+    {
+      "slug": "toasts",
+      "file": "docs/player/toasts.md",
+      "title": "Social notifications",
+      "sourceSha256": "718c29140e351807ea192b3cea4c32de99eccfbcdf0d24bbd8d6abf0b3d7a8de",
+      "buildSha256": "718c29140e351807ea192b3cea4c32de99eccfbcdf0d24bbd8d6abf0b3d7a8de",
+      "htmlSha256": "24f07dfb96936b2e5d7bda0fd3294450e49c193261112731f2e0eb9aa3c24beb"
+    },
+    {
+      "slug": "panels",
+      "file": "docs/player/panels.md",
+      "title": "Window chrome",
+      "sourceSha256": "80d97f7e6cfcb582b4bd1126631698d6d6fe58e47891a904cfca2bbe44b775f7",
+      "buildSha256": "80d97f7e6cfcb582b4bd1126631698d6d6fe58e47891a904cfca2bbe44b775f7",
+      "htmlSha256": "5f113b27a3dca971b2ef3a94272060014ae253a355f301207e6c34812dc186ca"
+    },
+    {
+      "slug": "interiors",
+      "file": "docs/player/interiors.md",
+      "title": "Window interiors",
+      "sourceSha256": "68ad099eec0ddecfc3b8f5ba807700e2f3a7d88885668d53750165c5a07ec4e1",
+      "buildSha256": "68ad099eec0ddecfc3b8f5ba807700e2f3a7d88885668d53750165c5a07ec4e1",
+      "htmlSha256": "0888d485faba3c9cb7929f49bf532bd7e82ed189acf503b991f0cc9b40d31d51"
+    },
+    {
+      "slug": "auction-house",
+      "file": "docs/player/auction-house.md",
+      "title": "Auction house",
+      "sourceSha256": "5ada610965c4e62618d169d67035713006cf41fa3764e0e396ed09df6e5666af",
+      "buildSha256": "5ada610965c4e62618d169d67035713006cf41fa3764e0e396ed09df6e5666af",
+      "htmlSha256": "cb58dbcea37a9985fae8a9a21c4eeff7d7db7bcf69ee7c6149e41ad47a56c094"
+    },
+    {
+      "slug": "dialogs",
+      "file": "docs/player/dialogs.md",
+      "title": "Small dialogs",
+      "sourceSha256": "b27f04ebff74c52d007e1ab6f1cb0f8645e57c05a9239b80426d80d6edb6ec94",
+      "buildSha256": "b27f04ebff74c52d007e1ab6f1cb0f8645e57c05a9239b80426d80d6edb6ec94",
+      "htmlSha256": "a55890f7015e0d6c0387b5b5e86b328feb5b4e81cdc38f681eded191abcd6ddf"
+    },
+    {
+      "slug": "popups",
+      "file": "docs/player/popups.md",
+      "title": "Confirmation popups",
+      "sourceSha256": "f02f875ea14811da668d3eb4c36911b285ac924d8fe5bba4acebf64d61f35ada",
+      "buildSha256": "f02f875ea14811da668d3eb4c36911b285ac924d8fe5bba4acebf64d61f35ada",
+      "htmlSha256": "bdcf8005f8a5e343894de170a7e931855da149a5a857f37f1da40a9c01d27a34"
+    },
+    {
+      "slug": "menus",
+      "file": "docs/player/menus.md",
+      "title": "Context menus",
+      "sourceSha256": "5c1aabde58ceb3f7b205d92338d6e4dbc30b64061f4911b42708530f96afce44",
+      "buildSha256": "5c1aabde58ceb3f7b205d92338d6e4dbc30b64061f4911b42708530f96afce44",
+      "htmlSha256": "c748bf0885b52cd44d7368e52519ae80290766781c06cf43227af38118865e53"
+    },
+    {
+      "slug": "widgets",
+      "file": "docs/player/widgets.md",
+      "title": "Objective widgets",
+      "sourceSha256": "b98d979f94215064f1f0f15c23ad308710d762c61e37aa5ab0ca17529242e11a",
+      "buildSha256": "b98d979f94215064f1f0f15c23ad308710d762c61e37aa5ab0ca17529242e11a",
+      "htmlSha256": "8cfc9d96cf67d91463aaa27c803698697ebace90ba29f46b68a7b8fe0edd3891"
+    },
+    {
+      "slug": "controls",
+      "file": "docs/player/controls.md",
+      "title": "Shared controls",
+      "sourceSha256": "1953ce0c178bb461e69348060d0412548f559db4df1c473e1617f24b4538073c",
+      "buildSha256": "1953ce0c178bb461e69348060d0412548f559db4df1c473e1617f24b4538073c",
+      "htmlSha256": "5c84a7d1bc41435946cc5a8e0b4b5ab693687c4dd86242c0df6077ec17d18747"
     },
     {
       "slug": "installation",
-      "file": "installer/README.md",
-      "title": "Install RikUI"
+      "file": "docs/player/installation.md",
+      "title": "Install RikUI",
+      "sourceSha256": "b4b6e00e8c5c088b715529288ba6bf936ee143ddc028e784aa7ed7b88da1b987",
+      "buildSha256": "632ea09b8b3cac298557bb87aaa18c7414cf92feec9a17efb376f0043dff6702",
+      "htmlSha256": "bac93fd93430db42416e6c9a12e6bd13d2bf345f9262b54de36f86b6526edaad"
     },
     {
       "slug": "overview",
-      "file": "README.md",
-      "title": "RikUI"
+      "file": "docs/player/overview.md",
+      "title": "RikUI",
+      "sourceSha256": "df5485e9dcc5abc2f1cb2e74450f8a81c4ab300447be9153c664f52cad25f4ba",
+      "buildSha256": "df5485e9dcc5abc2f1cb2e74450f8a81c4ab300447be9153c664f52cad25f4ba",
+      "htmlSha256": "519cec49888d0c3360631dde9106901fc400f0e7620314a45b641d1ad9c93810"
     },
     {
       "slug": "contributing",
-      "file": "CONTRIBUTING.md",
-      "title": "Help improve RikUI"
+      "file": "docs/player/contributing.md",
+      "title": "Help improve RikUI",
+      "sourceSha256": "d1bc36340c8f7465b670b16dc730edd51a9a6b99805e99257bb0565bb3ea6200",
+      "buildSha256": "d1bc36340c8f7465b670b16dc730edd51a9a6b99805e99257bb0565bb3ea6200",
+      "htmlSha256": "892d122e417643353543e024aeaba066d65fe1a0d2f3524bd466a2241917de9a"
     },
     {
       "slug": "web--asset-notice",
-      "file": "web/ASSET-NOTICE.md",
-      "title": "Artwork notice"
+      "file": "docs/player/web--asset-notice.md",
+      "title": "Artwork notice",
+      "sourceSha256": "edd6fc47f60edfcd5135506965fb89c6a7510be36f4c7ad8f16be10af936c741",
+      "buildSha256": "edd6fc47f60edfcd5135506965fb89c6a7510be36f4c7ad8f16be10af936c741",
+      "htmlSha256": "2d0f624678b5b2eac5d84712cf6399b5096df3752a48296881e5abc102d22658"
     }
   ],
   "modules": [

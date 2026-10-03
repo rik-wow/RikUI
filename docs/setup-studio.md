@@ -1,51 +1,5 @@
-# RikUI Setup Studio
+# Setup Studio
 
-Copy a setup you like, make it fit your screen, keep the parts you want, and update it without losing your changes.
+The canonical player guide is [docs/player/setup-studio.md](player/setup-studio.md), published at [rikwow.com/docs/setup-studio](https://rikwow.com/docs/setup-studio). Edit that Markdown source for controls, import/export, fitting, privacy, integrations, restoration and supported limitations.
 
-Open `/rik studio`, or configure a setup at [rikwow.com/studio](https://rikwow.com/studio) before installing. The addon opens with your current setup staged when it can be exported. Use the numbered **Choose → Select parts → Appearance → Fit & preview → Review & apply → Share** pages. **More tools** holds optional character operations, recovery and capture; **Fine-tune appearance** shows explicit choices for accents, borders, textures, fonts and spacing. No settings change simply by moving between pages. Choose a collection pack or import a code, select components, choose device/activity and personal readability, review fit and interface ownership, then Apply outside combat. Appearance, HUD, nameplates, group frames, navigation and inventory can be adopted separately. Character setup is always an explicit additional operation.
-
-## Export, edit and return
-
-Export live shares supported current settings and registered frame geometry. It excludes quest pins, observations, chat history, character/account records and restoration history. Paste the code into the browser editor, adjust groups with snapping or keyboard arrows, choose a coordinated theme, and export a validated addon code. Import it in Studio for review before Apply. Legacy profile and preset codes remain importable; old profile exports have no complete group geometry. Obsolete `classcooldowns` and `cooldownviewer` module flags are removed from portable data, preserving the current `cooldowns` setting and saved profile. Unknown active module flags remain rejected.
-
-The copy dialog temporarily hides Studio and restores it when closed. Select all text in the export box and copy the complete code. The browser accepts wrapped pasted codes and reports how many characters are missing from an incomplete copy. Export normalizes live layout anchors in a copy; it does not rewrite your saved positions.
-
-The browser uses **Choose a setup → Make it yours → Review & share**. Choose an authentic collection thumbnail or expand **Import my current setup**. Customize with **Parts**, **Appearance** and **Layout** tabs; Left/Right and Home/End navigate the tabs by keyboard. The preview stays beside the settings on desktop, and follows them on small screens. **Zoom** enlarges captures inside a scrollable preview.
-
-The browser initially uses your exported viewport. **Edit frame positions** opens Layout and shows every currently editable group as a labeled mover, including frames inactive in the chosen scene. The **All movable frames** list provides full names and keyboard access when labels are small or overlapping. **Show inactive samples** displays supported conditional fixture states; inventory normally appears in the town scene. **Show all labeled movers** can be disabled for a cleaner preview; fitting conflicts remain visible.
-
-The **Character viewing area** guide marks the middle of the viewport. The shared addon/browser fitter keeps persistent frames outside that area, independently of UI density. It reserves a viewing corridor for your character and nearby ground cues, rather than claiming measured model or camera bounds. Inventory, loot and tooltips may cover it temporarily. Personal frame positions stay where you put them and report a conflict if they obstruct it; reset that frame to recover a fitted position. Full-size chat and raid panels together can exceed available space on a short desktop screen; choose the handheld presentation or adjust selected parts when review reports crowding.
-
-Red outlines identify conflicting reserved footprints and their neighbors. Select a conflict to open Layout and inspect its group. Review shows why export is blocked until those conflicts are resolved. Clearance includes an 8-unit gap, so two visible widgets need not overlap to conflict. Reserved footprints can exceed a sample’s painted content. A specialist reservation is visible separately and remains controlled by its owning addon.
-
-The browser uses RikUI's exact Setup Pack Lua engine in Fengari, plus reviewed authentic Lua component captures. HTML provides editor controls; game widgets are captured addon output. Imported settings outside the capture coverage are preserved and identified. Dynamic contents, other addon widgets, live names, protected measurements and unrepresented groups can differ from the sample. Final declared fit conflicts must be resolved before applying. Source packs keep their original viewport; device fitting does not rewrite them.
-
-## Personal preferences and activities
-
-Standard, readable, contrast and calm recipes coordinate scale, text, numbers, borders and reduced motion. Meaningful health, warning and selection colors stay intact. Personal accessibility requirements take precedence over pack recommendations and creator updates.
-
-Desktop, ultrawide and handheld presentations share the same source and bindings. Handheld increases readable scale, collapses the quest tracker and hides selected secondary regions. Modifier labels read supported gamepad/binding APIs; Studio does not assign controller inputs. Exploration, party/dungeon, raid and town variants can be pinned manually. Automatic group/rest transitions use the combat queue; routine transitions avoid module/font reloads. Module, font, text scale, theme and interface ownership changes are reviewed for reload.
-
-## Try-on and capture
-
-Try-on hides the editor and leaves a compact **Back to Studio** bar, so the actual UI is visible. Return restores the editor and normal presentation. Try-on temporarily positions actual available RikUI frames without writing the profile. Party, raid, casting and inventory samples use actual addon controls. Exit restores normal presentation; protected changes wait until combat ends. Module/font/theme previews requiring reload remain explicitly limited.
-
-Capture controls hide selected listed chat, planner and inventory windows and can display pack attribution. Exiting restores those windows' prior visibility. Names, the world, other chat windows, popups and external addons are outside this feature's privacy scope. Review the entire capture before sharing.
-
-## Character setup and QuestTogether
-
-Export bars reads the five standard action pages, referenced macros and verified existing spell catalogue entries. Unknown spells, ambiguous macro names and script macros are refused. Bars + keys explicitly adds current ACTIONBUTTON1..12 bindings. Importing a code never runs Lua. Character opens the existing protected setup review; binding application is a separate explicit operation with a recovery snapshot.
-
-The reviewed QuestTogether recipe gives its stock nameplate augmentation ownership, disables RikUI nameplates after reload, recommends icons Left and quest health tint off, and reserves upper-left bubble space. Place its bubble with QuestTogether's own controls. No foreign settings or unsupported styling/data APIs are used. Missing or failed optional-addon APIs leave RikUI ownership available.
-
-## Updates, restoration and capacity
-
-Studio stores the original installed pack separately from its creator baseline and your live personal settings. Incoming newer revisions of the same identity use a three-way comparison. Personal changes remain; select any creator changes you want, then review the resulting fit before Apply. Remixes keep parent identity, revision and creator attribution.
-
-Three rotating restore slots journal affected setting areas before mutation. Restoration refuses to overwrite newer personal edits in those areas. Partial frame-refresh failures report recoverable changed settings. Bindings use the existing verified restoration transaction.
-
-Pack codes have a 12,000-byte bound. One installed source/state and each independent restore bank remain within the existing 21,600-byte codec bound. Capacity or storage failures stop operations before settings are changed. Edit undo/redo is limited to 20 session states. No unlimited libraries or history enter the restart macro backup. On this beta client, export a portable code for recovery across a full client restart; do not assume CVar retention is permanent.
-
-## Sharing and maintenance
-
-Share creates a self-contained browser result link with validated data in its fragment. Inspect selected character content and attribution before sharing. The curated gallery submission and maintenance flow is documented at [rikwow.com/setups/submit](https://rikwow.com/setups/submit). Maintainers validate codes, ancestry, image permission, compatibility and affected authentic captures. Update the same identity with an incremented revision; use a new identity with ancestry for a remix.
+The site generation contract is [documentation-pipeline.md](documentation-pipeline.md). Runtime and browser share the unchanged Lua pack engine; the browser composes authentic component captures and explicitly identifies unsupported appearance. Current reviewed center-fitting and shared-control evidence is [setup-studio-clearance-review.json](setup-studio-clearance-review.json). This document is an entry point, not a second copy of the player guide.
