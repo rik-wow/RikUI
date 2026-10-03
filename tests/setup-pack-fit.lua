@@ -1,5 +1,5 @@
 RikUI={Presets={},RegisterCommand=function()end,RegisterEvent=function()end}
-for _,f in ipairs({"src/core/profile-schema.lua","src/persistence/codec.lua","src/setup/setup.lua","src/setup/preset-schema.lua","src/setup/setup-pack.lua","data/layouts.lua","src/setup/setup-pack-library.lua"})do dofile(f)end
+for _,f in ipairs({"src/core/layout-metrics.lua","src/core/profile-schema.lua","src/persistence/codec.lua","src/setup/setup.lua","src/setup/preset-schema.lua","src/setup/setup-pack.lua","data/layouts.lua","src/setup/setup-pack-library.lua"})do dofile(f)end
 local p,cases=RikUI.SetupPack,0
 for _,name in ipairs(RikUI.Layouts.Order)do
  local source=assert(p.Bundled(name));local original=assert(p.Encode(source))

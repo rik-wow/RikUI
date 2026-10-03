@@ -45,6 +45,8 @@ function studio.Export(meta)
         if pack.GroupComponents[key] and group.frames[1] then
             local frame=group.frames[1]
             groups[key]={component=pack.GroupComponents[key],width=frame:GetWidth(),height=frame:GetHeight(),
+                native=(core.LayoutMetrics.IsBar(key) and type(frame.buttons)=="table") or key:match("^cast")~=nil,
+                cells=core.LayoutMetrics.IsBar(key) and type(frame.buttons)=="table" and (key=="stance" and math.max(1,frame.formCount or 1) or #frame.buttons) or nil,
                 priority=key=="main" and 1 or 20,exclusive=group.exclusive,minimum=0.85,floating=core.Layout.Floats(group),
                 activity=key=="party" and "party" or key=="raid" and "raid" or nil}
         end
@@ -141,6 +143,7 @@ local function currentOptions()
     return {overrides=overrides,viewport=core.Layout.Screen(),activity=studio.Activity,device=studio.Device,components=studio.Selected,
         accessibility=studio.CurrentAccessibility(),reservations=reservations}
 end
+function studio.FitOptions() return copy(currentOptions()) end
 function studio.Resolve()
     if not studio.Draft then return nil,"Choose or import a setup first" end
     local value=copy(studio.Draft)
@@ -187,6 +190,8 @@ local function assign(p)
     local before=portable()
     for _,entry in ipairs(pack.Diff(before,p))do pack.Set(core.Profile,entry.path,entry.after) end
     refreshChat(before)
+    if core.Bags and core.Bags.ApplyColumns and not pack.Equal(before.bags,core.Profile.bags) then core.Bags.ApplyColumns() end
+    if core.QuestTracker and core.QuestTracker.Refresh and not pack.Equal(before.questtracker,core.Profile.questtracker) then core.QuestTracker.Refresh() end
     core:Changed(); core.Layout.Apply()
 end
 function studio.Apply(accept)
@@ -238,6 +243,8 @@ function studio.Restore(index)
     local applied,refreshError=pcall(function()
         for _,entry in ipairs(point.changed or {}) do pack.Set(core.Profile,entry.path,entry.before) end
         refreshChat(before)
+    if core.Bags and core.Bags.ApplyColumns and not pack.Equal(before.bags,core.Profile.bags) then core.Bags.ApplyColumns() end
+    if core.QuestTracker and core.QuestTracker.Refresh and not pack.Equal(before.questtracker,core.Profile.questtracker) then core.QuestTracker.Refresh() end
         core:Changed();core.Layout.Apply()
     end)
     if applied then

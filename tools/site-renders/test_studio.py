@@ -37,7 +37,7 @@ class StudioChecks(unittest.TestCase):
             if case.get("page")=="studio-atlas":
                 self.assertEqual(case.get("fixtures"),[])
                 self.assertEqual(case.get("lua"),"")
-                self.assertIn(case["sequence"]["apply"],("RikRenderStudioAtlas(VALUE)","RikRenderStudioExtra(VALUE)","RikRenderStudioModules(VALUE)"))
+                self.assertIn(case["sequence"]["apply"],("RikRenderStudioAtlas(VALUE)","RikRenderStudioExtra(VALUE)","RikRenderStudioModules(VALUE)","RikRenderStudioGrids(VALUE)"))
         # Review only invoked fixture bodies, not unused Studio functions in the same module.
         atlas=(directory/"fixtures/studio.lua").read_text().split("function RikRenderStudioAtlas",1)[1]
         extra=(directory/"fixtures/studio-components.lua").read_text().split("-- Assert positions",1)[0]
@@ -79,6 +79,23 @@ class StudioChecks(unittest.TestCase):
             verify_frame(ordinary,ordinary,frame,directory,errors,hashes)
             verify_frame({**ordinary,"id":"b"},ordinary,second,directory,errors,hashes)
             self.assertTrue(any("Identical states" in e for e in errors))
+    def test_grid_atlas_authenticates_every_native_root_and_rejects_mismatched_cells(self):
+        from check import verify_components
+        from copy import deepcopy
+        case={"frame":"RikRenderStudioGrids","sequence":{"apply":"RikRenderStudioGrids(VALUE)"}}
+        frame={"value":36,"width":700,"height":1400,"components":{}}
+        top=8
+        for key,count in (("main",12),("bar2",12),("bar3",12),("bar4",12),("bar5",12),("stance",3),("pet",10)):
+            columns=min(4,count);rows=(count+3)//4
+            width=columns*36+(columns-1)*6;height=rows*36+(rows-1)*6
+            frame["components"][key]={"x":8,"y":1400-top-height,"width":width,"height":height};top+=height+16
+        errors=[];verify_components(case,frame,"grids",errors);self.assertEqual(errors,[])
+        missing=deepcopy(frame);del missing["components"]["pet"]
+        errors=[];verify_components(case,missing,"missing",errors);self.assertTrue(any("identity" in e for e in errors))
+        wrong=deepcopy(frame);wrong["components"]["main"]["width"]+=1
+        errors=[];verify_components(case,wrong,"wrong",errors);self.assertTrue(any("grid cells" in e for e in errors))
+        escaped=deepcopy(frame);escaped["components"]["pet"]["x"]=700
+        errors=[];verify_components(case,escaped,"escaped",errors);self.assertTrue(any("geometry" in e for e in errors))
     def test_current_planner_uses_separate_verified_version_and_build(self):
         from fixtures import client_prelude,load_modules,scenario_script
         client="1.60.8.99999"

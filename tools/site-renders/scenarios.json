@@ -4776,5 +4776,319 @@
       "Cleanup",
       "World Quest"
     ]
+  },
+  {
+    "id": "studio-grids-classic-standard",
+    "page": "studio-atlas",
+    "title": "classic / standard independent native bar grids",
+    "frame": "RikRenderStudioGrids",
+    "screen": "2048x1536",
+    "crop": "700x1400+0+136",
+    "transparent": true,
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "barFade": {
+        "main": false,
+        "bar2": false,
+        "bar3": false,
+        "bar4": false,
+        "bar5": false
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    },
+    "sequence": {
+      "setting": "native button size",
+      "values": [
+        30,
+        36,
+        42,
+        48
+      ],
+      "default": 36,
+      "control": "slider",
+      "label": "Button size",
+      "apply": "RikRenderStudioGrids(VALUE)"
+    }
+  },
+  {
+    "id": "studio-grids-classic-readable",
+    "page": "studio-atlas",
+    "title": "classic / readable independent native bar grids",
+    "frame": "RikRenderStudioGrids",
+    "screen": "2048x1536",
+    "crop": "700x1400+0+136",
+    "transparent": true,
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "font": "bundled",
+      "borderColor": [
+        0.25,
+        0.28,
+        0.32
+      ],
+      "theme": {
+        "accent": "gold",
+        "border": 1,
+        "texture": "bundled",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "barFade": {
+        "main": false,
+        "bar2": false,
+        "bar3": false,
+        "bar4": false,
+        "bar5": false
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    },
+    "sequence": {
+      "setting": "native button size",
+      "values": [
+        30,
+        36,
+        42,
+        48
+      ],
+      "default": 36,
+      "control": "slider",
+      "label": "Button size",
+      "apply": "RikRenderStudioGrids(VALUE)"
+    }
+  },
+  {
+    "id": "studio-grids-ocean-standard",
+    "page": "studio-atlas",
+    "title": "ocean / standard independent native bar grids",
+    "frame": "RikRenderStudioGrids",
+    "screen": "2048x1536",
+    "crop": "700x1400+0+136",
+    "transparent": true,
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1,
+      "barFade": {
+        "main": false,
+        "bar2": false,
+        "bar3": false,
+        "bar4": false,
+        "bar5": false
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    },
+    "sequence": {
+      "setting": "native button size",
+      "values": [
+        30,
+        36,
+        42,
+        48
+      ],
+      "default": 36,
+      "control": "slider",
+      "label": "Button size",
+      "apply": "RikRenderStudioGrids(VALUE)"
+    }
+  },
+  {
+    "id": "studio-grids-ocean-readable",
+    "page": "studio-atlas",
+    "title": "ocean / readable independent native bar grids",
+    "frame": "RikRenderStudioGrids",
+    "screen": "2048x1536",
+    "crop": "700x1400+0+136",
+    "transparent": true,
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "font": "bundled",
+      "borderColor": [
+        0.18,
+        0.65,
+        0.85
+      ],
+      "theme": {
+        "accent": "blue",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      },
+      "textScale": 1.15,
+      "barFade": {
+        "main": false,
+        "bar2": false,
+        "bar3": false,
+        "bar4": false,
+        "bar5": false
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    },
+    "sequence": {
+      "setting": "native button size",
+      "values": [
+        30,
+        36,
+        42,
+        48
+      ],
+      "default": 36,
+      "control": "slider",
+      "label": "Button size",
+      "apply": "RikRenderStudioGrids(VALUE)"
+    }
+  },
+  {
+    "id": "studio-grids-ink-standard",
+    "page": "studio-atlas",
+    "title": "ink / standard independent native bar grids",
+    "frame": "RikRenderStudioGrids",
+    "screen": "2048x1536",
+    "crop": "700x1400+0+136",
+    "transparent": true,
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1,
+      "barFade": {
+        "main": false,
+        "bar2": false,
+        "bar3": false,
+        "bar4": false,
+        "bar5": false
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    },
+    "sequence": {
+      "setting": "native button size",
+      "values": [
+        30,
+        36,
+        42,
+        48
+      ],
+      "default": 36,
+      "control": "slider",
+      "label": "Button size",
+      "apply": "RikRenderStudioGrids(VALUE)"
+    }
+  },
+  {
+    "id": "studio-grids-ink-readable",
+    "page": "studio-atlas",
+    "title": "ink / readable independent native bar grids",
+    "frame": "RikRenderStudioGrids",
+    "screen": "2048x1536",
+    "crop": "700x1400+0+136",
+    "transparent": true,
+    "fixtures": [],
+    "lua": "",
+    "profile": {
+      "font": "game",
+      "borderColor": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "theme": {
+        "accent": "white",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      },
+      "textScale": 1.15,
+      "barFade": {
+        "main": false,
+        "bar2": false,
+        "bar3": false,
+        "bar4": false,
+        "bar5": false
+      },
+      "showHotkeys": true,
+      "showCooldownNumbers": true
+    },
+    "sequence": {
+      "setting": "native button size",
+      "values": [
+        30,
+        36,
+        42,
+        48
+      ],
+      "default": 36,
+      "control": "slider",
+      "label": "Button size",
+      "apply": "RikRenderStudioGrids(VALUE)"
+    }
+  },
+  {
+    "id": "studio-bar-shapes-editor",
+    "page": "setup-studio",
+    "title": "Shape one bar independently",
+    "frame": "RikUIStudio",
+    "crop": "680x560+684+296",
+    "fixtures": [],
+    "lua": "RikRenderStudio()\nRikUI.Studio.ShowPage(\"layout\")\nlocal keys={};for key in pairs(RikUI.Studio.Draft.groups)do keys[#keys+1]=key end;table.sort(keys)\nfor index,key in ipairs(keys)do if key==\"main\" then RikUI.Options.Commit(RikUI.Studio.Controls.group.selectorRow,index) end end\nlocal b=RikUI.Studio.Controls.barShape;b:GetScript(\"OnClick\")(b)\nRikUI.Options.Commit(RikUI.Studio.Controls[\"shape-columns\"].selectorRow,4)\nRikUI.Options.Commit(RikUI.Studio.Controls[\"shape-size\"].selectorRow,42)\nassert(RikUI.Studio.Draft.adjustments.barLayout.main.columns==4)\nRikRenderResize(RikUIStudio)\n",
+    "expectText": [
+      "Buttons per row",
+      "Button size",
+      "Button spacing"
+    ]
+  },
+  {
+    "id": "bars-independent-grids",
+    "page": "bars",
+    "title": "Independent rows, sizes and spacing",
+    "frame": "RikRenderStudioGrids",
+    "screen": "2048x1536",
+    "crop": "700x1400+0+136",
+    "transparent": true,
+    "fixtures": [],
+    "lua": "RikRenderStudioGrids(36,true)\n",
+    "expectText": []
   }
 ]

@@ -407,6 +407,17 @@ return function(check)
         check("enabled cast time reserves name space again", player.bar.text.point[2] == player.time
             and player.bar.timeBacking.shown)
         check("timer option updates running casts immediately", player.time.shown == true and player.shown)
+        local widthOption,heightOption
+        for _,option in ipairs(module.Options.settings) do
+            if option.key=="widthScale" then widthOption=option elseif option.key=="height" then heightOption=option end
+        end
+        widthOption.set(1.5);heightOption.set(36)
+        check("cast geometry updates existing bars without reload",player.width==420 and player.height==36 and player.icon.height==34 and module.Bars.castpet.width==165)
+        env.inCombat=true;local beforeWrites=writes
+        widthOption.set(0.75);heightOption.set(16)
+        check("cast size changes wait without protected combat writes",writes==beforeWrites and player.width==420 and player.height==36)
+        env.inCombat=false;env.fire("PLAYER_REGEN_ENABLED")
+        check("queued cast geometry matches the shared fitter",player.width==210 and player.height==16 and player.icon.height==14 and module.Bars.castfocus.width==120)
         module = load({ castbars = { widthScale = -10, height = math.huge } })
         check("invalid restored castbar dimensions use profile defaults", module.Bars.castplayer.width == 280
             and module.Bars.castplayer.height == 22)

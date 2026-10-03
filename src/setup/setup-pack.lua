@@ -131,7 +131,9 @@ local function validate(value)
     for k,v in pairs(value.ownership) do if not pack.Components[k] or (v ~= "rikui" and v ~= "specialist" and v ~= "stock") then fail("Invalid interface owner") end end
     profile(value.profile);if value.adjustments then profile(value.adjustments) end; viewport(value.viewport); count(value.groups,64)
     for k,g in pairs(value.groups) do
-        id(k); fields(g,{component=true,width=true,height=true,priority=true,exclusive=true,minimum=true,floating=true,activity=true})
+        id(k); fields(g,{component=true,width=true,height=true,priority=true,exclusive=true,minimum=true,floating=true,activity=true,native=true,cells=true})
+        if g.native~=nil and type(g.native)~="boolean" then fail("Invalid native geometry") end
+        if g.cells~=nil then integer(g.cells,1,12);if not RikUI.LayoutMetrics.IsBar(k) or (k=="stance" and g.cells>10) or (k=="pet" and g.cells~=10) or (k~="pet" and k~="stance" and g.cells~=12) then fail("Invalid bar cell count") end end
         if g.floating~=nil and type(g.floating)~="boolean" then fail("Invalid floating group") end
         if g.activity and not pack.Activities[g.activity] then fail("Invalid group activity") end
         if not pack.Components[g.component] or g.component == "character" then fail("Invalid frame component") end
@@ -254,10 +256,22 @@ local function resolve(value,options)
     for k,g in pairs(clean.groups) do if selected[g.component] and clean.ownership[g.component]=="rikui" and (not g.activity or g.activity==activity)
         and not (p.presentation and p.presentation.hidden and p.presentation.hidden[k]) then
         if pack.GroupEnabled(k,p) then keys[#keys+1]=k
-        else disabledGroups[#disabledGroups+1]={key=k,rect=rect(p.positions[k],g,scale,screen),disabled=true,module=pack.GroupModules[k],floating=g.floating} end
+        else
+            local measured=RikUI.LayoutMetrics.Measure(k,p,g,clean.profile)
+            local sized=pack.Copy(g);sized.width,sized.height=measured.width,measured.height
+            local body=rect(p.positions[k],sized,scale,screen);local pad=measured.padding
+            disabledGroups[#disabledGroups+1]={key=k,rect={x=body.x-pad.left*scale,y=body.y-pad.bottom*scale,width=body.width+(pad.left+pad.right)*scale,height=body.height+(pad.top+pad.bottom)*scale},bodyRect=body,geometry=measured,disabled=true,module=pack.GroupModules[k],floating=g.floating}
+        end
     end end
     table.sort(disabledGroups,function(a,b)return a.key<b.key end)
-    table.sort(keys,function(a,b) return clean.groups[a].priority==clean.groups[b].priority and a<b or clean.groups[a].priority<clean.groups[b].priority end)
+    local function fixedPosition(key)
+        return (options.overrides and options.overrides.positions and options.overrides.positions[key]) or (clean.adjustments and clean.adjustments.positions and clean.adjustments.positions[key])
+    end
+    table.sort(keys,function(a,b)
+        local af,bf=fixedPosition(a)~=nil,fixedPosition(b)~=nil
+        if af~=bf then return af end
+        return clean.groups[a].priority==clean.groups[b].priority and a<b or clean.groups[a].priority<clean.groups[b].priority
+    end)
     local placed,conflicts={{rect=pack.CharacterArea(screen),key="Character viewing area",character=true}},{}
     local reservations=options.reservations or {}
     for _,r in ipairs(reservations) do
@@ -266,11 +280,15 @@ local function resolve(value,options)
     end
     for _,key in ipairs(keys) do
         local g=pack.Copy(clean.groups[key])
-        if key=="questtracker" and p.questtracker and p.questtracker.collapsed then g.height=24 end
-        local original=rect(p.positions[key],g,scale,screen)
+        local measured=RikUI.LayoutMetrics.Measure(key,p,g,clean.profile)
+        g.width,g.height=measured.width,measured.height
+        local body=rect(p.positions[key],g,scale,screen)
+        local pad=measured.padding
+        local original={x=body.x-pad.left*scale,y=body.y-pad.bottom*scale,
+            width=body.width+(pad.left+pad.right)*scale,height=body.height+(pad.top+pad.bottom)*scale}
         local r=pack.Copy(original)
         r.x=math.max(8,math.min(screen.width-r.width-8,r.x)); r.y=math.max(8,math.min(screen.height-r.height-8,r.y))
-        local fixed=(options.overrides and options.overrides.positions and options.overrides.positions[key]) or (clean.adjustments and clean.adjustments.positions and clean.adjustments.positions[key])
+        local fixed=fixedPosition(key)
         local function clear(candidate)
             if candidate.x<7.998 or candidate.y<7.998 or candidate.x+candidate.width>screen.width-7.998 or candidate.y+candidate.height>screen.height-7.998 then return false end
             for _,other in ipairs(placed) do if not g.floating and not other.floating and (not g.exclusive or g.exclusive~=other.exclusive) and overlap(candidate,other.rect) then return false end end
@@ -304,8 +322,9 @@ local function resolve(value,options)
             local characterConflict=not g.floating and overlap(r,placed[1].rect)
             conflicts[#conflicts+1]={key=key,reason=characterConflict and "Obstructs character viewing area" or (fixed and "Personal position conflicts" or "Crowded or off-screen")}
         end
-        p.positions[key]={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=math.floor(r.x/scale*1000+0.5)/1000,y=math.floor(r.y/scale*1000+0.5)/1000}
-        placed[#placed+1]={key=key,rect=r,exclusive=g.exclusive,floating=g.floating}
+        body.x,body.y=r.x+pad.left*scale,r.y+pad.bottom*scale
+        p.positions[key]={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=math.floor(body.x/scale*1000+0.5)/1000,y=math.floor(body.y/scale*1000+0.5)/1000}
+        placed[#placed+1]={key=key,rect=r,bodyRect=body,exclusive=g.exclusive,floating=g.floating,geometry=measured,fixed=fixed~=nil}
     end
     for name in pairs(knownModules) do if p.modules and p.modules[name]~=false then
         local adopted=false
@@ -329,6 +348,51 @@ function pack.Resolve(value,options)
     return result,reason
 end
 
+-- Bounded opt-in shape search. Never changes the source, personal shapes, button sizes or bindings.
+function pack.BarOptions(key,p) return RikUI.LayoutMetrics.BarOptions(key,p) end
+function pack.Optimize(value,options)
+    options=pack.Copy(options or {})
+    local best,reason=pack.Resolve(value,options);if not best then return nil,reason end
+    local function score(result)
+        local displacement=0
+        for _,entry in ipairs(result.groups) do
+            local group=value.groups[entry.key]
+            if group and not entry.fixed then
+                local dimensions=entry.geometry or group
+                local source=rect(value.profile.positions[entry.key],dimensions,result.profile.scale or 1,options.viewport or value.viewport)
+                local body=entry.bodyRect or entry.rect
+                displacement=displacement+(body.x-source.x)^2+(body.y-source.y)^2
+            end
+        end
+        return #result.conflicts*100000000+displacement
+    end
+    local bestScore,changes,attempts=score(best),{},0
+    for _,key in ipairs({"main","bar2","bar3","bar4","bar5"})do
+        local explicit=(options.overrides and options.overrides.barLayout and options.overrides.barLayout[key]) or (value.adjustments and value.adjustments.barLayout and value.adjustments.barLayout[key])
+        local present=false;for _,entry in ipairs(best.groups)do if entry.key==key then present=true end end
+        if present and not explicit then
+            local current=RikUI.LayoutMetrics.BarOptions(key,best.profile)
+            local chosen
+            for _,columns in ipairs({12,6,4,3,2,1})do
+                if columns~=current.columns then
+                    local trial=pack.Copy(options);trial.overrides=trial.overrides or {};trial.overrides.barLayout=trial.overrides.barLayout or {}
+                    trial.overrides.barLayout[key]={columns=columns,size=current.size,spacing=current.spacing}
+                    local result=pack.Resolve(value,trial);attempts=attempts+1
+                    if result then local quality=score(result)+400*(#changes+1)
+                        if quality<bestScore then best,bestScore,chosen=result,quality,columns end
+                    end
+                end
+            end
+            if chosen then
+                options.overrides=options.overrides or {};options.overrides.barLayout=options.overrides.barLayout or {}
+                options.overrides.barLayout[key]={columns=chosen,size=current.size,spacing=current.spacing}
+                changes[#changes+1]={key=key,before=current.columns,after=chosen}
+            end
+        end
+    end
+    return {fit=best,overrides=options.overrides or {},changes=changes,attempts=attempts}
+end
+
 pack.GroupComponents = {
     main="hud",bar2="hud",bar3="hud",bar4="hud",bar5="hud",stance="hud",pet="hud",player="hud",target="hud",tot="hud",focus="hud",petframe="hud",
     castplayer="hud",casttarget="hud",castfocus="hud",castpet="hud",buffs="hud",debuffs="hud",cooldowns="hud",swingtimer="hud",
@@ -336,7 +400,7 @@ pack.GroupComponents = {
     questtracker="navigation",questtimers="navigation",chat="appearance",damagemeter="appearance",bags="inventory",loot="inventory",micromenu="inventory",durability="inventory",
 }
 local ROOT_COMPONENT={nameplates="nameplates",minimap="navigation",questtracker="navigation",worldmap="navigation",
-    bags="inventory",tooltip="appearance",chat="appearance",panels="appearance",castbars="hud",unitframes="hud",barFade="hud",
+    barLayout="hud",bags="inventory",tooltip="appearance",chat="appearance",panels="appearance",castbars="hud",unitframes="hud",barFade="hud",
     swingtimer="hud",druidmana="hud",classes="hud",xpbar="hud",combattimer="appearance",durability="inventory"}
 function pack.Adopt(current,wanted,value,selected,accessibility)
     local copy=pack.Copy;local result=copy(current);selected=selected or value.components

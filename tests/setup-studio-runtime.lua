@@ -1,6 +1,6 @@
 RikUI={Presets={},Modules={},RegisterCommand=function() end,RegisterEvent=function() end,Secret={IsSecret=function()return false end},
     Runtime={},Changed=function() end,Setup={IsApplying=function()return false end,IsUndoing=function()return false end}}
-for _,file in ipairs({"src/core/profile-schema.lua","src/persistence/codec.lua","src/setup/setup.lua","src/setup/preset-schema.lua","src/setup/setup-pack.lua","data/layouts.lua","src/setup/setup-pack-library.lua","src/configuration/options/sharing.lua"}) do dofile(file) end
+for _,file in ipairs({"src/core/layout-metrics.lua","src/core/profile-schema.lua","src/persistence/codec.lua","src/setup/setup.lua","src/setup/preset-schema.lua","src/setup/setup-pack.lua","data/layouts.lua","src/setup/setup-pack-library.lua","src/configuration/options/sharing.lua"}) do dofile(file) end
 RikUI.Setup.IsApplying=function()return false end;RikUI.Setup.IsUndoing=function()return false end
 local memory,failSave={},false
 RikUI.Store={Available=function()return true end,Load=function(key)return memory[key] end,

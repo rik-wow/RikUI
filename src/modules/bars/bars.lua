@@ -115,7 +115,37 @@ local function configureFade(bar)
     bar:SetAlpha(shouldReveal(bar) and 1 or 0)
 end
 
+function bars.ConfigureGeometry(bar)
+    if InCombatLockdown() then return end
+    local opts = core.LayoutMetrics.BarOptions(bar.positionKey or bar.key, core.Profile, bar.rikBaseLayout)
+    local count = bar.key == "stance" and math.max(1, bar.formCount or 1) or #bar.buttons
+    local grid = core.LayoutMetrics.Grid(count, opts)
+    local stamp = table.concat({grid.width,grid.height,grid.columns,grid.size,grid.spacing,count}, ":")
+    if stamp == bar.rikGeometryStamp then return end
+    bar.rikGeometryStamp = stamp
+    bar:SetSize(grid.width, grid.height)
+    for index, button in ipairs(bar.buttons) do
+        local x, y = core.LayoutMetrics.Cell(index, grid)
+        button:SetSize(grid.size, grid.size)
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", bar, "TOPLEFT", x, y)
+    end
+end
+
+function bars.SetLayout(key, value)
+    if not core.LayoutMetrics.ValidateBar(value, key) then return nil, "Invalid bar shape" end
+    local settings = {}
+    for field, entry in pairs(value) do settings[field] = entry end
+    return core.Combat.Queue(function()
+        core.Profile.barLayout = core.Profile.barLayout or {}
+        core.Profile.barLayout[key] = settings
+        core:Changed()
+        core.Layout.Apply()
+    end)
+end
+
 local function refreshAppearance(bar)
+    if bar.buttons and #bar.buttons > 0 then bars.ConfigureGeometry(bar) end
     bars.UpdateGryphons(bar)
     if bars.RefreshGhosts then bars.RefreshGhosts(bar) end
     if bar.fadeOut then updateFade(bar) end
@@ -190,11 +220,12 @@ end
 local function createBar(name, firstAction, opts)
     local bar = CreateFrame("Frame", "RikUIBar_" .. name, UIParent)
     bar.key, bar.firstAction, bar.buttons = name, firstAction, {}
-    bar.positionKey = opts.positionKey
+    bar.positionKey, bar.rikBaseLayout = opts.positionKey, opts
     local length = BUTTONS * opts.size + (BUTTONS - 1) * opts.spacing
     bar:SetSize(opts.vertical and opts.size or length, opts.vertical and length or opts.size)
-    position(bar)
     for i = 1, BUTTONS do bar.buttons[i] = createButton(bar, i, opts) end
+    bars.ConfigureGeometry(bar)
+    position(bar)
     bar.rikDefaultFade = opts.fade == true
     configureFade(bar)
     bars.Frames[name] = bar
@@ -214,7 +245,10 @@ local function options(opts)
     if opts.positionKey ~= nil and (type(opts.positionKey) ~= "string" or not setup.DefaultPositions[opts.positionKey]) then
         return nil, "unknown position key"
     end
-    return { size = size, spacing = spacing, vertical = opts.vertical, fade = opts.fade, positionKey = opts.positionKey }
+    if opts.columns ~= nil and (not finite(opts.columns) or opts.columns < 1 or opts.columns > BUTTONS or opts.columns % 1 ~= 0) then
+        return nil, "columns must be an integer from 1 to 12"
+    end
+    return { size = size, spacing = spacing, columns = opts.columns, vertical = opts.vertical, fade = opts.fade, positionKey = opts.positionKey }
 end
 
 function bars.Create(name, firstAction, layoutOpts)
@@ -275,6 +309,22 @@ for _, key in ipairs(BAR_ORDER) do
         get = function() return core.Profile.barFade[name] == true end,
         set = function(value) core.Profile.barFade[name] = value == true; refreshFades() end,
     }
+end
+
+for _, key in ipairs(core.LayoutMetrics.BarKeys) do
+    local name = key
+    for _, field in ipairs({ { "columns", "Buttons per row", 1, (name == "pet" or name == "stance") and 10 or 12 },
+        { "size", "Button size", 24, 64 }, { "spacing", "Button spacing", 0, 16 } }) do
+        local setting, label, low, high = unpack(field)
+        bars.Options.settings[#bars.Options.settings + 1] = {
+            type="slider", key="shape."..name.."."..setting, label=name.." · "..label, min=low, max=high, step=1,
+            get=function() return core.LayoutMetrics.BarOptions(name,core.Profile)[setting] end,
+            set=function(value)
+                local options=core.LayoutMetrics.BarOptions(name,core.Profile)
+                options[setting]=math.floor(value+0.5); bars.SetLayout(name,options)
+            end,
+        }
+    end
 end
 
 core:RegisterModule("bars", bars)

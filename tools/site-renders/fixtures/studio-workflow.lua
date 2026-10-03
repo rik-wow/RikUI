@@ -11,7 +11,9 @@ function RikRenderStudioPage(key)
     assert(RikUI.Studio.ShowPage(key))
     local c=RikUI.Studio.Controls
     if state=="applied" then
+        assert(not c.apply.disabled, RikUIStudio.details:GetText())
         c.apply:GetScript("OnClick")(c.apply)
+        assert(RikUI.Studio.LastResult, RikUIStudio.status:GetText())
         assert(RikUI.Studio.LastResult.status=="applied" and RikUIStudio.details:GetText():find("Setup applied"),"Successful apply is shown as an error")
     elseif state=="conflict" then assert(c.apply.disabled,"Conflicting layout can be applied") end
     assert(c.apply:IsVisible()==(key=="review"),"Apply leaked into another step")

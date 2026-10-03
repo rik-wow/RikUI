@@ -55,6 +55,33 @@ def verify_world(case, frame, name, errors):
     if record.get("sha256") != world.get("sha256") or not image_path.is_file() or digest(image_path) != record.get("sha256"):
         errors.append("World plate does not match the capture: " + name)
 
+def verify_components(case, frame, name, errors):
+    components = frame.get("components") or {}
+    value = str(frame.get("value"))
+    grids = case.get("frame") == "RikRenderStudioGrids" and case.get("sequence", {}).get("apply") == "RikRenderStudioGrids(VALUE)"
+    keys = ("main", "bar2", "bar3", "bar4", "bar5", "stance", "pet") if grids else (value,)
+    if set(components) != set(keys) or (not grids and not case.get("sequence", {}).get("frames", {}).get(value)):
+        errors.append("Missing native component identity: " + name)
+        return
+    for geometry in components.values():
+        if any(type(geometry.get(k)) not in (int, float) or not math.isfinite(geometry[k]) for k in ("x", "y", "width", "height")) or geometry["width"] <= 0 or geometry["height"] <= 0 or geometry["x"] < 0 or geometry["y"] < 0 or geometry["x"] + geometry["width"] > frame["width"] + 0.002 or geometry["y"] + geometry["height"] > frame["height"] + 0.002:
+            errors.append("Invalid native component geometry: " + name)
+            return
+    if grids:
+        size = frame.get("value")
+        if size not in (30, 36, 42, 48):
+            errors.append("Unsupported native grid size: " + name)
+            return
+        top = 8
+        for key in keys:
+            count = 3 if key == "stance" else 10 if key == "pet" else 12
+            columns, rows = min(4, count), math.ceil(count / 4)
+            width, height = columns * size + (columns - 1) * 6, rows * size + (rows - 1) * 6
+            expected = {"x": 8, "y": frame["height"] - top - height, "width": width, "height": height}
+            if any(abs(components[key][field] - expected[field]) > 0.002 for field in expected):
+                errors.append("Native grid cells disagree: " + name + ":" + key)
+            top += height + 16
+
 def verify_frame(case, capture, frame, directory, errors, hashes):
     name = frame_id(capture, frame)
     image = directory / frame["filename"]
@@ -72,11 +99,7 @@ def verify_frame(case, capture, frame, directory, errors, hashes):
         # Distinct native roots can legitimately draw identical empty slots; authenticate
         # their individual component geometry rather than inventing decorative differences.
         value = str(frame.get("value"))
-        geometry = (frame.get("components") or {}).get(value)
-        if set(frame.get("components") or {}) != {value} or not case.get("sequence", {}).get("frames", {}).get(value) or not geometry:
-            errors.append("Missing native component identity: " + name)
-        elif any(not isinstance(geometry.get(k), (int,float)) or not math.isfinite(geometry[k]) for k in ("x","y","width","height")) or geometry["width"]<=0 or geometry["height"]<=0 or geometry["x"]<0 or geometry["y"]<0 or geometry["x"]+geometry["width"]>frame["width"]+0.002 or geometry["y"]+geometry["height"]>frame["height"]+0.002:
-            errors.append("Invalid native component geometry: " + name)
+        verify_components(case, frame, name, errors)
         key = (case["page"], case["id"], value, frame["sha256"])
     if key in hashes:
         errors.append("Identical states: " + hashes[key] + " and " + name)

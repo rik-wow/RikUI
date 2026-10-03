@@ -132,6 +132,15 @@ local function decorateMotion(frame)
     frame:HookScript("OnHide", function() castbars.ResetMotion(frame) end)
 end
 
+local function configureGeometry(frame)
+    local width, height = core.LayoutMetrics.Cast(frame.key or "castplayer", core.Profile)
+    frame.castHeight = height
+    frame:SetSize(width, height)
+    frame.icon:SetSize(height - 2 * EDGE, height - 2 * EDGE)
+    if frame.spark then frame.spark:SetSize(2, height - 2 * EDGE) end
+    layoutText(frame)
+end
+
 local function createBar(spec)
     local frame = CreateFrame("Frame", FRAME_PREFIX .. spec.unit, UIParent)
     frame.key, frame.unit = spec.key, spec.unit
@@ -142,7 +151,7 @@ local function createBar(spec)
     if spec.shield then frame.shield = shield(frame) end
     frame:SetScript("OnUpdate", function(self) castbars.Tick(self) end)
     frame:Hide()
-    layout.Register(frame, spec.key, DEFAULTS[spec.key])
+    layout.Register(frame, spec.key, DEFAULTS[spec.key], {onApply=configureGeometry})
     castbars.Bars[spec.key] = frame
     return frame
 end
@@ -159,6 +168,7 @@ function castbars.Preview(enabled)
         decorate(sampleFrame)
     end
     local position=core.Profile.positions.castplayer or DEFAULTS.castplayer
+    configureGeometry(sampleFrame)
     sampleFrame:ClearAllPoints();sampleFrame:SetScale(layout.GetScale())
     sampleFrame:SetPoint(position.point,UIParent,position.relativePoint,position.x,position.y)
     sampleFrame.icon:SetTexture(135913)
@@ -257,13 +267,13 @@ function castbars:Debug(sample)
 end
 
 castbars.Options.settings = {
-    { type = "slider", key = "widthScale", label = "Bar width", min = 0.75, max = 1.5, step = 0.05, reload = true,
-        description = "Scale all castbar widths. Reload to apply; move bars afterward if needed.",
+    { type = "slider", key = "widthScale", label = "Bar width", min = 0.75, max = 1.5, step = 0.05,
+        description = "Scale all castbar widths. Applies safely after combat.",
         get = function() return core.Profile.castbars.widthScale end,
-        set = function(value) core.Profile.castbars.widthScale = value end },
-    { type = "slider", key = "height", label = "Bar height", min = 16, max = 36, step = 1, reload = true,
+        set = function(value) core.Combat.Queue(function() core.Profile.castbars.widthScale = value;layout.Apply() end) end },
+    { type = "slider", key = "height", label = "Bar height", min = 16, max = 36, step = 1,
         get = function() return core.Profile.castbars.height end,
-        set = function(value) core.Profile.castbars.height = value end },
+        set = function(value) core.Combat.Queue(function() core.Profile.castbars.height = value;layout.Apply() end) end },
     { type = "checkbox", key = "timeText", label = "Show remaining cast time",
         get = function() return core.Profile.castbars.timeText ~= false end,
         set = function(value)

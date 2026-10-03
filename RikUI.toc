@@ -10,6 +10,7 @@
 
 src/core/core.lua
 src/core/events.lua
+src/core/layout-metrics.lua
 src/core/profile-schema.lua
 src/core/profiles.lua
 src/core/modules.lua

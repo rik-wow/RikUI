@@ -104,6 +104,8 @@ def relevant(name, modules, page):
     # Setup Pack operations do not construct ordinary addon UI until Studio is invoked.
     if name in {"src/setup/setup-pack.lua", "src/setup/setup-pack-library.lua", "src/setup/setup-studio.lua", "src/configuration/options/setup-studio-view.lua"}:
         return page in {"setup-studio", "studio-atlas", "studio-gallery", "sharing"}
+    if name == "src/core/layout-metrics.lua":
+        return bool(modules & {"bars", "castbars"})
     if name.startswith("src/modules/"):
         return name.split("/")[2] in modules
     # This validates serialized imports; it does not lay out ordinary UI regions.

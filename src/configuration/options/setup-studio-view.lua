@@ -109,6 +109,7 @@ local descriptions={
  review={"Review before applying","Check ownership and fit. A restore point is saved before settings change."},
  share={"Take your setup with you","Export your current installed UI or share the draft you have been editing."},
  advanced={"Optional tools","Character actions, capture privacy and restoration are separate from the main setup flow."},
+ barshape={"Shape this action bar","Each bar has its own rows, button size and spacing. Actions and bindings stay intact."},
  details={"Fine-tune appearance","These settings are bounded. Meaningful health, warning and selection colors stay intact."}
 }
 local function text(parent,value,x,y,width,role,color)
@@ -166,8 +167,8 @@ function studio.ShowPage(key)
  for name,page in pairs(pages)do page:SetShown(name==key) end
  for name,b in pairs(nav)do b:SetChosen(name==key) end
  local d=descriptions[key];window.pageTitle:SetText(d[1]);window.pageNote:SetText(d[2])
- window.next.label:SetText(key=="review" and "Continue to sharing" or "Continue")
- window.next:SetShown(key~="share" and key~="advanced" and key~="details")
+ window.next.label:SetText(key=="review" and "Share setup" or "Continue")
+ window.next:SetShown(key~="share" and key~="advanced" and key~="details" and key~="barshape")
  window.back:SetShown(key~="choose");studio.RefreshWindow();return true
 end
 local function leavePreview()
@@ -223,6 +224,7 @@ function studio.RefreshWindow()
  window.details:SetText(table.concat(lines,"\n"))
  core.Scroll.SetContentHeight(window.reviewPane,math.max(230,window.details:GetStringHeight()+12))
  local keys=groupKeys();if groupIndex>#keys then groupIndex=1 end
+ buttons.barShape:SetDisabled(not RikUI.LayoutMetrics.IsBar(keys[groupIndex]))
  local fit=studio.Resolve();local conflicts=fit and fit.conflicts or {}
  window.fitStatus:SetText(#conflicts==0 and "No fitting conflicts. Select a sample to see the layout." or (#conflicts.." conflicts: see Review & apply for frame names."))
  for _,id in ipairs({"tryOn","castSample","inventorySample"})do buttons[id]:SetDisabled(not fit or #conflicts>0) end
@@ -240,12 +242,14 @@ local function build()
   b:SetPoint("TOPLEFT",20,-88-(i-1)*42);text(b,step[2],10,9,140)
   local page=CreateFrame("Frame",nil,window);page:SetSize(444,348);page:SetPoint("TOPLEFT",212,-154);pages[key]=page;page:Hide()
  end
- local detailsPage=CreateFrame("Frame",nil,window);detailsPage:SetSize(444,348);detailsPage:SetPoint("TOPLEFT",212,-154);pages.details=detailsPage;detailsPage:Hide()
+ for _,key in ipairs({"details","barshape"})do
+  local page=CreateFrame("Frame",nil,window);page:SetSize(444,348);page:SetPoint("TOPLEFT",212,-154);pages[key]=page;page:Hide()
+ end
  window.pageTitle=text(window,"",212,88,444,"heading");window.pageNote=text(window,"",212,118,444)
  window.status=text(window,"Edits are staged. Apply changes only on the Review page.",20,510,390)
  window.back=action(window,"back","Back",432,514,function()
   local previous="choose";for i,step in ipairs(steps)do if step[1]==currentPage then previous=steps[math.max(1,i-1)][1] end end
-  studio.ShowPage(currentPage=="details" and "look" or previous)
+  studio.ShowPage(currentPage=="details" and "look" or currentPage=="barshape" and "layout" or previous)
  end,92)
  window.next=action(window,"next","Continue",534,514,function()
   for i,step in ipairs(steps)do if step[1]==currentPage and steps[i+1]then studio.ShowPage(steps[i+1][1]);break end end
@@ -309,11 +313,38 @@ local function build()
  window.group.selectorRow:SetWidth(444);window.group:SetWidth(444)
  for i,item in ipairs({{"Left",-8,0},{"Right",8,0},{"Up",0,8},{"Down",0,-8}})do action(page,"move-"..item[1],item[1],(i-1)*82,164,function()report(studio.MoveGroup(item[2],item[3]))end,74)end
  action(page,"resetGroup","Reset frame",330,164,function()remember();local key=groupKeys()[groupIndex];if studio.Draft.adjustments and studio.Draft.adjustments.positions then studio.Draft.adjustments.positions[key]=nil end end,114)
- window.fitStatus=text(page,"",0,212)
- action(page,"tryOn","Try on layout",0,256,function()showPreview(studio.Activity)end,140)
- action(page,"castSample","Casting sample",152,256,function()showPreview("casting")end,140)
- action(page,"inventorySample","Inventory sample",304,256,function()showPreview("inventory")end,140)
- text(page,"Preview is temporary. Back to Studio restores normal presentation.",0,302)
+ action(page,"barShape","Shape selected bar",0,202,function()
+  local key=groupKeys()[groupIndex]
+  if not core.LayoutMetrics.IsBar(key) then report(nil,"Select an action, stance or pet bar first");return end
+  studio.ShowPage("barshape")
+ end,214)
+ action(page,"optimizeShapes","Find better bar shapes",230,202,function()
+  local resolved,why=studio.Resolve();if not resolved then report(nil,why);return end
+  local result=pack.Optimize(resolved.effectivePack or studio.Draft,studio.FitOptions())
+  if not result then report(nil,"Could not optimize this setup");return end
+  if #result.changes==0 then report(true,"No better shapes found; personal shapes stay intact");return end
+  remember();studio.Remix();studio.Draft.adjustments=pack.Merge(studio.Draft.adjustments or {},result.overrides)
+  report(true,#result.changes.." bar shapes staged. Undo restores them.")
+ end,214)
+ window.fitStatus=text(page,"",0,238)
+ action(page,"tryOn","Try on layout",0,278,function()showPreview(studio.Activity)end,140)
+ action(page,"castSample","Casting sample",152,278,function()showPreview("casting")end,140)
+ action(page,"inventorySample","Inventory sample",304,278,function()showPreview("inventory")end,140)
+ text(page,"Preview is temporary. Back to Studio restores normal presentation.",0,320)
+ page=pages.barshape
+ for i,spec in ipairs({{"columns","Buttons per row",1,12},{"size","Button size",24,64},{"spacing","Button spacing",0,16}})do
+  local field,label,low,high=unpack(spec)
+  selector(page,"shape-"..field,label,0,(i-1)*78,function()
+   local entries={};local key=groupKeys()[groupIndex];local max=(field=="columns" and (key=="stance" or key=="pet")) and 10 or high
+   for value=low,max do entries[#entries+1]={value,tostring(value)} end;return entries
+  end,function()local key=groupKeys()[groupIndex];return pack.BarOptions(key,effective())[field]end,function(value)
+   local key=groupKeys()[groupIndex];if not core.LayoutMetrics.IsBar(key) then return end
+   remember();studio.Remix();studio.Draft.adjustments=studio.Draft.adjustments or {};studio.Draft.adjustments.barLayout=studio.Draft.adjustments.barLayout or {}
+   local options=pack.BarOptions(key,effective());options[field]=value;studio.Draft.adjustments.barLayout[key]=options
+  end)
+ end
+ text(page,"Each action slot remains in order, wrapping left to right. Geometry applies after combat without reloading. Personal bar shapes are kept by optimization.",230,22,214)
+ action(page,"backLayout","Back to layout",0,264,function()studio.ShowPage("layout")end)
  page=pages.review
  window.reviewPane=core.Scroll.Create(page);window.reviewPane:SetPoint("TOPLEFT",0,0);window.reviewPane:SetSize(444,232);core.Scroll.Resize(window.reviewPane,444,232)
  window.details=text(window.reviewPane.content,"",0,0,420)

@@ -64,8 +64,9 @@ local function createRow(name, count, kind)
     local bar = CreateFrame("Frame", "RikUIBar_" .. name, UIParent)
     bar.key, bar.buttons = name, {}
     bar:SetSize(count * (SIZE + GAP) - GAP, SIZE)
-    bars.PositionFrame(bar)
     for index = 1, count do bar.buttons[index] = createButton(bar, index, kind) end
+    bars.ConfigureGeometry(bar)
+    bars.PositionFrame(bar)
     bars.ControlFrames[name] = bar
     return bar
 end
@@ -117,7 +118,7 @@ local function configureStances()
     end
     bar.formCount = count
     for _, button in ipairs(bar.buttons) do configureStance(button, count) end
-    bar:SetSize(math.max(1, count) * (SIZE + GAP) - GAP, SIZE)
+    bars.ConfigureGeometry(bar)
     visibility(bar, count > 0 and STANCE_VISIBILITY or "hide")
     refreshStances()
 end

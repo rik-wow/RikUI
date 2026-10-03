@@ -50,5 +50,32 @@ function RikUI.SetupPack.Conformance()
     local flags=assert(p.SetModule({modules={unitframes=false}},"unitauras",true))
     assert(flags.modules.unitframes and flags.modules.unitauras)
     assert(not p.SetModule({},"unknown",true) and not p.SetModule({},"chat","on"))
-    return {modules=RikUI.Codec.Encode({choices=choices,off=off,blocked=blocked,flags=flags},true),canonical=assert(p.Encode(canonical)),code=code,fitted=RikUI.Codec.Encode(fitted,true),readable=RikUI.Codec.Encode(readable,true),update=RikUI.Codec.Encode(update,true)}
+    local shapes=p.Copy(sample)
+    shapes.profile.positions.main={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=64,y=64}
+    shapes.profile.positions.target={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=64,y=64}
+    shapes.groups.main={component="hud",width=498,height=36,priority=1,native=true}
+    shapes.groups.target.priority=100
+    local configured=assert(p.Resolve(shapes,{overrides={barLayout={main={columns=4,size=42,spacing=2}},positions={target={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=64,y=64}}}}))
+    local main,target
+    for _,g in ipairs(configured.groups)do if g.key=="main" then main=g elseif g.key=="target" then target=g end end
+    assert(main.rect.width==174 and main.rect.height==130 and main.geometry.grid.rows==3)
+    assert(target.rect.x==64 and target.rect.y==64 and target.fixed and #configured.conflicts==0)
+    assert(not p.Equal(main.rect,target.rect) and shapes.profile.positions.main.x==64)
+    local padding=assert(p.Resolve(shapes,{overrides={gryphons=true}}))
+    for _,g in ipairs(padding.groups)do if g.key=="main" then
+        assert(g.rect.width==674 and g.bodyRect.width==498 and g.bodyRect.x-g.rect.x==88)
+        assert(padding.profile.positions.main.x==g.bodyRect.x)
+    end end
+    local narrow=p.Copy(sample);narrow.viewport={width=640,height=360}
+    narrow.groups={bar4={component="hud",width=36,height=498,priority=1,native=true}}
+    narrow.profile.positions={bar4={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=600,y=8}}
+    local original=assert(p.Encode(narrow))
+    local optimized=assert(p.Optimize(narrow))
+    assert(#optimized.fit.conflicts==0 and #optimized.changes==1 and optimized.attempts<=5)
+    assert(optimized.changes[1].key=="bar4" and original==p.Encode(narrow))
+    local retained=assert(p.Optimize(narrow,{overrides={barLayout={bar4={columns=1}}}}))
+    assert(#retained.changes==0 and #retained.fit.conflicts>0)
+    local again=assert(p.Resolve(narrow,{overrides=optimized.overrides}))
+    assert(p.Equal(again,optimized.fit))
+    return {geometry=RikUI.Codec.Encode(configured,true),optimized=RikUI.Codec.Encode(optimized,true),modules=RikUI.Codec.Encode({choices=choices,off=off,blocked=blocked,flags=flags},true),canonical=assert(p.Encode(canonical)),code=code,fitted=RikUI.Codec.Encode(fitted,true),readable=RikUI.Codec.Encode(readable,true),update=RikUI.Codec.Encode(update,true)}
 end

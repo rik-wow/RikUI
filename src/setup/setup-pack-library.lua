@@ -29,9 +29,10 @@ function pack.Bundled(name)
         local size=footprints[key] or nominal
         local component=pack.GroupComponents[key]
         if component and profile.positions[key] then groups[key]={component=component,width=size.width,height=size.height,
+            native=RikUI.LayoutMetrics.IsBar(key) or key:match("^cast")~=nil,cells=key=="stance" and 3 or nil,
             priority=priorities[key] or 20,minimum=0.85,exclusive=layouts.Exclusive[key],floating=layouts.Floating[key],activity=(key=="party" and "party" or key=="raid" and "raid" or nil)} end
     end
-    local value=assert(pack.FromProfile(profile,{id="rikui-"..name,title=layouts[name].label or name,creator="RikUI",revision=2,viewport={width=1920,height=1080}},groups))
+    local value=assert(pack.FromProfile(profile,{id="rikui-"..name,title=layouts[name].label or name,creator="RikUI",revision=3,viewport={width=1920,height=1080}},groups))
     value.activities={exploration={questtracker={collapsed=false}},party={questtracker={collapsed=true}},raid={questtracker={collapsed=true}},town={questtracker={collapsed=false}}}
     value.devices={desktop={scale=1},ultrawide={scale=1},handheld={scale=1.15,showHotkeys=true,showCooldownNumbers=true,questtracker={collapsed=true},
         presentation={hidden={bar4=true,bar5=true,chat=true,damagemeter=true,buffs=true,debuffs=true,questtimers=true}}}}

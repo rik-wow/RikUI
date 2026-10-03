@@ -340,6 +340,17 @@ return function(check)
         RikUI.DB.profiles.Ornate = { gryphons = true, scale = 0.75 }
         check("profile switching refreshes bar geometry and appearance through Layout", RikUI:SetProfile("Ornate")
             and bars.Frames.main.scale == 0.75 and bars.Frames.main.gryphons[1].shown)
+        bars = loadBars({barLayout={main={columns=4,size=42,spacing=2},bar2={columns=6,size=30,spacing=4}}})
+        main, bar2 = bars.Frames.main, bars.Frames.bar2
+        check("independent bar grids have exact native dimensions",main.width==174 and main.height==130 and bar2.width==200 and bar2.height==64)
+        check("wrapped native buttons retain absolute actions",main.buttons[5].point[4]==0 and main.buttons[5].point[5]==-44 and main.buttons[12]:GetAttribute("action")==12)
+        check("shape edits leave unrelated rows intact",bars.SetLayout("main",{columns=3,size=36,spacing=6}) and main.width==120 and main.height==162 and bar2.width==200)
+        check("invalid shape does not alter saved settings",not bars.SetLayout("main",{columns=13}) and RikUI.Profile.barLayout.main.columns==3)
+        env.inCombat=true;before=protectedWrites
+        bars.SetLayout("bar2",{columns=4,size=36,spacing=6})
+        check("shape edit queues all protected writes during combat",protectedWrites==before and bar2.width==200 and RikUI.Profile.barLayout.bar2.columns==6)
+        env.inCombat=false;env.fire("PLAYER_REGEN_ENABLED")
+        check("queued shape preserves actions and updates geometry",bar2.width==162 and bar2.height==120 and bar2.buttons[12]:GetAttribute("action")==72)
         bars = loadBars({ modules = { bars = false } })
         check("disabled module creates no bars", next(bars.Frames) == nil)
         bars = loadBars(nil, true)
