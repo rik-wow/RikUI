@@ -1,3 +1,4 @@
+import {setupWorkspace} from "./studio-workspace.mjs";
 import {createEngine} from "./pack-engine.mjs";
 import {StudioModel,components} from "./studio-model.mjs";
 import {componentAppearanceCovered} from "./preview-coverage.mjs";
@@ -5,10 +6,10 @@ import {renderModules} from "./studio-modules.mjs";
 import {labelFor,paintPlacement,fitDetails,sampleShown,sampleEnabled} from "./studio-preview.mjs";
 const $=id=>document.getElementById(id);
 const status=$("studio-status"),root=$("studio-app");
-const message=text=>{status.textContent=text;};
+const message=text=>{status.textContent=text;if($("workspace-status"))$("workspace-status").textContent=text;};
 const images=new Map();
 let model,data,resolved,selectedKey,drag,metadataStamp,renderEpoch=0,paintedKeys=new Set();
-let currentStep="choose",currentTab="parts";
+let currentStep="choose",currentTab="parts",paintStamp;
 const partLabels={appearance:"Appearance & chat",hud:"Combat HUD",nameplates:"Nameplates",group:"Party & raid",navigation:"Map & quests",inventory:"Bags & loot",character:"Character setup"};
 function workflow(step=currentStep,tab=currentTab,focus=true){
  currentStep=step;currentTab=tab;
@@ -36,7 +37,7 @@ function themeKey(profile){
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 async function render(){
  const epoch=++renderEpoch;
- $("game-preview").dataset.previewReady="false";
+ // Presentation-only changes keep the settled bitmap available.
  try{
   resolved=model.resolve();
   const groups=visibleGroups();
@@ -86,9 +87,11 @@ async function render(){
   const showPlates=model.selected.nameplates&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false&&componentAppearanceCovered("nameplates",profile,model.engine,key);
   const drawn=groups.filter(shown);
   await renderModules({model,data,resolved,atlas,loadImage,selectedKey,selectGroup,toggle:(name,on)=>operation(()=>model.setModule(name,on),"Feature choice staged. Reload RikUI after applying to activate module changes.")});if(epoch!==renderEpoch)return;
-  $("game-preview").dataset.previewReady="false";
-  const bitmap=new Map(await Promise.all([...drawn,...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage(atlas.components[g.key].url)])));if(epoch!==renderEpoch)return;
   const canvas=$("game-preview"),ctx=canvas.getContext("2d");
+  const nextPaint=JSON.stringify([model.viewport,profile.scale,drawn.map(g=>[g.key,g.rect,atlas.components[g.key].url]),showPlates&&atlas.components.nameplates?.url]);
+  if(nextPaint!==paintStamp){
+  canvas.dataset.previewReady="false";
+  const bitmap=new Map(await Promise.all([...drawn,...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage(atlas.components[g.key].url)])));if(epoch!==renderEpoch)return;
   canvas.width=model.viewport.width;canvas.height=model.viewport.height;
   ctx.fillStyle="#0c1117";ctx.fillRect(0,0,canvas.width,canvas.height);
   const scale=profile.scale||1;paintedKeys=new Set(drawn.map(g=>g.key));
@@ -99,6 +102,8 @@ async function render(){
   if(showPlates&&atlas.components.nameplates){
    const c=atlas.components.nameplates,p=paintPlacement(c,{x:canvas.width/2-c.width*scale/2,y:canvas.height*0.7},scale,canvas.height);
    ctx.drawImage(bitmap.get("nameplates"),p.sx,p.sy,p.width,p.height,p.x,p.y,p.drawWidth,p.drawHeight);
+  }
+  paintStamp=nextPaint;
   }
   renderAnnotations(groups,conflicts,covered);
   canvas.dataset.paintedGroups=JSON.stringify([...paintedKeys]);canvas.dataset.previewReady="true";
@@ -152,6 +157,7 @@ function exportCode(){const code=model.export();$("result-code").value=code;$("r
 async function copy(text){try{await navigator.clipboard.writeText(text);message("Copied.");}catch{const panel=$("result-panel"),code=$("result-code")||$("pack-code");if(panel)panel.hidden=false;code?.focus();code?.select();message("Select the text and copy it with your keyboard.");}}
 async function start(){
  try{
+  setupWorkspace(root,message);
   const response=await fetch(root.dataset.source);if(!response.ok)throw Error("Editor data is unavailable. Use a gallery import code or install RikUI directly.");
   data=await response.json();model=new StudioModel(createEngine(data.sources.map(s=>s.source)));model.choose("centered");
   const name=new URL(location.href).searchParams.get("pack");if(data.packs.some(p=>p.name===name))model.choose(name,data.packs.find(p=>p.name===name).pack);
@@ -185,24 +191,38 @@ async function start(){
    s.overrides.modules??={};s.overrides.modules.nameplates=!e.target.checked;
   }),"QuestTogether recipe: use stock nameplates, QT icons Left, health tint off, and its personal bubble in the reserved upper-left area. Missing QT keeps RikUI in charge.");
   $("undo").onclick=()=>operation(()=>model.undo());$("redo").onclick=()=>operation(()=>model.undo(true));
-  $("frame-group").onchange=e=>{selectedKey=e.target.value;render();};
+  $("frame-group").onchange=e=>selectGroup(e.target.value);
   for(const b of document.querySelectorAll("[data-move]"))b.onclick=()=>operation(()=>move(...b.dataset.move.split(",").map(Number)));
   $("reset-frame").onclick=()=>operation(()=>model.reset(selectedKey));
   $("align-center").onclick=()=>operation(()=>{const g=visibleGroups().find(g=>g.key===selectedKey);if(g)model.move(g.key,(model.viewport.width-g.rect.width)/2,g.rect.y);});
   $("show-movers").onchange=()=>render();$("show-conditional").onchange=()=>render();
   const stage=$("preview-stage"),canvas=$("game-preview");
+  let dragFrame;
+  const ghost=$("drag-outline");
+  const clearDrag=()=>{drag=null;cancelAnimationFrame(dragFrame);ghost.hidden=true;};
   stage.onpointerdown=e=>{
    if(e.button!==0||canvas.dataset.previewReady!=="true")return;
    const p=point(e),explicit=e.target.closest("[data-group]")?.dataset.group;
    const group=explicit?visibleGroups().find(g=>g.key===explicit):[...visibleGroups()].reverse().find(g=>($("show-movers").checked||paintedKeys.has(g.key)||g.key===selectedKey)&&p.x>=g.rect.x&&p.x<=g.rect.x+g.rect.width&&p.y>=g.rect.y&&p.y<=g.rect.y+g.rect.height);
    if(!group)return;selectedKey=group.key;
    if(group.disabled){render();return;}
-   drag={start:{x:e.clientX,y:e.clientY},moved:false,key:group.key,offset:{x:p.x-group.rect.x,y:p.y-group.rect.y},point:p,base:canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height),rect:group.rect};
+   drag={start:{x:e.clientX,y:e.clientY},moved:false,key:group.key,offset:{x:p.x-group.rect.x,y:p.y-group.rect.y},point:p,rect:group.rect};
    stage.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});e.preventDefault();
   };
-  stage.onpointermove=e=>{if(drag){if(!drag.moved&&Math.hypot(e.clientX-drag.start.x,e.clientY-drag.start.y)<3)return;drag.moved=true;drag.point=point(e);const ctx=canvas.getContext("2d");ctx.putImageData(drag.base,0,0);ctx.strokeStyle="#75cedb";ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.strokeRect(drag.point.x-drag.offset.x,canvas.height-(drag.point.y-drag.offset.y)-drag.rect.height,drag.rect.width,drag.rect.height);ctx.setLineDash([]);$("geometry").textContent="Move "+labelFor(drag.key)+" to "+Math.round(drag.point.x-drag.offset.x)+", "+Math.round(drag.point.y-drag.offset.y)+" (snaps when released)";}};
-  stage.onpointerup=e=>{if(drag){const d=drag;drag=null;stage.releasePointerCapture(e.pointerId);if(d.moved)operation(()=>model.move(d.key,d.point.x-d.offset.x,d.point.y-d.offset.y));else render();}};
-  stage.onpointercancel=()=>{drag=null;render();};
+  stage.onpointermove=e=>{if(drag){
+   if(!drag.moved&&Math.hypot(e.clientX-drag.start.x,e.clientY-drag.start.y)<3)return;
+   drag.moved=true;drag.point=point(e);
+   if(dragFrame)return;
+   dragFrame=requestAnimationFrame(()=>{dragFrame=undefined;if(!drag)return;
+    const x=drag.point.x-drag.offset.x,y=drag.point.y-drag.offset.y;
+    ghost.hidden=false;
+    Object.assign(ghost.style,{left:100*x/canvas.width+"%",top:100*(canvas.height-y-drag.rect.height)/canvas.height+"%",width:100*drag.rect.width/canvas.width+"%",height:100*drag.rect.height/canvas.height+"%"});
+    $("geometry").textContent="Move "+labelFor(drag.key)+" to "+Math.round(x)+", "+Math.round(y)+" (snaps when released)";
+   });
+  }};
+  stage.onpointerup=e=>{if(drag){const d=drag;clearDrag();stage.releasePointerCapture(e.pointerId);if(d.moved)operation(()=>model.move(d.key,d.point.x-d.offset.x,d.point.y-d.offset.y));else render();}};
+  stage.onpointercancel=()=>{clearDrag();render();};
+  stage.onlostpointercapture=()=>{if(drag){clearDrag();render();}};
   $("game-preview").onkeydown=e=>{
    const directions={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,8],ArrowDown:[0,-8]};
    if(directions[e.key]){e.preventDefault();operation(()=>move(...directions[e.key]));}
@@ -236,7 +256,7 @@ async function start(){
   });
   $("recipe").onchange=e=>operation(()=>model.change(s=>{for(const c of components)s.selected[c]=e.target.value==="all"?c!=="character":c===e.target.value;}));
   $("pack-title").value=model.source.title;$("pack-creator").value=model.source.creator;$("pack-revision").value=model.source.revision;
-  $("studio-loading").hidden=true;root.hidden=false;message("Ready. Choose a starting setup or import your current UI.");workflow(currentStep,currentTab,false);await render();
+  $("studio-loading").hidden=true;root.hidden=false;message("Ready. Choose a starting setup or import your current UI.");workflow(currentStep,currentTab,false);
  }catch(error){message(error.message);$("studio-loading").firstChild.textContent="Editor could not start. "; }
 }
 if(root)start();

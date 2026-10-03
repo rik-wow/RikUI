@@ -10,6 +10,9 @@ test("paint extents retain native children beyond a holder without stretching it
  const p=paintPlacement(c,{x:600,y:80,width:230,height:21},1.15,800);
  assert.equal(p.sx,98);assert.equal(p.sy,180);assert.equal(p.width,204);assert.equal(p.height,34);
  for(const [key,value] of Object.entries({x:597.7,y:697,drawWidth:234.6,drawHeight:39.1}))assert.ok(Math.abs(p[key]-value)<1e-9,key);
+ const cropped=paintPlacement({...c,bitmap:{x:98,y:180}}, {x:600,y:80,width:230,height:21},1.15,800);
+ assert.equal(cropped.sx,0);assert.equal(cropped.sy,0);
+ assert.deepEqual({...cropped,sx:98,sy:180},p);
  // Reputation below the XP holder is retained; paint size never follows the declared reserve.
  assert.ok(p.y+p.drawHeight>800-80);
 });

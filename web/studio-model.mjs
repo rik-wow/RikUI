@@ -19,9 +19,17 @@ export class StudioModel {
  remember(){if(this.source)this.history.push(this.snapshot());if(this.history.length>20)this.history.shift();this.future=[];}
  choose(name,pack){this.remember();this.remixId=undefined;this.authorMetadata=undefined;this.source=pack?this.engine.call("Validate",pack):this.engine.call("Bundled",name);this.maintainIdentity=false;this.baseline=this.engine.call("Merge",this.engine.call("Copy",this.source.profile),this.source.adjustments||{});this.overrides={};this.resetPositions={};this.selected=clone(this.source.components);this.selected.character=false;}
  import(code){const pack=this.engine.call("Import",normalizeImportCode(code));this.remember();this.remixId=undefined;this.authorMetadata=undefined;this.source=pack;this.viewport=clone(pack.viewport);this.maintainIdentity=false;this.baseline=this.engine.call("Merge",this.engine.call("Copy",this.source.profile),this.source.adjustments||{});this.overrides={};this.resetPositions={};this.selected=clone(pack.components);this.selected.character=false;this.device=pack.defaultDevice||this.device;this.activity=pack.defaultActivity||this.activity;if(!this.accessibilityPinned&&this.accessibility==="standard"&&accessibility[pack.accessibilityRecipe])this.accessibility=pack.accessibilityRecipe;}
- change(fn){const before=this.snapshot();const oldFuture=this.future;const oldHistory=[...this.history];this.remember();try{fn(this);this.engine.call("Validate",this.pack(false));}catch(error){this.restore(before);this.history=oldHistory;this.future=oldFuture;throw error;}}
+ change(fn){const before=this.snapshot();const oldFuture=this.future;const oldHistory=[...this.history];this.remember();try{fn(this);this.pack(false);}catch(error){this.restore(before);this.history=oldHistory;this.future=oldFuture;throw error;}}
  undo(forward=false){const from=forward?this.future:this.history,to=forward?this.history:this.future;if(!from.length)return false;to.push(this.snapshot());this.restore(from.pop());return true;}
- resolve(){return this.resolveWith(this.source,this.overrides);}
+ resolve(){
+  // Direct property assignments are supported by imports/tests. Fingerprint the
+  // exact semantic inputs rather than depending on callers to invalidate state.
+  const {id,revision,title,creator,ancestry,...visualSource}=this.source;
+  const key=JSON.stringify([visualSource,this.overrides,this.selected,this.viewport,this.device,this.activity,this.accessibility,this.integrationPresent,this.resetPositions,!this.selected.appearance?this.baseline:null]);
+  if(key!==this.resolutionKey){this.resolution=this.resolveWith(this.source,this.overrides);this.resolutionKey=key;}
+  // Attribution is data-only but effectivePack must still describe this source.
+  return {...this.resolution,effectivePack:{...this.resolution.effectivePack,id,revision,title,creator,ancestry}};
+ }
  resolveWith(source,overrides={}){const value=this.engine.call("Copy",source);overrides=this.engine.call("Copy",overrides);for(const key of Object.keys(this.resetPositions||{}))if(value.adjustments?.positions)delete value.adjustments.positions[key];
   if(!this.selected.appearance){const base={...this.engine.call("Theme","classic"),textScale:1,scale:1,...this.baseline};for(const k of ["theme","font","borderColor","textScale","scale"])overrides[k]=base[k];}if(value.integration==="questtogether"&&!this.integrationPresent){value.ownership.nameplates="rikui";value.profile.modules??={};value.profile.modules.nameplates=true;}const result=this.engine.call("Resolve",value,{overrides,components:this.selected,viewport:this.viewport,device:this.device,activity:this.activity,accessibility:accessibility[this.accessibility],
   reservations:source.integration==="questtogether" && this.integrationPresent?[{x:8,y:this.viewport.height-200,width:320,height:180}]:[]});result.effectivePack=value;return result;}

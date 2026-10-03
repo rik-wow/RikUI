@@ -32,11 +32,17 @@ export function createEngine(sources) {
    default:throw Error("Unexpected Lua output");
   }
  }
+ const copyMemo=value=>Array.isArray(value)?value.map(copyMemo):value&&typeof value==="object"?Object.assign(Object.create(Object.getPrototypeOf(value)),Object.fromEntries(Object.entries(value).map(([k,v])=>[k,copyMemo(v)]))):value;
+ const memo=new Map(),pure=new Set(["Theme","Equal","GroupEnabled","ModuleEnabled"]);
  return {call(method,...args){
+  const cacheKey=pure.has(method)?JSON.stringify([method,...args]):undefined;
+  if(cacheKey&&memo.has(cacheKey))return copyMemo(memo.get(cacheKey));
   lua.lua_settop(L,0);lua.lua_getglobal(L,to_luastring("RikUI"));lua.lua_getfield(L,-1,to_luastring("SetupPack"));lua.lua_getfield(L,-1,to_luastring(method));
   if(!lua.lua_isfunction(L,-1))throw Error("Unknown pack operation");
   for(const arg of args)push(arg);
   if(lua.lua_pcall(L,args.length,2,0)!==lua.LUA_OK){const reason=take(-1);lua.lua_settop(L,0);throw Error(reason);}
-  const result=take(-2),reason=take(-1);lua.lua_settop(L,0);if(result===undefined)throw Error(reason||"Pack operation failed");return result;
+  const result=take(-2),reason=take(-1);lua.lua_settop(L,0);if(result===undefined)throw Error(reason||"Pack operation failed");
+  if(cacheKey){if(memo.size>=256)memo.delete(memo.keys().next().value);memo.set(cacheKey,copyMemo(result));}
+  return result;
  }};
 }

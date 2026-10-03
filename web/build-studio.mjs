@@ -16,13 +16,18 @@ const hash=value=>createHash("sha256").update(value).digest("hex");
 const sources=await Promise.all(sourcePaths.map(p=>readFile(new URL("../"+p,import.meta.url),"utf8")));
 const engine=createEngine(sources);
 const manifest=JSON.parse(await readFile(new URL("manifest.json",captureRoot),"utf8"));
-const paintBounds=JSON.parse(execFileSync(process.env.PYTHON||"python",[fileURLToPath(new URL("../tools/site-renders/paint_bounds.py",import.meta.url)),"--root",fileURLToPath(captureRoot)],{encoding:"utf8"}));
+const paintBounds=JSON.parse(execFileSync(process.env.PYTHON||"python",[fileURLToPath(new URL("../tools/site-renders/paint_bounds.py",import.meta.url)),"--root",fileURLToPath(captureRoot),"--crop-out",fileURLToPath(new URL("./public/assets/studio/",import.meta.url))],{encoding:"utf8"}));
 const assets=[],atlases={},packs=[];
 await mkdir(new URL("./public/assets/studio/",import.meta.url),{recursive:true});
-async function asset(id,frame){
+async function asset(id,frame,cropped=false){
  const record=manifest.renders.find(c=>c.id===id),c=record&&{...record,...frame};if(!c)throw Error("Missing reviewed Studio capture: "+id);
  const bytes=await readFile(new URL(c.filename,captureRoot));
  if(hash(bytes)!==c.sha256)throw Error("Capture bytes differ: "+id);
+ if(cropped){
+  const paint=paintBounds[c.filename],bitmap=paint?.bitmap;if(!bitmap)throw Error("Missing verified crop: "+id);
+  const url="/assets/studio/"+bitmap.filename;assets.push(url);
+  return {...c,url,bitmap:{x:paint.x,y:paint.y,width:bitmap.width,height:bitmap.height,sha256:bitmap.sha256}};
+ }
  const url="/assets/studio/"+id+(frame?"-"+frame.value:"")+"-"+c.sha256.slice(0,12)+".webp";
  await copyFile(new URL(c.filename,captureRoot),new URL("./public"+url,import.meta.url));assets.push(url);
  return {...c,url};
@@ -32,9 +37,9 @@ for(const theme of ["classic","ocean","ink"])for(const readability of ["standard
  for(const prefix of ["studio-atlas-","studio-extra-","studio-unitauras-off-"]){
   const id=prefix+theme+"-"+readability,record=manifest.renders.find(c=>c.id===id);
   if(!record?.frames || (prefix==="studio-atlas-"&&record.frames.length!==25))throw Error("Missing individually filtered native component captures: "+id);
-  for(const frame of record.frames){const c=await asset(id,frame);if(!c.components)throw Error("Missing native geometry: "+id);
+  for(const frame of record.frames){const c=await asset(id,frame,true);if(!c.components)throw Error("Missing native geometry: "+id);
    const paint=paintBounds[c.filename];if(!paint)throw Error("Missing native paint extent: "+c.filename);
-   for(const [key,geometry]of Object.entries(c.components))components[key+(prefix==="studio-unitauras-off-"?"NoUnitAuras":"")]={...geometry,paint,url:c.url,atlasHeight:c.height,sha256:c.sha256};
+   for(const [key,geometry]of Object.entries(c.components))components[key+(prefix==="studio-unitauras-off-"?"NoUnitAuras":"")]={...geometry,paint,bitmap:c.bitmap,url:c.url,atlasHeight:c.height,sha256:c.sha256};
   }
  }
  atlases[theme+"-"+readability]={components};

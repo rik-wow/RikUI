@@ -10,7 +10,10 @@ def bounds(path):
         raise RuntimeError("Empty native component: " + str(path))
     return dict(zip(("x", "y", "width", "height"), (box[0], box[1], box[2]-box[0], box[3]-box[1])))
 
-def collect(root):
+def collect(root, crop_out=None):
+    if crop_out:
+        crop_out = Path(crop_out).resolve()
+        crop_out.mkdir(parents=True, exist_ok=True)
     root = Path(root).resolve()
     manifest = json.loads((root/"manifest.json").read_text(encoding="utf-8"))
     result = {}
@@ -21,10 +24,28 @@ def collect(root):
             path = (root/frame["filename"]).resolve()
             if root not in path.parents or hashlib.sha256(path.read_bytes()).hexdigest() != frame["sha256"]:
                 raise RuntimeError("Native component bytes changed")
-            result[frame["filename"]] = bounds(path)
+            paint = bounds(path)
+            result[frame["filename"]] = paint
+            if crop_out:
+                image = Image.open(path).convert("RGBA")
+                box = (paint["x"], paint["y"], paint["x"]+paint["width"], paint["y"]+paint["height"])
+                cropped = image.crop(box)
+                from io import BytesIO
+                encoded = BytesIO()
+                cropped.save(encoded, format="WEBP", lossless=True, exact=True)
+                raw = encoded.getvalue()
+                if Image.open(BytesIO(raw)).convert("RGBA").tobytes() != cropped.tobytes():
+                    raise RuntimeError("Public sprite changed reviewed pixels")
+                digest = hashlib.sha256(raw).hexdigest()
+                filename = path.stem.replace("@", "-")+"-paint-"+digest[:12]+".webp"
+                (crop_out/filename).write_bytes(raw)
+                paint["bitmap"] = {"filename": filename, "sha256": digest, "width": cropped.width, "height": cropped.height}
+
     return result
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, required=True)
-    print(json.dumps(collect(parser.parse_args().root)))
+    parser.add_argument("--crop-out", type=Path)
+    args = parser.parse_args()
+    print(json.dumps(collect(args.root, args.crop_out)))

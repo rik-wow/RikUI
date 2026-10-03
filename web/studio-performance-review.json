@@ -1,0 +1,37 @@
+{
+  "reviewedAt": "2026-10-03T02:09:00Z",
+  "browser": "Chromium 153.0.8010.12",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "method": "Eight alternating interactions per action, click/change to two animation frames; same local Worker and machine. Timings are a local comparison, not a portable hardware guarantee.",
+  "beforeMedianMs": {
+    "selection": 117.1,
+    "movers": 116,
+    "search": 100.7,
+    "move": 200
+  },
+  "afterMedianMs": {
+    "selection": 33.3,
+    "movers": 33.3,
+    "search": 33.5,
+    "move": 116.5
+  },
+  "changes": [
+    "One exact semantic resolution cache; attribution does not invalidate it.",
+    "Bounded pure shared-Lua query cache and one validation per edit.",
+    "Feature cards and settled preview retain their own dependencies.",
+    "Drag feedback uses one animation-frame annotation and no pixel readback.",
+    "Public sprites are lossless crops of exact reviewed alpha bounds; decoded pixels are verified on every build."
+  ],
+  "visualReview": [
+    "dist/studio-workspace-review/fullscreen.png",
+    "dist/studio-workspace-review/zoom.png",
+    "dist/studio-workspace-review/mobile.png"
+  ],
+  "limitations": [
+    "Settled fitting and validation still run the authoritative Lua VM on the main thread.",
+    "Fullscreen availability depends on browser; denied requests use the expanded workspace."
+  ]
+}

@@ -4,7 +4,7 @@ export const labelFor=key=>labels[key]||key;
 export function paintPlacement(component,rect,scale,canvasHeight){
  const paint=component.paint;
  if(!paint)throw Error("Native capture has no reviewed paint bounds");
- return {sx:paint.x,sy:paint.y,width:paint.width,height:paint.height,
+ return {sx:paint.x-(component.bitmap?.x||0),sy:paint.y-(component.bitmap?.y||0),width:paint.width,height:paint.height,
   x:rect.x+(paint.x-component.x)*scale,
   y:canvasHeight-rect.y-(component.atlasHeight-paint.y-component.y)*scale,
   drawWidth:paint.width*scale,drawHeight:paint.height*scale};
@@ -20,7 +20,7 @@ export function fitDetails(resolved,viewport){
   return {...issue,reason,with:neighbors,rect:r};
  });
 }
-export const sampleEnabled=(key,profile,engine)=>engine.call("GroupEnabled",key,profile)&&!profile.presentation?.hidden?.[key];
+export const sampleEnabled=(key,profile,engine)=>engine.call("GroupEnabled",key,{modules:profile.modules})&&!profile.presentation?.hidden?.[key];
 const conditional=new Set(["bags","loot","pet","petframe","casttarget","castfocus","castpet","combopoints","totems","questtimers","damagemeter"]);
 export function sampleShown(key,activity,selected,showConditional=false){
  if(key==="bags")return activity==="town"||key===selected||showConditional;

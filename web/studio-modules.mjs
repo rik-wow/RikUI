@@ -2,10 +2,11 @@
 import {labelFor} from "./studio-preview.mjs";
 const $=id=>document.getElementById(id);
 const array=v=>Array.isArray(v)?v:[];
+let cardsStamp;
 export function moduleState(model,choice,resolved=model.resolve()){
  const owned=array(choice.components).filter(c=>model.selected[c]&&resolved.effectivePack.ownership[c]==="rikui");
  const on=resolved.profile.modules?.[choice.key]!==false;
- const blocked=on&&!model.engine.call("ModuleEnabled",resolved.profile,choice.key);
+ const blocked=on&&!model.engine.call("ModuleEnabled",{modules:resolved.profile.modules},choice.key);
  const shared=choice.key==="unitframes"&&!(owned.includes("hud")&&owned.includes("group"));
  return {on,blocked,editable:owned.length>0&&!(shared&&on),
   note:!owned.length?"Kept from your current UI, or managed by another addon.":shared&&on?"Shared by Combat HUD and Party & raid. Adopt both areas to turn off.":blocked?"Required features are off. Toggle this switch off and on to enable its requirements.":"Changes take effect after reloading RikUI.",
@@ -15,17 +16,20 @@ export async function renderModules({model,data,resolved,atlas,loadImage,selectG
  const active=document.activeElement?.id,area=$("module-area").value,query=$("module-search").value.trim().toLowerCase();
  const first=["bars","unitframes","castbars","auras","chat","minimap","questtracker","bags","nameplates"],rank=c=>first.includes(c.key)?first.indexOf(c.key):100;
  const choices=[...data.modules].sort((a,b)=>rank(a)-rank(b)||a.title.localeCompare(b.title)).filter(c=>(!area||array(c.components).includes(area))&&(!query||(c.title+" "+c.summary+" "+c.key).toLowerCase().includes(query)));
- const list=$("module-cards");list.replaceChildren();
+ const list=$("module-cards");
+ const stamp=JSON.stringify([choices.map(c=>c.key),model.selected,resolved.effectivePack.ownership,resolved.profile.modules,Object.keys(model.source.groups),Object.values(atlas.components).map(c=>c.url)]);
+ const changed=cardsStamp!==stamp;cardsStamp=stamp;
+ if(changed)list.replaceChildren();
  $("module-count").textContent=choices.length+" of "+data.modules.length+" features · switches are saved in your export";
  const thumbnails=[];
- for(const choice of choices){
+ if(changed)for(const choice of choices){
   const state=moduleState(model,choice,resolved),card=document.createElement("article");card.className="module-card"+(!state.on?" module-off":"")+(state.blocked?" module-blocked":"");card.dataset.module=choice.key;
   const key=[...["main","player","castplayer","buffs"].filter(k=>array(choice.groups).includes(k)),...array(choice.groups)].find(k=>atlas.components[k]&&model.source.groups[k])||(choice.key==="nameplates"?"nameplates":undefined),component=atlas.components[key];
   const visual=document.createElement("button");visual.type="button";visual.className="module-visual";visual.disabled=!key||key==="nameplates";
   visual.setAttribute("aria-label",key?"Show "+choice.title+" in preview":"No canvas preview for "+choice.title);
   if(component){
    const canvas=document.createElement("canvas");canvas.width=260;canvas.height=100;canvas.setAttribute("aria-hidden","true");visual.append(canvas);
-   thumbnails.push(loadImage(component.url).then(image=>{const p=component.paint,ctx=canvas.getContext("2d"),scale=Math.min(244/p.width,84/p.height);ctx.drawImage(image,p.x,p.y,p.width,p.height,(260-p.width*scale)/2,(100-p.height*scale)/2,p.width*scale,p.height*scale);}));
+   thumbnails.push(loadImage(component.url).then(image=>{const p=component.paint,ctx=canvas.getContext("2d"),scale=Math.min(244/p.width,84/p.height);ctx.drawImage(image,p.x-(component.bitmap?.x||0),p.y-(component.bitmap?.y||0),p.width,p.height,(260-p.width*scale)/2,(100-p.height*scale)/2,p.width*scale,p.height*scale);}));
   }else if(choice.guideSample){const image=document.createElement("img");image.src=choice.guideSample.url;image.alt="Actual RikUI guide example; no canvas preview";image.loading="lazy";visual.append(image);}
   else{const hint=document.createElement("span");hint.textContent="No captured example";visual.append(hint);}
   visual.onclick=()=>selectGroup(key);card.append(visual);
