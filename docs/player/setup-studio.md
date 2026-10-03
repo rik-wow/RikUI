@@ -8,6 +8,8 @@ Start with **Use my current UI**, a curated layout or **Import a code**. Use the
 
 ![Handheld presentation](render:studio-handheld)
 
+The browser’s **UI scale** slider and percentage sit beside the screen controls. They resize RikUI frames together and are saved in the exported pack; **Zoom** only enlarges the browser preview. Imported scales keep their exact percentage. **Reset** restores the setup’s scale, and Undo/Redo includes scale edits. The effective percentage explains any personal readability or theme-spacing minimum. Select **Appearance & chat** to adopt scale changes. WoW’s global UI scale remains an in-game setting.
+
 Desktop, ultrawide and handheld use the same source pack and preserve bindings. Handheld keeps readable controls and collapses secondary information. Personal readable, contrast and calm preferences remain in charge of imports and updates.
 
 The preview marks **Character viewing area** at screen center. Persistent frames fit around this viewing corridor, independently of UI density. It is an editor guide, not a rendered character or a camera guarantee. Floating inventory, loot and tooltips can cover it temporarily. Your personal frame positions are preserved; an obstruction is flagged for review, and **Reset group** (browser) or **Reset frame** (addon) returns that group to its fitted default. On short desktop screens, full chat and raid panels can still crowd; choose handheld presentation or select fewer parts when review reports a conflict.

@@ -129,3 +129,11 @@ test("all module registrations belong to the shared component contract",()=>{
  pack.profile.modules=all;assert.ok(e.call("Validate",pack));
  pack.profile.modules.unknown=true;assert.throws(()=>e.call("Validate",pack));
 });
+test("the full addon frame scale range preserves source and accessibility precedence",()=>{
+ const e=engine(),m=new StudioModel(e);m.choose("centered");const source=e.call("Encode",m.source);
+ for(const value of [0.25,0.9,1.05,3]){m.change(s=>{s.overrides.scale=value;});assert.equal(m.resolve().profile.scale,value);assert.equal(e.call("Decode",m.export()).adjustments.scale,value);}
+ m.change(s=>{s.overrides.scale=0.9;s.accessibility="readable";});assert.equal(m.resolve().profile.scale,1.15);
+ assert.equal(e.call("Decode",m.export()).adjustments.scale,0.9);
+ m.undo();assert.equal(m.resolve().profile.scale,3);
+ assert.equal(e.call("Encode",m.source),source);
+});

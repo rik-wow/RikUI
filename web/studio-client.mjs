@@ -24,7 +24,7 @@ async function loadImage(url){
  if(!images.has(url))images.set(url,new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error("Preview image unavailable. Export and install are still available."));im.src=url;}));
  return images.get(url);
 }
-function operation(fn,success,keepUpdate=false){try{if(!keepUpdate)$("update-conflicts")?.replaceChildren();fn();if(success)message(success);render();}catch(error){message(error.message);}}
+function operation(fn,success,keepUpdate=false){try{if(!keepUpdate)$("update-conflicts")?.replaceChildren();fn();if(success)message(success);render();}catch(error){message(error.message);render();}}
 function visibleGroups(){return asArray(resolved?.groups).filter(g=>model.source.groups[g.key]);}
 function setOptions(select,items){select.replaceChildren(...items.map(([value,label])=>{const o=document.createElement("option");o.value=value;o.textContent=label;return o;}));}
 function themeKey(profile){
@@ -63,7 +63,14 @@ async function render(){
   $("character-details").textContent=model.source.character?JSON.stringify(model.source.character,null,2):"No action-bar preset, macros or bindings included.";
   const profile=resolved.profile,key=themeKey(profile),readability=(profile.textScale||1)>1?"readable":"standard";
   $("theme-description").textContent={classic:"Gold accent · RikUI font · textured panels · thin border",ocean:"Blue accent · RikUI font · flat panels · thin border",ink:"White accent · game font · flat panels · strong border · relaxed spacing"}[key];
-  $("theme").value=key;const density=String(profile.scale||1);if(!Array.from($("density").options).some(o=>o.value===density)){const o=document.createElement("option");o.value=density;o.textContent=Math.round(Number(density)*100)+"% (imported)";$("density").append(o);}$("density").value=density;
+  $("theme").value=key;
+  const effectiveScale=profile.scale||1,requestedScale=model.selected.appearance?(model.overrides.scale??effectiveScale):effectiveScale;
+  const percent=value=>Number((value*100).toFixed(3)),requestedPercent=percent(requestedScale),effectivePercent=percent(effectiveScale);
+  $("ui-scale").value=String(requestedPercent);$("ui-scale-percent").value=String(requestedPercent);
+  $("ui-scale").setAttribute("aria-valuetext",requestedPercent+"%; effective "+effectivePercent+"%");
+  for(const id of ["ui-scale","ui-scale-percent","ui-scale-reset"])$(id).disabled=!model.selected.appearance;
+  $("ui-scale-summary").textContent=!model.selected.appearance?"Kept from your current setup. Select Appearance & chat to edit UI scale.":
+   "Effective UI scale: "+effectivePercent+"%."+(effectiveScale>requestedScale+0.000001?" Readability or theme spacing requires at least "+effectivePercent+"%; your "+requestedPercent+"% choice is preserved.":"");
   $("questtogether").checked=!!model.integrationPresent;
   const atlas=structuredClone(data.atlases[key+"-"+readability]);
   if(profile.questtracker?.collapsed)atlas.components.questtracker=atlas.components.questtrackerCollapsed;
@@ -159,7 +166,13 @@ async function start(){
   }));
   $("viewport").onchange=e=>operation(()=>model.change(s=>{const [width,height]=e.target.value.split("x").map(Number);s.viewport={width,height};}));
   $("theme").onchange=e=>operation(()=>model.theme(e.target.value),"Theme staged. Module, font and theme changes can require an addon reload.");
-  $("density").onchange=e=>operation(()=>model.change(s=>{s.overrides.scale=Number(e.target.value);}));
+  const setScale=e=>operation(()=>{
+   const value=Number(e.target.value);if(!e.target.value.trim()||!Number.isFinite(value)||value<25||value>300)throw Error("Choose a UI scale from 25% to 300%.");
+   model.change(s=>{s.overrides.scale=value/100;});
+  });
+  $("ui-scale").oninput=e=>{$("ui-scale-percent").value=e.target.value;e.target.setAttribute("aria-valuetext",e.target.value+"%");};
+  $("ui-scale").onchange=$("ui-scale-percent").onchange=setScale;
+  $("ui-scale-reset").onclick=()=>operation(()=>model.change(s=>{delete s.overrides.scale;}),"Setup UI scale restored; personal readability remains in charge.");
   $("questtogether").onchange=e=>operation(()=>model.change(s=>{
    s.integrationPresent=e.target.checked;s.source.integration="questtogether";s.source.ownership.nameplates=e.target.checked?"specialist":"rikui";
    s.overrides.modules??={};s.overrides.modules.nameplates=!e.target.checked;

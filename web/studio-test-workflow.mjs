@@ -2,7 +2,7 @@
 import {expect} from "@playwright/test";
 export async function studioControl(page,id){
  const choose=new Set(["import-code","import","creator-update","pack-picker"]);
- const style=new Set(["theme","density","accessibility"]);
+ const style=new Set(["theme","accessibility"]);
  const layout=new Set(["frame-group","reset-frame","align-center"]);
  const review=new Set(["export","share","theme-export","result-code","copy-code","download-code","pack-title","pack-creator","pack-revision","maintain-identity","metadata-apply","fit-conflicts"]);
  const parts=id.startsWith("part-")||id==="recipe"||id==="questtogether";
