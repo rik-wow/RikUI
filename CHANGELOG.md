@@ -9,6 +9,28 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.9
+
+2026-10-02. Configurable geometry and smarter Setup Studio fitting for WoW: Forever beta.
+
+- Give all five action bars, stance and pet bars independent buttons-per-row,
+  size and spacing settings. Preserve slot order, actions and bindings; defer
+  protected changes during combat. Share those settings in live exports and packs.
+- Derive fitting footprints from the actual supported geometry: independent grids,
+  cast bars, chat dimensions, bag columns, tracker collapse, XP rows and gryphon
+  decorations. Preserve custom observed bounds and identify content that can grow.
+- Fit movable groups around fixed personal positions, screen edges, character
+  viewing space and specialist reservations. Add an optional bounded search for
+  better bar columns that preserves personal shapes, button sizes and readability.
+- Edit bar shapes visually in the browser and through existing native RikUI
+  selectors. Render authentic captured button cells at supported preview sizes;
+  keep unsupported appearance explicitly identified. Browser optimization runs in
+  a worker and discards results when newer edits exist.
+- Preserve undo/redo, selective adoption, safe updates and restoration. Keep
+  legacy imports supported; packs using configurable native geometry require
+  beta.9 or newer. Refresh canonical guides and curated packs to revision 3.
+
+
 ## 1.0.0-beta.8
 
 2026-10-02. Visual Studio feature controls and objective banner repair for WoW: Forever beta.
