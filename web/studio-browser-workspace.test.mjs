@@ -53,14 +53,27 @@ test("world background fits all device aspects, stays out of export and degrades
  await expect(page.locator("#game-preview")).toHaveAttribute("data-background","ready");
  const source=await page.evaluate(async()=>{const d=await (await fetch(document.getElementById("studio-app").dataset.source)).json();return d.background;});
  expect(source.width).toBe(3840);expect(source.height).toBe(2160);
+ expect(source.sha256).toBe("212b21a4c6745595bbb84f1bb2e84845c851bfcf4ff39221f71bd6ec687edd7d");
+ await expect(page.locator("#background-status")).toContainText("Supplied game screenshot");
  const image=await page.evaluate(async url=>{const im=new Image();im.src=url;await im.decode();return [im.naturalWidth,im.naturalHeight];},source.url);
  expect(image).toEqual([3840,2160]);
  await page.locator('.studio-steps [data-step="review"]').click();await page.locator("#export").click();const original=await page.locator("#result-code").inputValue();
  for(const value of ["dim","plain","world"]){await page.locator("#world-background").selectOption(value);await ready(page);await page.locator("#export").click();expect(await page.locator("#result-code").inputValue()).toBe(original);}
  for(const viewport of ["3440x1440","1280x800","3840x2160"]){await page.locator("#viewport").selectOption(viewport);await expect(page.locator("#game-preview")).toHaveAttribute("width",viewport.split("x")[0]);await ready(page);await expect(page.locator("#game-preview")).toHaveAttribute("data-background","ready");}
 });
+test("one supplied screenshot is reused by every bundled setup and activity",async({page})=>{
+ const requests=[];page.on("request",r=>{if(/\/assets\/studio\/background-[a-f0-9]+\.jpg$/.test(new URL(r.url()).pathname))requests.push(r.url());});
+ await page.goto("/studio");await ready(page);
+ const packs=await page.locator("#pack-picker option").evaluateAll(options=>options.map(o=>o.value));
+ expect(packs.length).toBeGreaterThanOrEqual(4);
+ for(const pack of packs){await page.locator("#pack-picker").selectOption(pack);await ready(page);await expect(page.locator("#game-preview")).toHaveAttribute("data-background","ready");}
+ const activities=await page.locator("#activity option").evaluateAll(options=>options.map(o=>o.value));
+ expect(activities.length).toBeGreaterThanOrEqual(4);
+ for(const activity of activities){await page.locator("#activity").selectOption(activity);await ready(page);await expect(page.locator("#game-preview")).toHaveAttribute("data-background","ready");}
+ expect(requests).toHaveLength(1);
+});
 test("failed world image keeps native preview, controls and export usable",async({page})=>{
- await page.route("**/assets/studio/world-elwynn-*.jpg",route=>route.abort());
+ await page.route("**/assets/studio/background-*.jpg",route=>route.abort());
  await page.goto("/studio");await ready(page);
  await expect(page.locator("#background-status")).toContainText("unavailable");
  const keys=JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"));expect(keys).toContain("chat");expect(keys).toContain("main");

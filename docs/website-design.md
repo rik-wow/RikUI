@@ -10,9 +10,9 @@ Game widgets derive from reviewed actual Lua captures in web/ui-renders. The bro
 
 Public component sprites are lossless crops of the reviewed paint bounds. Every build verifies the source hashes and exact decoded RGBA crop pixels; geometry retains original atlas coordinates. This removes transparent canvas space from image decoding without changing native output. Gallery and guide pictures retain their reviewed source images.
 
-The optional UI-free 4K Elwynn plate comes from freshly acquired current-client terrain, lighting and models through the existing isometric renderer. Its current source/client identity, isolated input manifest and exact reviewed image hash are recorded beside it. The supported native map-texture path is used; advanced terrain layers, liquids, procedural grass and actors are outside this canned capture. Raw client files never enter public assets.
+Studio uses the user's supplied 3840 × 2160 game screenshot, unchanged, for every setup, device and activity preview. Its original filename and exact reviewed image hash are recorded beside it. This historical screenshot includes its original character and overhead names; it makes no current-client or live-camera claim. Raw client files never enter public assets.
 
-Background cover-cropping stays centered for each requested viewport and preserves aspect ratio. World, dim and plain modes are presentation-only. Actual addon fitting keeps the central character viewing corridor separate from scenery; the backdrop cannot establish live camera correctness.
+Background cover-cropping stays centered for each requested viewport and preserves aspect ratio. Screenshot, dim and plain modes are presentation-only. Actual addon fitting keeps the central character viewing corridor separate from scenery; the backdrop cannot establish live camera correctness.
 
 ## Responsive precise editing
 

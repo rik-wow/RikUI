@@ -73,9 +73,9 @@ for(const choice of Array.from(engine.call("ModuleChoices"))){
  modules.push({...choice,title,summary:guide.summary,guide:"/docs/"+guide.slug,...(sample?{guideSample:{url:sample.url,title:sample.title,sha256:sample.sha256}}:{})});
 }
 const {record:world,raw:worldBytes}=await reviewedWorld();
-const worldURL="/assets/studio/world-elwynn-"+world.sha256.slice(0,12)+".jpg";
+const worldURL="/assets/studio/background-"+world.sha256.slice(0,12)+".jpg";
 await writeFile(new URL("./public"+worldURL,import.meta.url),worldBytes);assets.push(worldURL);
-const background={url:worldURL,width:world.width,height:world.height,sha256:world.sha256,caption:world.caption,client:world.inputs.identity.version,source:"Current client scenery through the isometric renderer; no player or UI. Native map textures; advanced terrain layers and liquids are outside this canned scene."};
+const background={url:worldURL,width:world.width,height:world.height,sha256:world.sha256,caption:world.caption,source:"User-supplied game screenshot. Fixed image shared by all setups, devices and sample scenes; its original character and overhead names remain part of the image."};
 const data={version:1,reviewOnly,background,modules,sources:sourcePaths.map((path,i)=>({path,sha256:hash(sources[i]),source:sources[i]})),atlases,packs,
  limitations:["Representative player data is fixture data, not your character.","Dynamic quest, target aura and inventory contents may grow beyond the sample. Review fitting conflicts in the addon.","Only captured coordinated themes and text sizes have appearance previews. Other imported settings are preserved and identified.","QuestTogether uses a compatibility recipe, not a styling API. Missing addons retain RikUI ownership."]};
 const dataText=JSON.stringify(data),dataURL="/assets/studio/data-"+hash(dataText).slice(0,12)+".json";

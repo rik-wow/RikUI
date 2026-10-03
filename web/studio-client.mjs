@@ -84,7 +84,7 @@ async function render(){
   const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
   $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
    (unsupported.length?" Geometry-only (no exact capture): "+unsupported.join(", ")+".":"")+
-   " The center guide reserves character viewing space; it is an editor annotation, not a rendered character. Representative fixture data; the canned UI-free world capture is illustrative, not your camera. Live names, optional addon widgets and stock game elements restored by disabling RikUI are outside this preview.";
+   " The center guide reserves character viewing space; it is an editor annotation. RikUI components use representative fixture data. The supplied game screenshot is a fixed background shared by every sample scene. Live names, optional addon widgets and stock game elements restored by disabling RikUI are outside this preview.";
   const showPlates=model.selected.nameplates&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false&&componentAppearanceCovered("nameplates",profile,model.engine,key);
   const drawn=groups.filter(shown);
   await renderModules({model,data,resolved,atlas,loadImage,selectedKey,selectGroup,toggle:(name,on)=>operation(()=>model.setModule(name,on),"Feature choice staged. Reload RikUI after applying to activate module changes.")});if(epoch!==renderEpoch)return;
@@ -96,7 +96,7 @@ async function render(){
   canvas.width=model.viewport.width;canvas.height=model.viewport.height;
   const background=await paintBackground(ctx,data.background,$("world-background").value,loadImage,()=>epoch===renderEpoch);if(epoch!==renderEpoch)return;
   canvas.dataset.background=background;
-  $("background-status").textContent=background==="unavailable"?"World image unavailable. Editing continues on a plain backdrop.":background==="plain"?"Plain backdrop; changes only this browser’s preview.":"UI-free 4K Elwynn scene · centered crop for this screen · changes only this browser’s preview.";
+  $("background-status").textContent=background==="unavailable"?"Screenshot unavailable. Editing continues on a plain backdrop.":background==="plain"?"Plain backdrop; changes only this browser’s preview.":"Supplied game screenshot · centered crop for this screen · changes only this browser’s preview.";
   const scale=profile.scale||1;paintedKeys=new Set(drawn.map(g=>g.key));
   for(const g of drawn){
    const c=atlas.components[g.key],p=paintPlacement(c,g.rect,scale,canvas.height);

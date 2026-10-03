@@ -1,0 +1,18 @@
+{
+  "name": "studio-background",
+  "file": "studio-background.jpg",
+  "caption": "User-supplied game screenshot; shared by every Studio preview.",
+  "width": 3840,
+  "height": 2160,
+  "sha256": "212b21a4c6745595bbb84f1bb2e84845c851bfcf4ff39221f71bd6ec687edd7d",
+  "reviewedSHA256": "212b21a4c6745595bbb84f1bb2e84845c851bfcf4ff39221f71bd6ec687edd7d",
+  "reviewedAt": "2026-10-03T02:42:31.893449+00:00",
+  "source": {
+    "kind": "user-provided-game-screenshot",
+    "filename": "WoWScrnShot_092726_120706.jpg"
+  },
+  "limitations": [
+    "Fixed historical screenshot; no live camera, character or client-build claim.",
+    "Original character and overhead names are part of the supplied image."
+  ]
+}
