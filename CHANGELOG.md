@@ -9,6 +9,32 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.8
+
+2026-10-02. Visual Studio feature controls and objective banner repair for WoW: Forever beta.
+
+- Add an always-visible UI scale slider, exact percentage and reset beside browser
+  screen controls. Preserve imported scales, personal readability requirements,
+  undo/redo and addon-importable exports; keep preview zoom independent.
+- Make all 46 supported RikUI features discoverable through searchable visual
+  cards with authentic component captures, on/off switches, guide links and
+  ownership/reload explanations. Selecting a frame exposes its feature switch.
+  Keep partial adoption under "Keep parts of my current UI".
+- Share the actual Lua module/dependency contract between browser and addon.
+  Disabled features keep source positions but reserve no RikUI fitting space.
+  Show inactive positions as labeled gray outlines; preserve round trips and
+  undo/redo. Explain shared unit-frame ownership and dependency conflicts.
+- Capture actual target/focus/pet frames with their optional aura module off
+  across supported themes/readability, rather than leaving enabled-only images.
+  Stock interfaces restored by disabling RikUI and uncaptured situational or
+  optional-addon widgets remain explicit preview limits.
+- Fix objective banners: surround native title/subtitle with a padded RikUI card,
+  wrap long titles, reset bounds on reuse and remove animated gold rules.
+  Preserve the native animation envelope, quest timing and tracker transition.
+- Retain the guided native/web Studio, complete live export/import, character
+  center clearance, shared native controls and canonical Markdown documentation.
+  Review short, long and reused banner output through the real Lua renderer.
+
 ## 1.0.0-beta.7
 
 2026-10-02. Character clearance and consistent Studio controls for WoW: Forever beta.

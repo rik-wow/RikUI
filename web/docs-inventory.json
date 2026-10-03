@@ -1,12 +1,12 @@
 {
   "release": {
-    "release.version": "1.0.0-beta.7",
+    "release.version": "1.0.0-beta.8",
     "release.channel": "beta",
-    "release.zip": "RikUI-v1.0.0-beta.7-forever.zip",
-    "release.url": "https://github.com/rik-wow/RikUI/releases/tag/v1.0.0-beta.7",
-    "release.download": "https://github.com/rik-wow/RikUI/releases/download/v1.0.0-beta.7/RikUI-v1.0.0-beta.7-forever.zip"
+    "release.zip": "RikUI-v1.0.0-beta.8-forever.zip",
+    "release.url": "https://github.com/rik-wow/RikUI/releases/tag/v1.0.0-beta.8",
+    "release.download": "https://github.com/rik-wow/RikUI/releases/download/v1.0.0-beta.8/RikUI-v1.0.0-beta.8-forever.zip"
   },
-  "releaseSha256": "1a50781d1cec54db7dc964c7348dbea6af9806434ecd3de2f90d45bfb1ea8cea",
+  "releaseSha256": "e6c8ad2226185800eadf1943097fbf9ba79c28ae4648962424b58f28757b1ce0",
   "pages": [
     {
       "slug": "setup-studio",
@@ -14,7 +14,7 @@
       "title": "Setup Studio",
       "sourceSha256": "62b71f517d5ff62658959b0351a3b7e6af367290d78d7297d03d40ff73c366ad",
       "buildSha256": "62b71f517d5ff62658959b0351a3b7e6af367290d78d7297d03d40ff73c366ad",
-      "htmlSha256": "5feacf54b75debefb161033bbbea633d75a389ddbeb3615da8a436912604f45c"
+      "htmlSha256": "91bdc15344f6c2203e9670d8fd6f55404e47e553ccabf066e23169835baaddc1"
     },
     {
       "slug": "wizard",
@@ -22,7 +22,7 @@
       "title": "Setup wizard",
       "sourceSha256": "f719652fe1371987c8a2fe832a25953293b7897aaf184d665ab119a80ff48549",
       "buildSha256": "f719652fe1371987c8a2fe832a25953293b7897aaf184d665ab119a80ff48549",
-      "htmlSha256": "5db4dcfbdc7c59030e534f619fb0192a4f65d3f2f41a6487e8ef2d301788aeb5"
+      "htmlSha256": "bd67bc26318b60bd2ce4cc6836f1e05b0f00d05fef759b5d8b86863bbd16685e"
     },
     {
       "slug": "options",
@@ -30,7 +30,7 @@
       "title": "Settings and profiles",
       "sourceSha256": "8674af70e4944de98188bd182da88e5ba4b5506bea4781169517e4b37bbef66a",
       "buildSha256": "8674af70e4944de98188bd182da88e5ba4b5506bea4781169517e4b37bbef66a",
-      "htmlSha256": "f9d9b1d491064ba29057202f2d8faace539be2211e7b60567641b2ff60efa8f3"
+      "htmlSha256": "1f9bd4766550ed64f05a6034147ccc1f26e5ac5f5c2d2f2ca5bd24a94bf70bff"
     },
     {
       "slug": "layout",
@@ -38,7 +38,7 @@
       "title": "Move and resize frames",
       "sourceSha256": "edbff55ffbedb4e8411ea61b4c416cc87285d39a126d19efb9af38b9638e6e3a",
       "buildSha256": "edbff55ffbedb4e8411ea61b4c416cc87285d39a126d19efb9af38b9638e6e3a",
-      "htmlSha256": "2461147c777ccd586f86102069bec853041946638411256e8c5fbc913aa418b2"
+      "htmlSha256": "1d1c51837bfd99da4c5e58c461606fc0924d2832c00c4c4bdb3e934d6728b374"
     },
     {
       "slug": "shell",
@@ -46,7 +46,7 @@
       "title": "RikUI menu",
       "sourceSha256": "c0dea26c6ff6c4166193711e686c14913c9488723bc5f6d0ace20bb790c495c7",
       "buildSha256": "c0dea26c6ff6c4166193711e686c14913c9488723bc5f6d0ace20bb790c495c7",
-      "htmlSha256": "f63763248cb7a69eb0a37d254b8cb9db28488981531dc4e7582a2d9bdcf037c3"
+      "htmlSha256": "6f1a1ae500dab626c9a5712ae4d87a22d25e0e56310ac9619743afa10b488a66"
     },
     {
       "slug": "sharing",
@@ -54,7 +54,7 @@
       "title": "Import and export",
       "sourceSha256": "0f964b1d905383c9295764cefe8852e7d19c50ca236110fb08c2e4c879c6d254",
       "buildSha256": "0f964b1d905383c9295764cefe8852e7d19c50ca236110fb08c2e4c879c6d254",
-      "htmlSha256": "1c490c95e8839bc451b91edf5d878cb1d3f1e614f3e6ff953e37f426633853b2"
+      "htmlSha256": "bd9466000f7f5c043848d4d1c4e93f3b23a16538b512fb96731b1dc0a5c92ea1"
     },
     {
       "slug": "bars",
@@ -62,7 +62,7 @@
       "title": "Action bars",
       "sourceSha256": "88cfe1a64f53701d3cd8cc7e5031c88884beeacb09bafd60dd9ba2d49fb6da61",
       "buildSha256": "88cfe1a64f53701d3cd8cc7e5031c88884beeacb09bafd60dd9ba2d49fb6da61",
-      "htmlSha256": "ede660f476d6a4721aeed9e54e7f347b238d36235c26a58a78cf5168b7c2f88d"
+      "htmlSha256": "a58cfbad8479e66f228998f9d6cfb523fef9c86229bcf0ecee36253d26982e85"
     },
     {
       "slug": "unitframes",
@@ -70,7 +70,7 @@
       "title": "Unit frames",
       "sourceSha256": "b2ea3f2cd3ecaf520ec31861941984ae735078a68338587ed7ba85362e942ff3",
       "buildSha256": "b2ea3f2cd3ecaf520ec31861941984ae735078a68338587ed7ba85362e942ff3",
-      "htmlSha256": "23e7ff8ad192490f632d9dd49d123636dd21a5e253841f0751382c7e29020415"
+      "htmlSha256": "281b00066b16ea28227106803391c6f3cf7a48ace9b9fe64c25e19d8f5542b82"
     },
     {
       "slug": "castbars",
@@ -78,7 +78,7 @@
       "title": "Cast bars",
       "sourceSha256": "036f74762c1603443d8c2d8c3fe9b5b33a696d803b52a80730ef1cbee3d28d45",
       "buildSha256": "036f74762c1603443d8c2d8c3fe9b5b33a696d803b52a80730ef1cbee3d28d45",
-      "htmlSha256": "e16b6f59a9039fc2bd969658b3a7572291fb13bd014d7d12acfba5fc22dd02e2"
+      "htmlSha256": "b2e13f9a5a5cf49c9a9d2ca09588d90ae5cd49c260e877bcbb1ee1156eb0be86"
     },
     {
       "slug": "auras",
@@ -86,7 +86,7 @@
       "title": "Buffs and debuffs",
       "sourceSha256": "d100fcffec61ed5cd921bf3af9449dc3792dc95990797e790289ce3870c19a1d",
       "buildSha256": "d100fcffec61ed5cd921bf3af9449dc3792dc95990797e790289ce3870c19a1d",
-      "htmlSha256": "f8df58debfb42436ca9e8c93aa8a2fd4d900f3f18684d6d537c29a68c7ec1fd7"
+      "htmlSha256": "fb6f0c62fc001291d09771d3fd50d2f60995c964c8499ea8c5b8a213f868560d"
     },
     {
       "slug": "class-effects",
@@ -94,7 +94,7 @@
       "title": "Class effects",
       "sourceSha256": "c3ec3e8a293760f3e1fb0586084cf6413b0364f7136dab885f97b18de5287a70",
       "buildSha256": "c3ec3e8a293760f3e1fb0586084cf6413b0364f7136dab885f97b18de5287a70",
-      "htmlSha256": "aafe7354802c2701ec1eb61f227501e1d99bb99f2c1c309937284d46932702d7"
+      "htmlSha256": "d23ae21fb9d561901b86bfc54ba49fb88629524b2907879f7c5fc07e8e981540"
     },
     {
       "slug": "cooldowns",
@@ -102,7 +102,7 @@
       "title": "Cooldowns",
       "sourceSha256": "ba86e49c65091d414492caf6e3a81e92a5b4b0b1523213a39a287189f05da0ce",
       "buildSha256": "ba86e49c65091d414492caf6e3a81e92a5b4b0b1523213a39a287189f05da0ce",
-      "htmlSha256": "1c685ce58619b6be4f1533a1b342bd8a60d64fdabd10917f62893707eb8c6c65"
+      "htmlSha256": "93cbbd75f985a0a54a3ea31618980a36ffb9e2469907e01ec7ceed67231cf963"
     },
     {
       "slug": "combat-hud",
@@ -110,7 +110,7 @@
       "title": "Combat HUD",
       "sourceSha256": "f5feb1e4c67e787a0454e654d60d8b204a3cfaf8b4f821864f1c560195e3b13a",
       "buildSha256": "f5feb1e4c67e787a0454e654d60d8b204a3cfaf8b4f821864f1c560195e3b13a",
-      "htmlSha256": "5f0799011211b1facd017499c28ff3ebd565b4a4e1c603403143928f58e442cb"
+      "htmlSha256": "4831a7c7b647ed2898598c37fe20a30af2ec1a05ec6fef817eb1492b3a570150"
     },
     {
       "slug": "personalresource",
@@ -118,7 +118,7 @@
       "title": "Personal resource display",
       "sourceSha256": "ad0e78547cf50324b26477e6662d40facedf1219f55c892b545a5bcfac8e88ca",
       "buildSha256": "ad0e78547cf50324b26477e6662d40facedf1219f55c892b545a5bcfac8e88ca",
-      "htmlSha256": "f44c22e300845dc9532060fdc17dbbba45326c0223a291c85a4095af6ca0190c"
+      "htmlSha256": "421c8b9690ef7648978eb1d891e6f3419cb367e7d650475e81da9e2d74627961"
     },
     {
       "slug": "nameplates",
@@ -126,7 +126,7 @@
       "title": "Nameplates",
       "sourceSha256": "6ce0b4474d4e6a082ffb3717b5392de5f007b64ba1dd25a34dab53bce9150078",
       "buildSha256": "6ce0b4474d4e6a082ffb3717b5392de5f007b64ba1dd25a34dab53bce9150078",
-      "htmlSha256": "ebefc86d9499df57126ce717b5fc02cb483708c0f6a17a8a55aacc392f42867e"
+      "htmlSha256": "c726489f17f2c962fe69193216d45ac084b09b7f87a6369223b94b1eb07651e9"
     },
     {
       "slug": "combopoints",
@@ -134,7 +134,7 @@
       "title": "Combo points",
       "sourceSha256": "837c00b90741f810b3b78a3090568c6db070ef8da693e900d1907cd594e825fa",
       "buildSha256": "837c00b90741f810b3b78a3090568c6db070ef8da693e900d1907cd594e825fa",
-      "htmlSha256": "d433118a9c4f71f6d87d9ee1dc0b50da9261ff265ad948cfbd5d2ecaebd4884c"
+      "htmlSha256": "3214598b6495d245a50b96a122a3078372d64958eb864446a82496666d0bf9d8"
     },
     {
       "slug": "swingtimer",
@@ -142,7 +142,7 @@
       "title": "Weapon timers",
       "sourceSha256": "bda0dfc1500967d4bd583fdb7f72816eb165914c8bfca9291d2711e44aa976c6",
       "buildSha256": "bda0dfc1500967d4bd583fdb7f72816eb165914c8bfca9291d2711e44aa976c6",
-      "htmlSha256": "5d3884fab754a36eb6477541e929a2bf683cab9feeba49f37b5945d7b6a74193"
+      "htmlSha256": "e83251cba4a17725ef43bd80108da93d119a5a4a7891b463a66a8f42b3b23b15"
     },
     {
       "slug": "combattimer",
@@ -150,7 +150,7 @@
       "title": "Combat timer and stopwatch",
       "sourceSha256": "343e8f253e303c904877f535f006b41a8f29e36a4cd56647a09f0a4082995072",
       "buildSha256": "343e8f253e303c904877f535f006b41a8f29e36a4cd56647a09f0a4082995072",
-      "htmlSha256": "d96ea60f2a68a1d8ce1d199bd81670734bebcf284a59784d4c5719c04b189f27"
+      "htmlSha256": "50fde85e6d61a7af46f6a07278284d7a69736ebd5b14caba4723595a6d3a0478"
     },
     {
       "slug": "mirrortimers",
@@ -158,7 +158,7 @@
       "title": "Breath and fatigue",
       "sourceSha256": "8ba25faf87a8a64919450a2255525b41b7d420d637859c30c90bbcbf8845e0b1",
       "buildSha256": "8ba25faf87a8a64919450a2255525b41b7d420d637859c30c90bbcbf8845e0b1",
-      "htmlSha256": "ee7f1972ef3e0f093cdec7a28a3a10c7789a1badeba4cc0f60c6726a494e8454"
+      "htmlSha256": "12ba99beffbd191066eef89846240f35e87d58c7323b6393a76cf0fc8c14ea58"
     },
     {
       "slug": "totems",
@@ -166,7 +166,7 @@
       "title": "Totems",
       "sourceSha256": "ade60c9da3b9d4b4a4623ad2d34271b4a432dafe5760c97516604f5364bf79fe",
       "buildSha256": "ade60c9da3b9d4b4a4623ad2d34271b4a432dafe5760c97516604f5364bf79fe",
-      "htmlSha256": "e9d69f08167f4db36ffd147ecd44541854d46df2f3e007caf5e1253c317e8eaf"
+      "htmlSha256": "d253815862efe98f8a4ae6485b5f33cf3d1ebd0375a1c893fb1b02df5dacf858"
     },
     {
       "slug": "lossofcontrol",
@@ -174,7 +174,7 @@
       "title": "Loss of control",
       "sourceSha256": "44a8491d8afb0a75e4ce76e8e405c5f41d9b98946192ce8bd36db93d30ff7fa3",
       "buildSha256": "44a8491d8afb0a75e4ce76e8e405c5f41d9b98946192ce8bd36db93d30ff7fa3",
-      "htmlSha256": "44e177f08a7eac739e25aedb2395429f2489674eaac7056fe3be6d5c6a35e03d"
+      "htmlSha256": "cb9a5694b697ee69c385194fe52a83a92d35d5a24df0e8836e7335cf8c637ddd"
     },
     {
       "slug": "proc-overlay",
@@ -182,7 +182,7 @@
       "title": "Proc indicators",
       "sourceSha256": "2920a56de4af86cf39c6892165df7f63127c951b8628e32d7745925a13a27c50",
       "buildSha256": "2920a56de4af86cf39c6892165df7f63127c951b8628e32d7745925a13a27c50",
-      "htmlSha256": "4aaa13a57f782921227b07fdadcb1b6bf5b8589a312adc0866b1634241e2ebe8"
+      "htmlSha256": "97e9208736b85d8a4dc476c8fa5396ea27ccfb21106081d474f77cb5e918a25b"
     },
     {
       "slug": "damagemeter",
@@ -190,7 +190,7 @@
       "title": "Damage meter",
       "sourceSha256": "5e05b17114923e344a78a76f7c30814d8bde4d8c99faf5b3591a68cde8b5cd89",
       "buildSha256": "5e05b17114923e344a78a76f7c30814d8bde4d8c99faf5b3591a68cde8b5cd89",
-      "htmlSha256": "e0a01126300d1585f6e8e709e12befce26728e57b2b8f1e726080789652c8bd5"
+      "htmlSha256": "44339bd34a283a9f517345d9fc7924bfd9fcde8fc7d1d37e4f87d88aa1e581b0"
     },
     {
       "slug": "combattext",
@@ -198,7 +198,7 @@
       "title": "Combat text",
       "sourceSha256": "7be07abefe1b76edd06a85310388e4a94319855e2195ea3cb83a630b97e43935",
       "buildSha256": "7be07abefe1b76edd06a85310388e4a94319855e2195ea3cb83a630b97e43935",
-      "htmlSha256": "547d538dcb9c52c8ca2c935dffb762ea7ca30751c2422a7b1f68fc03ac484a73"
+      "htmlSha256": "5a7c1b3fae87a99af9bc64f9d1e059ed4c21028c06917d8eae0e4d26bf8cb28e"
     },
     {
       "slug": "extrabuttons",
@@ -206,7 +206,7 @@
       "title": "Extra action buttons",
       "sourceSha256": "54f2737fd5a317429c0d801109a1801d654133c7f32e433a21ce7e24fb58633b",
       "buildSha256": "54f2737fd5a317429c0d801109a1801d654133c7f32e433a21ce7e24fb58633b",
-      "htmlSha256": "bd4da8cc98cb667a43854fb16099fa8b58580658306f724316646945c8dbb625"
+      "htmlSha256": "15e836fad9f02a226d86ece8a922875a609fd16a12ef432a3778d00e3972bd44"
     },
     {
       "slug": "questtracker",
@@ -214,7 +214,7 @@
       "title": "Quest tracker",
       "sourceSha256": "a84ef75147a7c75ddbe0d111f464c72e710791bb9525975d079ebc1da5a67e8d",
       "buildSha256": "a84ef75147a7c75ddbe0d111f464c72e710791bb9525975d079ebc1da5a67e8d",
-      "htmlSha256": "ac8179df53bf9c35196ece5d14790d82dff6412127613fe0cc0186653b24f0b0"
+      "htmlSha256": "a4eb0b1faf126949c8e0691965717edac0dc065577ba2e11a7ffbc9625cbccae"
     },
     {
       "slug": "questplanner",
@@ -222,7 +222,7 @@
       "title": "Quest planner",
       "sourceSha256": "fcb21936834a73009cf71dd2e30f1c75fa54a37a70170624506208da8c9bd698",
       "buildSha256": "fcb21936834a73009cf71dd2e30f1c75fa54a37a70170624506208da8c9bd698",
-      "htmlSha256": "2103fb3dd957a0524a28daf2a3c928d54b1087646f35c2600f02fc2da59f438d"
+      "htmlSha256": "417b2a1c29930331fe0f15f2a39fe6ee477e5e657f450d2e78150b765070bd9e"
     },
     {
       "slug": "questtimers",
@@ -230,7 +230,7 @@
       "title": "Quest timers",
       "sourceSha256": "cacd44a1ad858f852e4d139b7aec4001dcde42b7229fc5404d6e5dd0ade058da",
       "buildSha256": "cacd44a1ad858f852e4d139b7aec4001dcde42b7229fc5404d6e5dd0ade058da",
-      "htmlSha256": "8191f6ddd1c6089e0be12b98d1941ba6ffc7e00ef64d6f63971f964e2a05db07"
+      "htmlSha256": "3cd24e5c11d1de9d7e7fc566e5a05d04180a355fc324a54d0d87a3b7450df590"
     },
     {
       "slug": "worldmap",
@@ -238,7 +238,7 @@
       "title": "World map",
       "sourceSha256": "2485b83b05327557406bdde3ef93e761883a3ba215febd857fc7e4f9a50cc633",
       "buildSha256": "2485b83b05327557406bdde3ef93e761883a3ba215febd857fc7e4f9a50cc633",
-      "htmlSha256": "f63989263888cc5b156cf8154d7d1bcdb23532a7d4d6cc81dfef739c135528bd"
+      "htmlSha256": "58789860dfd5386232ff835f9ab92cdb15f9a8309e1dfa46b98cc59ff1da8e6f"
     },
     {
       "slug": "minimap",
@@ -246,7 +246,7 @@
       "title": "Minimap",
       "sourceSha256": "0bc11ba84b5c45277693cd4c07d8a5ecf830299b863fcae396aa52c09dde39b5",
       "buildSha256": "0bc11ba84b5c45277693cd4c07d8a5ecf830299b863fcae396aa52c09dde39b5",
-      "htmlSha256": "8161812cfe83c92dcbc02260f17716b43b634a5ce8fa61f2a0251033bca3b566"
+      "htmlSha256": "81778988f32d9eaa5928703860e3240a057d3ca2bb7c9ae826996cd71d924061"
     },
     {
       "slug": "bags",
@@ -254,7 +254,7 @@
       "title": "Inventory",
       "sourceSha256": "c231dba55ec1da27c20eb7b0e00ff8c0adedea4ae2d8d2bdd60694073653655c",
       "buildSha256": "c231dba55ec1da27c20eb7b0e00ff8c0adedea4ae2d8d2bdd60694073653655c",
-      "htmlSha256": "90d99a7010f72071a6df186b25f530d5871110e40e316fb70cca1ca247714485"
+      "htmlSha256": "55453c3a648dba3242e382a8a150ba625a9d1be366ff0dc424da45a84ff5026f"
     },
     {
       "slug": "loot",
@@ -262,7 +262,7 @@
       "title": "Loot and rolls",
       "sourceSha256": "2688658cb3aeb44df6bf9a47ca709266dc2d273b50ae735a5ae1e621b5134390",
       "buildSha256": "2688658cb3aeb44df6bf9a47ca709266dc2d273b50ae735a5ae1e621b5134390",
-      "htmlSha256": "46e986132d15ca567f7d439d5aece806a15397c5f110ea2569d7e4c102d503b3"
+      "htmlSha256": "c5f78cfbed56eb49ac6ecadd7403bf1db9625a23e1e22513b414308ea45e20dd"
     },
     {
       "slug": "chat",
@@ -270,7 +270,7 @@
       "title": "Chat",
       "sourceSha256": "1caefdaea54f23638090a16b1f7d23eb2a974922505e90e5cf830073307a8593",
       "buildSha256": "1caefdaea54f23638090a16b1f7d23eb2a974922505e90e5cf830073307a8593",
-      "htmlSha256": "71cb9f9453a63738b9499a42ba1d80ce9f92964dbe340f30bb77f363c251c68e"
+      "htmlSha256": "a6c388c5f281b5928103f2b00f9cf42acd9e7ca2a3a779c4206160b9ae24011f"
     },
     {
       "slug": "chatbubbles",
@@ -278,7 +278,7 @@
       "title": "Chat bubbles",
       "sourceSha256": "34c9c55bc7a1398e2dcbcf584eeb0b9e16ba77c1ab590791dcf977f1dec3e2b3",
       "buildSha256": "34c9c55bc7a1398e2dcbcf584eeb0b9e16ba77c1ab590791dcf977f1dec3e2b3",
-      "htmlSha256": "45b98d95281bb64ed6c70741822973e35a950120d72c2e321f4975fbe32162ea"
+      "htmlSha256": "187b53a5c610c86ed582ceddef0aae114579fbbe10a4186feab834e5d3f66403"
     },
     {
       "slug": "micromenu",
@@ -286,7 +286,7 @@
       "title": "Micro menu and bag strip",
       "sourceSha256": "35f71b4763ef6437af6219f072ecaada5e23493338b2f7a91ad1e22ad46da9c3",
       "buildSha256": "35f71b4763ef6437af6219f072ecaada5e23493338b2f7a91ad1e22ad46da9c3",
-      "htmlSha256": "f083b134daad40c669b6ebecd8c3d20b063337242aeeee94cef65dfea4a0d704"
+      "htmlSha256": "219364593bd72e9964a06c63e886f5cc154a33a4b4d5858dc9da800dc99d0ea2"
     },
     {
       "slug": "xpbar",
@@ -294,7 +294,7 @@
       "title": "Experience and reputation",
       "sourceSha256": "444d0713a420860f1a030f530c5e6b364b413b1a69f54a85a2f63bc18a410683",
       "buildSha256": "444d0713a420860f1a030f530c5e6b364b413b1a69f54a85a2f63bc18a410683",
-      "htmlSha256": "a72a46fc99a6f6ac2d07de20efc485408685831ab5995fb26a7c5397391228a1"
+      "htmlSha256": "115c337136cf7b184da5061b7f457dd676901898f91552186bba724c4e52b673"
     },
     {
       "slug": "durability",
@@ -302,7 +302,7 @@
       "title": "Durability",
       "sourceSha256": "66f6c9b0c9962b5580a75c725b9d41982417a2cb82513a66e2ea40da4ab07ec1",
       "buildSha256": "66f6c9b0c9962b5580a75c725b9d41982417a2cb82513a66e2ea40da4ab07ec1",
-      "htmlSha256": "78bea744dc2cfe425eeab6f3402d98e1a76483b53c8f8843f62ca6a69bd386f3"
+      "htmlSha256": "d59bf3138649bb51b5f8b5fc835df0a0a8be5e078f04e7654bfff5f6e237fdb6"
     },
     {
       "slug": "tooltip",
@@ -310,7 +310,7 @@
       "title": "Tooltips",
       "sourceSha256": "1135add21e9cca8399c79fdd67de576a99d86e40cf4139936beab25fecd71ee9",
       "buildSha256": "1135add21e9cca8399c79fdd67de576a99d86e40cf4139936beab25fecd71ee9",
-      "htmlSha256": "7031b2918b108b8232c899e0e995eab5adb9cdb630e6d655af0e0255d782c5e7"
+      "htmlSha256": "443f0e8085a82d46121669e4b51eb19a65e8f8145a2741f5a54885689e84c03b"
     },
     {
       "slug": "hudframes",
@@ -318,7 +318,7 @@
       "title": "Small HUD elements",
       "sourceSha256": "72c8913de4735c38957301ab9c8b2c9db23ae9c14446fb33c491b83b651574f3",
       "buildSha256": "72c8913de4735c38957301ab9c8b2c9db23ae9c14446fb33c491b83b651574f3",
-      "htmlSha256": "713418931e97ef8f6af7cfbe60be3020555c23f0a4b4f3d308ba2406e1af465c"
+      "htmlSha256": "42d685af9404f7a0060baf2875a49db38fed6d3e714319f5e161042d82643133"
     },
     {
       "slug": "screentext",
@@ -326,7 +326,7 @@
       "title": "Screen messages",
       "sourceSha256": "a292caa4c2bd9c41862be6f67077d2973079f5580ecc6dfb6763125f63315979",
       "buildSha256": "a292caa4c2bd9c41862be6f67077d2973079f5580ecc6dfb6763125f63315979",
-      "htmlSha256": "05f65f396e692c704c02cc5d805d6230da029b3dee44350acda349eb69dd50ad"
+      "htmlSha256": "07b007904831e64eb7668bffc0af9bfcf1fe69894652988ef25898e01853fcfc"
     },
     {
       "slug": "alerts",
@@ -334,7 +334,7 @@
       "title": "Alert toasts",
       "sourceSha256": "7f07df33632344b16b34dc612376367f5d8cc635eaafc9a82f74f57363230fc1",
       "buildSha256": "7f07df33632344b16b34dc612376367f5d8cc635eaafc9a82f74f57363230fc1",
-      "htmlSha256": "19a57ca8ce80cdd0d7c5c17df2bb1f567b137a8f67b1ae712a92d6bddec71bbc"
+      "htmlSha256": "fe2b6363bf7379bd5d3cbd4eccb2a121d974703a71a2cb6165ef02ecfa0de79e"
     },
     {
       "slug": "banners",
@@ -342,7 +342,7 @@
       "title": "Event banners",
       "sourceSha256": "5c10b340e19ac8a3f726d5b3f35893bf3c1e06f7064550179e5d3ddf3679b9c5",
       "buildSha256": "5c10b340e19ac8a3f726d5b3f35893bf3c1e06f7064550179e5d3ddf3679b9c5",
-      "htmlSha256": "f82d26e62a39133cc5e13d4528e126f75176bbdc0d52991866bdbed0bdeddabb"
+      "htmlSha256": "d83e8342a10f8c098c07b4865754158aff7c9daaf7aafe44556e72b85514ee52"
     },
     {
       "slug": "toasts",
@@ -350,7 +350,7 @@
       "title": "Social notifications",
       "sourceSha256": "718c29140e351807ea192b3cea4c32de99eccfbcdf0d24bbd8d6abf0b3d7a8de",
       "buildSha256": "718c29140e351807ea192b3cea4c32de99eccfbcdf0d24bbd8d6abf0b3d7a8de",
-      "htmlSha256": "a97464dafb6efc0eac43a95d2e1eca661328235eb03429a7ddfab229124b82aa"
+      "htmlSha256": "317cd8098f342be1f6947ce27735f5c33867dd749a7833d6e01eb8b60e85dee7"
     },
     {
       "slug": "panels",
@@ -358,7 +358,7 @@
       "title": "Window chrome",
       "sourceSha256": "80d97f7e6cfcb582b4bd1126631698d6d6fe58e47891a904cfca2bbe44b775f7",
       "buildSha256": "80d97f7e6cfcb582b4bd1126631698d6d6fe58e47891a904cfca2bbe44b775f7",
-      "htmlSha256": "bb3b1ab1375afe2095fbf42eb5d239fb8bd059cc247f386136759d1dcf697341"
+      "htmlSha256": "186121ba090759d554468bb4e79fca5383ff21d40f795861aa8b7d6d846d5ab4"
     },
     {
       "slug": "interiors",
@@ -366,7 +366,7 @@
       "title": "Window interiors",
       "sourceSha256": "68ad099eec0ddecfc3b8f5ba807700e2f3a7d88885668d53750165c5a07ec4e1",
       "buildSha256": "68ad099eec0ddecfc3b8f5ba807700e2f3a7d88885668d53750165c5a07ec4e1",
-      "htmlSha256": "7a38606fbcdb096344675a4dc1cef5721994b90587657e236c03ff74f291c408"
+      "htmlSha256": "cb5716070b6197ca3aa40a7f016e089a3cbaa3d8f85b3d1716ba06c18c7c227b"
     },
     {
       "slug": "auction-house",
@@ -374,7 +374,7 @@
       "title": "Auction house",
       "sourceSha256": "5ada610965c4e62618d169d67035713006cf41fa3764e0e396ed09df6e5666af",
       "buildSha256": "5ada610965c4e62618d169d67035713006cf41fa3764e0e396ed09df6e5666af",
-      "htmlSha256": "6e6aea93c6fe69073cd963ff1bc9d345438f75eafb84daba03fffd00fce667c6"
+      "htmlSha256": "7d3e608f7e4871203d14ba3073b10f4ec58c772191324dcc30d129de8447ce18"
     },
     {
       "slug": "dialogs",
@@ -382,7 +382,7 @@
       "title": "Small dialogs",
       "sourceSha256": "b27f04ebff74c52d007e1ab6f1cb0f8645e57c05a9239b80426d80d6edb6ec94",
       "buildSha256": "b27f04ebff74c52d007e1ab6f1cb0f8645e57c05a9239b80426d80d6edb6ec94",
-      "htmlSha256": "3c4aaf8478c14eb94596cd1a8f531feeeba2f184f9e1a98954c67a02015f3dd2"
+      "htmlSha256": "bc4f015a69bd230e4d500c2e3cb2cdf3bc579a6e16a48c2021cc3122546375be"
     },
     {
       "slug": "popups",
@@ -390,7 +390,7 @@
       "title": "Confirmation popups",
       "sourceSha256": "f02f875ea14811da668d3eb4c36911b285ac924d8fe5bba4acebf64d61f35ada",
       "buildSha256": "f02f875ea14811da668d3eb4c36911b285ac924d8fe5bba4acebf64d61f35ada",
-      "htmlSha256": "9a729a924a3ca89cb1063ebfeb5164536a163a87b97ee62ddf8f238d934bf109"
+      "htmlSha256": "e3016b1363671189b28dab4c2fea30b1c8293c44017c38c7277b61ba44da6655"
     },
     {
       "slug": "menus",
@@ -398,7 +398,7 @@
       "title": "Context menus",
       "sourceSha256": "5c1aabde58ceb3f7b205d92338d6e4dbc30b64061f4911b42708530f96afce44",
       "buildSha256": "5c1aabde58ceb3f7b205d92338d6e4dbc30b64061f4911b42708530f96afce44",
-      "htmlSha256": "6b575b0a342b8097a676e19ff05aa67a04fdb22718ffb7fdc0600282ec486543"
+      "htmlSha256": "85eb2a4d83cdbe28614505104a12794bdb9d6121669f6dcee9b50acafbaf2713"
     },
     {
       "slug": "widgets",
@@ -406,7 +406,7 @@
       "title": "Objective widgets",
       "sourceSha256": "b98d979f94215064f1f0f15c23ad308710d762c61e37aa5ab0ca17529242e11a",
       "buildSha256": "b98d979f94215064f1f0f15c23ad308710d762c61e37aa5ab0ca17529242e11a",
-      "htmlSha256": "bee67b6779be3b7996eea7d2fd9cd346520e8e1dc8e0cfe51c67b2d287fa1537"
+      "htmlSha256": "ace2a6534c3edd572d05bb2fffcc90252f530e3f25d0c395d0bc85dd7474b185"
     },
     {
       "slug": "controls",
@@ -414,15 +414,15 @@
       "title": "Shared controls",
       "sourceSha256": "1953ce0c178bb461e69348060d0412548f559db4df1c473e1617f24b4538073c",
       "buildSha256": "1953ce0c178bb461e69348060d0412548f559db4df1c473e1617f24b4538073c",
-      "htmlSha256": "877c4da3ee4b7dee4a8bea1f9a5ca6c5de6803ac5200fbf58c86dd2e20673920"
+      "htmlSha256": "d217b6cd8723f451916025de3102e1dd8df8a0ace1a5ec7aba9186cbc8b61dab"
     },
     {
       "slug": "installation",
       "file": "docs/player/installation.md",
       "title": "Install RikUI",
       "sourceSha256": "b4b6e00e8c5c088b715529288ba6bf936ee143ddc028e784aa7ed7b88da1b987",
-      "buildSha256": "d8fba26857d67362addf1b9c6838bedcc6db6eec8eb1bba24e65fae913521308",
-      "htmlSha256": "ad50c604961214d791010da04c7a7769694b73f63aad9fe23b611ac2593a8f51"
+      "buildSha256": "f29c666f4dacf2135e902b717c79e1c1e586d1a758a05afebc94322e7d031245",
+      "htmlSha256": "37d4b4c0365deb8d6d88b6a8cee107c0f1e26f5944a8ff00a8bc0826760720da"
     },
     {
       "slug": "overview",
@@ -430,7 +430,7 @@
       "title": "RikUI",
       "sourceSha256": "df5485e9dcc5abc2f1cb2e74450f8a81c4ab300447be9153c664f52cad25f4ba",
       "buildSha256": "df5485e9dcc5abc2f1cb2e74450f8a81c4ab300447be9153c664f52cad25f4ba",
-      "htmlSha256": "6f34b1d2da3e68db7f14435028802311049384bbd3a8c72013d310ef2235fc7e"
+      "htmlSha256": "4937fd0b0839bc288fe89c9ebd36f6217ff74c559a636a2780963d78b77b4038"
     },
     {
       "slug": "contributing",
@@ -438,7 +438,7 @@
       "title": "Help improve RikUI",
       "sourceSha256": "d1bc36340c8f7465b670b16dc730edd51a9a6b99805e99257bb0565bb3ea6200",
       "buildSha256": "d1bc36340c8f7465b670b16dc730edd51a9a6b99805e99257bb0565bb3ea6200",
-      "htmlSha256": "7b1606077cc0fc2299ef1c264b831bf573a56c508975f4e2575a0bc8fda5f9c9"
+      "htmlSha256": "810b1033e034625a1e71871d121ce818bc89012e9c1d961711393b1ba3af541b"
     },
     {
       "slug": "web--asset-notice",
@@ -446,7 +446,7 @@
       "title": "Artwork notice",
       "sourceSha256": "edd6fc47f60edfcd5135506965fb89c6a7510be36f4c7ad8f16be10af936c741",
       "buildSha256": "edd6fc47f60edfcd5135506965fb89c6a7510be36f4c7ad8f16be10af936c741",
-      "htmlSha256": "6fe15ba812fe70c0e529d08a500c68a62191865defc830c52f85c563af7d5a86"
+      "htmlSha256": "19fc7619b47dba246195564c4983d96d560c81add0245220e43e5be800a91ced"
     }
   ],
   "modules": [
