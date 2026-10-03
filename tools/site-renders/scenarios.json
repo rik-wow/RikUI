@@ -3284,7 +3284,9 @@
         "share",
         "advanced",
         "applied",
-        "conflict"
+        "conflict",
+        "dropdown",
+        "groups"
       ],
       "labels": [
         "Choose",
@@ -3296,7 +3298,9 @@
         "Share",
         "More tools",
         "Applied",
-        "Fit conflict"
+        "Fit conflict",
+        "Device dropdown",
+        "Frame group dropdown"
       ],
       "default": "choose",
       "apply": "RikRenderStudioPage(VALUE)"
@@ -3310,7 +3314,7 @@
     "screen": "1280x800",
     "crop": "1280x800+0+0",
     "fixtures": [],
-    "lua": "RikRenderStudioHandheld()",
+    "lua": "RikRenderStudioHandheld()\nRikRenderStudioCharacterClearance(true)",
     "expectText": [
       "Rik"
     ],
@@ -3896,7 +3900,7 @@
     "fixtures": [
       "RikRenderScreenState()"
     ],
-    "lua": "assert(RikUI.Studio.Select(\"centered\"))\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+    "lua": "assert(RikUI.Studio.Select(\"centered\"))\nRikRenderStudioCharacterClearance()\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nRikRenderStudioCharacterClearance(true)\nChatFrame1:Clear()\nRikRenderChatLines()\n",
     "expectText": [
       "Rik"
     ]
@@ -3911,7 +3915,7 @@
     "fixtures": [
       "RikRenderScreenState()"
     ],
-    "lua": "assert(RikUI.Studio.Select(\"classic\"))\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+    "lua": "assert(RikUI.Studio.Select(\"classic\"))\nRikRenderStudioCharacterClearance()\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nRikRenderStudioCharacterClearance(true)\nChatFrame1:Clear()\nRikRenderChatLines()\n",
     "expectText": [
       "Rik"
     ]
@@ -3926,7 +3930,7 @@
     "fixtures": [
       "RikRenderScreenState()"
     ],
-    "lua": "assert(RikUI.Studio.Select(\"hud\"))\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+    "lua": "assert(RikUI.Studio.Select(\"hud\"))\nRikRenderStudioCharacterClearance()\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nRikRenderStudioCharacterClearance(true)\nChatFrame1:Clear()\nRikRenderChatLines()\n",
     "expectText": [
       "Rik"
     ]
@@ -3941,7 +3945,7 @@
     "fixtures": [
       "RikRenderScreenState()"
     ],
-    "lua": "assert(RikUI.Studio.Select(\"healer\"))\nRikUI.Studio.Activity=\"party\"\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nassert(RikUI.UnitFrames.Party.SetTest(true))\nChatFrame1:Clear()\nRikRenderChatLines()\n",
+    "lua": "assert(RikUI.Studio.Select(\"healer\"))\nRikUI.Studio.Activity=\"party\"\nRikRenderStudioCharacterClearance()\nlocal review=assert(RikUI.Studio.Review());for _,c in ipairs(review.fit.conflicts) do print(\"FIT \"..c.key..\" \"..c.reason)end\nassert(RikUI.Studio.Apply())\nRikRenderStudioCharacterClearance(true)\nassert(RikUI.UnitFrames.Party.SetTest(true))\nChatFrame1:Clear()\nRikRenderChatLines()\n",
     "expectText": [
       "Rik"
     ]

@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-02",
+  "client": "Forever 1.60.1.70170",
+  "sourcePolicy": "Current Forever inputs and unchanged staged addon source; all listed images inspected at original size before exact hash promotion.",
+  "scope": "Character viewing corridor, coherent curated combat column, native geometry at two scales, handheld focus inclusion and actual shared Settings dropdown controls.",
+  "images": [
+    {
+      "id": "studio-controls@choose",
+      "filename": "studio-controls@choose.webp",
+      "sha256": "fcb923d88c4d4f59a0c90e94c02c944079de69dc59eacca226223b11f36b0a21"
+    },
+    {
+      "id": "studio-controls@parts",
+      "filename": "studio-controls@parts.webp",
+      "sha256": "ccfbe5356af3e1d16a8e8f4331e3073ce64823e983d6d55816efd5cd08ffd6be"
+    },
+    {
+      "id": "studio-controls@look",
+      "filename": "studio-controls@look.webp",
+      "sha256": "dcd8dcbbe1d76da5690d82db5cfc59da6f12b47a82c5e23beeee18ba6ab052d1"
+    },
+    {
+      "id": "studio-controls@details",
+      "filename": "studio-controls@details.webp",
+      "sha256": "559be0ca250acda51a23aebc1c7365f7d775548972fd3668b8504f2cef55e773"
+    },
+    {
+      "id": "studio-controls@layout",
+      "filename": "studio-controls@layout.webp",
+      "sha256": "892a86db2180bdffeeffa0ae5f99311d65d593bcd9c30358b44fa153fe6c819c"
+    },
+    {
+      "id": "studio-controls@review",
+      "filename": "studio-controls@review.webp",
+      "sha256": "816fdefe8761aaea20e1e61bf8ec4ab942f9d8482b022b4d8a42231ade5f6d7f"
+    },
+    {
+      "id": "studio-controls@share",
+      "filename": "studio-controls@share.webp",
+      "sha256": "fb7cb03b8dff0220f5ccb2127f59c9a23c13217bf046e04cd5ccb52872570ced"
+    },
+    {
+      "id": "studio-controls@advanced",
+      "filename": "studio-controls@advanced.webp",
+      "sha256": "01875e7edb49647439a7594bd5c8dca9592a69196f45a70ad8d2be3f0bc10778"
+    },
+    {
+      "id": "studio-controls@applied",
+      "filename": "studio-controls@applied.webp",
+      "sha256": "ecf33c80a04fbda7b991ba61b26b77a0913a8be04b42aac71401aee5da7718bf"
+    },
+    {
+      "id": "studio-controls@conflict",
+      "filename": "studio-controls@conflict.webp",
+      "sha256": "4d94415bb9d6a0e30f0dd8f4f31c99cee0fa4725e321beac700d5bc7079d6abe"
+    },
+    {
+      "id": "studio-controls@dropdown",
+      "filename": "studio-controls@dropdown.webp",
+      "sha256": "b498a20eb415704fadfc4e790e6733f8ebbe17e3f507cda47de30bc0b5c18f69"
+    },
+    {
+      "id": "studio-controls@groups",
+      "filename": "studio-controls@groups.webp",
+      "sha256": "fc9ab9cfc18bbb2f48cdeb069cd882647ed319ee080cbc7e5506ddc0eb36b71d"
+    },
+    {
+      "id": "studio-handheld",
+      "filename": "studio-handheld.webp",
+      "sha256": "36745b46f59e7793a590951d69b83c930707d3af8ee5a25d7ad7901c202bab53"
+    },
+    {
+      "id": "studio-pack-centered",
+      "filename": "studio-pack-centered.webp",
+      "sha256": "2622160b6293a8e50c25752c114db474a09378a6b3e043d0654ecf47d07589f5"
+    },
+    {
+      "id": "studio-pack-classic",
+      "filename": "studio-pack-classic.webp",
+      "sha256": "7cfb9cfbcc178294dc4c6581530f34c961159cd5f599facc52ec5c880614f661"
+    },
+    {
+      "id": "studio-pack-hud",
+      "filename": "studio-pack-hud.webp",
+      "sha256": "a111abd9afa431683b721a3fff1e86b8d25a36dc7c1446264d202ec87d855b8e"
+    },
+    {
+      "id": "studio-pack-healer",
+      "filename": "studio-pack-healer.webp",
+      "sha256": "b9ad01a7bf5142214316da2a4cce011ef1ba7e6f400ef13406cfad39cf3f1e2f"
+    },
+    {
+      "id": "studio-theme-review",
+      "filename": "studio-theme-review.webp",
+      "sha256": "a1bca182cc17e8f0f62b013f58db0f4614c69d2c41c841e3c076a99db213df8b"
+    },
+    {
+      "id": "studio-edit-undo",
+      "filename": "studio-edit-undo.webp",
+      "sha256": "0b0e15f321da2e213be8513e1689abdcb732a9b0d78fafb017759d590c80f14d"
+    },
+    {
+      "id": "studio-native-geometry@1",
+      "filename": "studio-native-geometry@1.webp",
+      "sha256": "8a27ff58cde12df4d418fa8cd9889f6f096ec5a1af37cfb231c2cc888dadf3e1"
+    },
+    {
+      "id": "studio-native-geometry@1.15",
+      "filename": "studio-native-geometry@1.15.webp",
+      "sha256": "4cdfe35f582b19502c07928baa3523698a53f9d27db5fd093dcb159fd9d13eaa"
+    },
+    {
+      "id": "studio-live-export",
+      "filename": "studio-live-export.webp",
+      "sha256": "1bf8c890d255820b1abd011dd2fea3432b640abc5616663a106b346e49e2d84e"
+    },
+    {
+      "id": "studio-try-on",
+      "filename": "studio-try-on.webp",
+      "sha256": "fcbfc4e0abfaa4b1db4c88f2e4063da98fc5b749d67288e961d2af32f30dc91d"
+    }
+  ],
+  "limitations": [
+    "The character area is a viewing corridor, not measured model/camera geometry; world imagery is not simulated.",
+    "Public fixtures represent samples; dynamic contents and unsupported imported appearance remain explicit.",
+    "Shared Settings dropdown background retains its existing translucency; the underlying dialog remains faintly visible."
+  ]
+}

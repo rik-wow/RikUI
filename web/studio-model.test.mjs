@@ -6,6 +6,36 @@ import {sourcePaths} from "./pack-sources.mjs";
 import {StudioModel} from "./studio-model.mjs";
 import {sampleAppearanceCovered,componentAppearanceCovered} from "./preview-coverage.mjs";
 const engine=()=>createEngine(sourcePaths.map(p=>readFileSync(new URL("../"+p,import.meta.url),"utf8")));
+test("curated layouts reserve the character center and preserve conflicting personal edits",()=>{
+ const e=engine(),m=new StudioModel(e);
+ for(const name of ["centered","classic","hud","healer"]){
+  m.choose(name);const source=e.call("Encode",m.source);
+  for(const [width,height,device]of [[1920,1080,"desktop"],[1366,768,"desktop"],[3440,1440,"ultrawide"],[1280,800,"handheld"]]){
+   m.viewport={width,height};m.device=device;
+   for(const activity of ["exploration","party","raid","town"]){
+    m.activity=activity;const r=m.resolve(),zone=Array.from(r.groups).find(g=>g.key==="Character viewing area");
+    assert.ok(zone,"Missing character reservation");assert.ok(zone.rect.x<width/2&&zone.rect.x+zone.rect.width>width/2);
+    assert.ok(zone.rect.y<height/2&&zone.rect.y+zone.rect.height>height/2);
+    const issues=Array.from(r.conflicts);
+    if(width===1366&&activity==="raid")assert.ok(issues.every(c=>c.key==="chat"&&c.reason==="Crowded or off-screen"));
+    else assert.equal(issues.length,0,name+" "+width+" "+activity+" "+JSON.stringify(issues));
+    for(const g of Array.from(r.groups).filter(g=>m.source.groups[g.key]&&!g.floating)){
+     const a=g.rect,b=zone.rect;
+     assert.ok(!(a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y),name+" obstructs character: "+g.key);
+    }
+   }
+  }
+  assert.equal(e.call("Encode",m.source),source,"Fitting drifted creator anchors");
+ }
+ m.choose("centered");m.viewport={width:1920,height:1080};m.device="desktop";m.activity="exploration";
+ m.move("player",900,520);const r=m.resolve(),player=Array.from(r.groups).find(g=>g.key==="player");
+ assert.ok(player.rect.y>=510&&player.rect.y<=530,"Personal edit was silently moved");
+ assert.ok(Array.from(r.conflicts).some(c=>c.key==="player"&&c.reason.includes("character")),"Missing actionable character conflict");
+ const code=m.export(),n=new StudioModel(e);n.import(code);assert.deepEqual(n.resolve().profile.positions.player,r.profile.positions.player);
+ const importedSource=e.call("Encode",n.source);n.reset("player");assert.equal(Array.from(n.resolve().conflicts).length,0);assert.equal(e.call("Encode",n.source),importedSource);const resetExport=new StudioModel(e);resetExport.import(n.export());assert.equal(Array.from(resetExport.resolve().conflicts).length,0);n.undo();assert.ok(Array.from(n.resolve().conflicts).length);n.undo(true);assert.equal(Array.from(n.resolve().conflicts).length,0);
+ m.undo();assert.equal(Array.from(m.resolve().conflicts).length,0);
+});
+
 test("import restores the source viewport and export retains an edited viewport",()=>{
  const e=engine(),m=new StudioModel(e),p=e.call("Bundled","centered");p.viewport={width:2560,height:1440};
  m.import(e.call("Encode",p));assert.deepEqual(m.viewport,{width:2560,height:1440});

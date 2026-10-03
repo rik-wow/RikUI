@@ -4,6 +4,7 @@ function RikRenderStudioPage(key)
     RikRenderStudio()
     local state=key
     if key=="applied" or key=="conflict" then key="review" end
+    if key=="dropdown" or key=="groups" then key="layout" end
     if state=="conflict" then
         RikUI.Studio.Draft.adjustments={positions={main={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=500,y=100},player={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=500,y=100}}}
     end
@@ -16,6 +17,11 @@ function RikRenderStudioPage(key)
     assert(c.apply:IsVisible()==(key=="review"),"Apply leaked into another step")
     assert(c.exportLive:IsVisible()==(key=="share"),"Export leaked into another step")
     assert(c["move-Right"]:IsVisible()==(key=="layout"),"Layout controls leaked into another step")
+    if state=="dropdown" or state=="groups" then
+        local widget=state=="dropdown" and c.device or c.group
+        widget:GetScript("OnClick")(widget)
+        assert(widget.selectorRow and widget.list:IsShown() and widget.arrow.rikIcon=="chevron-up","Actual Settings selector did not open")
+    end
 end
 function RikRenderStudioThemeReview()
     RikRenderStudioPage("look")
@@ -37,14 +43,36 @@ function RikRenderStudioEditUndo()
     assert(not RikUI.Studio.Draft.adjustments)
     c.redo:GetScript("OnClick")(c.redo)
     assert(RikUI.SetupPack.Equal(moved,RikUI.Studio.Draft.adjustments.positions))
+    assert(c.group.selectorRow.spec.type=="dropdown" and c.group.arrow.rikIcon=="chevron-down","Studio did not reuse Settings dropdown")
     c.group:GetScript("OnClick")(c.group)
-    local list=assert(c.group.choiceList)
-    assert(list:IsShown() and #list.entries>10,"Frame chooser has no discoverable groups")
-    list.choose(1)
-    c.group:GetScript("OnClick")(c.group)
-    assert(c.group.choiceList==list,"Reopening chooser leaked a new list")
+    local list=assert(c.group.list)
+    assert(list:IsShown() and list.count>10 and list.dismiss:IsShown(),"Shared frame chooser has no discoverable groups")
+    assert(c.group.arrow.rikIcon=="chevron-up","Shared disclosure did not open")
+    local current=list.cursor
+    RikUIStudio:GetScript("OnKeyDown")(RikUIStudio,"END")
+    assert(list.cursor==list.count and list.buttons[current].mark:IsShown(),"Keyboard preview changed committed selection")
     RikUIStudio:GetScript("OnKeyDown")(RikUIStudio,"ESCAPE")
-    assert(not list:IsShown(),"Escape did not dismiss choices")
+    assert(not list:IsShown() and not list.dismiss:IsShown() and c.group.arrow.rikIcon=="chevron-down","Escape did not restore shared chooser")
+    c.group:GetScript("OnClick")(c.group)
+    assert(c.group.list==list and list.cursor==current,"Reopening leaked a popup or committed cancelled choice")
+    list.buttons[1]:GetScript("OnClick")(list.buttons[1])
+    c.group:GetScript("OnClick")(c.group)
+    assert(list.cursor==1 and list.buttons[1].mark:IsShown(),"Shared mouse selection was not retained")
+    list.dismiss:GetScript("OnClick")(list.dismiss)
+    assert(not list:IsShown(),"Outside dismissal did not close shared popup")
+    local source=RikUI.SetupPack.Copy(RikUI.Profile)
+    c.device:GetScript("OnClick")(c.device)
+    RikUIStudio:GetScript("OnKeyDown")(RikUIStudio,"END")
+    RikUIStudio:GetScript("OnKeyDown")(RikUIStudio,"ENTER")
+    assert(RikUI.Studio.Device=="handheld" and RikUI.SetupPack.Equal(source,RikUI.Profile),"Shared keyboard selector applied a staged setup")
+    c.device:GetScript("OnClick")(c.device)
+    RikUIStudio:GetScript("OnKeyDown")(RikUIStudio,"HOME")
+    RikUIStudio:GetScript("OnKeyDown")(RikUIStudio,"ENTER")
+    assert(RikUI.Studio.Device=="desktop","Shared keyboard selector did not restore desktop")
+    c.group:GetScript("OnClick")(c.group)
+    assert(RikUI.Studio.ShowPage("share"))
+    assert(not list:IsShown() and not list.dismiss:IsShown(),"Page exit left shared popup visible")
+    assert(RikUI.Studio.ShowPage("layout"))
 end
 function RikRenderStudioPreviewJourney()
     RikRenderScreenState()

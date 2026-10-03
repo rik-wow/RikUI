@@ -7,7 +7,6 @@ local attribution=true
 local returnFromSharing=false
 local previewMode=false
 local currentPage="choose"
-local picker
 local pages,refreshers,nav,buttons={},{},{},{}
 studio.Controls=buttons
 local function report(ok,reason)
@@ -119,39 +118,34 @@ local function action(parent,id,label,x,y,fn,width)
  local b=controls.Button(parent,label,function() fn();studio.RefreshWindow() end)
  b:SetSize(width or 210,30);b:SetPoint("TOPLEFT",x,-y);buttons[id]=b;return b
 end
-local function closePicker() if picker then picker:Hide();picker=nil end end
+-- Embed the existing Settings dropdown; Studio owns only its staged values and placement.
+local selectorRows={}
+local function closePicker()
+ core.Options.CloseDropdown()
+ if window then core.Options.SetFocus(window,nil) end
+end
 local function selector(parent,id,label,x,y,entries,get,set)
  local caption=text(parent,label,x,y,210)
- local b=action(parent,id,"",x,y+20,function()
-  if picker and picker.owner==id then closePicker();return end
-  closePicker()
-  local values=type(entries)=="function" and entries() or entries
-  if #values==0 then report(nil,"No movable frame groups");return end
-  local owner=buttons[id]
-  local list=owner.choiceList or CreateFrame("Frame",nil,window);owner.choiceList=list;picker=list;list.owner=id;list:SetFrameStrata("FULLSCREEN_DIALOG")
-  list:ClearAllPoints()
-  list:SetSize(230,math.min(180,#values*28+8));list:SetPoint("TOPLEFT",buttons[id],"BOTTOMLEFT",0,-4)
-  list:SetClampedToScreen(true)
-  if not list.backing then list.backing=core.Skin.Fill(list,{0.06,0.07,0.09,1});core.Skin.Outline(list)end
-  local pane=list.pane or core.Scroll.Create(list);list.pane=pane;pane:ClearAllPoints();pane:SetPoint("TOPLEFT",4,-4);pane:SetSize(222,list:GetHeight()-8)
-  list.buttons=list.buttons or {}
-  core.Scroll.Resize(pane,222,list:GetHeight()-8);core.Scroll.SetContentHeight(pane,#values*28)
-  list.entries=values;list.choose=function(index) local entry=values[index];closePicker();set(entry[1]);studio.RefreshWindow() end
-  for i,entry in ipairs(values)do
-   local item=list.buttons[i] or controls.Button(pane.content,entry[2],function() list.choose(i) end);list.buttons[i]=item
-   item.label:SetText(entry[2]);item:SetSize(208,28);item:ClearAllPoints();item:SetPoint("TOPLEFT",0,-(i-1)*28);item:Show()
-   if entry[1]==get() then list.cursor=i end
-  end
-  for i=#values+1,#list.buttons do list.buttons[i]:Hide()end
-  list.cursor=math.min(#values,list.cursor or 1);list:Show()
-  core.Scroll.Reveal(pane,(list.cursor-1)*28,28)
- end)
- refreshers[#refreshers+1]=function()
-  local value=get();local labelValue=tostring(value or "Not selected")
-  for _,entry in ipairs(type(entries)=="function" and entries() or entries)do if entry[1]==value then labelValue=entry[2] end end
-  b.label:SetText(labelValue.."  v")
+ if not window.dropdownHost then
+  local host=CreateFrame("Frame",nil,window);host:SetAllPoints(window);host:SetFrameStrata("FULLSCREEN_DIALOG");window.dropdownHost=host
  end
- b.caption=caption
+ local list={rows={},popupHost=window.dropdownHost,keyboardPanel=window}
+ local row=core.Options.CreateRow(parent,{type="dropdown",key=id,label=label,
+  values=function()
+   local values={};for i,entry in ipairs(type(entries)=="function" and entries() or entries)do
+    values[i]={value=entry[1],text=entry[2]}
+   end
+   return values
+  end,
+  get=get,set=function(value)set(value);studio.RefreshWindow()end
+ },list)
+ list.rows[1]=row;selectorRows[#selectorRows+1]=row
+ row:SetSize(210,30);row:SetPoint("TOPLEFT",x,-y-20);row.label:Hide()
+ local b=row.widget;b:SetSize(210,30);b.label=b.text;b.caption=caption;b.selectorRow=row;buttons[id]=b
+ -- Visibility belongs to the complete control row, including its shared focus furniture.
+ function b:SetShown(on) row:SetShown(on) end
+ refreshers[#refreshers+1]=function()core.Options.RefreshRow(row)end
+ core.Options.RefreshRow(row)
  return b
 end
 local function choices(parent,id,label,y,entries,get,set)
@@ -215,7 +209,7 @@ function studio.RefreshWindow()
    lines[#lines+1]=names[c].." — "..tostring((review.fit.effectivePack or p).ownership[c] or p.ownership[c])
   end end
   lines[#lines+1]=""
-  lines[#lines+1]=#review.fit.conflicts==0 and "Layout fits the selected screen." or "Adjust these frames before applying:"
+  lines[#lines+1]=#review.fit.conflicts==0 and "Layout fits; character viewing area stays clear." or "Adjust these frames before applying:"
   for _,c in ipairs(review.fit.conflicts)do lines[#lines+1]=(groupNames[c.key] or c.key)..": "..c.reason end
   lines[#lines+1]=review.reload and "Reload required after Apply for appearance or module changes." or "Geometry applies outside combat."
   for _,c in ipairs(review.conflicts)do lines[#lines+1]="Update "..c.path..": "..(accepts[c.path] and "use creator change" or "keep your edit") end
@@ -229,7 +223,6 @@ function studio.RefreshWindow()
  window.details:SetText(table.concat(lines,"\n"))
  core.Scroll.SetContentHeight(window.reviewPane,math.max(230,window.details:GetStringHeight()+12))
  local keys=groupKeys();if groupIndex>#keys then groupIndex=1 end
- window.group.label:SetText((groupNames[keys[groupIndex]] or keys[groupIndex] or "No frame groups").."  v")
  local fit=studio.Resolve();local conflicts=fit and fit.conflicts or {}
  window.fitStatus:SetText(#conflicts==0 and "No fitting conflicts. Select a sample to see the layout." or (#conflicts.." conflicts: see Review & apply for frame names."))
  for _,id in ipairs({"tryOn","castSample","inventorySample"})do buttons[id]:SetDisabled(not fit or #conflicts>0) end
@@ -307,13 +300,13 @@ local function build()
  end
  action(page,"backAppearance","Back to appearance",0,258,function()studio.ShowPage("look")end)
  page=pages.layout
- selector(page,"device","Device",0,0,{{"desktop","Desktop"},{"ultrawide","Ultrawide"},{"handheld","Small screen / handheld"}},function()return studio.Device end,function(v)remember();studio.Device=v;report(true,studio.GamepadLegend())end)
+ selector(page,"device","Device",0,0,{{"desktop","Desktop"},{"ultrawide","Ultrawide"},{"handheld","Small / handheld"}},function()return studio.Device end,function(v)remember();studio.Device=v;report(true,studio.GamepadLegend())end)
  selector(page,"activity","Activity",230,0,{{"exploration","Exploration"},{"party","Party / dungeon"},{"raid","Raid"},{"town","Town"}},function()return studio.Activity end,function(v)remember();studio.Activity=v;studio.Pinned=true end)
  local pin=controls.Check(page,430,"Keep this activity selected (pin)",function()return studio.Pinned end,function(on)studio.Pinned=on;studio.AutoActivity();studio.RefreshWindow()end);pin:SetPoint("TOPLEFT",0,-64);window.checks[#window.checks+1]=pin
  window.group=selector(page,"group","Frame group · 8-unit snap",0,100,function()
   local entries={};for i,key in ipairs(groupKeys())do entries[#entries+1]={i,groupNames[key] or key}end;return entries
  end,function()return groupIndex end,function(v)groupIndex=v end)
- window.group:SetWidth(444)
+ window.group.selectorRow:SetWidth(444);window.group:SetWidth(444)
  for i,item in ipairs({{"Left",-8,0},{"Right",8,0},{"Up",0,8},{"Down",0,-8}})do action(page,"move-"..item[1],item[1],(i-1)*82,164,function()report(studio.MoveGroup(item[2],item[3]))end,74)end
  action(page,"resetGroup","Reset frame",330,164,function()remember();local key=groupKeys()[groupIndex];if studio.Draft.adjustments and studio.Draft.adjustments.positions then studio.Draft.adjustments.positions[key]=nil end end,114)
  window.fitStatus=text(page,"",0,212)
@@ -367,23 +360,16 @@ local function build()
  local credit=controls.Check(page,214,"Show pack attribution",function()return attribution end,function(on)attribution=on end);credit:SetPoint("TOPLEFT",0,-256);window.checks[#window.checks+1]=credit
  action(page,"capture","Enter capture mode",230,250,function()showPreview(nil,true)end,214)
  text(page,"Names, world imagery and other addons remain visible. Back to Studio restores the hidden windows.",0,300)
- window:EnableKeyboard(true);window:SetPropagateKeyboardInput(true)
- window:SetScript("OnKeyDown",function(self,key)
-  if picker then
-   self:SetPropagateKeyboardInput(false)
-   if key=="ESCAPE" or key=="TAB" then closePicker()
-   elseif key=="ENTER" or key=="SPACE" then picker.choose(picker.cursor)
-   elseif key=="UP" or key=="DOWN" or key=="HOME" or key=="END" then
-    picker.cursor=key=="HOME" and 1 or key=="END" and #picker.entries or math.max(1,math.min(#picker.entries,picker.cursor+(key=="UP" and -1 or 1)))
-    for i,item in ipairs(picker.buttons)do if picker.entries[i]then item.label:SetText((i==picker.cursor and "> " or "")..picker.entries[i][2])end end
-    core.Scroll.Reveal(picker.pane,(picker.cursor-1)*28,28)
-   end
-   return
-  end
-  local delta={LEFT={-8,0},RIGHT={8,0},UP={0,8},DOWN={0,-8}}
-  if currentPage=="layout" and delta[key]then self:SetPropagateKeyboardInput(false);report(studio.MoveGroup(unpack(delta[key])))
-  else self:SetPropagateKeyboardInput(true)end
+ core.Options.EnableKeyboard(window,function()
+  local visible={};for _,row in ipairs(selectorRows)do if row:IsVisible() and row.widget:IsVisible() then visible[#visible+1]=row end end
+  return visible
  end)
+ window.MovePage=function(delta)
+  for i,step in ipairs(steps)do if step[1]==currentPage then
+   studio.ShowPage(steps[math.max(1,math.min(#steps,i+delta))][1]);return true
+  end end
+  return false
+ end
  window:SetScript("OnHide",function()closePicker();if not previewMode then studio.Capture(false);studio.ExitPreview()end end)
  if type(UISpecialFrames)=="table" then UISpecialFrames[#UISpecialFrames+1]="RikUIStudio" end
  studio.ShowPage("choose")

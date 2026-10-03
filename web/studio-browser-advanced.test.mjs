@@ -23,7 +23,7 @@ test("dragging native groups settles, snaps and resets without source drift",asy
  await expect(page.locator("#geometry")).toHaveText(before);
 });
 test("creator revisions keep personal edits, allow selective changes and clear obsolete choices",async({page})=>{
- const e=engine(),incoming=e.call("Bundled","centered");incoming.revision=2;
+ const e=engine(),incoming=e.call("Bundled","centered");incoming.revision++;
  incoming.profile=e.call("Merge",incoming.profile,e.call("Theme","ink"));
  await page.goto("/studio");await expect(page.locator("#studio-app")).toBeVisible();
  await studioControl(page,"theme");await page.locator("#theme").selectOption("ocean");await studioControl(page,"import-code");await page.locator("#import-code").fill(e.call("Encode",incoming));
@@ -38,9 +38,9 @@ test("maintained metadata, theme-only sharing and explicit character content rou
  await page.goto("/studio");await expect(page.locator("#studio-app")).toBeVisible();
  await page.locator('.studio-steps [data-step="review"]').click();await page.getByText("Creator attribution and revision",{exact:true}).click();
  await studioControl(page,"maintain-identity");await page.locator("#maintain-identity").check();await studioControl(page,"pack-title");await page.locator("#pack-title").fill("My maintained setup");
- await studioControl(page,"pack-creator");await page.locator("#pack-creator").fill("Test creator");await studioControl(page,"pack-revision");await page.locator("#pack-revision").fill("2");await studioControl(page,"metadata-apply");await page.locator("#metadata-apply").click();
+ await studioControl(page,"pack-creator");await page.locator("#pack-creator").fill("Test creator");await studioControl(page,"pack-revision");await page.locator("#pack-revision").fill("3");await studioControl(page,"metadata-apply");await page.locator("#metadata-apply").click();
  await studioControl(page,"export");await page.locator("#export").click();const p=engine().call("Decode",await page.locator("#result-code").inputValue());
- expect(p.id).toBe("rikui-centered");expect(p.revision).toBe(2);expect(p.creator).toBe("Test creator");expect(p.character).toBeUndefined();
+ expect(p.id).toBe("rikui-centered");expect(p.revision).toBe(3);expect(p.creator).toBe("Test creator");expect(p.character).toBeUndefined();
  await studioControl(page,"theme-export");await page.locator("#theme-export").click();const theme=engine().call("Decode",await page.locator("#result-code").inputValue());
  expect(theme.components).toEqual({appearance:true});expect(theme.character).toBeUndefined();expect(Object.keys(theme.groups)).toHaveLength(0);
  const optional=engine().call("Bundled","centered");optional.character={bindings:{"CTRL-1":"ACTIONBUTTON1"}};

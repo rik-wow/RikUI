@@ -29,6 +29,15 @@ function RikUI.SetupPack.Conformance()
     local canonical=assert(p.Decode(assert(p.Encode(retired))))
     assert(canonical.profile.modules.classcooldowns==nil and canonical.profile.modules.cooldownviewer==nil and canonical.profile.modules.cooldowns==false)
     assert(retired.profile.modules.classcooldowns==false)
+    local center=p.CharacterArea(sample.viewport)
+    local override={positions={target={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=900,y=520}}}
+    local obstructed=assert(p.Resolve(sample,{overrides=override}))
+    assert(obstructed.profile.positions.target.x==900 and obstructed.profile.positions.target.y==520)
+    assert(obstructed.conflicts[1].reason=="Obstructs character viewing area")
+    assert(obstructed.groups[1].key=="Character viewing area")
+    assert(center.x+center.width/2==960 and center.y+center.height/2==540)
+    local floating=p.Copy(sample);floating.groups.target.floating=true
+    assert(#assert(p.Resolve(floating,{overrides=override})).conflicts==0)
     local cyclic={};cyclic.self=cyclic;assert(not p.Validate(cyclic))
     return {canonical=assert(p.Encode(canonical)),code=code,fitted=RikUI.Codec.Encode(fitted,true),readable=RikUI.Codec.Encode(readable,true),update=RikUI.Codec.Encode(update,true)}
 end

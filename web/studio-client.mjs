@@ -55,7 +55,7 @@ async function render(){
   $("ownership").textContent="Adopting: "+components.filter(c=>model.selected[c]).map(c=>partLabels[c]+" ("+resolved.effectivePack.ownership[c]+")").join(" · ");
   for(const b of document.querySelectorAll("[data-pack]"))b.setAttribute("aria-pressed",String(data.packs.find(p=>p.name===b.dataset.pack)?.pack.id===model.source.id));
   const conflicts=fitDetails(resolved,model.viewport);
-  $("fit-status").textContent=conflicts.length?conflicts.length+" fitting conflict(s). Red outlines show affected footprints; select a conflict below.":"Fits within the declared group footprints. Dynamic contents can grow; review again in the addon.";
+  $("fit-status").textContent=conflicts.length?conflicts.length+" fitting conflict(s). Red outlines show affected footprints; select a conflict below.":"Keeps the character viewing area clear and fits the declared frame footprints. Dynamic contents can grow; review again in the addon.";
   $("fit-status").className=conflicts.length?"issue":"";
   $("fit-badge").textContent=conflicts.length?conflicts.length+" fit issues to resolve":"Layout fits";$("fit-badge").className="fit-badge"+(conflicts.length?" issue":"");
   $("export-help").textContent=conflicts.length?"Resolve the highlighted frames before exporting. Select an issue to open its layout controls.":"Export the code, then open /rik studio → Import in the addon. Review and apply there.";
@@ -72,7 +72,7 @@ async function render(){
   const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
   $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
    (unsupported.length?" Geometry-only (no exact capture): "+unsupported.join(", ")+".":"")+
-   " Representative fixture data; world imagery, live names and optional addon widgets are outside this preview.";
+   " The center guide reserves character viewing space; it is an editor annotation, not a rendered character. Representative fixture data; world imagery, live names and optional addon widgets are outside this preview.";
   const showPlates=model.selected.nameplates&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false&&componentAppearanceCovered("nameplates",profile,model.engine,key);
   const drawn=groups.filter(shown);
   $("game-preview").dataset.previewReady="false";
@@ -122,8 +122,10 @@ function renderAnnotations(groups,conflicts,covered){
   entry.onclick=()=>selectGroup(g.key);list.append(entry);
  }
  for(const g of asArray(resolved.groups).filter(g=>!model.source.groups[g.key])){
-  const box=document.createElement("div");box.className="studio-reservation"+(troubled.has(g.key)?" conflict":"");
-  const label=document.createElement("span");label.textContent=labelFor(g.key);box.append(label);place(box,g.rect);layer.append(box);
+  const box=document.createElement("div");box.className="studio-reservation"+(g.character?" character-area":"")+(troubled.has(g.key)?" conflict":"");
+  const label=document.createElement("span");label.textContent=labelFor(g.key);box.append(label);
+  if(g.character){box.dataset.characterArea="true";const center=document.createElement("small");center.textContent="Your character · screen center";box.append(center);box.setAttribute("aria-label","Character viewing area. Persistent frames keep clear; temporary windows can cover it.");}
+  place(box,g.rect);layer.append(box);
  }
  for(const c of conflicts){
   const b=document.createElement("button");b.type="button";b.className="fit-conflict";b.dataset.group=c.key;

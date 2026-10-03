@@ -53,3 +53,19 @@ test("imported viewport and per-component coverage survive export without blanki
  await studioControl(page,"activity");await page.locator("#activity").selectOption("town");await ready(page);
  expect(JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"))).toContain("bags");
 });
+test("character clearance follows the viewport and reports personal obstructions",async({page})=>{
+ await page.goto("/studio");await ready(page);
+ const zone=page.locator('[data-character-area="true"]');await expect(zone).toBeVisible();
+ await expect(zone).toContainText("Your character · screen center");
+ const center=async()=>{const z=await zone.boundingBox(),c=await page.locator("#game-preview").boundingBox();expect(Math.abs(z.x+z.width/2-c.x-c.width/2)).toBeLessThan(2);expect(Math.abs(z.y+z.height/2-c.y-c.height/2)).toBeLessThan(2);};
+ await center();await page.locator("#device").selectOption("handheld");await ready(page);await center();
+ const e=engine(),p=e.call("Bundled","centered");
+ p.adjustments={positions:{player:{point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:900,y:520}}};
+ await studioControl(page,"import-code");await page.locator("#import-code").fill(e.call("Encode",p));
+ await studioControl(page,"import");await page.locator("#import").click();await ready(page);
+ await studioControl(page,"fit-conflicts");await expect(page.locator("#fit-conflicts")).toContainText("Character viewing area");
+ await expect(zone).toHaveClass(/conflict/);await expect(page.locator("#export")).toBeDisabled();
+ await page.locator('#fit-conflicts [data-group="player"]').click();
+ await page.locator("#reset-frame").click();await ready(page);
+ await expect(zone).not.toHaveClass(/conflict/);await studioControl(page,"export");await expect(page.locator("#export")).toBeEnabled();
+});

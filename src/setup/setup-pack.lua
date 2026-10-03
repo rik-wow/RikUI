@@ -162,6 +162,13 @@ local function overlap(a,b)
     -- Anchors are quantized to .001 source units; tolerate that rounding at an 8-unit gap.
     return a.x < b.x+b.width+7.998 and a.x+a.width+7.998 > b.x and a.y < b.y+b.height+7.998 and a.y+a.height+7.998 > b.y
 end
+-- A viewport-relative viewing corridor, independent of UI density and source anchors.
+-- This reserves room for the character and nearby ground cues, not a model's measured bounds.
+-- Floating windows may cover it temporarily; persistent movers may not.
+function pack.CharacterArea(screen)
+    local width,height=math.min(360,screen.width*0.24),math.min(300,screen.height*0.30)
+    return {x=(screen.width-width)/2,y=(screen.height-height)/2,width=width,height=height}
+end
 local function resolve(value,options)
     local clean,reason=pack.Validate(value); if not clean then return nil,reason end
     options=options or {}
@@ -196,7 +203,7 @@ local function resolve(value,options)
     for k,g in pairs(clean.groups) do if selected[g.component] and clean.ownership[g.component]=="rikui" and (not g.activity or g.activity==activity)
         and not (p.presentation and p.presentation.hidden and p.presentation.hidden[k]) then keys[#keys+1]=k end end
     table.sort(keys,function(a,b) return clean.groups[a].priority==clean.groups[b].priority and a<b or clean.groups[a].priority<clean.groups[b].priority end)
-    local placed,conflicts={},{}
+    local placed,conflicts={{rect=pack.CharacterArea(screen),key="Character viewing area",character=true}},{}
     local reservations=options.reservations or {}
     for _,r in ipairs(reservations) do
         fields(r,{x=true,y=true,width=true,height=true}); number(r.x,0,8192); number(r.y,0,4320); number(r.width,1,8192); number(r.height,1,4320)
@@ -238,7 +245,10 @@ local function resolve(value,options)
             if best then r=best end
         end
         if scale<(g.minimum or 0.85) then conflicts[#conflicts+1]={key=key,reason="Below readable minimum"} end
-        if not clear(r) then conflicts[#conflicts+1]={key=key,reason=fixed and "Personal position conflicts" or "Crowded or off-screen"} end
+        if not clear(r) then
+            local characterConflict=not g.floating and overlap(r,placed[1].rect)
+            conflicts[#conflicts+1]={key=key,reason=characterConflict and "Obstructs character viewing area" or (fixed and "Personal position conflicts" or "Crowded or off-screen")}
+        end
         p.positions[key]={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=math.floor(r.x/scale*1000+0.5)/1000,y=math.floor(r.y/scale*1000+0.5)/1000}
         placed[#placed+1]={key=key,rect=r,exclusive=g.exclusive,floating=g.floating}
     end
