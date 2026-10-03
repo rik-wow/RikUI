@@ -217,7 +217,7 @@ local function overlap(a,b)
 end
 -- A viewport-relative viewing corridor, independent of UI density and source anchors.
 -- This reserves room for the character and nearby ground cues, not a model's measured bounds.
--- Floating windows may cover it temporarily; persistent movers may not.
+-- Automatic fitting prefers this corridor; personal placement may cover it.
 function pack.CharacterArea(screen)
     local width,height=math.min(360,screen.width*0.24),math.min(300,screen.height*0.30)
     return {x=(screen.width-width)/2,y=(screen.height-height)/2,width=width,height=height}
@@ -272,7 +272,7 @@ local function resolve(value,options)
         if af~=bf then return af end
         return clean.groups[a].priority==clean.groups[b].priority and a<b or clean.groups[a].priority<clean.groups[b].priority
     end)
-    local placed,conflicts={{rect=pack.CharacterArea(screen),key="Character viewing area",character=true}},{}
+    local placed,conflicts,warnings={{rect=pack.CharacterArea(screen),key="Character viewing area",character=true}},{},{}
     local reservations=options.reservations or {}
     for _,r in ipairs(reservations) do
         fields(r,{x=true,y=true,width=true,height=true}); number(r.x,0,8192); number(r.y,0,4320); number(r.width,1,8192); number(r.height,1,4320)
@@ -289,9 +289,9 @@ local function resolve(value,options)
         local r=pack.Copy(original)
         r.x=math.max(8,math.min(screen.width-r.width-8,r.x)); r.y=math.max(8,math.min(screen.height-r.height-8,r.y))
         local fixed=fixedPosition(key)
-        local function clear(candidate)
+        local function clear(candidate,hardOnly)
             if candidate.x<7.998 or candidate.y<7.998 or candidate.x+candidate.width>screen.width-7.998 or candidate.y+candidate.height>screen.height-7.998 then return false end
-            for _,other in ipairs(placed) do if not g.floating and not other.floating and (not g.exclusive or g.exclusive~=other.exclusive) and overlap(candidate,other.rect) then return false end end
+            for _,other in ipairs(placed) do if not (hardOnly and other.character) and not g.floating and not other.floating and (not g.exclusive or g.exclusive~=other.exclusive) and overlap(candidate,other.rect) then return false end end
             return true
         end
         if fixed then r=original
@@ -318,9 +318,11 @@ local function resolve(value,options)
             if best then r=best end
         end
         if scale<(g.minimum or 0.85) then conflicts[#conflicts+1]={key=key,reason="Below readable minimum"} end
-        if not clear(r) then
-            local characterConflict=not g.floating and overlap(r,placed[1].rect)
-            conflicts[#conflicts+1]={key=key,reason=characterConflict and "Obstructs character viewing area" or (fixed and "Personal position conflicts" or "Crowded or off-screen")}
+        if not clear(r,true) then
+            conflicts[#conflicts+1]={key=key,reason=fixed and "Personal position conflicts" or "Crowded or off-screen"}
+        end
+        if not g.floating and overlap(r,placed[1].rect) then
+            warnings[#warnings+1]={key=key,reason="Covers character viewing area (advisory)"}
         end
         body.x,body.y=r.x+pad.left*scale,r.y+pad.bottom*scale
         p.positions[key]={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=math.floor(body.x/scale*1000+0.5)/1000,y=math.floor(body.y/scale*1000+0.5)/1000}
@@ -339,7 +341,7 @@ local function resolve(value,options)
         and not (selected.hud and selected.group and clean.ownership.hud=="rikui" and clean.ownership.group=="rikui") then
         conflicts[#conflicts+1]={key="module.unitframes",reason="Unit frames are shared: adopt both Combat HUD and Party & raid to disable them together"}
     end
-    return {profile=p,groups=placed,disabledGroups=disabledGroups,conflicts=conflicts,activity=activity,device=device}
+    return {profile=p,groups=placed,disabledGroups=disabledGroups,conflicts=conflicts,warnings=warnings,activity=activity,device=device}
 end
 
 function pack.Resolve(value,options)

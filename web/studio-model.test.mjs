@@ -59,9 +59,9 @@ test("curated layouts reserve the character center and preserve conflicting pers
  m.choose("centered");m.viewport={width:1920,height:1080};m.device="desktop";m.activity="exploration";
  m.move("player",900,520);const r=m.resolve(),player=Array.from(r.groups).find(g=>g.key==="player");
  assert.ok(player.rect.y>=510&&player.rect.y<=530,"Personal edit was silently moved");
- assert.ok(Array.from(r.conflicts).some(c=>c.key==="player"&&c.reason.includes("character")),"Missing actionable character conflict");
+ assert.ok(Array.from(r.warnings).some(c=>c.key==="player"&&c.reason.includes("character")),"Missing character advisory");
  const code=m.export(),n=new StudioModel(e);n.import(code);assert.deepEqual(n.resolve().profile.positions.player,r.profile.positions.player);
- const importedSource=e.call("Encode",n.source);n.reset("player");assert.equal(Array.from(n.resolve().conflicts).length,0);assert.equal(e.call("Encode",n.source),importedSource);const resetExport=new StudioModel(e);resetExport.import(n.export());assert.equal(Array.from(resetExport.resolve().conflicts).length,0);n.undo();assert.ok(Array.from(n.resolve().conflicts).length);n.undo(true);assert.equal(Array.from(n.resolve().conflicts).length,0);
+ const importedSource=e.call("Encode",n.source);n.reset("player");assert.equal(Array.from(n.resolve().conflicts).length,0);assert.equal(e.call("Encode",n.source),importedSource);const resetExport=new StudioModel(e);resetExport.import(n.export());assert.equal(Array.from(resetExport.resolve().conflicts).length,0);n.undo();assert.equal(Array.from(n.resolve().conflicts).length,0);assert.ok(Array.from(n.resolve().warnings).length);n.undo(true);assert.equal(Array.from(n.resolve().conflicts).length,0);
  m.undo();assert.equal(Array.from(m.resolve().conflicts).length,0);
 });
 

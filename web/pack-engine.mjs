@@ -7,6 +7,8 @@ export function createEngine(sources) {
  }
  execute("RikUI={Presets={},RegisterCommand=function() end,RegisterEvent=function() end}; unpack=table.unpack");
  for(const source of sources)execute(source);
+ // Adapt the unchanged addon's multi-return snap operation to the data-only bridge.
+ execute("if RikUI.Geometry and RikUI.SetupPack then RikUI.SetupPack.EditorSnap=function(rect,obstacles,screen,threshold,gap) local dx,dy,guides=RikUI.Geometry.Snap(rect,obstacles,screen,threshold,gap); return {dx=dx,dy=dy,guides=guides} end end");
  function push(value,depth=0) {
   if(depth>32)throw Error("Configuration nesting exceeds capacity");
   if(value===undefined || value===null)lua.lua_pushnil(L);

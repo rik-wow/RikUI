@@ -146,3 +146,55 @@ test("canvas bar controls remain usable on phones and in precise fullscreen",asy
  await expect(page.locator("#fullscreen")).toBeFocused();
  await expect(page.locator("#bar-size")).toHaveValue("42");
 });
+test("movement controls give unsnapped fine nudges and exact independent coordinates",async({page})=>{
+ await page.goto("/studio");await ready(page);await page.locator("#edit-positions").click();await ready(page);
+ await page.getByText("Position & alignment",{exact:true}).click();
+ const x=Number(await page.locator("#frame-x").inputValue()),y=Number(await page.locator("#frame-y").inputValue());
+ await page.locator("#game-preview").focus();await page.keyboard.press("ArrowRight");
+ await expect.poll(async()=>Number(await page.locator("#frame-x").inputValue())).toBeCloseTo(x+1,2);
+ await expect.poll(async()=>Number(await page.locator("#frame-y").inputValue())).toBeCloseTo(y,2);
+ await page.keyboard.press("Shift+ArrowRight");
+ await expect.poll(async()=>Number(await page.locator("#frame-x").inputValue())).toBeCloseTo(x+11,2);
+ await page.locator("#move-step").selectOption("2");await page.locator("#game-preview").focus();await page.keyboard.press("ArrowUp");
+ await expect.poll(async()=>Number(await page.locator("#frame-y").inputValue())).toBeCloseTo(y+2,2);
+ await page.locator("#frame-x").fill(String(x+12.25));await page.keyboard.press("Tab");
+ await expect.poll(async()=>Number(await page.locator("#frame-x").inputValue())).toBeCloseTo(x+12.25,2);
+ await expect.poll(async()=>Number(await page.locator("#frame-y").inputValue())).toBeCloseTo(y+2,2);
+ await page.locator("#undo").click();await expect.poll(async()=>Number(await page.locator("#frame-x").inputValue())).toBeCloseTo(x+11,2);
+ await page.locator("#snap-align").uncheck();await page.locator("#snap-grid").uncheck();await page.locator("#grid-size").selectOption("4");await page.locator("#show-grid").check();
+ await expect(page.locator("#grid-layer")).toBeVisible();
+ await expect.poll(()=>page.locator("#game-preview").evaluate(c=>{const s=c.closest(".preview-shell"),r=c.getBoundingClientRect(),b=s.getBoundingClientRect();return r.top>=b.top-1&&r.bottom<=b.bottom+1&&s.scrollTop===0;})).toBe(true);
+ await page.screenshot({path:"../dist/studio-precision-grid.png",fullPage:false});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test("snapping preferences avoid bitmap repaint and never enter exported packs",async({page})=>{
+ await page.goto("/studio");await ready(page);
+ await page.locator('.studio-steps [data-step="review"]').click();await page.locator("#export").click();const code=await page.locator("#result-code").inputValue();
+ await page.locator("#edit-positions").click();await ready(page);
+ await page.evaluate(()=>{window.preferenceDraws=0;const original=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(...args){if(this.canvas.id==="game-preview")window.preferenceDraws++;return original.apply(this,args);};});
+ await page.locator("#show-grid").check();await page.locator("#grid-size").selectOption("2");await page.locator("#move-step").selectOption("4");await page.locator("#snap-align").uncheck();await page.locator("#snap-grid").uncheck();
+ expect(await page.evaluate(()=>window.preferenceDraws)).toBe(0);await expect(page.locator("#undo")).toBeDisabled();
+ await page.locator("#review-fit").click();await page.locator("#export").click();expect(await page.locator("#result-code").inputValue()).toBe(code);
+});
+test("live grid drag feedback matches settled bounds and Alt bypasses snaps",async({page})=>{
+ await page.goto("/studio");await ready(page);await page.locator("#edit-positions").click();await ready(page);
+ await page.locator("#close-inspector").click();await page.locator("#snap-align").uncheck();await page.locator("#grid-size").selectOption("16");
+ const mover=page.locator('#mover-layer [data-group="main"]');
+ for(const free of [false,true]){
+  const r=await mover.boundingBox(),canvas=await page.locator("#game-preview").boundingBox();
+  if(free)await page.keyboard.down("Alt");
+  const start={x:r.x+r.width/2,y:r.y+r.height/2};
+  expect(await page.evaluate(p=>document.elementFromPoint(p.x,p.y)?.closest("[data-group]")?.dataset.group,start)).toBe("main");
+  await page.mouse.move(start.x,start.y);await page.mouse.down();await page.mouse.move(start.x+37.25*canvas.width/1920,start.y-33.25*canvas.height/1080,{steps:5});
+  await expect(page.locator("#drag-outline")).toBeVisible();
+  const ghost=await page.locator("#drag-outline").boundingBox();
+  await page.mouse.up();if(free)await page.keyboard.up("Alt");
+  await ready(page);const settled=await mover.boundingBox();
+  expect(Math.abs(settled.x-ghost.x)).toBeLessThan(.01);expect(Math.abs(settled.y-ghost.y)).toBeLessThan(.01);
+  // Exact source coordinates avoid CSS subpixel rounding in bounding boxes.
+  const units=Number(await page.locator("#frame-x").inputValue());
+  if(!free)expect(Math.abs(units/16-Math.round(units/16))).toBeLessThan(.001);
+  else expect(Math.abs(units/16-Math.round(units/16))).toBeGreaterThan(.02);
+  await page.locator("#close-inspector").click();
+ }
+});

@@ -61,10 +61,10 @@ async function render(){
   $("ownership").textContent="Adopting: "+components.filter(c=>model.selected[c]).map(c=>partLabels[c]+" ("+resolved.effectivePack.ownership[c]+")").join(" · ");
   for(const b of document.querySelectorAll("[data-pack]"))b.setAttribute("aria-pressed",String(data.packs.find(p=>p.name===b.dataset.pack)?.pack.id===model.source.id));
   const conflicts=fitDetails(resolved,model.viewport);
-  $("fit-status").textContent=conflicts.length?conflicts.length+" setup issue(s). Red outlines identify layout footprints; dependency issues appear on feature cards. Select an issue below.":"Keeps the character viewing area clear and fits the declared frame footprints. Dynamic contents can grow; review again in the addon.";
+  $("fit-status").textContent=conflicts.length?conflicts.length+" setup issue(s). Red outlines identify layout footprints; dependency issues appear on feature cards. Select an issue below.":(asArray(resolved.warnings).length?"Fits the declared footprints. Character viewing guidance is advisory; your placement is kept.":"Fits the declared frame footprints. Character clearance is a preference.")+" Dynamic contents can grow; review again in the addon.";
   $("fit-status").className=conflicts.length?"issue":"";
   $("fit-badge").textContent=conflicts.length?conflicts.length+" fit issues to resolve":"Layout fits";$("fit-badge").className="fit-badge"+(conflicts.length?" issue":"");
-  $("export-help").textContent=conflicts.length?"Resolve the highlighted frames before exporting. Select an issue to open its layout controls.":"Export the code, then open /rik studio → Import in the addon. Review and apply there.";
+  $("export-help").textContent=conflicts.length?"Resolve the highlighted frames before exporting. Select an issue to open its layout controls.":"Export the code, then open /rik studio → Import in the addon. Review and apply there."+(asArray(resolved.warnings).length?" Center placement needs RikUI beta.10 or newer.":"");
   $("export").disabled=$("share").disabled=conflicts.length>0;
   $("character-details").textContent=model.source.character?JSON.stringify(model.source.character,null,2):"No action-bar preset, macros or bindings included.";
   const profile=resolved.profile,key=themeKey(profile),readability=(profile.textScale||1)>1?"readable":"standard";
@@ -105,7 +105,7 @@ async function render(){
   const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
   $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
    (unsupported.length?" Geometry-only (no exact capture): "+unsupported.join(", ")+".":"")+
-   " The center guide reserves character viewing space; it is an editor annotation. RikUI components use representative fixture data. The supplied game screenshot is a fixed background shared by every sample scene. Live names, optional addon widgets and stock game elements restored by disabling RikUI are outside this preview.";
+   " The center guide suggests character viewing space; it is an editor annotation. RikUI components use representative fixture data. The supplied game screenshot is a fixed background shared by every sample scene. Live names, optional addon widgets and stock game elements restored by disabling RikUI are outside this preview.";
   const showPlates=model.selected.nameplates&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false&&componentAppearanceCovered("nameplates",profile,model.engine,key);
   const drawn=groups.filter(shown);
   await renderModules({model,data,resolved,atlas,loadImage,selectedKey,selectGroup,toggle:(name,on)=>operation(()=>model.setModule(name,on),"Feature choice staged. Reload RikUI after applying to activate module changes.")});if(epoch!==renderEpoch)return;
@@ -133,6 +133,9 @@ async function render(){
   paintStamp=nextPaint;
   }
   renderAnnotations(groups,conflicts,covered);
+  renderGrid();
+  const coordinate=groups.find(g=>g.key===selectedKey)?.rect;
+  for(const axis of ["x","y"]){$("frame-"+axis).value=coordinate?Number(coordinate[axis].toFixed(3)):"";$("frame-"+axis).disabled=!coordinate;}
   canvas.dataset.paintedGroups=JSON.stringify([...paintedKeys]);canvas.dataset.previewReady="true";
   canvas.setAttribute("aria-label","Authentic RikUI preview. Selected group "+(selectedKey||"none")+". Use frame controls or arrow keys to adjust it.");
   $("geometry").textContent=selectedKey?(()=>{const entry=groups.find(g=>g.key===selectedKey),r=entry.rect;return labelFor(selectedKey)+": "+Math.round(r.x)+", "+Math.round(r.y)+" · "+Math.round(r.width)+" × "+Math.round(r.height)+(entry.geometry?.note?" · "+entry.geometry.note:"");})():"No selected movable groups.";
@@ -144,6 +147,7 @@ function renderAnnotations(groups,conflicts,covered){
  const layer=$("mover-layer"),list=$("frame-list"),issues=$("fit-conflicts");
  layer.replaceChildren();list.replaceChildren();issues.replaceChildren();
  const troubled=new Set(conflicts.flatMap(c=>[c.key,...c.with]));
+ const advisories=asArray(resolved.warnings);
  const place=(node,r)=>{
   const w=model.viewport.width,h=model.viewport.height;
   node.style.left=100*Math.max(0,Math.min(w-4,r.x))/w+"%";
@@ -167,13 +171,13 @@ function renderAnnotations(groups,conflicts,covered){
   entry.onclick=()=>selectGroup(g.key);list.append(entry);
  }
  for(const g of asArray(resolved.groups).filter(g=>!model.source.groups[g.key])){
-  const box=document.createElement("div");box.className="studio-reservation"+(g.character?" character-area":"")+(troubled.has(g.key)?" conflict":"");
+  const box=document.createElement("div");box.className="studio-reservation"+(g.character?" character-area":"")+(troubled.has(g.key)?" conflict":"")+(g.character&&advisories.length?" advisory":"");
   const label=document.createElement("span");label.textContent=labelFor(g.key);box.append(label);
-  if(g.character){box.dataset.characterArea="true";const center=document.createElement("small");center.textContent="Your character · screen center";box.append(center);box.setAttribute("aria-label","Character viewing area. Persistent frames keep clear; temporary windows can cover it.");}
+  if(g.character){box.dataset.characterArea="true";const center=document.createElement("small");center.textContent="Your character · screen center";box.append(center);box.setAttribute("aria-label","Character viewing area. Advisory only; your deliberate frame placement is allowed.");}
   place(box,g.rect);layer.append(box);
  }
- for(const c of conflicts){
-  const b=document.createElement("button");b.type="button";b.className="fit-conflict";b.dataset.group=c.key;
+ for(const c of [...conflicts,...advisories]){
+  const b=document.createElement("button");b.type="button";b.className="fit-conflict"+(advisories.includes(c)?" fit-advisory":"");b.dataset.group=c.key;
   const feature=c.key.startsWith("module.")?data.modules.find(m=>m.key===c.key.slice(7)):undefined;
   const reason=c.reason.replace(/Requires enabled module: ([a-z]+)/,(_,key)=>"Enable "+(data.modules.find(m=>m.key===key)?.title||key)+" or turn this feature off.");
   b.textContent=(feature?.title||labelFor(c.key))+": "+reason;b.onclick=()=>{selectedKey=c.key;workflow("customize",c.key.startsWith("module.")?"parts":"layout");if(c.key.startsWith("module.")){$("module-search").value=c.key.slice(7);render();}$("preview-stage").scrollIntoView({block:"nearest"});};issues.append(b);
@@ -181,7 +185,30 @@ function renderAnnotations(groups,conflicts,covered){
 }
 
 function point(event){const bounds=$("game-preview").getBoundingClientRect();return {x:(event.clientX-bounds.left)/bounds.width*model.viewport.width,y:(bounds.bottom-event.clientY)/bounds.height*model.viewport.height};}
-function move(dx,dy){const group=visibleGroups().find(g=>g.key===selectedKey);if(group)model.move(selectedKey,group.rect.x+dx,group.rect.y+dy);}
+function move(dx,dy,event={}){
+ const group=visibleGroups().find(g=>g.key===selectedKey),step=Number($("move-step").value)*(event.shiftKey?10:1);
+ if(group)model.move(selectedKey,group.rect.x+dx*step,group.rect.y+dy*step,{grid:0,align:false});
+}
+function snapOptions(event={}){
+ const bounds=$("game-preview").getBoundingClientRect();
+ return {grid:!event.altKey&&$("snap-grid").checked?Number($("grid-size").value):0,align:!event.altKey&&$("snap-align").checked,threshold:6*model.viewport.width/Math.max(1,bounds.width)};
+}
+function renderGrid(){
+ if(!model)return;
+ const layer=$("grid-layer"),grid=Number($("grid-size").value),bounds=$("game-preview").getBoundingClientRect();
+ // Keep fine grids legible when zoomed out without changing the actual snap interval.
+ const stride=grid*Math.max(1,Math.ceil(4*model.viewport.width/Math.max(1,bounds.width)/grid));
+ layer.hidden=!$("show-grid").checked;
+ layer.style.backgroundSize=100*stride/model.viewport.width+"% "+100*stride/model.viewport.height+"%";
+ layer.title="Grid "+grid+" units; visible lines every "+stride+" units at this zoom.";
+}
+function renderGuides(guides=[]){
+ $("snap-guides").replaceChildren(...guides.map(g=>{
+  const line=document.createElement("i");line.className="snap-guide "+g.axis;
+  line.style[g.axis==="x"?"left":"bottom"]=100*g.at/(g.axis==="x"?model.viewport.width:model.viewport.height)+"%";
+  return line;
+ }));
+}
 function exportCode(){const code=model.export();$("result-code").value=code;$("result-panel").hidden=false;return code;}
 async function copy(text){try{await navigator.clipboard.writeText(text);message("Copied.");}catch{const panel=$("result-panel"),code=$("result-code")||$("pack-code");if(panel)panel.hidden=false;code?.focus();code?.select();message("Select the text and copy it with your keyboard.");}}
 async function start(){
@@ -229,7 +256,9 @@ async function start(){
   for(const b of document.querySelectorAll("[data-tab]")){b.onclick=()=>workflow("customize",b.dataset.tab);b.onkeydown=e=>{const order=["parts","style","layout"],index=order.indexOf(b.dataset.tab);let next;if(e.key==="ArrowRight")next=(index+1)%3;if(e.key==="ArrowLeft")next=(index+2)%3;if(e.key==="Home")next=0;if(e.key==="End")next=2;if(next!==undefined){e.preventDefault();workflow("customize",order[next],false);$("tab-"+order[next]).focus();}};}
   $("module-search").oninput=()=>render();$("module-area").onchange=()=>render();
   $("edit-positions").onclick=()=>{selectedKey="main";workflow("customize","layout");};$("review-fit").onclick=()=>workflow("review");
-  $("preview-zoom").onchange=e=>{$("preview-stage").style.setProperty("--preview-zoom",e.target.value);};
+  $("preview-zoom").onchange=e=>{$("preview-stage").style.setProperty("--preview-zoom",e.target.value);requestAnimationFrame(renderGrid);};
+  for(const id of ["snap-align","snap-grid","grid-size","show-grid","move-step"])$(id).onchange=renderGrid;
+  new ResizeObserver(renderGrid).observe($("game-preview"));
   $("import").onclick=()=>operation(()=>{model.import($("import-code").value);workflow("customize","parts");},"Imported for editing. Nothing has been applied to your addon.");
   for(const id of ["device","activity","accessibility"])$(id).onchange=e=>operation(()=>model.change(s=>{
    s[id]=e.target.value;if(id==="accessibility")s.accessibilityPinned=true;if(id==="device"){s.viewport=id&&s.device==="handheld"?{width:1280,height:800}:s.device==="ultrawide"?{width:3440,height:1440}:{width:1920,height:1080};}
@@ -249,15 +278,16 @@ async function start(){
   }),"QuestTogether recipe: use stock nameplates, QT icons Left, health tint off, and its personal bubble in the reserved upper-left area. Missing QT keeps RikUI in charge.");
   $("undo").onclick=()=>operation(()=>model.undo());$("redo").onclick=()=>operation(()=>model.undo(true));
   $("frame-group").onchange=e=>selectGroup(e.target.value);
-  for(const b of document.querySelectorAll("[data-move]"))b.onclick=()=>operation(()=>move(...b.dataset.move.split(",").map(Number)));
+  for(const b of document.querySelectorAll("[data-move]"))b.onclick=e=>operation(()=>move(...b.dataset.move.split(",").map(Number),e));
+  for(const axis of ["x","y"])$("frame-"+axis).onchange=e=>operation(()=>{const g=visibleGroups().find(g=>g.key===selectedKey);if(!g)return;const value=e.target.value.trim();if(!value||!Number.isFinite(Number(value)))throw Error("Enter a finite coordinate.");model.move(selectedKey,axis==="x"?Number(value):g.rect.x,axis==="y"?Number(value):g.rect.y,{grid:0,align:false});});
   $("reset-frame").onclick=()=>operation(()=>model.reset(selectedKey));
-  $("align-center").onclick=()=>operation(()=>{const g=visibleGroups().find(g=>g.key===selectedKey);if(g)model.move(g.key,(model.viewport.width-g.rect.width)/2,g.rect.y);});
+  $("align-center").onclick=()=>operation(()=>{const g=visibleGroups().find(g=>g.key===selectedKey);if(g)model.move(g.key,(model.viewport.width-g.rect.width)/2,g.rect.y,{grid:0,align:false});});
   $("world-background").onchange=()=>render();
   $("show-movers").onchange=()=>render();$("show-conditional").onchange=()=>render();
   const stage=$("preview-stage"),canvas=$("game-preview");
   let dragFrame;
   const ghost=$("drag-outline");
-  const clearDrag=()=>{drag=null;cancelAnimationFrame(dragFrame);ghost.hidden=true;};
+  const clearDrag=()=>{drag=null;cancelAnimationFrame(dragFrame);dragFrame=undefined;ghost.hidden=true;renderGuides();};
   stage.onpointerdown=e=>{
    if(e.button!==0||canvas.dataset.previewReady!=="true")return;
    const p=point(e),explicit=e.target.closest("[data-group]")?.dataset.group;
@@ -269,21 +299,21 @@ async function start(){
   };
   stage.onpointermove=e=>{if(drag){
    if(!drag.moved&&Math.hypot(e.clientX-drag.start.x,e.clientY-drag.start.y)<3)return;
-   drag.moved=true;drag.point=point(e);
+   drag.moved=true;drag.point=point(e);drag.options=snapOptions(e);
    if(dragFrame)return;
    dragFrame=requestAnimationFrame(()=>{dragFrame=undefined;if(!drag)return;
-    const x=drag.point.x-drag.offset.x,y=drag.point.y-drag.offset.y;
-    ghost.hidden=false;
+    const target=model.previewMove(drag.key,drag.point.x-drag.offset.x,drag.point.y-drag.offset.y,drag.options),{x,y}=target;
+    renderGuides(target.guides);ghost.hidden=false;
     Object.assign(ghost.style,{left:100*x/canvas.width+"%",top:100*(canvas.height-y-drag.rect.height)/canvas.height+"%",width:100*drag.rect.width/canvas.width+"%",height:100*drag.rect.height/canvas.height+"%"});
-    $("geometry").textContent="Move "+labelFor(drag.key)+" to "+Math.round(x)+", "+Math.round(y)+" (snaps when released)";
+    $("geometry").textContent="Move "+labelFor(drag.key)+" to "+Math.round(x)+", "+Math.round(y)+" (release to place)";
    });
   }};
-  stage.onpointerup=e=>{if(drag){const d=drag;clearDrag();stage.releasePointerCapture(e.pointerId);if(d.moved){barEditor?.select();operation(()=>model.move(d.key,d.point.x-d.offset.x,d.point.y-d.offset.y));}else selectGroup(d.key);}};
+  stage.onpointerup=e=>{if(drag){const d=drag;clearDrag();stage.releasePointerCapture(e.pointerId);if(d.moved){barEditor?.select();operation(()=>{const p=point(e);model.move(d.key,p.x-d.offset.x,p.y-d.offset.y,snapOptions(e));});}else selectGroup(d.key);}};
   stage.onpointercancel=()=>{clearDrag();render();};
   stage.onlostpointercapture=()=>{if(drag){clearDrag();render();}};
   $("game-preview").onkeydown=e=>{
-   const directions={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,8],ArrowDown:[0,-8]};
-   if(directions[e.key]){e.preventDefault();operation(()=>move(...directions[e.key]));}
+   const directions={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]};
+   if(directions[e.key]){e.preventDefault();operation(()=>move(...directions[e.key],e));}
    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();operation(()=>model.undo(e.shiftKey));}
   };
   $("export").onclick=()=>operation(()=>{exportCode();message("Import this code in /rik studio. Review ownership, conflicts and reload requirements, then Apply. Your personal accessibility preferences remain in charge.");});

@@ -3285,6 +3285,7 @@
         "share",
         "advanced",
         "applied",
+        "advisory",
         "conflict",
         "dropdown",
         "groups"
@@ -3299,6 +3300,7 @@
         "Share",
         "More tools",
         "Applied",
+        "Character guidance (apply allowed)",
         "Fit conflict",
         "Device dropdown",
         "Frame group dropdown"

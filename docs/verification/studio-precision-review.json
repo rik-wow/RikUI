@@ -1,0 +1,76 @@
+{
+  "scope": "studio-precise-snapping",
+  "reviewedAt": "2026-10-02",
+  "client": {
+    "version": "1.60.1.70205",
+    "source": "e3ecc27b64d30fdc735a3f6579b866858f9f9df1",
+    "installedExecutableMatched": true
+  },
+  "images": [
+    {
+      "id": "studio-controls@review",
+      "filename": "studio-controls@review.webp",
+      "sha256": "369553f18d7fcbe558eb922639ce0d43044d454ed65d5c1d2c6283c92d4a7644"
+    },
+    {
+      "id": "studio-controls@advisory",
+      "filename": "studio-controls@advisory.webp",
+      "sha256": "7cd519c370f36bb1477db068dc06a53c2b61a48fd5f1794fd989fa7f50e3d147"
+    },
+    {
+      "id": "studio-handheld",
+      "filename": "studio-handheld.webp",
+      "sha256": "c2a886bc25159f2415c5d5e6f12592ef14d1b19a6a6f882e8ce27290585ea636"
+    },
+    {
+      "id": "studio-live-export",
+      "filename": "studio-live-export.webp",
+      "sha256": "655060037b4f3648aa3a416cb33507884453707b9fb5d92e303c6ce8e8adec13"
+    },
+    {
+      "id": "studio-native-geometry@1",
+      "filename": "studio-native-geometry@1.webp",
+      "sha256": "98569d32efceb95321a5ab62d04aa8f92a1a644e54e02b4eea11092b926e6ad8"
+    },
+    {
+      "id": "studio-native-geometry@1.15",
+      "filename": "studio-native-geometry@1.15.webp",
+      "sha256": "c3b6307436736ddd1d192e31ffc6d6de93706f6cfe61860e02035180e1532ff9"
+    },
+    {
+      "id": "studio-pack-centered",
+      "filename": "studio-pack-centered.webp",
+      "sha256": "c3a7d22254f1a437faf71f1b661cc709a188b3f279c61032dc2d9abb8e313992"
+    },
+    {
+      "id": "studio-pack-classic",
+      "filename": "studio-pack-classic.webp",
+      "sha256": "4695b4474857a93d099fdc9278f3ffdc401559fa8ead449cb187aefe36b8b136"
+    },
+    {
+      "id": "studio-pack-healer",
+      "filename": "studio-pack-healer.webp",
+      "sha256": "b5ebcd3e2487115b8038dce21fb2dc6c57cbc1071049fbea34ad9350b9c6f32c"
+    },
+    {
+      "id": "studio-pack-hud",
+      "filename": "studio-pack-hud.webp",
+      "sha256": "4535c3012372469b6cbf4e1c8c871f1df5e15f8c374e0bdb2238fb7d5e234445"
+    },
+    {
+      "id": "studio-theme-review",
+      "filename": "studio-theme-review.webp",
+      "sha256": "ac3710875b9a307450647da73ed41e68665df07f316b3db2983ce593dd276633"
+    },
+    {
+      "id": "studio-try-on",
+      "filename": "studio-try-on.webp",
+      "sha256": "727a70669aa589a28ef660f280aa5085ecdbdb36a17f027fcf77858946fc55cf"
+    }
+  ],
+  "review": "Inspected all 12 changed/new images at original size and compared reviewed baselines. Advisory explanation and enabled Apply verified; other scene changes retain geometry and differ in dynamic fixture counters. 18 affected scenarios refreshed; unchanged component captures retain review.",
+  "limitations": [
+    "Character area is an editor preference, not camera/model measurement.",
+    "Actual gameplay accepted by the user's standing policy; renderer fixtures exercise the unchanged addon source."
+  ]
+}

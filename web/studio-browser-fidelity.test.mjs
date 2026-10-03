@@ -104,9 +104,9 @@ test("character clearance follows the viewport and reports personal obstructions
  p.adjustments={positions:{player:{point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:900,y:520}}};
  await studioControl(page,"import-code");await page.locator("#import-code").fill(e.call("Encode",p));
  await studioControl(page,"import");await page.locator("#import").click();await ready(page);
- await studioControl(page,"fit-conflicts");await expect(page.locator("#fit-conflicts")).toContainText("Character viewing area");
- await expect(zone).toHaveClass(/conflict/);await expect(page.locator("#export")).toBeDisabled();
+ await studioControl(page,"fit-conflicts");await expect(page.locator("#fit-conflicts")).toContainText(/character viewing area/i);
+ await expect(zone).toHaveClass(/advisory/);await expect(zone).not.toHaveClass(/conflict/);await expect(page.locator("#export")).toBeEnabled();
  await page.locator('#fit-conflicts [data-group="player"]').click();
  await page.locator("#reset-frame").click();await ready(page);
- await expect(zone).not.toHaveClass(/conflict/);await studioControl(page,"export");await expect(page.locator("#export")).toBeEnabled();
+ await expect(zone).not.toHaveClass(/advisory/);await studioControl(page,"export");await expect(page.locator("#export")).toBeEnabled();
 });

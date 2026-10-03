@@ -150,4 +150,14 @@ local legacy=assert(p.Import(assert(RikUI.Sharing.Encode("profile",old.profile))
 check(legacy.profile.modules.classcooldowns==nil,"legacy UI imports canonicalize retired flags")
 old.profile.modules.unregistered=true
 check(not p.Validate(old),"unknown active modules remain rejected")
+RikUI.Profile.positions.main={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=32,y=40}
+local center=sample(8);center.id="center-advisory";center.adjustments={positions={main={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=720,y=520}}}
+check(s.Import(assert(p.Encode(center))),"stage character advisory")
+local advisory=assert(s.Review());check(#advisory.fit.conflicts==0 and #advisory.fit.warnings>0,"character guidance does not block review")
+check(s.Apply(),"character advisory allows actual Apply")
+check(RikUI.Profile.positions.main.x==720 and RikUI.Profile.positions.main.y==520,"Apply preserves deliberate center position")
+check(s.Restore(),"advisory apply remains restorable")
+local blocked=p.Copy(center);blocked.revision=9;blocked.adjustments.positions.main.x=-20
+check(s.Import(assert(p.Encode(blocked))),"stage genuine invalid placement")
+check(#assert(s.Review()).fit.conflicts>0 and not s.Apply(),"off-screen placement still blocks Apply")
 print("OK: "..checks.." Studio lifecycle checks")

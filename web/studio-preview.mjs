@@ -26,7 +26,7 @@ export function fitDetails(resolved,viewport){
  const groups=Array.from(resolved.groups||[]);
  return Array.from(resolved.conflicts||[]).map(issue=>{
   const index=groups.findIndex(g=>g.key===issue.key),group=groups[index],r=group?.rect;
-  const neighbors=group&&!group.floating?groups.slice(0,index).filter(other=>!other.floating && (!group.exclusive||group.exclusive!==other.exclusive) && overlaps(r,other.rect)).map(g=>g.key):[];
+  const neighbors=group&&!group.floating?groups.slice(0,index).filter(other=>!other.character && !other.floating && (!group.exclusive||group.exclusive!==other.exclusive) && overlaps(r,other.rect)).map(g=>g.key):[];
   const outside=r&&(r.x<7.998||r.y<7.998||r.x+r.width>viewport.width-7.998||r.y+r.height>viewport.height-7.998);
   const reason=issue.reason==="Below readable minimum"?"Below the pack’s readable minimum":outside?"Outside the screen’s 8-unit safe edge":neighbors.length?"Overlaps or lacks the 8-unit clearance from "+neighbors.map(labelFor).join(", "):issue.reason;
   return {...issue,reason,with:neighbors,rect:r};

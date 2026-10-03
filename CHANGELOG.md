@@ -9,6 +9,22 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.10
+
+2026-10-02. Precise Studio placement and advisory character clearance for WoW: Forever beta.
+
+- Make character viewing clearance advisory in the shared addon/browser fitter.
+  Automatic fitting still prefers a clear center; deliberate placement permits
+  Apply and export while genuine frame collisions and off-screen frames block.
+- Add separate browser frame-alignment and grid snapping, grid sizes 1–32,
+  optional visible grid, live alignment guides and Alt-drag bypass.
+- Default to one-unit keyboard nudges, with configurable steps, Shift acceleration
+  and exact X/Y coordinates. Keep unsnapped nudges, undo and pack round trips.
+- Keep Layout full-screen within the browser viewport, with visual independent
+  bar arrangements and contextual controls over authentic captured components.
+- Update the canonical Studio guide and verify native review/apply/restoration,
+  browser geometry and the affected Lua renderer states.
+
 ## 1.0.0-beta.9
 
 2026-10-02. Configurable geometry and smarter Setup Studio fitting for WoW: Forever beta.

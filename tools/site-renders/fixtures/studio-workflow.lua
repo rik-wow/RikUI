@@ -3,10 +3,13 @@ function RikRenderStudioPage(key)
     assert(RikUI.Studio.Select("centered"))
     RikRenderStudio()
     local state=key
-    if key=="applied" or key=="conflict" then key="review" end
+    if key=="applied" or key=="conflict" or key=="advisory" then key="review" end
     if key=="dropdown" or key=="groups" then key="layout" end
     if state=="conflict" then
         RikUI.Studio.Draft.adjustments={positions={main={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=500,y=100},player={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=500,y=100}}}
+    end
+    if state=="advisory" then
+        RikUI.Studio.Draft.adjustments={positions={player={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=1000,y=560}}}
     end
     assert(RikUI.Studio.ShowPage(key))
     local c=RikUI.Studio.Controls
@@ -15,7 +18,12 @@ function RikRenderStudioPage(key)
         c.apply:GetScript("OnClick")(c.apply)
         assert(RikUI.Studio.LastResult, RikUIStudio.status:GetText())
         assert(RikUI.Studio.LastResult.status=="applied" and RikUIStudio.details:GetText():find("Setup applied"),"Successful apply is shown as an error")
-    elseif state=="conflict" then assert(c.apply.disabled,"Conflicting layout can be applied") end
+    elseif state=="conflict" then assert(c.apply.disabled,"Conflicting layout can be applied")
+    elseif state=="advisory" then
+        local review=assert(RikUI.Studio.Review())
+        assert(#review.fit.conflicts==0 and #review.fit.warnings>0 and not c.apply.disabled,"Character guidance blocked Apply")
+        assert(RikUIStudio.details:GetText():find("Apply is allowed"),"Advisory explanation missing")
+    end
     assert(c.apply:IsVisible()==(key=="review"),"Apply leaked into another step")
     assert(c.exportLive:IsVisible()==(key=="share"),"Export leaked into another step")
     assert(c["move-Right"]:IsVisible()==(key=="layout"),"Layout controls leaked into another step")

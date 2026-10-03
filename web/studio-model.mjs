@@ -33,13 +33,33 @@ export class StudioModel {
  resolveWith(source,overrides={}){const value=this.engine.call("Copy",source);overrides=this.engine.call("Copy",overrides);for(const key of Object.keys(this.resetPositions||{}))if(value.adjustments?.positions)delete value.adjustments.positions[key];
   if(!this.selected.appearance){const base={...this.engine.call("Theme","classic"),textScale:1,scale:1,...this.baseline};for(const k of ["theme","font","borderColor","textScale","scale"])overrides[k]=base[k];}if(value.integration==="questtogether"&&!this.integrationPresent){value.ownership.nameplates="rikui";value.profile.modules??={};value.profile.modules.nameplates=true;}const result=this.engine.call("Resolve",value,{overrides,components:this.selected,viewport:this.viewport,device:this.device,activity:this.activity,accessibility:accessibility[this.accessibility],
   reservations:source.integration==="questtogether" && this.integrationPresent?[{x:8,y:this.viewport.height-200,width:320,height:180}]:[]});result.effectivePack=value;return result;}
- move(key,x,y){const resolved=this.resolve(),entry=[...Array.from(resolved.groups||[]),...Array.from(resolved.disabledGroups||[])].find(g=>g.key===key);if(!entry)throw Error("Choose a visible movable group");
-  const scale=resolved.profile.scale||1;const r=entry.rect;
-  x=Math.max(8,Math.min(this.viewport.width-r.width-8,x));y=Math.max(8,Math.min(this.viewport.height-r.height-8,y));
-  const xs=[8,this.viewport.width-r.width-8,this.viewport.width/2-r.width/2],ys=[8,this.viewport.height-r.height-8];
-  for(const g of Array.from(resolved.groups||[]))if(g.key!==key){xs.push(g.rect.x,g.rect.x+g.rect.width+8,g.rect.x-r.width-8);ys.push(g.rect.y,g.rect.y+g.rect.height+8,g.rect.y-r.height-8);}
-  const snap=(v,lines)=>lines.reduce((best,line)=>Math.abs(line-v)<6?line:best,Math.round(v/8)*8);
-  this.change(s=>{s.overrides.positions??={};delete s.resetPositions[key];s.overrides.positions[key]={point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:Math.round((snap(x,xs)/scale+(entry.geometry?.padding?.left||0))*1000)/1000,y:Math.round((snap(y,ys)/scale+(entry.geometry?.padding?.bottom||0))*1000)/1000};});
+ previewMove(key,x,y,{grid=8,align=true,threshold=6}={}){
+  if(!Number.isFinite(x)||!Number.isFinite(y))throw Error("Enter finite X and Y coordinates.");
+  if(![0,1,2,4,8,16,32].includes(grid))throw Error("Choose a supported grid size.");
+  const resolved=this.resolve(),entry=[...Array.from(resolved.groups||[]),...Array.from(resolved.disabledGroups||[])].find(g=>g.key===key);
+  if(!entry)throw Error("Choose a movable frame");
+  const r=entry.rect,margin=8,maxX=Math.max(margin,this.viewport.width-r.width-margin),maxY=Math.max(margin,this.viewport.height-r.height-margin);
+  const clamp=()=>{x=Math.max(margin,Math.min(maxX,x));y=Math.max(margin,Math.min(maxY,y));};
+  clamp();if(grid){x=Math.round(x/grid)*grid;y=Math.round(y/grid)*grid;}clamp();
+  const guides=[];
+  if(align){
+   // Translate to an inset screen so the native edge targets respect the safe margin.
+   const rect=g=>({left:g.x-margin,bottom:g.y-margin,right:g.x+g.width-margin,top:g.y+g.height-margin});
+   const obstacles=Array.from(resolved.groups||[]).filter(g=>g.key!==key&&this.source.groups[g.key]).map(g=>rect(g.rect));
+   const snap=this.engine.call("EditorSnap",rect({...r,x,y}),obstacles,{width:this.viewport.width-2*margin,height:this.viewport.height-2*margin},Math.max(0,Math.min(256,threshold)),8);
+   x+=snap.dx;y+=snap.dy;clamp();
+   for(const g of Array.from(snap.guides||[])){
+    // Clamping may reject an edge; only display guides the final rectangle touches.
+    const low=g.axis==="x"?x:y,size=g.axis==="x"?r.width:r.height,at=g.at+margin;
+    if([low,low+size/2,low+size].some(v=>Math.abs(v-at)<0.001))guides.push({...g,at});
+   }
+  }
+  return {x,y,guides,entry,scale:resolved.profile.scale||1};
+ }
+ move(key,x,y,options){
+  const target=this.previewMove(key,x,y,options),{entry,scale}=target;
+  this.change(s=>{s.overrides.positions??={};delete s.resetPositions[key];s.overrides.positions[key]={point:"BOTTOMLEFT",relativePoint:"BOTTOMLEFT",x:Math.round((target.x/scale+(entry.geometry?.padding?.left||0))*1000)/1000,y:Math.round((target.y/scale+(entry.geometry?.padding?.bottom||0))*1000)/1000};});
+  return target;
  }
  reset(key){this.change(s=>{if(s.overrides.positions)delete s.overrides.positions[key];if(s.source.adjustments?.positions?.[key])s.resetPositions[key]=true;});}
  optimize(){

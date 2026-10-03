@@ -17,8 +17,8 @@ for _,name in ipairs(RikUI.Layouts.Order)do
     for _,g in ipairs(r.groups)do if source.groups[g.key] and not g.floating then
      local a,b=zone.rect,g.rect
      if a.x<b.x+b.width and a.x+a.width>b.x and a.y<b.y+b.height and a.y+a.height>b.y then
-      local found=false;for _,c in ipairs(r.conflicts)do if c.key==g.key and c.reason=="Obstructs character viewing area" then found=true end end
-      assert(found,"Obstructed character without a conflict: "..g.key)
+      local found=false;for _,c in ipairs(r.warnings)do if c.key==g.key and c.reason=="Covers character viewing area (advisory)" then found=true end end
+      assert(found,"Obstructed character without an advisory: "..g.key)
      end
     end end
     if screen.width>=1920 and recipe=="standard" then

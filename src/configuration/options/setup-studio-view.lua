@@ -210,8 +210,9 @@ function studio.RefreshWindow()
    lines[#lines+1]=names[c].." — "..tostring((review.fit.effectivePack or p).ownership[c] or p.ownership[c])
   end end
   lines[#lines+1]=""
-  lines[#lines+1]=#review.fit.conflicts==0 and "Layout fits; character viewing area stays clear." or "Adjust these frames before applying:"
+  lines[#lines+1]=#review.fit.conflicts==0 and "Layout fits. Character clearance is advisory." or "Adjust these frames before applying:"
   for _,c in ipairs(review.fit.conflicts)do lines[#lines+1]=(groupNames[c.key] or c.key)..": "..c.reason end
+  for _,c in ipairs(review.fit.warnings or {})do lines[#lines+1]=(groupNames[c.key] or c.key)..": "..c.reason.."; Apply is allowed." end
   lines[#lines+1]=review.reload and "Reload required after Apply for appearance or module changes." or "Geometry applies outside combat."
   for _,c in ipairs(review.conflicts)do lines[#lines+1]="Update "..c.path..": "..(accepts[c.path] and "use creator change" or "keep your edit") end
  else
