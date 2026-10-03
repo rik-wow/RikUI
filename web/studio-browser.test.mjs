@@ -8,6 +8,8 @@ test("gallery and authentic editor keyboard/export/import/share journey",async({
  await expect(page.locator("#studio-app")).toBeVisible({timeout:30000});
  await expect(page.locator("#game-preview")).toHaveAttribute("width","1920");
  await studioControl(page,"frame-group");await page.locator("#frame-group").selectOption("main");
+ await expect(page.locator("#game-preview")).toHaveAttribute("data-preview-ready","true");
+ await expect(page.locator("#geometry")).toContainText("Main action bar:");
  const before=await page.locator("#geometry").innerText();
  await studioControl(page,"game-preview");await page.locator("#game-preview").focus();await page.keyboard.press("ArrowRight");
  await expect(page.locator("#geometry")).not.toHaveText(before);
