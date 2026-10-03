@@ -11,6 +11,7 @@ return function(check)
     local saved = {}
     for _, name in ipairs(NAMES) do saved[name] = _G[name] end
     local restore = widgets.install()
+    local nativeParentWidth = UIParent.GetWidth
 
     local function text(frame, key, size)
         local value = frame:CreateFontString()
@@ -155,6 +156,62 @@ return function(check)
         SlashCmdList.RIKUI("debug")
         check("debug reports the banners", widgets.printedContains(env, "Banners hooked=3 failed=0"))
 
+        module = load(nil, function()
+            installClient()
+            UIParent.GetWidth = function() return 1920 end
+            local frame = CreateFrame("Frame", "ObjectiveTrackerTopBannerFrame", UIParent)
+            frame:SetSize(128, 128)
+            frame:SetPoint("TOP", UIParent, "TOP", 0, -170)
+            frame.shown = false
+            art(frame, { "BlackBar", "UpLine", "DownLine", "UpLineGlow", "DownLineGlow", "Filigree", "FiligreeGlow", "Spark" })
+            local title, subtitle = text(frame, "Title", 24), text(frame, "Subtitle", 16)
+            title:SetPoint("CENTER", frame.BlackBar, "CENTER", 0, 16)
+            subtitle:SetPoint("TOP", title, "BOTTOM", 0, -7)
+            for _, label in ipairs({ title, subtitle }) do
+                function label:GetStringWidth() return #(self:GetText() or "") * 12 end
+            end
+            frame.PopAnim, frame.SlideAnim = widgets.animationGroup(), widgets.animationGroup()
+            frame:SetScript("OnShow", function(self) self.PopAnim:Play() end)
+            frame:SetScript("OnHide", function(self) self.nativeFinished = true end)
+        end)
+        local objective = ObjectiveTrackerTopBannerFrame
+        local nativePoints, titlePoints, subtitlePoints = objective.points, objective.Title.points, objective.Subtitle.points
+        local pop, slide = objective.PopAnim, objective.SlideAnim
+        objective.Title:SetText("Kobold Camp Cleanup")
+        objective.Subtitle:SetText("Bonus Objective")
+        objective:Show()
+        local objectiveHost = objective.rikCardHost
+        check("objective title and subtitle fit a real card instead of the animation envelope",
+            objectiveHost and objectiveHost.points[1][2] == objective.Title and objectiveHost.points[2][2] == objective.Subtitle
+            and objective.Title.width >= 298 and objective.Subtitle.width == objective.Title.width
+            and objectiveHost.ignoreInLayout and objectiveHost.mouseEnabled == false)
+        for _, key in ipairs({ "BlackBar", "UpLine", "DownLine", "UpLineGlow", "DownLineGlow", "Spark" }) do
+            objective[key]:SetAlpha(1)
+            check("objective animation cannot revive decoration " .. key, rawget(objective[key], "texture") == nil)
+        end
+        objective:Hide()
+        objective.Title:SetText(string.rep("Long quest title ", 12))
+        objective:Show()
+        check("long objective titles wrap within the bounded text width", objective.Title.width == 568
+            and objective.Title.wordWrap and objective.Subtitle.wordWrap and objective.Title.height == 0)
+        objective:Hide()
+        objective.Title:SetText("Cleanup")
+        objective.Subtitle:SetText("World Quest")
+        objective:Show()
+        check("reused objective recomputes short title bounds without a second host", objective.rikCardHost == objectiveHost
+            and objective.Title.width == 298 and objective.Title.points == titlePoints and objective.Subtitle.points == subtitlePoints)
+        check("objective native animation size, points, groups and finish handler survive",
+            objective.width == 128 and objective.height == 128 and objective.points == nativePoints
+            and objective.PopAnim == pop and objective.SlideAnim == slide and pop.plays == 3 and objective.nativeFinished)
+        check("objective native text sizes and colours survive", objective.Title.fontSize == 24
+            and objective.Subtitle.fontSize == 16 and rawget(objective.Title, "textColor") == nil)
+        objective:Hide()
+        UIParent.GetWidth = function() return 320 end
+        objective:Show()
+        check("objective card fits a narrow viewport without changing the native envelope", objective.Title.width + 32 <= 256 and objective.width == 128)
+        UIParent.GetWidth = nativeParentWidth
+        check("objective repair produced no skin errors", #env.printed == 0, table.concat(env.printed, " | "))
+
         module = load()
         function BossBanner.Title:SetFont() error("font locked") end
         BossBanner:Show()
@@ -170,6 +227,7 @@ return function(check)
         check("a disabled module leaves banners stock", rawget(EventToastManagerFrame.pooled.Title, "fontPath") == nil
             and BossBanner.BannerTop.texture == "stock-art" and EventToastManagerFrame.GLine.texture == "gold-bar")
     end)
+    UIParent.GetWidth = nativeParentWidth
     restore()
     for _, name in ipairs(NAMES) do _G[name] = saved[name] end
     check("banners suite completes", ok, reason)

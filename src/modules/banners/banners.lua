@@ -19,7 +19,7 @@ local FRAMES = {
             "SkullCircle", "LootCircle", "BottomFillagree", "SkullSpikes", "RightFillagree", "LeftFillagree",
             "FlashBurst", "FlashBurstLeft", "FlashBurstCenter", "RedFlash" } },
     { name = "ObjectiveTrackerTopBannerFrame", text = { "Title", "Subtitle" },
-        art = { "Filigree", "FiligreeGlow", "Spark" } },
+        art = { "BlackBar", "UpLine", "DownLine", "UpLineGlow", "DownLineGlow", "Filigree", "FiligreeGlow", "Spark" } },
 }
 local failed, warnings = {}, {}
 
@@ -73,10 +73,37 @@ local function suppressLines(manager)
     skin.Strip(manager, LINE_KEYS)
 end
 
+-- The objective's 128px frame is an animation/transition envelope, not its text bounds.
+-- Keep native anchors and animation targets; only a noninteractive child surrounds the text.
+local function objectiveCard(frame)
+    local title, subtitle = frame.Title, frame.Subtitle
+    local maximum = math.max(128, math.min(600, UIParent:GetWidth() - 64))
+    title:SetWidth(0)
+    subtitle:SetWidth(0)
+    local width = math.min(maximum - 32, math.max(298, title:GetStringWidth(), subtitle:GetStringWidth()))
+    for _, label in ipairs({ title, subtitle }) do
+        label:SetWordWrap(true)
+        label:SetWidth(width)
+        label:SetHeight(0)
+        label:SetJustifyH("CENTER")
+    end
+    if not frame.rikCardHost then
+        local host = CreateFrame("Frame", nil, frame)
+        host.ignoreInLayout = true
+        host:EnableMouse(false)
+        host:SetPoint("TOPLEFT", title, "TOPLEFT", -16, 14)
+        host:SetPoint("BOTTOMRIGHT", subtitle, "BOTTOMRIGHT", 16, -14)
+        frame.rikCardHost = host
+    end
+    frame.rikCardHost:SetFrameLevel(math.max(0, frame:GetFrameLevel() - 1))
+    return frame.rikCardHost
+end
+
 local function skinFrame(frame, target)
     skin.Blank(frame, target.art)
     typefaces(frame, target.text)
-    frame.rikCard = skin.NotificationCard(frame, frame.Icon)
+    local host = target.name == "ObjectiveTrackerTopBannerFrame" and objectiveCard(frame) or frame
+    frame.rikCard = skin.NotificationCard(host, frame.Icon)
 end
 
 local function skinRow(row, target)

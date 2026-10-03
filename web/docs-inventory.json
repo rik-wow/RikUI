@@ -340,9 +340,9 @@
       "slug": "banners",
       "file": "docs/player/banners.md",
       "title": "Event banners",
-      "sourceSha256": "7a09d8d3ce229000d39ce00fb12e577da73b3c73251f956a1df3b8e383c71857",
-      "buildSha256": "7a09d8d3ce229000d39ce00fb12e577da73b3c73251f956a1df3b8e383c71857",
-      "htmlSha256": "15574316cbb0cbb2aeea3b69e34965c609c939902b3b65bf0ca4a5e0d4b59c19"
+      "sourceSha256": "5c10b340e19ac8a3f726d5b3f35893bf3c1e06f7064550179e5d3ddf3679b9c5",
+      "buildSha256": "5c10b340e19ac8a3f726d5b3f35893bf3c1e06f7064550179e5d3ddf3679b9c5",
+      "htmlSha256": "f82d26e62a39133cc5e13d4528e126f75176bbdc0d52991866bdbed0bdeddabb"
     },
     {
       "slug": "toasts",
@@ -3869,6 +3869,20 @@
       "title": "Rested experience",
       "width": 540,
       "height": 60
+    },
+    {
+      "id": "banner-objective-long",
+      "page": "banners",
+      "title": "Long objective title",
+      "width": 800,
+      "height": 250
+    },
+    {
+      "id": "banner-objective-reused",
+      "page": "banners",
+      "title": "Reused world quest banner",
+      "width": 800,
+      "height": 200
     }
   ]
 }

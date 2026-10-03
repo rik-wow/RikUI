@@ -47,7 +47,7 @@ const placements={
  hudframes:{"hud-framerate":"ref-small-on-screen-labels","hud-navigation":"ref-small-on-screen-labels","hud-queue":"ref-small-on-screen-labels"},
  screentext:{"text-zone":"ref-zone-names-and-warnings","text-subzone":"ref-zone-names-and-warnings","text-error":"ref-zone-names-and-warnings","text-raid":"ref-zone-names-and-warnings"},
  alerts:{"alert-loot":"ref-loot-and-reward-alerts","alert-money":"ref-loot-and-reward-alerts","alert-achievement":"ref-loot-and-reward-alerts"},
- banners:{"banner-objective":"ref-level-ups-and-events"},
+ banners:{"banner-objective":"ref-level-ups-and-events","banner-objective-long":"ref-level-ups-and-events","banner-objective-reused":"ref-level-ups-and-events"},
  toasts:{"toast-friend":"ref-social-notices","toast-time":"ref-social-notices","toast-voice":"ref-social-notices"},
  questtracker:{"tracker-active":"ref-your-watched-quests","tracker-complete":"ref-your-watched-quests","tracker-failed":"ref-your-watched-quests","tracker-header":"ref-your-watched-quests","tracker-overflow":"ref-your-watched-quests"},
  questtimers:{"timers-timed":"ref-timed-quests","timers-warning":"ref-timed-quests","timers-final":"ref-timed-quests"},

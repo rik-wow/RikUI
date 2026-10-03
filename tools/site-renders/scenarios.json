@@ -2223,7 +2223,8 @@
       "plate": "goldshire-road"
     },
     "fixtures": [],
-    "lua": "RikRenderObjectiveBanner(\"Kobold Camp Cleanup\")\n",
+    "lua": "RikRenderObjectiveCard(\"Kobold Camp Cleanup\")\n",
+    "assertLua": "RikRenderObjectiveCardBounds()",
     "expectText": [
       "Kobold Camp Cleanup"
     ]
@@ -4742,5 +4743,38 @@
         "unitauras": false
       }
     }
+  },
+  {
+    "id": "banner-objective-long",
+    "page": "banners",
+    "title": "Long objective title",
+    "frame": "ObjectiveTrackerTopBannerFrame",
+    "crop": "800x250+624+85",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderObjectiveCard(\"A Very Long Objective Title: Defend the Road Between Goldshire and the Kobold Camp\")\n",
+    "assertLua": "RikRenderObjectiveCardBounds()",
+    "expectText": [
+      "Defend the Road"
+    ]
+  },
+  {
+    "id": "banner-objective-reused",
+    "page": "banners",
+    "title": "Reused world quest banner",
+    "frame": "ObjectiveTrackerTopBannerFrame",
+    "crop": "800x200+624+110",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [],
+    "lua": "RikRenderObjectiveCard(\"Cleanup\", true, \"A Very Long Objective Title: Defend the Road Between Goldshire and the Kobold Camp\")\n",
+    "assertLua": "RikRenderObjectiveCardBounds()",
+    "expectText": [
+      "Cleanup",
+      "World Quest"
+    ]
   }
 ]
