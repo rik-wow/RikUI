@@ -51,6 +51,10 @@ def check_manifest(root):
         elif entry not in expected and entry != GENERATED_INCLUDE:
             # The one XML entry is the committed include for installer-written data.
             failures.append(f"{location}: path is outside runtime inventory or has wrong case: {entry}")
+    # BigWigs strips a trailing CR at EOF; reject this before a release is tagged.
+    for entry in sorted(expected):
+        if (root / entry).read_bytes().endswith(b"\r"):
+            failures.append(f"Runtime file ends in a bare carriage return; finish with LF or CRLF: {entry}")
     for entry in sorted(expected - listed):
         failures.append(f"Runtime file omitted from TOC: {entry}")
     for path in sorted(root.iterdir()):

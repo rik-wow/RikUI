@@ -76,6 +76,18 @@ class ReleaseTests(unittest.TestCase):
                 ignored.add(entry[2:].strip().strip('"').split("/")[0])
         self.assertEqual(sorted(tops - runtime - ignored), [])
 
+    def test_manifest_rejects_packager_eof_loss(self):
+        import check_manifest
+        source = self.root / "src/core/core.lua"
+        source.write_bytes(source.read_bytes().rstrip(b"\r\n") + b"\r")
+        self.assertTrue(any("bare carriage return" in failure for failure in check_manifest.check_manifest(self.root)))
+
+    def test_manifest_accepts_portable_eof(self):
+        import check_manifest
+        source = self.root / "src/core/core.lua"
+        source.write_bytes(source.read_bytes().rstrip(b"\r\n") + b"\r\n")
+        self.assertFalse(any("bare carriage return" in failure for failure in check_manifest.check_manifest(self.root)))
+
     def test_line_endings_are_portable(self):
         self.archive(lambda files: files.update({
             "RikUI/src/core/core.lua": files["RikUI/src/core/core.lua"].replace(b"\n", b"\r\n")}))

@@ -7,9 +7,12 @@ and carry no notes. A version with `beta` in its name is a prerelease. The BigWi
 and uses it as the GitHub release text, so add the new version here before
 tagging.
 
-## 1.0.0-beta.12
+## 1.0.0-beta.13
 
 2026-10-03. Character setup and compact adaptive nameplates for WoW: Forever beta.
+
+Beta.12 was an unpublished candidate; its release workflow was cancelled before
+upload after local package verification caught a wizard file-ending mismatch.
 
 - Fix adaptive nameplates expanding short names beyond compact health/level rows.
   Apply width limits only when a name needs extra room; pooled plates shrink again.

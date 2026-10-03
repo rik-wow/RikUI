@@ -367,4 +367,4 @@ core:RegisterCommand("setup", function()
     wizard.Open()
 end, "Open the setup wizard")
 
-core:RegisterModule("wizard", wizard)
+core:RegisterModule("wizard", wizard)
