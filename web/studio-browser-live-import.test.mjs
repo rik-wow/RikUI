@@ -8,7 +8,10 @@ test("native game export imports in the browser, edits and returns a complete pa
  await page.goto("/studio");await expect(page.locator("#game-preview")).toHaveAttribute("data-preview-ready","true");
  await studioControl(page,"import-code");await page.locator("#import-code").fill(fixture.code.match(/.{1,100}/g).join("\n"));
  await studioControl(page,"import");await page.locator("#import").click();await expect(page.locator("#pack-description")).toContainText("My RikUI setup");
- await page.locator("#edit-positions").click();await expect(page.locator("#mover-layer [data-group=chat]")).toBeVisible();
+ await page.locator("#edit-positions").click();
+ await expect(page.locator("#game-preview")).toHaveAttribute("data-preview-ready","true");
+ await expect(page.locator("#frame-group option[value=chat]")).toHaveCount(1);
+ await page.locator("#frame-group").selectOption("chat");await expect(page.locator("#mover-layer [data-group=chat]")).toBeVisible();
  await studioControl(page,"frame-group");await page.locator("#frame-group").selectOption("main");
  await studioControl(page,"game-preview");await page.locator("#game-preview").focus();await page.keyboard.press("ArrowRight");
  await studioControl(page,"export");await page.locator("#export").click();

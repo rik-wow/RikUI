@@ -3,7 +3,7 @@ export function setupWorkspace(root,message){
  const enter=document.getElementById("fullscreen"),exit=document.getElementById("exit-fullscreen"),toggle=document.getElementById("workspace-controls"),shell=root.querySelector(".preview-shell"),stage=document.getElementById("preview-stage");
  let active=false,previousFocus,previousOverflow,inert=[],wasNative=false;
  const fit=()=>{
-  if(!active){stage.style.removeProperty("--fit-width");return;}
+  if(!active&&(!root.classList.contains("layout-workspace")||innerWidth<=760)){stage.style.removeProperty("--fit-width");return;}
   const canvas=document.getElementById("game-preview"),width=Math.min(shell.clientWidth,Math.max(160,shell.clientHeight)*canvas.width/canvas.height);
   stage.style.setProperty("--fit-width",width+"px");
  };
@@ -30,7 +30,7 @@ export function setupWorkspace(root,message){
   try{if(request){await request;wasNative=true;}}catch{message("Browser fullscreen unavailable. Expanded workspace is active; Escape returns to the page.");}
  };
  exit.onclick=()=>leave();
- toggle.onclick=()=>{const collapsed=root.classList.toggle("controls-collapsed");toggle.setAttribute("aria-expanded",String(!collapsed));toggle.textContent=collapsed?"Show controls":"Hide controls";fit();};
+ toggle.onclick=()=>{if(root.classList.contains("layout-workspace")){document.getElementById("show-inspector").click();const on=!document.getElementById("layout-inspector").hidden;toggle.setAttribute("aria-expanded",String(on));toggle.textContent=on?"Hide controls":"Show controls";fit();return;}const collapsed=root.classList.toggle("controls-collapsed");toggle.setAttribute("aria-expanded",String(!collapsed));toggle.textContent=collapsed?"Show controls":"Hide controls";fit();};
  document.addEventListener("fullscreenchange",()=>{if(document.fullscreenElement===root){wasNative=true;setActive(true);}else if(wasNative){wasNative=false;setActive(false);}});
  root.addEventListener("keydown",e=>{
   if(!active)return;
@@ -43,5 +43,6 @@ export function setupWorkspace(root,message){
   }
  });
  const observer=new ResizeObserver(fit);observer.observe(shell);observer.observe(document.getElementById("game-preview"));
+ const presentation=new MutationObserver(fit);presentation.observe(root,{attributes:true,attributeFilter:["class"]});
  return {fit};
 }

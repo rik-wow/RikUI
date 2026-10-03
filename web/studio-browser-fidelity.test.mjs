@@ -35,7 +35,7 @@ test("optimization preserves edits made while pending and recovers worker failur
  await page.addInitScript(()=>{window.Worker=class {postMessage(){setTimeout(()=>this.onmessage?.({data:window.failOptimization?{error:"Test service unavailable"}:{result:{changes:[],overrides:{}}}}),1500);}terminate(){}};});
  await page.goto("/studio");await ready(page);await studioControl(page,"frame-group");
  await page.locator("#frame-group").selectOption("main");await ready(page);
- await page.locator("#optimize-shapes").click();await expect(page.locator("#optimize-shapes")).toBeDisabled();
+ await studioControl(page,"optimize-shapes");await page.locator("#optimize-shapes").click();await expect(page.locator("#optimize-shapes")).toBeDisabled();
  await page.locator("#bar-columns").fill("6");await page.keyboard.press("Tab");await ready(page);
  await expect(page.locator("#optimize-shapes")).toBeEnabled();await expect(page.locator("#studio-status")).toContainText("Kept your newer edits");
  await expect(page.locator("#bar-columns")).toHaveValue("6");
@@ -48,6 +48,9 @@ test("all movers are discoverable and chat is an authentic visible sample",async
  await page.locator("#edit-positions").click();await ready(page);
  const painted=JSON.parse(await page.locator("#game-preview").getAttribute("data-painted-groups"));
  expect(painted).toContain("chat");expect(painted).toContain("stance");expect(painted).not.toContain("bags");
+ await expect(page.locator("#show-movers")).not.toBeChecked();
+ await expect(page.locator('#mover-layer [data-group="questtimers"]')).toBeHidden();
+ await page.locator("#show-movers").check();await ready(page);
  for(const key of ["chat","castfocus","casttarget","loot","questtimers"])
   await expect(page.locator('#mover-layer [data-group="'+key+'"]')).toBeVisible();
  await page.locator('#mover-layer [data-group="questtimers"]').click({position:{x:4,y:4}});await ready(page);

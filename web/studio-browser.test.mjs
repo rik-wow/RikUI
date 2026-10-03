@@ -41,6 +41,6 @@ test("small-screen editor and gallery remain accessible without horizontal overf
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
  }
  await studioControl(page,"device");await page.locator("#device").selectOption("handheld");await expect(page.locator("#game-preview")).toHaveAttribute("width","1280");
- await studioControl(page,"frame-group");await page.locator("#frame-group").selectOption("main");await page.getByRole("button",{name:"Move selected frame right"}).click();
+ await studioControl(page,"frame-group");await page.locator("#frame-group").selectOption("main");await page.getByText("Position & alignment",{exact:true}).click();await page.getByRole("button",{name:"Move selected frame right"}).click();
  await expect(page.locator("#geometry")).toContainText("Main action bar:");
 });

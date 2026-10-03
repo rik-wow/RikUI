@@ -12,9 +12,9 @@
       "slug": "setup-studio",
       "file": "docs/player/setup-studio.md",
       "title": "Setup Studio",
-      "sourceSha256": "9bf145657856ebc21511f26b536192eaa91d490029c8e29a9338cec99177ac83",
-      "buildSha256": "9bf145657856ebc21511f26b536192eaa91d490029c8e29a9338cec99177ac83",
-      "htmlSha256": "a4f45f77c6c54b51451d55325492447542318caad6698b2b1892af0e542b2e01"
+      "sourceSha256": "b84edc017bf6e1b791082568eb2867312e91e44afa1c3f043d439906907632d7",
+      "buildSha256": "b84edc017bf6e1b791082568eb2867312e91e44afa1c3f043d439906907632d7",
+      "htmlSha256": "e9b11dbf3bb9c122a009d1eb564b803f507ecef03ddb7689f2d4c4352ff12c17"
     },
     {
       "slug": "wizard",

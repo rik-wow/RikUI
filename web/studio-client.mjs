@@ -1,5 +1,6 @@
 import {paintBackground} from "./studio-background.mjs";
 import {setupWorkspace} from "./studio-workspace.mjs";
+import {setupBarEditor,barKeys} from "./studio-bar-editor.mjs";
 import {createEngine} from "./pack-engine.mjs";
 import {StudioModel,components} from "./studio-model.mjs";
 import {componentAppearanceCovered} from "./preview-coverage.mjs";
@@ -10,7 +11,7 @@ const status=$("studio-status"),root=$("studio-app");
 const message=text=>{status.textContent=text;if($("workspace-status"))$("workspace-status").textContent=text;};
 const images=new Map();
 let model,data,resolved,selectedKey,drag,metadataStamp,renderEpoch=0,paintedKeys=new Set();
-let currentStep="choose",currentTab="parts",paintStamp;
+let currentStep="choose",currentTab="parts",paintStamp,barEditor;
 const partLabels={appearance:"Appearance & chat",hud:"Combat HUD",nameplates:"Nameplates",group:"Party & raid",navigation:"Map & quests",inventory:"Bags & loot",character:"Character setup"};
 function workflow(step=currentStep,tab=currentTab,focus=true){
  currentStep=step;currentTab=tab;
@@ -18,8 +19,9 @@ function workflow(step=currentStep,tab=currentTab,focus=true){
  for(const panel of document.querySelectorAll("[data-panel]"))panel.hidden=panel.dataset.panel!==step;
  for(const panel of document.querySelectorAll("[data-custom]"))panel.hidden=panel.dataset.custom!==tab;
  for(const b of document.querySelectorAll("[data-tab]")){const on=b.dataset.tab===tab;b.setAttribute("aria-selected",String(on));b.tabIndex=on?0:-1;}
- $("show-movers").checked=step==="customize"&&tab==="layout";
- if(focus)document.querySelector('[data-panel="'+step+'"] h2')?.focus({preventScroll:innerWidth>760});
+ const layout=step==="customize"&&tab==="layout";
+ barEditor?.workflow(layout);
+ if(focus)(layout?$("frame-group"):document.querySelector('[data-panel="'+step+'"] h2'))?.focus({preventScroll:innerWidth>760});
  render();
 }
 const asArray=value=>Array.isArray(value)?value:[];
@@ -83,10 +85,10 @@ async function render(){
   const covered=g=>!!(gridSprite(g)||atlas.components[g.key])&&componentAppearanceCovered(g.key,profile,model.engine,key)&&
    (!g.geometry?.grid||(!!gridSprite(g)&&g.geometry.grid.count<=gridSprite(g).cells.count));
   const picked=groups.find(g=>g.key===selectedKey),barShape=model.engine.call("BarOptions",selectedKey||"main",profile);
-  const isBar=["main","bar2","bar3","bar4","bar5","stance","pet"].includes(selectedKey);
+  const isBar=barKeys.includes(selectedKey);
   $("frame-shape").hidden=!isBar;
   if(isBar){
-   $("frame-shape-title").textContent=labelFor(selectedKey)+" · shape";
+   $("frame-shape-title").textContent="Arrange this bar";
    for(const field of ["columns","size","spacing"]){
     const control=$("bar-"+field);
     if(field==="size"&&!Array.from(control.options).some(o=>Number(o.value)===barShape.size)){
@@ -98,6 +100,7 @@ async function render(){
    const grid=picked?.geometry?.grid;
    $("shape-summary").textContent=grid?grid.columns+" columns × "+grid.rows+" rows · "+grid.count+" actions · "+grid.width+" × "+grid.height+" units. "+(covered(picked)?"Authentic native button sample.":"Exact appearance not captured; labeled footprint shows applied geometry."):"Choose a supported native bar shape to replace this observed rectangle.";
   }
+  barEditor?.render({selectedKey,groups,shape:barShape,count:picked?.geometry?.grid?.count||(selectedKey==="pet"||selectedKey==="stance"?10:12),editable:model.selected.hud&&resolved.effectivePack.ownership.hud==="rikui",labelFor});
   const shown=g=>sampleEnabled(g.key,profile,model.engine)&&covered(g)&&sampleShown(g.key,model.activity,selectedKey,$("show-conditional").checked);
   const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
   $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
@@ -136,7 +139,7 @@ async function render(){
  }catch(error){message(error.message);}
 }
 
-function selectGroup(key){selectedKey=key;render();}
+function selectGroup(key){selectedKey=key;barEditor?.select();if(barKeys.includes(key)&&!(currentStep==="customize"&&currentTab==="layout"))workflow("customize","layout",false);else render();}
 function renderAnnotations(groups,conflicts,covered){
  const layer=$("mover-layer"),list=$("frame-list"),issues=$("fit-conflicts");
  layer.replaceChildren();list.replaceChildren();issues.replaceChildren();
@@ -155,7 +158,9 @@ function renderAnnotations(groups,conflicts,covered){
   button.setAttribute("aria-label","Select "+labelFor(g.key)+" — "+state);
   button.title=labelFor(g.key)+" — "+state+(g.disabled?"; stored position, no fitting space reserved":"; outline is the reserved footprint");
   const label=document.createElement("span");label.textContent=labelFor(g.key)+(g.disabled?" · off":"");button.append(label);place(button,g.rect);
-  button.hidden=!$("show-movers").checked&&!troubled.has(g.key)&&g.key!==selectedKey;
+  const barInLayout=root.classList.contains("layout-workspace")&&barKeys.includes(g.key);
+  button.classList.toggle("bar-handle",barInLayout&&!$("show-movers").checked);
+  button.hidden=!$("show-movers").checked&&!troubled.has(g.key)&&g.key!==selectedKey&&!barInLayout;
   button.onclick=()=>selectGroup(g.key);layer.append(button);
   const entry=document.createElement("button");entry.type="button";entry.dataset.group=g.key;
   entry.textContent=labelFor(g.key)+" · "+state;entry.setAttribute("aria-pressed",String(g.key===selectedKey));
@@ -182,7 +187,7 @@ async function copy(text){try{await navigator.clipboard.writeText(text);message(
 async function start(){
  try{
   setupWorkspace(root,message);
-  $("geometry").before($("frame-shape"));
+  barEditor=setupBarEditor({root,select:selectGroup,change:(field,value)=>operation(()=>model.setBar(selectedKey,field,value),"Bar shape staged; actions and bindings preserved.")});
   const response=await fetch(root.dataset.source);if(!response.ok)throw Error("Editor data is unavailable. Use a gallery import code or install RikUI directly.");
   data=await response.json();model=new StudioModel(createEngine(data.sources.map(s=>s.source)));model.choose("centered");
   const name=new URL(location.href).searchParams.get("pack");if(data.packs.some(p=>p.name===name))model.choose(name,data.packs.find(p=>p.name===name).pack);
@@ -223,7 +228,7 @@ async function start(){
   for(const b of document.querySelectorAll("[data-step]"))b.onclick=()=>workflow(b.dataset.step);
   for(const b of document.querySelectorAll("[data-tab]")){b.onclick=()=>workflow("customize",b.dataset.tab);b.onkeydown=e=>{const order=["parts","style","layout"],index=order.indexOf(b.dataset.tab);let next;if(e.key==="ArrowRight")next=(index+1)%3;if(e.key==="ArrowLeft")next=(index+2)%3;if(e.key==="Home")next=0;if(e.key==="End")next=2;if(next!==undefined){e.preventDefault();workflow("customize",order[next],false);$("tab-"+order[next]).focus();}};}
   $("module-search").oninput=()=>render();$("module-area").onchange=()=>render();
-  $("edit-positions").onclick=()=>workflow("customize","layout");$("review-fit").onclick=()=>workflow("review");
+  $("edit-positions").onclick=()=>{selectedKey="main";workflow("customize","layout");};$("review-fit").onclick=()=>workflow("review");
   $("preview-zoom").onchange=e=>{$("preview-stage").style.setProperty("--preview-zoom",e.target.value);};
   $("import").onclick=()=>operation(()=>{model.import($("import-code").value);workflow("customize","parts");},"Imported for editing. Nothing has been applied to your addon.");
   for(const id of ["device","activity","accessibility"])$(id).onchange=e=>operation(()=>model.change(s=>{
@@ -258,7 +263,7 @@ async function start(){
    const p=point(e),explicit=e.target.closest("[data-group]")?.dataset.group;
    const group=explicit?visibleGroups().find(g=>g.key===explicit):[...visibleGroups()].reverse().find(g=>($("show-movers").checked||paintedKeys.has(g.key)||g.key===selectedKey)&&p.x>=g.rect.x&&p.x<=g.rect.x+g.rect.width&&p.y>=g.rect.y&&p.y<=g.rect.y+g.rect.height);
    if(!group)return;selectedKey=group.key;
-   if(group.disabled){render();return;}
+   if(group.disabled){selectGroup(group.key);return;}
    drag={start:{x:e.clientX,y:e.clientY},moved:false,key:group.key,offset:{x:p.x-group.rect.x,y:p.y-group.rect.y},point:p,rect:group.rect};
    stage.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});e.preventDefault();
   };
@@ -273,7 +278,7 @@ async function start(){
     $("geometry").textContent="Move "+labelFor(drag.key)+" to "+Math.round(x)+", "+Math.round(y)+" (snaps when released)";
    });
   }};
-  stage.onpointerup=e=>{if(drag){const d=drag;clearDrag();stage.releasePointerCapture(e.pointerId);if(d.moved)operation(()=>model.move(d.key,d.point.x-d.offset.x,d.point.y-d.offset.y));else render();}};
+  stage.onpointerup=e=>{if(drag){const d=drag;clearDrag();stage.releasePointerCapture(e.pointerId);if(d.moved){barEditor?.select();operation(()=>model.move(d.key,d.point.x-d.offset.x,d.point.y-d.offset.y));}else selectGroup(d.key);}};
   stage.onpointercancel=()=>{clearDrag();render();};
   stage.onlostpointercapture=()=>{if(drag){clearDrag();render();}};
   $("game-preview").onkeydown=e=>{

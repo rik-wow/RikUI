@@ -51,7 +51,8 @@ test("focused steps, keyboard tabs, selected cards, preview zoom and fit review"
  await expect(page.locator("#tab-style")).toBeFocused();await expect(page.locator("#custom-style")).toBeVisible();
  await page.locator("#theme").selectOption("ocean");await expect(page.locator("#theme-description")).toContainText("Blue accent");
  await page.locator("#tab-style").focus();await page.keyboard.press("End");
- await expect(page.locator("#tab-layout")).toBeFocused();await expect(page.locator("#show-movers")).toBeChecked();
+ await expect(page.locator("#tab-layout")).toBeFocused();await expect(page.locator("#show-movers")).not.toBeChecked();
+ await page.locator("#show-movers").check();
  await expect(page.locator("#mover-layer [data-group=questtimers]")).toBeVisible();
  await page.locator("#frame-group").selectOption("main");
  const before=await page.locator("#geometry").innerText();await page.locator("#game-preview").focus();await page.keyboard.press("ArrowRight");

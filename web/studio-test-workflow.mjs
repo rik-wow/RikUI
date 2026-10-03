@@ -19,5 +19,10 @@ export async function studioControl(page,id){
  }
  if(id==="theme-export"&&!await target.isVisible())await page.getByText("Share only the theme",{exact:true}).click();
  if(id==="questtogether"&&!await target.isVisible())await page.getByText("Specialist addon compatibility",{exact:true}).click();
+ if(layout.has(id)){
+  if(!await page.locator("#layout-inspector").isVisible())await page.locator("#show-inspector").click();
+  const summary=page.locator("details").filter({has:target}).locator(":scope > summary");
+  if(await summary.count()&&!await target.isVisible())await summary.click();
+ }
  await expect(target).toBeVisible();
 }
