@@ -30,4 +30,20 @@ class PaintBoundsChecks(unittest.TestCase):
             manifest={"renders":[{"id":"studio-extra-test","frames":[{"filename":"../private.webp","sha256":"bad"}]}]}
             (root/"manifest.json").write_text(json.dumps(manifest))
             with self.assertRaisesRegex(RuntimeError,"bytes changed"):collect(root)
+    def test_reviewed_crop_preserves_exact_pixels_geometry_and_safe_filename(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source=Image.new("RGBA",(200,120),(0,0,0,0))
+            # Generic encoder failure fixture, never a game UI baseline.
+            source.putpixel((17,21),(210,44,99,123));source.putpixel((80,40),(31,152,224,255))
+            path=root/"atlas@chat.webp";source.save(path,lossless=True,exact=True)
+            manifest={"renders":[{"id":"studio-extra-test","frames":[{"filename":path.name,"sha256":hashlib.sha256(path.read_bytes()).hexdigest()}]}]}
+            (root/"manifest.json").write_text(json.dumps(manifest))
+            result=collect(root,root/"public")[path.name];bitmap=result["bitmap"]
+            self.assertEqual((result["x"],result["y"],result["width"],result["height"]),(17,21,64,20))
+            self.assertNotIn("@",bitmap["filename"])
+            raw=(root/"public"/bitmap["filename"]).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),bitmap["sha256"])
+            cropped=Image.open(root/"public"/bitmap["filename"]).convert("RGBA")
+            self.assertEqual(cropped.tobytes(),source.crop((17,21,81,41)).tobytes())
+            self.assertEqual((root/"manifest.json").read_text(),json.dumps(manifest))
+            path.write_bytes(b"tampered");self.assertRaises(RuntimeError,collect,root,root/"public")
 if __name__=="__main__":unittest.main()

@@ -35,7 +35,12 @@ export function createEngine(sources) {
  const copyMemo=value=>Array.isArray(value)?value.map(copyMemo):value&&typeof value==="object"?Object.assign(Object.create(Object.getPrototypeOf(value)),Object.fromEntries(Object.entries(value).map(([k,v])=>[k,copyMemo(v)]))):value;
  const memo=new Map(),pure=new Set(["Theme","Equal","GroupEnabled","ModuleEnabled"]);
  return {call(method,...args){
-  const cacheKey=pure.has(method)?JSON.stringify([method,...args]):undefined;
+  const cacheKey=pure.has(method)?JSON.stringify([method,...args],(key,value)=>{
+   if(["__proto__","constructor","prototype"].includes(key))throw Error("Invalid key");
+   if(typeof value==="number"&&!Number.isFinite(value))throw Error("Invalid number");
+   if(["function","symbol","bigint"].includes(typeof value))throw Error("Configuration must be data");
+   return value;
+  }):undefined;
   if(cacheKey&&memo.has(cacheKey))return copyMemo(memo.get(cacheKey));
   lua.lua_settop(L,0);lua.lua_getglobal(L,to_luastring("RikUI"));lua.lua_getfield(L,-1,to_luastring("SetupPack"));lua.lua_getfield(L,-1,to_luastring(method));
   if(!lua.lua_isfunction(L,-1))throw Error("Unknown pack operation");

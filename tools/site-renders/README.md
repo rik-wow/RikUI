@@ -59,6 +59,16 @@ node tools/site-renders/plates.mjs --probe 0 -47 9454    # ground height and the
 
 It needs the app's dev server (`npm run dev` there, port 5173) and the Playwright Chromium the site project installs. A plate is defined by map, hour, a camera position (`x`, `z` and height above the ground) and a point to look at, or an actor to follow. Each capture writes `worlds/<name>.jpg` and `worlds/<name>.json`: the app commit and its uncommitted files, the request, the resolved camera pose, and the named actors in frame with their screen positions, so a fixture can put RikUI's nameplates over a creature that is really there. The realm is a live simulation, so a regenerated plate is not byte-identical; captures record the plate's hash and the gate verifies the plate they were composited over.
 
+### Studio 4K scene
+
+Studio has a separate reviewed UI-free 3840×2160 plate. Resolve current inputs with `prepare-studio-world.py --app-root D:/Code/isometric-wow-sim --work <fresh-private-directory> --extractor <current-TACTTool> --terrain-mode map-textures`. The command resolves the Forever head, cross-checks WowB.exe and current .build.info, acquires current tables/CASC dependencies and binds existing importer algorithms to an isolated 25-tile Elwynn bake. It never uses historical caches or changes the running world/save.
+
+The original world importer currently has a missing return in its advanced terrain-layer recipe. The unchanged renderer's supported native map-texture path avoids that operation. Its layer/water flags are explicit. The scene excludes actors, procedural grass and advanced terrain layers/liquids; it is an authentic client-scenery renderer capture, not a native game screenshot.
+
+Serve the isolated directory with the original Vite configuration on a separate port. Pass a private config to `plates.mjs --config <config> --url <isolated-url> --out <review-directory>`: original appRoot, capture-inputs.json, width3840/height2160, realm:false and streamRadius:2. Before capture it rechecks the latest source head, original clean renderer commit and every acquired/generated file hash. Inspect the full-size image, then admit only its exact reviewed hash to worlds/studio-elwynn-4k.json. The website build checks that hash; no build promotes it.
+
+`paint_bounds.py --crop-out <public-sprite-directory>` produces lossless sprites from reviewed addon captures. Every decoded RGBA pixel must match the original crop, including partial alpha. The image's original paint/root coordinates remain authoritative. Only bitmap source coordinates shift. No addon scene is recaptured or baseline updated by this optimization.
+
 ## Required gates and review
 
 `python tests/check_project.py` runs the manifest and render-evidence checks. Website builds, browser tests and releases also require `python tools/site-renders/check.py`. CI verifies each reviewed artifact against its relevant addon source and media inputs. Running the GPU renderer requires the local game installation; CI does not redistribute the client or substitute hand-drawn images.

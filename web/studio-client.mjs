@@ -1,3 +1,4 @@
+import {paintBackground} from "./studio-background.mjs";
 import {setupWorkspace} from "./studio-workspace.mjs";
 import {createEngine} from "./pack-engine.mjs";
 import {StudioModel,components} from "./studio-model.mjs";
@@ -83,17 +84,19 @@ async function render(){
   const unsupported=groups.filter(g=>!covered(g)).map(g=>labelFor(g.key));
   $("preview-limit").textContent="Actual RikUI component captures, positioned by the addon’s fitting engine. Dashed labeled boxes show reserved mover footprints, including currently inactive frames."+
    (unsupported.length?" Geometry-only (no exact capture): "+unsupported.join(", ")+".":"")+
-   " The center guide reserves character viewing space; it is an editor annotation, not a rendered character. Representative fixture data; world imagery, live names, optional addon widgets and stock game elements restored by disabling RikUI are outside this preview.";
+   " The center guide reserves character viewing space; it is an editor annotation, not a rendered character. Representative fixture data; the canned UI-free world capture is illustrative, not your camera. Live names, optional addon widgets and stock game elements restored by disabling RikUI are outside this preview.";
   const showPlates=model.selected.nameplates&&resolved.effectivePack.ownership.nameplates==="rikui"&&profile.modules?.nameplates!==false&&componentAppearanceCovered("nameplates",profile,model.engine,key);
   const drawn=groups.filter(shown);
   await renderModules({model,data,resolved,atlas,loadImage,selectedKey,selectGroup,toggle:(name,on)=>operation(()=>model.setModule(name,on),"Feature choice staged. Reload RikUI after applying to activate module changes.")});if(epoch!==renderEpoch)return;
   const canvas=$("game-preview"),ctx=canvas.getContext("2d");
-  const nextPaint=JSON.stringify([model.viewport,profile.scale,drawn.map(g=>[g.key,g.rect,atlas.components[g.key].url]),showPlates&&atlas.components.nameplates?.url]);
+  const nextPaint=JSON.stringify([model.viewport,profile.scale,$("world-background").value,drawn.map(g=>[g.key,g.rect,atlas.components[g.key].url]),showPlates&&atlas.components.nameplates?.url]);
   if(nextPaint!==paintStamp){
   canvas.dataset.previewReady="false";
   const bitmap=new Map(await Promise.all([...drawn,...(showPlates&&atlas.components.nameplates?[{key:"nameplates"}]:[])].map(async g=>[g.key,await loadImage(atlas.components[g.key].url)])));if(epoch!==renderEpoch)return;
   canvas.width=model.viewport.width;canvas.height=model.viewport.height;
-  ctx.fillStyle="#0c1117";ctx.fillRect(0,0,canvas.width,canvas.height);
+  const background=await paintBackground(ctx,data.background,$("world-background").value,loadImage,()=>epoch===renderEpoch);if(epoch!==renderEpoch)return;
+  canvas.dataset.background=background;
+  $("background-status").textContent=background==="unavailable"?"World image unavailable. Editing continues on a plain backdrop.":background==="plain"?"Plain backdrop; changes only this browser’s preview.":"UI-free 4K Elwynn scene · centered crop for this screen · changes only this browser’s preview.";
   const scale=profile.scale||1;paintedKeys=new Set(drawn.map(g=>g.key));
   for(const g of drawn){
    const c=atlas.components[g.key],p=paintPlacement(c,g.rect,scale,canvas.height);
@@ -195,6 +198,7 @@ async function start(){
   for(const b of document.querySelectorAll("[data-move]"))b.onclick=()=>operation(()=>move(...b.dataset.move.split(",").map(Number)));
   $("reset-frame").onclick=()=>operation(()=>model.reset(selectedKey));
   $("align-center").onclick=()=>operation(()=>{const g=visibleGroups().find(g=>g.key===selectedKey);if(g)model.move(g.key,(model.viewport.width-g.rect.width)/2,g.rect.y);});
+  $("world-background").onchange=()=>render();
   $("show-movers").onchange=()=>render();$("show-conditional").onchange=()=>render();
   const stage=$("preview-stage"),canvas=$("game-preview");
   let dragFrame;

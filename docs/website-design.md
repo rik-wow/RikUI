@@ -1,167 +1,37 @@
 # RikUI website design
 
-Reviewed and updated 2026-09-27.
+The public site centers on discovering, configuring, installing and sharing Setup Packs. Player-facing instructions live only in [docs/player](player/); [the documentation pipeline](documentation-pipeline.md) generates their pages and navigation. This file describes implementation decisions, not a second copy of those guides.
 
-## Current page
+## Authentic Studio preview
 
-The page opens with the addon name, supported client and actual modules, followed
-by the full interface preview. Module documentation and installation instructions
-follow directly. Public installer availability is stated plainly.
+The editor uses the exact public addon Lua configuration engine through Fengari. Validated data determines component ownership, module dependencies, fitting, accessibility precedence and exported packs. Submitted content is data; it is never loaded as Lua.
 
-The preview combines a real game capture with an SVG mock. It remains labeled
-as a mock and uses sample chat rather than private messages. Full interface,
-combat and quest views use the same 16:9 frame. The UI-visible capture is a
-reference for the reconstructed overlay. The overlay can be hidden to
-inspect the game backdrop. Without JavaScript, the full preview remains visible.
+Game widgets derive from reviewed actual Lua captures in web/ui-renders. The browser places their bitmap pixels using recorded native roots and paint extents; it does not redraw widgets in HTML or SVG. Coordinated captured themes and supported states are explicit. Unsupported appearance remains stored and labeled as geometry-only. Canonical guide links cover window and situational features outside the preview.
 
-## Research and complete page audit
+Public component sprites are lossless crops of the reviewed paint bounds. Every build verifies the source hashes and exact decoded RGBA crop pixels; geometry retains original atlas coordinates. This removes transparent canvas space from image decoding without changing native output. Gallery and guide pictures retain their reviewed source images.
 
-The sources below are design commentary and usability guidance, not a reliable
-test of whether a human or AI authored a site.
+The optional UI-free 4K Elwynn plate comes from freshly acquired current-client terrain, lighting and models through the existing isometric renderer. Its current source/client identity, isolated input manifest and exact reviewed image hash are recorded beside it. The supported native map-texture path is used; advanced terrain layers, liquids, procedural grass and actors are outside this canned capture. Raw client files never enter public assets.
 
-- [Designpixil: AI design patterns](https://designpixil.com/blog/ai-slop-design),
-  updated September 2026: recurring decorative treatments, generic feature
-  structures and interchangeable writing. Applied as a visual checklist.
-- [InterfaceKit: what makes a website look AI-generated](https://blog.interfacekit.io/what-makes-a-website-look-ai-generated),
-  updated September 7, 2026: judge product specificity, meaningful decoration,
-  consistent rules and behavior beyond the happy path. A particular font or
-  color alone does not establish authorship.
-- [NN/g: concise, scannable, objective web writing](https://www.nngroup.com/articles/concise-scannable-and-objective-how-to-write-for-the-web/):
-  use factual text that readers can scan.
-- [ToxiUI](https://toxiui.com/): a real addon reference for showing the interface
-  and linking directly to installation and feature documentation. Its branding
-  and marketing language are not reused.
+Background cover-cropping stays centered for each requested viewport and preserves aspect ratio. World, dim and plain modes are presentation-only. Actual addon fitting keeps the central character viewing corridor separate from scenery; the backdrop cannot establish live camera correctness.
 
-| Audited area | Decision |
-| --- | --- |
-| Oversized two-tone wordmark and decorative terminal dot | Replaced with a compact, single-color RikUI name. |
-| Hero slogans and interchangeable promises | Removed; the opening names the client and modules. |
-| Tiny tracked capitals, section eyebrows and decorative status dot | Removed. Development status is readable body text. |
-| Numbered view controls and feature rows | Removed numbering; controls say Full interface, Combat and Quests. |
-| Forced three-part feature composition | Replaced with a documentation list of actual modules, with descriptions of different lengths. |
-| Framed marketing CTA panel and repeated arrows | Removed; installation links name their destination. |
-| Slogan-like section titles and repeated short fragments | Replaced with What’s included, Installing RikUI and In game. |
-| FAQ accordion used to extend the page | Removed; client, keybinding and coverage constraints appear with the relevant information. |
-| Every item inside a card | No decorative cards; dividers group documentation where useful. |
-| Excess blank space and disconnected UI islands | Compact opening; common centerline, edges and spacing in the mock. |
-| Tiny, low-contrast website text | Body text is 14–16px, captions 11–12px; controls have visible focus states. Game text scales with the mock. |
-| Artificial glows, gradient words, glass panels, stock line icons | Absent; game artwork supplies the visual identity. |
-| Fabricated metrics, testimonials, partner marks and download counts | Absent. |
-| Fake or unavailable actions | No download button until a release exists. Guide/source links are real; view and overlay controls work. |
-| Mobile treated as a shrunken desktop page | Text reflows, documentation stacks, controls wrap, and detail views remain available. |
-| Motion and accessibility | No decorative motion. Keyboard arrows/Home/End, skip link, no-JS fallback and reduced-motion support remain. |
+## Responsive precise editing
 
-This is a documented design review, not a claim that aesthetic judgment can be
-exhaustively automated.
+Choose, Make it yours and Review & share form the main journey. Parts includes individual feature switches and component adoption; Appearance includes coordinated themes and personal readability; Layout includes named frames, labeled inactive movers, snap/align/reset and conflicts. UI scale is distinct from preview zoom.
 
-## Overlay alignment
+Fullscreen uses the browser API on a user's click, listens for native exits, and restores focus and inert/scroll state. A declined or unsupported request uses a fixed expanded workspace. Controls remain available, may be hidden for a wider canvas, and scroll above the preview on narrow screens. Fit respects both available dimensions; 150–400% zoom exposes scrollable detail. No browser presentation choice changes a pack.
 
-All positions use a 2048 × 1152 scene.
+## Performance boundaries
 
-- Player frame starts at x=822, target at x=1048; each is 178 units wide.
-- Cooldowns and action rows are centered at x=1024. Seven 30-unit cooldown
-  icons use 3-unit gaps. Twelve action slots span 404 units.
-- Minimap and quest tracker share x=1788 and width=228.
-- Chat, XP bar, utility bars and micromenu end at y=1120.
-- Outer screen inset is 32 units. The bottom chat and meter begin at y=936.
-- The minimap room diagram remains a schematic. Spell icons are visual examples,
-  not evidence about current spell behavior.
+One cached resolution tracks all actual semantic inputs, including direct property assignment, selective baseline, fitting, integration and accessibility. Attribution is excluded. Shared Lua still validates edits and performs every new solve. Pure Lua presentation predicates use bounded caches, preserving table prototypes, mutation isolation and invalid-data rejection.
 
-Geometry assertions accompany visual review so these alignments cannot drift
-silently.
+Feature cards rebuild only when feature state, ownership, thumbnails or filters change. Settled scene pixels repaint only when appearance, geometry, scene visibility, viewport or backdrop changes. Selection, mover visibility, navigation and metadata retain unchanged pixels. Image requests are shared. Drag feedback uses a single animation-frame DOM outline and never reads or restores full canvas pixels; release commits through the shared fitter.
 
-## Game backdrop and ownership
+[The measured review](../web/studio-performance-review.json) records the same-machine before/after methodology and results. These measurements are development evidence, not a guarantee for all hardware. Browser tests assert retained nodes/pixels, real changes, keyboard/fullscreen recovery, crop behavior, failure fallback and portable export.
 
-The user explicitly requested the newest screenshot from the Classic Beta
-Screenshots folder. At selection, this was
-`WoWScrnShot_092726_120706.jpg`, modified 2026-09-27 19:07:06 UTC.
-It shows the Cathedral of Light with the UI hidden.
+## Hosting and publication
 
-The original JPEG is copied unchanged to
-`web/public/assets/world-20260927-120706.jpg` (4,144,668 bytes).
-SHA-256:
-`212b21a4c6745595bbb84f1bb2e84845c851bfcf4ff39221f71bd6ec687edd7d`.
-The browser applies a separate translucent shade beneath the SVG UI; no raster
-editing, inpainting or generated scenery is used.
+Cloudflare Workers Static Assets serves only approved hashed asset paths, with immutable asset caching, no-store failures, same-origin CSP and release allowlists. HTML remains current. Installation links and release metadata use the actual published beta channel.
 
-The latest two screenshots were then requested for combat:
-`WoWScrnShot_092726_122246.jpg` (UI hidden, 19:22:46 UTC) provides the combat
-mock's backdrop; `WoWScrnShot_092726_122242.jpg` (19:22:42 UTC) supplies the
-layout reference. Its baked-in UI is not pasted into a preview. Both originals
-are preserved byte for byte.
-Every tab uses the same 16:9 preview frame, including Combat and Quests.
-The combat view includes the whole scene, reconstructed player/target frames,
-nameplate, weapon timer, cooldowns and action rows. Browser checks assert identical frame
-height across tab changes at all five viewport widths.
+Run npm run build:docs before direct Wrangler commands. npm test, test:browser, check, dev and deploy build first. Lua capture checks authenticate unchanged reviewed addon images; website checks complement them. Source/fixture changes require only affected captures to be refreshed and exact reviewed hashes to be promoted. Builds never update baselines.
 
-Spell/item icons and Elwynn map tiles come from the installed Forever client.
-[TACTTool](https://github.com/wowdev/TACTSharp) loaded the installation's local
-CASC indices and selected `wow_classic_beta` from `.build.info`; it reported
-`WOW-70009patch1.60.1_ForeverBeta`. `WowB.exe` independently reports
-1.60.1.70009. BLP textures were decoded to 64 × 64 PNGs without resizing or
-recoloring. [The asset receipt](../web/client-assets.json) records source IDs,
-build configuration and both BLP and PNG hashes. These are dated evidence,
-not a target build for future work. The website has no external icon requests. Notices below the preview,
-in the footer and in [the asset notice](../web/ASSET-NOTICE.md) identify Blizzard
-ownership and exclude artwork from the project's MIT code license.
-The [Blizzard Legal FAQ](https://www.blizzard.com/en-sg/legal/c1ae32ac-7ff9-4ac3-a03b-fc04b8697010/blizzard-legal-faq)
-describes limited fansite use and its conditions. Attribution is not a blanket
-license, and this work does not resolve quest-corpus redistribution rights.
-
-## Hosting and checks
-
-Cloudflare Workers Static Assets hosts the captures and icons through an ASSETS binding.
-Only their exact public paths are routed by the Worker. Existing private R2 and
-release allowlists remain intact. The image receives immutable caching;
-HTML retains no-transform and the same-origin script policy.
-
-Playwright checks five widths (320–1440px), real image loading, keyboard controls,
-overlay toggle, geometry, no-JS fallback and the captures' and icons' exact SHA-256 hashes.
-Node tests cover asset security/conditional responses and download boundaries.
-Screenshots are resolved relative to the test module into repository `dist/`.
-
-Run in `web/`: `npm test`, `npm run test:browser`, `npm run check`.
-Use `SITE_URL=https://rikwow.com` for production browser checks.
-
-## Website documentation
-
-The build renders Markdown from docs, installer, tools and the root project
-guides into /docs pages. The navigation has keyword filtering, local guide
-links, heading anchors and a small-screen disclosure. Technical source links
-remain available. The draft licensing request is labeled as an unsent draft.
-
-A source registration check maps every named module to a guide page. Examples
-sit inside the guide text beside the instruction they illustrate: a Markdown
-image whose address is `render:<scenario-id>` places a reviewed Lua capture from
-web/ui-renders, one whose address is `preview:<scenario-id>` places a setting
-sequence (every frame is in the page; a range, switch or select shows one at a
-time, and without scripting the default frame shows alone). The retired `mockup`
-address fails the build with the page's name. The build fails when a page's
-captures are not each placed exactly once, so there is no detached gallery.
-Every catalogued surface must also be the caption of a capture on its guide,
-or be listed in tools/site-renders/known-gaps.json either as shown inside a
-named capture on that guide or as a gap with its reason; an entry for a surface
-that has become a caption, or for an unknown page or surface, fails the build,
-which prints the surface, caption, in-capture and gap counts. All fifty guides and the overview page currently use the 223 Lua captures (231
-images, four of them setting sequences); combat text and the world map show only their settings pages, because the simulator cannot draw damage numbers or the map canvas. No guide
-places an SVG drawing any more. The page inventory and module mapping are generated in
-web/docs-inventory.json.
-
-Captures of world-anchored interface (the combat HUD, later nameplates, the
-minimap and the rest) are composited over world plates: screenshots of the
-installed client's world rendered by the isometric-wow-sim project from a
-recorded fly-camera pose, taken by tools/site-renders/plates.mjs without
-changing that project. RikUI renders alone on a transparent layer, that layer
-must pass the blank-output check by itself, and the plate's hash, the app
-commit and the creatures in frame with their screen positions are recorded
-beside the plate and verified by the render gate. tools/site-renders/README.md
-has the details.
-
-Named spell and item identities replace random icon selection. Spell identifiers
-come from RikUI catalogues; action placement also uses the selected preset and
-saved action snapshot. Glyphs come from media/icons. File IDs and texture hashes
-are retained in web/client-assets.json.
-
-Run npm run build:docs before direct Wrangler commands. npm test, check, dev and
-deploy build the documentation automatically. Generated HTML and copied captures
-stay under web/public; browser verification images stay under repository dist.
+Browser review images and acquisition reports stay in ignored dist or external private scratch. Existing scene/realm saves, operator settings and unrelated development servers are preserved. Website-only changes deploy without manufacturing an addon release.

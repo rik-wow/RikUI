@@ -52,12 +52,16 @@ async function openApp(browser, plate) {
   const query = new URLSearchParams({ quality: plate.quality, hour: String(plate.hour), realm: plate.realm ? "1" : "0", seed: String(plate.seed) });
   await page.goto(URL_BASE + "/?" + query, { waitUntil: "domcontentloaded", timeout: 120000 });
   await page.waitForSelector('[data-ready="true"]', { timeout: 120000 });
-  await page.selectOption('select[aria-label="Map or instance"]', String(plate.map));
+  if (await page.evaluate(() => window.nativeScene?.map?.id) !== plate.map) {
+    const select = page.locator('select[aria-label="Map or instance"]');
+    if (!await select.count()) await page.getByRole("button", { name: "World atlas", exact: true }).click();
+    await select.selectOption(String(plate.map));
+  }
   await page.waitForFunction(id => window.nativeScene?.map?.id === id && document.querySelector(".native-viewport")?.dataset.ready === "true", plate.map, { timeout: 120000 });
   if (!await page.evaluate(HIDE)) throw new Error("The app viewport was not found");
   // Panels that mount later (the realm chronicle) stay hidden too.
   await page.addStyleTag({ content: ".native-viewport > :not(canvas) { display: none !important; }" });
-  await page.evaluate(() => { const s = window.nativeScene; s.streamRadius = 3; s.setFly(true); s.flySpeed = 0; });
+  await page.evaluate(radius => { const s = window.nativeScene; s.streamRadius = radius; s.setFly(true); s.flySpeed = 0; },plate.streamRadius??3);
   return { page, errors };
 }
 
@@ -142,10 +146,10 @@ async function capturePlate(browser, config, plate) {
   try {
     // Stream the tiles under the camera first: ground heights only exist once a tile's patch has arrived.
     await page.evaluate(place, { p: spec, camera: { x: spec.camera.x, z: spec.camera.z, y: 400 }, lookAt: null });
-    await settle(page);
+    if (!await settle(page)) throw Error(spec.name + ": terrain streaming did not settle");
     let pose = await page.evaluate(place, { p: spec, camera: spec.camera, lookAt: spec.lookAt ?? null });
     if (!pose.groundKnown) throw new Error(spec.name + ": no terrain under the camera at " + spec.camera.x + ", " + spec.camera.z);
-    await settle(page);
+    if (!await settle(page)) throw Error(spec.name + ": model streaming did not settle");
     await page.waitForTimeout(spec.settleMs);
     let followed = null;
     if (spec.follow) {
@@ -173,6 +177,7 @@ async function capturePlate(browser, config, plate) {
     const record = { name: spec.name, caption: spec.caption ?? "", file: path.basename(file), width: spec.width, height: spec.height,
       sha256: createHash("sha256").update(image).digest("hex"), capturedAt: new Date().toISOString(),
       app: { ...appProvenance(config.appRoot), url: URL_BASE, browser: browser.version() },
+      ...(config.verifiedInputs?{inputs:config.verifiedInputs}:{}),
       request: { map: spec.map, hour: spec.hour, quality: spec.quality, realm: spec.realm, seed: spec.seed, camera: spec.camera, lookAt: spec.lookAt ?? null, follow: spec.follow ?? null },
       camera: { x: pose.x, y: pose.y, z: pose.z, yaw: pose.yaw, pitch: pose.pitch, fov: 62 }, followed, actors };
     await writeFile(path.join(OUT, spec.name + ".json"), JSON.stringify(record, null, 2) + "\n");
@@ -212,7 +217,19 @@ async function probe(browser, config, map, x, z, radius) {
   }
 }
 
-const config = JSON.parse(await readFile(path.join(WORLDS, "plates.json"), "utf8"));
+const config = JSON.parse(await readFile(option("config", path.join(WORLDS, "plates.json")), "utf8"));
+if(config.inputs){
+ const provenance=JSON.parse(await readFile(config.inputs,"utf8"));
+ const current=execFileSync("git",["ls-remote","https://github.com/Gethe/wow-ui-source.git","refs/heads/forever"],{encoding:"utf8"}).split(/\s+/)[0];
+ if(provenance.identity.uiHead!==current)throw Error("World inputs are not from the current Forever head");
+ if(appProvenance(config.appRoot).commit!==provenance.appCommit||appProvenance(config.appRoot).dirty.length)throw Error("World renderer source changed");
+ for(const row of [...provenance.outputs,...provenance.extraction,...provenance.rendererSource]){
+  const file=path.resolve(path.dirname(config.inputs),row.file),base=path.resolve(path.dirname(config.inputs));
+  if(!file.startsWith(base+path.sep))throw Error("World input escaped isolated root");
+  if(createHash("sha256").update(await readFile(file)).digest("hex")!==row.sha256)throw Error("World input changed: "+row.file);
+ }
+ config.verifiedInputs={identity:provenance.identity,manifestSHA256:createHash("sha256").update(await readFile(config.inputs)).digest("hex"),limitations:provenance.limitations};
+}
 const browser = await chromium.launch({ headless: true, args: GPU_ARGS });
 try {
   if (args.includes("--probe")) {

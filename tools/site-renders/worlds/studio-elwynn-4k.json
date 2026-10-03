@@ -1,0 +1,62 @@
+{
+  "name": "studio-elwynn-4k",
+  "caption": "Goldshire road, UI-free current-client world renderer capture.",
+  "file": "studio-elwynn-4k.jpg",
+  "width": 3840,
+  "height": 2160,
+  "sha256": "957f78d01e702d676a3128cfc65545f5a459916145ccd3920c32c47b35a4627d",
+  "capturedAt": "2026-10-03T02:29:34.086Z",
+  "app": {
+    "root": "D:/Code/isometric-wow-sim",
+    "commit": "c45cdc91d15fdc1c9c6f86dec0a04aefc8562b91",
+    "dirty": [],
+    "url": "http://127.0.0.1:5179",
+    "browser": "153.0.8010.12"
+  },
+  "inputs": {
+    "identity": {
+      "version": "1.60.1.70205",
+      "uiHead": "e3ecc27b64d30fdc735a3f6579b866858f9f9df1",
+      "buildConfig": "842b2e5d11f8d6fe257a5b73bd5cf6c6",
+      "cdnConfig": "ce9356750f0c9edb005bb03d8bf37384",
+      "extractorSHA256": "efbcf7c018310719328ca3cf101d366195a1d96d7fbc07871bdff70d88fe1945"
+    },
+    "manifestSHA256": "6e61bf927c16d713dbdd4acf4306b5c606ad74bf777e67a2fe1211243da1f953",
+    "limitations": [
+      "Current client scenery through the existing isometric renderer, not a native game screenshot.",
+      "No player/actor simulation, procedural grass, UI, live names or realm saves in the canned scene.",
+      "Terrain uses native map textures when the supported map-textures path is selected; advanced terrain layers/liquids are outside that capture.",
+      "Static model conversion reports 46 unavailable entries: a null model reference, four models without static skins and 41 unsupported BLP encoding 3 textures; capture coverage is the reviewed visible scene."
+    ]
+  },
+  "request": {
+    "map": 0,
+    "hour": 10,
+    "quality": "ultra",
+    "realm": false,
+    "seed": 24401,
+    "camera": {
+      "x": 8,
+      "z": 9502,
+      "above": 7.5
+    },
+    "lookAt": {
+      "x": -48,
+      "z": 9466,
+      "above": 3
+    },
+    "follow": null
+  },
+  "camera": {
+    "x": 8,
+    "y": 65.61634414672838,
+    "z": 9502,
+    "yaw": 0.9994588469612697,
+    "pitch": -0.08597929644384962,
+    "fov": 62
+  },
+  "followed": null,
+  "actors": [],
+  "reviewedSHA256": "957f78d01e702d676a3128cfc65545f5a459916145ccd3920c32c47b35a4627d",
+  "reviewedAt": "2026-10-03T02:30:00Z"
+}

@@ -29,4 +29,8 @@ test("pure VM caches preserve null-table output, isolate mutation and agree with
  }
  assert.equal(e.call("ModuleEnabled",{modules:{chat:false}},"chat"),false);
  assert.equal(e.call("ModuleEnabled",{modules:{chat:true}},"chat"),true);
+ e.call("Equal",null,null);
+ assert.throws(()=>e.call("Equal",NaN,null),/Invalid number/);
+ assert.throws(()=>e.call("Equal",()=>{},null),/must be data/);
+ assert.throws(()=>e.call("Equal",{constructor:null},null),/Invalid key/);
 });

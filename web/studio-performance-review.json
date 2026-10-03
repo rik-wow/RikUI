@@ -33,5 +33,13 @@
   "limitations": [
     "Settled fitting and validation still run the authoritative Lua VM on the main thread.",
     "Fullscreen availability depends on browser; denied requests use the expanded workspace."
-  ]
+  ],
+  "afterWorldMedianMs": {
+    "selection": 33.4,
+    "movers": 33.5,
+    "search": 33.5,
+    "move": 116.3
+  },
+  "afterWorldReviewedAt": "2026-10-03T02:30:50.495Z",
+  "afterWorldBackgroundSHA256": "957f78d01e702d676a3128cfc65545f5a459916145ccd3920c32c47b35a4627d"
 }

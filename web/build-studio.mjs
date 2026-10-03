@@ -11,6 +11,7 @@ import {sourcePaths} from "./pack-sources.mjs";
 import {createEngine} from "./pack-engine.mjs";
 import {prunePublicAssets} from "./prune-public-assets.mjs";
 import {loadGuides} from "./docs-source.mjs";
+import {reviewedWorld} from "./studio-world-check.mjs";
 import {modulePages} from "./docs-catalogue.mjs";
 const hash=value=>createHash("sha256").update(value).digest("hex");
 const sources=await Promise.all(sourcePaths.map(p=>readFile(new URL("../"+p,import.meta.url),"utf8")));
@@ -71,7 +72,11 @@ for(const choice of Array.from(engine.call("ModuleChoices"))){
  const sample=native?await asset(native.id,native.frames?.find(f=>f.sha256===native.sha256)||native.frames?.[0]):undefined;
  modules.push({...choice,title,summary:guide.summary,guide:"/docs/"+guide.slug,...(sample?{guideSample:{url:sample.url,title:sample.title,sha256:sample.sha256}}:{})});
 }
-const data={version:1,reviewOnly,modules,sources:sourcePaths.map((path,i)=>({path,sha256:hash(sources[i]),source:sources[i]})),atlases,packs,
+const {record:world,raw:worldBytes}=await reviewedWorld();
+const worldURL="/assets/studio/world-elwynn-"+world.sha256.slice(0,12)+".jpg";
+await writeFile(new URL("./public"+worldURL,import.meta.url),worldBytes);assets.push(worldURL);
+const background={url:worldURL,width:world.width,height:world.height,sha256:world.sha256,caption:world.caption,client:world.inputs.identity.version,source:"Current client scenery through the isometric renderer; no player or UI. Native map textures; advanced terrain layers and liquids are outside this canned scene."};
+const data={version:1,reviewOnly,background,modules,sources:sourcePaths.map((path,i)=>({path,sha256:hash(sources[i]),source:sources[i]})),atlases,packs,
  limitations:["Representative player data is fixture data, not your character.","Dynamic quest, target aura and inventory contents may grow beyond the sample. Review fitting conflicts in the addon.","Only captured coordinated themes and text sizes have appearance previews. Other imported settings are preserved and identified.","QuestTogether uses a compatibility recipe, not a styling API. Missing addons retain RikUI ownership."]};
 const dataText=JSON.stringify(data),dataURL="/assets/studio/data-"+hash(dataText).slice(0,12)+".json";
 await writeFile(new URL("./public"+dataURL,import.meta.url),dataText);assets.push(dataURL);
