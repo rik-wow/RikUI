@@ -88,6 +88,38 @@
     ]
   },
   {
+    "id": "options-appearance",
+    "page": "options",
+    "title": "Appearance settings",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"appearance\")\nRikRenderSetOption(\"appearance\",\"theme.accent\",\"blue\")\nRikUI.Options.Refresh()\nRikRenderResize(RikUIOptionsPanel)",
+    "expectText": [
+      "Appearance",
+      "Theme",
+      "Accent",
+      "Border thickness",
+      "Interface density"
+    ]
+  },
+  {
+    "id": "options-bar-configuration",
+    "page": "options",
+    "title": "Independent bar settings",
+    "frame": "RikUIOptionsPanel",
+    "crop": "800x600+624+276",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"bars\")\nRikRenderSetOption(\"bars\",\"selectedBar\",\"bar4\")\nRikRenderSetOption(\"bars\",\"shape.bar4.columns\",3)\nRikRenderSetOption(\"bars\",\"shape.bar4.size\",42)\nRikUI.Options.Refresh()\nRikRenderResize(RikUIOptionsPanel)",
+    "expectText": [
+      "Bar to arrange",
+      "Right action bar",
+      "Buttons per row",
+      "Button size",
+      "Button spacing"
+    ]
+  },
+  {
     "id": "options-modules",
     "page": "options",
     "title": "Module selection",
@@ -487,6 +519,38 @@
     "expectText": [
       "Frame to position",
       "Move frame left"
+    ]
+  },
+  {
+    "id": "layout-grid-settings",
+    "page": "layout",
+    "title": "Snapping settings",
+    "frame": "RikRenderGridSettings",
+    "crop": "570x370+739+391",
+    "fixtures": [],
+    "lua": "RikRenderSettingsPage(\"general\")\nRikRenderSetOption(\"general\",\"layoutTools.grid\",true)\nRikRenderSetOption(\"general\",\"layoutTools.showGrid\",true)\nRikUI.Options.Refresh()\nRikRenderSettingsRows(\"general\",\"Snapping and grid\",\"RikRenderGridSettings\",570,370)\n",
+    "expectText": [
+      "Snap to edges and centers",
+      "Snap to grid",
+      "Show grid while moving",
+      "Grid spacing"
+    ]
+  },
+  {
+    "id": "layout-grid",
+    "page": "layout",
+    "title": "Native movement grid",
+    "frame": "RikRenderGridScreen",
+    "crop": "1060x592+470+560",
+    "world": {
+      "plate": "goldshire-road"
+    },
+    "fixtures": [
+      "RikRenderScreenState()"
+    ],
+    "lua": "RikUI.Layout.SetToolPreference(\"grid\",true)\nRikUI.Layout.SetToolPreference(\"gridSize\",16)\nRikUI.Layout.SetToolPreference(\"showGrid\",true)\nRikRenderUnlockedGroup(\"player\")\nassert(RikUI.Layout.Grid:IsShown() and #RikUI.Layout.Grid.lines <= 256)\nlocal snapped=RikUI.Layout.SnapDrag(RikUI.Geometry.Rect(107,411,200,50),{}, {width=2048,height=1152},false)\nassert(snapped.left==112 and snapped.bottom==416)\nRikRenderScreen(\"RikRenderGridScreen\",470,0,1060,592)\n",
+    "expectText": [
+      "Player frame"
     ]
   },
   {

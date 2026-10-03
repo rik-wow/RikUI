@@ -8,7 +8,7 @@ Pages are grouped under **Interface**, **Gameplay** and **System**. Use **Search
 
 ![Settings search](render:options-search)
 
-Each feature has its own page. The **Castbars** page, for example, holds bar width, bar height and **Show remaining cast time**.
+Each feature has its own page and an enable switch. Enabling a feature also enables its required modules. Reload UI to apply module choices. The **Castbars** page, for example, holds bar width, bar height and **Show remaining cast time**.
 
 ![Cast-bar settings](render:options-castbars)
 
@@ -18,7 +18,15 @@ Changes save automatically. If a change needs a reload, the **Reload UI** button
 
 ## Appearance
 
-Under **General**, choose a layout preset, adjust frame scale, undo the last layout change or nudge the selected frame one screen unit at a time.
+Under **General**, choose a layout preset, adjust frame scale, undo the last layout change or precisely position a selected frame. Use X/Y fields, adjustable movement steps, independent alignment/grid snapping and a grid while moving. See [Move and resize frames](layout.md) for the controls and modifiers.
+
+Open **Appearance** to choose Classic, Ocean or Ink, or adjust accents, border thickness and bar textures individually. Health and warning colors retain their meaning. **Interface density** resizes frames together. Readability recipes add larger text, numeric labels, stronger borders or reduced motion; they preserve unrelated preferences and save personal requirements for future creator updates. Reload after text and appearance changes.
+
+![Appearance settings](render:options-appearance)
+
+Open **Bars and layout** and choose **Bar to arrange**. Only that bar’s buttons-per-row, button-size and spacing controls are shown. Slots and bindings remain in order. Protected geometry changes wait until combat ends.
+
+![Independent bar settings](render:options-bar-configuration)
 
 ![General](render:options-general)
 
@@ -50,7 +58,7 @@ If a feature is off, its settings remain visible but cannot be changed. The Modu
 
 ## Profiles
 
-Open **System → Profiles** to create, copy, rename or select a profile. Enter a name, then click **Create** to start from defaults or **Copy** to keep your current setup. A copy keeps its own settings, so changes to it will not affect the original.
+Open **System → Profiles** to create, copy or select a profile. Enter a name, then click **Create** to start from defaults or **Copy** to keep your current setup. A copy keeps its own settings, so changes to it will not affect the original.
 
 ![Profiles](render:options-profiles)
 

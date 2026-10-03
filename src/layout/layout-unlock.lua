@@ -74,6 +74,7 @@ local function setUnlocked(key, open)
     if not open then everything = false end
     if layout.Tags[key] then paint(layout.Tags[key], open) end
     if layout.RefreshOverlay then layout.RefreshOverlay(key) end
+    if layout.RefreshGrid then layout.RefreshGrid() end
     local group = layout.Groups[key]
     if group and type(group.onUnlock) == "function" then group.onUnlock(open == true) end
 end
@@ -181,6 +182,7 @@ function layout.RefreshMovers()
     if layout.RefreshOverlay then
         for key in pairs(unlocked) do layout.RefreshOverlay(key) end
     end
+    if layout.RefreshGrid then layout.RefreshGrid() end
 end
 
 layout.StopMoving = layout.LockAll

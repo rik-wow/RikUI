@@ -4,10 +4,10 @@ const entry = (slug, title, group, modules, summary, kind, surfaces) =>
 export const catalogue = [
 entry("setup-studio","Setup Studio","Getting started","","Choose, fit, import and share real Setup Packs.","settings","Setup Studio review|Handheld presentation"),
 entry("wizard","Setup wizard","Getting started","wizard","Type /rik setup to open the wizard.","wizard","Welcome|Your role|Keybinds|Screen layout|Modules and settings|Review and apply"),
-entry("options","Settings and profiles","Getting started","","Type /rik config, or click RikUI beside the minimap and choose Settings.","settings","General|Module selection|Profiles|Setup and support|Settings search|Pending reload|Profile confirmation"),
-entry("layout","Move and resize frames","Getting started","","Type /rik move.","layout","Frame mover|Resize handle|Layout presets|Position nudges|Undo layout change"),
+entry("options","Settings and profiles","Getting started","","Type /rik config, or click RikUI beside the minimap and choose Settings.","settings","General|Appearance settings|Independent bar settings|Module selection|Profiles|Setup and support|Settings search|Pending reload|Profile confirmation"),
+entry("layout","Move and resize frames","Getting started","","Type /rik move.","layout","Frame mover|Resize handle|Layout presets|Position nudges|Snapping settings|Native movement grid|Undo layout change"),
 entry("shell","RikUI menu","Getting started","","Click RikUI beside the minimap to open the menu.","menu","Minimap launcher|Interface actions|Tools actions|Support actions|Tracked spells"),
-entry("sharing","Import and export","Getting started","","Share live Setup Packs; legacy profiles and action bars stay importable.","settings","Profile export|Profile import|Preset library|Remove imported preset"),
+entry("sharing","Import and export","Getting started","","Share UI profiles and character action-bar presets.","settings","Profile export|Profile import|Preset library|Remove imported preset"),
 entry("bars","Action bars","Combat","bars","RikUI provides three action rows and two side columns, with separate stance and pet controls.","slots","Main action row|Secondary action row|Third action row|Right action column|Left action column|Manual page overlay|Stance page overlay|Stance buttons|Pet actions|Empty preset slot|Cooldown and key labels"),
 entry("unitframes","Unit frames","Combat","unitframes","The player frame sits left of the character and the target frame sits to the right.","unit","Player|Target|Target of target|Pet|Focus|Party|Raid grid"),
 entry("castbars","Cast bars","Combat","castbars","Each bar shows the spell icon, spell name and cast progress.","cast","Player cast|Target cast|Focus cast|Pet cast|Channel|Interrupted cast"),

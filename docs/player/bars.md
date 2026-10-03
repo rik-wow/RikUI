@@ -18,9 +18,9 @@ Your normal action-bar keys and buttons still work. Drag spells and items onto b
 
 ## Change each bar's shape
 
-Open **Settings → Bars and layout**, or select a bar in **Setup Studio → Layout → Shape selected bar**. Choose 1–12 buttons per row for action bars, or up to 10 for pet/stance controls; buttons range from 24–64 units with 0–16 units between them. Actions wrap left to right and retain slot order. Protected geometry waits until combat ends and does not require a reload.
+Open **Settings → Bars and layout**, choose **Bar to arrange**, then adjust that bar’s three shape controls. Choose 1–12 buttons per row for action bars, or up to 10 for pet/stance controls; buttons range from 24–64 units with 0–16 units between them. Actions wrap left to right and retain slot order. Protected geometry waits until combat ends and does not require a reload.
 
-The [online Studio](https://rikwow.com/studio) offers independent grids with authentic button samples at sizes 30, 36, 42 and 48. Other imported sizes retain their exact geometry and are identified as uncaptured appearance. **Find a better bar arrangement** tries alternate column counts for unedited bars without shrinking your buttons or changing your bindings. Personal shapes remain yours, and Undo restores the prior arrangement.
+Each bar is independent. Use a single row, a vertical column or a compact grid without changing your bindings. Use `/rik move` to place the resized bar.
 
 ![Independent bar grids](render:bars-independent-grids)
 

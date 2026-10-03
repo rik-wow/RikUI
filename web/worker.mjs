@@ -86,6 +86,9 @@ async function route(request, env) {
     return Response.redirect("https://rikwow.com" + url.pathname + url.search, 308);
   if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8",
     { "Cache-Control": "public, max-age=60, no-transform" });
+  const preview = (env.STUDIO_PREVIEW === true || env.STUDIO_PREVIEW === "true") && ["localhost","127.0.0.1","[::1]"].includes(url.hostname);
+  if (!preview && (url.pathname === "/studio" || url.pathname === "/studio/" || url.pathname === "/setups" || url.pathname.startsWith("/setups/") || url.pathname.replace(/\/$/,"") === "/docs/setup-studio"))
+    return Response.redirect(url.origin+"/docs/options",302);
   if (url.pathname === "/studio") return respond(editor,200,"text/html; charset=utf-8");
   if (url.pathname === "/setups") return respond(setups,200,"text/html; charset=utf-8");
   if (url.pathname === "/setups/submit") return respond(submit,200,"text/html; charset=utf-8");

@@ -10,7 +10,7 @@ You can also hold Ctrl, Alt and Shift together to show a tag on every frame. Cli
 
 ![Frame tags](render:layout-tags)
 
-Frames stay within the screen and make room for nearby elements. Hold Shift while dragging for free placement.
+Frames stay within the screen and make room for nearby elements. Hold **Shift** or **Alt** while dragging to bypass snapping; collision and screen bounds still apply.
 
 ## Resize a frame
 
@@ -20,9 +20,19 @@ Frames that can change size, such as the chat window, have a grip in the bottom-
 
 ## Fine positioning
 
-Open **Settings → General**, choose a frame under **Frame to position**, then use **Left**, **Right**, **Up** and **Down** to move it one screen unit at a time. It stops at other frames and at the screen edge, which makes it easy to line up neighbours.
+Open **Settings → General**, choose a frame under **Frame to position**, then use **Left**, **Right**, **Up** and **Down**. **Movement step** defaults to one screen UI unit and can increase to ten; hold Shift for ten times the selected step. **X position** and **Y position** use the frame's bottom-left corner. Type a coordinate and press Enter to apply, or Escape to cancel. These controls stop at other frames and screen edges.
 
 ![Position nudges](render:layout-nudges)
+
+## Snapping and grid
+
+Under **Settings → General → Snapping and grid**, choose alignment snapping, grid snapping and a visible grid independently. **Grid spacing** supports 1–32 screen UI units. Alignment to nearby edges and centers takes priority over grid rounding.
+
+![Snapping settings](render:layout-grid-settings)
+
+The grid appears only while frames are unlocked. At fine spacing, fewer lines are drawn to keep the screen readable; the actual snapping interval remains exact. Editor preferences belong to your character and survive switching or importing profiles.
+
+![Native movement grid](render:layout-grid)
 
 ## Scale and presets
 

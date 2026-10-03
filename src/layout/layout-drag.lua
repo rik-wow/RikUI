@@ -12,6 +12,96 @@ local TINT, ACCENT, BLOCKED = { 0.3, 0.75, 1, 0.16 }, { 0.3, 0.75, 1, 1 }, { 1, 
 local SNAP_THRESHOLD, SNAP_GAP, BAND_WIDTH, SWEEP_SECONDS, PULSE_SECONDS, PULSE_LOW = 8, 4, 64, 1.6, 0.8, 0.35
 local LOCK_SIZE, LOCK_ICON, LOCK_INSET, LOCK_HOVER, LOCK_FADE = 18, 12, 2, 0.35, 0.12
 local drag
+local TOOL_DEFAULTS = { align = true, grid = false, showGrid = false, gridSize = 8, moveStep = 1 }
+local GRID_MAX_LINES = 128
+
+-- Arrangement tools are personal editor preferences, not part of a shared UI profile.
+function layout.ToolPreference(key)
+    local saved = core.CharDB and core.CharDB.layoutTools
+    local value
+    if type(saved) == "table" then value = saved[key] end
+    if type(TOOL_DEFAULTS[key]) == "boolean" then
+        if type(value) == "boolean" then return value end
+    elseif type(value) == "number" and value == value and value % 1 == 0
+        and value >= 1 and value <= (key == "moveStep" and 10 or 32) then return value end
+    return TOOL_DEFAULTS[key]
+end
+
+function layout.SetToolPreference(key, value)
+    local default = TOOL_DEFAULTS[key]
+    if default == nil or not core.CharDB then return nil, "Unknown arrangement preference." end
+    if type(default) == "boolean" then
+        if type(value) ~= "boolean" then return nil, "Choose on or off." end
+    elseif type(value) ~= "number" or value ~= value or value % 1 ~= 0
+        or value < 1 or value > (key == "moveStep" and 10 or 32) then
+        return nil, "Arrangement value is outside its supported range."
+    end
+    if type(core.CharDB.layoutTools) ~= "table" then core.CharDB.layoutTools = {} end
+    core.CharDB.layoutTools[key] = value
+    core:Changed()
+    if layout.RefreshGrid then layout.RefreshGrid() end
+    return true
+end
+
+function layout.SetCoordinates(key, x, y)
+    if type(x) ~= "number" or type(y) ~= "number" or x ~= x or y ~= y
+        or math.abs(x) > 10000 or math.abs(y) > 10000 then return nil, "Enter valid coordinates." end
+    local rect = layout.Rect(key)
+    if not rect then return nil, "Choose a registered frame." end
+    return layout.Nudge(key, x - rect.left, y - rect.bottom)
+end
+
+-- As in the browser editor, round to the grid first, then let nearby alignment guides take priority.
+function layout.SnapDrag(wanted, obstacles, screen, bypass)
+    if bypass then return wanted, {} end
+    if layout.ToolPreference("grid") then
+        local size = layout.ToolPreference("gridSize")
+        wanted = geometry.Move(wanted, math.floor(wanted.left / size + 0.5) * size - wanted.left,
+            math.floor(wanted.bottom / size + 0.5) * size - wanted.bottom)
+    end
+    local dx, dy, guides = 0, 0, {}
+    if layout.ToolPreference("align") then
+        dx, dy, guides = geometry.Snap(wanted, obstacles, screen, SNAP_THRESHOLD, SNAP_GAP)
+    end
+    return geometry.Move(wanted, dx, dy), guides
+end
+
+-- Texture count is bounded even at one-unit spacing on large screens. Fine grids show every nth line.
+function layout.RefreshGrid()
+    local screen = layout.Screen()
+    local visible = screen and layout.IsMoving and layout.IsMoving() and layout.ToolPreference("showGrid")
+    local grid = layout.Grid
+    if not visible then if grid then grid:Hide() end; return end
+    if not grid then
+        grid = CreateFrame("Frame", nil, UIParent)
+        grid:SetAllPoints(UIParent)
+        grid:SetFrameStrata("DIALOG")
+        grid:EnableMouse(false)
+        grid.lines = {}
+        layout.Grid = grid
+    end
+    local size, count = layout.ToolPreference("gridSize"), 0
+    for _, axis in ipairs({ "x", "y" }) do
+        local extent = axis == "x" and screen.width or screen.height
+        local spacing = size * math.max(1, math.ceil(extent / size / GRID_MAX_LINES))
+        for at = spacing, extent - 1, spacing do
+            count = count + 1
+            local line = grid.lines[count]
+            if not line then
+                line = grid:CreateTexture(nil, "BACKGROUND")
+                line:SetTexture(skin.FLAT)
+                line:SetVertexColor(0.3, 0.75, 1, 0.18)
+                grid.lines[count] = line
+            end
+            line:ClearAllPoints()
+            line:SetPoint("BOTTOMLEFT", grid, "BOTTOMLEFT", axis == "x" and at or 0, axis == "y" and at or 0)
+            line:SetSize(axis == "x" and 1 or screen.width, axis == "y" and 1 or screen.height)
+            line:Show()
+        end
+    end
+    for index = count + 1, #grid.lines do grid.lines[index]:Hide() end
+    grid:Show()
+end
 
 function layout.IsDragging() return drag ~= nil end
 
@@ -186,12 +276,9 @@ local function step()
     if not drag or InCombatLockdown() then return end
     local x, y = cursorPosition()
     local wanted = geometry.Move(drag.start, x - drag.cursorX, y - drag.cursorY)
-    local guides = {}
-    if not IsShiftKeyDown() then
-        local dx, dy
-        dx, dy, guides = geometry.Snap(wanted, drag.obstacles, drag.screen, SNAP_THRESHOLD, SNAP_GAP)
-        wanted = geometry.Move(wanted, dx, dy)
-    end
+    local bypass = IsShiftKeyDown() or (type(IsAltKeyDown) == "function" and IsAltKeyDown())
+    local guides
+    wanted, guides = layout.SnapDrag(wanted, drag.obstacles, drag.screen, bypass)
     local rect = geometry.Resolve(drag.last, wanted, drag.obstacles, drag.screen)
     local target = geometry.Clamp(wanted, drag.screen)
     local blocked = math.abs(rect.left - target.left) > 0.5 or math.abs(rect.bottom - target.bottom) > 0.5

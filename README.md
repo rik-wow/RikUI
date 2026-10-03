@@ -1,6 +1,6 @@
 # RikUI
 
-`/rik studio` opens Setup Studio to select, fit, preview, apply, share and safely update Setup Packs. Pack imports are staged for review. Module, font and coordinated theme changes need a reload; activity and device changes queue outside combat.
+Use `/rik config` to customize appearance, readability, modules and layout. Setup Studio is temporarily hidden while its workflow is reconsidered; its implementation and saved setups remain preserved.
 
 
 **Restart the game after installing or updating RikUI.** A `/reload` won't
@@ -31,8 +31,8 @@ the project.
    There shouldn't be another folder between `RikUI` and the TOC.
 4. Start the game and enable RikUI in the AddOns list.
 
-UI compatibility reviewed with WoW: Forever beta **1.60.1.70170**, interface `16001`,
-on 2026-10-02 against the current UI source, installed client and reviewed Lua
+UI compatibility reviewed with WoW: Forever beta **1.60.1.70205**, interface `16001`,
+on 2026-10-03 against the current UI source, installed client and reviewed Lua
 renders. This records the build reviewed; future client updates are checked again.
 Quest and road datasets require separate current-build validation; unsupported
 builds remain unverified.
@@ -48,7 +48,7 @@ Existing data is preserved.
 
 ## First login
 
-Open `/rik studio` to choose, fit, preview and apply a setup, or [configure it on the website](https://rikwow.com/studio). See the canonical [installation](docs/player/installation.md) and [Setup Studio](docs/player/setup-studio.md) guides.
+Open `/rik config` to choose features, themes and readability. Under **Bars and layout**, select one bar and adjust its rows, button size and spacing. See the canonical [installation](docs/player/installation.md) and [settings](docs/player/options.md) guides.
 
 The separate character setup wizard opens the first time you use RikUI on a character. Pick a
 preset, look over the bars and keybinds, and choose which parts to apply. You can
@@ -125,7 +125,6 @@ Setup and presets:
 
 | Command | What it does |
 | --- | --- |
-| `/rik studio` | Choose, fit, review, share and safely update Setup Packs. |
 | `/rik setup` | Open the setup wizard. |
 | `/rik apply [role]` | Apply your class preset without the wizard, for a role if you name one. |
 | `/rik undo` | Restore the bars, macros, bindings, game settings and frame positions from before the last Apply. |

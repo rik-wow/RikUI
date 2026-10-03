@@ -9,7 +9,7 @@ test("site, CSS, manifest, redirects, and method boundaries", async () => {
   const home = await worker.fetch(request("/"), {});
   assert.equal(home.status, 200);
   assert.match(home.headers.get("Cache-Control"), /no-transform/);
-  assert.match(await home.text(), /RikUI Setup Studio for WoW Forever/);
+  assert.match(await home.text(), /A compact, configurable interface for WoW Forever/);
   const script = await worker.fetch(request(studioScriptURL), {ASSETS:{fetch:async()=>new Response("ArrowRight",{headers:{"Content-Type":"text/javascript"}})}});
   assert.match(script.headers.get("Content-Type"), /text\/javascript/);
   assert.match(await script.text(), /ArrowRight/);
@@ -26,6 +26,26 @@ test("site, CSS, manifest, redirects, and method boundaries", async () => {
   assert.equal((await (await worker.fetch(request("/api/v1/releases"), {})).json()).product, "RikUI");
 });
 
+
+test("Studio is paused publicly and enabled only by a development binding", async () => {
+  for (const path of ["/studio", "/studio/", "/studio?pack=centered", "/setups", "/setups/submit", "/setups/centered", "/docs/setup-studio", "/docs/setup-studio/"]) {
+    const response = await worker.fetch(request(path), {});
+    assert.equal(response.status,302,path);
+    assert.equal(response.headers.get("Location"),"https://rikwow.com/docs/options",path);
+  }
+  const home = await (await worker.fetch(request("/"),{})).text();
+  assert.doesNotMatch(home,/href="\/(?:studio|setups)|INTRODUCING SETUP STUDIO/);
+  for (const flag of [true,"true"]) {
+    assert.equal((await worker.fetch(request("/studio"),{STUDIO_PREVIEW:flag})).status,302);
+    assert.equal((await worker.fetch(new Request("http://127.0.0.1:8787/studio"),{STUDIO_PREVIEW:flag})).status,200);
+  }
+  for (const flag of [false,"false",1,"1"]) {
+    assert.equal((await worker.fetch(new Request("http://127.0.0.1:8787/studio"),{STUDIO_PREVIEW:flag})).status,302);
+  }
+  const preview = await worker.fetch(new Request("http://127.0.0.1:8787/studio"),{STUDIO_PREVIEW:"true"});
+  assert.equal(preview.status,200);
+  assert.match(await preview.text(),/id="studio-app"/);
+});
 
 test("reviewed Studio asset preserves conditional responses, security and method boundaries", async () => {
   let reads = 0;

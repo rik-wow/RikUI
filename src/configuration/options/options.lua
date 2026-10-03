@@ -224,12 +224,34 @@ local function precisionSpecs(specs)
     specs[#specs + 1] = { type = "dropdown", key = "layoutFrame", label = "Frame to position",
         values = frameChoices, get = function() return state.layoutFrame end,
         set = function(value) state.layoutFrame = value end }
+    specs[#specs + 1] = { type = "heading", label = "Precision movement",
+        description = "Coordinates use the frame's bottom-left corner in screen UI units. Enter applies; Escape cancels." }
+    for _, axis in ipairs({ "x", "y" }) do
+        specs[#specs + 1] = { type = "text", key = "frame." .. axis, label = axis:upper() .. " position",
+            commitOnEnter = true, protected = true,
+            disabled = function() return InCombatLockdown() or not core.Layout.Rect(state.layoutFrame) end,
+            get = function()
+                local rect = core.Layout.Rect(state.layoutFrame)
+                return rect and string.format("%.2f", axis == "x" and rect.left or rect.bottom) or ""
+            end,
+            set = function(text)
+                local value, rect = tonumber(text), core.Layout.Rect(state.layoutFrame)
+                if not value or not rect then return nil, "Enter a numeric coordinate." end
+                return core.Layout.SetCoordinates(state.layoutFrame, axis == "x" and value or rect.left,
+                    axis == "y" and value or rect.bottom)
+            end }
+    end
+    specs[#specs + 1] = {type="slider",key="moveStep",label="Movement step",
+        min=1,max=10,step=1,description="One unit gives precise movement. Hold Shift for ten times the step.",
+        get=function()return core.Layout.ToolPreference("moveStep")end,
+        set=function(value)return core.Layout.SetToolPreference("moveStep",value)end}
     for _, direction in ipairs({ { "Left", -1, 0 }, { "Right", 1, 0 }, { "Up", 0, 1 }, { "Down", 0, -1 } }) do
         local label, dx, dy = unpack(direction)
         local spec = action("nudge" .. label, "Move frame " .. label:lower(), label, function()
-            return core.Layout.Nudge(state.layoutFrame, dx, dy)
+            local step = core.Layout.ToolPreference("moveStep") * (IsShiftKeyDown() and 10 or 1)
+            return core.Layout.Nudge(state.layoutFrame, dx * step, dy * step)
         end)
-        spec.description = "Move one screen unit. Stops at other frames and screen edges."
+        spec.description = "Use the movement step. Shift multiplies by ten. Stops at other frames and screen edges."
         spec.disabled = function() return InCombatLockdown() or not core.Layout.Groups[state.layoutFrame] end
         specs[#specs + 1] = spec
     end
@@ -246,6 +268,18 @@ local function layoutSpecs(specs)
         set = function(value) return core.Layout.SetScale(value) end }
     if core.Layout.PresetOption then specs[#specs + 1] = core.Layout.PresetOption() end
     precisionSpecs(specs)
+    specs[#specs + 1] = {type="heading",label="Snapping and grid",
+        description="Drag with Shift or Alt to bypass snapping. The grid appears only while frames are unlocked."}
+    for _, field in ipairs({{"align","Snap to edges and centers"},{"grid","Snap to grid"},{"showGrid","Show grid while moving"}}) do
+        local key, label=unpack(field)
+        specs[#specs + 1]={type="checkbox",key="layoutTools."..key,label=label,
+            get=function()return core.Layout.ToolPreference(key)end,
+            set=function(value)return core.Layout.SetToolPreference(key,value)end}
+    end
+    specs[#specs + 1]={type="slider",key="gridSize",label="Grid spacing",min=1,max=32,step=1,
+        description="Screen UI units. Fine grids display fewer lines to stay readable; snapping keeps the exact interval.",
+        get=function()return core.Layout.ToolPreference("gridSize")end,
+        set=function(value)return core.Layout.SetToolPreference("gridSize",value)end}
     specs[#specs + 1] = action("move", "Frame positions", "Move frames", moveFrames)
     local reset = action("reset", "Default positions", "Reset positions", function() core.Layout.Reset() end)
     reset.confirm = function() return "Reset positions for " .. core.CharDB.profile .. "?" end
@@ -271,6 +305,98 @@ local function generalSpecs()
         get = function() return core.Profile.textScale or 1 end,
         set = function(value) core.Profile.textScale = value end }
     return specs
+end
+
+
+-- Use the same bounded appearance values as portable packs, through ordinary settings.
+function options.ApplyTheme(name)
+    local value, reason = core.SetupPack.Theme(name)
+    if not value then return nil, reason end
+    if InCombatLockdown() then return nil, "Change appearance after combat." end
+    core.Profile.theme, core.Profile.borderColor = value.theme, value.borderColor
+    core:Changed()
+    return true
+end
+
+function options.ApplyReadability(name)
+    local value, reason = core.SetupPack.AccessibilityRecipe(name)
+    if not value then return nil, reason end
+    if InCombatLockdown() then return nil, "Change readability after combat." end
+    -- Record personal requirements before editing the profile; creator updates keep them.
+    local ok, issue = core.Studio.Accessibility(name)
+    if not ok then return nil, issue end
+    state.readability=name
+    local profile = core.Profile
+    if value.scale then core.Layout.SetScale(math.max(core.Layout.GetScale(), value.scale)) end
+    if value.textScale then profile.textScale = math.max(profile.textScale or 1, value.textScale) end
+    if value.reducedMotion then profile.reducedMotion = true end
+    if value.contrast then profile.borderColor = {0.85, 0.85, 0.85} end
+    if value.nonColor then
+        profile.unitframes = profile.unitframes or {}
+        profile.unitframes.healthText, profile.unitframes.powerText = "both", "both"
+        profile.nameplates = profile.nameplates or {}
+        profile.nameplates.threatText, profile.showHotkeys = true, true
+        -- Numeric labels finish applying with the same reload as text settings.
+    end
+    core:Changed()
+    return true
+end
+
+local function appearanceSpecs()
+    local specs = { { type = "heading", label = "Theme",
+        description = "Coordinated borders and accents. Health, warning and selection colors keep their meaning." } }
+    specs[#specs + 1] = { type = "dropdown", key = "themePreset", label = "Theme", reload = true,
+        choices = {{value="classic",label="Classic · gold"},{value="ocean",label="Ocean · blue"},{value="ink",label="Ink · high contrast"},{value="custom",label="Custom"}},
+        get = function()
+            for _, name in ipairs({"classic","ocean","ink"}) do
+                local value = core.SetupPack.Theme(name)
+                if core.SetupPack.Equal(core.Profile.theme or value.theme, value.theme)
+                    and core.SetupPack.Equal(core.Profile.borderColor or value.borderColor, value.borderColor) then return name end
+            end
+            return "custom"
+        end,
+        set = function(name) if name ~= "custom" then return options.ApplyTheme(name) end end }
+    for _, field in ipairs({
+        {"accent","Accent", "gold", {{value="gold",label="Gold"},{value="blue",label="Blue"},{value="white",label="White"}}},
+        {"border","Border thickness",1,{{value=1,label="Thin"},{value=2,label="Strong"}}},
+        {"texture","Bar texture","bundled",{{value="bundled",label="RikUI texture"},{value="flat",label="Flat"}}},
+    }) do
+        local key, label, default, choices = unpack(field)
+        specs[#specs + 1] = {type="dropdown",key="theme."..key,label=label,reload=true,choices=choices,
+            get=function() return core.Profile.theme and core.Profile.theme[key] or default end,
+            set=function(value) core.Profile.theme=core.Profile.theme or {};core.Profile.theme[key]=value end}
+    end
+    specs[#specs + 1] = {type="slider",key="density",label="Interface density",protected=true,
+        description="Resize frames together. Bar button spacing is configured independently under Bars and layout.",
+        min=SCALE_MIN,max=SCALE_MAX,step=SCALE_STEP,format=function(v)return string.format("%.0f%%",v*100)end,
+        get=function()return core.Layout.GetScale()end,set=function(v)return core.Layout.SetScale(v)end}
+    specs[#specs + 1] = {type="heading",label="Readability",
+        description="Recipes add personal requirements without resetting other settings. Fine-tune font, text size and motion below."}
+    for _, recipe in ipairs({{"readable","Larger text + numeric labels"},{"contrast","High contrast + reduced motion"},{"calm","Reduced motion + non-color cues"}}) do
+        local key, label = unpack(recipe)
+        local spec = action("readability."..key,label,"Use recipe",function()return options.ApplyReadability(key)end)
+        spec.description="Saved personal preference; preserved by creator updates. Reload UI to finish text and appearance changes."
+        spec.reload=true
+        spec.pending=function()return state.readability==key and core:ProfileNeedsReload()end
+        specs[#specs + 1]=spec
+    end
+    local general=generalSpecs()
+    for _, spec in ipairs(general) do
+        if spec.key=="font" or spec.key=="textScale" or spec.key=="reducedMotion" then specs[#specs+1]=spec end
+    end
+    return specs
+end
+
+local BAR_LABELS={main="Main action bar",bar2="Action bar 2",bar3="Action bar 3",bar4="Right action bar",bar5="Left action bar",pet="Pet action bar",stance="Stance / form bar"}
+local function selectedBar() return state.bar or "main" end
+local function barChooser()
+    return {type="dropdown",key="selectedBar",label="Bar to arrange",
+        description="Change one bar at a time. Every action and binding keeps its slot. Geometry changes wait until combat ends.",
+        values=function()
+            local entries={}
+            for _, key in ipairs(core.LayoutMetrics.BarKeys) do entries[#entries+1]={value=key,text=BAR_LABELS[key] or key} end
+            return entries
+        end,get=selectedBar,set=function(value)state.bar=value end}
 end
 
 local function moduleSpecs()
@@ -352,8 +478,24 @@ local function modulePages(pages)
         local module = core.Modules[name]
         local declared = module.Options
         if type(declared) == "table" and type(declared.settings) == "table" then
-            local specs = {}
-            for index, spec in ipairs(declared.settings) do specs[index] = moduleSpec(name, module, spec) end
+            local specs = {moduleToggle(name,module,"page.module.")}
+            if name=="bars" then specs[#specs+1]=barChooser() end
+            local ordered={}
+            if name=="bars" then
+                for _, spec in ipairs(declared.settings) do if spec.key and spec.key:match("^shape%.") then ordered[#ordered+1]=spec end end
+            end
+            for _, spec in ipairs(declared.settings) do
+                if name~="bars" or not (spec.key and spec.key:match("^shape%.")) then ordered[#ordered+1]=spec end
+            end
+            for _, spec in ipairs(ordered) do
+                local wrapped = moduleSpec(name,module,spec)
+                local bar = name=="bars" and spec.key and spec.key:match("^shape%.([^.]+)%.")
+                if bar then
+                    wrapped.visible=function()return selectedBar()==bar end
+                    wrapped.label=spec.label:gsub("^[^·]+· ","")
+                end
+                specs[#specs+1]=wrapped
+            end
             local gameplay = name == "worldmap" or name == "experience" or name == "questplanner" or name == "loot"
             pages[#pages + 1] = { id = name, group = (declared.group == "System" or declared.group == "Gameplay" or declared.group == "Interface") and declared.group or (gameplay and "Gameplay" or "Interface"),
                 title = declared.title or moduleTitle(name, module), specs = specs }
@@ -487,6 +629,7 @@ function options.Pages()
     local pages = { { id = "general", group = "Interface", title = "General",
         description = "Your layout and everyday preferences.", specs = generalSpecs() } }
     for _, page in ipairs(options.ClassPages and options.ClassPages() or {}) do pages[#pages + 1] = page end
+    if core.SetupPack then pages[#pages+1]={id="appearance",group="Interface",title="Appearance",description="Theme, density and personal readability.",specs=appearanceSpecs()} end
     modulePages(pages)
     pages[#pages + 1] = { id = "modules", group = "System", title = "Modules",
         description = "Choose which parts of RikUI to load. Apply changes with Reload UI.", specs = moduleSpecs() }

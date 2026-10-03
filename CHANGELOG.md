@@ -9,6 +9,30 @@ tagging.
 
 ## Unreleased
 
+## 1.0.0-beta.11
+
+2026-10-03. Regular in-game configuration for WoW: Forever beta.
+
+- Temporarily hide Setup Studio from public addon commands, website navigation,
+  editor/gallery routes and documentation discovery. Preserve its implementation,
+  saved packs and restoration data. Old website links lead to the settings guide.
+- Add an Appearance page using RikUI's existing native controls: coordinated
+  themes, accents, borders, textures, density and personal readability recipes.
+  Keep health/warning colors meaningful and show reload requirements.
+- Add a feature switch to each module settings page. Keep dependencies,
+  disabled-state explanations and the existing Modules overview.
+- Add independent alignment/grid switches, a bounded native movement grid, 1–32-unit
+  grid spacing, adjustable precision steps and exact X/Y fields. Enter applies a
+  coordinate; Escape cancels. Shift or Alt bypasses drag snapping; Shift accelerates
+  precision buttons. Preserve personal editor preferences across profile imports.
+- Select one action bar at a time for buttons-per-row, size and spacing controls.
+  Preserve action slots and bindings; defer protected geometry until after combat.
+- Count shared settings once in the reload footer. Preserve profile and preset
+  import/export, frame movers and the character setup wizard.
+- Refresh canonical guides and actual affected Lua captures. Studio development
+  coverage remains available with an explicit local preview binding.
+
+
 ## 1.0.0-beta.10
 
 2026-10-02. Precise Studio placement and advisory character clearance for WoW: Forever beta.

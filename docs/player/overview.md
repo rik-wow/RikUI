@@ -4,7 +4,6 @@ RikUI gives WoW Forever a compact interface with flat unit frames, action bars, 
 
 ## Get started
 
-- [Choose and configure a setup](https://rikwow.com/studio), or open `/rik studio` in the addon.
 - [Install RikUI](installation.md).
 - Run the [setup wizard](wizard.md) to choose your role and layout.
 - [Move frames](layout.md) to suit your screen.
@@ -12,7 +11,7 @@ RikUI gives WoW Forever a compact interface with flat unit frames, action bars, 
 
 ## Choose a layout
 
-The separate character wizard and **Settings → General** offer four whole-screen layout presets. Use the control under the picture to compare those layouts. [Setup Studio](setup-studio.md) adds component selection, device fitting, personal overrides and a reserved character viewing area.
+The separate character wizard and **Settings → General** offer four whole-screen layout presets. Use the control under the picture to compare those layouts. Choose **Settings → Appearance** for themes and readability; each feature page includes its module switch.
 
 ![Screen layouts](preview:overview-layouts)
 
@@ -24,7 +23,6 @@ On a smaller screen such as 1366x768, the chat window takes the room left of the
 
 | Command | Opens or changes |
 | --- | --- |
-| `/rik studio` | Setup Studio: fit, select parts and share |
 | `/rik setup` | Character setup wizard |
 | `/rik config` | Settings |
 | `/rik move` | Frame handles |

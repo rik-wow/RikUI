@@ -1,5 +1,7 @@
 # Setup Studio
 
+Development reference: Studio is temporarily hidden from the released addon and public website. Use `/rik config` for current configuration. The retained workflow below documents the implementation for future revision; it is not currently available through normal player entry points.
+
 Copy a setup you like, fit your screen and keep personal changes. Open **/rik studio**, or start at [Setup Studio](https://rikwow.com/studio) before installing.
 
 ![Setup Studio review](preview:studio-controls)

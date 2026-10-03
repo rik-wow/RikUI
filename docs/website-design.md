@@ -1,6 +1,6 @@
 # RikUI website design
 
-The public site centers on discovering, configuring, installing and sharing Setup Packs. Player-facing instructions live only in [docs/player](player/); [the documentation pipeline](documentation-pipeline.md) generates their pages and navigation. This file describes implementation decisions, not a second copy of those guides.
+Studio is temporarily withdrawn from public navigation and routes. The public site centers on installing RikUI and configuring it through the regular in-game settings. The Studio architecture below is retained as development reference. Player-facing instructions live only in [docs/player](player/); [the documentation pipeline](documentation-pipeline.md) generates their pages and navigation. This file describes implementation decisions, not a second copy of those guides.
 
 ## Authentic Studio preview
 
@@ -29,6 +29,9 @@ Feature cards rebuild only when feature state, ownership, thumbnails or filters 
 [The measured review](../web/studio-performance-review.json) records the same-machine before/after methodology and results. These measurements are development evidence, not a guarantee for all hardware. Browser tests assert retained nodes/pixels, real changes, keyboard/fullscreen recovery, crop behavior, failure fallback and portable export.
 
 ## Hosting and publication
+
+Studio and gallery routes redirect to the regular settings guide. No query string enables Studio publicly. Local development can opt in with `npx wrangler dev --local --local-upstream 127.0.0.1 --var STUDIO_PREVIEW:true`; the binding is honored only on localhost/loopback hosts and is absent from deployment configuration. Run `npx playwright test --config playwright.studio.config.mjs` for retained editor regression coverage, and `npx playwright test --config playwright.live.config.mjs` for the deployed public site. Default browser checks exercise the public homepage, redirects and documentation.
+
 
 Cloudflare Workers Static Assets serves only approved hashed asset paths, with immutable asset caching, no-store failures, same-origin CSP and release allowlists. HTML remains current. Installation links and release metadata use the actual published beta channel.
 

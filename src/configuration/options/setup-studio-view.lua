@@ -420,10 +420,11 @@ function studio.Open()
  if issue then window.status:SetText("Current UI could not be staged: "..tostring(issue))end
  return true
 end
-core:RegisterCommand("studio",function(args)
+-- Studio remains available to development fixtures; public entry is paused.
+function studio.Command(args)
  if args=="" then report(studio.Open())
  elseif args=="exit" then if previewMode then leavePreview()else studio.ExitPreview();studio.Capture(false)end
  elseif args:match("^accept ")then accepts[args:sub(8)]=true;studio.RefreshWindow()
  elseif args:match("^restore ")then report(studio.Restore(tonumber(args:sub(9))))
  else core:Print("Usage: /rik studio [exit|accept <conflict path>|restore <1..3>]")end
-end,"Configure, fit, share and safely update Setup Packs",studio)
+end

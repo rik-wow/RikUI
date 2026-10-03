@@ -25,16 +25,22 @@ local function groupLabel(group)
 end
 
 local function pendingReload()
-    local total = 0
+    local total, seen = 0, {}
     for _, page in ipairs(panel.pages) do
         local count = 0
-        for _, row in ipairs(page.list.rows) do if row.pending then count = count + 1 end end
+        for _, row in ipairs(page.list.rows) do
+            if row.pending then
+                count=count+1
+                local key=row.spec.key or row
+                if type(key)=="string" then key=key:gsub("^page%.module%.","module.") end
+                if not seen[key] then seen[key]=true;total=total+1 end
+            end
+        end
         page.tab.badge:SetText(tostring(count))
         shown(page.tab.badge, count > 0)
         page.tab.text:ClearAllPoints()
         page.tab.text:SetPoint("LEFT", 10, 0)
         page.tab.text:SetPoint("RIGHT", count > 0 and -24 or -4, 0)
-        total = total + count
     end
     return total
 end

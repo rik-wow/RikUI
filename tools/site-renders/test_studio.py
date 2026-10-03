@@ -22,9 +22,39 @@ class StudioChecks(unittest.TestCase):
         self.assertEqual(addon_inputs({"page":"unitframes"},files),addon_inputs({"page":"unitframes"},changed))
         for page in ("setup-studio","studio-gallery"):
             self.assertNotEqual(addon_inputs({"page":page},files),addon_inputs({"page":page},changed))
-        for page in ("wizard","options","layout","sharing","overview","studio-atlas"):
+        for page in ("wizard","layout","sharing","overview","studio-atlas"):
             self.assertEqual(addon_inputs({"page":page},files),addon_inputs({"page":page},changed))
         self.assertNotEqual(addon_inputs({"page":"unitframes"},files),addon_inputs({"page":"unitframes"},{**files,"src/ui/skin.lua":"after"}))
+    def test_regular_settings_use_shared_themes_but_not_studio_window(self):
+        files={"src/setup/setup-pack.lua":"theme","src/configuration/options/options.lua":"settings","src/configuration/options/options-view.lua":"panel","src/configuration/options/setup-studio-view.lua":"studio"}
+        for case in ({"page":"options"},{"page":"layout","lua":'RikRenderSettingsRows("general","scale","Detail",400,160)'}):
+            inputs=addon_inputs(case,files)
+            self.assertIn("src/configuration/options/options.lua",inputs)
+            self.assertIn("src/configuration/options/options-view.lua",inputs)
+            self.assertNotIn("src/configuration/options/setup-studio-view.lua",inputs)
+        for case in ({"page":"options"},{"page":"worldmap","lua":'RikRenderSettingsPage("worldmap")'},
+                     {"page":"layout","lua":'RikRenderSettingsRows("general","scale","Detail",400,160)'}):
+            self.assertIn("src/setup/setup-pack.lua",addon_inputs(case,files))
+        for case in ({"page":"unitframes"},{"page":"overview"},{"page":"studio-atlas"},{"page":"setup-studio"}):
+            inputs=addon_inputs(case,files)
+            self.assertNotIn("src/configuration/options/options.lua",inputs)
+            self.assertNotIn("src/configuration/options/options-view.lua",inputs)
+        unknown=addon_inputs({"page":"future"},files)
+        self.assertIn("src/configuration/options/options.lua",unknown)
+        self.assertIn("src/configuration/options/options-view.lua",unknown)
+
+
+    def test_native_movement_inputs_only_expire_editor_scenes(self):
+        files={"src/layout/layout-drag.lua":"drag","src/layout/layout-unlock.lua":"tags",
+               "src/configuration/options/options-controls.lua":"controls","src/ui/skin.lua":"skin"}
+        for page in ("bars","chat","unitframes","studio-atlas","studio-gallery"):
+            self.assertEqual(addon_inputs({"page":page},files),{"src/ui/skin.lua":"skin"})
+        for case in ({"page":"layout"},{"page":"options"},{"page":"setup-studio"},
+                     {"page":"chat","lua":'RikRenderUnlockedGroup("chat")'},{"page":"future"}):
+            inputs=addon_inputs(case,files)
+            self.assertIn("src/layout/layout-drag.lua",inputs)
+            self.assertIn("src/layout/layout-unlock.lua",inputs)
+
     def test_atlas_keeps_native_inputs_without_uninvoked_studio_operations(self):
         files={"src/setup/setup-studio.lua":"journal","src/configuration/options/setup-studio-view.lua":"window","src/ui/skin.lua":"skin","src/modules/chat/chat-move.lua":"chat","src/setup/setup-pack.lua":"contract"}
         self.assertEqual(set(addon_inputs({"page":"studio-atlas"},files)),{"src/ui/skin.lua","src/modules/chat/chat-move.lua"})

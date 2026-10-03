@@ -3,15 +3,15 @@ import { documentation } from "./docs-generated.mjs";
 import { catalogue } from "./docs-catalogue.mjs";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-const docPages=new Set(catalogue.map(guide=>guide.slug));
+const publicCatalogue=catalogue.filter(guide=>guide.slug!=="setup-studio");
+const docPages=new Set(publicCatalogue.map(guide=>guide.slug));
 const renders=JSON.parse(readFileSync(new URL("./ui-renders/manifest.json",import.meta.url),"utf8")).renders.filter(render=>docPages.has(render.page));
 const sequences=renders.filter(render=>render.frames);
 const WIZARD_WIDTH=860, WIZARD_HEIGHT=624;
 // Each Lua render belongs beside the instruction it illustrates, identified by the nearest preceding heading.
 const placements={
- "setup-studio":{"studio-bar-shapes-editor":null,"studio-controls":null,"studio-handheld":null,"studio-theme-review":null,"studio-edit-undo":null,"studio-live-export":null,"studio-try-on":null},
  wizard:{"wizard-1":"ref-1-welcome","wizard-2":"ref-2-your-role","wizard-3":"ref-3-keybinds","wizard-4":"ref-4-screen-layout","wizard-5":"ref-5-modules-and-settings","wizard-6":"ref-6-review-and-apply"},
- options:{"options-castbars":"ref-open-settings","options-search":"ref-open-settings","options-pending":"ref-open-settings","options-confirm":"ref-profiles","options-general":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
+ options:{"options-castbars":"ref-open-settings","options-search":"ref-open-settings","options-pending":"ref-open-settings","options-confirm":"ref-profiles","options-general":"ref-appearance","options-appearance":"ref-appearance","options-bar-configuration":"ref-appearance","options-class":"ref-your-class-area","options-modules":"ref-choose-your-modules","options-profiles":"ref-profiles","options-setup":"ref-help-and-recovery"},
  sharing:{"sharing-export":"ref-export-a-ui-profile","sharing-import":"ref-import-a-ui-profile","sharing-library":"ref-remove-an-imported-preset","sharing-remove":"ref-remove-an-imported-preset"},
  unitframes:{"units-player":"ref-player-and-target","units-target":"ref-player-and-target","units-tot":"ref-player-and-target","units-pet":"ref-player-and-target","units-focus":"ref-player-and-target","units-low-health":"ref-health-and-power-text","units-party":"ref-party-and-raid","units-raid":"ref-party-and-raid"},
  castbars:{"cast-interrupted":"ref-reading-a-cast-bar","cast-channel":"ref-reading-a-cast-bar","cast-target":"ref-player-target-focus-and-pet","cast-focus":"ref-player-target-focus-and-pet","cast-pet":"ref-player-target-focus-and-pet","cast-player":"ref-change-the-size"},
@@ -19,7 +19,7 @@ const placements={
  chat:{"chat-history":"ref-read-and-send-messages","chat-input":"ref-read-and-send-messages","chat-scroll":"ref-read-and-send-messages","chat-copy":"ref-copy-chat-text","chat-search":"ref-search-the-history","chat-resize":"ref-font-timestamps-and-size"},
  loot:{"loot-list":"ref-loot-an-item","loot-coins":"ref-loot-an-item","loot-roll":"ref-group-rolls","loot-confirm":"ref-group-rolls"},
  shell:{"shell-menu":"ref-the-rikui-button","shell-launcher":"ref-the-rikui-button","shell-interface":"ref-the-rikui-button","shell-support":"ref-the-rikui-button","shell-tools":"ref-tracked-spells"},
- layout:{"layout-mover":"ref-move-a-frame","layout-tags":"ref-move-a-frame","layout-resize":"ref-resize-a-frame","layout-nudges":"ref-fine-positioning","layout-presets":"ref-scale-and-presets","layout-short-presets":"ref-scale-and-presets","layout-healer-groups":"ref-scale-and-presets","layout-undo":"ref-reset-or-undo"},
+ layout:{"layout-mover":"ref-move-a-frame","layout-tags":"ref-move-a-frame","layout-resize":"ref-resize-a-frame","layout-nudges":"ref-fine-positioning","layout-grid-settings":"ref-snapping-and-grid","layout-grid":"ref-snapping-and-grid","layout-presets":"ref-scale-and-presets","layout-short-presets":"ref-scale-and-presets","layout-healer-groups":"ref-scale-and-presets","layout-undo":"ref-reset-or-undo"},
  overview:{"overview-layouts":"ref-choose-a-layout","overview-small-screen":"ref-choose-a-layout"},
  "combat-hud":{"hud-arrangement":"ref-what-the-hud-shows","hud-column":"ref-the-column","hud-rogue":"ref-your-class-in-the-column","hud-shaman":"ref-your-class-in-the-column","hud-druid":"ref-your-class-in-the-column","hud-scale":"ref-scale-the-hud"},
  cooldowns:{"cooldowns-strip":"ref-your-cooldown-strip","cooldowns-viewer":"ref-your-cooldown-strip","cooldowns-class":"ref-your-cooldown-strip","cooldowns-rows":"ref-your-cooldown-strip","cooldowns-counter":"ref-your-cooldown-strip","cooldowns-tracked":"ref-choose-tracked-spells"},
@@ -73,7 +73,7 @@ const placements={
 test("every documentation route and internal guide link resolves",async({request,page})=>{
  test.setTimeout(120000);
  const pages={};
- for(const route of Object.keys(documentation)){
+ for(const route of Object.keys(documentation).filter(route=>route!=="/docs/setup-studio")){
   const response=await request.get(route);
   expect(response.status(),route).toBe(200);
   expect(response.headers()["content-type"]).toContain("text/html");
@@ -101,7 +101,7 @@ test("every documentation route and internal guide link resolves",async({request
  expect(failures).toEqual([]);
  expect((await request.get("/docs/not-a-guide")).status()).toBe(404);
  expect((await request.get("/docs/bags/",{maxRedirects:0})).status()).toBe(308);
- for(const guide of catalogue){
+ for(const guide of publicCatalogue){
   expect(pages["/docs/"+guide.slug]).toContain('class="ui-example"');
   expect(pages["/docs/"+guide.slug].match(/<figure /g)?.length,guide.slug).toBe(renders.filter(render=>render.page===guide.slug).length);
   expect(pages["/docs/"+guide.slug],guide.slug+" still places a drawing").not.toMatch(/<svg|data-mockup/);

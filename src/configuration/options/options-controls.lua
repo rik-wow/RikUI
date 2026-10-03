@@ -341,12 +341,19 @@ types.text = {
         box:SetTextInsets(metrics.textInset, metrics.textInset, 0, 0)
         media.Font(box, "label")
         box:SetScript("OnTextChanged", function(self, userInput)
-            if userInput and not row.refreshing then options.Commit(row, self:GetText()) end
+            if userInput and not row.refreshing and not row.spec.commitOnEnter then options.Commit(row, self:GetText()) end
         end)
         box:SetScript("OnTabPressed", function() options.TabFromText(row) end)
         box:HookScript("OnHide", function(self) self:ClearFocus() end)
-        box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
-        box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+        box:SetScript("OnEnterPressed", function(self)
+            if row.spec.commitOnEnter then options.Commit(row, self:GetText()) end
+            self:ClearFocus()
+            if row.spec.commitOnEnter and options.Refresh then options.Refresh() end
+        end)
+        box:SetScript("OnEscapePressed", function(self)
+            self:ClearFocus()
+            if row.spec.commitOnEnter then self:SetText(row.spec.get() or "") end
+        end)
         return box
     end,
     refresh = function(row, value)

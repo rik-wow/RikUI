@@ -5,7 +5,7 @@ export const catalog = {
   product: "RikUI",
   channel: "beta",
   status: "prerelease",
-  latest: "1.0.0-beta.10",
+  latest: "1.0.0-beta.11",
   releasesUrl: "https://github.com/rik-wow/RikUI/releases",
   sourceUrl: "https://github.com/rik-wow/RikUI",
   releases: [],

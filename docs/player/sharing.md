@@ -1,11 +1,5 @@
 # Import and export
 
-## Share your complete setup
-
-Open `/rik studio` and choose **Share → Export live**. Copy the entire code into [Setup Studio](https://rikwow.com/studio) to edit your current setup visually, then export it back and choose **Import a code** in the addon. Importing stages changes; select parts and review ownership, fitting conflicts and reload requirements before **Apply setup**.
-
-**Share draft** exports the setup you are editing, and **Export theme** shares appearance alone. Character actions, macros and selected bindings use the separate optional exports and review. Existing profile and action-bar preset codes remain importable. See [Setup Studio](setup-studio.md) for the complete journey.
-
 ## Export a UI profile
 
 Type `/rik profileexport`. The export window shows your profile as text; press Ctrl-C to copy it. The export includes interface preferences and frame positions and leaves out chat history and character data.

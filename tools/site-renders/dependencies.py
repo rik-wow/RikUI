@@ -70,13 +70,27 @@ def uses_preset_positions(case):
 
 def addon_inputs(case, files):
     page = case.get("page")
-    if page not in {"setup-studio", "studio-gallery", "studio-atlas"}:
-        # These files only define Studio APIs; ordinary wizard/options/layout/sharing
-        # fixtures never invoke them. Their startup performs no frame construction.
+    scene = "\n".join([case.get("lua", ""), *case.get("fixtures", []), case.get("sequence", {}).get("apply", "")])
+    # Settings declarations build no visible UI until a fixture opens settings or uses its setters.
+    # Unknown surfaces stay conservative. Inspect scene calls and reached fixture text.
+    settings = page == "options" or "RikUI.Options" in scene or "RikUIOptions" in scene or any(
+        name in scene for name in ("RikRenderSettings", "RikRenderSetOption", "RikRenderPendingReload", "RikRenderNudgeState", "RikRenderUndoReady", "RikRenderSecondProfile", "RikRenderImportedPreset", "RikRenderOptions"))
+    if page not in {"setup-studio", "studio-gallery", "studio-atlas", "options"} and not settings:
+        # These files define Studio APIs without constructing visible UI at startup.
+        # The ordinary options page also uses the shared Theme values.
         files = {name:value for name,value in files.items() if name not in {
             "src/setup/setup-pack.lua", "src/setup/setup-pack-library.lua",
             "src/setup/setup-studio.lua", "src/configuration/options/setup-studio-view.lua"}}
-    scene = "\n".join([case.get("lua", ""), *case.get("fixtures", []), case.get("sequence", {}).get("apply", "")])
+    if settings and page not in {"setup-studio", "studio-gallery", "studio-atlas"}:
+        files = {name:value for name,value in files.items() if name not in {"src/setup/setup-studio.lua", "src/configuration/options/setup-studio-view.lua", "src/setup/setup-pack-library.lua"}}
+    if page in DIRECT | GLOBAL_PAGES | set(PAGES) | {"setup-studio","studio-gallery","studio-atlas"} and not settings:
+        files = {name:value for name,value in files.items() if name not in {"src/configuration/options/options.lua", "src/configuration/options/options-view.lua", "src/configuration/options/options-controls.lua"}}
+    # Drag/unlock source constructs only hidden editor controls until a scene enters movement.
+    # Layout, settings, Studio controls and unknown scenes retain it conservatively.
+    movers = settings or page in GLOBAL_PAGES | {"setup-studio"} or any(
+        name in scene for name in ("RikRenderUnlocked", "RikRenderHeldTags", "BeginDrag", "HoldKey(", "SetUnlocked", "UnlockAll", "SnapDrag", "RefreshGrid"))
+    if page in DIRECT | set(PAGES) | {"studio-gallery", "studio-atlas"} and not movers:
+        files = {name:value for name,value in files.items() if name not in {"src/layout/layout-drag.lua", "src/layout/layout-unlock.lua"}}
     banner = any(name in scene for name in ("RikRenderObjectiveBanner", "RikRenderBossBanner", "RikRenderEventToast"))
     banner = banner or any(name in case.get("frame", "") for name in ("Banner", "Toast"))
     if page in GLOBAL_PAGES | {"setup-studio", "studio-gallery", "studio-atlas"} and not banner:
@@ -98,7 +112,8 @@ def addon_inputs(case, files):
     return {name: value for name, value in files.items()
             if (name not in NAVIGATION_FILES or page in NAVIGATION_PAGES)
             and (name not in PRESET_FILES or preset_positions)
-            and (page in GLOBAL_PAGES or relevant(name, modules, page))}
+            and (page in GLOBAL_PAGES or relevant(name, modules, page)
+                 or (settings and name == "src/setup/setup-pack.lua"))}
 
 def relevant(name, modules, page):
     # Setup Pack operations do not construct ordinary addon UI until Studio is invoked.

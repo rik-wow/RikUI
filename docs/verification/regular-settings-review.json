@@ -1,0 +1,223 @@
+{
+  "scope": "studio-pause-native-settings",
+  "reviewedAt": "2026-10-03",
+  "client": {
+    "version": "1.60.1.70205",
+    "source": "e3ecc27b64d30fdc735a3f6579b866858f9f9df1",
+    "installedExecutableMatched": true
+  },
+  "images": [
+    {
+      "id": "combattext-settings",
+      "filename": "combattext-settings.webp",
+      "sha256": "b57c84fca4caf513bef860299dfd049e1923b85e76321bf72570a7a90a373914"
+    },
+    {
+      "id": "cooldowns-tracked",
+      "filename": "cooldowns-tracked.webp",
+      "sha256": "3349712d574becf7fc852eac5260873ffbe8a6356efdba764de1612bb7098d67"
+    },
+    {
+      "id": "hud-scale@0.85",
+      "filename": "hud-scale@0.85.webp",
+      "sha256": "9984c8491bf3cb8867322d374c99a592119fd92bc21df6b36e6a0b22df0ba0c5"
+    },
+    {
+      "id": "hud-scale@1",
+      "filename": "hud-scale@1.webp",
+      "sha256": "88aaf518924c7a1a6a77d8fe94a1263b2f6879596a9a33ba50b983e30843edbf"
+    },
+    {
+      "id": "hud-scale@1.15",
+      "filename": "hud-scale@1.15.webp",
+      "sha256": "51df9680cc9e84dafcb1affb31bb427640bf4975049bf35551b414139e6888eb"
+    },
+    {
+      "id": "layout-healer-groups@party",
+      "filename": "layout-healer-groups@party.webp",
+      "sha256": "523036ab9cb78278af816c972431d2473bb9bd8a9a830ba5039d977d0c535447"
+    },
+    {
+      "id": "layout-healer-groups@raid",
+      "filename": "layout-healer-groups@raid.webp",
+      "sha256": "dff4ab88c60817a65a5e075a2c7405dc2bbaad74a80df47a52b076f72190cf47"
+    },
+    {
+      "id": "layout-mover",
+      "filename": "layout-mover.webp",
+      "sha256": "c31f41b7f4667b21855f5e3d1b1481c8e4516bca8d89fd103c136be6f4b79df6"
+    },
+    {
+      "id": "layout-nudges",
+      "filename": "layout-nudges.webp",
+      "sha256": "13ad96e24f6c8b325610b46568536a45a42854547e7712fb35ddb2278812c48d"
+    },
+    {
+      "id": "layout-resize",
+      "filename": "layout-resize.webp",
+      "sha256": "fd17f2bcff02a616c370bb5814c3ac5df2ec46c2962406541ec5b71ab02e975c"
+    },
+    {
+      "id": "layout-short-presets@classic",
+      "filename": "layout-short-presets@classic.webp",
+      "sha256": "de4f0d577f37393565259d462fffbdb30036d8b10e504c85f938f4433f48ca74"
+    },
+    {
+      "id": "layout-short-presets@healer",
+      "filename": "layout-short-presets@healer.webp",
+      "sha256": "00f2e918aab17e04faaad5441f552c4fc3eff26f38d226473cfd88bfe7fc86a7"
+    },
+    {
+      "id": "layout-tags",
+      "filename": "layout-tags.webp",
+      "sha256": "07b204c1d6a319f71e791a900e237005cec3fce3a257f388fde5f9589f0e676c"
+    },
+    {
+      "id": "options-castbars",
+      "filename": "options-castbars.webp",
+      "sha256": "f6cc9f68b5f0fe47fc298eda5dedd4edf94977b1f89b08777aa7868705fb964b"
+    },
+    {
+      "id": "options-class",
+      "filename": "options-class.webp",
+      "sha256": "105fa790c36cbdb1431bd1942eaa2493cc9f0f1fb58d723e2cc640d796722a52"
+    },
+    {
+      "id": "options-general",
+      "filename": "options-general.webp",
+      "sha256": "f2161092656603beb4b49209ff5d608d9ec679f5173b218808d7ce9029dc9752"
+    },
+    {
+      "id": "options-modules",
+      "filename": "options-modules.webp",
+      "sha256": "9a0cc6fb86fccf3b7cdbfe4ef6dcd0020c365a9844dec1f921bc8fcf63b43718"
+    },
+    {
+      "id": "options-pending",
+      "filename": "options-pending.webp",
+      "sha256": "8a103ed3c4eb58e52450661f1e44e56dd5e4be3d0a264a9831020d2618ea2d32"
+    },
+    {
+      "id": "options-profiles",
+      "filename": "options-profiles.webp",
+      "sha256": "44f7a72246754c2b29d9f480b0d32af0910c82b4693a4591b57492cae85b8381"
+    },
+    {
+      "id": "options-setup",
+      "filename": "options-setup.webp",
+      "sha256": "11a1b13ce90a69db1935cdacc5445b3b82b34b643fc788b7ed328fb50a330814"
+    },
+    {
+      "id": "overview-layouts@centered",
+      "filename": "overview-layouts@centered.webp",
+      "sha256": "23663315a11b121108435d94e48d59c8086f78c5abd573211cb0444f2c570a18"
+    },
+    {
+      "id": "overview-layouts@classic",
+      "filename": "overview-layouts@classic.webp",
+      "sha256": "8a0f53c992123684b75baf19d81876b3c71829fb1325fff8e15b0e0213d2201d"
+    },
+    {
+      "id": "overview-layouts@hud",
+      "filename": "overview-layouts@hud.webp",
+      "sha256": "b47dc210032449a86e7b6e1362beb1c1f25971dd82191db66f2acce805d8ccd7"
+    },
+    {
+      "id": "overview-layouts@healer",
+      "filename": "overview-layouts@healer.webp",
+      "sha256": "e2bbe8f9da55bd9db3c8de9f119f417bc931f88d3bfd50121b6481756cbbf924"
+    },
+    {
+      "id": "overview-small-screen",
+      "filename": "overview-small-screen.webp",
+      "sha256": "d05516facc8c131fa6e84cef3eb4897e47d89bfab9c42ab72c6ee0e29bf0d472"
+    },
+    {
+      "id": "planner-preferences",
+      "filename": "planner-preferences.webp",
+      "sha256": "efe25ddbdfac6620af50b1f6ea409ad2a975e299a97af368123cca30c9e6a747"
+    },
+    {
+      "id": "plates-name-options",
+      "filename": "plates-name-options.webp",
+      "sha256": "2e5ab571b1c990e0b19e70ee315a51bbe852430576f0b72bf0e145334552676f"
+    },
+    {
+      "id": "studio-handheld",
+      "filename": "studio-handheld.webp",
+      "sha256": "09bab7a24af4aafbaef2999063b6bcc2a95ce51ca341840d0fa4aab4c280d2ea"
+    },
+    {
+      "id": "studio-live-export",
+      "filename": "studio-live-export.webp",
+      "sha256": "01f21967307eba39a58828712eb278c8ad20afc2eb793751215511fd2afe2274"
+    },
+    {
+      "id": "studio-native-geometry@1",
+      "filename": "studio-native-geometry@1.webp",
+      "sha256": "d32ee0f4930520a4f213ddad4b1882a8a1200ae727c577a98d2fa288c989671b"
+    },
+    {
+      "id": "studio-native-geometry@1.15",
+      "filename": "studio-native-geometry@1.15.webp",
+      "sha256": "12a27805cddc4ebdb123ff751136c9ddef7b3f9fe6a91fa0c4fea37f79f41659"
+    },
+    {
+      "id": "studio-pack-centered",
+      "filename": "studio-pack-centered.webp",
+      "sha256": "63e1530538e9a2788ef90470ea8be6dfd936f8433650338349f571e36ee2ea89"
+    },
+    {
+      "id": "studio-pack-classic",
+      "filename": "studio-pack-classic.webp",
+      "sha256": "2e5e932b103a99b7fc9d06464466994ca45993faa82efeb786d63d828ad7c9fd"
+    },
+    {
+      "id": "studio-pack-healer",
+      "filename": "studio-pack-healer.webp",
+      "sha256": "0deca45e256e2cf45fa69eac2206052b7ef2a2ee6fad6a716b638fb699b21917"
+    },
+    {
+      "id": "studio-pack-hud",
+      "filename": "studio-pack-hud.webp",
+      "sha256": "cf2583111b97ef1844dc588af1227f7f63744385d5f4ddbb1f275ccecdd58870"
+    },
+    {
+      "id": "studio-try-on",
+      "filename": "studio-try-on.webp",
+      "sha256": "c63cbdc43c0badabd0207d62f30487b70dda395aa28d6a2e0b8af5947d42e2e7"
+    },
+    {
+      "id": "worldmap-settings",
+      "filename": "worldmap-settings.webp",
+      "sha256": "54803a96605035e184037aea9c6db5d076c272cd5273b9dd7979112745a876e7"
+    },
+    {
+      "id": "options-appearance",
+      "filename": "options-appearance.webp",
+      "sha256": "3ef396dc056fcd69c887fc93cf166e45a4ae601454691e6e553cff3f367751ee"
+    },
+    {
+      "id": "options-bar-configuration",
+      "filename": "options-bar-configuration.webp",
+      "sha256": "f68cf41f9dbbbc7c72e9ad710d5968d9c8cc8b81fd2475dee95615d15f947771"
+    },
+    {
+      "id": "layout-grid-settings",
+      "filename": "layout-grid-settings.webp",
+      "sha256": "cad4108be0996b617287af6e25c83400dd40cdc874f695d7a82299d34233f899"
+    },
+    {
+      "id": "layout-grid",
+      "filename": "layout-grid.webp",
+      "sha256": "ac8262b8b08656ec00bb68e03b582d98544ed06c38026cbecaee3215fd10b012"
+    }
+  ],
+  "review": "Inspected all 41 changed/new captures at original size and compared reviewed baselines; 473 unchanged images retain their existing reviews. New native Appearance, independently selected bar geometry, precise X/Y movement, snapping settings and bounded mover grid use actual addon widgets. Refreshed 53 affected scenarios plus two corrected detail crops and 22 repeated scenes after the finalized shared-theme dependency scope rejected stale provenance. Private Studio scenes are retained as regression evidence while public Studio remains withdrawn; review is not a claim that Studio UX is ready.",
+  "limitations": [
+    "Game-client behavior is accepted by the user's standing policy; no agent-observed native playtest claimed.",
+    "Fine grid display is decimated to at most 256 lines; actual snapping retains the configured 1–32-unit interval.",
+    "Native and browser alignment thresholds differ; equivalent precision controls do not imply identical drag outcomes.",
+    "Existing unsupported renderer behavior remains explicitly documented; private Studio UX issues remain the reason for public withdrawal."
+  ]
+}

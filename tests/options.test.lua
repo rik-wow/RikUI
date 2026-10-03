@@ -64,7 +64,7 @@ return function(check)
         return frame
     end
     CreateFrame = function(...) return instrument(originalCreate(...)) end
-    local FILES = { "src/core/core.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/setup/setup-snapshot.lua",
+    local FILES = { "src/core/core.lua", "src/core/layout-metrics.lua", "src/core/profile-schema.lua", "src/setup/setup-pack.lua", "src/setup/setup-studio.lua", "src/ui/media.lua", "src/setup/setup.lua", "src/setup/setup-apply.lua", "src/setup/setup-snapshot.lua",
         "src/setup/setup-undo.lua", "src/setup/setup-levelup.lua", "src/layout/layout-geometry.lua", "src/layout/layout.lua", "src/layout/layout-rects.lua", "src/ui/motion.lua", "src/ui/skin.lua", "src/ui/scroll.lua", "src/layout/layout-unlock.lua", "src/layout/layout-drag.lua", "src/configuration/options/options-widgets.lua",
         "src/configuration/options/options-controls.lua", "src/configuration/options/options.lua", "src/configuration/options/options-view.lua" }
     local function boot(db, character, prepare)
@@ -538,7 +538,7 @@ return function(check)
         options.Refresh()
         local titles = {}
         for index, page in ipairs(panelFrame.pages) do titles[index] = page.title end
-        check("nested pages separate modules and maintenance", table.concat(titles, ",") == "General,Alpha things,Modules,Profiles,Setup and support")
+        check("nested pages separate modules and maintenance", table.concat(titles, ",") == "General,Appearance,Alpha things,Modules,Profiles,Setup and support")
         local general = pageByTitle(options, "General").list
         local modules = pageByTitle(options, "Modules").list
         local setup = pageByTitle(options, "Setup and support").list
@@ -694,7 +694,7 @@ return function(check)
         config.search:SetText("last choice")
         check("typing search applies filter and exposes clear action", config.query == "last choice" and config.clearSearch:IsShown())
         options.Search("last choice")
-        check("search finds settings across pages", config.current == 2 and last:IsShown()
+        check("search finds settings across pages", config.pages[config.current] == long and last:IsShown()
             and not long.list.rows[1]:IsShown())
         options.Search("choice long")
         check("search combines words across title and label", not last.filtered and long.list.rows[1].filtered)
@@ -1069,7 +1069,7 @@ return function(check)
             env.click(canvas.pendingOnly)
             check("pending review hides unchanged rows and pages", canvas.onlyPending
                 and not toggle.filtered and pageByTitle(review, "General").filtered
-                and canvas.pages[canvas.current] == mod)
+                and not mod.filtered)
             review.Search("no such setting")
             check("pending search has an empty state", canvas.empty:IsShown())
             review.Search("review")
@@ -1108,6 +1108,62 @@ return function(check)
 
         end
 
+        -- Themes and recipes use real pack values, preserving unrelated settings.
+        local customization=boot()
+        local general=pageByTitle(customization,"General")
+        customization.Commit(rowByKey(general.list,"gridSize"),16)
+        customization.Commit(rowByKey(general.list,"layoutTools.grid"),true)
+        check("ordinary settings persist independent grid preferences",RikUI.CharDB.layoutTools.gridSize==16
+            and RikUI.CharDB.layoutTools.grid==true and RikUI.Profile.layoutTools==nil)
+        local layout=RikUI.Layout
+        local rect,coords,nudge=layout.Rect,layout.SetCoordinates,layout.Nudge
+        local frame=CreateFrame("Frame",nil,UIParent)
+        layout.Register(frame,"precision",{point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=100,y=300})
+        local written
+        layout.Rect=function(key)return key=="precision" and {left=100,bottom=300} or nil end
+        layout.SetCoordinates=function(_,x,y)written={x,y};return true end
+        customization.Commit(rowByKey(general.list,"layoutFrame"),"precision")
+        customization.Refresh()
+        local x=rowByKey(general.list,"frame.x")
+        x.widget:SetFocus();x.widget:SetText("123.5")
+        env.runScript(x.widget,"OnTextChanged",true)
+        check("coordinate fields do not move frames during typing",written==nil)
+        env.runScript(x.widget,"OnEnterPressed")
+        check("Enter applies complete precise coordinates",written and written[1]==123.5 and written[2]==300)
+        written=nil;x.widget:SetFocus();x.widget:SetText("999")
+        env.runScript(x.widget,"OnEscapePressed")
+        check("Escape discards a coordinate draft",written==nil and x.widget:GetText()=="100.00")
+        local moved
+        layout.Nudge=function(_,dx,dy)moved={dx,dy};return true end
+        customization.Commit(rowByKey(general.list,"moveStep"),2)
+        env.shiftDown=true;customization.Activate(rowByKey(general.list,"nudgeRight"));env.shiftDown=false
+        check("native precision buttons honor step and Shift acceleration",moved and moved[1]==20 and moved[2]==0)
+        layout.Rect,layout.SetCoordinates,layout.Nudge=rect,coords,nudge
+        local appearance=pageByTitle(customization,"Appearance")
+        check("regular settings expose shared themes and readability",appearance and rowByKey(appearance.list,"themePreset")
+            and rowByKey(appearance.list,"readability.contrast"))
+        customization.Commit(rowByKey(appearance.list,"themePreset"),"ocean")
+        check("theme control uses supported values without replacing layout",RikUI.Profile.theme.accent=="blue"
+            and RikUI.Profile.theme.texture=="flat" and RikUI.Profile.scale==1)
+        RikUI.Profile.unitframes={width=222,healthText="percent"}
+        RikUI.Profile.chat={fontSize=19}
+        RikUI.Studio.Accessibility=function(name)
+            RikUI.Studio.preference=name;return true
+        end
+        customization.Activate(rowByKey(appearance.list,"readability.readable"))
+        check("readability changes preserve geometry and other preferences",RikUI.Profile.unitframes.width==222
+            and RikUI.Profile.chat.fontSize==19 and RikUI.Profile.unitframes.healthText=="both"
+            and RikUI.Profile.nameplates.threatText==true and RikUI.Studio.preference=="readable")
+        check("readability applies coordinated scale and text",RikUI.Profile.scale>=1.15 and RikUI.Profile.textScale>=1.15)
+        local savedAccent=RikUI.Profile.theme.accent
+        env.inCombat=true
+        check("theme changes are refused during combat",customization.ApplyTheme("ink")==nil and RikUI.Profile.theme.accent==savedAccent)
+        env.inCombat=false
+        RikUI.Studio.Accessibility=function()return nil,"storage full"end
+        local savedBorder=RikUI.Profile.borderColor[1]
+        check("readability persistence failure leaves appearance unchanged",customization.ApplyReadability("contrast")==nil
+            and RikUI.Profile.borderColor[1]==savedBorder and not RikUI.Profile.reducedMotion)
+
         -- Real bars module declares appearance options.
         env.frames, env.printed, env.inCombat = {}, {}, false
         env.settings = { registered = {}, opened = {} }
@@ -1121,6 +1177,16 @@ return function(check)
         env.fire("PLAYER_LOGIN")
         options = RikUI.Options
         local barsPage = pageByTitle(options, "Bars and layout")
+        check("module page exposes its own enable switch",barsPage and rowByKey(barsPage.list,"page.module.bars"))
+        if barsPage then
+            local chooser=rowByKey(barsPage.list,"selectedBar")
+            options.Commit(chooser,"bar4")
+            check("bar selector shows only its independent shape",not rowByKey(barsPage.list,"shape.bar4.columns").filtered
+                and rowByKey(barsPage.list,"shape.main.columns").filtered
+                and #chooser.spec.values()==7)
+            check("selected shape controls precede presentation details",rowByKey(barsPage.list,"shape.bar4.columns").top
+                < rowByKey(barsPage.list,"gryphons").top)
+        end
         check("bars module declares its page", barsPage and rowByKey(barsPage.list, "gryphons") and rowByKey(barsPage.list, "showStockBars")
             and rowByKey(barsPage.list, "borderColor"))
         check("bars settings are disabled while the module is off", rowByKey(barsPage.list, "gryphons").enabled == false)

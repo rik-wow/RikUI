@@ -24,7 +24,7 @@ Quest data is not included in every public package. Check the release notes befo
 
 ## First login
 
-Open `/rik studio` to choose a setup, select parts, fit your screen and review before applying. You can also [configure a setup on the website](https://rikwow.com/studio) and import its code.
+Open `/rik config` to customize your interface. **Appearance** offers themes and readability recipes; each feature page has an enable switch and its own settings. **Bars and layout** lets you select and arrange each bar independently.
 
 Use `/rik setup` for the separate character wizard: role, keys, action-bar presets and modules. Review its summary before applying.
 
