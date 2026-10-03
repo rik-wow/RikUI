@@ -191,13 +191,24 @@ def render_frame(case, binary, env, output, value=None, stem=None):
         frame["plate"] = plate  # provenance of the world underneath; the scenario's own "world" key stays as written
     return frame
 
-def render_case(case, binary, env, output):
+def render_case(case, binary, env, output, previous=None, manifest=None, addon_files=None, inputs=None):
     if not case.get("sequence"):
         return {**case, **render_frame(case, binary, env, output)}
     sequence = case["sequence"]
     frames = []
     for value in sequence["values"]:
+        from sequence_cache import reusable_frame, value_case
+        from provenance import json_digest
+        cached = reusable_frame(case, value, previous, manifest or {}, MODULES, addon_files or {}, output) if previous else None
+        if cached is not None:
+            frames.append(cached)
+            print("Reused " + case["id"] + "@" + str(value) + " with original provenance", flush=True)
+            continue
         frame = render_frame(case, binary, env, output, value, case["id"] + "@" + str(value))
+        if inputs is not None:
+            files = addon_inputs(value_case(case, value), addon_files)
+            evidence = {**inputs, "addonFiles": files, "addon": json_digest(files)}
+            frame.update(inputs=evidence, key=capture_key(evidence))
         frames.append({"value": value, **frame})
     default = next((frame for frame in frames if frame["value"] == sequence.get("default", frames[0]["value"])), frames[0])
     # The record carries the default frame's image like any capture, plus every frame.
@@ -346,7 +357,7 @@ def select_stale(cases, renders, addon_files, renderer, client, manifest=None):
             reasons[case["id"]] = why
     return stale, inputs, reasons
 
-def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, renders, keep_going=False):
+def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, renders, keep_going=False, reuse=True):
     """Render each case; with keep_going a failed capture is reported and the rest still render."""
     manifest_path = output / "manifest.json"
     failures = []
@@ -355,7 +366,8 @@ def capture_cases(cases, inputs, binary, sim_root, wow_root, output, manifest, r
             install_seed(sim_root, case)
             stage_corpus(sim_root, wow_root, case.get("corpus") is True)
             try:
-                capture = render_case(case, binary, environment(sim_root, wow_root, case), output)
+                capture = render_case(case, binary, environment(sim_root, wow_root, case), output,
+                    renders.get(case["id"]) if reuse else None, manifest, verify_addon(sim_root / "addons/RikUI"), inputs[case["id"]])
             except RuntimeError as error:
                 if not keep_going:
                     raise
@@ -449,7 +461,7 @@ def main():
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         print("Nothing to render", flush=True)
         return
-    capture_cases(todo, inputs, binary, sim_root, wow_root, output, manifest, renders, args.keep_going)
+    capture_cases(todo, inputs, binary, sim_root, wow_root, output, manifest, renders, args.keep_going, not args.all)
     print(f"{len(todo)} captures saved in {output}", flush=True)
 
 if __name__ == "__main__":

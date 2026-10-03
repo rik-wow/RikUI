@@ -107,7 +107,8 @@ function skin.LayoutPlaque(frame, parts, size)
     if core.Profile.nameplates.adaptiveNames ~= false then
         local base = readableWidth(plaque, "GetWidth")
         local text = readableWidth(frame.name, "GetUnboundedStringWidth")
-        if base and text then
+        -- Expansion limits apply only when padded text does not fit the native row.
+        if base and text and math.ceil(text + PLAQUE_PAD_X * 2) > base then
             local low = math.max(base, skin.NameWidth("nameMinWidth", 160))
             local high = math.max(low, skin.NameWidth("nameMaxWidth", 280))
             local width = math.max(low, math.min(high, math.ceil(text + PLAQUE_PAD_X * 2)))

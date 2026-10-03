@@ -102,6 +102,16 @@ def addon_inputs(case, files):
         # The settings/layout/overview and Studio fixtures display no banners unless invoked above. Hidden
         # banner hooks cannot paint the editor, layout scenes or filtered component roots.
         files = {name:value for name,value in files.items() if not name.startswith("src/modules/banners/")}
+    # Reviewed screen-state fixtures never create nameplates. The simulator has no world
+    # plate engine; only the explicit nameplate fixture or the atlas nameplates value can paint them.
+    known = page in DIRECT | GLOBAL_PAGES | set(PAGES) | {"setup-studio", "studio-gallery", "studio-atlas"}
+    plates = page == "nameplates" or "RikRenderNameplates(" in scene
+    if page == "studio-atlas" and case.get("sequence", {}).get("apply") == "RikRenderStudioAtlas(VALUE)":
+        values = [case["_captureValue"]] if "_captureValue" in case else case.get("sequence", {}).get("values", [])
+        plates = "nameplates" in values
+    if known and not plates:
+        files = {name:value for name,value in files.items() if not name.startswith("src/modules/nameplates/")
+                 or (settings and name == "src/modules/nameplates/nameplates.lua")}
     if page == "studio-atlas":
         # Ordinary atlases invoke native components only. Module variants also assert the
         # portable contract against native registrations, so those pack inputs must count.
@@ -137,15 +147,16 @@ def compact_inventories(manifest):
     """Deduplicate authenticated inventories without changing pixels or source evidence."""
     from provenance import json_digest, capture_key
     history = inventory_history(manifest)
-    for capture in manifest.get("renders", []):
+    captures = [record for parent in manifest.get("renders", []) for record in [parent, *parent.get("frames", [])] if "inputs" in record]
+    for capture in captures:
         inputs = capture.get("inputs", {})
         files = inputs.get("addonFiles")
         if files is not None:
             if capture.get("key") != capture_key(inputs):
-                raise RuntimeError("Changed capture provenance: " + capture["id"])
+                raise RuntimeError("Changed capture provenance: " + capture.get("id", str(capture.get("value"))))
             key = json_digest(files)
             if key != inputs.get("addon"):
-                raise RuntimeError("Changed addon provenance: " + capture["id"])
+                raise RuntimeError("Changed addon provenance: " + capture.get("id", str(capture.get("value"))))
             history[key] = files
             inputs.pop("addonFiles")
             # The original addon digest already identifies this exact inventory.

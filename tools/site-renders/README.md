@@ -87,6 +87,10 @@ Each capture records the exact Lua script, reached fixture modules, seed, releva
 
 Client and renderer provenance belongs to each capture. Updating either does not expire unchanged reviewed documentation images. Every new render still resolves and verifies the latest client, current source/cache and unchanged addon. Use --all with --only to explicitly refresh a surface after a relevant client/renderer change. Old captures authenticate their original file inventory before comparing relevant dependencies; migration preserves that inventory rather than assigning current hashes to old pixels. Source/fixture/asset changes affecting a capture, scenario changes, missing evidence or changed pixels still fail its gate. Orchestration code is not a pixel input. Tests never update baselines.
 
+Sequences reuse an unchanged frame only when its original environment/key, authenticated relevant addon inventory, seed, validator, world inputs, actual value-specific Lua fixture hash and image bytes still match. Reused frames carry their original inputs and key; new frames use the freshly verified current client. The full gate verifies both the sequence and each recorded frame. Nameplate inputs apply to explicit plate scenes and the atlas nameplates value. Reviewed screen-state fixtures do not create plates; unknown surfaces retain conservative dependencies.
+
+The compact short-name fixture changes the native script plate base width, then runs the unchanged addon skin. It asserts that both plaque edges match the native health backing and level badge. The simulator does not display health percentage in this compact sample; width/alignment and native name/level are covered, while protected measurements use the existing fallback regressions.
+
 Keep browser layout and interaction tests alongside the Lua render checks. [Playwright documents](https://playwright.dev/docs/test-snapshots) that pixel output varies by platform; GPU captures therefore retain their renderer binary and client provenance instead of treating Linux browser screenshots as Windows game-render baselines.
 
 ## Capture limits

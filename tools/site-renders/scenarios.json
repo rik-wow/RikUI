@@ -1137,6 +1137,20 @@
     "assertLua": "local f = RikUI.Nameplates.Active.nameplate1\nassert(f and RikUI.Nameplates.Parts[f].plaque:GetWidth() < 200, \"Pooled label did not shrink\")"
   },
   {
+    "id": "plates-compact-short-name",
+    "page": "nameplates",
+    "title": "Compact short name aligned with the health row",
+    "frame": "RikRenderAdaptivePlate",
+    "crop": "600x240+724+450",
+    "fixtures": [],
+    "lua": "local readers = RikRenderCreature(\"Duskbat\", 2, 100, 100, \"neutral\")\nlocal holder, plates = RikRenderNameplates({ { screen = { x = 1024, y = 575 }, unit = \"focus\", readers = readers } }, \"RikRenderAdaptivePlate\", 724, 462, 600, 240)\nplates.nameplate1:SetWidth(100)\nRikUI.Nameplates.Skin.Apply(plates.nameplate1.UnitFrame)\n",
+    "expectText": [
+      "Duskbat",
+      "2"
+    ],
+    "assertLua": "local f=RikUI.Nameplates.Active.nameplate1\nlocal parts=assert(RikUI.Nameplates.Parts[f])\nassert(parts.plaque:GetWidth()<160, \"Short compact name was expanded\")\nlocal left=parts.plaque:GetLeft();local right=parts.plaque:GetRight()\nassert(math.abs(left-f.HealthBarsContainer.healthBar.bgTexture:GetLeft())<0.01, \"Compact left edge diverged\")\nassert(math.abs(right-parts.levelBox:GetRight())<0.01, \"Compact right edge diverged\")"
+  },
+  {
     "id": "plates-name-options",
     "page": "nameplates",
     "title": "Nameplate readability settings",
@@ -1146,8 +1160,8 @@
     "lua": "RikUI.Options.Open(\"nameplates\")\nRikUIOptionsPanel:SetParent(UIParent)\nRikRenderCenter(RikUIOptionsPanel)\nRikUIOptionsPanel:Show()\nRikRenderResize(RikUIOptionsPanel)\n",
     "expectText": [
       "Adaptive name width",
-      "Minimum name width",
-      "Maximum name width"
+      "Minimum expanded name width",
+      "Maximum expanded name width"
     ]
   },
   {

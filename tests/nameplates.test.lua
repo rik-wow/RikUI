@@ -242,7 +242,8 @@ return function(check)
         nameShown(frame, true)
         check("and returns with it", parts.plaque.shown == true)
         -- Model the native anchored row width separately from an explicitly sized expanded row.
-        function parts.plaque:GetWidth() return #self.points == 2 and 176 or self.width end
+        local nativeWidth = 176
+        function parts.plaque:GetWidth() return #self.points == 2 and nativeWidth or self.width end
         local measured = 220
         function frame.name:GetUnboundedStringWidth() return measured end
         CompactUnitFrame_UpdateName(frame)
@@ -256,6 +257,27 @@ return function(check)
         measured = 30
         CompactUnitFrame_UpdateName(frame)
         check("a reused short label shrinks back to its anchored row", #parts.plaque.points == 2)
+        for _, base in ipairs({ 100, 120, 140, 160, 176 }) do
+            nativeWidth = base
+            for _, minimum in ipairs({ 160, 220, 400 }) do
+                RikUI.Profile.nameplates.nameMinWidth = minimum
+                measured = 30
+                CompactUnitFrame_UpdateName(frame)
+                check("short label ignores expansion minimum on compact row "..base.."/"..minimum,
+                    #parts.plaque.points == 2 and parts.plaque.width == 0
+                    and parts.plaque.points[1][4] == 0 and parts.plaque.points[2][4] == 0)
+                measured = base - 8
+                CompactUnitFrame_UpdateName(frame)
+                check("exactly fitting padded name retains native row", #parts.plaque.points == 2)
+                measured = 900
+                CompactUnitFrame_UpdateName(frame)
+                measured = 30
+                CompactUnitFrame_UpdateName(frame)
+                check("recycled long-to-short compact row realigns", #parts.plaque.points == 2)
+            end
+        end
+        nativeWidth = 176
+        measured = 220
         RikUI.Profile.nameplates.nameMinWidth, RikUI.Profile.nameplates.nameMaxWidth = 220, 200
         CompactUnitFrame_UpdateName(frame)
         check("reversed bounds safely use the minimum as the effective maximum", parts.plaque.width == 220)
@@ -269,6 +291,16 @@ return function(check)
             CompactUnitFrame_UpdateName(frame)
             check("unreadable or invalid text geometry keeps native anchored layout", #parts.plaque.points == 2)
         end
+        local nativeRead = parts.plaque.GetWidth
+        measured = 900
+        for _, bad in ipairs({ env.SECRET, -1, 0, 0/0, math.huge, false }) do
+            parts.plaque.GetWidth = function() return bad end
+            CompactUnitFrame_UpdateName(frame)
+            check("unreadable native width preserves anchored geometry", #parts.plaque.points == 2)
+        end
+        parts.plaque.GetWidth = function() error("native geometry unavailable") end
+        check("refused native width preserves anchors without errors", pcall(CompactUnitFrame_UpdateName, frame) and #parts.plaque.points == 2)
+        parts.plaque.GetWidth = nativeRead
         frame.name.GetUnboundedStringWidth = function() error("geometry unavailable") end
         local measuredOK = pcall(CompactUnitFrame_UpdateName, frame)
         check("refused geometry reads preserve the fixed layout without errors", measuredOK and #parts.plaque.points == 2)

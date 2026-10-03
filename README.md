@@ -50,9 +50,12 @@ Existing data is preserved.
 
 Open `/rik config` to choose features, themes and readability. Under **Bars and layout**, select one bar and adjust its rows, button size and spacing. See the canonical [installation](docs/player/installation.md) and [settings](docs/player/options.md) guides.
 
-The separate character setup wizard opens the first time you use RikUI on a character. Pick a
-preset, look over the bars and keybinds, and choose which parts to apply. You can
-keep your current frame positions or skip setup altogether.
+Character setup opens once for each character, including alts. **Keep my setup**
+is the default three-step route. **Set up character actions** adds visual ability
+and role previews; changing bindings needs a separate selection. Positions and
+account settings are kept unless chosen explicitly. After finishing, an optional
+tutorial uses the actual player, action-bar and chat movers. See the canonical
+[character setup guide](docs/player/wizard.md).
 
 Nothing in the wizard is applied until you click **Apply**. Setup can replace
 actions in the preset's slots, create macros, change character keybinds, apply

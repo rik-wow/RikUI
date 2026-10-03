@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-03",
+  "client": "1.60.1.70205",
+  "source": "e3ecc27b64d30fdc735a3f6579b866858f9f9df1",
+  "review": "All listed captures inspected at original size and compared with reviewed baselines. Short labels now align with the health and level row; long labels retain bounded expansion. Settings describe expansion limits. Overview changes include fixture aura countdown differences; layout and components remain intact.",
+  "limitations": [
+    "Compact script-driven fixture uses actual Blizzard nameplate driver and RikUI skin. Health-percentage text is absent in this fixture and previous baselines; no replacement widget is added.",
+    "Secret or unavailable geometry remains covered by Lua fallback tests, not synthetic rendered measurements.",
+    "Unchanged atlas frames retain their original authenticated capture provenance.",
+    "Native behavior accepted under the standing user policy; no agent-observed game playtest claimed."
+  ],
+  "reviewed": [
+    {
+      "id": "layout-short-presets@classic",
+      "filename": "layout-short-presets@classic.webp",
+      "sha256": "0dab694b6040c7b4eefb35db3ba75710f79d3fe9485011d275735f6e0f271006"
+    },
+    {
+      "id": "layout-short-presets@healer",
+      "filename": "layout-short-presets@healer.webp",
+      "sha256": "976b29a161d797a883101fe1cc2857b558e7ec390d45cf73520b5f84fcad6291"
+    },
+    {
+      "id": "overview-layouts@centered",
+      "filename": "overview-layouts@centered.webp",
+      "sha256": "6084f2d5316e5dc22f32ed7498352814ddbb6539a57782e7adb15ec00b4d6e4b"
+    },
+    {
+      "id": "overview-layouts@classic",
+      "filename": "overview-layouts@classic.webp",
+      "sha256": "f3daf06306b48439cea26948a14161c59d83cf36eb023d4a7111470d31f0af9a"
+    },
+    {
+      "id": "overview-layouts@hud",
+      "filename": "overview-layouts@hud.webp",
+      "sha256": "086963d2b5355ad4a307b81fcc7216dea1ee2f673fd89ddb24cac9cad653a45e"
+    },
+    {
+      "id": "overview-layouts@healer",
+      "filename": "overview-layouts@healer.webp",
+      "sha256": "4dd009067fca94c1092537bddf9272b3479bb053c6c008f276444a6c9d9a715c"
+    },
+    {
+      "id": "overview-small-screen",
+      "filename": "overview-small-screen.webp",
+      "sha256": "cad9ed18c5d2fd0bf7a24e63a0ebd70e14423b1fca7b08b189be93bd711ed36b"
+    },
+    {
+      "id": "plates-cast",
+      "filename": "plates-cast.webp",
+      "sha256": "49f854273a0edf724a14de2db2d6dff6be3b0ff7236a11dc367ec5e336e0811a"
+    },
+    {
+      "id": "plates-debuffs",
+      "filename": "plates-debuffs.webp",
+      "sha256": "1c84f652a3bbf23a145be356cdca330f50c2e88949990b80983fbfb6b612e96c"
+    },
+    {
+      "id": "plates-enemy",
+      "filename": "plates-enemy.webp",
+      "sha256": "85c583333667754aeeef334b3d53c9150f0efa13de94c94dcb5dc1a33b706b07"
+    },
+    {
+      "id": "plates-markers",
+      "filename": "plates-markers.webp",
+      "sha256": "5eb2b827e9f27cf4f1000e0bae7f95a90cfc909807673970d49982f7820cf6fc"
+    },
+    {
+      "id": "plates-name-options",
+      "filename": "plates-name-options.webp",
+      "sha256": "0988ffcf45a9376f12069d3148b5f55cbb2ed5c2fcdd65edf075015485b04eb1"
+    },
+    {
+      "id": "plates-pooled-short-name",
+      "filename": "plates-pooled-short-name.webp",
+      "sha256": "16de579ca33819a804f0e7db55248422d354a110a0d9a8acc0fa784c90d27d4e"
+    },
+    {
+      "id": "plates-target-focus",
+      "filename": "plates-target-focus.webp",
+      "sha256": "7b6f517c4975bebb92da9192fa018815a217f3e7974911e9fa97f026b036ac77"
+    },
+    {
+      "id": "plates-threat",
+      "filename": "plates-threat.webp",
+      "sha256": "f35b36b86a9b8377ae1d68239760fc076266282c10fe13515e8d2fd5b1051787"
+    },
+    {
+      "id": "studio-atlas-classic-readable@nameplates",
+      "filename": "studio-atlas-classic-readable@nameplates.webp",
+      "sha256": "16d31fbacb4ce940929e280398967597dc816a01586fe981b85abd8bccad9ff5"
+    },
+    {
+      "id": "studio-atlas-classic-standard@nameplates",
+      "filename": "studio-atlas-classic-standard@nameplates.webp",
+      "sha256": "388218e59d176d47eeefadd187cedf564aa1d3e9e4e1932fadb5c5b23130e220"
+    },
+    {
+      "id": "studio-atlas-ink-readable@nameplates",
+      "filename": "studio-atlas-ink-readable@nameplates.webp",
+      "sha256": "b01cbb14b071f886f1c81df82ecfaa48fce2e9ba853856e2ea718a24f3f3a8ec"
+    },
+    {
+      "id": "studio-atlas-ink-standard@nameplates",
+      "filename": "studio-atlas-ink-standard@nameplates.webp",
+      "sha256": "f4963154d6c2aa0324154516b3ad6ff8d2fd22a15b319b6b818d76e789eb4281"
+    },
+    {
+      "id": "studio-atlas-ocean-readable@nameplates",
+      "filename": "studio-atlas-ocean-readable@nameplates.webp",
+      "sha256": "16d31fbacb4ce940929e280398967597dc816a01586fe981b85abd8bccad9ff5"
+    },
+    {
+      "id": "studio-atlas-ocean-standard@nameplates",
+      "filename": "studio-atlas-ocean-standard@nameplates.webp",
+      "sha256": "388218e59d176d47eeefadd187cedf564aa1d3e9e4e1932fadb5c5b23130e220"
+    },
+    {
+      "id": "plates-compact-short-name",
+      "filename": "plates-compact-short-name.webp",
+      "sha256": "868e5d4361f2ae060577c4bb2c35bdad3c5cfed5ae92927492138efd77b1e0dd"
+    }
+  ]
+}

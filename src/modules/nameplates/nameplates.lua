@@ -233,7 +233,7 @@ local function rowOption(key, label, fallback)
 end
 local function nameWidthOption(key, label, fallback)
     return { type = "slider", key = key, label = label, min = 120, max = 400, step = 10,
-        description = "Adaptive labels stay at least as wide as the health bar and level badge.",
+        description = "Only names that need extra room expand within these limits. Short names match the health bar and level badge.",
         get = function() return nameplates.Skin.NameWidth(key, fallback) end,
         set = function(value)
             core.Profile.nameplates[key] = value
@@ -248,8 +248,8 @@ nameplates.Options = { title = "Nameplates", group = "Combat", settings = {
             core.Profile.nameplates.adaptiveNames = value == true
             relayoutAllSoon()
         end },
-    nameWidthOption("nameMinWidth", "Minimum name width", 160),
-    nameWidthOption("nameMaxWidth", "Maximum name width", 280),
+    nameWidthOption("nameMinWidth", "Minimum expanded name width", 160),
+    nameWidthOption("nameMaxWidth", "Maximum expanded name width", 280),
     rowOption("healthHeight", "Health bar height", 14),
     rowOption("nameHeight", "Name row height", 13),
     emphasisOption("selectedScale", "Target size", 1, 1.5, 1.15),

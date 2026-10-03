@@ -26,7 +26,11 @@ Special units carry a small marker beside the plate: a gold star for an elite, a
 
 ![Adaptive and fixed name labels](preview:plates-adaptive-names)
 
-Set **Minimum name width** and **Maximum name width** under **Settings → Nameplates**. Defaults are 160 and 280 UI units; both sliders range from 120 to 400. Labels stay at least as wide as the health bar and level badge. If the maximum is below the minimum, the minimum wins. Names beyond the limit still truncate.
+Short names keep the same width as the health bar and level badge, including on compact plates.
+
+![Compact short name aligned with the health row](render:plates-compact-short-name)
+
+Set **Minimum expanded name width** and **Maximum expanded name width** under **Settings → Nameplates**. Defaults are 160 and 280 UI units; both sliders range from 120 to 400. These limits apply only when a name needs more space than the native row; they do not widen a short name. If the maximum is below the minimum, the minimum wins. Names beyond the limit still truncate.
 
 ![Maximum label width](preview:plates-name-width-limit)
 

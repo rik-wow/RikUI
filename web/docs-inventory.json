@@ -38,7 +38,7 @@
       "title": "Move and resize frames",
       "sourceSha256": "a4156dc456bd4e001977814291ff5413aa8e7d2beeddb08e66099564f575c8ff",
       "buildSha256": "a4156dc456bd4e001977814291ff5413aa8e7d2beeddb08e66099564f575c8ff",
-      "htmlSha256": "3644daa47a8d431896b483bf661718c1b263fd114321cfd953091f4a0920dbd5"
+      "htmlSha256": "db9c021fbde136ff241c8ebe5c2d25657808fb451e5f4d13928481465f175f56"
     },
     {
       "slug": "shell",
@@ -124,9 +124,9 @@
       "slug": "nameplates",
       "file": "docs/player/nameplates.md",
       "title": "Nameplates",
-      "sourceSha256": "6ce0b4474d4e6a082ffb3717b5392de5f007b64ba1dd25a34dab53bce9150078",
-      "buildSha256": "6ce0b4474d4e6a082ffb3717b5392de5f007b64ba1dd25a34dab53bce9150078",
-      "htmlSha256": "febed54166e3f35b6fe263969c31bea542aa03b9fda05bdecd6a7e80178383f4"
+      "sourceSha256": "f3b9e22df3ac201f99310d91d40d51db4cc8b9d606b5329dc04aad71a1bcdd6d",
+      "buildSha256": "f3b9e22df3ac201f99310d91d40d51db4cc8b9d606b5329dc04aad71a1bcdd6d",
+      "htmlSha256": "1de98288748e30ead406cc9f7f557e70f90d02b2746a46c08c81db9f90f7befb"
     },
     {
       "slug": "combopoints",
@@ -430,7 +430,7 @@
       "title": "RikUI",
       "sourceSha256": "7d1712d4e598b8f6900d406728cbd0029c88fe90cd628d1499ec81773b7e5e9d",
       "buildSha256": "7d1712d4e598b8f6900d406728cbd0029c88fe90cd628d1499ec81773b7e5e9d",
-      "htmlSha256": "b30f5af579ca4fd196e3ca978b2a215bb9ecce2f6deb72f516250aaddf92608c"
+      "htmlSha256": "6ea416949c416404ef6134b00b743126447c090aaf1433ec685aa484f15be7be"
     },
     {
       "slug": "contributing",
@@ -1105,6 +1105,11 @@
     {
       "page": "nameplates",
       "name": "Nameplate cast",
+      "kind": "nameplate"
+    },
+    {
+      "page": "nameplates",
+      "name": "Compact short name aligned with the health row",
       "kind": "nameplate"
     },
     {
@@ -4011,6 +4016,13 @@
       "title": "Practice with the real player mover",
       "width": 2048,
       "height": 1152
+    },
+    {
+      "id": "plates-compact-short-name",
+      "page": "nameplates",
+      "title": "Compact short name aligned with the health row",
+      "width": 600,
+      "height": 240
     }
   ]
 }

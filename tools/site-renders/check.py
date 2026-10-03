@@ -31,14 +31,15 @@ def current_addon_files(manifest, errors):
 
 def verify_environment(manifest, errors):
     """Historical captures keep their environment; new runs verify the latest client separately."""
-    for capture in manifest.get("renders", []):
+    captures = [record for parent in manifest.get("renders", []) for record in [parent, *[f for f in parent.get("frames", []) if "inputs" in f]]]
+    for capture in captures:
         inputs = capture.get("inputs") or {}
         renderer, client = inputs.get("renderer") or {}, inputs.get("client") or {}
         if not all(renderer.get(key) for key in ("binary", "patch")) or not all(
                 client.get(key) for key in ("version", "foreverCommit", "executableSha256")):
-            errors.append("Missing render environment: " + capture["id"])
+            errors.append("Missing render environment: " + capture.get("id", str(capture.get("value"))))
         if capture.get("key") != capture_key(inputs):
-            errors.append("Changed capture provenance: " + capture["id"])
+            errors.append("Changed capture provenance: " + capture.get("id", str(capture.get("value"))))
 
 def verify_world(case, frame, name, errors):
     """A world capture names the plate it was composited over; the plate and its record must still match."""
@@ -123,8 +124,9 @@ def verify_capture(case, capture, expected, directory, errors, hashes):
     for frame in frames_of(capture):
         verify_frame(case, capture, frame, directory, errors, hashes)
 
-def expected_tree_inputs(case, manifest, modules, addon_files):
-    capture = next(c for c in manifest["renders"] if c["id"] == case["id"])
+def expected_tree_inputs(case, manifest, modules, addon_files, capture=None):
+    if capture is None:
+        capture = next(c for c in manifest["renders"] if c["id"] == case["id"])
     script = scenario_script(case, modules, capture["inputs"]["client"]["version"])
     expected = tree_inputs(case, script, addon_files)
     recorded = recorded_addon_inputs(case, capture, manifest)
@@ -147,7 +149,24 @@ def verify_captures(manifest, cases, directory, errors, addon_files):
             except RuntimeError as error:
                 errors.append(str(error))
                 continue
-            verify_capture(case, renders[case["id"]], expected, directory, errors, hashes)
+            capture = renders[case["id"]]
+            verify_capture(case, capture, expected, directory, errors, hashes)
+            for frame in capture.get("frames", []):
+                if "inputs" not in frame:
+                    continue  # Original sequences remain authenticated by their parent.
+                from sequence_cache import value_case, matches_fixture
+                scoped = value_case(case, frame["value"])
+                try:
+                    expected_frame = expected_tree_inputs(scoped, manifest, modules, addon_files, frame)
+                    reasons = [k for k in TREE_FIELDS if frame["inputs"].get(k) != expected_frame.get(k)]
+                    if reasons:
+                        errors.append("Stale sequence frame " + frame_id(capture, frame) + ": " + ", ".join(reasons))
+                    from provenance import text_digest
+                    script = scenario_script(case, modules, frame["inputs"]["client"]["version"], frame["value"])
+                    if not matches_fixture(frame, script):
+                        errors.append("Changed sequence fixture: " + frame_id(capture, frame))
+                except RuntimeError as error:
+                    errors.append(str(error))
 
 def check(directory=BASELINE):
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))

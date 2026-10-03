@@ -9,6 +9,9 @@ tagging.
 
 ## Unreleased
 
+- Fix adaptive nameplates expanding short names beyond compact health/level rows.
+  Apply width limits only when a name needs extra room; pooled plates shrink again.
+
 - Streamline new-character setup: keep current actions, keys and positions by
   default; offer optional role previews and separately selected bindings.
 - Add completion shortcuts and an optional tutorial using the real player, action
