@@ -4,16 +4,53 @@ export const catalog = {
   "product": "RikUI",
   "channel": "beta",
   "status": "prerelease",
-  "latest": "1.0.0-beta.18",
+  "latest": "1.0.0-beta.19",
   "releasesUrl": "https://github.com/rik-wow/RikUI/releases",
   "sourceUrl": "https://github.com/rik-wow/RikUI",
   "installer": {
-    "url": "/downloads/v1.0.0-beta.18/RikUI-Setup.exe",
-    "version": "1.0.0-beta.18",
-    "sha256": "251c557a12ee2bbcb5bf2121e0559d819feb1fd5cbf287baed747ddf85b509c0",
+    "url": "/downloads/v1.0.0-beta.19/RikUI-Setup.exe",
+    "version": "1.0.0-beta.19",
+    "sha256": "332247dbd27c510b7bab6b29b9aa968c3c66b9f4a94f8804f4a52a72684cc0f5",
     "bytes": 67916288
   },
   "releases": [
+    {
+      "version": "1.0.0-beta.19",
+      "artifacts": [
+        {
+          "path": "/downloads/v1.0.0-beta.19/RikUI-Setup.exe",
+          "key": "v1.0.0-beta.19/RikUI-Setup.exe",
+          "bytes": 67916288,
+          "sha256": "332247dbd27c510b7bab6b29b9aa968c3c66b9f4a94f8804f4a52a72684cc0f5",
+          "filename": "RikUI-Setup.exe",
+          "contentType": "application/vnd.microsoft.portable-executable"
+        },
+        {
+          "path": "/downloads/v1.0.0-beta.19/RikUI-Setup-manifest.json",
+          "key": "v1.0.0-beta.19/RikUI-Setup-manifest.json",
+          "bytes": 2107,
+          "sha256": "5c0f5f21b9818cacfc9be2a97dc9dacfccb8405065e34fdfebc566bf71fcc666",
+          "filename": "RikUI-Setup-manifest.json",
+          "contentType": "application/json"
+        },
+        {
+          "path": "/downloads/v1.0.0-beta.19/RikUI-Setup-SHA256SUMS",
+          "key": "v1.0.0-beta.19/RikUI-Setup-SHA256SUMS",
+          "bytes": 267,
+          "sha256": "e4f77ff2819eeb33b814d6fb605ca72daabd66bf4d443c70587bbfb9aa1cd575",
+          "filename": "RikUI-Setup-SHA256SUMS",
+          "contentType": "text/plain; charset=utf-8"
+        },
+        {
+          "path": "/downloads/v1.0.0-beta.19/RikUI-Setup-NOTICES.txt",
+          "key": "v1.0.0-beta.19/RikUI-Setup-NOTICES.txt",
+          "bytes": 292193,
+          "sha256": "53e2b8584871c283b921397aed0662e4c56b27ba3a654bce3dc740d29a1203e0",
+          "filename": "RikUI-Setup-NOTICES.txt",
+          "contentType": "text/plain; charset=utf-8"
+        }
+      ]
+    },
     {
       "version": "1.0.0-beta.18",
       "artifacts": [

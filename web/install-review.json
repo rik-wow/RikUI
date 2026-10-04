@@ -1,10 +1,10 @@
 {
   "format": "rikui-installation-page-capture-v1",
   "origin": "http://127.0.0.1:8787",
-  "version": "1.0.0-beta.18",
+  "version": "1.0.0-beta.19",
   "sources": {
     "install-page.mjs": "02cfa4d00f8e8c4bd84e056f66ba705628fb2fe84635a4346ae7749c13512ba4",
-    "releases.mjs": "3f4d8df1fefd89c0cf1001e2b538a086e638a3a928ff9858098538a29f97c531",
+    "releases.mjs": "cc9b9b79e8a03413a2b9b8e831951241fdfdd5c54113fb4e819cc5bbfe6c5c87",
     "studio-styles.mjs": "470a1dd3a3bd28c5859296be02c6a5dcf98fe68203023d8cca7ad8a65592237a",
     "capture-install.mjs": "f2c95914f20a961a03b1ec5f0d4c6128ae67769e745257a07b83b6bb59ebcbab"
   },
@@ -13,35 +13,35 @@
       "filename": "install-390-closed.png",
       "width": 390,
       "state": "closed",
-      "sha256": "f34c6e0f0a914798ee7826bce864542ef7c3d9822912bae117f0f47a0fff786b"
+      "sha256": "325e353465d0e949ac2f7fd7d409dadd6cb0be9ed1139534e469b0b29b030368"
     },
     {
       "filename": "install-390-measured-cost.png",
       "width": 390,
       "state": "measured-cost",
-      "sha256": "ebeee362c95c86d5a33e0d602346f194370ffa6c98d2d5829553abf0f0305d30"
+      "sha256": "64f16a9e65a1ea0a4fdb467b0e03bb5044fe0c11d2a9f44784572b3e93b40cb6"
     },
     {
       "filename": "install-1440-closed.png",
       "width": 1440,
       "state": "closed",
-      "sha256": "23a94353993f69830c01eac9ed287a93be4e50083d240333de4cce79037bc3b3"
+      "sha256": "059364548a118c957bcd3539f50ea7a704c51baf468b50643f72a3584d6446b8"
     },
     {
       "filename": "install-1440-measured-cost.png",
       "width": 1440,
       "state": "measured-cost",
-      "sha256": "6ac744f86ffa1c0a64b0412c17942de4197957b44fdba8777f080b22a57c7665"
+      "sha256": "8c99046ac79d7adbe78452c311e099de1a2940a6d4a5450f0ec8c2a2e92e2cdd"
     }
   ],
-  "captureRoot": "D:/RikUI-local/install-page-beta18-review-1",
-  "reviewedAt": "2026-10-04T20:45:16.711Z",
+  "captureRoot": "D:/RikUI-local/install-page-beta19-review-1",
+  "reviewedAt": "2026-10-04T21:35:59Z",
   "review": "All actual browser captures inspected at original size. Website prose addresses addon players and installation only; no internal instructions or developer commentary. No clipping at 390/1440 pixels.",
   "reviewedSHA256s": [
-    "f34c6e0f0a914798ee7826bce864542ef7c3d9822912bae117f0f47a0fff786b",
-    "ebeee362c95c86d5a33e0d602346f194370ffa6c98d2d5829553abf0f0305d30",
-    "23a94353993f69830c01eac9ed287a93be4e50083d240333de4cce79037bc3b3",
-    "6ac744f86ffa1c0a64b0412c17942de4197957b44fdba8777f080b22a57c7665"
+    "325e353465d0e949ac2f7fd7d409dadd6cb0be9ed1139534e469b0b29b030368",
+    "64f16a9e65a1ea0a4fdb467b0e03bb5044fe0c11d2a9f44784572b3e93b40cb6",
+    "059364548a118c957bcd3539f50ea7a704c51baf468b50643f72a3584d6446b8",
+    "8c99046ac79d7adbe78452c311e099de1a2940a6d4a5450f0ec8c2a2e92e2cdd"
   ]
 }
 
