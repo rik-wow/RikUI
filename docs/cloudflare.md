@@ -42,7 +42,7 @@ Release keys must be immutable and contain a version or content hash. SHA-256
 metadata is an upload assertion; the release process must calculate it from
 the actual artifact and clients must verify downloaded bytes.
 
-The API reports the honest beta `prerelease` channel and the current addon version from `web/releases.mjs`. Direct installation links point to verified GitHub Releases. The standalone installer with client data is a separate distribution whose public release still awaits [dataset licensing](corpus-licensing.md) disposition. Studio and gallery share validated settings through bounded fragment links and a maintained submission workflow; there is no arbitrary public upload endpoint.
+The API reports the honest beta `prerelease` channel and the current addon version from `web/releases.mjs`. Direct installation links point to verified GitHub Releases. Windows setup contains licensed build dependencies and the interface. It obtains provider inputs separately and generates supported quest guidance and navigation locally; imported provider datasets and client geometry are absent from public artifacts. The acquisition and private-data boundary are documented in [the distribution plan](quest-navigation-acquisition.md). Studio and gallery share validated settings through bounded fragment links and a maintained submission workflow; there is no arbitrary public upload endpoint.
 
 ## Operate and deploy
 
@@ -64,9 +64,11 @@ multipart Worker upload, using the same checked-in modules and configuration.
 The game screenshot is uploaded through the documented Workers asset manifest and base64 multipart API; its completion token is attached to the Worker deployment. Future MCP code-only uploads must set `keep_assets: true` and retain the `ASSETS` binding. Wrangler deploys use `web/public` automatically. The Worker serves the reviewed public asset allowlist with cache validation and security headers; private renderer inputs and client files have no public routes.
 The initial local Wrangler login had expired; subsequent reviewed deployments use authenticated Wrangler and `web/public` through the existing `npm run deploy` workflow. Its predeploy step checks capture provenance and generates docs/Studio. CI verifies source and bundle generation; automatic deployment is not configured. Verify the deployment identifier, live editor/gallery, guide source/output hashes, installation links and actual release bytes before recording success.
 
-Before adding a release, upload the verified installer plus required matching
-source/notices to immutable R2 keys, set custom metadata `sha256`, and add
-reviewed catalog entries with path, key, bytes, sha256, filename and contentType.
+Before adding a release, verify the downloaded setup with
+`python -B tools/verify_public_setup.py --directory <download-folder> --version <version> --proof <new-proof-folder>`.
+Then run `node web/publish-release.mjs --directory <download-folder> --proof <new-proof-folder>/evidence.json --version <version> --output <new-storage-receipt>`.
+The publisher uses the documented Wrangler platform proxy with an explicitly remote binding to the existing release bucket. It accepts only the program, manifest, checksums and notices, creates immutable keys conditionally, sets SHA-256 metadata, and reads back every byte. `--check-only` performs read-only preflight. Matching authored source is available at the annotated GitHub release tag; separately acquired datasets are excluded.
+Add reviewed catalog entries from the storage receipt with path, key, bytes, sha256, filename and contentType.
 Verify GET, HEAD, ranges and digest against production. For a bad release,
 remove its catalog entry and redeploy; preserve artifacts for diagnosis.
 Roll back website code by deploying the preceding reviewed commit.
@@ -81,7 +83,9 @@ paid product subscription was purchased.
 
 ## Acquisition storage
 
-The independent provider is built locally under `dist/cmangos-provider-1/`.
+The following storage receipts are historical research evidence and are not current Forever inputs. Current setup obtains QuestieDB and current client/schema inputs separately; it does not substitute this emulator dataset.
+
+The historical independent provider was built locally under `dist/cmangos-provider-1/`.
 The private sources bucket is intended for reproducible input manifests,
 comparison reports and licensed source archives. Uploading a private receipt
 does not approve public distribution. The manifest, coverage and comparison JSON receipts were uploaded privately to

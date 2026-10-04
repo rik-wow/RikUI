@@ -1,45 +1,41 @@
 # Install RikUI
 
-RikUI **{{release.version}}** is a **{{release.channel}}** release for WoW Forever. Check the current release notes for compatibility and known limitations.
+RikUI **{{release.version}}** is a **{{release.channel}}** release for WoW Forever. Use [Windows setup](/install) for quest guidance and navigation prepared for your current game.
 
-## Public addon ZIP
+## Windows setup
 
-Download [{{release.zip}}]({{release.download}}) from the [current RikUI release]({{release.url}}). Close the game and extract the `RikUI` folder into `_classic_beta_/Interface/AddOns`, so `RikUI.toc` is directly inside `AddOns/RikUI`. Enable RikUI in the AddOns list.
+1. Download **RikUI-Setup.exe** from the [installation page](/install). Open it and let it find your current Forever game. Use **Browse** if needed.
+2. Allow at least **80 GiB free** for first preparation, plus space for retained generations and backups. **Preparation folder** lets you choose a roomier drive.
+3. Choose **Prepare and install**. Setup obtains QuestieDB source and holiday information separately from their publishers, reads your current game files, and builds supported routes locally. Its tools are included: you do not need Git, Python, Node or a database.
+4. Follow the phase and measured progress. This can take substantial time. **Pause setup** retains work; reopen setup and choose **Resume setup** to continue. Incomplete work is never installed as a complete guide.
+5. Close WoW when prompted. Setup stages verified files, retains backups and verifies installed bytes. Restart WoW fully and enable RikUI in the AddOns list.
 
-Gear goals source browsing uses an installed [QuestieDB](https://github.com/Questie/QuestieDB) addon with Forever data and contract version 3. It is an optional separate installation; RikUI preserves saved gear goals if that provider is missing.
+An installed QuestieDB ZIP is not a source checkout. Setup gets the supported source directly from its publisher. Imported reference datasets and extracted client geometry stay on your computer and are absent from public downloads.
 
-The public ZIP includes the addon without compiled gear, quest and road datasets. Locally installed quest data and settings are preserved when updating.
-
-## Local Windows installer
-
-The Windows installer is not published yet. If you already have a local installer bundle, use these steps:
-
-1. Close World of Warcraft.
-2. Open the installer and select your Forever folder—the one containing **WowB.exe**.
-3. Check the package's included components.
-4. Click **Install / update**.
-5. Start the game and enable RikUI in the AddOns list.
-
-The installer carries its package with it. You do not need Rust or Python installed. **Choose package** lets you select another RikUI bundle, and **Get latest release** opens the releases page.
-
-Quest data is not included in every public package. Check the release notes before downloading.
+**View details** lists your verified build, preparation folder, quest counts, prepared regions, coverage limits, logs and backups. Current client quest IDs missing provider objectives stay unknown. Provider information can lag the server; unsupported phases, floors, physics and projections are explicit. Transport times are estimates.
 
 ## First login
 
-Open `/rik config` to customize your interface. **Appearance** offers themes and readability recipes; each feature page has an enable switch and its own settings. **Bars and layout** lets you select and arrange each bar independently.
+Open `/rik config` to customize the interface. Appearance offers themes and readability choices; feature pages have enable switches and their own settings. Use `/rik move` to arrange frames.
 
-Use `/rik setup` for the separate character wizard: role, keys, action-bar presets and modules. Review its summary before applying.
-
-Use `/rik config` for settings and `/rik move` to arrange frames. See [First setup](wizard.md) for the wizard.
+Use `/rik setup` for the separate character wizard: role, keys, action-bar presets and modules. Review its summary before applying. See [First setup](wizard.md).
 
 ## Updates
 
-Close the game before updating. Existing settings, other addons and locally installed quest data are preserved.
+Setup checks the published installer channel and the latest Forever client, provider and schema inputs at startup and update. A daily Windows task, **RikUI Current Forever Updates**, repeats those checks. Changed inputs rebuild affected products. Unchanged files are reused only after their bytes and current compatibility verify.
 
-Restart the game fully after installing an update so it can load new addon files.
+Keep Forever updated through Battle.net. A version mismatch asks you to update and check again. Setup discovers the current executable, product and directory; it does not require the beta folder to survive release. New client builds require current compatible data, and stale guidance is withheld. Future builds are verified when available.
 
-## Rollback
+A paused preparation stays paused until you explicitly resume. Network, provider, schema, space or generation failures preserve your existing installation and local files. Follow the explanation, then reopen setup to retry. If WoW is running, prepared work waits for it to close.
 
-Use the installer's rollback option to restore the previous addon folders. Backups are kept under **Interface/RikUI-backups**. Keep that folder if you may need to recover an earlier installation.
+## Restore a backup
 
-A first installation has no previous version to restore. Backups are kept until you remove them, so leave enough free space for both the update and the old version.
+Choose **Restore backup** to restore previous owned addon files. Backups are retained under **Interface/RikUI-backups**. Settings, unrelated addons and private data remain preserved. Keep backups until you no longer need them, and allow space for both versions.
+
+## Interface-only addon ZIP
+
+Download [{{release.zip}}]({{release.download}}) from the [current release]({{release.url}}). Close WoW and extract the `RikUI` folder into the current game's `Interface/AddOns`, with `RikUI.toc` directly inside `AddOns/RikUI`.
+
+The public ZIP contains the interface without imported gear, quest or road datasets. Existing local data and settings are preserved during an ownership-aware installer update. Use Windows setup for complete supported local quest and navigation preparation.
+
+Gear source browsing can also use a separately installed [QuestieDB](https://github.com/Questie/QuestieDB) Forever addon with public contract 3. Saved gear goals are preserved if that optional provider is absent.

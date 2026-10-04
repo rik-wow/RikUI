@@ -27,6 +27,7 @@ __pycache__/
 *.pyc
 /installer/target/
 /web/node_modules/
+/.wrangler/
 /web/.wrangler/
 /web/worker-configuration.d.ts
 /web/.dev.vars

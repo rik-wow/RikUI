@@ -1,0 +1,8 @@
+{
+  "name": "rik-wow-release-operations",
+  "account_id": "0b7cbcb39402bbbf829b621c3c748ca0",
+  "compatibility_date": "2026-09-27",
+  "r2_buckets": [
+    {"binding": "RELEASES", "bucket_name": "rik-wow-releases", "remote": true}
+  ]
+}

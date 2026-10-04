@@ -4,6 +4,7 @@ import { docsScript } from "./docs-client.mjs";
 import { home as page, setups, packPage, submit, editor } from "./studio-pages.mjs";
 import { styles } from "./studio-styles.mjs";
 import { catalog } from "./releases.mjs";
+import { installPage } from "./install-page.mjs";
 import { studioAssets } from "./studio-generated.mjs";
 
 const SECURITY = {
@@ -86,6 +87,8 @@ async function route(request, env) {
     return Response.redirect("https://rikwow.com" + url.pathname + url.search, 308);
   if (url.pathname === "/") return respond(page, 200, "text/html; charset=utf-8",
     { "Cache-Control": "public, max-age=60, no-transform" });
+  if (url.pathname === "/install") return respond(installPage(),200,"text/html; charset=utf-8");
+  if (url.pathname === "/install/") return Response.redirect(url.origin+"/install",308);
   const preview = (env.STUDIO_PREVIEW === true || env.STUDIO_PREVIEW === "true") && ["localhost","127.0.0.1","[::1]"].includes(url.hostname);
   if (!preview && (url.pathname === "/studio" || url.pathname === "/studio/" || url.pathname === "/setups" || url.pathname.startsWith("/setups/") || url.pathname.replace(/\/$/,"") === "/docs/setup-studio"))
     return Response.redirect(url.origin+"/docs/options",302);
