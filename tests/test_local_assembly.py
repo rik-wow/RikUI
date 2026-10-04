@@ -1,0 +1,188 @@
+"""Installer worker no-op, input update, cancellation and retained retry contracts."""
+import copy
+import json
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+from unittest.mock import Mock, patch
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools"))
+from test_forever_inputs import Publishers, BUILD, RAW
+import forever_inputs as current
+import local_assembly as local
+
+
+class Tests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.root=Path(self.temp.name)
+        game=self.root/"game";game.mkdir()
+        exe=game/"Wow.exe";exe.write_bytes(b"fixture")
+        (self.root/".build.info").write_bytes(RAW)
+        self.resolution=current.discover(exe,Publishers().fetch,lambda _:BUILD)
+        self.worker=local.Assembly.__new__(local.Assembly)
+        self.worker.cache=self.root/"cache";self.worker.cache.mkdir()
+        self.worker.job=self.worker.cache/"job";self.worker.job.mkdir()
+        self.worker.resolution=self.resolution
+        self.worker.tools={"compiler":"a"*64}
+        self.worker.base_sha="b"*64
+        self.worker.args=Mock(check_only=False,resume_runtime=None)
+        self.worker.report=Mock()
+        self.worker.verify_previous=Mock()
+        self.previous=dict(format="rikui-local-assembly-v1",resolution=self.resolution,
+                           tools=self.worker.tools,baseSHA256=self.worker.base_sha,listfileIdentity=local.listfile_identity(self.meta()))
+        local.atomic(self.worker.cache/"latest.json",self.previous)
+
+    def meta(self,tag="current-tag",updated="today"):
+        return dict(tag_name=tag,assets=[dict(name="community-listfile.csv",id=1,size=20,updated_at=updated,digest=None)])
+
+    def metadata(self):
+        return patch.object(current,"download",return_value=current.canonical(self.meta()))
+
+    def test_progress_atomic_write_retries_windows_reader_without_losing_receipt(self):
+        path=self.root/"status.json"
+        original=Path.replace
+        attempts=[]
+        def busy_reader(source,destination):
+            attempts.append(1)
+            if len(attempts)<3:raise PermissionError("Windows reader sharing")
+            return original(source,destination)
+        with patch.object(Path,"replace",busy_reader),patch.object(local.time,"sleep"):
+            local.atomic(path,dict(state="prepared"))
+        self.assertEqual(json.loads(path.read_bytes()),dict(state="prepared"))
+        self.assertEqual(len(attempts),3)
+        self.assertFalse(path.with_name(path.name+".next").exists())
+
+    def test_incomplete_generation_survives_orchestration_upgrade_only(self):
+        old_tools={"tools/local_assembly.py":"a"*64,"tools/terrain/world_geometry.py":"b"*64}
+        checkpoint=dict(format="rikui-preparation-checkpoint-v1",job=str(self.worker.cache/"job-prior"),
+            resolution=self.resolution,tools=old_tools,baseSHA256=self.worker.base_sha,
+            listfileIdentity=local.listfile_identity(self.meta()))
+        old_tools["tools/terrain/world_bake_parallel.py"]="e"*64
+        updated=dict(old_tools,**{"tools/local_assembly.py":"c"*64,"tools/terrain/world_bake_parallel.py":"f"*64})
+        def select(document,tools=updated):
+            return local.checkpoint_job(self.worker.cache,document,self.resolution,tools,
+                self.worker.base_sha,local.listfile_identity(self.meta()))
+        self.assertEqual(select(checkpoint),self.worker.cache/"job-prior")
+        changed=dict(updated,**{"tools/terrain/world_geometry.py":"d"*64})
+        self.assertIsNone(select(checkpoint,changed))
+        outside=dict(checkpoint,job=str(self.root/"job-private"))
+        self.assertIsNone(select(outside))
+        moved=copy.deepcopy(checkpoint)
+        moved["resolution"]["inputs"]["sources"]["provider"]["revision"]="f"*40
+        moved["resolution"]["fingerprint"]=current.sha(current.canonical(moved["resolution"]["inputs"]))
+        self.assertIsNone(select(moved))
+
+    def test_verified_unchanged_update_is_actual_noop(self):
+        self.worker.run=Mock(side_effect=AssertionError("No build should run"))
+        with self.metadata():result=self.worker.prepare()
+        self.assertEqual(result,self.previous)
+        self.worker.verify_previous.assert_called_once()
+        self.worker.run.assert_not_called()
+        self.assertEqual(self.worker.report.call_args.kwargs["state"],"verified-no-op")
+
+    def test_unchanged_bytes_follow_freshly_selected_installation(self):
+        moved=copy.deepcopy(self.resolution)
+        moved["installation"]["directory"]=str(self.root/"new-release-folder")
+        moved["installation"]["executable"]=str(self.root/"new-release-folder/WowRelease.exe")
+        self.worker.resolution=moved
+        self.worker.run=Mock(side_effect=AssertionError("No rebuild for relocation"))
+        with self.metadata():result=self.worker.prepare()
+        self.assertEqual(result["resolution"]["installation"],moved["installation"])
+        self.assertEqual(json.loads((self.worker.cache/"latest.json").read_bytes())["resolution"]["installation"],moved["installation"])
+        self.worker.run.assert_not_called()
+
+    def test_changed_provider_probe_requests_only_affected_products(self):
+        self.worker.args.check_only=True
+        revised=copy.deepcopy(self.resolution)
+        revised["inputs"]["sources"]["provider"]["revision"]="f"*40
+        revised["fingerprint"]=current.sha(current.canonical(revised["inputs"]))
+        self.worker.resolution=revised
+        with self.metadata():result=self.worker.prepare()
+        self.assertEqual(result["rebuild"],["corpus","roads"])
+
+    def test_changed_addon_and_listfile_are_detected(self):
+        self.worker.args.check_only=True
+        self.worker.base_sha="c"*64
+        with patch.object(current,"download",return_value=current.canonical(self.meta("new-tag"))):
+            result=self.worker.prepare()
+        self.assertEqual(result["rebuild"],["roads","bundle"])
+
+    def test_same_tag_replaced_publisher_asset_is_detected(self):
+        self.worker.args.check_only=True
+        with patch.object(current,"download",return_value=current.canonical(self.meta(updated="tomorrow"))):
+            result=self.worker.prepare()
+        self.assertEqual(result["rebuild"],["roads"])
+        self.assertIn("listfile",result["changed"])
+
+    def test_active_inventory_excludes_retained_interrupted_jobs(self):
+        root=self.worker.job
+        (root/"retained-old").mkdir()
+        (root/"retained-old/private").write_bytes(b"preserved")
+        (root/"accepted").write_bytes(b"active")
+        (root/"preparation.log").write_bytes(b"log")
+        self.assertEqual([row["path"] for row in local.inventory(root,active_only=True)],["accepted"])
+        self.assertEqual((root/"retained-old/private").read_bytes(),b"preserved")
+
+    def test_corrupt_outputs_are_never_noop(self):
+        self.worker.args.check_only=True
+        self.worker.verify_previous.side_effect=ValueError("changed output bytes")
+        with self.metadata():result=self.worker.prepare()
+        self.assertIn("unverified-bytes",result["changed"])
+        self.assertEqual(result["rebuild"],["acquisition","corpus","bakes","roads"])
+
+    def test_failed_step_preserves_bytes_and_allows_new_attempt(self):
+        folder=self.worker.job/"acquisition";folder.mkdir()
+        (folder/"partial").write_bytes(b"retained data")
+        self.assertFalse(self.worker.reusable(folder,Mock(side_effect=ValueError("incomplete"))))
+        self.assertFalse(folder.exists())
+        retained=list(self.worker.job.glob("acquisition-retained-*"))
+        self.assertEqual(len(retained),1)
+        self.assertEqual((retained[0]/"partial").read_bytes(),b"retained data")
+        folder.mkdir()
+        verify=Mock()
+        self.assertTrue(self.worker.reusable(folder,verify))
+        self.assertEqual((retained[0]/"partial").read_bytes(),b"retained data")
+
+    def test_interrupted_or_wrong_input_bundle_is_retained_before_retry(self):
+        bundle=self.worker.job/"local-bundle.zip"
+        bundle.write_bytes(b"interrupted ZIP")
+        inputs=dict(base="b"*64,corpus="c"*64,roads="d"*64)
+        local.atomic(bundle.with_suffix(".receipt.json"),dict(inputs=inputs,sha256=local.digest(bundle)))
+        self.assertFalse(self.worker.reusable(bundle,lambda path:local.verify_local_bundle(path,inputs)))
+        self.assertEqual(next(self.worker.job.glob("local-bundle.zip-retained-*")).read_bytes(),b"interrupted ZIP")
+        files={name:b"fixture" for name in ("RikUI/RikUI.toc","RikUI/LICENSE","RikUI/generated/index.xml")}
+        local.build_installer_bundle.write_payload("1.0.0-beta.15",bundle,files,["fixture"])
+        local.atomic(bundle.with_suffix(".receipt.json"),dict(inputs=inputs,sha256=local.digest(bundle)))
+        self.assertTrue(self.worker.reusable(bundle,lambda path:local.verify_local_bundle(path,inputs)))
+        changed=dict(inputs,roads="e"*64)
+        self.assertFalse(self.worker.reusable(bundle,lambda path:local.verify_local_bundle(path,changed)))
+
+    def test_orphan_index_receipt_is_retained_without_touching_other_files(self):
+        sidecar=self.worker.job/"placements.sqlite.receipt.json"
+        sidecar.write_bytes(b"interrupted receipt")
+        unrelated=self.worker.job/"player-data";unrelated.write_bytes(b"preserve")
+        local.retain_owned_file(sidecar)
+        self.assertFalse(sidecar.exists())
+        self.assertEqual(next(self.worker.job.glob("placements*retained*")).read_bytes(),b"interrupted receipt")
+        self.assertEqual(unrelated.read_bytes(),b"preserve")
+
+    def test_retention_cannot_move_other_data(self):
+        outside=self.root/"unrelated";outside.mkdir()
+        with self.assertRaisesRegex(ValueError,"Retention outside"):
+            self.worker.reusable(outside,Mock(side_effect=ValueError("invalid")))
+        self.assertTrue(outside.exists())
+
+    def test_pause_and_changed_input_stop_before_build_launch(self):
+        self.worker.args.executable=self.resolution["installation"]["executable"]
+        self.worker.cancel=self.worker.cache/"cancel"
+        with patch.object(current,"discover",return_value=self.resolution):
+            self.worker.cancel.write_bytes(b"pause")
+            with self.assertRaises(InterruptedError):self.worker.fresh()
+        self.worker.cancel.unlink()
+        other=copy.deepcopy(self.resolution);other["fingerprint"]="f"*64
+        with patch.object(current,"discover",return_value=other),self.assertRaisesRegex(ValueError,"changed"):
+            self.worker.fresh()
+
+
+if __name__=="__main__":unittest.main()

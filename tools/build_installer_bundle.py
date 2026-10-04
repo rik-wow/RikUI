@@ -49,6 +49,10 @@ def build(version, output, corpus=None, addons=None):
         for pack in packs:
             add_tree(files, pack, pack.name + "/")
         components.append("local road data (" + str(len(packs)) + " patch packs)")
+    return write_payload(version, output, files, components)
+
+
+def write_payload(version, output, files, components):
     metadata = {"format": 1, "version": version, "components": components, "files": {
         name: {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
         for name, data in sorted(files.items())}}
@@ -68,6 +72,82 @@ def build(version, output, corpus=None, addons=None):
             archive.writestr(info, data)
     return {"path": str(output), "bytes": output.stat().st_size,
             "sha256": hashlib.sha256(output.read_bytes()).hexdigest(), "components": components}
+
+
+def verify_bundle(path, public=False):
+    """Validate every archived byte before admitting a resumed local payload."""
+    with zipfile.ZipFile(path) as archive:
+        entries=archive.infolist()
+        names=[entry.filename for entry in entries]
+        if (len(entries)>65536 or len(names)!=len(set(name.casefold() for name in names))
+                or sum(entry.file_size for entry in entries)>2*1024**3):
+            raise ValueError("Bundle inventory bound or duplicate")
+        for entry in entries:
+            mode=entry.external_attr>>16
+            if (entry.orig_filename!=entry.filename or entry.is_dir() or entry.flag_bits&1
+                    or mode&0o170000 not in (0,0o100000)):
+                raise ValueError("Invalid bundle archive member")
+            if entry.filename!="bundle.json":
+                package_addon.install_path(entry.filename)
+                root=entry.filename.split("/")[0]
+                if (not entry.filename.isascii() or "/" not in entry.filename
+                        or not re.fullmatch(r"RikUI|RikUIQuestRoads_W[0-9]+_P[0-9]{3}",root)):
+                    raise ValueError("Unexpected bundle addon path")
+        if "bundle.json" not in names or archive.getinfo("bundle.json").file_size>16*1024**2:
+            raise ValueError("Missing or oversized bundle manifest")
+        metadata=json.loads(archive.read("bundle.json"))
+        if (set(metadata)!={"format","version","components","files"} or metadata["format"]!=1
+                or not isinstance(metadata["version"],str) or not 0<len(metadata["version"])<=64
+                or not isinstance(metadata["components"],list) or not isinstance(metadata["files"],dict)
+                or set(names)!={"bundle.json",*metadata["files"]}):
+            raise ValueError("Invalid bundle manifest")
+        folded=set(name.casefold() for name in names)
+        for name,row in metadata["files"].items():
+            package_addon.install_path(name)
+            if public and name.startswith(("RikUI/generated/corpus/","RikUI/generated/roads/","RikUIQuestRoads_")):
+                raise ValueError("Public base must exclude imported data")
+            if set(row)!={"bytes","sha256"} or archive.getinfo(name).file_size!=row["bytes"]:
+                raise ValueError("Bundle entry size mismatch")
+            for parent in Path(name).parents:
+                if parent.as_posix().casefold() in folded:raise ValueError("Bundle file/directory collision")
+            with archive.open(name) as stream:
+                actual=hashlib.file_digest(stream,"sha256").hexdigest()
+            if actual!=row["sha256"]:raise ValueError("Bundle entry checksum mismatch")
+        for name in ("RikUI/RikUI.toc","RikUI/LICENSE","RikUI/generated/index.xml"):
+            if name not in metadata["files"]:raise ValueError("Missing required bundle file")
+        return metadata
+
+
+def assemble_local(base_bundle, corpus, roads, output):
+    """Consumer-side payload only; never a public release artifact."""
+    verify_bundle(base_bundle,public=True)
+    raw=Path(base_bundle).read_bytes()
+    with zipfile.ZipFile(__import__("io").BytesIO(raw)) as archive:
+        names=archive.namelist()
+        if len(names)!=len(set(name.casefold() for name in names)):
+            raise ValueError("Duplicate base payload")
+        metadata=json.loads(archive.read("bundle.json"))
+        files={}
+        for name,row in metadata["files"].items():
+            package_addon.install_path(name)
+            body=archive.read(name)
+            if len(body)!=row["bytes"] or hashlib.sha256(body).hexdigest()!=row["sha256"]:
+                raise ValueError("Base payload hash mismatch")
+            if name.startswith(("RikUI/generated/corpus/","RikUI/generated/roads/","RikUIQuestRoads_")):
+                raise ValueError("Public base must exclude imported data")
+            files[name]=body
+        if set(names)!={"bundle.json",*files}:
+            raise ValueError("Uninventoried base payload")
+    corpus_manifest=quest_corpus.verify(corpus)
+    add_tree(files,Path(corpus)/"generated/corpus","RikUI/generated/corpus/")
+    from terrain.install_roads import source_pack, digest
+    roads=Path(roads)
+    road_hash=digest((roads/"road-network-receipt.json").read_bytes())
+    _,_,packs=source_pack(roads,road_hash)
+    add_tree(files,roads/"generated/roads","RikUI/generated/roads/")
+    for pack in sorted(packs):add_tree(files,roads/pack,pack+"/")
+    return write_payload(metadata["version"],output,files,
+                         ["RikUI interface","locally assembled quest guide","locally assembled navigation"])
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ local loaded = {}
 local generated = dofile("tests/generated_stub.lua")
 generated.Load(generated.Base(root), {"roads"})
 C_AddOns = {LoadAddOn = generated.PatchLoader(root, function(addon) loaded[#loaded + 1] = addon end)}
-local clientBuild = os.getenv("RIKUI_CLIENT_BUILD") or "1.60.1.69913"
+local clientBuild = assert(os.getenv("RIKUI_CLIENT_BUILD"), "Set RIKUI_CLIENT_BUILD to the freshly verified current Forever version")
 p.Builds.Observe(clientBuild)
 local identity = {product = "forever", build = p.Builds.DataBuild(clientBuild), locale = "enUS"}
 local function finish(job, limit)

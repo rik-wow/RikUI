@@ -1,5 +1,13 @@
 # Road network and quest patches
 
+Current acquisition and player installation use [the current evidence](../../docs/quest-navigation-current-evidence.md)
+and [Windows setup](../../installer/README.md). Setup resolves live Forever inputs,
+extracts current tables locally, and rejects linked addon paths. The pipeline
+commands, build labels and emulator travel examples below are retained historical
+engineering evidence, not the current consumer acquisition or installation flow.
+Current travel generation uses verified client tables and leaves unsupported
+server-specific lifts and portals explicit.
+
 This replaces the Dun Morogh regional mesh and the compact gateway packs as
 the way walking routes are made. Long travel uses a small walk network that
 prefers roads. Detailed mesh only ships in patches around corpus quest spots,

@@ -39,9 +39,19 @@ Unsupported physics remains bounded exclusion coverage, not assumed walkability.
 
 All 2,290 current terrain jobs succeeded in the developer verification run,
 with four bounded workers and 3,028.9 seconds measured elapsed time. Individual
-bakes remain pending seam validation until the full road compiler admits them.
-That full compiler is running; this foundation receipt does not claim completed
-navigation, consumer installation or publication.
+bakes were admitted by full source, byte and seam verification. Compilation
+finished for worlds 0, 1, 2991, 2997, 30, 489 and 529, producing 12,198 installable
+files and six patch packs. All 103 modeled travel stops attach to the graph.
+Road receipt SHA-256 is
+c61d93aa2abb07b16e4b4e0d7fb7b02c5efff6d2abce665cdc5783619865076b.
+
+Four actual Lua navigation replays on maps 1426, 1429, 1411 and 1438 followed
+727–1,540-yard routes without regressions. The last route retains an explicit
+five-yard approach where the goal is outside a mesh patch. A* agrees with
+Dijkstra for tested connected and disconnected world-zero/world-one pairs.
+The actual deferred corpus loads all eighteen selectors and 226 partitions;
+a changed client identity rejects guidance. Consumer installation, operating
+daily checks and publication remain separate pending delivery requirements.
 
 The clean packaged consumer run independently acquired current inputs and
 exported the same provider bytes without developer Git/Python/Node in PATH.
