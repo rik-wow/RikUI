@@ -167,6 +167,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(next(self.worker.job.glob("placements*retained*")).read_bytes(),b"interrupted receipt")
         self.assertEqual(unrelated.read_bytes(),b"preserve")
 
+    def test_retained_retry_accepts_canonical_spelling_of_owned_windows_paths(self):
+        folder=self.worker.job/"acquisition";folder.mkdir()
+        (folder/"partial").write_bytes(b"preserve")
+        self.worker.cache=self.worker.cache/".."/"cache"
+        self.worker.job=self.worker.cache/"job"
+        self.assertFalse(self.worker.reusable(folder,Mock(side_effect=ValueError("incomplete"))))
+        self.assertEqual(next(folder.parent.glob("acquisition-retained-*")).joinpath("partial").read_bytes(),b"preserve")
+        outside=self.root/"private";outside.mkdir()
+        with self.assertRaisesRegex(ValueError,"Retention outside"):
+            self.worker.reusable(outside,Mock(side_effect=ValueError("invalid")))
+        self.assertTrue(outside.exists())
+
     def test_retention_cannot_move_other_data(self):
         outside=self.root/"unrelated";outside.mkdir()
         with self.assertRaisesRegex(ValueError,"Retention outside"):

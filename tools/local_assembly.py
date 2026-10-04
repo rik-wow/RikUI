@@ -269,7 +269,7 @@ class Assembly:
             return True
         except (ValueError,OSError,KeyError,TypeError,zipfile.BadZipFile,sqlite3.DatabaseError):
             parent=folder.parent.resolve()
-            if parent not in (self.cache,self.job):raise ValueError("Retention outside local job")
+            if parent not in (self.cache.resolve(),self.job.resolve()):raise ValueError("Retention outside local job")
             if folder.is_symlink() or (hasattr(folder,"is_junction") and folder.is_junction()):
                 raise ValueError("Linked local job")
             folder.rename(parent/(folder.name+"-retained-"+str(time.time_ns())))
