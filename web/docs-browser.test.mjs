@@ -51,6 +51,7 @@ const placements={
  toasts:{"toast-friend":"ref-social-notices","toast-time":"ref-social-notices","toast-voice":"ref-social-notices"},
  questtracker:{"tracker-active":"ref-your-watched-quests","tracker-complete":"ref-your-watched-quests","tracker-failed":"ref-your-watched-quests","tracker-header":"ref-your-watched-quests","tracker-overflow":"ref-your-watched-quests"},
  questtimers:{"timers-timed":"ref-timed-quests","timers-warning":"ref-timed-quests","timers-final":"ref-timed-quests"},
+ "gear-goals":{"gear-browse":"ref-compare-equipment","gear-twohand":"ref-compare-equipment","gear-prerequisites":"ref-choose-a-source","gear-goals":"ref-keep-goals-for-this-character","gear-acquired":"ref-keep-goals-for-this-character","gear-tracker":"ref-keep-goals-for-this-character","gear-ocean":"ref-themes-and-readability","gear-ink":"ref-themes-and-readability","gear-readable":"ref-themes-and-readability","gear-unavailable":"ref-data-availability"},
  questplanner:{"planner-browser":"ref-start-quest-guidance","planner-pins":"ref-start-quest-guidance","planner-guidance":"ref-guide-controls","planner-objective":"ref-guide-controls","planner-details":"ref-guide-controls","planner-arrow":"ref-map-and-direction-arrow","planner-partial":"ref-missing-locations","planner-preferences":"ref-preferences"},
  panels:{"panels-window":"ref-game-windows","panels-close":"ref-game-windows","panels-tabs":"ref-game-windows","panels-inset":"ref-game-windows"},
  interiors:{"int-character":"ref-character-and-abilities","int-stats":"ref-character-and-abilities","int-reputation":"ref-character-and-abilities","int-spellbook":"ref-character-and-abilities","int-quest":"ref-quests-and-conversations","int-gossip":"ref-quests-and-conversations","int-merchant":"ref-buying-crafting-and-storage","int-trade":"ref-buying-crafting-and-storage","int-inbox":"ref-buying-crafting-and-storage","int-friends":"ref-social-and-group-panels","int-communities":"ref-social-and-group-panels","int-raidinfo":"ref-social-and-group-panels","int-inspect":"ref-social-and-group-panels","int-calendar":"ref-other-game-panels","int-achievements":"ref-other-game-panels","int-collections":"ref-other-game-panels"},
@@ -146,6 +147,21 @@ for(const width of [1440,768,390,320]){ test("documentation navigation and layou
   expect(errors).toEqual([]);
  });
 }
+
+test("gear guide stays usable on small screens and explains its data requirement",async({page})=>{
+ await page.setViewportSize({width:390,height:1000});
+ await page.goto("/docs/gear-goals");
+ await expect(page.getByRole("heading",{name:"Gear goals",exact:true})).toBeVisible();
+ const comparison=page.locator('figure[data-render="gear-browse"]');
+ await expect(comparison.locator("img")).toBeVisible();
+ await expect(comparison.locator("img")).toHaveJSProperty("complete",true);
+ expect(await comparison.locator("img").evaluate(image=>image.naturalWidth)).toBeGreaterThan(0);
+ await page.getByRole("heading",{name:"Data availability",exact:true}).scrollIntoViewIfNeeded();
+ await expect(page.getByRole("link",{name:"QuestieDB’s project",exact:true})).toHaveAttribute("href","https://github.com/Questie/QuestieDB");
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+ await page.keyboard.press("Tab");
+ expect(await page.evaluate(()=>document.activeElement?.tagName)).toBeTruthy();
+});
 
 test("spell and item examples load the correct named images",async({page})=>{
  await page.goto("/docs/micromenu");

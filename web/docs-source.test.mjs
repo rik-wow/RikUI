@@ -6,7 +6,7 @@ import {catalog} from "./releases.mjs";
 test("canonical Markdown, release data and every generated page retain exact source provenance",async()=>{
  const {pages,release,releaseSha256}=await loadGuides();
  const inventory=JSON.parse(await readFile(new URL("./docs-inventory.json",import.meta.url),"utf8"));
- assert.equal(pages.length,55);assert.deepEqual(inventory.release,release);assert.equal(inventory.releaseSha256,releaseSha256);
+ assert.equal(pages.length,56);assert.ok(pages.some(page=>page.slug==="gear-goals"));assert.deepEqual(inventory.release,release);assert.equal(inventory.releaseSha256,releaseSha256);
  for(const p of pages){
   const raw=await readFile(new URL("../"+p.file,import.meta.url),"utf8");
   assert.equal(p.sourceSha256,digest(raw));assert.equal(p.buildSha256,digest(resolveRelease(raw)));
