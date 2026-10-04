@@ -170,12 +170,31 @@ def retain_owned_file(path):
         path.rename(path.with_name(path.name+"-retained-"+str(time.time_ns())))
 
 
+def verify_current_corpus(folder,resolution,client_index):
+    quest_corpus.verify(folder)
+    manifest=json.loads((Path(folder)/"manifest.json").read_bytes())
+    sources=resolution["inputs"]["sources"]
+    build=resolution["inputs"]["identity"]["build"]
+    if (manifest["provider"]["revision"]!=sources["provider"]["revision"]
+            or manifest["eventMemberships"]["revision"]!=sources["events"]["revision"]
+            or manifest["identity"]["build"]!=build
+            or manifest["clientIndex"]["build"]!=build
+            or manifest["clientIndex"]["sha256"]!=digest(client_index)):
+        raise ValueError("Quest corpus sources are not current")
+    return manifest
+
+
 def checkpoint_job(cache, checkpoint, resolution, tools, base_sha, list_identity):
     cache=Path(cache).absolute()
     candidate=Path(checkpoint["job"]).absolute()
     old=current.validate_resolution(checkpoint["resolution"])
+    # Provider/holiday changes require fresh semantics, not fresh physical geometry.
+    # All client, UI and schema inputs must still match; each retained product is
+    # independently byte-verified and corpus admission checks current source heads.
+    physical=lambda inputs:dict(inputs, sources={key:value for key,value in inputs["sources"].items()
+                                                if key not in ("provider","events")})
     if (checkpoint.get("format")!="rikui-preparation-checkpoint-v1" or candidate.parent!=cache
-        or not candidate.name.startswith("job-") or old["inputs"]!=resolution["inputs"]
+        or not candidate.name.startswith("job-") or physical(old["inputs"])!=physical(resolution["inputs"])
         or checkpoint.get("baseSHA256")!=base_sha or checkpoint.get("listfileIdentity")!=list_identity
         or refresh.tool_scopes(checkpoint["tools"],tools)-{"bundle"}):
         return None
@@ -468,18 +487,24 @@ class Assembly:
         sources=self.resolution["inputs"]["sources"]
         provider=self.cache/("provider-"+sources["provider"]["revision"])
         events=self.cache/("events-"+sources["events"]["revision"])
-        if not self.reusable(corpus,quest_corpus.verify):
+        client_index=acquisition/"db2"/("QuestV2-"+receipt["identity"]["build"]+".csv")
+        if not self.reusable(corpus,lambda folder:verify_current_corpus(folder,self.resolution,client_index)):
             self.reusable(provider,lambda folder:source_archive.verify(folder,sources["provider"]["revision"]))
             self.reusable(events,lambda folder:source_archive.verify(folder,sources["events"]["revision"]))
             self.fresh();source_archive.acquire("Questie/QuestieDB",sources["provider"]["revision"],provider)
             self.fresh();source_archive.acquire("Questie/Questie",sources["events"]["revision"],events)
             export=self.job/"provider.json"
+            export_manifest=export.with_suffix(".manifest.json")
+            if export.exists() and (not export_manifest.exists() or
+                    json.loads(export_manifest.read_bytes()).get("revision")!=sources["provider"]["revision"]):
+                retain_owned_file(export)
+                retain_owned_file(export_manifest)
             self.run("export_forever.py","--source-root",provider,"--revision",sources["provider"]["revision"],"--output",export,"--reuse")
             self.run("quest_corpus.py","build","--export",export,"--output",corpus,
                      "--client-index",acquisition/"db2"/("QuestV2-"+receipt["identity"]["build"]+".csv"),
                      "--client-build",receipt["identity"]["build"],"--client-index-sha256",receipt["sourceHashes"]["QuestV2"],
                      "--event-source-root",events,"--event-revision",sources["events"]["revision"])
-        quest_corpus.verify(corpus)
+        verify_current_corpus(corpus,self.resolution,client_index)
         self.phase="Preparing routes"
         self.report("Building routes on this computer. Quest and regional gaps remain explicit until preparation finishes.")
         bakes=Path(previous["bakes"]) if previous and "bakes" not in scopes else self.job/"bakes"

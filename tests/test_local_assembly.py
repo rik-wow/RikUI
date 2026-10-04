@@ -131,7 +131,30 @@ class Tests(unittest.TestCase):
         moved=copy.deepcopy(checkpoint)
         moved["resolution"]["inputs"]["sources"]["provider"]["revision"]="f"*40
         moved["resolution"]["fingerprint"]=current.sha(current.canonical(moved["resolution"]["inputs"]))
-        self.assertIsNone(select(moved))
+        self.assertEqual(select(moved),self.worker.cache/"job-prior")
+        for key in ("ui","schemas"):
+            changed=copy.deepcopy(checkpoint)
+            changed["resolution"]["inputs"]["sources"][key]["revision"]="f"*40
+            changed["resolution"]["fingerprint"]=current.sha(current.canonical(changed["resolution"]["inputs"]))
+            self.assertIsNone(select(changed))
+
+    def test_checkpoint_corpus_rejects_old_semantics_even_when_all_bytes_verify(self):
+        index=self.root/"QuestV2.csv";index.write_bytes(b"current membership")
+        corpus=self.root/"corpus";corpus.mkdir()
+        sources=self.resolution["inputs"]["sources"]
+        manifest=dict(provider=dict(revision=sources["provider"]["revision"]),
+            eventMemberships=dict(revision=sources["events"]["revision"]),
+            identity=dict(build=BUILD),clientIndex=dict(build=BUILD,sha256=local.digest(index)))
+        local.atomic(corpus/"manifest.json",manifest)
+        with patch.object(local.quest_corpus,"verify") as verify:
+            self.assertEqual(local.verify_current_corpus(corpus,self.resolution,index),manifest)
+            verify.assert_called_once_with(corpus)
+            for section,field,bad in (("provider","revision","f"*40),("eventMemberships","revision","f"*40),
+                    ("identity","build","obsolete"),("clientIndex","sha256","f"*64)):
+                changed=copy.deepcopy(manifest);changed[section][field]=bad
+                local.atomic(corpus/"manifest.json",changed)
+                with self.subTest(section=section),self.assertRaisesRegex(ValueError,"not current"):
+                    local.verify_current_corpus(corpus,self.resolution,index)
 
     def test_verified_unchanged_update_is_actual_noop(self):
         self.worker.run=Mock(side_effect=AssertionError("No build should run"))
