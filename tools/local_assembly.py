@@ -303,6 +303,17 @@ class Assembly:
         atomic(self.job/"listfile-source.json",dict(publisher="wowdev/wow-listfile",identity=listfile_identity(meta),url=url,bytes=total,sha256=actual))
         return target
 
+    def local_bundle(self,corpus,roads):
+        bundle=self.job/"local-bundle.zip"
+        inputs=dict(base=self.base_sha,corpus=digest(Path(corpus)/"manifest.json"),
+                    roads=digest(Path(roads)/"road-network-receipt.json"))
+        if not self.reusable(bundle,lambda path:verify_local_bundle(path,inputs)):
+            retain_owned_file(bundle.with_suffix(".receipt.json"))
+            build_installer_bundle.assemble_local(self.args.base_bundle,corpus,roads,bundle)
+            atomic(bundle.with_suffix(".receipt.json"),dict(inputs=inputs,sha256=digest(bundle)))
+        verify_local_bundle(bundle,inputs)
+        return bundle,inputs
+
     def prepare(self):
         self.report("Checking the latest Forever build and separately published quest information.")
         latest=self.cache/"latest.json"
@@ -356,6 +367,21 @@ class Assembly:
         self.job.mkdir(exist_ok=True)
         atomic(preparing,dict(format="rikui-preparation-checkpoint-v1",job=str(self.job),resolution=self.resolution,
             tools=self.tools,baseSHA256=self.base_sha,listfileIdentity=list_identity))
+        if previous and set(scopes)=={"bundle"}:
+            # The scope verifier already checked every current source/product byte.
+            # An interface/controller update must not regenerate terrain receipts.
+            self.phase="Verifying your installation"
+            self.report("Updating RikUI with your verified current quest guide and routes.")
+            self.fresh()
+            bundle,bundle_inputs=self.local_bundle(previous["corpus"],previous["roads"])
+            result=dict(previous,resolution=self.resolution,tools=self.tools,baseSHA256=self.base_sha,
+                bundle=str(bundle),bundleSHA256=digest(bundle),bundleInputs=bundle_inputs,
+                seconds=round(time.monotonic()-self.start,1))
+            self.verify_previous(result)
+            self.fresh()
+            atomic(latest,result)
+            self.report("Quest guide and supported routes prepared and verified.",state="prepared",coverage=result["coverage"])
+            return result
         # Steps are individually verified. A failed attempt remains available in its log/staging directories.
         acquisition=Path(previous["acquisition"]) if previous and "acquisition" not in scopes else self.job/"acquisition"
         if not self.reusable(acquisition,lambda folder:verify_acquisition(folder,self.resolution)):
@@ -452,14 +478,7 @@ class Assembly:
         from terrain.install_roads import source_pack
         source_pack(roads,digest(roads/"road-network-receipt.json"))
         self.fresh()
-        bundle=self.job/"local-bundle.zip"
-        bundle_inputs=dict(base=self.base_sha,corpus=digest(corpus/"manifest.json"),
-                           roads=digest(roads/"road-network-receipt.json"))
-        if not self.reusable(bundle,lambda path:verify_local_bundle(path,bundle_inputs)):
-            retain_owned_file(bundle.with_suffix(".receipt.json"))
-            build_installer_bundle.assemble_local(self.args.base_bundle,corpus,roads,bundle)
-            atomic(bundle.with_suffix(".receipt.json"),dict(inputs=bundle_inputs,sha256=digest(bundle)))
-        verify_local_bundle(bundle,bundle_inputs)
+        bundle,bundle_inputs=self.local_bundle(corpus,roads)
         coverage=json.loads((corpus/"coverage.json").read_bytes())
         result=dict(format="rikui-local-assembly-v1",resolution=self.resolution,tools=self.tools,
                     acquisition=str(acquisition),corpus=str(corpus),bakes=str(bakes),roads=str(roads),rasters=str(rasters),travel=str(travel),

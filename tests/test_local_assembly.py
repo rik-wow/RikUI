@@ -92,6 +92,34 @@ class Tests(unittest.TestCase):
         self.assertEqual(json.loads((self.worker.cache/"latest.json").read_bytes())["resolution"]["installation"],moved["installation"])
         self.worker.run.assert_not_called()
 
+    def test_interface_update_reuses_verified_products_without_launching_geometry(self):
+        import time
+        corpus=self.root/"corpus";corpus.mkdir()
+        (corpus/"manifest.json").write_bytes(b"verified corpus receipt")
+        roads=self.root/"roads";roads.mkdir()
+        receipt=roads/"road-network-receipt.json";receipt.write_bytes(b"verified road receipt")
+        physical=self.root/"private-current-mesh";physical.write_bytes(b"preserve physical bytes")
+        self.previous.update(corpus=str(corpus),roads=str(roads),coverage=dict(limits=["fixture unknowns"]))
+        local.atomic(self.worker.cache/"latest.json",self.previous)
+        self.worker.base_sha="c"*64
+        self.worker.args.base_bundle=self.root/"new-interface.zip"
+        self.worker.start=time.monotonic();self.worker.fresh=Mock()
+        self.worker.run=Mock(side_effect=AssertionError("Geometry must not run for an interface update"))
+        def assemble(base,corpus,roads,output):
+            files={name:b"new interface fixture" for name in ("RikUI/RikUI.toc","RikUI/LICENSE","RikUI/generated/index.xml")}
+            local.build_installer_bundle.write_payload("1.0.0-beta.15",output,files,["fixture"])
+        before=receipt.stat().st_mtime_ns
+        with self.metadata(),patch.object(local.build_installer_bundle,"assemble_local",side_effect=assemble):
+            result=self.worker.prepare()
+        self.worker.run.assert_not_called()
+        self.assertEqual(physical.read_bytes(),b"preserve physical bytes")
+        self.assertEqual(receipt.stat().st_mtime_ns,before)
+        self.assertEqual(result["roads"],str(roads))
+        self.assertEqual(result["bundleInputs"]["base"],"c"*64)
+        local.verify_local_bundle(result["bundle"],result["bundleInputs"])
+        self.assertEqual(self.worker.verify_previous.call_count,2)
+        self.worker.fresh.assert_called()
+
     def test_changed_provider_probe_requests_only_affected_products(self):
         self.worker.args.check_only=True
         revised=copy.deepcopy(self.resolution)
