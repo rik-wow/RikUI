@@ -626,6 +626,11 @@ class Compiler:
                     self.unknown("extra-reference-kind", f"quest:{quest_id}:extra:{index}", reference)
             extras.append({"id": f"extra:{quest_id}:{index}", "type": "extra", "name": text, "text": text, "objectiveIndex": slot(extra, 4), "iconType": slot(extra, 2), "methods": methods})
         quest = {"id": quest_id, "title": row.get("name", f"Quest {quest_id}"), "objectives": objectives, "extraObjectives": extras, "starts": self.relationships(quest_id, row, "starts"), "ends": self.relationships(quest_id, row, "ends"), "eligibility": {field: row[field] for field in ELIGIBILITY if field in row}, "prerequisites": {field: row[field] for field in PREREQUISITES if field in row}, "provenance": {"provider": "QuestieDB", "revision": self.data["provider"]["revision"], "flavor": "Forever"}}
+        if row.get("_providerNormalizations"):
+            audit = row["_providerNormalizations"]
+            quest["provenance"]["fieldNormalizations"] = audit
+            self.report.setdefault("providerFieldNormalizations", []).append(
+                {"questID": quest_id, "context": self.context, "fields": audit, "authority": "provider-reference"})
         quest["planning"] = planning_rules(row, self.entities)
         reward = self.support.get("QuestXP", {}).get("db", {}).get(str(quest_id))
         level, xp = slot(reward, 1), slot(reward, 2)
@@ -883,6 +888,8 @@ def verify_provider_manifest(path, data, raw):
         if path.is_absolute() or ".." in path.parts or not re.fullmatch(r"[0-9a-f]{64}", row.get("sha256", "")):
             raise ValueError("malformed provider source input provenance")
     metadata = {"manifestSHA256": sha(proof_raw), "inputFiles": len(inputs), "exportSha256": sha(raw), "revision": data["provider"]["revision"], "personaCount": 18}
+    metadata["luaExporterSha256"] = proof.get("luaExporterSha256")
+    metadata["wrapperSha256"] = proof.get("wrapperSha256")
     return metadata, proof_raw
 
 

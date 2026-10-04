@@ -124,6 +124,8 @@ class Tests(unittest.TestCase):
             return local.checkpoint_job(self.worker.cache,document,self.resolution,tools,
                 self.worker.base_sha,local.listfile_identity(self.meta()))
         self.assertEqual(select(checkpoint),self.worker.cache/"job-prior")
+        semantic=dict(updated,**{"tools/export_forever.lua":"1"*64,"tools/quest_corpus.py":"2"*64})
+        self.assertEqual(select(checkpoint,semantic),self.worker.cache/"job-prior")
         changed=dict(updated,**{"tools/terrain/world_geometry.py":"d"*64})
         self.assertIsNone(select(checkpoint,changed))
         outside=dict(checkpoint,job=str(self.root/"job-private"))
@@ -144,13 +146,18 @@ class Tests(unittest.TestCase):
         sources=self.resolution["inputs"]["sources"]
         manifest=dict(provider=dict(revision=sources["provider"]["revision"]),
             eventMemberships=dict(revision=sources["events"]["revision"]),
-            identity=dict(build=BUILD),clientIndex=dict(build=BUILD,sha256=local.digest(index)))
+            identity=dict(build=BUILD),clientIndex=dict(build=BUILD,sha256=local.digest(index)),
+            compilerSHA256=local.digest(local.HERE/"quest_corpus.py"),
+            providerProof=dict(luaExporterSha256=local.digest(local.HERE/"export_forever.lua"),
+                               wrapperSha256=local.digest(local.HERE/"export_forever.py")))
         local.atomic(corpus/"manifest.json",manifest)
         with patch.object(local.quest_corpus,"verify") as verify:
             self.assertEqual(local.verify_current_corpus(corpus,self.resolution,index),manifest)
             verify.assert_called_once_with(corpus)
             for section,field,bad in (("provider","revision","f"*40),("eventMemberships","revision","f"*40),
-                    ("identity","build","obsolete"),("clientIndex","sha256","f"*64)):
+                    ("identity","build","obsolete"),("clientIndex","sha256","f"*64),
+                    ("providerProof","luaExporterSha256","f"*64),
+                    ("providerProof","wrapperSha256","f"*64)):
                 changed=copy.deepcopy(manifest);changed[section][field]=bad
                 local.atomic(corpus/"manifest.json",changed)
                 with self.subTest(section=section),self.assertRaisesRegex(ValueError,"not current"):

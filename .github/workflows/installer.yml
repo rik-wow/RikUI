@@ -67,6 +67,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & dist/preparation/runtime/python/python.exe -B dist/preparation/runtime/tools/local_assembly.py --help
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & dist/preparation/runtime/python/python.exe -B tests/test_provider_reader.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & dist/preparation/runtime/python/python.exe -B tests/test_quest_corpus.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & dist/preparation/runtime/python/python.exe -B tests/test_quest_data_ci.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build and verify native setup
         env:
           SETUP_VERSION: ${{ inputs.version || '0.0.0-beta.1' }}

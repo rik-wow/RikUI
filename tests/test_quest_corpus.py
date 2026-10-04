@@ -118,6 +118,19 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual(plan["exclusiveWith"], [7])
         self.assertNotIn({"op": "completed", "questID": 12}, clauses)
 
+    def test_provider_field_normalization_retains_original_and_reference_authority(self):
+        data = fixture()
+        audit = {"breadcrumbForQuestId": {"original": {"1": 12}, "normalized": 12,
+                 "expectedType": "number", "operation": "singleton-breadcrumb-scalar"}}
+        data["base"]["quests"]["1"].update(breadcrumbForQuestId=12, _providerNormalizations=audit)
+        compiler, records = self.compile(data)
+        quest = records[1]["base"]
+        self.assertEqual(quest["planning"]["breadcrumbFor"], 12)
+        self.assertEqual(quest["provenance"]["fieldNormalizations"], audit)
+        self.assertTrue(any(row["questID"] == 1 and row["fields"] == audit
+                            for row in compiler.report["providerFieldNormalizations"]))
+        self.assertEqual(data["base"]["quests"]["1"]["_providerNormalizations"], audit)
+
     def test_planner_single_precedence_xp_and_unknown_counts(self):
         data = fixture()
         row = data["base"]["quests"]["1"]

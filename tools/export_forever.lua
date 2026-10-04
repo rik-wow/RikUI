@@ -103,8 +103,31 @@ local function loadPersona(faction, classFile, classId)
   return db, files
 end
 local function row(db, name, id)
-  local fields = {}; local meta = db.Meta[name]
-  for index=1,meta.fieldCount do fields[meta.names[index]] = db[name].Get(id,index) end
+  local fields = {}; local meta = db.Meta[name]; local entity = db[name]
+  for index=1,meta.fieldCount do
+    local field = meta.names[index]
+    local location = name .. '/' .. tostring(id) .. '/' .. field
+    local value = entity.Get(id,index)
+    -- A malformed scalar correction can leak the provider's cached copy
+    -- producer on later reads. Reread through the public API; never call it.
+    if type(value) == 'function' then
+      assert(type(entity.InvalidateCache) == 'function', location .. ': cache invalidation unavailable')
+      entity.InvalidateCache(id)
+      value = entity.Get(id,index)
+    end
+    assert(type(value) ~= 'function', location .. ': unsupported provider function')
+    if name == 'Quest' and field == 'breadcrumbForQuestId' and type(value) == 'table' then
+      local target = value[1]
+      assert(meta.types[index] == 'number' and type(target) == 'number' and
+        target > 0 and target < math.huge and target % 1 == 0 and next(value,1) == nil,
+        location .. ': ambiguous scalar breadcrumb correction')
+      fields._providerNormalizations = fields._providerNormalizations or {}
+      fields._providerNormalizations[field] = {original=value,normalized=target,
+        expectedType='number',operation='singleton-breadcrumb-scalar'}
+      value = target
+    end
+    fields[field] = value
+  end
   return fields
 end
 local db, selectedFiles = loadPersona('Alliance', 'WARRIOR', 1)

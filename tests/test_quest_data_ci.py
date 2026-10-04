@@ -58,6 +58,23 @@ class RefreshTests(unittest.TestCase):
             self.assertEqual(Path.cwd(), before)
             self.assertFalse((root / "data.json").exists())
 
+    def test_locked_failed_candidate_does_not_mask_provider_error(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            provider = root / "provider"
+            provider.mkdir()
+            def fail(*args):
+                raise RuntimeError("Quest/97894/breadcrumbForQuestId: unsupported source value")
+            with mock.patch.object(export_forever, "verify_checkout"), \
+                    mock.patch.object(export_forever, "source_manifest", return_value=[]), \
+                    mock.patch.object(export_forever, "execute_export", side_effect=fail), \
+                    mock.patch.object(Path, "unlink", side_effect=[None, None, PermissionError("locked temporary")]):
+                with self.assertRaisesRegex(RuntimeError, "Quest/97894") as error:
+                    export_forever.export_provider(provider, root / "data.json", Path(__file__),
+                                                   lua_command="lua5.1", revision="a"*40)
+            self.assertTrue(any("locked temporary" in note for note in error.exception.__notes__))
+            self.assertFalse((root / "data.json").exists())
+
     def test_dynamic_provider_provenance_is_retained(self):
         data = {"schemaVersion": 1, "provider": {"revision": "a" * 40, "flavor": "Forever"},
                 "base": {key: {} for key in quest_corpus.KINDS}, "variants": []}

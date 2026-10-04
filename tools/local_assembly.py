@@ -175,7 +175,11 @@ def verify_current_corpus(folder,resolution,client_index):
     manifest=json.loads((Path(folder)/"manifest.json").read_bytes())
     sources=resolution["inputs"]["sources"]
     build=resolution["inputs"]["identity"]["build"]
-    if (manifest["provider"]["revision"]!=sources["provider"]["revision"]
+    proof=manifest.get("providerProof",{})
+    if (manifest.get("compilerSHA256")!=digest(HERE/"quest_corpus.py")
+            or proof.get("luaExporterSha256")!=digest(HERE/"export_forever.lua")
+            or proof.get("wrapperSha256")!=digest(HERE/"export_forever.py")
+            or manifest["provider"]["revision"]!=sources["provider"]["revision"]
             or manifest["eventMemberships"]["revision"]!=sources["events"]["revision"]
             or manifest["identity"]["build"]!=build
             or manifest["clientIndex"]["build"]!=build
@@ -190,13 +194,14 @@ def checkpoint_job(cache, checkpoint, resolution, tools, base_sha, list_identity
     old=current.validate_resolution(checkpoint["resolution"])
     # Provider/holiday changes require fresh semantics, not fresh physical geometry.
     # All client, UI and schema inputs must still match; each retained product is
-    # independently byte-verified and corpus admission checks current source heads.
+    # independently byte-verified and corpus admission checks current heads and
+    # semantic producer hashes. Semantic upgrades may retain physical checkpoints.
     physical=lambda inputs:dict(inputs, sources={key:value for key,value in inputs["sources"].items()
                                                 if key not in ("provider","events")})
     if (checkpoint.get("format")!="rikui-preparation-checkpoint-v1" or candidate.parent!=cache
         or not candidate.name.startswith("job-") or physical(old["inputs"])!=physical(resolution["inputs"])
         or checkpoint.get("baseSHA256")!=base_sha or checkpoint.get("listfileIdentity")!=list_identity
-        or refresh.tool_scopes(checkpoint["tools"],tools)-{"bundle"}):
+        or refresh.tool_scopes(checkpoint["tools"],tools)-{"bundle","corpus","roads"}):
         return None
     if candidate.is_symlink() or (hasattr(candidate,"is_junction") and candidate.is_junction()):
         raise ValueError("Linked preparation checkpoint")

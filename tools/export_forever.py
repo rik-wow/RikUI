@@ -18,6 +18,7 @@ import os
 import re
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 from typing import Any
 
@@ -186,8 +187,14 @@ def export_provider(source_root: Path, output: Path, lua_exporter: Path,
         replace_bytes(manifest_path, stable_json(manifest))
         return manifest
     finally:
-        candidate.unlink(missing_ok=True)
-        Path(str(candidate) + ".tmp").unlink(missing_ok=True)
+        failure = sys.exception()
+        for leftover in (candidate, Path(str(candidate) + ".tmp")):
+            try:
+                leftover.unlink(missing_ok=True)
+            except OSError as cleanup_error:
+                if failure is None:
+                    raise
+                failure.add_note(f"Retained failed export at {leftover}: {cleanup_error}")
 
 
 def main() -> None:
