@@ -20,7 +20,10 @@ for(const path of ["/install","/docs/installation"]){
  const html=await response.text();assert.ok(html.includes(catalog.latest));
  assert.ok(html.includes("QuestieDB"));assert.ok(html.includes("16 GiB"));
  assert.ok(html.includes("English game text (enUS)"));
- if(path==="/install")assert.ok(html.includes(catalog.installer.url));
+ if(path==="/install"){
+  assert.ok(html.includes(catalog.installer.url));
+  assert.ok(html.includes("Opening setup does not start these checks."));
+ }else assert.ok(html.includes("Opening setup leaves it idle."));
  await writeFile(join(output,path==="/install"?"install.html":"installation.html"),html,{flag:"wx"});
 }
 const artifacts=catalog.releases.find(r=>r.version===catalog.latest)?.artifacts;

@@ -1,10 +1,10 @@
 {
   "format": "rikui-installation-page-capture-v1",
   "origin": "http://127.0.0.1:8787",
-  "version": "1.0.0-beta.19",
+  "version": "1.0.0-beta.20",
   "sources": {
     "install-page.mjs": "055b5d11c5dd8ac82c2ba57a82c47a60a4b7746a44fb76576fa70b0d4b6d9f12",
-    "releases.mjs": "cc9b9b79e8a03413a2b9b8e831951241fdfdd5c54113fb4e819cc5bbfe6c5c87",
+    "releases.mjs": "e009069d52d7f8e5ab3c30d58d6089f7c9606d16c80a35d3cc886357314fc216",
     "studio-styles.mjs": "470a1dd3a3bd28c5859296be02c6a5dcf98fe68203023d8cca7ad8a65592237a",
     "capture-install.mjs": "f2c95914f20a961a03b1ec5f0d4c6128ae67769e745257a07b83b6bb59ebcbab"
   },
@@ -13,35 +13,35 @@
       "filename": "install-390-closed.png",
       "width": 390,
       "state": "closed",
-      "sha256": "bac7afb09b8cf8f32342e03ea99056a6bdecc8ec90d3b55deaa17084ba4b76f3"
+      "sha256": "87b1f17ec36316971b82beb325b48c0d48197d4c0e5955eab0ea759dd1dcd5ca"
     },
     {
       "filename": "install-390-measured-cost.png",
       "width": 390,
       "state": "measured-cost",
-      "sha256": "0705f8979846b39f4f85e7153887567a79cffa23dc7b2d29abd458ae17696b09"
+      "sha256": "3707a23d1b0483148be2a77921f10bd7825649a1e63e378a8d14fe0055966594"
     },
     {
       "filename": "install-1440-closed.png",
       "width": 1440,
       "state": "closed",
-      "sha256": "edf2c6e8a5a1a532d0bdc0531acfd855731beacdf21d2e123e1a1b4ceb09b795"
+      "sha256": "89da39a05b78a916c268618c0c6a9309d5c4f11d51af146b5e22df5d54484b7d"
     },
     {
       "filename": "install-1440-measured-cost.png",
       "width": 1440,
       "state": "measured-cost",
-      "sha256": "6b6f69684c4eaab9bbce19994cbd05fd930f498964230bcdf88d21f305057148"
+      "sha256": "0df996eeae7137fab47e7c0a0a8fa4829fbe8e35d7ae9074a870698c92d66db8"
     }
   ],
-  "captureRoot": "D:/RikUI-local/explicit-start-install-copy-review-1",
-  "reviewedAt": "2026-10-04T22:19:32Z",
-  "review": "Changed installation images inspected at original size. Unchanged public-page hashes retain the prior exact reviewed images. Player-facing instructions clearly require an explicit start; no internal or developer text. Native daily updates are accurately explained separately. Keyboard and layout checks pass at supported widths.",
+  "captureRoot": "D:/RikUI-local/install-page-beta20-review-1",
+  "reviewedAt": "2026-10-04T22:37:41Z",
+  "review": "All changed beta.20 images inspected at original size at mobile and desktop widths. Player-facing instructions clearly require an explicit start; no internal or developer text. Daily Windows updates are explained separately. Prior keyboard and layout checks retained for unchanged controls.",
   "reviewedSHA256s": [
-    "bac7afb09b8cf8f32342e03ea99056a6bdecc8ec90d3b55deaa17084ba4b76f3",
-    "0705f8979846b39f4f85e7153887567a79cffa23dc7b2d29abd458ae17696b09",
-    "edf2c6e8a5a1a532d0bdc0531acfd855731beacdf21d2e123e1a1b4ceb09b795",
-    "6b6f69684c4eaab9bbce19994cbd05fd930f498964230bcdf88d21f305057148"
+    "87b1f17ec36316971b82beb325b48c0d48197d4c0e5955eab0ea759dd1dcd5ca",
+    "3707a23d1b0483148be2a77921f10bd7825649a1e63e378a8d14fe0055966594",
+    "89da39a05b78a916c268618c0c6a9309d5c4f11d51af146b5e22df5d54484b7d",
+    "0df996eeae7137fab47e7c0a0a8fa4829fbe8e35d7ae9074a870698c92d66db8"
   ]
 }
 

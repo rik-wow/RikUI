@@ -1,7 +1,7 @@
 {
   "format": "rikui-public-copy-browser-capture-v1",
   "origin": "http://127.0.0.1:8787",
-  "version": "1.0.0-beta.19",
+  "version": "1.0.0-beta.20",
   "sources": {
     "capture-public-copy.mjs": "dc84b0f764d324a94661bd7bfdaca7c65eb8bc51fc14353d39ee52af521c0586",
     "studio-pages.mjs": "853a1704467055f08bed1a625d8006f9891643fd7c6a6d0b543c5a892033217b",
@@ -9,7 +9,7 @@
     "docs-catalogue.mjs": "de9ead07bcc3c474620a3844b5763dac2f254c2ec4394349ac85c6ce0313f4fd",
     "docs-styles.mjs": "9a3cf0cf808497a5aa4edad1980f164d122957c9a1648db6b8a43365de6d2d64",
     "studio-styles.mjs": "470a1dd3a3bd28c5859296be02c6a5dcf98fe68203023d8cca7ad8a65592237a",
-    "releases.mjs": "cc9b9b79e8a03413a2b9b8e831951241fdfdd5c54113fb4e819cc5bbfe6c5c87",
+    "releases.mjs": "e009069d52d7f8e5ab3c30d58d6089f7c9606d16c80a35d3cc886357314fc216",
     "docs-generated.mjs": "0befbf5f8682811064877a1e51d9b33d71930189c5d93815469279ce9feb3784",
     "../docs/player/contributing.md": "c0ef639aaa299b46feb74c303656f2bd3851ec17809066b64666ce963558a169",
     "../docs/player/installation.md": "de40363b55adc3088f238315a30170dd4fe6ff74e328a9e90e5a43f5a6905263",
@@ -25,133 +25,133 @@
       "route": "/",
       "filename": "home-390.png",
       "width": 390,
-      "sha256": "1df070a82d4d5d6ef3f1c509813b999bda43f0d418d78e20c28d9441c5bf15e9"
+      "sha256": "c80b903174fc587ed441229fa3b44ff6b415b94e3d0d0932afc69a730417349e"
     },
     {
       "route": "/docs/contributing",
       "filename": "contributing-390.png",
       "width": 390,
-      "sha256": "09f71f91f2a96eb2f09ee06f6c10b032127e904a11d5a33d0fc8d053fb1bc961"
+      "sha256": "46de2b0d79d6c555cea6d8f8c4aa0abe44ea251838c3b258272aaa84f62068cb"
     },
     {
       "route": "/docs/installation",
       "filename": "installation-390.png",
       "width": 390,
-      "sha256": "aeb901d94e15e079479665a34f5caa7f662fa1c504ca6b422618450729617307"
+      "sha256": "a593355d5a0166c4de313301c210ed8e16c904bcb88ef29bf8cc1fe98877515e"
     },
     {
       "route": "/docs/gear-goals",
       "filename": "gear-goals-390.png",
       "width": 390,
-      "sha256": "9b964e714dc3f8ae78286ce72c8a54984c28b1562167c2e72e3c3259a51e9604"
+      "sha256": "67558b4c583cba29af3301f6a839f7740efa1eab5c784762d7a2d084756344b3"
     },
     {
       "route": "/docs/questplanner",
       "filename": "questplanner-390.png",
       "width": 390,
-      "sha256": "40d26b526b8c1e33c50644eed4a36193a296d7ab5aeef2480b36554a7e13183b"
+      "sha256": "f2b16bbd484aa8a0913cffa313e64f1fcd163ecba177dde9b3a525a24c69bd47"
     },
     {
       "route": "/docs/banners",
       "filename": "banners-390.png",
       "width": 390,
-      "sha256": "e92d56672fab885d5d81534bd1b9ac8aa334b6193e3975e6c0cb1ae8b5a779be"
+      "sha256": "7155314c713ff33be25df47ba0aa8608e5524a698ba7f88c66192f88399bb5a8"
     },
     {
       "route": "/docs/layout",
       "filename": "layout-390.png",
       "width": 390,
-      "sha256": "fd257128a7e576c387449e2d23e8941890a4fc55b0bbe95f0d28a59678b937b7"
+      "sha256": "a4440a1e454228df660cbc565945172ad58637dbd928efc5cccba5240eb2c6d8"
     },
     {
       "route": "/docs/nameplates",
       "filename": "nameplates-390.png",
       "width": 390,
-      "sha256": "5f2c0410b997b49e3b942b70614d17cc5c901147c9d195a68f87631cb2bc6b9d"
+      "sha256": "78b46acd7188c56aacf78acfed862f7529e59cb34e0a89bb112307c58ab7d5b3"
     },
     {
       "route": "/docs/wizard",
       "filename": "wizard-390.png",
       "width": 390,
-      "sha256": "bf285c437d9d9bc326b8ba5b91217f1e31fa8a2df7cfe58731530d228c12434c"
+      "sha256": "dc0f16911a89a01cc5019f4de025739ec978becac09321310291c1dd0ada57d7"
     },
     {
       "route": "/",
       "filename": "home-1440.png",
       "width": 1440,
-      "sha256": "e5c8e4e0b677be8a2fd0e10123cb909abf10d8605654481acda6aa4162bc6f64"
+      "sha256": "64b2056856f9dbb2a7928272b6002dfa5d7cbac5b42d1e969f7564c019379351"
     },
     {
       "route": "/docs/contributing",
       "filename": "contributing-1440.png",
       "width": 1440,
-      "sha256": "1bd138209cd66912b122e9ee740524052bd7d4663632100bf2dcbca406e08927"
+      "sha256": "0d999b18da11fee6e5d4c8a3da564b278cb15850458cca877e9046a12f7ea7cd"
     },
     {
       "route": "/docs/installation",
       "filename": "installation-1440.png",
       "width": 1440,
-      "sha256": "77474af3848ba0644bb01e44d4da176eaa25229c93010230593d5afe9122b821"
+      "sha256": "bf415015386b1313a0c1e837586336d259f8a416c81994379a131b114ad4ab06"
     },
     {
       "route": "/docs/gear-goals",
       "filename": "gear-goals-1440.png",
       "width": 1440,
-      "sha256": "4592ef770049df3aa2fd1ff86c291dabacdbc2c64d28f6d6f7d86e974772bea0"
+      "sha256": "c3e88afb01f31aa5a927be287daabdaff5a099bf2bd440415c7695d58bfd4eca"
     },
     {
       "route": "/docs/questplanner",
       "filename": "questplanner-1440.png",
       "width": 1440,
-      "sha256": "83e468cb14828daf1c1c670ffc41633452a1cd7e7b54b1a369f97bda76572551"
+      "sha256": "f863cc14b5c1fc8e7aeba2e7517539cdc108adadcd205ac79e5097aa7add4bb1"
     },
     {
       "route": "/docs/banners",
       "filename": "banners-1440.png",
       "width": 1440,
-      "sha256": "36c83e9587b3f123c0244479f38efc3e9099c6b728c009f1881ae60fd7dccbf5"
+      "sha256": "37ac6c6e8ffe6b692b89fd73fe412a0c5a66c44ca134bdebeece974cb04231c3"
     },
     {
       "route": "/docs/layout",
       "filename": "layout-1440.png",
       "width": 1440,
-      "sha256": "a773f4fd9c7d2c07b2f65a0ede6238eb344e41f99e0a6917e4193b620bb1242e"
+      "sha256": "2332a59e9b99ffc68b5b91fece12cd3504d3d58a48ad4b9a8cbebb168fb732a2"
     },
     {
       "route": "/docs/nameplates",
       "filename": "nameplates-1440.png",
       "width": 1440,
-      "sha256": "e71f33ed8b0f99c1eeb8a48e82b175eff2f6d16903442ae13c8cbb4ffdc2ec9d"
+      "sha256": "fa69e845066b9f02d368519f18d492575dde4f797a4a543180260e55cc5a475d"
     },
     {
       "route": "/docs/wizard",
       "filename": "wizard-1440.png",
       "width": 1440,
-      "sha256": "81dd2f50caa2e420fe5b6f560249ec924764f14ffd45b182f169a560c37e3c34"
+      "sha256": "60178a794a2862e3fbfa2a9dfccda7eaf56306bbf1dfce73fb524d0842854540"
     }
   ],
-  "captureRoot": "D:/RikUI-local/explicit-start-public-copy-review-1",
-  "reviewedAt": "2026-10-04T22:19:32Z",
-  "review": "Changed installation images inspected at original size. Unchanged public-page hashes retain the prior exact reviewed images. Player-facing instructions clearly require an explicit start; no internal or developer text. Native daily updates are accurately explained separately. Keyboard and layout checks pass at supported widths.",
+  "captureRoot": "D:/RikUI-local/public-copy-beta20-review-1",
+  "reviewedAt": "2026-10-04T22:37:41Z",
+  "review": "All changed beta.20 images inspected at original size at mobile and desktop widths. Player-facing instructions clearly require an explicit start; no internal or developer text. Daily Windows updates are explained separately. Prior keyboard and layout checks retained for unchanged controls.",
   "reviewedSHA256s": [
-    "1df070a82d4d5d6ef3f1c509813b999bda43f0d418d78e20c28d9441c5bf15e9",
-    "09f71f91f2a96eb2f09ee06f6c10b032127e904a11d5a33d0fc8d053fb1bc961",
-    "aeb901d94e15e079479665a34f5caa7f662fa1c504ca6b422618450729617307",
-    "9b964e714dc3f8ae78286ce72c8a54984c28b1562167c2e72e3c3259a51e9604",
-    "40d26b526b8c1e33c50644eed4a36193a296d7ab5aeef2480b36554a7e13183b",
-    "e92d56672fab885d5d81534bd1b9ac8aa334b6193e3975e6c0cb1ae8b5a779be",
-    "fd257128a7e576c387449e2d23e8941890a4fc55b0bbe95f0d28a59678b937b7",
-    "5f2c0410b997b49e3b942b70614d17cc5c901147c9d195a68f87631cb2bc6b9d",
-    "bf285c437d9d9bc326b8ba5b91217f1e31fa8a2df7cfe58731530d228c12434c",
-    "e5c8e4e0b677be8a2fd0e10123cb909abf10d8605654481acda6aa4162bc6f64",
-    "1bd138209cd66912b122e9ee740524052bd7d4663632100bf2dcbca406e08927",
-    "77474af3848ba0644bb01e44d4da176eaa25229c93010230593d5afe9122b821",
-    "4592ef770049df3aa2fd1ff86c291dabacdbc2c64d28f6d6f7d86e974772bea0",
-    "83e468cb14828daf1c1c670ffc41633452a1cd7e7b54b1a369f97bda76572551",
-    "36c83e9587b3f123c0244479f38efc3e9099c6b728c009f1881ae60fd7dccbf5",
-    "a773f4fd9c7d2c07b2f65a0ede6238eb344e41f99e0a6917e4193b620bb1242e",
-    "e71f33ed8b0f99c1eeb8a48e82b175eff2f6d16903442ae13c8cbb4ffdc2ec9d",
-    "81dd2f50caa2e420fe5b6f560249ec924764f14ffd45b182f169a560c37e3c34"
+    "c80b903174fc587ed441229fa3b44ff6b415b94e3d0d0932afc69a730417349e",
+    "46de2b0d79d6c555cea6d8f8c4aa0abe44ea251838c3b258272aaa84f62068cb",
+    "a593355d5a0166c4de313301c210ed8e16c904bcb88ef29bf8cc1fe98877515e",
+    "67558b4c583cba29af3301f6a839f7740efa1eab5c784762d7a2d084756344b3",
+    "f2b16bbd484aa8a0913cffa313e64f1fcd163ecba177dde9b3a525a24c69bd47",
+    "7155314c713ff33be25df47ba0aa8608e5524a698ba7f88c66192f88399bb5a8",
+    "a4440a1e454228df660cbc565945172ad58637dbd928efc5cccba5240eb2c6d8",
+    "78b46acd7188c56aacf78acfed862f7529e59cb34e0a89bb112307c58ab7d5b3",
+    "dc0f16911a89a01cc5019f4de025739ec978becac09321310291c1dd0ada57d7",
+    "64b2056856f9dbb2a7928272b6002dfa5d7cbac5b42d1e969f7564c019379351",
+    "0d999b18da11fee6e5d4c8a3da564b278cb15850458cca877e9046a12f7ea7cd",
+    "bf415015386b1313a0c1e837586336d259f8a416c81994379a131b114ad4ab06",
+    "c3e88afb01f31aa5a927be287daabdaff5a099bf2bd440415c7695d58bfd4eca",
+    "f863cc14b5c1fc8e7aeba2e7517539cdc108adadcd205ac79e5097aa7add4bb1",
+    "37ac6c6e8ffe6b692b89fd73fe412a0c5a66c44ca134bdebeece974cb04231c3",
+    "2332a59e9b99ffc68b5b91fece12cd3504d3d58a48ad4b9a8cbebb168fb732a2",
+    "fa69e845066b9f02d368519f18d492575dde4f797a4a543180260e55cc5a475d",
+    "60178a794a2862e3fbfa2a9dfccda7eaf56306bbf1dfce73fb524d0842854540"
   ]
 }
 
