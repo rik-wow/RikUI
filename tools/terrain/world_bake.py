@@ -8,8 +8,9 @@ import argparse,json,os,pathlib,shutil,subprocess,sys,time
 from world_source import Source,canonical,sha,need
 import world_placements
 from world_geometry import geometry
+from world_storage import encode
 HERE=pathlib.Path(__file__).resolve().parent
-TOOLS=('client_build.py','world_empty_placements.py','world_source.py','world_placements.py','world_geometry.py','world_liquid.py','world_bake.py','world_stitch.py','world_tiled.mjs','bake_world_batch.mjs','terrain_probe.py','world_projection.py','collision_probe.py','wmo_probe.py','west_profile.py','m2_physics_extent.py','mesh_filter.mjs')
+TOOLS=('client_build.py','world_empty_placements.py','world_source.py','world_placements.py','world_geometry.py','world_liquid.py','world_bake.py','world_stitch.py','world_tiled.mjs','bake_world_batch.mjs','terrain_probe.py','world_projection.py','collision_probe.py','wmo_probe.py','west_profile.py','m2_physics_extent.py','mesh_filter.mjs','world_storage.py')
 
 def atomic(path,value):
  temp=path.with_name(path.name+'.next')
@@ -60,8 +61,8 @@ def main():
    else:
     directory.mkdir();receipt=dict(input=expected,jobID=job['id'],worldMapID=job['worldMapID'],status='failed',files=[],nativeVerified=False)
     try:
-     g=geometry(source,job,index);target=directory/'geometry.json'
-     with target.open('xb') as f:f.write(canonical(g))
+     g=geometry(source,job,index);target=directory/'geometry.json.gz'
+     with target.open('xb') as f:f.write(encode(canonical(g),256*1024*1024))
      with (directory/'bake.log').open('xb') as log:
       run=subprocess.run([node,'--preserve-symlinks','--preserve-symlinks-main',str(HERE/'bake_world_batch.mjs'),str(target),str(directory/'bake')],cwd=HERE,stdout=log,stderr=subprocess.STDOUT,timeout=600,
        creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)

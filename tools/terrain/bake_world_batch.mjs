@@ -3,12 +3,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {gunzipSync,gzipSync} from 'node:zlib';
 import {init} from 'recast-navigation';
 import {generateBoundedTiled} from './world_tiled.mjs';
 import {hasHorizontalArea,exclusionLookup,voxelVertex,clipPortalToTarget,pruneStepPortals,pruneFullHeightExcludedTriangles} from './mesh_filter.mjs';
 const [input,outdir]=process.argv.slice(2);
 if(!input||!outdir||fs.existsSync(outdir))throw Error('new output and input required');
-const raw=fs.readFileSync(input);if(raw.length>256*1024*1024)throw Error('geometry-byte-bound');
+const stored=fs.readFileSync(input);if(stored.length>256*1024*1024)throw Error('geometry-byte-bound');
+const raw=input.endsWith('.gz')?gunzipSync(stored,{maxOutputLength:256*1024*1024}):stored;
 const g=JSON.parse(raw),j=g.job;
 if(g.format!=='rikui-world-geometry-v1'||j?.format!=='rikui-world-bake-job-v1'||g.worldMapID!==j.worldMapID||g.nativeVerified!==false)throw Error('geometry-identity');
 if(g.positions.length>4500000||g.indices.length>9000000||g.positions.length%3||g.indices.length%3||!g.positions.every(Number.isFinite)||!g.indices.every(v=>Number.isInteger(v)&&v>=0&&v<g.positions.length/3))throw Error('geometry-arrays');
@@ -79,9 +81,9 @@ try{
  const targetKeys=new Set(owned.flatMap(p=>p.portals.map(e=>e.to))),neededWitnesses=witnesses.filter(p=>targetKeys.has(p.key));
  fs.mkdirSync(outdir);
  const files=[];
- function write(name,object){const data=Buffer.from(JSON.stringify(object));if(data.length>64*1024*1024)throw Error('batch artifact byte bound');fs.writeFileSync(path.join(outdir,name),data,{flag:'wx'});files.push({filename:name,sha256:sha(data),bytes:data.length});}
- write('polygons.json',{format:'rikui-world-owned-polygons-v1',worldMapID:j.worldMapID,jobID:j.id,polygons:owned});
- write('boundary-witnesses.json',{format:'rikui-world-boundary-witnesses-v1',worldMapID:j.worldMapID,jobID:j.id,polygons:neededWitnesses});
+ function write(name,object){const data=Buffer.from(JSON.stringify(object));if(data.length>64*1024*1024)throw Error('batch artifact byte bound');const stored=name.endsWith('.gz')?gzipSync(data,{level:3}):data;fs.writeFileSync(path.join(outdir,name),stored,{flag:'wx'});files.push({filename:name,sha256:sha(stored),bytes:stored.length});}
+ write('polygons.json.gz',{format:'rikui-world-owned-polygons-v1',worldMapID:j.worldMapID,jobID:j.id,polygons:owned});
+ write('boundary-witnesses.json.gz',{format:'rikui-world-boundary-witnesses-v1',worldMapID:j.worldMapID,jobID:j.id,polygons:neededWitnesses});
  write('manifest.json',{format:'rikui-world-nav-batch-v1',identity:g.identity,worldMapID:j.worldMapID,job:j,
   geometrySHA256:sha(raw),source:g.source,coverageGates:g.coverageGates,exclusions:g.exclusions,liquids:g.liquids??[],
   generator:{package:'recast-navigation',version:'0.43.1',config,origin,wrapperSHA256:sha(fs.readFileSync(new URL(import.meta.url))),boundedWrapperSHA256:sha(fs.readFileSync(new URL('./world_tiled.mjs',import.meta.url))),filterSHA256:sha(fs.readFileSync(new URL('./mesh_filter.mjs',import.meta.url))),heightAudit:result.heightAudit,preRasterExclusionAudit:preRaster.audit},

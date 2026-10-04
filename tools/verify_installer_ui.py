@@ -127,7 +127,7 @@ STATES={
  "download":dict(phase="Getting quest information",message="Downloading QuestieDB from its publisher. Existing installed files remain available.",busy=True,completed=12,total=40,units="MiB",seconds=21),
  "generation":dict(phase="Preparing routes",message="Building current routes on your computer. Completed work is retained if you pause.",busy=True,completed=403,total=2290,seconds=535,build="current fixture"),
  "paused":dict(phase="Preparation paused",message="Completed work and your existing installation are retained. Choose Resume setup to continue.",action="&Resume setup",verified=True,state="cancelled"),
- "disk-failure":dict(phase="More disk space needed",message="First preparation needs 80 GiB; 47 GiB is free on C:. Choose Preparation folder on another drive, or free space and retry.",verified=True,state="failed"),
+ "disk-failure":dict(phase="More disk space needed",message="First preparation needs 16 GiB; 7 GiB is free on C:. Choose Preparation folder on another drive, or free space and retry.",verified=True,state="failed"),
  "provider-failure":dict(phase="Quest information unavailable",message="QuestieDB could not be obtained from its publisher. Check your connection, then Resume setup.",action="&Resume setup",verified=True,state="failed"),
  "partial":dict(phase="Guide partially prepared",message="Supported regions are still being generated. This is incomplete. Resume setup to finish before installation.",action="&Resume setup",verified=True,state="cancelled"),
  "verification-failure":dict(phase="Files need rebuilding",message="Generated files failed verification. Existing installed files are retained. Resume setup to rebuild safely.",action="&Resume setup",verified=True,state="failed"),

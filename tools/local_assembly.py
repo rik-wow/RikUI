@@ -394,7 +394,7 @@ class Assembly:
                 if candidate:self.job=candidate
             except (ValueError,OSError,KeyError,TypeError):
                 retain_owned_file(preparing)
-        required=8 if self.job.exists() else (80 if "acquisition" in scopes else 40 if "bakes" in scopes else 24 if "roads" in scopes else 8)
+        required=8 if self.job.exists() else (16 if "acquisition" in scopes else 12 if "bakes" in scopes else 8 if "roads" in scopes else 4)
         free=shutil.disk_usage(self.cache).free/1024**3
         if free<required:
             raise ValueError(f"Preparation needs {required} GiB free; {free:.1f} GiB is available at {self.cache.anchor}. Choose Preparation folder on a roomier drive, or free space and retry.")

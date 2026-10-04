@@ -3,6 +3,7 @@ Missing neighbour batches remain pending; no proximity stitching exists here.
 """
 import argparse,copy,json,math,pathlib,re
 from world_source import canonical,sha,need
+from world_storage import decode
 KEY=re.compile(r'w(\d+):r(-?\d+):(-?\d+):(\d+):p(\d+)\Z')
 POLYS_PER_TILE=4096  # bake_world_batch.mjs cap; polygon IDs pack the index in 12 bits
 def key(value):
@@ -48,11 +49,11 @@ def validate_poly(poly):
 def load(path,expected):
  path=pathlib.Path(path);raw=(path/'manifest.json').read_bytes();need(len(raw)<=16*1024*1024 and sha(raw)==expected,'batch manifest hash')
  m=json.loads(raw);need(m.get('format')=='rikui-world-nav-batch-v1' and m.get('nativeVerified') is False,'batch format')
- need(len(m['files'])==2,'batch file count');records={r['filename']:r for r in m['files']};need(set(records)=={'polygons.json','boundary-witnesses.json'},'batch file set')
+ need(len(m['files'])==2,'batch file count');records={r['filename']:r for r in m['files']};need(set(records) in ({'polygons.json','boundary-witnesses.json'},{'polygons.json.gz','boundary-witnesses.json.gz'}),'batch file set')
  documents={}
  for name,row in records.items():
   data=(path/name).read_bytes();need(len(data)<=64*1024*1024 and len(data)==row['bytes'] and sha(data)==row['sha256'],'batch payload hash')
-  d=json.loads(data);need(d.get('worldMapID')==m['worldMapID'] and d.get('jobID')==m['job']['id'],'payload identity');documents[name]=d['polygons']
+  d=json.loads(decode(data,64*1024*1024) if name.endswith('.gz') else data);need(d.get('worldMapID')==m['worldMapID'] and d.get('jobID')==m['job']['id'],'payload identity');documents[name.removesuffix('.gz')]=d['polygons']
  namespace=(m['worldMapID'],*m['job']['batchGrid']);polys={};witnesses={}
  for name,target in [('polygons.json',polys),('boundary-witnesses.json',witnesses)]:
   for row in documents[name]:

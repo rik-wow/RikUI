@@ -54,7 +54,7 @@ fn definitions() -> Vec<(&'static str, &'static str, i32, [i32; 4], u32)> {
         ),
         (
             "Static",
-            "Allow at least 80 GiB free for first preparation, which can take substantial time. You can pause and resume. Unknown quests and unsupported regions stay explicit.",
+            "First preparation needs 16 GiB free. Setup stores compressed build files. You can pause and resume. Unknown quests and unsupported regions stay explicit.",
             125,
             [32, 372, 606, 42],
             0,

@@ -3,6 +3,7 @@ The legacy Dun Morogh source admission remains untouched. World batch evidence
 has its own exact hash chain, exclusions and cross-batch portal proof.
 """
 import copy,json,math,pathlib
+from world_storage import decode
 import world_stitch as stitch
 import world_projection as projection
 import terrain_partition as partition
@@ -42,13 +43,17 @@ def validate_receipt(record,batch):
  raw=read(record['receiptPath'],record['receiptSHA256'],4*1024*1024);r=json.loads(raw);root=pathlib.Path(record['receiptPath']).parent.resolve()
  need(r.get('status')=='derived-pending-seam-validation' and r.get('nativeVerified') is False,'unaccepted bake receipt state')
  need(pathlib.Path(record['directory']).resolve()==root/'bake','receipt/bake location mismatch')
- records={e['filename']:e for e in r['files']};need(len(records)==len(r['files']) and 'geometry.json' in records,'receipt file coverage')
- geometry=None
+ records={e['filename']:e for e in r['files']}
+ geometry_names=set(records)&{'geometry.json','geometry.json.gz'}
+ need(len(records)==len(r['files']) and len(geometry_names)==1,'receipt file coverage')
+ geometry_name=next(iter(geometry_names));geometry=None;geometry_hash=None
  for name,row in records.items():
   path=(root/name).resolve();need(path.is_relative_to(root),'receipt path escape')
   data=read(path,row['sha256'],256*1024*1024);need(len(data)==row['bytes'],'receipt output size mismatch')
-  if name=='geometry.json':geometry=json.loads(data)
- need(batch['manifest']['geometrySHA256']==records['geometry.json']['sha256'],'geometry/manifest hash mismatch')
+  if name==geometry_name:
+   decoded=decode(data,256*1024*1024) if name.endswith('.gz') else data
+   geometry_hash=sha(decoded);geometry=json.loads(decoded)
+ need(batch['manifest']['geometrySHA256']==geometry_hash,'geometry/manifest hash mismatch')
  need(geometry['job']==batch['manifest']['job'] and geometry['source']==batch['manifest']['source'] and geometry['exclusions']==batch['manifest']['exclusions'],'geometry/manifest evidence mismatch')
  need(sha(canonical(geometry['job']))==r['input']['jobSHA256'] and geometry['job']['source']['profileSHA256']==r['input']['sourceProfileSHA256'] and geometry['source']['placementIndexSHA256']==r['input']['indexSHA256'],'geometry source identity mismatch')
  for generator,tool in [('wrapperSHA256','bake_world_batch.mjs'),('boundedWrapperSHA256','world_tiled.mjs'),('filterSHA256','mesh_filter.mjs')]:

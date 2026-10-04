@@ -235,6 +235,22 @@ class Tests(unittest.TestCase):
             self.worker.reusable(outside,Mock(side_effect=ValueError("invalid")))
         self.assertTrue(outside.exists())
 
+    def test_fresh_preparation_admits_sixteen_gib_and_rejects_less_before_building(self):
+        (self.worker.cache/"latest.json").unlink()
+        self.worker.args.executable=self.resolution["installation"]["executable"]
+        self.worker.args.base_bundle=self.root/"interface.zip"
+        with self.metadata(),patch.object(local.shutil,"disk_usage",return_value=Mock(free=15*1024**3)):
+            with self.assertRaisesRegex(ValueError,"Preparation needs 16 GiB"):
+                self.worker.prepare()
+        self.assertFalse((self.worker.cache/"preparing.json").exists())
+        # At the exact admission boundary, preparation reaches source verification.
+        # No mocked geometry producer or deletion can conceal an early disk rejection.
+        with self.metadata(),patch.object(local.shutil,"disk_usage",return_value=Mock(free=16*1024**3)):
+            self.worker.reusable=Mock(side_effect=InterruptedError("admitted; paused before acquisition"))
+            with self.assertRaisesRegex(InterruptedError,"admitted; paused"):
+                self.worker.prepare()
+        self.assertTrue((self.worker.cache/"preparing.json").is_file())
+
     def test_retention_cannot_move_other_data(self):
         outside=self.root/"unrelated";outside.mkdir()
         with self.assertRaisesRegex(ValueError,"Retention outside"):

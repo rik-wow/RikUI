@@ -91,6 +91,14 @@ class Acquisition:
         self.rows, self.paths, self.missing, self.batches = {}, {}, [], 0
         self.start = time.monotonic()
 
+    def workspace(self):
+        """One publisher cache per current acquisition, never one per batch."""
+        folder = self.output / "extractor-workspace"
+        if folder.is_symlink() or (hasattr(folder, "is_junction") and folder.is_junction()):
+            raise ValueError("Linked extractor workspace")
+        folder.mkdir(exist_ok=True)
+        return folder
+
     def cancelled(self):
         if (self.output / "cancel").exists():
             raise InterruptedError("Acquisition cancelled; current files preserved for inspection")
@@ -113,7 +121,7 @@ class Acquisition:
                          "-c", identity["cdnConfig"], "-l", "enUS",
                          "-m", "list", "-i", str(listing), "-o", str(folder / "assets")]
             with (folder / "extract.log").open("wb") as log:
-                process = subprocess.Popen(arguments, cwd=folder, stdout=log,
+                process = subprocess.Popen(arguments, cwd=self.workspace(), stdout=log,
                     stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
                 try:
                     deadline = time.monotonic() + 600
