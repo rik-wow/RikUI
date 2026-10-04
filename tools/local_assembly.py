@@ -208,6 +208,21 @@ def checkpoint_job(cache, checkpoint, resolution, tools, base_sha, list_identity
     return candidate
 
 
+def progress_snapshot(path):
+    """Advisory progress never admits build products or interrupts a writer."""
+    try:
+        with current.regular(path).open("rb") as stream:
+            raw=stream.read(65537)
+        if len(raw)>65536:return None
+        value=json.loads(raw)
+        return value if isinstance(value,dict) else None
+    except (OSError,ValueError):
+        # Missing, unreadable or incomplete advisory files do not admit anything.
+        # Windows replacement sharing and unfinished writes are transient.
+        # The next monitoring iteration retries; final product checks stay strict.
+        return None
+
+
 class Assembly:
     def __init__(self,args):
         self.args=args
@@ -280,8 +295,8 @@ class Assembly:
                         process.wait()
                         if low_space:raise ValueError("Less than 4 GiB remains on the preparation drive. Free space, then Resume setup. Completed work is retained.")
                         raise InterruptedError("Preparation paused. Reopen setup to resume verified work.")
-                    if progress and Path(progress).is_file():
-                        data=json.loads(Path(progress).read_bytes())
+                    data=progress_snapshot(progress) if progress else None
+                    if data is not None:
                         self.report("Reading current game files." if "acquisition" in script else "Preparing routes. You can pause and resume.",units="files" if "acquisition" in script else "jobs",completed=data.get("completed",data.get("files",0)),
                                     total=data.get("total"),counts=data.get("counts"),measuredSeconds=data.get("seconds"))
                     elif unit_progress:

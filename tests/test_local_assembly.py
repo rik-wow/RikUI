@@ -39,6 +39,34 @@ class Tests(unittest.TestCase):
     def metadata(self):
         return patch.object(current,"download",return_value=current.canonical(self.meta()))
 
+    def test_progress_read_races_do_not_kill_the_build_worker(self):
+        progress=self.worker.job/"progress.json";progress.write_bytes(b'{"completed":')
+        self.worker.runtime=self.root/"runtime";self.worker.python=self.root/"python.exe"
+        self.worker.env={};self.worker.cancel=self.worker.cache/"cancel"
+        self.worker.phase="Preparing routes";self.worker.fresh=Mock()
+        process=Mock(returncode=0)
+        process.poll.side_effect=[None,None,None,0]
+        with patch.object(local.subprocess,"Popen",return_value=process), \
+                patch.object(local.shutil,"disk_usage",return_value=Mock(free=20*1024**3)), \
+                patch.object(local.time,"sleep"), \
+                patch.object(Path,"read_bytes",side_effect=AssertionError("Unbounded progress reader")), \
+                patch.object(local,"progress_snapshot",side_effect=[None,None,{"completed":3,"total":3}]):
+            self.worker.run("terrain/world_bake_parallel.py",progress=progress)
+        process.kill.assert_not_called()
+        process.wait.assert_not_called()
+        self.assertEqual(self.worker.report.call_args.kwargs["completed"],3)
+
+    def test_progress_snapshots_are_bounded_and_tolerate_sharing_and_partial_writes(self):
+        path=self.worker.job/"progress.json"
+        self.assertIsNone(local.progress_snapshot(path))
+        for raw in (b"",b'{"completed":',b"x"*65537):
+            path.write_bytes(raw)
+            self.assertIsNone(local.progress_snapshot(path))
+        path.write_bytes(b'{"completed":5,"total":10}')
+        with patch.object(Path,"open",side_effect=PermissionError("being replaced")):
+            self.assertIsNone(local.progress_snapshot(path))
+        self.assertEqual(local.progress_snapshot(path),{"completed":5,"total":10})
+
     def test_eight_terrain_workers_handoff_to_supported_road_process_limit(self):
         capture=self.root/"mesh.json";capture.write_bytes(b"verified mesh")
         travel=self.root/"travel.json";travel.write_bytes(b"verified travel")
