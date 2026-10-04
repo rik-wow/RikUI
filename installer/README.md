@@ -22,7 +22,7 @@ The version above illustrates the reviewed release; subsequent tags supply their
 
 Setup resolves Gethe's current `forever` head and `version.txt`, checks executable PE version and active `.build.info` product/configuration, and discovers the matching executable and directory without requiring a beta path. Provider, holiday, schema, road-list and compiler changes invalidate affected outputs. Current bytes and compatibility must verify before a no-op.
 
-At startup/update it checks the existing public GitHub release channel for newer setup support. Installation registers the current-user daily **RikUI Current Forever Updates** task. The owned program copy is hash verified. Failures and successful daily checks are recorded in local application data. Paused preparation stays paused until the player resumes. A new unsupported schema or client prevents dependent generation or installation while preserving existing data. This does not claim future builds have been tested.
+At startup/update it checks the existing public GitHub release channel for newer setup support. Installation registers the current-user daily **RikUI Current Forever Updates** task. The owned program copy is hash verified. Failures and successful daily checks are recorded in local application data. Paused preparation stays paused until the player resumes; daily checks still resolve current client and publisher inputs and record pending rebuilds without generating or installing data. A new unsupported schema or client prevents dependent generation or installation while preserving existing data. This does not claim future builds have been tested.
 
 ## Resource use and recovery
 

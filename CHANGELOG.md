@@ -17,6 +17,8 @@ prereleases.
   when it is still compatible.
 - Improved recovery from temporary Windows file-access problems and malformed
   quest information.
+- Daily version checks continue while preparation is paused. Generation stays
+  paused until you choose Resume setup.
 - Settings, backups and existing local data remain preserved.
 - Clearer installation instructions and player guides throughout the website.
 

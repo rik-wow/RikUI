@@ -580,8 +580,42 @@ pub fn verify_package(target: &Path) -> Result<()> {
     )
 }
 
+fn inspect_paused_update(
+    storage: &Path,
+    root: &Path,
+    inspect_current: impl FnOnce(&Path, &Path) -> Result<Value>,
+) -> Result<Option<String>> {
+    let cancel = cache(root)?.join("cancel");
+    if !cancel.exists() {
+        return Ok(None);
+    }
+    normal(&cancel)?;
+    let probe = inspect_current(storage, root)?;
+    if probe["format"] != "rikui-refresh-probe-v1"
+        || probe["resolution"]["fingerprint"].as_str().is_none()
+        || !probe["changed"].is_array()
+        || !probe["rebuild"].is_array()
+    {
+        return Err("Version check did not return supported current inputs.".into());
+    }
+    atomic_json(
+        &root.join("status.json"),
+        &serde_json::json!({
+            "phase":"Updates paused", "state":"paused",
+            "message":"Version check complete. Preparation remains paused. Choose Resume setup to continue.",
+            "resolution":probe["resolution"], "changed":probe["changed"], "rebuild":probe["rebuild"]
+        }),
+    )?;
+    Ok(Some(
+        "Version check complete. Preparation remains paused.".into(),
+    ))
+}
+
 pub fn daily(root: &Path) -> Result<String> {
     let config: Configuration = serde_json::from_value(json(&root.join("configuration.json"))?)?;
+    if let Some(message) = inspect_paused_update(&config.storage_root, root, inspect)? {
+        return Ok(message);
+    }
     prepare_install(&config.storage_root, root, false, true)
 }
 pub fn schedule(root: &Path) -> Result<()> {
@@ -801,4 +835,106 @@ pub fn wait_for_previous() -> Result<()> {
         let _ = pid;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod paused_update_tests {
+    use super::*;
+    #[test]
+    fn paused_checks_record_changed_and_unchanged_inputs_without_resuming() {
+        for changed in [false, true] {
+            let root = tempfile::tempdir().expect("profile");
+            pause(root.path()).expect("pause");
+            let folder = cache(root.path()).expect("cache");
+            let marker = fs::read(folder.join("cancel")).expect("marker");
+            fs::write(folder.join("retained-data"), b"completed work").expect("data");
+            let rebuild = if changed {
+                vec!["corpus", "roads"]
+            } else {
+                vec![]
+            };
+            let probe = serde_json::json!({
+                "format":"rikui-refresh-probe-v1",
+                "resolution":{"fingerprint":"current-fixture"},
+                "changed":if changed {vec!["provider"]} else {vec![]},
+                "rebuild":rebuild
+            });
+            let result = inspect_paused_update(
+                Path::new("fixture-storage"),
+                root.path(),
+                |storage, selected| {
+                    assert_eq!(storage, Path::new("fixture-storage"));
+                    assert_eq!(selected, root.path());
+                    assert_eq!(
+                        fs::read(folder.join("cancel")).expect("still paused"),
+                        marker
+                    );
+                    Ok(probe.clone())
+                },
+            )
+            .expect("check")
+            .expect("paused result");
+            assert!(result.contains("remains paused"));
+            let status = json(&root.path().join("status.json")).expect("status");
+            assert_eq!(status["state"], "paused");
+            assert_eq!(status["resolution"], probe["resolution"]);
+            assert_eq!(status["changed"], probe["changed"]);
+            assert_eq!(status["rebuild"], probe["rebuild"]);
+            assert_eq!(fs::read(folder.join("cancel")).expect("marker"), marker);
+            assert_eq!(
+                fs::read(folder.join("retained-data")).expect("data"),
+                b"completed work"
+            );
+            assert!(!root.path().join("installed.json").exists());
+        }
+    }
+    #[test]
+    fn paused_check_failure_retains_pause_and_completed_work() {
+        let root = tempfile::tempdir().expect("profile");
+        pause(root.path()).expect("pause");
+        let folder = cache(root.path()).expect("cache");
+        let marker = fs::read(folder.join("cancel")).expect("marker");
+        fs::write(folder.join("retained-data"), b"completed work").expect("data");
+        let result = inspect_paused_update(Path::new("fixture"), root.path(), |_, _| {
+            Err("publisher unavailable".into())
+        });
+        assert!(
+            result
+                .expect_err("failure")
+                .to_string()
+                .contains("publisher unavailable")
+        );
+        assert_eq!(fs::read(folder.join("cancel")).expect("marker"), marker);
+        assert_eq!(
+            fs::read(folder.join("retained-data")).expect("data"),
+            b"completed work"
+        );
+        assert!(!root.path().join("status.json").exists());
+        assert!(!root.path().join("installed.json").exists());
+    }
+    #[test]
+    fn malformed_paused_probe_cannot_claim_completed_version_check() {
+        let root = tempfile::tempdir().expect("profile");
+        pause(root.path()).expect("pause");
+        assert!(
+            inspect_paused_update(Path::new("fixture"), root.path(), |_, _| Ok(
+                serde_json::json!({})
+            ))
+            .is_err()
+        );
+        assert!(cache(root.path()).expect("cache").join("cancel").is_file());
+        assert!(!root.path().join("status.json").exists());
+    }
+    #[test]
+    fn unpaused_daily_path_does_not_duplicate_its_normal_check() {
+        let root = tempfile::tempdir().expect("profile");
+        assert!(
+            inspect_paused_update(Path::new("fixture"), root.path(), |_, _| panic!(
+                "unpaused work uses the normal preparation path"
+            ))
+            .expect("unpaused")
+            .is_none()
+        );
+        assert!(!root.path().join("status.json").exists());
+    }
 }
