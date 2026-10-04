@@ -49,7 +49,7 @@ async function download(request, env, path) {
     return json({ error: "Download temporarily unavailable" }, 503);
   const headers = { ETag: '"' + artifact.sha256 + '"', "Accept-Ranges": "bytes",
     "Content-Disposition": 'attachment; filename="' + artifact.filename + '"',
-    "Cache-Control": "public, max-age=31536000, immutable" };
+    "Cache-Control": "public, max-age=31536000, immutable, no-transform" };
   const tags = request.headers.get("If-None-Match")?.split(",").map(v => v.trim().replace(/^W\//, "")) || [];
   if (tags.includes("*") || tags.includes(headers.ETag))
     return respond(null, 304, artifact.contentType, headers);

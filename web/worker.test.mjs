@@ -119,6 +119,8 @@ test("approved downloads support streams, conditional reads, HEAD and ranges", a
     assert.equal(partial.headers.get("Content-Range"), "bytes 2-5/10");
     const head = await worker.fetch(request(artifact.path, { method: "HEAD" }), env);
     assert.equal(head.headers.get("Content-Length"), "10"); assert.equal(gets, 1);
+    assert.match(head.headers.get("Cache-Control"), /(?:^|,\s*)no-transform(?:,|$)/);
+    assert.equal(head.headers.get("ETag"), '"' + artifact.sha256 + '"');
     const cached = await worker.fetch(request(artifact.path, { headers: { "If-None-Match": '"' + artifact.sha256 + '"' } }), env);
     assert.equal(cached.status, 304); assert.equal(gets, 1);
     assert.equal((await worker.fetch(request(artifact.path, { headers: { "If-None-Match": "*" } }), env)).status, 304);
