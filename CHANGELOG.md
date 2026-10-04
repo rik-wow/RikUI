@@ -19,6 +19,8 @@ prereleases.
   quest information.
 - Daily version checks continue while preparation is paused. Generation stays
   paused until you choose Resume setup.
+- Preparation progress remains visible throughout longer runs and includes
+  completed work when resuming.
 - Settings, backups and existing local data remain preserved.
 - Clearer installation instructions and player guides throughout the website.
 
