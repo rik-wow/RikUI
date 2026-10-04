@@ -68,13 +68,14 @@ def verify(program,result,output):
     local_assembly.atomic(root/"preferences.json",dict(preparation_folder=str(cache)))
     environment=dict(os.environ,LOCALAPPDATA=str(appdata),PATH=os.environ["SystemRoot"]+"/System32;"+os.environ["SystemRoot"])
     runs=[]
-    def run(expect_success):
+    def run(expect_success,daily=False):
         phase=time.monotonic()
-        child=subprocess.run([str(program),"--install-current",str(storage),"--no-schedule"],
+        arguments=["--daily-update"] if daily else ["--install-current",str(storage),"--no-schedule"]
+        child=subprocess.run([str(program),*arguments],
             env=environment,cwd=output,timeout=900,creationflags=subprocess.CREATE_NO_WINDOW)
-        error_path=root/"installation-error.json"
+        error_path=root/("daily-update.json" if daily else "installation-error.json")
         error=json.loads(error_path.read_bytes()) if child.returncode and error_path.exists() else None
-        runs.append(dict(exitCode=child.returncode,seconds=round(time.monotonic()-phase,1),error=error))
+        runs.append(dict(action="paused-daily-check" if daily else "install-or-resume",exitCode=child.returncode,seconds=round(time.monotonic()-phase,1),error=error))
         if (child.returncode==0)!=expect_success:raise ValueError("Unexpected isolated installer result")
         for path,raw in sentinels.items():
             if path.read_bytes()!=raw:raise ValueError("Player or unrelated files changed")
@@ -88,6 +89,24 @@ def verify(program,result,output):
     run(True)
     verify_installed(copied,addons)
     if transactions()!=before:raise ValueError("Unchanged update created another backup")
+    # The operating daily backend must still check current sources and actual
+    # retained bytes while paused, without generating, installing or resuming.
+    latest_sha=file_sha(cache/"latest.json")
+    pause=cache/"cancel";pause.write_bytes(b"player paused")
+    run(True,daily=True)
+    status=json.loads((root/"status.json").read_bytes())
+    daily=json.loads((root/"daily-update.json").read_bytes())
+    if (status.get("state")!="paused" or status.get("resolution",{}).get("fingerprint")!=chosen["fingerprint"]
+            or status.get("rebuild")!=[] or status.get("changed")!=[] or daily.get("state")!="checked"):
+        raise ValueError("Paused daily compatibility/byte check did not report current unchanged inputs")
+    if pause.read_bytes()!=b"player paused" or file_sha(cache/"latest.json")!=latest_sha:
+        raise ValueError("Read-only daily check changed the pause marker or assembly")
+    if transactions()!=before:raise ValueError("Paused daily check changed backups")
+    verify_installed(copied,addons)
+    run(True)
+    if pause.exists():raise ValueError("Explicit resume did not clear the player's pause")
+    if transactions()!=before:raise ValueError("Unchanged resume created another backup")
+    verify_installed(copied,addons)
     # Corrupt only the isolated executable. Metadata failure must keep installation
     # and all completed inputs intact. Retain the bad fixture, then retry.
     held=executable.with_name("verified-executable-retained.exe")
@@ -104,6 +123,7 @@ def verify(program,result,output):
         bundleSHA256=file_sha(copied),installation=installed,runs=runs,
         settingsPreserved=True,privateDataPreserved=True,unrelatedAddonsPreserved=True,
         relocatedDirectoryVerified=True,repeatUpdateNoOp=True,failedClientRecovery=True,
+        pausedDailyCurrentCheck=True,pausedDataPreserved=True,explicitResumeNoOp=True,
         seconds=round(time.monotonic()-started,1),output=str(output))
     local_assembly.atomic(output/"evidence.json",proof)
     return proof
