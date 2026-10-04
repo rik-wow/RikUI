@@ -7,6 +7,40 @@ and carry no notes. A version with `beta` in its name is a prerelease. The BigWi
 and uses it as the GitHub release text, so add the new version here before
 tagging.
 
+## 1.0.0-beta.15
+
+2026-10-04. Current Forever quest guidance and locally generated navigation.
+
+- Use Windows setup to obtain supported quest information separately from its
+  publishers and prepare navigation from your own current Forever game files.
+  Public downloads contain the interface, licensed tools and notices; imported
+  provider datasets and extracted geometry stay on your computer.
+- Setup includes its tools and uses a familiar four-stage Windows interface.
+  No manual Git, Python, Node or database installation is required. Allow at
+  least 80 GiB free for first preparation, plus retained generations and backups.
+  Progress reports measured phases and jobs; preparation can pause and resume.
+- Verify the current Forever branch, executable, product and build configuration
+  before dependent operations. Provider, event, schema and producing-tool
+  changes refresh affected products. Unchanged outputs require current byte
+  verification. Startup/update checks and an installed daily Windows task
+  maintain this process; the release client is discovered without a fixed beta path.
+- Stage and verify installed files, retain previous versions and recover failed
+  swaps. Preserve settings, unrelated addons and existing private data.
+  Repeating an unchanged verified installation does not add a backup.
+- Export all eighteen supported provider variants and retain quest, NPC, item,
+  object, objective, eligibility, prerequisite, acquisition, localization and
+  holiday semantics with authority, conflicts and unknown coverage.
+  Provider support strings are normalized offline rather than executed in RikUI.
+- The reviewed client is Forever 1.60.1.70205. It has 6,609 quest IDs; 2,324
+  have no provider semantics in the current 7,333-ID union. Supported navigation
+  covers Eastern Kingdoms, Kalimdor, Zephras Isle, Darkspear Islands, Alterac
+  Valley, Warsong Gulch and Arathi Basin. Unknown floors, phases, physics,
+  projections, portals and lift endpoints remain explicit; transport times
+  are estimates. Future builds are verified when available.
+- See [Windows installation and recovery](https://rikwow.com/install).
+  The public addon ZIP remains an interface-only option; use setup for the
+  complete supported local guide and navigation.
+
 ## 1.0.0-beta.14
 
 2026-10-03. Gear goals for WoW: Forever beta.
