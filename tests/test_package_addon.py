@@ -38,6 +38,7 @@ class PackageTests(unittest.TestCase):
             "tools/private.py": "private",
             "tests/private.lua": "private",
             "RikUIRoads/private.lua": "proprietary",
+            "generated/gear/gear-catalog.lua": "private compiled source catalog",
             "media/build_icons.py": "development",
         }
         for name, text in files.items():

@@ -115,7 +115,7 @@ local provider = {
   characterPolicy='All 18 faction/class combinations; current owned Forever callbacks read only faction and class. Race, level, realm, season and spell state are not correction axes in this adapter; new correction axes require an adapter update.',
   tableEncoding='objects with stringified Lua keys; nil omitted; empty table preserved',
   sourceFiles=array(selectedFiles), supportFiles=array(config.supportFiles(flavor)),
-  contractVersion=db.contractVersion, rawCounts=rawCounts,
+  contractVersion=db.contractVersion, rawCounts=rawCounts, raceMasks=db.Enum.raceMaskById,
 }
 write('{"schemaVersion":1,"provider":',json(provider),',"schema":{')
 for i,name in ipairs(types) do

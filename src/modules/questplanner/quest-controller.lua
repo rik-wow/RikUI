@@ -5,6 +5,10 @@ planner.Controller=controller
 local MAX_FLAGS,FRAME_CALLS,FRAME_MS=32,64,1
 local policy=planner.Preferences and planner.Preferences.Normalize({}) or {pins={},avoids={},skips={},dungeons=false}
 policy.paused,policy.arrow=false,false
+local personalPolicy=policy
+function controller.EffectivePolicy()
+    return core.GearGoals and core.GearGoals.DecoratePolicy(personalPolicy) or schema.Clone(personalPolicy)
+end
 local view={status="unavailable",detail="Reading the quest log",quests={}}
 local revision,signature,data,job,context=0,nil,nil,nil,nil
 local stats={replans=0,published=0,cancelled=0,maxSliceMS=0,timingSamples=0,frameCalls=0}
@@ -59,7 +63,7 @@ function controller.Quests()
     end
     return rows
 end
-function controller.Policy() return schema.Clone(policy) end
+function controller.Policy() return schema.Clone(personalPolicy) end
 function controller.ArrowEnabled() return policy.arrow end
 function controller.Stats() return schema.Clone(stats) end
 function controller.Context() return schema.Clone(context) end
@@ -80,16 +84,17 @@ function controller.Restore()
     end
     for _,name in ipairs({"pins","avoids","skips"}) do policy[name]=flagMap(saved[name]) end
     for _,name in ipairs({"paused","arrow","dungeons"}) do policy[name]=saved[name]==true end
+    personalPolicy=policy;policy=controller.EffectivePolicy()
 end
 function controller.Preference(name,value)
     if not planner.Preferences then return nil,"Adaptive controls unavailable" end
-    local raw=schema.Clone(policy);raw[name]=value
+    local raw=schema.Clone(personalPolicy);raw[name]=value
     if name=="flavor" then raw.difficulty,raw.grind,raw.readingSeconds,raw.explorationMinutes=nil,nil,nil,nil end
     local nextPolicy,reason=planner.Preferences.Normalize(raw)
     if not nextPolicy then return nil,reason end
     nextPolicy.paused,nextPolicy.arrow=policy.paused,policy.arrow
-    policy=nextPolicy
-    if core.CharDB then core.CharDB.questPolicy=schema.Clone(policy);core:Changed() end
+    personalPolicy=nextPolicy;policy=controller.EffectivePolicy()
+    if core.CharDB then core.CharDB.questPolicy=schema.Clone(personalPolicy);core:Changed() end
     controller.Refresh();planner.Request();notify()
     return true
 end
@@ -102,9 +107,9 @@ end
 function controller.Set(name,value)
     if name~="paused" and name~="arrow" and name~="dungeons" then return nil,"unknown setting" end
     if type(value)~="boolean" then return nil,"invalid setting" end
-    if policy[name]==value then return true end
-    policy[name]=value
-    if core.CharDB then core.CharDB.questPolicy=schema.Clone(policy); core:Changed() end
+    if personalPolicy[name]==value then return true end
+    personalPolicy[name]=value;policy=controller.EffectivePolicy()
+    if core.CharDB then core.CharDB.questPolicy=schema.Clone(personalPolicy); core:Changed() end
     if name=="arrow" then
         notify()
         if planner.Navigation then planner.Navigation.Refresh() end
@@ -113,7 +118,7 @@ function controller.Set(name,value)
 end
 function controller.Toggle(name,id)
     if (name~="pins" and name~="avoids" and name~="skips" and name~="defers" and name~="questGoals" and name~="zoneGoals") or not schema.ID(id) then return nil,"invalid constraint" end
-    local values=policy[name]
+    local values=personalPolicy[name]
     if not values then return nil,"Constraint unavailable" end
     if values[id] then values[id]=nil
     else
@@ -121,7 +126,8 @@ function controller.Toggle(name,id)
         if count>=MAX_FLAGS then return nil,"constraint limit reached" end
         values[id]=true
     end
-    if core.CharDB then core.CharDB.questPolicy=schema.Clone(policy); core:Changed() end
+    if core.CharDB then core.CharDB.questPolicy=schema.Clone(personalPolicy); core:Changed() end
+    policy=controller.EffectivePolicy()
     controller.Invalidate(); planner.Request()
     return true
 end
@@ -156,8 +162,9 @@ function controller.SelectObjective(id,index,cycle)
     return ok,reason
 end
 function controller.Clear()
-    policy.pins,policy.avoids,policy.skips,policy.defers,policy.questGoals,policy.zoneGoals={},{},{},{},{},{}
-    if core.CharDB then core.CharDB.questPolicy=schema.Clone(policy); core:Changed() end
+    personalPolicy.pins,personalPolicy.avoids,personalPolicy.skips,personalPolicy.defers,personalPolicy.questGoals,personalPolicy.zoneGoals={},{},{},{},{},{}
+    policy=controller.EffectivePolicy()
+    if core.CharDB then core.CharDB.questPolicy=schema.Clone(personalPolicy); core:Changed() end
     controller.Invalidate(); planner.Request()
 end
 function controller.Install(raw)
@@ -327,6 +334,7 @@ local function begin(snapshot,status,ctx,dialog,observed,reason)
     view=pending;notify()
 end
 function controller.Update(snapshot,status,reason)
+    policy=controller.EffectivePolicy()
     if not planner.enabled then cancel(); return end
     if not snapshot or status.state=="stale" or status.state=="unavailable" then
         if planner.Hunts then planner.Hunts.Suspend() end

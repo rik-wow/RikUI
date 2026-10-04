@@ -8,7 +8,7 @@ Reviewed 2026-10-04 UTC. Gethe/wow-ui-source forever head `e3ecc27b64d30fdc735a3
 
 Item (FDID 841626) and ItemSparse (1572924) were extracted from the current client through TACTTool with the client's current build/CDN configuration. The remote CSV returned 403; no historical cache was substituted. Fresh WoWDBDefs head `3e46d21a41a07ce7e63835fd79c561e0d5dce92b` selected the current layouts. The external MIT wow.export WDCReader was used unchanged (SHA256 eac685b1d0b7876d208895543b4e2c17f2848b112dc464c4001588d0d760ad62). Client binaries, DB2 files and artwork are not distributed.
 
-QuestieDB Forever head `6e7aa495a087ad7d934c0fff800753ec24db5f9d` was freshly exported for eighteen faction/class personas. Export SHA256: 9f12f19de00021f7ccbb058fadc321fde936c8eff6c8aa0ce84ca5a95afc9ad9. Maintained source relationships can retain Era assumptions. A current repository revision does not verify every reward against the server. Only factual identifiers, names and requirements are compiled; descriptive quest prose, source code and client assets are excluded.
+QuestieDB Forever head `6e7aa495a087ad7d934c0fff800753ec24db5f9d` was freshly exported for eighteen faction/class personas. Export SHA256: 8f37b590684b1b80f29bc83181bda7fd55c215abb371721075e2e174d3a2316f. The export includes the provider’s explicit race-ID masks; race IDs are never guessed to be bit positions. Maintained source relationships can retain Era assumptions. A current repository revision does not verify every reward against the server. Only factual identifiers, names and requirements are compiled; descriptive quest prose, source code and client assets are excluded.
 
 Current CollectableSourceQuestSparse and CollectableSourceEncounterSparse had no records. They cannot establish reward payouts. Live reward offers take precedence over references.
 
@@ -16,9 +16,13 @@ Current CollectableSourceQuestSparse and CollectableSourceEncounterSparse had no
 
 Resolve the latest Forever branch and compare WowB.exe before acquisition; stop on disagreement. Extract current Item and ItemSparse to an external directory labeled with the verified build and fetch definitions from the freshly resolved WoWDBDefs head. Export the freshly resolved provider with tools/export_forever.py.
 
-Run tools/gear_db2.cjs with the external unchanged reader root, input directory, current version and definitions revision. Run tools/gear_catalog.py with --inputs, --build and an external --output. It verifies input hashes, preserves persona prerequisites, escapes literals, and enforces capacity. Apply reviewed parts.json entries through Workbench in order. The shipped identity includes raw/parsed hashes and compiler/provider provenance. Never execute submitted Lua or fall back to an older input directory.
+Run tools/gear_db2.cjs with the external unchanged reader root, input directory, current version and definitions revision. Run tools/gear_catalog.py with --inputs, --build and an external --output. It verifies input hashes, preserves persona prerequisites, escapes literals, and enforces capacity. Apply reviewed parts.json entries through Workbench in order. The private compiled identity includes raw/parsed hashes and compiler/provider provenance. Install its gear.xml and parts only in ignored generated/gear. Public publication of this derived payload remains subject to the existing corpus-licensing boundary. Never execute submitted Lua or fall back to an older input directory.
 
 Slot and level indexes are sorted during compilation. Broad world drops with over twenty distinct NPC sources are excluded from curated encounter recommendations. Classic dungeon areas are explicit in the compiler; additions require review. Current payload: 2,746 items, 4,097 source references and 2,342 base prerequisite quests, plus persona corrections.
+
+## Public distribution
+
+Public packages contain the original compiler and runtime adapter, without compiled provider/client data. Source browsing uses the user’s installed QuestieDB contract-3 API with Forever data. No provider code, serialized support strings or database payloads are copied or executed by the consumer. See [corpus licensing](corpus-licensing.md). Indexing is lazy, bounded to 10,000 candidates / 8,192 quest rows / 32 sources per item, and sliced to at most 64 records or approximately 1 ms per frame. Completed indexes are reused until explicit refresh. Missing or failing providers preserve saved goals and explain unavailable sources.
 
 ## Runtime limits
 

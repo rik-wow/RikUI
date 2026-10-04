@@ -290,6 +290,11 @@ for _, suite in ipairs({ "combattimer", "cooldowns-profiles", "cooldowns", "cool
 end
 
 -- report
+local gearOk,gearErr=pcall(function() dofile("tests/gear-goals.test.lua")(check) end)
+check("Gear goal suite completes",gearOk,gearErr)
+local gearProviderOk,gearProviderErr=pcall(function() dofile("tests/gear-provider.test.lua")(check) end)
+check("Gear provider suite completes",gearProviderOk,gearProviderErr)
+
 if #failures == 0 then
     io.write(string.format("OK: %d checks passed\n", passes))
     os.exit(0)

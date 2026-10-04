@@ -20,6 +20,8 @@ Thumbs.db
 /generated/roads/
 /generated/corpus/
 /generated/gear/
+# Current acquisition tool cache; not distributed.
+/cache/tpr/
 /generated/.rikui*
 __pycache__/
 *.pyc

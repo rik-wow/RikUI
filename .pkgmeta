@@ -32,6 +32,8 @@ ignore:
   # Installer-written quest corpus and road data: local only, never packaged.
   - generated/roads
   - generated/corpus
+  - generated/gear
+  - cache
   - media/build_icons.py
   - media/build_textures.py
   - "media/icons/*.svg"

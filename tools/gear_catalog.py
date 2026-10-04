@@ -1,7 +1,7 @@
 """Compile bounded gear-source references joined to exact-client equipment slots.
 
-Inputs are acquired outside the repository. Only the compiled factual index is
-distributed; no client files, artwork, player cache or submitted code is bundled.
+Inputs and compiled catalogs stay private until publication rights are established.
+No client files, artwork, player cache or submitted code is bundled.
 Maintained QuestieDB sources are references, not verified Forever reward payouts.
 """
 import argparse
@@ -112,7 +112,7 @@ def compile_catalog(provider,items,sparse,identity):
     for slot,values in slot_index.items():
         values.sort(key=lambda i:(result[str(i)]["level"],i))
     return {"version":1,"identity":identity,"items":clean(result),"slots":slot_index,"quests":quest_index,
-        "variants":variants,"counts":{"items":len(result),"sources":sources,"quests":len(quest_index)},
+        "variants":variants,"raceMasks":clean(provider["provider"].get("raceMasks",{})),"counts":{"items":len(result),"sources":sources,"quests":len(quest_index)},
         "coverage":"Maintained source references; rewards and drops may change. Live client offers take precedence. Curated classic dungeons; new dungeons and complete world coverage are unknown."}
 def main():
     p=argparse.ArgumentParser();p.add_argument("--inputs",type=Path,required=True)
@@ -154,5 +154,7 @@ def main():
         if len(content.encode())>200000:raise ValueError("Distribution part too large")
         (output/name).write_text(content,encoding="utf-8",newline="\n")
     (output/"parts.json").write_text(json.dumps([name for name,_ in parts])+"\n")
+    (output/"gear.xml").write_text('<Ui xmlns="http://www.blizzard.com/wow/ui/">\n'+
+        "".join('  <Script file="'+name+'"/>\n' for name,_ in parts)+'</Ui>\n',encoding="utf-8",newline="\n")
     print(json.dumps({**data["counts"],"bytes":len(text.encode()),"sha256":digest(output/"gear-catalog.lua")}))
 if __name__=="__main__":main()

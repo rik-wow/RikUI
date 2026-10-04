@@ -44,6 +44,9 @@ class GearCatalogTests(unittest.TestCase):
         self.assertEqual(g.lua('"; os.execute("x")'),'"\\\"; os.execute(\\\"x\\\")"')
         with self.assertRaises(ValueError):g.clean("a\nprint(1)")
         self.assertEqual(g.clean("|cffffffffname"),"cffffffffname")
+    def test_provider_race_masks_preserve_high_race_identifiers(self):
+        self.provider["provider"]["raceMasks"]={"95":4294967296,"96":8589934592}
+        self.assertEqual(self.compile()["raceMasks"]["95"],4294967296)
     def test_deterministic(self):
         self.assertEqual(g.lua(self.compile()),g.lua(self.compile()))
 
