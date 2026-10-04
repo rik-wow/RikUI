@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
     fs::{self, File, OpenOptions},
-    io::Write,
+    io::{Read, Write},
     path::{Path, PathBuf},
     process::{Command, Stdio},
     time::{SystemTime, UNIX_EPOCH},
@@ -93,7 +93,108 @@ pub fn cache(root: &Path) -> Result<PathBuf> {
     }
     Ok(target)
 }
+// Preserve existing content-addressed copies; incomplete writes remain staged.
+fn retained_copy(target: &Path, raw: &[u8]) -> Result<()> {
+    if target.exists() {
+        normal(target)?;
+        if fs::metadata(target)?.len() != raw.len() as u64
+            || digest(&fs::read(target)?) != digest(raw)
+        {
+            return Err("Retained preparation copy differs; choose another folder.".into());
+        }
+        return Ok(());
+    }
+    let next = target.with_extension(format!(
+        "next-{}",
+        SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos()
+    ));
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&next)?;
+    file.write_all(raw)?;
+    file.sync_all()?;
+    drop(file);
+    fs::rename(next, target)?;
+    Ok(())
+}
+fn carry_completed(old: &Path, target: &Path) -> Result<()> {
+    let source = old.join("latest.json");
+    let destination = target.join("latest.json");
+    if old != target && source.exists() && !destination.exists() {
+        let mut receipt = json(&source)?;
+        if receipt["format"] != "rikui-local-assembly-v1" {
+            return Err("Previous preparation receipt is unsupported.".into());
+        }
+        let bundle = PathBuf::from(required_path(&receipt, "bundle")?);
+        if !bundle.is_absolute() {
+            return Err("Previous bundle path is not absolute.".into());
+        }
+        for path in bundle.ancestors() {
+            normal(path)?;
+        }
+        if fs::metadata(&bundle)?.len() > 256 * 1024 * 1024 {
+            return Err("Previous bundle exceeds supported byte bound.".into());
+        }
+        let mut raw = Vec::new();
+        File::open(&bundle)?
+            .take(256 * 1024 * 1024 + 1)
+            .read_to_end(&mut raw)?;
+        if raw.len() > 256 * 1024 * 1024 {
+            return Err("Previous bundle grew beyond supported byte bound.".into());
+        }
+        let sha = digest(&raw);
+        if sha != required_path(&receipt, "bundleSHA256")? {
+            return Err(
+                "Previous completed bundle bytes changed; existing files are preserved.".into(),
+            );
+        }
+        let bundle_receipt = json(&bundle.with_extension("receipt.json"))?;
+        if bundle_receipt["sha256"] != sha || bundle_receipt["inputs"] != receipt["bundleInputs"] {
+            return Err("Previous completed bundle receipt differs.".into());
+        }
+        let copied = target.join(format!("completed-{sha}.zip"));
+        retained_copy(&copied, &raw)?;
+        let copied_receipt = copied.with_extension("receipt.json");
+        retained_copy(
+            &copied_receipt,
+            &serde_json::to_vec_pretty(&bundle_receipt)?,
+        )?;
+        // Input identities and original dataset paths are retained, never relabelled.
+        // The worker freshly resolves and verifies every referenced input before reuse.
+        receipt["bundle"] = serde_json::json!(copied);
+        atomic_json(&destination, &receipt)?;
+    }
+    let cancel = old.join("cancel");
+    if old != target && cancel.exists() && !target.join("cancel").exists() {
+        normal(&cancel)?;
+        if fs::metadata(&cancel)?.len() > 16 * 1024 {
+            return Err("Pause marker exceeds supported byte bound.".into());
+        }
+        retained_copy(&target.join("cancel"), &fs::read(cancel)?)?;
+    }
+    Ok(())
+}
 pub fn choose_cache(root: &Path, selected: &Path) -> Result<()> {
+    for path in root.ancestors() {
+        if path.exists() {
+            normal(path)?;
+        }
+    }
+    fs::create_dir_all(root)?;
+    let lock_path = root.join("setup.lock");
+    if lock_path.exists() {
+        normal(&lock_path)?;
+    }
+    let lock = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(lock_path)?;
+    lock.try_lock()
+        .map_err(|_| "Another RikUI setup is using this local cache")?;
+    let old = cache(root)?;
     if !selected.is_absolute() || !selected.is_dir() {
         return Err("Choose an existing preparation folder".into());
     }
@@ -107,6 +208,21 @@ pub fn choose_cache(root: &Path, selected: &Path) -> Result<()> {
             normal(path)?;
         }
     }
+    fs::create_dir_all(&target)?;
+    let cache_lock_path = target.join("lock");
+    if cache_lock_path.exists() {
+        normal(&cache_lock_path)?;
+    }
+    let cache_lock = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(cache_lock_path)?;
+    cache_lock
+        .try_lock()
+        .map_err(|_| "Another preparation is using the selected folder")?;
+    carry_completed(&old, &target)?;
     atomic_json(
         &root.join("preferences.json"),
         &serde_json::json!({"preparation_folder":target}),

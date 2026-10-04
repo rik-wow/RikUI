@@ -7,6 +7,21 @@ and carry no notes. A version with `beta` in its name is a prerelease. The BigWi
 and uses it as the GitHub release text, so add the new version here before
 tagging.
 
+## 1.0.0-beta.16
+
+2026-10-04. Preparation-drive recovery for local quest guidance and navigation.
+
+- Choose Preparation folder to continue a current update on a roomier drive.
+  Setup carries the completed receipt and hash-verified local bundle into its
+  owned folder, retaining datasets, terrain, incomplete jobs and backups on
+  the previous drive. Current inputs and all retained bytes still verify before
+  reuse; existing destination data is preserved.
+- Preserve a paused preparation when changing drives. A concurrent setup or a
+  corrupted completed bundle cannot change the selected preparation folder.
+- Includes the current local guide, licensed tools, daily/startup refresh and
+  coverage behavior introduced in beta.15. Imported datasets and extracted
+  geometry remain separately obtained local inputs.
+
 ## 1.0.0-beta.15
 
 2026-10-04. Current Forever quest guidance and locally generated navigation.

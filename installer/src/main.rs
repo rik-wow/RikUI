@@ -26,6 +26,15 @@ fn main() {
                 let storage = arguments
                     .get(index + 1)
                     .ok_or("Game storage folder required")?;
+                if let Some(folder_at) = arguments
+                    .iter()
+                    .position(|argument| argument == "--preparation-folder")
+                {
+                    let folder = arguments
+                        .get(folder_at + 1)
+                        .ok_or("Preparation folder required")?;
+                    rikui_installer::setup::choose_cache(&root, std::path::Path::new(folder))?;
+                }
                 let result = rikui_installer::setup::prepare_install(
                     std::path::Path::new(storage),
                     &root,
