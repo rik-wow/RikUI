@@ -2,6 +2,16 @@
 
 Studio is temporarily withdrawn from public navigation and routes. The public site centers on installing RikUI and configuring it through the regular in-game settings. The Studio architecture below is retained as development reference. Player-facing instructions live only in [docs/player](player/); [the documentation pipeline](documentation-pipeline.md) generates their pages and navigation. This file describes implementation decisions, not a second copy of those guides.
 
+## Public audience
+
+The website's only audience is people installing or using RikUI. Public pages,
+page titles, descriptions, navigation and accessible labels explain player
+actions, supported features, installation requirements, coverage and recovery.
+Keep implementation notes, developer procedures, contributor instructions,
+review commentary and private machine details in project documentation rather
+than public pages. Bug-report links are player support. The public browser gate
+checks every published route, including accessible labels and page metadata.
+
 ## Authentic Studio preview
 
 The editor uses the exact public addon Lua configuration engine through Fengari. Validated data determines component ownership, module dependencies, fitting, accessibility precedence and exported packs. Submitted content is data; it is never loaded as Lua.

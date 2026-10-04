@@ -65,7 +65,8 @@ test("every public page uses player-facing copy",async({page})=>{
    for(const node of clone.querySelectorAll("script,style"))node.remove();
    return [clone.textContent,...Array.from(clone.querySelectorAll("[alt],[aria-label],[title]"),node=>[node.getAttribute("alt"),node.getAttribute("aria-label"),node.getAttribute("title")].filter(Boolean).join(" "))].join(" ").replace(/\s+/g," ");
   });
-  expect(text,path).not.toMatch(internal);
+  const pageLabels=[await page.title(),await page.locator('meta[name="description"]').getAttribute("content"),text].filter(Boolean).join(" ");
+  expect(pageLabels,path).not.toMatch(internal);
   await expect(page.locator('a[href^="/studio"],a[href^="/setups"],a[href="/docs/setup-studio"]'),path).toHaveCount(0);
  }
 });
