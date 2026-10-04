@@ -2,16 +2,16 @@
   "format": "rikui-installer-visual-review-v1",
   "client": "1.60.1.70205",
   "uiRevision": "e3ecc27b64d30fdc735a3f6579b866858f9f9df1",
-  "executableSHA256": "31cc5a6acd85c736bbf1a97c9992851d49f548a4a666574b41176b5b50f574a3",
+  "executableSHA256": "68cd67e0bb67578ffe1ddcbaabd37bde7e903a085e8a4f7752467474b8b8a95b",
   "sourceInputs": {
     "installer/src/gui.rs": "ac75779ff74bbcc5496e65324dfd5b8ad691686dd831c3132b4fd2f7fee1c6d2",
     "installer/src/gui/layout.rs": "04b336b54a7519060a013229eea662d90e23a07c3f05af939964e999a9b3fc0f",
     "installer/app.manifest": "31269d2680815affbc1ddb2226afcf0201840d19fce3da63b2444ad81e1b1f1b",
-    "tools/verify_installer_ui.py": "577e841496341fd88aa7e92735a0dc89c3c7ad439424e3ab04a7ec5dd229409d",
+    "tools/verify_installer_ui.py": "383438e5a7cb8f0c6515f290d639767e3916e6b3aa25f8ff3f9dd2c2270e8b9e",
     "tools/installer_uia.ps1": "f7a171cc36e9a448837a334e519d3acdcff16982f6ed49e28762d9e581716348"
   },
-  "captureRoot": "D:/RikUI-local/installer-ui-review-current-24",
-  "review": "Eleven runtime-9 captures exactly match the twelve-state full-size review at current-22; the sole changed capture, committing, was inspected at full size at current-24 (animated progress position). Keyboard, native UI Automation names and roles, disabled actions and DPI bounds verified on runtime-9. Exact hashes explicitly reviewed; no automatic promotion.",
+  "captureRoot": "D:/RikUI-local/installer-ui-review-current-25",
+  "review": "Eleven captures exactly match their retained full-size reviews at current-22/current-24. The new file-verification capture and changed committing capture (animated progress position) were inspected at original 1035x1020 size at current-25. All thirteen actual runtime-14 windows passed control, keyboard, native UI Automation names/roles and DPI bounds. Exact new reviewed hashes: 033b1d85039ab1663c88dda2b9b495a3465724767b1a39135a070dbd0f85732f and 228413abd5ed54e33897bec0f39910180c2feaa346475156e4dfd2c66efef422. No automatic promotion.",
   "images": [
     {
       "state": "selection",
@@ -68,8 +68,14 @@
       "height": 1020
     },
     {
+      "state": "file-verification",
+      "sha256": "033b1d85039ab1663c88dda2b9b495a3465724767b1a39135a070dbd0f85732f",
+      "width": 1035,
+      "height": 1020
+    },
+    {
       "state": "committing",
-      "sha256": "1604509c55edaab7ae948e4a657bbd1b74a59418c3450ec1f24c83f6d673d077",
+      "sha256": "228413abd5ed54e33897bec0f39910180c2feaa346475156e4dfd2c66efef422",
       "width": 1035,
       "height": 1020
     },

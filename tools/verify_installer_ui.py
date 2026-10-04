@@ -131,6 +131,7 @@ STATES={
  "provider-failure":dict(phase="Quest information unavailable",message="QuestieDB could not be obtained from its publisher. Check your connection, then Resume setup.",action="&Resume setup",verified=True,state="failed"),
  "partial":dict(phase="Guide partially prepared",message="Supported regions are still being generated. This is incomplete. Resume setup to finish before installation.",action="&Resume setup",verified=True,state="cancelled"),
  "verification-failure":dict(phase="Files need rebuilding",message="Generated files failed verification. Existing installed files are retained. Resume setup to rebuild safely.",action="&Resume setup",verified=True,state="failed"),
+ "file-verification":dict(phase="Checking your game",message="Checking prepared region files.",busy=True,completed=14367,total=16030,units="files",seconds=4021,build="current fixture"),
  "committing":dict(phase="Finishing installation",message="Installing verified files and retaining your backup. Please wait for this transaction to finish safely.",busy=True,state="committing"),
  "ready":dict(phase="Ready to play",message="Quest guide and supported routes installed and verified. Daily checks are active. Unknown coverage stays explicit.",verified=True,state="installed"),
  "rollback":dict(phase="Backup restored",message="Previous files were restored. Replaced files are retained in a backup. Check current compatibility before using guidance.",verified=True),

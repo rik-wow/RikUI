@@ -1,7 +1,7 @@
 # Local guide installer interface contract
 
 Interface contract for quest/navigation delivery. The native Win32 implementation
-and twelve reviewed window states use this contract. Generation, installation
+and thirteen reviewed window states use this contract. Generation, installation
 and published artifact verification are recorded separately from visual review.
 
 Use Microsoft's [Fluent design guidelines](https://learn.microsoft.com/en-us/windows/apps/design/guidelines-overview)
