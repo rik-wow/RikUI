@@ -75,6 +75,17 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Native GUI test failed' }
           python -B tools/verify_installer_ui.py --exe installer/target/release/rikui-installer.exe --output dist/native-checks
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Retain reviewed packaging evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reviewed-setup-evidence
+          path: |
+            dist/preparation/runtime/runtime.json
+            dist/preparation/runtime-build.json
+            dist/public/RikUI-Setup-manifest.json
+            dist/native-checks/*.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Publish verified public setup assets
         if: inputs.publish
         env:
