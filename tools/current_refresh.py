@@ -50,7 +50,9 @@ def tool_scopes(before,after):
         lower=name.lower()
         if lower.endswith(("/license","/license.txt","/copying",".dist-info/licenses/license")) or "/licenses/" in lower:continue
         if name in ("tools/local_assembly.py","tools/build_installer_bundle.py","tools/package_addon.py",
-                    "tools/update_quest_data.py","tools/update_setup.py","tools/terrain/world_bake_parallel.py"):
+                    "tools/update_quest_data.py","tools/update_setup.py","tools/terrain/world_bake_parallel.py",
+                    "tools/terrain/node_modules/.package-lock.json"):
+            # Legacy npm installation bookkeeping is not a runtime producer.
             products.add("bundle")
         elif name in ("tools/export_forever.py","tools/export_forever.lua","tools/quest_corpus.py","tools/source_archive.py") or name.startswith("python/site-packages/lupa"):
             products.update(("corpus","roads"))

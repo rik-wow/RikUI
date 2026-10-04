@@ -98,6 +98,7 @@ class Tests(unittest.TestCase):
             ("tools/quest_corpus.py",["corpus","roads"]),
             ("tools/terrain/road_textures.py",["roads"]),
             ("tools/local_assembly.py",["bundle"]),
+            ("tools/terrain/node_modules/.package-lock.json",["bundle"]),
             ("tools/verify_current_m2.py",["acquisition","corpus","bakes","roads"])):
             with self.subTest(name=name):
                 previous=dict(self.previous,tools={name:"a"*64})

@@ -119,7 +119,7 @@ def build(reader,extractor,output):
             shutil.copyfile(path,terrain/path.name)
     shutil.copytree(ROOT/"tools/terrain/licenses",terrain/"licenses")
     shutil.copytree(ROOT/"tools/terrain/node_modules",terrain/"node_modules",
-                    ignore=shutil.ignore_patterns(".cache","__pycache__"))
+                    ignore=shutil.ignore_patterns(".cache","__pycache__",".package-lock.json"))
     shutil.copyfile(ROOT/"LICENSE",runtime/"LICENSE.txt")
     inventory=[]
     for path in sorted(runtime.rglob("*")):
