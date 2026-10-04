@@ -1,6 +1,6 @@
 use crate::{
     Result,
-    bundle::{Bundle, valid_root},
+    bundle::{Bundle, digest, valid_root},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -12,6 +12,8 @@ use std::{
 #[derive(Serialize, Deserialize)]
 struct Journal {
     roots: Vec<(String, bool)>,
+    #[serde(default)]
+    retired: Vec<String>,
 }
 pub fn normal(path: &Path) -> Result<()> {
     let metadata = fs::symlink_metadata(path)?;
@@ -40,10 +42,25 @@ pub fn game_root(path: &Path) -> Result<PathBuf> {
         return Err("Choose an absolute game folder".into());
     }
     ancestors(path)?;
-    if !path.join("WowB.exe").is_file() {
-        return Err("Select the Forever client folder containing WowB.exe".into());
+    let executables: Vec<_> = fs::read_dir(path)?
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .filter(|entry| {
+            entry.file_name().is_some_and(|name| {
+                let name = name.to_string_lossy().to_ascii_lowercase();
+                name.starts_with("wow") && name.ends_with(".exe")
+            })
+        })
+        .collect();
+    if executables.is_empty() {
+        return Err(
+            "Choose the current Forever game folder. Setup verifies its build before installation."
+                .into(),
+        );
     }
-    normal(&path.join("WowB.exe"))?;
+    for executable in executables {
+        normal(&executable)?;
+    }
     Ok(path.canonicalize()?)
 }
 fn write_new(path: &Path, bytes: &[u8]) -> Result<()> {
@@ -71,6 +88,17 @@ fn copy_tree(source: &Path, destination: &Path) -> Result<()> {
     }
     Ok(())
 }
+fn verify_at(root: &Path, bundle: &Bundle) -> Result<()> {
+    for (name, row) in &bundle.manifest.files {
+        let path = root.join(name);
+        ancestors(&path)?;
+        if fs::metadata(&path)?.len() != row.bytes || digest(&fs::read(&path)?) != row.sha256 {
+            return Err(format!("Installed file verification failed: {}", path.display()).into());
+        }
+    }
+    Ok(())
+}
+
 pub struct Installer {
     addons: PathBuf,
     history: PathBuf,
@@ -129,8 +157,12 @@ impl Installer {
             &transaction.join("bundle.json"),
             &serde_json::to_vec_pretty(&bundle.manifest)?,
         )?;
-        self.commit(&transaction, &journal)?;
+        verify_at(&stage, bundle)?;
+        self.commit(&transaction, &journal, Some(bundle))?;
         Ok(transaction)
+    }
+    pub fn verify(&self, bundle: &Bundle) -> Result<()> {
+        verify_at(&self.addons, bundle)
     }
     fn begin(&self, roots: Vec<String>) -> Result<(PathBuf, Journal)> {
         let mut entries = Vec::new();
@@ -149,16 +181,26 @@ impl Installer {
         fs::create_dir(&transaction)?;
         fs::create_dir(transaction.join("stage"))?;
         fs::create_dir(transaction.join("previous"))?;
-        let journal = Journal { roots: entries };
+        let journal = Journal {
+            roots: entries,
+            retired: Vec::new(),
+        };
         write_new(
             &transaction.join("journal.json"),
             &serde_json::to_vec(&journal)?,
         )?;
         Ok((transaction, journal))
     }
-    fn commit(&self, transaction: &Path, journal: &Journal) -> Result<()> {
+    fn commit(&self, transaction: &Path, journal: &Journal, bundle: Option<&Bundle>) -> Result<()> {
         write_new(&transaction.join("ready"), b"1")?;
-        if let Err(error) = self.swap(transaction, journal) {
+        let operation = || -> Result<()> {
+            self.swap(transaction, journal)?;
+            if let Some(bundle) = bundle {
+                self.verify(bundle)?;
+            }
+            write_new(&transaction.join("complete"), b"1")
+        };
+        if let Err(error) = operation() {
             self.restore(transaction, journal).map_err(|recovery| {
                 format!(
                     "Install failed: {error}. Recovery failed: {recovery}. Keep {}",
@@ -175,9 +217,11 @@ impl Installer {
             if *existed {
                 fs::rename(&target, transaction.join("previous").join(root))?;
             }
-            fs::rename(transaction.join("stage").join(root), target)?;
+            if !journal.retired.contains(root) {
+                fs::rename(transaction.join("stage").join(root), target)?;
+            }
         }
-        write_new(&transaction.join("complete"), b"1")
+        Ok(())
     }
     fn restore(&self, transaction: &Path, journal: &Journal) -> Result<()> {
         let failed = transaction.join("interrupted");
@@ -201,7 +245,15 @@ impl Installer {
         let path = transaction.join("journal.json");
         normal(&path)?;
         let journal: Journal = serde_json::from_slice(&fs::read(path)?)?;
-        if journal.roots.is_empty() || journal.roots.iter().any(|(r, _)| !valid_root(r)) {
+        if journal.roots.is_empty()
+            || journal.roots.iter().any(|(r, _)| !valid_root(r))
+            || journal.retired.iter().any(|root| {
+                !journal
+                    .roots
+                    .iter()
+                    .any(|(name, existed)| name == root && *existed)
+            })
+        {
             return Err("Invalid recovery journal".into());
         }
         for (root, _) in &journal.roots {
@@ -253,15 +305,36 @@ impl Installer {
         if roots.is_empty() {
             return Err("First install: no previous version exists. Files are preserved.".into());
         }
-        let (transaction, journal) = self.begin(roots)?;
+        let retired: Vec<_> = old
+            .roots
+            .iter()
+            .filter(|(_, existed)| !*existed)
+            .filter(|(root, _)| self.addons.join(root).exists())
+            .map(|(root, _)| root.clone())
+            .collect();
+        let (transaction, mut journal) =
+            self.begin(roots.into_iter().chain(retired.iter().cloned()).collect())?;
+        journal.retired = retired;
+        // Still private staging: make recovery aware of roots introduced by the update.
+        fs::write(
+            transaction.join("journal.json"),
+            serde_json::to_vec(&journal)?,
+        )?;
+        OpenOptions::new()
+            .write(true)
+            .open(transaction.join("journal.json"))?
+            .sync_all()?;
         write_new(&transaction.join("rollback"), b"1")?;
         for (root, _) in &journal.roots {
+            if journal.retired.contains(root) {
+                continue;
+            }
             copy_tree(
                 &original.join("previous").join(root),
                 &transaction.join("stage").join(root),
             )?;
         }
-        self.commit(&transaction, &journal)?;
+        self.commit(&transaction, &journal, None)?;
         write_new(&original.join("rolled-back"), b"1")?;
         Ok(transaction)
     }

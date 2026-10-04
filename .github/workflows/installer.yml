@@ -1,13 +1,21 @@
 name: Native installer checks
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      publish:
+        default: false
+        type: boolean
   push:
     branches: [main]
-    paths: ["installer/**", "tools/build_installer*.py", "tests/test_installer_bundle.py", ".github/workflows/installer.yml"]
+    paths: ["installer/**", "tools/**", "tests/test_*", ".github/workflows/installer.yml"]
   pull_request:
-    paths: ["installer/**", "tools/build_installer*.py", "tests/test_installer_bundle.py", ".github/workflows/installer.yml"]
+    paths: ["installer/**", "tools/**", "tests/test_*", ".github/workflows/installer.yml"]
 permissions:
-  contents: read
+  contents: write
 jobs:
   windows:
     runs-on: windows-2025
@@ -15,24 +23,68 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Verify addon UI render evidence
-        run: python tools/site-renders/check.py
-      - name: Install pinned Rust toolchain
+      - name: Verify reviewed interface evidence
+        run: |
+          python tools/site-renders/check.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_installer_review.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install reviewed Rust toolchain
         run: rustup toolchain install 1.95.0 --profile minimal --component clippy
-      - name: Test installer and bundle builder
+      - name: Test installer and current-input recovery
         run: |
           cargo +1.95.0 test --locked --manifest-path installer/Cargo.toml
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo +1.95.0 clippy --locked --manifest-path installer/Cargo.toml --all-targets -- -D warnings
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -B tests/test_installer_bundle.py
-      - name: Build native window test fixture
-        run: |
-          python -B tools/build_installer_bundle.py --version 0.0.0-ci --output dist/ci-bundle.zip
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:RIKUI_BUNDLE = (Resolve-Path dist/ci-bundle.zip).Path
-          cargo +1.95.0 build --release --locked --manifest-path installer/Cargo.toml
+          python -B tests/test_forever_inputs.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tests/test_current_refresh.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tests/test_source_archive.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tests/test_local_assembly.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tests/test_setup_updates.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tests/test_public_installer_manifest.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Acquire licensed build dependencies
+        run: |
+          npm ci --prefix tools/terrain --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tools/acquire_runtime_dependencies.py --output dist/dependencies
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tools/build_local_runtime.py --reader dist/dependencies/reader --extractor dist/dependencies/extractor/TACTTool.exe --output dist/preparation
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & dist/preparation/runtime/python/python.exe -B dist/preparation/runtime/tools/local_assembly.py --help
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build and verify native setup
+        env:
+          SETUP_VERSION: ${{ inputs.version || '0.0.0-beta.1' }}
+        run: |
+          $env:SETUP_VERSION = $env:SETUP_VERSION.TrimStart('v')
+          python -B tools/build_installer_bundle.py --version $env:SETUP_VERSION --output dist/base-bundle.zip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tools/build_public_installer.py --base dist/base-bundle.zip --runtime dist/preparation/runtime --output dist/public --toolchain 1.95.0
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $process = Start-Process installer/target/release/rikui-installer.exe -ArgumentList '--smoke-test' -WindowStyle Hidden -PassThru
           if (-not $process.WaitForExit(60000)) { throw 'Native GUI test timed out' }
           if ($process.ExitCode -ne 0) { throw 'Native GUI test failed' }
+          python -B tools/verify_installer_ui.py --exe installer/target/release/rikui-installer.exe --output dist/native-checks
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Publish verified public setup assets
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SETUP_VERSION: ${{ inputs.version }}
+        run: |
+          $env:SETUP_VERSION = $env:SETUP_VERSION.TrimStart('v')
+          gh release upload "v$env:SETUP_VERSION" dist/public/RikUI-Setup.exe dist/public/RikUI-Setup-manifest.json dist/public/RikUI-Setup-SHA256SUMS dist/public/RikUI-Setup-NOTICES.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          gh release download "v$env:SETUP_VERSION" --pattern 'RikUI-Setup*' --dir dist/published
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B tools/verify_public_setup.py --directory dist/published --version $env:SETUP_VERSION --proof dist/published-proof
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

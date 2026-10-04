@@ -217,3 +217,49 @@ fn installs_multiple_owned_roots() {
         "road"
     );
 }
+#[test]
+fn installed_byte_verification_detects_changes() {
+    let dir = game();
+    let installer = Installer::open(dir.path()).unwrap();
+    let payload = bundle("one");
+    installer.install(&payload).unwrap();
+    installer.verify(&payload).unwrap();
+    fs::write(
+        dir.path().join("Interface/AddOns/RikUI/RikUI.toc"),
+        "tampered",
+    )
+    .unwrap();
+    assert!(installer.verify(&payload).is_err());
+}
+#[test]
+fn rollback_retires_roots_introduced_by_the_update_into_backup() {
+    let dir = game();
+    let installer = Installer::open(dir.path()).unwrap();
+    installer.install(&bundle("one")).unwrap();
+    let mut data = files("two");
+    data.insert("RikUIQuestRoads_W0_P003/patch.lua".into(), b"road".to_vec());
+    installer
+        .install(&Bundle::read(&bundle_bytes(data)).unwrap())
+        .unwrap();
+    let rollback = installer.rollback().unwrap();
+    assert!(
+        !dir.path()
+            .join("Interface/AddOns/RikUIQuestRoads_W0_P003")
+            .exists()
+    );
+    assert_eq!(
+        fs::read(rollback.join("previous/RikUIQuestRoads_W0_P003/patch.lua")).unwrap(),
+        b"road"
+    );
+    assert_eq!(
+        fs::read(dir.path().join("Interface/AddOns/RikUI/RikUI.toc")).unwrap(),
+        b"one"
+    );
+}
+#[test]
+fn release_executable_name_does_not_require_the_beta_layout() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(dir.path().join("Wow.exe"), b"fixture").unwrap();
+    let installer = Installer::open(dir.path()).unwrap();
+    installer.install(&bundle("one")).unwrap();
+}

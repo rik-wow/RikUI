@@ -1,6 +1,6 @@
-// Win32 handles belong to the UI thread. Workers return owned results through a channel.
+// Win32 controls stay on the UI thread; workers return owned results.
 #![allow(unsafe_op_in_unsafe_fn)]
-use rikui_installer::{EMBEDDED, bundle::Bundle, transaction::Installer};
+use rikui_installer::{EMBEDDED, RUNTIME, bundle::Bundle, setup, transaction::Installer};
 use std::{
     ffi::c_void,
     mem::{size_of, zeroed},
@@ -12,32 +12,61 @@ use windows_sys::Win32::UI::Input::KeyboardAndMouse::EnableWindow;
 use windows_sys::Win32::{
     Foundation::*,
     Graphics::Gdi::*,
-    System::{Diagnostics::ToolHelp::*, LibraryLoader::GetModuleHandleW},
-    UI::{Controls::Dialogs::*, Shell::ShellExecuteW, WindowsAndMessaging::*},
+    System::LibraryLoader::GetModuleHandleW,
+    UI::{
+        Controls::{
+            Dialogs::*, ICC_PROGRESS_CLASS, INITCOMMONCONTROLSEX, InitCommonControlsEx,
+            PBM_SETMARQUEE, PBM_SETPOS, PBM_SETRANGE32,
+        },
+        HiDpi::{
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2, GetDpiForSystem, GetDpiForWindow,
+            SetProcessDpiAwarenessContext,
+        },
+        Shell::ShellExecuteW,
+        WindowsAndMessaging::*,
+    },
 };
-
 mod layout;
-use layout::{controls, pick, summary};
-
+use layout::{arrange, controls, pick};
 const PATH: i32 = 101;
 const BROWSE: i32 = 102;
 const INSTALL: i32 = 103;
 const ROLLBACK: i32 = 104;
-const PACKAGE: i32 = 105;
+const CHECK: i32 = 105;
 const RELEASES: i32 = 106;
 const STATUS: i32 = 107;
 const SUMMARY: i32 = 108;
+const PAUSE: i32 = 109;
+const PROGRESS: i32 = 110;
+const PHASE: i32 = 111;
+const METRICS: i32 = 112;
+const DETAILS: i32 = 113;
+const CACHE: i32 = 114;
 const DONE_TIMER: usize = 1;
-
+enum Operation {
+    Probe,
+    Install,
+    Rollback,
+}
+enum Finished {
+    Updated(PathBuf),
+    Probe(serde_json::Value),
+    Installed(String),
+    RolledBack(String),
+}
 struct App {
-    package: Option<PathBuf>,
-    result: Option<mpsc::Receiver<Result<String, String>>>,
+    root: PathBuf,
+    result: Option<mpsc::Receiver<Result<Finished, String>>>,
     smoke: bool,
+    fixture: Option<serde_json::Value>,
+    verified: bool,
+    preparing: bool,
+    close_when_done: bool,
+    fonts: [HFONT; 3],
 }
 fn wide(text: &str) -> Vec<u16> {
     text.encode_utf16().chain(Some(0)).collect()
 }
-
 unsafe fn label(hwnd: HWND, id: i32, text: &str) {
     SetWindowTextW(GetDlgItem(hwnd, id), wide(text).as_ptr());
 }
@@ -45,16 +74,36 @@ unsafe fn error(hwnd: HWND, text: &str) {
     MessageBoxW(
         hwnd,
         wide(text).as_ptr(),
-        wide("RikUI installer").as_ptr(),
+        wide("RikUI setup").as_ptr(),
         MB_OK | MB_ICONERROR,
     );
+}
+unsafe fn font(hwnd: HWND, id: i32) -> HFONT {
+    let app = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut App;
+    if app.is_null() {
+        return GetStockObject(DEFAULT_GUI_FONT) as HFONT;
+    }
+    (*app).fonts[if id == PHASE {
+        1
+    } else if id == 120 {
+        2
+    } else {
+        0
+    }]
 }
 unsafe fn child(hwnd: HWND, kind: &str, text: &str, id: i32, rect: [i32; 4], style: u32) -> HWND {
     let handle = CreateWindowExW(
         0,
         wide(kind).as_ptr(),
         wide(text).as_ptr(),
-        WS_CHILD | WS_VISIBLE | style,
+        WS_CHILD
+            | WS_VISIBLE
+            | style
+            | if kind == "Static" && id != 123 {
+                0x0080 // SS_NOPREFIX: literal status text; the folder label retains its mnemonic.
+            } else {
+                0
+            },
         rect[0],
         rect[1],
         rect[2],
@@ -64,123 +113,195 @@ unsafe fn child(hwnd: HWND, kind: &str, text: &str, id: i32, rect: [i32; 4], sty
         GetModuleHandleW(null()),
         null(),
     );
-    SendMessageW(
-        handle,
-        WM_SETFONT,
-        GetStockObject(DEFAULT_GUI_FONT) as usize,
-        1,
-    );
+    SendMessageW(handle, WM_SETFONT, font(hwnd, id) as usize, 1);
     handle
 }
-fn game_running() -> Result<bool, String> {
-    unsafe {
-        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        if snapshot == INVALID_HANDLE_VALUE {
-            return Err("Could not check running processes".into());
+unsafe fn replace_fonts(hwnd: HWND, app: *mut App) {
+    let dpi = if hwnd.is_null() {
+        GetDpiForSystem()
+    } else {
+        GetDpiForWindow(hwnd)
+    }
+    .max(96) as i32;
+    let mut fonts = [null_mut(); 3];
+    for (index, (height, weight)) in [(16, FW_NORMAL), (22, FW_SEMIBOLD), (28, FW_SEMIBOLD)]
+        .into_iter()
+        .enumerate()
+    {
+        fonts[index] = CreateFontW(
+            -height * dpi / 96,
+            0,
+            0,
+            0,
+            weight as i32,
+            0,
+            0,
+            0,
+            DEFAULT_CHARSET as u32,
+            OUT_DEFAULT_PRECIS as u32,
+            CLIP_DEFAULT_PRECIS as u32,
+            CLEARTYPE_QUALITY as u32,
+            DEFAULT_PITCH as u32,
+            wide("Segoe UI").as_ptr(),
+        );
+    }
+    let old = (*app).fonts;
+    (*app).fonts = fonts;
+    for id in layout::control_ids() {
+        let handle = GetDlgItem(hwnd, id);
+        if !handle.is_null() {
+            SendMessageW(handle, WM_SETFONT, font(hwnd, id) as usize, 1);
         }
-        let mut entry: PROCESSENTRY32W = zeroed();
-        entry.dwSize = size_of::<PROCESSENTRY32W>() as u32;
-        let mut success = Process32FirstW(snapshot, &mut entry);
-        let mut running = false;
-        while success != 0 {
-            let end = entry
-                .szExeFile
-                .iter()
-                .position(|c| *c == 0)
-                .unwrap_or(entry.szExeFile.len());
-            if String::from_utf16_lossy(&entry.szExeFile[..end]).eq_ignore_ascii_case("WowB.exe") {
-                running = true;
-                break;
-            }
-            success = Process32NextW(snapshot, &mut entry);
+    }
+    for handle in old {
+        if !handle.is_null() {
+            DeleteObject(handle as HGDIOBJ);
         }
-        CloseHandle(snapshot);
-        Ok(running)
     }
 }
-unsafe fn busy(hwnd: HWND, enabled: bool) {
-    for id in [PATH, BROWSE, INSTALL, ROLLBACK, PACKAGE, RELEASES] {
+unsafe fn busy(hwnd: HWND, app: *mut App, enabled: bool, preparing: bool) {
+    (*app).preparing = enabled && preparing;
+    for id in [PATH, BROWSE, INSTALL, ROLLBACK, CHECK, CACHE] {
         EnableWindow(GetDlgItem(hwnd, id), (!enabled) as i32);
     }
+    if !enabled {
+        EnableWindow(GetDlgItem(hwnd, INSTALL), (*app).verified as i32);
+    }
+    EnableWindow(GetDlgItem(hwnd, PAUSE), (enabled && preparing) as i32);
 }
-unsafe fn start(hwnd: HWND, app: *mut App, rollback: bool) {
-    if (*app).result.is_some() {
-        return;
-    }
-    match game_running() {
-        Ok(false) => {}
-        Ok(true) => {
-            error(
-                hwnd,
-                "Close World of Warcraft before installing or rolling back.",
-            );
-            return;
-        }
-        Err(e) => {
-            error(hwnd, &e);
-            return;
-        }
-    }
+unsafe fn selected(hwnd: HWND) -> PathBuf {
     let control = GetDlgItem(hwnd, PATH);
     let mut buffer = vec![0u16; GetWindowTextLengthW(control) as usize + 1];
     let count = GetWindowTextW(control, buffer.as_mut_ptr(), buffer.len() as i32);
     use std::os::windows::ffi::OsStringExt;
-    let game = PathBuf::from(std::ffi::OsString::from_wide(&buffer[..count as usize]));
-    if let Err(e) = rikui_installer::transaction::game_root(&game) {
-        error(hwnd, &e.to_string());
+    PathBuf::from(std::ffi::OsString::from_wide(&buffer[..count as usize]))
+}
+unsafe fn start(hwnd: HWND, app: *mut App, operation: Operation) {
+    if (*app).result.is_some() {
         return;
     }
-    if rollback
-        && MessageBoxW(
+    let storage = selected(hwnd);
+    if !storage.is_absolute() || !storage.is_dir() {
+        label(hwnd, PHASE, "Find your Forever game");
+        label(
             hwnd,
-            wide("Restore the previous RikUI files? The current files will also be backed up.")
-                .as_ptr(),
-            wide("Roll back RikUI").as_ptr(),
-            MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2,
-        ) != IDYES
-    {
+            STATUS,
+            "Choose the folder containing your current Forever client, then Check again.",
+        );
         return;
     }
-    let package = (*app).package.clone();
-    let (sender, receiver) = mpsc::channel();
+    let root = (*app).root.clone();
+    let (channel, receiver) = mpsc::channel();
     (*app).result = Some(receiver);
-    busy(hwnd, true);
+    let preparing = matches!(operation, Operation::Install);
+    busy(hwnd, app, true, preparing);
+    label(
+        hwnd,
+        PHASE,
+        if preparing {
+            "Preparing your guide"
+        } else {
+            "Checking your game"
+        },
+    );
     label(
         hwnd,
         STATUS,
-        "Verifying files and preparing a backup. Please keep this window open.",
+        if preparing {
+            "Quest information is obtained separately. Your current installation stays available until everything verifies."
+        } else {
+            "Checking the latest Forever build and supported data inputs."
+        },
     );
+    marquee(hwnd);
     std::thread::spawn(move || {
-        let operation = || -> rikui_installer::Result<String> {
-            let bundle = if !rollback {
-                let bytes = if let Some(path) = package {
-                    std::fs::read(path)?
-                } else {
-                    EMBEDDED.to_vec()
-                };
-                Some(Bundle::read(&bytes)?)
-            } else {
-                None
-            };
-            let installer = Installer::open(&game)?;
-            let backup = if let Some(bundle) = bundle {
-                installer.install(&bundle)?
-            } else {
-                installer.rollback()?
-            };
-            Ok(format!(
-                "Done. Start WoW again to load RikUI.\r\nBackup: {}",
-                backup.display()
-            ))
+        let work = || -> rikui_installer::Result<Finished> {
+            if !matches!(operation, Operation::Rollback)
+                && let Some(program) = setup::update_program(&root)?
+            {
+                return Ok(Finished::Updated(program));
+            }
+            match operation {
+                Operation::Probe => setup::inspect(&storage, &root).map(Finished::Probe),
+                Operation::Install => {
+                    setup::prepare_install(&storage, &root, true, true).map(Finished::Installed)
+                }
+                Operation::Rollback => {
+                    let path = Installer::open(&storage)?.rollback()?;
+                    Ok(Finished::RolledBack(format!(
+                        "Previous files restored. The replaced files are kept in a backup.\n{}",
+                        path.display()
+                    )))
+                }
+            }
         };
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(operation))
-            .map_err(|_| {
-                "Installer worker stopped unexpectedly. Reopen to recover; backups are retained."
-                    .to_string()
-            })
-            .and_then(|r| r.map_err(|e| e.to_string()));
-        let _ = sender.send(result);
+        let result=std::panic::catch_unwind(std::panic::AssertUnwindSafe(work))
+    .map_err(|_|"Setup stopped unexpectedly. Reopen it to recover; your files and backups are retained.".to_string())
+    .and_then(|value|value.map_err(|error|error.to_string()));
+        let _ = channel.send(result);
     });
+}
+unsafe fn progress(hwnd: HWND, done: u64, total: u64) {
+    let bar = GetDlgItem(hwnd, PROGRESS);
+    SendMessageW(bar, PBM_SETMARQUEE, 0, 0);
+    let style = GetWindowLongPtrW(bar, GWL_STYLE);
+    SetWindowLongPtrW(bar, GWL_STYLE, style & !0x08);
+    SendMessageW(bar, PBM_SETRANGE32, 0, total.min(i32::MAX as u64) as isize);
+    SendMessageW(bar, PBM_SETPOS, done.min(total) as usize, 0);
+    InvalidateRect(bar, null(), 1);
+}
+unsafe fn marquee(hwnd: HWND) {
+    let bar = GetDlgItem(hwnd, PROGRESS);
+    let style = GetWindowLongPtrW(bar, GWL_STYLE);
+    SetWindowLongPtrW(bar, GWL_STYLE, style | 0x08);
+    SendMessageW(bar, PBM_SETMARQUEE, 1, 40);
+}
+unsafe fn refresh_status(hwnd: HWND, root: &std::path::Path) {
+    if let Some(status) = setup::status(root) {
+        EnableWindow(
+            GetDlgItem(hwnd, PAUSE),
+            ((*(GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut App)).preparing
+                && status["state"].as_str() != Some("committing")) as i32,
+        );
+        if let Some(phase) = status["phase"].as_str() {
+            label(hwnd, PHASE, phase);
+        }
+        if let Some(message) = status["message"].as_str() {
+            label(hwnd, STATUS, message);
+        }
+        let build = status["build"].as_str().unwrap_or("");
+        let seconds = status["seconds"].as_f64();
+        let completed = status["completed"].as_u64();
+        let total = status["total"].as_u64();
+        let elapsed = seconds.map(|seconds| {
+            if seconds < 60. {
+                format!("{seconds:.0} seconds elapsed")
+            } else {
+                format!("{:.0} minutes elapsed", seconds / 60.)
+            }
+        });
+        let version = if build.is_empty() {
+            String::new()
+        } else {
+            format!("  •  Forever {build}")
+        };
+        let metrics = match (completed, total, elapsed) {
+            (Some(done), Some(total), Some(elapsed)) => format!(
+                "{done} of {total} {} complete  •  {elapsed}{version}",
+                status["units"].as_str().unwrap_or("jobs")
+            ),
+            (_, _, Some(elapsed)) => format!("{elapsed}{version}"),
+            _ => String::new(),
+        };
+        label(hwnd, METRICS, &metrics);
+        if let (Some(done), Some(total)) = (completed, total) {
+            progress(hwnd, done, total);
+        } else if status["state"].as_str() == Some("installed") {
+            progress(hwnd, 100, 100);
+        } else if (*(GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut App)).preparing {
+            marquee(hwnd);
+        }
+    }
 }
 unsafe extern "system" fn procedure(
     hwnd: HWND,
@@ -192,48 +313,126 @@ unsafe extern "system" fn procedure(
         let create = &*(lparam as *const CREATESTRUCTW);
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, create.lpCreateParams as isize);
     }
-    let state = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut App;
-    if state.is_null() {
+    let app = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut App;
+    if app.is_null() {
         return DefWindowProcW(hwnd, message, wparam, lparam);
     }
-    let app = state;
     match message {
         WM_CREATE => {
             controls(hwnd);
-            summary(hwnd, EMBEDDED);
+            arrange(hwnd);
+            busy(hwnd, app, false, false);
+            if let Ok(bundle) = Bundle::read(EMBEDDED) {
+                label(
+                    hwnd,
+                    SUMMARY,
+                    &format!(
+                        "RikUI {}\nQuest guide and navigation are prepared on your computer.",
+                        bundle.manifest.version
+                    ),
+                );
+            }
+            let storage = setup::saved_storage(&(*app).root).or_else(|| {
+                std::env::var_os("ProgramFiles(x86)")
+                    .map(|path| PathBuf::from(path).join("World of Warcraft"))
+            });
+            if let Some(storage) = storage {
+                label(hwnd, PATH, &storage.to_string_lossy());
+            }
             SetTimer(hwnd, DONE_TIMER, 200, None);
+            if let Some(value) = &(*app).fixture {
+                label(
+                    hwnd,
+                    PATH,
+                    value["folder"]
+                        .as_str()
+                        .unwrap_or("C:\\Games\\World of Warcraft"),
+                );
+                label(
+                    hwnd,
+                    SUMMARY,
+                    value["summary"]
+                        .as_str()
+                        .unwrap_or("Current Forever client verified"),
+                );
+                label(
+                    hwnd,
+                    INSTALL,
+                    value["action"].as_str().unwrap_or("Prepare and install"),
+                );
+                (*app).verified = value["verified"].as_bool().unwrap_or(false);
+                busy(hwnd, app, value["busy"].as_bool().unwrap_or(false), true);
+                refresh_status(hwnd, &(*app).root);
+            } else if !(*app).smoke {
+                start(hwnd, app, Operation::Probe);
+            }
             0
         }
         WM_COMMAND => {
+            // Read-only interface fixtures never invoke acquisition or game mutations.
+            if (*app).fixture.is_some() {
+                return 0;
+            }
             match (wparam & 0xffff) as i32 {
                 BROWSE => {
-                    if let Some(path) = pick(hwnd, false)
-                        && let Some(parent) = path.parent()
+                    if let Some(path) = pick(hwnd)
+                        && let Some(folder) = path.parent()
                     {
-                        label(hwnd, PATH, &parent.to_string_lossy());
+                        label(hwnd, PATH, &folder.to_string_lossy());
+                        (*app).verified = false;
+                        start(hwnd, app, Operation::Probe);
                     }
                 }
-                PACKAGE => {
-                    if let Some(path) = pick(hwnd, true) {
-                        match std::fs::read(&path)
-                            .map_err(|e| e.to_string())
-                            .and_then(|b| Bundle::read(&b).map(|_| b).map_err(|e| e.to_string()))
-                        {
-                            Ok(bytes) => {
-                                summary(hwnd, &bytes);
-                                (*app).package = Some(path);
+                CACHE => {
+                    if let Some(folder) = layout::pick_folder(hwnd) {
+                        match setup::choose_cache(&(*app).root, &folder) {
+                            Ok(()) => {
+                                (*app).verified = false;
+                                start(hwnd, app, Operation::Probe);
                             }
-                            Err(e) => error(hwnd, &e),
+                            Err(problem) => error(hwnd, &problem.to_string()),
                         }
                     }
                 }
-                INSTALL => start(hwnd, app, false),
-                ROLLBACK => start(hwnd, app, true),
+                CHECK => {
+                    (*app).verified = false;
+                    start(hwnd, app, Operation::Probe);
+                }
+                INSTALL => start(hwnd, app, Operation::Install),
+                ROLLBACK => start(hwnd, app, Operation::Rollback),
+                PAUSE | IDCANCEL
+                    if (*app).preparing
+                        && setup::status(&(*app).root)
+                            .is_none_or(|value| value["state"].as_str() != Some("committing")) =>
+                {
+                    if let Err(problem) = setup::pause(&(*app).root) {
+                        error(hwnd, &problem.to_string());
+                    }
+                    label(hwnd, PHASE, "Pausing safely");
+                    label(
+                        hwnd,
+                        STATUS,
+                        "Completed work is retained. Setup will finish any installation transaction safely.",
+                    );
+                }
+                DETAILS => match setup::details(&(*app).root) {
+                    Ok(path) => {
+                        ShellExecuteW(
+                            hwnd,
+                            wide("open").as_ptr(),
+                            wide(&path.to_string_lossy()).as_ptr(),
+                            null(),
+                            null(),
+                            SW_SHOWNORMAL,
+                        );
+                    }
+                    Err(problem) => error(hwnd, &problem.to_string()),
+                },
                 RELEASES => {
                     ShellExecuteW(
                         hwnd,
                         wide("open").as_ptr(),
-                        wide("https://github.com/rik-wow/RikUI/releases").as_ptr(),
+                        wide("https://rikwow.com/install").as_ptr(),
                         null(),
                         null(),
                         SW_SHOWNORMAL,
@@ -245,51 +444,148 @@ unsafe extern "system" fn procedure(
         }
         WM_TIMER => {
             if (*app).smoke {
-                for id in [
-                    PATH, BROWSE, INSTALL, ROLLBACK, PACKAGE, RELEASES, STATUS, SUMMARY,
-                ] {
-                    assert!(!GetDlgItem(hwnd, id).is_null(), "Missing native control");
+                for id in layout::control_ids() {
+                    assert!(
+                        !GetDlgItem(hwnd, id).is_null(),
+                        "Missing native control {id}"
+                    );
                 }
                 assert!(
                     Bundle::read(EMBEDDED).is_ok(),
-                    "Missing or invalid embedded release package"
+                    "Missing or invalid addon package"
                 );
+                assert!(!RUNTIME.is_empty(), "Missing local preparation runtime");
                 DestroyWindow(hwnd);
                 return 0;
+            }
+            if (*app).result.is_some() {
+                refresh_status(hwnd, &(*app).root);
             }
             if let Some(receiver) = &(*app).result
                 && let Ok(result) = receiver.try_recv()
             {
                 (*app).result = None;
-                busy(hwnd, false);
+                SendMessageW(GetDlgItem(hwnd, PROGRESS), PBM_SETMARQUEE, 0, 0);
                 match result {
-                    Ok(text) => label(hwnd, STATUS, &text),
-                    Err(text) => {
+                    Ok(Finished::Updated(program)) => {
+                        match setup::launch_updated(&program, false) {
+                            Ok(()) => {
+                                label(hwnd, PHASE, "Opening updated setup");
+                                (*app).close_when_done = true;
+                            }
+                            Err(problem) => {
+                                label(hwnd, PHASE, "Setup update needs attention");
+                                label(hwnd, STATUS, &problem.to_string());
+                            }
+                        }
+                    }
+                    Ok(Finished::Probe(value)) => {
+                        (*app).verified = true;
+                        if let Some(folder) =
+                            value["resolution"]["installation"]["directory"].as_str()
+                        {
+                            label(hwnd, PATH, folder);
+                        }
+                        let build = value["resolution"]["inputs"]["identity"]["build"]
+                            .as_str()
+                            .unwrap_or("");
+                        label(
+                            hwnd,
+                            SUMMARY,
+                            &format!(
+                                "Forever {build} verified\nQuestieDB quest information and current game files will be used."
+                            ),
+                        );
+                        label(hwnd, PHASE, "Your game is ready");
                         label(
                             hwnd,
                             STATUS,
-                            "Installation did not complete. Existing backups are retained.",
+                            if value["rebuild"]
+                                .as_array()
+                                .is_some_and(|rows| rows.is_empty())
+                            {
+                                "Local guide files are current. Prepare and install also verifies the files in your game."
+                            } else {
+                                "Choose Prepare and install. Setup will download quest information and build the supported routes."
+                            },
                         );
-                        error(hwnd, &text);
+                    }
+                    Ok(Finished::Installed(text)) => {
+                        (*app).verified = true;
+                        label(hwnd, PHASE, "Ready to play");
+                        label(hwnd, STATUS, &text);
+                        progress(hwnd, 100, 100);
+                    }
+                    Ok(Finished::RolledBack(text)) => {
+                        label(hwnd, PHASE, "Backup restored");
+                        label(hwnd, STATUS, &text);
+                    }
+                    Err(text) => {
+                        label(hwnd, PHASE, "Setup needs attention");
+                        label(
+                            hwnd,
+                            STATUS,
+                            &format!(
+                                "{text}\nReopen or retry setup. Existing files and verified work are retained."
+                            ),
+                        );
+                        label(hwnd, INSTALL, "&Resume setup");
                     }
                 }
-            }
+                busy(hwnd, app, false, false);
+                if (*app).close_when_done {
+                    DestroyWindow(hwnd);
+                }
+            };
+            0
+        }
+        WM_CTLCOLORSTATIC => {
+            SetBkColor(wparam as HDC, GetSysColor(COLOR_WINDOW));
+            SetTextColor(wparam as HDC, GetSysColor(COLOR_WINDOWTEXT));
+            GetSysColorBrush(COLOR_WINDOW) as isize
+        }
+        WM_DPICHANGED => {
+            let rect = &*(lparam as *const RECT);
+            SetWindowPos(
+                hwnd,
+                null_mut(),
+                rect.left,
+                rect.top,
+                rect.right - rect.left,
+                rect.bottom - rect.top,
+                SWP_NOZORDER,
+            );
+            replace_fonts(hwnd, app);
+            arrange(hwnd);
             0
         }
         WM_CLOSE => {
             if (*app).result.is_none() {
                 DestroyWindow(hwnd);
             } else {
+                (*app).close_when_done = true;
+                if (*app).preparing
+                    && setup::status(&(*app).root)
+                        .is_none_or(|value| value["state"].as_str() != Some("committing"))
+                {
+                    let _ = setup::pause(&(*app).root);
+                }
+                label(hwnd, PHASE, "Finishing safely");
                 label(
                     hwnd,
                     STATUS,
-                    "Please wait for the current operation to finish.",
+                    "Please wait while setup retains completed work or finishes its installation transaction.",
                 );
-            }
+            };
             0
         }
         WM_DESTROY => {
             KillTimer(hwnd, DONE_TIMER);
+            for font in (*app).fonts {
+                if !font.is_null() {
+                    DeleteObject(font as HGDIOBJ);
+                }
+            }
             PostQuitMessage(0);
             0
         }
@@ -297,12 +593,53 @@ unsafe extern "system" fn procedure(
     }
 }
 pub fn run() {
+    // SAFETY: all window/control/GDI handles are owned by this thread; workers receive only owned paths.
     unsafe {
+        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+        let common = INITCOMMONCONTROLSEX {
+            dwSize: size_of::<INITCOMMONCONTROLSEX>() as u32,
+            dwICC: ICC_PROGRESS_CLASS,
+        };
+        InitCommonControlsEx(&common);
+        windows_sys::Win32::System::Com::CoInitializeEx(
+            null(),
+            windows_sys::Win32::System::Com::COINIT_APARTMENTTHREADED as u32,
+        );
+        let root = match setup::home() {
+            Ok(root) => root,
+            Err(problem) => {
+                error(null_mut(), &problem.to_string());
+                return;
+            }
+        };
         let mut app = Box::new(App {
-            package: None,
+            root,
             result: None,
             smoke: std::env::args().any(|arg| arg == "--smoke-test"),
+            verified: false,
+            preparing: false,
+            close_when_done: false,
+            fonts: [null_mut(); 3],
+            fixture: {
+                let args: Vec<String> = std::env::args().collect();
+                args.iter()
+                    .position(|arg| arg == "--ui-fixture")
+                    .and_then(|at| args.get(at + 1))
+                    .map(|path| {
+                        let raw = std::fs::read(path).expect("UI fixture unavailable");
+                        assert!(raw.len() <= 16384, "UI fixture byte bound");
+                        let value: serde_json::Value =
+                            serde_json::from_slice(&raw).expect("Invalid UI fixture");
+                        setup::atomic_json(
+                            &setup::home().expect("UI fixture home").join("status.json"),
+                            &value,
+                        )
+                        .expect("UI fixture status");
+                        value
+                    })
+            },
         });
+        replace_fonts(null_mut(), app.as_mut());
         let class = wide("RikUIInstallerWindow");
         let instance = GetModuleHandleW(null());
         let mut window: WNDCLASSW = zeroed();
@@ -312,25 +649,26 @@ pub fn run() {
         window.hCursor = LoadCursorW(null_mut(), IDC_ARROW);
         window.hbrBackground = (COLOR_WINDOW + 1) as HBRUSH;
         if RegisterClassW(&window) == 0 {
-            error(null_mut(), "Could not register installer window");
+            error(null_mut(), "Could not open RikUI setup.");
             return;
         }
+        let scale = GetDpiForSystem().max(96) as i32;
         let hwnd = CreateWindowExW(
             WS_EX_CONTROLPARENT,
             class.as_ptr(),
-            wide("RikUI installer").as_ptr(),
+            wide("RikUI setup").as_ptr(),
             WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
-            630,
-            520,
+            690 * scale / 96,
+            680 * scale / 96,
             null_mut(),
             null_mut(),
             instance,
             app.as_mut() as *mut App as *const c_void,
         );
         if hwnd.is_null() {
-            error(null_mut(), "Could not create installer window");
+            error(null_mut(), "Could not create RikUI setup.");
             return;
         }
         ShowWindow(hwnd, SW_SHOW);

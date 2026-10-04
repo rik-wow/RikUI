@@ -7,6 +7,9 @@ tools/site-renders/*.patch -whitespace
 tools/site-renders/worlds/*.jpg -text
 tools/site-renders/worlds/*.webp -text
 
+LICENSE text eol=lf
+tools/terrain/licenses/*.txt text eol=lf
+
 # Preserve the exact authored runtime bytes across Windows release checkouts.
 # Cache provenance binds producing tools by SHA-256, including line endings.
 tools/build_installer_bundle.py text eol=lf

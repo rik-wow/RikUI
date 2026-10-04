@@ -1,75 +1,49 @@
-# RikUI Windows installer
+# RikUI Windows setup
 
-A native Win32 graphical installer written in Rust. The GUI uses Microsoft's
-windows-sys bindings and standard Windows controls. No egui, webview, browser
-engine, Python installation or Rust installation is needed by the player.
+The native Win32 application uses standard Windows controls and Fluent visual conventions. Players choose their current Forever client and **Prepare and install**. Licensed build tools are embedded; no Git, Python, Node, MariaDB or Rust installation is needed.
 
-The installer is not published with the 1.0.0 beta. The beta is the addon ZIP
-on the [releases page](https://github.com/rik-wow/RikUI/releases); this
-installer is built locally until the data it can carry has passed the
-[licensing review](../docs/corpus-licensing.md).
+Public setup contains the RikUI interface and licensed preparation dependencies. It obtains QuestieDB source, holiday inputs and current schema inputs separately from their publishers, then generates the supported corpus and navigation from those sources and the player's current client. Imported provider data and extracted client geometry never enter public packages. See [player installation instructions](../docs/player/installation.md) and the [interface contract](../docs/installer-guidance-flow.md).
 
-Select the Forever folder containing WowB.exe, then **Install / update**.
-The executable carries its package offline. **Choose package** accepts another
-RikUI bundle ZIP; **Get latest release** opens the public releases page.
-There is no background network updater or credential storage.
+## Build public setup
 
-## Complete local build
+Run from the repository root with the declared developer commands. The existing Windows release workflow performs these steps automatically:
 
-With Rust 1.95 or later and Python 3.10 or later:
+```powershell
+npm ci --prefix tools/terrain --ignore-scripts
+python -B tools/acquire_runtime_dependencies.py --output dist/dependencies
+python -B tools/build_local_runtime.py --reader dist/dependencies/reader --extractor dist/dependencies/extractor/TACTTool.exe --output dist/preparation
+python -B tools/build_installer_bundle.py --version 1.0.0-beta.15 --output dist/base-bundle.zip
+python -B tools/build_public_installer.py --base dist/base-bundle.zip --runtime dist/preparation/runtime --output dist/public
+```
 
-~~~powershell
-python -B tools/build_installer_bundle.py --version 1.0.0-beta.1 --output dist/RikUI-local-all-in-one.zip --corpus dist/installer-corpus/quest-data.zip --local-roads "C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
-$env:RIKUI_BUNDLE = (Resolve-Path dist/RikUI-local-all-in-one.zip).Path
-cargo build --release --locked --manifest-path installer/Cargo.toml
-~~~
+The version above illustrates the reviewed release; subsequent tags supply their own semantic version. Forever metadata is always resolved live. Dependency revisions describe the licensed build libraries, not a client target. Public manifest generation executes the built program's **--verify-package** entry point and checks its actual embedded hashes against the public base and runtime inventory. Publish only the resulting program, manifest, checksums and notices.
 
-The output is installer/target/release/rikui-installer.exe. The corpus argument
-is the verified private quest-data release archive. The optional local-roads
-argument reads the existing generated roads and their companion patch packs.
-All input data is retained. Output bundle names must be new.
+## Current inputs and updates
 
-A build without RIKUI_BUNDLE is a development executable that requires a
-selected package. A bundle built without corpus/roads states exactly which
-components it includes; it is not the complete distribution requested here.
-Do not publish the data-bearing bundle until the
-[licensing review](../docs/corpus-licensing.md) is resolved.
+Setup resolves Gethe's current `forever` head and `version.txt`, checks executable PE version and active `.build.info` product/configuration, and discovers the matching executable and directory without requiring a beta path. Provider, holiday, schema, road-list and compiler changes invalidate affected outputs. Current bytes and compatibility must verify before a no-op.
 
-## Update and recovery
+At startup/update it checks the existing public GitHub release channel for newer setup support. Installation registers the current-user daily **RikUI Current Forever Updates** task. The owned program copy is hash verified. Failures and successful daily checks are recorded in local application data. Paused preparation stays paused until the player resumes. A new unsupported schema or client prevents dependent generation or installation while preserving existing data. This does not claim future builds have been tested.
 
-- Close WoW first. The GUI checks for a running WowB.exe.
-- Updates copy the existing addon folders into staging, then overlay verified
-  files. Existing generated data and unowned files remain present.
-- Only RikUI and the strict RikUIQuestRoads_W<world>_P<page> folder pattern can
-  be replaced. Other addons and WTF settings are outside the transaction.
-- Every replaced folder is retained under Interface/RikUI-backups. Rollback
-  restores the previous folders and also backs up the current folders.
-- A first install has no previous version to restore. Rollback leaves newly
-  introduced folders present. There is no delete/uninstall button.
-- An interrupted directory swap is recovered when the installer next opens
-  that game folder. Keep the backup directory if Windows blocks recovery.
-- Junctions and symbolic links in installation paths are rejected. A checkout
-  junction such as the developer's RikUI folder must continue to use the
-  existing developer tools.
-- Backups are deliberately not automatically pruned. A complete update needs
-  disk space for staging and the retained prior version.
+## Resource use and recovery
 
-The manifest binds every file's size and SHA-256. Archives reject traversal,
-Windows device paths, case collisions, links, duplicate members and oversized
-payloads. Hash verification detects damaged packages; it is not a publisher
-signature. Use packages from trusted sources. The executable is not Authenticode
-signed in this first build.
+First preparation requires at least 80 GiB free on its preparation drive. Players can choose another folder. Generation uses two workers by default, at most four, with per-phase and ongoing disk guards. Progress shows measured bytes, files or jobs and elapsed time; no fabricated global percentage is used.
 
-## Development checks
+Verified completed generation resumes; corrupt/interrupted products are retained before replacement. Cache reuse binds client/source/tool hashes, acquisition bytes, placement index, terrain receipts, road textures, travel and local bundle inputs. Local inputs and old generations are not automatically pruned.
 
-~~~text
+Installation stages and verifies bytes before replacing owned addon roots. A recoverable transaction retains backups under `Interface/RikUI-backups`, verifies installed bytes and rolls back failed swaps. Repeat installation of identical verified bytes adds no backup. Settings, unrelated addons and unowned private files are preserved. Linked game/addon paths are rejected. **Restore backup** retains replaced versions, including roots introduced by an update.
+
+## Verification
+
+```text
+cargo fmt --manifest-path installer/Cargo.toml --check
+cargo check --locked --manifest-path installer/Cargo.toml --all-targets
 cargo test --locked --manifest-path installer/Cargo.toml
 cargo clippy --locked --manifest-path installer/Cargo.toml --all-targets -- -D warnings
-cargo audit --file installer/Cargo.lock
-cargo run --release --locked --manifest-path installer/Cargo.toml --example verify -- dist/RikUI-local-all-in-one.zip
-~~~
+python -B tests/test_local_assembly.py
+python -B tests/test_setup_updates.py
+python -B tools/verify_installer_ui.py --exe installer/target/release/rikui-installer.exe --output dist/native-checks
+```
 
-The --smoke-test executable argument creates the actual native window, checks
-its controls and embedded package, and exits. It does not alter a game install.
-Filesystem tests use temporary game fixtures. Game-client behavior is accepted
-by the user under the project's native acceptance policy.
+The native verifier exercises twelve read-only real-window states, native UI Automation names/roles, keyboard order and DPI bounds. Images require full-size inspection and exact hash review; tests never promote baselines. [ui-review.json](ui-review.json) records reviewed captures and source provenance. Unchanged addon Lua captures retain their original provenance.
+
+**--install-current <storage-folder>** exercises the same preparation and transaction backend as the primary GUI for isolated/automated delivery verification; **--no-schedule** suppresses task registration only in isolated tests. The user accepts native gameplay; no routine gameplay sign-off is required. The executable currently has no Authenticode signature; checksums verify published bytes.

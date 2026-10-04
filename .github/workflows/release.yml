@@ -14,6 +14,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  installer:
+    needs: release
+    uses: ./.github/workflows/installer.yml
+    with:
+      version: ${{ github.ref_name }}
+      publish: true
   release:
     runs-on: ubuntu-latest
     steps:
