@@ -4,6 +4,16 @@
 Updates to RikUI for WoW Forever. Versions with `beta` in their name are
 prereleases.
 
+## 1.0.0-beta.18
+
+2026-10-04. Smoother setup progress.
+
+- Fixed the progress bar repeatedly resetting its animation during preparation.
+  It now keeps its position between checks and advances as jobs finish.
+- The bar changes stages when setup moves to a different kind of work.
+  Stages without a known total keep a continuous activity animation.
+- Completed preparation and existing installations remain retained.
+
 ## 1.0.0-beta.17
 
 2026-10-04. Reduced space needed for local quest and route preparation.

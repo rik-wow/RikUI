@@ -16,7 +16,7 @@ use windows_sys::Win32::{
     UI::{
         Controls::{
             Dialogs::*, ICC_PROGRESS_CLASS, INITCOMMONCONTROLSEX, InitCommonControlsEx,
-            PBM_SETMARQUEE, PBM_SETPOS, PBM_SETRANGE32,
+            PBM_SETMARQUEE, PBM_SETPOS, PBM_SETRANGE32, PBS_MARQUEE,
         },
         HiDpi::{
             DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2, GetDpiForSystem, GetDpiForWindow,
@@ -27,7 +27,9 @@ use windows_sys::Win32::{
     },
 };
 mod layout;
+mod progress;
 use layout::{arrange, controls, pick};
+use progress::{Command, Display, Progress};
 const PATH: i32 = 101;
 const BROWSE: i32 = 102;
 const INSTALL: i32 = 103;
@@ -63,6 +65,7 @@ struct App {
     preparing: bool,
     close_when_done: bool,
     fonts: [HFONT; 3],
+    progress: Progress,
 }
 fn wide(text: &str) -> Vec<u16> {
     text.encode_utf16().chain(Some(0)).collect()
@@ -241,20 +244,46 @@ unsafe fn start(hwnd: HWND, app: *mut App, operation: Operation) {
         let _ = channel.send(result);
     });
 }
-unsafe fn progress(hwnd: HWND, done: u64, total: u64) {
+unsafe fn show_progress(hwnd: HWND, display: Display) {
+    let app = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut App;
     let bar = GetDlgItem(hwnd, PROGRESS);
-    SendMessageW(bar, PBM_SETMARQUEE, 0, 0);
-    let style = GetWindowLongPtrW(bar, GWL_STYLE);
-    SetWindowLongPtrW(bar, GWL_STYLE, style & !0x08);
-    SendMessageW(bar, PBM_SETRANGE32, 0, total.min(i32::MAX as u64) as isize);
-    SendMessageW(bar, PBM_SETPOS, done.min(total) as usize, 0);
-    InvalidateRect(bar, null(), 1);
+    for command in (*app).progress.update(display) {
+        match command {
+            Command::StopMarquee => {
+                SendMessageW(bar, PBM_SETMARQUEE, 0, 0);
+                let style = GetWindowLongPtrW(bar, GWL_STYLE);
+                SetWindowLongPtrW(bar, GWL_STYLE, style & !(PBS_MARQUEE as isize));
+            }
+            Command::StartMarquee => {
+                let style = GetWindowLongPtrW(bar, GWL_STYLE);
+                SetWindowLongPtrW(bar, GWL_STYLE, style | PBS_MARQUEE as isize);
+                SendMessageW(bar, PBM_SETMARQUEE, 1, 40);
+            }
+            Command::Range(total) => {
+                SendMessageW(bar, PBM_SETRANGE32, 0, total as isize);
+            }
+            Command::Position(done) => {
+                SendMessageW(bar, PBM_SETPOS, done as usize, 0);
+            }
+        }
+        if (*app).fixture.is_some() {
+            // Read-only interface fixtures record the actual commands sent to the native control.
+            use std::io::Write;
+            if let Ok(mut trace) = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open((*app).root.join("progress-trace.txt"))
+            {
+                let _ = writeln!(trace, "{command:?}");
+            }
+        }
+    }
+}
+unsafe fn progress(hwnd: HWND, done: u64, total: u64) {
+    show_progress(hwnd, Display::counted(done, total));
 }
 unsafe fn marquee(hwnd: HWND) {
-    let bar = GetDlgItem(hwnd, PROGRESS);
-    let style = GetWindowLongPtrW(bar, GWL_STYLE);
-    SetWindowLongPtrW(bar, GWL_STYLE, style | 0x08);
-    SendMessageW(bar, PBM_SETMARQUEE, 1, 40);
+    show_progress(hwnd, Display::Marquee);
 }
 unsafe fn refresh_status(hwnd: HWND, root: &std::path::Path) {
     if let Some(status) = setup::status(root) {
@@ -294,10 +323,10 @@ unsafe fn refresh_status(hwnd: HWND, root: &std::path::Path) {
             _ => String::new(),
         };
         label(hwnd, METRICS, &metrics);
-        if let (Some(done), Some(total)) = (completed, total) {
-            progress(hwnd, done, total);
-        } else if status["state"].as_str() == Some("installed") {
+        if status["state"].as_str() == Some("installed") {
             progress(hwnd, 100, 100);
+        } else if let (Some(done), Some(total)) = (completed, total) {
+            progress(hwnd, done, total);
         } else if (*(GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut App)).preparing {
             marquee(hwnd);
         }
@@ -458,14 +487,24 @@ unsafe extern "system" fn procedure(
                 DestroyWindow(hwnd);
                 return 0;
             }
-            if (*app).result.is_some() {
+            if (*app).fixture.is_some() {
+                use std::io::Write;
+                if let Ok(mut trace) = std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open((*app).root.join("progress-trace.txt"))
+                {
+                    let _ = writeln!(trace, "Poll");
+                }
+            }
+            if (*app).result.is_some() || (*app).fixture.is_some() {
                 refresh_status(hwnd, &(*app).root);
             }
             if let Some(receiver) = &(*app).result
                 && let Ok(result) = receiver.try_recv()
             {
                 (*app).result = None;
-                SendMessageW(GetDlgItem(hwnd, PROGRESS), PBM_SETMARQUEE, 0, 0);
+                show_progress(hwnd, Display::Idle);
                 match result {
                     Ok(Finished::Updated(program)) => {
                         match setup::launch_updated(&program, false) {
@@ -620,6 +659,7 @@ pub fn run() {
             preparing: false,
             close_when_done: false,
             fonts: [null_mut(); 3],
+            progress: Progress::default(),
             fixture: {
                 let args: Vec<String> = std::env::args().collect();
                 args.iter()

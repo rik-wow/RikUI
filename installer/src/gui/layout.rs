@@ -59,7 +59,7 @@ fn definitions() -> Vec<(&'static str, &'static str, i32, [i32; 4], u32)> {
             [32, 372, 606, 42],
             0,
         ),
-        ("msctls_progress32", "", PROGRESS, [32, 428, 606, 16], 0x08),
+        ("msctls_progress32", "", PROGRESS, [32, 428, 606, 16], 0),
         ("Static", "", METRICS, [32, 454, 606, 24], 0),
         (
             "Button",

@@ -136,6 +136,46 @@ STATES={
  "ready":dict(phase="Ready to play",message="Quest guide and supported routes installed and verified. Daily checks are active. Unknown coverage stays explicit.",verified=True,state="installed"),
  "rollback":dict(phase="Backup restored",message="Previous files were restored. Replaced files are retained in a backup. Check current compatibility before using guidance.",verified=True),
 }
+def verify_progress(hwnd, folder, name):
+ # Exercise the actual WM_TIMER/status/control path; fixtures never acquire or install data.
+ home=folder/"RikUI"
+ trace=home/"progress-trace.txt"
+ def commands():
+  return [line for line in trace.read_text(encoding="utf-8").splitlines() if line!="Poll"] if trace.exists() else []
+ def poll():
+  for _ in range(10):u.SendMessageW(hwnd,0x0113,1,0)
+ def update(value):
+  temporary=home/"status-next.json";temporary.write_text(json.dumps(value),encoding="utf-8")
+  os.replace(temporary,home/"status.json");poll()
+ before=commands();poll()
+ assert commands()==before,"Identical polls reconfigured the native progress bar: "+name
+ lines=trace.read_text(encoding="utf-8").splitlines()
+ assert lines.count("Poll")>=10,"Fixture did not exercise repeated timer refreshes"
+ evidence=dict(repeatedPolls=lines.count("Poll"),initialCommands=before)
+ if name=="generation":
+  assert before==["Range(2290)","Position(403)"],before
+  bar=u.GetDlgItem(hwnd,110)
+  assert u.SendMessageW(bar,0x0408,0,0)==403
+  update(dict(phase="Preparing routes",busy=True,completed=404,total=2290))
+  assert commands()==before+["Position(404)"],commands()
+  assert u.SendMessageW(bar,0x0408,0,0)==404
+  update(dict(phase="Preparing roads",busy=True,completed=1,total=7))
+  assert commands()[-2:]==["Range(7)","Position(1)"]
+  assert u.SendMessageW(bar,0x0407,0,0)==7 and u.SendMessageW(bar,0x0408,0,0)==1
+  update(dict(phase="Checking files",busy=True))
+  assert commands()[-1:]==["StartMarquee"]
+  assert u.GetWindowLongPtrW(bar,-16)&8,"Unknown work did not start native marquee"
+  unchanged=commands();poll();assert commands()==unchanged,"Marquee restarted on identical polls"
+  update(dict(phase="Ready to play",state="installed",completed=0,total=0))
+  assert commands()[-3:]==["StopMarquee","Range(100)","Position(100)"]
+  assert not u.GetWindowLongPtrW(bar,-16)&8
+  assert u.SendMessageW(bar,0x0408,0,0)==100
+  evidence["transitions"]=commands()
+ elif name=="committing":
+  assert before==["StartMarquee"],before
+ evidence["finalCommands"]=commands()
+ return evidence
+
 def main():
  parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--exe",required=True);parser.add_argument("--output",required=True)
  args=parser.parse_args();root=Path(args.output).absolute()
@@ -154,7 +194,8 @@ def main():
     if process.poll() is not None:raise ValueError("Installer fixture exited")
     time.sleep(.05)
    assert hwnd,"Installer window unavailable";time.sleep(.4)
-   results[name]=dict(**check(hwnd),accessibility=accessibility(hwnd),image=png(hwnd,folder/"window.png"))
+   results[name]=dict(**check(hwnd),accessibility=accessibility(hwnd),image=png(hwnd,folder/"window.png"),
+                      progress=verify_progress(hwnd,folder,name))
   finally:
    if hwnd:u.PostMessageW(hwnd,0x0010,0,0)
    try:process.wait(timeout=10)
