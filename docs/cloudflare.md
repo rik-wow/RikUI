@@ -38,7 +38,10 @@ The checked-in catalog is the exact download allowlist. Unknown keys receive
 404 before storage access. Approved objects must match catalog size and SHA-256
 metadata. Downloads stream from R2, support byte ranges, ETags and HEAD, and use
 conditional reads to reject an object changed after its metadata check.
-Release keys must be immutable and contain a version or content hash. SHA-256
+Release keys must be immutable and contain a version or content hash.
+Immutable artifact responses use `Cache-Control: no-transform` so CDN
+compression cannot weaken their byte validators or remove exact lengths.
+See [Cloudflare content compression](https://developers.cloudflare.com/speed/optimization/content/compression/). SHA-256
 metadata is an upload assertion; the release process must calculate it from
 the actual artifact and clients must verify downloaded bytes.
 

@@ -14,8 +14,11 @@ Separately obtained QuestieDB source at
 6e7aa495a087ad7d934c0fff800753ec24db5f9d and Questie holiday source at
 70c822e3ef787987be413d0e54904b50907d89c4 supply the offline export. All eighteen
 supported player variants were exported. The provider contains 5,009 quests,
-13,309 NPCs, 21,159 items and 6,967 objects, with nine locales. Composed
-objectives, relationship, eligibility, acquisition and supporting fields keep
+13,309 NPCs, 21,159 items and 6,967 objects. All nine provider translation
+sets are retained in the private audit. The supported runtime guide requires
+enUS; the selected client's Config.wtf textLocale is enUS. Public setup and
+installation documentation disclose this before preparation. Composed objectives,
+relationship, eligibility, acquisition and supporting fields keep
 their source authority and unknown coverage. Provider support strings are
 normalized offline; RikUI does not execute them.
 
@@ -52,8 +55,11 @@ Dijkstra for tested connected and disconnected world-zero/world-one pairs.
 The actual deferred corpus loads all eighteen selectors and 226 partitions;
 a changed client identity rejects guidance.
 
-The clean packaged consumer run independently acquired current inputs and
-exported the same provider bytes without developer Git/Python/Node in PATH.
+The initial clean packaged consumer run, before the later event-source change,
+independently acquired current inputs and exported the same provider bytes
+without developer Git/Python/Node in PATH. Its resolution fingerprint was
+420c027aeb714385e18055efb210755e1c8327fc2238a49d94e739829635903d;
+that is retained review evidence, not the current resolution.
 It completed all eighteen variants, 226 corpus partitions, 2,290 terrain jobs
 and the seven supported worlds. Its independent road receipt SHA-256 is
 6c0baa6d5a015296567c277f2447912b3cc01c5276530bc44c51a819fab5951a.
@@ -73,7 +79,7 @@ installation, invalid-client failure and restored-client recovery with no
 developer tools in PATH. The relocated release-directory fixture used a
 different executable name rather than assuming the beta directory survives.
 
-Actual current-client installation verified 12,997 owned files across seven
+Initial current-client installation verified 12,997 owned files across seven
 addon roots and six patch packs. Preservation checks verified 545 settings
 files, 899 source files, 110 unowned addon files and 12,623 original owned-root
 files in the retained first backup. The registered Windows daily task executed
@@ -94,5 +100,69 @@ Recorded checks cover publisher boundaries, current client discovery,
 changed-input corpus rebuild, unchanged-input reuse, placement/geometry,
 provider semantics, and explicit unknown coverage. The configured project gate
 passes with 285 reviewed Lua captures / 527 images and 19,383 runtime checks.
-The native installer and public download are separate delivery units and must
-be verified before the complete workstream is marked delivered.
+Public beta.16 is available through [GitHub Releases](https://github.com/rik-wow/RikUI/releases/tag/v1.0.0-beta.16),
+[CurseForge file 9055892](https://www.curseforge.com/wow/addons/rikui/files/9055892)
+and [Windows setup](https://rikwow.com/install). Downloaded GitHub and publisher
+CDN addon archives are identical: SHA-256
+b9df5065fb071fc3c56596acae2a3eb8fd03dcac4808edffd82a4d3b88e42f38,
+1,005,664 bytes and 333 verified files. The website executable is SHA-256
+daa5d4b57b5974d644c99ade1a6b23e794a6f39de02fbc0a0c6798092a6b5827,
+67,906,560 bytes. Its actual embedded runtime contains 1,128 inventoried files;
+all 85 authored runtime files match the reviewed source. Public payloads contain
+licensed tools and the interface, with no imported corpus or extracted geometry.
+
+The four public setup objects (EXE, manifest, notices and checksums) were read
+back from immutable release storage and downloaded again from production.
+Every SHA-256, exact HEAD length, byte range and conditional response passed.
+A real CDN transformation initially weakened text validators; the supported
+no-transform policy corrected this without weakening the verifier.
+Final Worker deployment 8520c28c-728e-4b67-835a-43ccec6c5471 passed all 23 production
+browser/keyboard checks; all 44 website/shared Studio tests passed. Four
+installation-page captures at 390/1440 widths and closed/expanded cost states
+were inspected at original size and promoted with exact reviewed hashes.
+
+The event source advanced during delivery. The controller rejected stale
+resolution admission and preserved the working installation. The refreshed
+corpus revision above passed all eighteen actual Lua selectors and 226
+partitions. The real current event update completed and installed in 2,794.7
+seconds with two workers. It rebuilt the semantic corpus and routes, with road
+receipt SHA-256 c983863fb91f7c6a5701e97d9bccc3aab4a89d6b0c0d82556c2c775785790f97.
+Verified acquisition, travel, all 16,030 bake files and 1,889 raster files were
+reused byte-for-byte from their original folders. Four refreshed actual Lua
+routes passed with zero regressions; 12,198 navigation files and six packs verify.
+
+The exact website-downloaded beta.16 executable then installed successfully
+into the actual current client. The final local bundle SHA-256 is
+a1f0a95abdfe0532fe1eac2fd6b9c4f6de6563f4a0e4869ba09a610b84f456c8.
+Installed-byte and preservation verification again checked 12,997 installed
+files, 545 settings files, 899 source files, 110 unowned addon files and all
+12,623 original owned-root files in the retained first backup. The published
+program's registered daily task was triggered through Windows Task Scheduler;
+it finished with result 0 in 203.5 seconds. Current fingerprint and bundle stayed
+unchanged and no additional backup was created. Its owned program SHA-256
+matches the public executable above.
+
+Proofs are retained in D:/RikUI-local/real-current-event-refresh-proof-2.json,
+current-event-refreshed-navigation-proof-1.json,
+published-beta16-actual-client-preservation-proof-1.json and
+operating-daily-published-beta16-proof-1.json. Final production download readback
+is published-beta16-website-proof-3/evidence.json. GitHub release notes also
+point to the explicit supported language, region and preparation-cost limits.
+The exact public executable completed the isolated four-run fixture with only
+packaged tools and Windows in PATH: first installation 267.3 seconds,
+unchanged no-op 199.8 seconds, invalid-client rejection 4.8 seconds and
+restored-client recovery 184.5 seconds (669.6 seconds total). All 12,997 installed
+files, settings, unrelated addons and private sentinels verify; no unnecessary
+backup was added. The fixture uses a relocated release directory and renamed
+WowRelease.exe. Its receipt is
+C:/Users/olson/AppData/Local/RikUI-verification/isolated-public-beta16-proof-1/evidence.json.
+A Workbench response transport timeout left the existing owned test process
+running; a read-only native check observed and verified its completed receipt
+without restarting or competing with that process. Recorded timeout and failed
+attempt evidence remains retained.
+
+This delivery verifies the currently available Forever build and implemented
+refresh mechanism. Future beta builds and the November 4, 2026 release are
+verified when available. Public supported-coverage limits remain explicit;
+there is no outstanding installation, update or publication requirement for
+this delivered supported scope.
