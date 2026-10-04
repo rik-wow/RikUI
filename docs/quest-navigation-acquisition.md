@@ -21,6 +21,40 @@ No single verified source currently provides every Forever quest rule, spawn,
 interaction, floor and transport condition. "All" must mean an inventoried
 supported corpus with explicit gaps, not an invented complete server dump.
 
+## Required Forever beta tracking
+
+The target is **WoW Forever's latest beta**, continuously through the user's
+November 4, 2026 release target. Compatibility with Era, another Classic flavor,
+or a single reviewed beta snapshot does not satisfy this requirement.
+
+- Before every acquisition, build, installer run, update and release, resolve
+  Gethe/wow-ui-source's current forever head and version.txt. Cross-check the
+  selected Forever client's WowB.exe and .build.info product/configuration.
+  A mismatch stops dependent work until inputs are refreshed.
+- The implementation must include a daily upstream-change check and an explicit
+  check on each installer start/update. This plan records that requirement;
+  it does not create a schedule or claim a background service is running.
+- Track current provider and schema heads alongside the client. Require the
+  Forever flavor and supported API contract. Provider freshness alone does
+  not establish current server semantics; preserve authority per field.
+- For each new beta, compare quest membership, map projection, topology,
+  collision, liquids, transport inputs and relevant API/schema definitions.
+  Reacquire current inputs and rebuild affected outputs. Cache reuse requires
+  current-input hash verification and an explicit compatibility receipt;
+  never admit an older build by changing its version label.
+- Newly added or changed quests remain explicitly unknown until their targets,
+  prerequisites and locations have current evidence. Provider lag and
+  unsupported client/schema changes must be visible; preserve existing files
+  while refusing stale data as guidance for the new build.
+- Run affected automated semantic, navigation, packaging and interface checks
+  before promoting outputs. Unchanged reviewed UI captures retain their
+  provenance according to the project's dependency rules.
+- At launch, freshly discover the release client's product, executable,
+  installation directory and build instead of assuming the beta path remains
+  valid. Verify and assemble for that release build using the same pipeline.
+  November 4 is a delivery target, not an automatic compatibility approval or
+  a permanent version pin after launch.
+
 ## Current evidence
 
 - The freshly resolved [Forever branch](https://github.com/Gethe/wow-ui-source/tree/forever)
