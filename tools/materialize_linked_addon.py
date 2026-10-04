@@ -95,9 +95,32 @@ def migrate(executable,source,proof):
     return dict(proof=str(proof),files=len(rows),bytes=total,addon=str(target),retainedJunction=str(held))
 
 
+def verify(proof):
+    import json
+    receipt=json.loads(current.regular(proof).read_bytes())
+    if receipt.get("format")!="rikui-development-junction-migration-v1":
+        raise ValueError("Unsupported migration receipt")
+    source=normal_directory(receipt["source"])
+    addon=normal_directory(receipt["addon"])
+    held=Path(receipt["retainedJunction"])
+    if not held.is_junction() or held.resolve()!=source:
+        raise ValueError("Retained source junction changed")
+    for row in receipt["files"]:
+        if digest(source/row["path"])!=row["sha256"] or digest(addon/row["path"])!=row["sha256"]:
+            raise ValueError("Preserved migration bytes changed: "+row["path"])
+    return dict(format="rikui-development-junction-preservation-proof-v1",files=len(receipt["files"]),
+        sourceCheckoutPreserved=True,generatedDataPreserved=True,retainedJunction=str(held))
+
+
 if __name__=="__main__":
     import json
     parser=argparse.ArgumentParser(description=__doc__)
-    for name in ("executable","source","proof"):parser.add_argument("--"+name,required=True)
+    parser.add_argument("--verify-proof")
+    for name in ("executable","source","proof"):parser.add_argument("--"+name)
     args=parser.parse_args()
-    print(json.dumps(migrate(args.executable,args.source,args.proof)))
+    if args.verify_proof:
+        result=verify(args.verify_proof)
+    else:
+        if not all((args.executable,args.source,args.proof)):parser.error("Migration requires --executable --source --proof")
+        result=migrate(args.executable,args.source,args.proof)
+    print(json.dumps(result))
