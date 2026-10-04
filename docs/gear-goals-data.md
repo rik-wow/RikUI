@@ -22,7 +22,7 @@ Slot and level indexes are sorted during compilation. Broad world drops with ove
 
 ## Public distribution
 
-Public packages contain the original compiler and runtime adapter, without compiled provider/client data. Source browsing uses the user’s installed QuestieDB contract-3 API with Forever data. No provider code, serialized support strings or database payloads are copied or executed by the consumer. See [corpus licensing](corpus-licensing.md). Indexing is lazy, bounded to 10,000 candidates / 8,192 quest rows / 32 sources per item, and sliced to at most 64 records or approximately 1 ms per frame. Completed indexes are reused until explicit refresh. Missing or failing providers preserve saved goals and explain unavailable sources.
+The public source repository contains the original compiler. Addon packages contain the runtime adapter, without compiler tools or compiled provider/client data. Source browsing uses the user’s installed QuestieDB contract-3 API with Forever data. No provider code, serialized support strings or database payloads are copied or executed by the consumer. See [corpus licensing](corpus-licensing.md). Indexing is lazy, bounded to 10,000 candidates / 8,192 quest rows / 32 sources per item, and sliced to at most 64 records or approximately 1 ms per frame. Completed indexes are reused until explicit refresh. Missing or failing providers preserve saved goals and explain unavailable sources.
 
 ## Runtime limits
 

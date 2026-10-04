@@ -6,7 +6,9 @@ RikUI **{{release.version}}** is a **{{release.channel}}** release for WoW Forev
 
 Download [{{release.zip}}]({{release.download}}) from the [current RikUI release]({{release.url}}). Close the game and extract the `RikUI` folder into `_classic_beta_/Interface/AddOns`, so `RikUI.toc` is directly inside `AddOns/RikUI`. Enable RikUI in the AddOns list.
 
-The public ZIP includes the addon without quest and road datasets. Locally installed quest data and settings are preserved when updating.
+Gear goals source browsing uses an installed [QuestieDB](https://github.com/Questie/QuestieDB) addon with Forever data and contract version 3. It is an optional separate installation; RikUI preserves saved gear goals if that provider is missing.
+
+The public ZIP includes the addon without compiled gear, quest and road datasets. Locally installed quest data and settings are preserved when updating.
 
 ## Local Windows installer
 

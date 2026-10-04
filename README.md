@@ -83,6 +83,12 @@ assign that key in **Key Bindings > RikUI**, use Ctrl+Alt+Shift.
 `/rik scale 0.8` makes the UI smaller. `/rik scale 1` returns it to normal.
 Moving and scaling need to be done out of combat.
 
+## Gear goals
+
+Open **Gear goals** above the character window, in RikUI’s Tools menu, or with `/rik gear`. Choose an equipment slot, filter quest or dungeon sources, compare live stat tradeoffs, and pin up to eight goals per character. Pursuit feeds the existing quest planner without replacing your personal quest preferences. The optional compact tracker is movable through the normal RikUI layout controls.
+
+Public source browsing requires an installed QuestieDB contract-3 provider with Forever data; private current-client compiled catalogs are also supported. See the [Gear goals guide](docs/player/gear-goals.md). Source relationships are maintained references; verify rewards and drops in game. Effects, set bonuses, weapon damage and class priorities require the item tooltip. No gear is equipped and no reward is selected automatically. See [data authority and coverage](docs/gear-goals-data.md).
+
 ## Combat HUD
 
 Cooldowns, your current resource and cast bar sit together above the action bars.
@@ -165,6 +171,7 @@ Everyday tools:
 
 | Command | What it does |
 | --- | --- |
+| `/rik gear` | Compare equipment sources and manage per-character gear goals. |
 | `/rik quests show` | Open the quest planner. Also `pin`, `skip`, `avoid`, `pause`, `map` and `export`. |
 | `/rik bagsearch save\|use\|delete <name> [query]` | Save, use, delete or list named bag searches. |
 | `/rik favorite <item link or ID>` | Mark an item as a favorite so bulk junk selling leaves it alone. |

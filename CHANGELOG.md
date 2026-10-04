@@ -7,6 +7,27 @@ and carry no notes. A version with `beta` in its name is a prerelease. The BigWi
 and uses it as the GitHub release text, so add the new version here before
 tagging.
 
+## 1.0.0-beta.14
+
+2026-10-03. Gear goals for WoW: Forever beta.
+
+- Open a visual gear browser from the character window or `/rik gear`.
+  Compare equipped and candidate item cards, aligned live stat values, matching
+  stat bars and signed tradeoffs. Two-handed candidates replace both hands.
+- Browse equipment by slot, search, quest or curated dungeon reference. Inspect
+  source requirements and prerequisite progress separately from comparisons.
+- Keep up to eight goals per character, pursue one through the existing quest
+  planner without replacing personal preferences, and observe acquisition in
+  bags/equipped inventory. Add an optional movable active-goal tracker.
+- Reuse RikUI controls, native item tooltips, theme accents, font and readability
+  preferences. Missing item data and optional provider failures remain explicit.
+- Public source browsing uses an installed optional QuestieDB with Forever data
+  and contract version 3. No provider database or Blizzard item data is bundled.
+  Sources are references; payout, special prerequisites and dungeon coverage can
+  be incomplete. There is no automatic equipment or quest reward selection.
+- Add deterministic current-input tooling, bounded source indexing and caches,
+  failure/persistence tests, canonical documentation and authentic Lua captures.
+
 ## 1.0.0-beta.13
 
 2026-10-03. Character setup and compact adaptive nameplates for WoW: Forever beta.
