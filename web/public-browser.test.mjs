@@ -26,6 +26,8 @@ for(const width of [390,1440]){
   await expect(page.getByRole("heading",{level:1})).toHaveText("Your quest guide and routes");
   await expect(page.getByRole("heading",{name:"Four simple steps"})).toBeVisible();
   await expect(page.locator("main ol li")).toHaveCount(4);
+  await expect(page.getByText(/Requires an installed current Forever client with English game text \(enUS\)/)).toBeVisible();
+  await expect(page.getByText(/All nine provider translation sets are retained locally for source auditing; translated runtime guides are not currently supported/)).toBeVisible();
   const releases=await (await page.request.get("/api/v1/releases")).json();
   if(releases.installer){
    const download=page.getByRole("link",{name:"Download RikUI setup for Windows"});

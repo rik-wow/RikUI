@@ -19,6 +19,7 @@ for(const path of ["/install","/docs/installation"]){
  const response=await get(path);assert.equal(response.status,200);
  const html=await response.text();assert.ok(html.includes(catalog.latest));
  assert.ok(html.includes("QuestieDB"));assert.ok(html.includes("80 GiB"));
+ assert.ok(html.includes("English game text (enUS)"));
  if(path==="/install")assert.ok(html.includes(catalog.installer.url));
  await writeFile(join(output,path==="/install"?"install.html":"installation.html"),html,{flag:"wx"});
 }

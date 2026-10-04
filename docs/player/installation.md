@@ -4,6 +4,8 @@ RikUI **{{release.version}}** is a **{{release.channel}}** release for WoW Forev
 
 ## Windows setup
 
+Quest guidance currently requires **English game text (enUS)**. All nine provider translation sets are retained in your local source audit; translated runtime guides are not supported. Set Forever's game text to English to use the supported quest guide.
+
 1. Download **RikUI-Setup.exe** from the [installation page](/install). Open it and let it find your current Forever game. Use **Browse** if needed.
 2. Allow at least **80 GiB free** for first preparation, plus space for retained generations and backups. **Preparation folder** lets you choose a roomier drive.
 3. Choose **Prepare and install**. Setup obtains QuestieDB source and holiday information separately from their publishers, reads your current game files, and builds supported routes locally. Its tools are included: you do not need Git, Python, Node or a database.

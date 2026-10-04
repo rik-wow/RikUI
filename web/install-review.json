@@ -3,7 +3,7 @@
   "origin": "http://127.0.0.1:8787",
   "version": "1.0.0-beta.16",
   "sources": {
-    "install-page.mjs": "f59678fa492f9964b1c43b209891d244ed5540fce767282b0894b47a6bedc262",
+    "install-page.mjs": "175f1fdf7a3706af4ef9805ce9ce841ba74314d3a4e27df2eb43059c9d602fdc",
     "releases.mjs": "3520ba77db5399dde812064813eecd0a93839549b9ea1c521df5bf72f7916fc6",
     "studio-styles.mjs": "470a1dd3a3bd28c5859296be02c6a5dcf98fe68203023d8cca7ad8a65592237a",
     "capture-install.mjs": "74e3c4fb4a38e782d13097c48ffc5eff1c6e531a78118b7a067f73efaf5dbc31"
@@ -13,34 +13,34 @@
       "filename": "install-390-closed.png",
       "width": 390,
       "state": "closed",
-      "sha256": "497d571565c120f4432692a4a00e75dc4677cffdcd7eec47bc60bb1f0c787ada"
+      "sha256": "6ad0d05c5d700cfe46a4e717d5f31134d2724b444222c9284a4a245dc2d7cf63"
     },
     {
       "filename": "install-390-measured-cost.png",
       "width": 390,
       "state": "measured-cost",
-      "sha256": "7b52678ffdfe6b043fe31d7d95dcfdc1d7a8bd79008b5d3d9482d4177ec31dcb"
+      "sha256": "6881618d2fda2a1de8f60e2f9970309055e6bd43daa790f9694ca7ae7a3fc367"
     },
     {
       "filename": "install-1440-closed.png",
       "width": 1440,
       "state": "closed",
-      "sha256": "51e6ac39e67b02f7f34620b34e27e9b7c4414e9ef7824c8d1e9127820751c9e5"
+      "sha256": "10ffe75921310e09d55216d16541d4034b963b6e00d08f02ab732fd417077deb"
     },
     {
       "filename": "install-1440-measured-cost.png",
       "width": 1440,
       "state": "measured-cost",
-      "sha256": "5525fa5d7972afd9689dc866bbdce71b521fb4d99231dd115870d564b236e765"
+      "sha256": "945c532c138c24f06fab81a5df5a90a5f6e505021675a7771a6446c1c274d558"
     }
   ],
-  "captureRoot": "D:/RikUI-local/install-page-beta16-review-2",
-  "reviewedAt": "2026-10-04T08:23:08Z",
-  "review": "All four actual browser captures inspected at original size. Clear Windows download action, readable four steps, current coverage, cost disclosure and preparation-drive recovery; no clipping at 390/1440.",
+  "captureRoot": "D:/RikUI-local/install-page-beta16-review-3",
+  "reviewedAt": "2026-10-04T08:58:30Z",
+  "review": "All four actual browser captures inspected at original size. English game-text requirement visible before preparation; nine retained translation sets distinguished from runtime guide language. Clear download, four steps, cost, recovery and supported regions; no clipping at 390/1440.",
   "reviewedSHA256s": [
-    "497d571565c120f4432692a4a00e75dc4677cffdcd7eec47bc60bb1f0c787ada",
-    "7b52678ffdfe6b043fe31d7d95dcfdc1d7a8bd79008b5d3d9482d4177ec31dcb",
-    "51e6ac39e67b02f7f34620b34e27e9b7c4414e9ef7824c8d1e9127820751c9e5",
-    "5525fa5d7972afd9689dc866bbdce71b521fb4d99231dd115870d564b236e765"
+    "6ad0d05c5d700cfe46a4e717d5f31134d2724b444222c9284a4a245dc2d7cf63",
+    "6881618d2fda2a1de8f60e2f9970309055e6bd43daa790f9694ca7ae7a3fc367",
+    "10ffe75921310e09d55216d16541d4034b963b6e00d08f02ab732fd417077deb",
+    "945c532c138c24f06fab81a5df5a90a5f6e505021675a7771a6446c1c274d558"
   ]
 }
