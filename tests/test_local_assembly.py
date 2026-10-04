@@ -39,6 +39,25 @@ class Tests(unittest.TestCase):
     def metadata(self):
         return patch.object(current,"download",return_value=current.canonical(self.meta()))
 
+    def test_eight_terrain_workers_handoff_to_supported_road_process_limit(self):
+        capture=self.root/"mesh.json";capture.write_bytes(b"verified mesh")
+        travel=self.root/"travel.json";travel.write_bytes(b"verified travel")
+        corpus=self.root/"corpus";(corpus/"audit").mkdir(parents=True)
+        semantics=corpus/"audit/semantic-quests.json";semantics.write_bytes(b"verified semantics")
+        self.worker.run=Mock()
+        for capacity,expected in ((1,1),(2,2),(4,4),(8,4)):
+            with self.subTest(capacity=capacity):
+                self.worker.args.workers=capacity
+                self.worker.build_roads(capture,self.root/"acquisition",self.root/"rasters",
+                    self.root/"roads",corpus,travel,[0,1,2991])
+                command,*arguments=self.worker.run.call_args.args
+                self.assertEqual(command,"terrain/road_network.py")
+                self.assertEqual(arguments[arguments.index("--workers")+1],expected)
+                for flag,path in (("--expected-sha256",capture),("--semantic-sha256",semantics),
+                        ("--travel-sha256",travel)):
+                    self.assertEqual(arguments[arguments.index(flag)+1],local.digest(path))
+                self.assertEqual([arguments[i+1] for i,value in enumerate(arguments) if value=="--world"],[0,1,2991])
+
     def test_worker_budget_respects_cpu_memory_and_eight_worker_cap(self):
         gib=1024**3
         for cpus,memory,expected in ((32,32*gib,8),(128,128*gib,8),(16,14*gib,4),(8,14*gib,2),

@@ -362,6 +362,16 @@ class Assembly:
         atomic(self.job/"listfile-source.json",dict(publisher="wowdev/wow-listfile",identity=listfile_identity(meta),url=url,bytes=total,sha256=actual))
         return target
 
+    def build_roads(self,capture,acquisition,rasters,roads,corpus,travel,worlds):
+        # Road graph composition has its own four-process admission contract.
+        # Keep terrain's larger pool from crossing that phase boundary.
+        args=["--input",capture,"--expected-sha256",digest(capture),"--source-directory",acquisition/"db2",
+              "--road-rasters",rasters,"--output",roads,"--workers",min(4,self.args.workers),
+              "--semantic-quests",corpus/"audit/semantic-quests.json","--semantic-sha256",digest(corpus/"audit/semantic-quests.json"),
+              "--travel",travel,"--travel-sha256",digest(travel)]
+        for world in worlds:args.extend(("--world",world))
+        self.run("terrain/road_network.py",*args)
+
     def local_bundle(self,corpus,roads):
         bundle=self.job/"local-bundle.zip"
         inputs=dict(base=self.base_sha,corpus=digest(Path(corpus)/"manifest.json"),
@@ -526,12 +536,7 @@ class Assembly:
             return source_pack(folder,digest(folder/"road-network-receipt.json"))
         if not self.reusable(roads,verify_roads):
             worlds=sorted(map(int,receipt["topology"]))
-            args=["--input",capture,"--expected-sha256",digest(capture),"--source-directory",acquisition/"db2",
-                  "--road-rasters",rasters,"--output",roads,"--workers",self.args.workers,
-                  "--semantic-quests",corpus/"audit/semantic-quests.json","--semantic-sha256",digest(corpus/"audit/semantic-quests.json"),
-                  "--travel",travel,"--travel-sha256",digest(travel)]
-            for world in worlds:args.extend(("--world",world))
-            self.run("terrain/road_network.py",*args)
+            self.build_roads(capture,acquisition,rasters,roads,corpus,travel,worlds)
         self.phase="Verifying your installation"
         self.report("Checking generated files and supported coverage before installation.")
         road_receipt=json.loads((roads/"road-network-receipt.json").read_bytes())
