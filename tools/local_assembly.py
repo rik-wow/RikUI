@@ -28,6 +28,31 @@ import build_installer_bundle
 TABLES=("Map","UiMap","UiMapAssignment","LiquidType","QuestV2","TaxiNodes","TaxiPath","TaxiPathNode","AreaTrigger","TransportAnimation")
 
 
+def available_memory():
+    """Use Windows available physical memory; an unavailable probe stays conservative."""
+    if os.name!="nt":return None
+    import ctypes
+    from ctypes import wintypes
+    class MemoryStatus(ctypes.Structure):
+        _fields_=[("length",wintypes.DWORD),("load",wintypes.DWORD)]+[
+            (name,ctypes.c_ulonglong) for name in ("totalPhysical","availablePhysical",
+                "totalPage","availablePage","totalVirtual","availableVirtual","availableExtended")]
+    try:
+        status=MemoryStatus();status.length=ctypes.sizeof(status)
+        probe=ctypes.WinDLL("kernel32",use_last_error=True).GlobalMemoryStatusEx
+        probe.argtypes=[ctypes.POINTER(MemoryStatus)];probe.restype=wintypes.BOOL
+        return int(status.availablePhysical) if probe(ctypes.byref(status)) else None
+    except (OSError,AttributeError):return None
+
+
+def worker_budget(cpus,memory):
+    """At most four workers, four logical CPUs and about 3 GiB per worker."""
+    cpu_limit=max(1,(cpus or 1)//4)
+    if memory is None:return 1
+    memory_limit=max(1,(memory-2*1024**3)//(3*1024**3))
+    return min(4,cpu_limit,memory_limit)
+
+
 def atomic(path,value):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
     temporary=path.with_name(path.name+".next")
@@ -541,9 +566,10 @@ def main():
     parser.add_argument("--storage-root",action="append",default=[])
     parser.add_argument("--base-bundle")
     parser.add_argument("--resume-runtime",help="Verify and resume an older packaged preparation after an orchestration-only update")
-    parser.add_argument("--workers",type=int,default=2)
+    parser.add_argument("--workers",type=int,help="Override automatic CPU/memory selection with 1 through 4 workers")
     parser.add_argument("--check-only",action="store_true")
     args=parser.parse_args()
+    if args.workers is None:args.workers=worker_budget(os.cpu_count(),available_memory())
     if not 1<=args.workers<=4:parser.error("workers must be 1 through 4")
     if not args.executable and not args.storage_root:parser.error("Choose a Forever executable or storage folder")
     if not args.check_only and not args.base_bundle:parser.error("base bundle required")

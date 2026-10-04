@@ -19,7 +19,6 @@ use std::{
 pub struct Configuration {
     pub storage_root: PathBuf,
     pub executable: PathBuf,
-    pub workers: u8,
 }
 pub fn home() -> Result<PathBuf> {
     let base = std::env::var_os("LOCALAPPDATA")
@@ -263,8 +262,6 @@ fn worker(
         .arg(root.join("status.json"))
         .arg("--result")
         .arg(result)
-        .arg("--workers")
-        .arg("2")
         .current_dir(runtime.join("tools"))
         .stdout(Stdio::from(log.try_clone()?))
         .stderr(Stdio::from(log));
@@ -539,7 +536,6 @@ pub fn prepare_install(
     let config = Configuration {
         storage_root: PathBuf::from(required_path(installation, "storageRoot")?),
         executable,
-        workers: 2,
     };
     atomic_json(&root.join("configuration.json"), &config)?;
     atomic_json(
