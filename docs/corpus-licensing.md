@@ -7,9 +7,11 @@ The 2026-10-04 [acquisition and delivery plan](quest-navigation-acquisition.md)
 recommends a supported installer that assembles the full available quest corpus
 and navigation locally from separately obtained provider and current client
 inputs. That delivery path does not need to wait for clarification of public
-corpus redistribution. It still needs the concrete assembly work described in
-the plan; the existing data-bearing EXE is not that installer. This review's
-prebuilt-data publication boundary and historical evidence remain applicable.
+corpus redistribution. The supported local assembly installer was delivered in
+beta.16; [delivery evidence](quest-navigation-current-evidence.md) records its
+executed verification. The old data-bearing EXE is a different artifact. This
+review's prebuilt-data publication boundary and historical evidence remain
+applicable.
 
 ## What the sources say
 

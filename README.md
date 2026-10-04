@@ -14,11 +14,14 @@ and includes an optional setup wizard for your action bars, keybinds and layout.
 RikUI is in beta. Expect rough edges, and
 [report what you find](https://github.com/rik-wow/RikUI/issues).
 
-The beta ZIP holds the addon without the quest planner's quest and road
-datasets. Their public distribution is pending the
-[licensing review](docs/corpus-licensing.md), so the planner gives guidance
-only where that data is installed locally. No quest data has been removed from
-the project.
+Use [Windows setup](https://rikwow.com/install) for quest guidance and navigation.
+Setup obtains quest information from its publisher, reads your current Forever
+client and prepares the supported guide and routes on your computer. Its tools
+are included. It checks current compatibility, preserves settings and backups,
+and registers daily update checks.
+
+The manual addon ZIP contains the interface. Use Windows setup to prepare the
+quest guide and navigation; an installed QuestieDB ZIP does not replace setup.
 
 1. Download the installable RikUI ZIP from the
    [releases page](https://github.com/rik-wow/RikUI/releases). It is marked as
@@ -40,11 +43,15 @@ What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
 ### Native Windows installer
 
-The [Rust installer](installer/README.md) uses native Windows controls and can
-carry RikUI, the quest corpus and road data in one executable. It is not part
-of the beta release: you can build it locally, and a public download waits for
-the [licensing review](docs/corpus-licensing.md) of the generated data.
-Existing data is preserved.
+Download the public Windows installer from [rikwow.com/install](https://rikwow.com/install).
+Choose your current Forever game and **Prepare and install**. Setup displays
+progress, supports pause and resume, verifies the prepared files, and retains a
+backup before installation. The [installation guide](docs/player/installation.md)
+explains requirements, supported regions, updates and recovery.
+
+The public executable includes the interface, preparation tools and notices.
+Quest information and navigation are prepared locally. See the
+[installer documentation](installer/README.md) for packaging details.
 
 ## First login
 
@@ -244,9 +251,9 @@ are put back to RikUI's values when it closes.
 The quest planner doesn't have complete data for every quest, floor or route.
 It shows when data is missing. The generated quest corpus and road networks
 aren't in the RikUI ZIP (they're built locally from QuestieDB and client
-files); their installers write them into `RikUI/generated/`, which the addon
-picks up on the next full restart, plus about sixteen `RikUIQuestRoads_W*_P*`
-folders that hold the mesh patches and load on demand. See the
+files). Setup installs the quest guide under `RikUI/generated/` and supported
+navigation in separate `RikUIQuestRoads_W*_P*` addon folders, loaded only when
+needed. Restart the game fully after installation. See the
 [quest planner notes](docs/questplanner.md) and [corpus notes](docs/forever-corpus.md)
 for coverage details.
 
