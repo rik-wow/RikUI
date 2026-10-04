@@ -7,3 +7,92 @@ tools/site-renders/*.patch -whitespace
 tools/site-renders/worlds/*.jpg -text
 tools/site-renders/worlds/*.webp -text
 
+# Preserve the exact authored runtime bytes across Windows release checkouts.
+# Cache provenance binds producing tools by SHA-256, including line endings.
+tools/build_installer_bundle.py text eol=lf
+tests/check_manifest.py -text whitespace=cr-at-eol
+tools/client_db2.cjs text eol=lf
+tools/client_m2_probe.cjs text eol=lf
+tools/current_refresh.py text eol=lf
+tools/export_forever.lua text eol=lf
+tools/export_forever.py text eol=lf
+tools/forever_inputs.py text eol=lf
+tools/local_assembly.py text eol=lf
+tools/package_addon.py text eol=crlf
+tools/quest_corpus.py text eol=lf
+tools/source_archive.py text eol=lf
+tools/terrain/acquire.py text eol=lf
+tools/terrain/acquire_map.py text eol=lf
+tools/terrain/acquire_tex0.py text eol=lf
+tools/terrain/acquire_west.py text eol=lf
+tools/terrain/azerothcore_travel.py text eol=lf
+tools/terrain/bake.mjs text eol=lf
+tools/terrain/bake_tile.mjs text eol=lf
+tools/terrain/bake_world_batch.mjs text eol=crlf
+tools/terrain/benchmark_backbone.py text eol=lf
+tools/terrain/bounded_tiled.mjs text eol=lf
+tools/terrain/client_build.py text eol=lf
+tools/terrain/collision_probe.py text eol=lf
+tools/terrain/compile_backbone.py text eol=lf
+tools/terrain/compile_quest_terrain.py text eol=lf
+tools/terrain/compile_terrain_regions.py text eol=lf
+tools/terrain/coverage_contract.py text eol=lf
+tools/terrain/current_acquisition.py text eol=lf
+tools/terrain/elevator_shafts.py text eol=lf
+tools/terrain/height_contract.py text eol=lf
+tools/terrain/inspect_stages.mjs text eol=lf
+tools/terrain/install_backbone.py text eol=lf
+tools/terrain/install_roads.py text eol=lf
+tools/terrain/install_world.py text eol=lf
+tools/terrain/m2_physics_extent.py text eol=lf
+tools/terrain/map_coverage_contract.py text eol=lf
+tools/terrain/map_profile.py text eol=lf
+tools/terrain/merge_geometry.py text eol=lf
+tools/terrain/mesh_filter.mjs text eol=crlf
+tools/terrain/plot_proof.py text eol=lf
+tools/terrain/portable_bake.py text eol=lf
+tools/terrain/portable_map.py text eol=lf
+tools/terrain/portable_region.py text eol=lf
+tools/terrain/portable_west.py text eol=lf
+tools/terrain/quest_pockets.py text eol=lf
+tools/terrain/refresh_sources.py text eol=lf
+tools/terrain/region_contract.py text eol=lf
+tools/terrain/road_network.py text eol=lf whitespace=cr-at-eol
+tools/terrain/road_parallel.py text eol=lf whitespace=cr-at-eol
+tools/terrain/road_textures.py text eol=lf
+tools/terrain/road_travel.py text eol=crlf
+tools/terrain/stage_capture.mjs text eol=lf
+tools/terrain/stage_contract.mjs text eol=lf
+tools/terrain/stage_io.mjs text eol=lf
+tools/terrain/terrain_contract.py text eol=lf
+tools/terrain/terrain_partition.py text eol=lf
+tools/terrain/terrain_probe.py text eol=lf
+tools/terrain/terrain_region.py text eol=lf
+tools/terrain/travel_links.py text eol=crlf
+tools/terrain/verify_build.py text eol=lf
+tools/terrain/verify_region.py text eol=lf
+tools/terrain/verify_reproduction.py text eol=lf
+tools/terrain/verify_world_projection.py text eol=lf
+tools/terrain/west_profile.py text eol=lf
+tools/terrain/wmo_probe.py text eol=lf
+tools/terrain/world_bake.py text eol=crlf
+tools/terrain/world_bake_parallel.py text eol=lf
+tools/terrain/world_empty_placements.py text eol=lf
+tools/terrain/world_export.py text eol=lf
+tools/terrain/world_export_graph.py text eol=crlf
+tools/terrain/world_geometry.py text eol=crlf
+tools/terrain/world_liquid.py -text whitespace=cr-at-eol
+tools/terrain/world_placements.py text eol=lf
+tools/terrain/world_projection.py text eol=lf
+tools/terrain/world_source.py text eol=lf
+tools/terrain/world_stitch.py text eol=lf
+tools/terrain/world_tiled.mjs text eol=lf
+tools/update_quest_data.py text eol=lf
+tools/update_setup.py text eol=lf
+tools/verify_current_m2.py text eol=lf
+installer/src/gui.rs text eol=lf
+installer/src/gui/layout.rs text eol=lf
+installer/app.manifest text eol=lf
+tools/verify_installer_ui.py text eol=lf
+tools/installer_uia.ps1 text eol=lf
+

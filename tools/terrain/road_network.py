@@ -522,7 +522,7 @@ def quest_rects(path, expected, source_directory, policy=None):
 
 def road_parallel_workers():
     import os
-    return os.cpu_count() or 1
+    return min(4, os.cpu_count() or 1)
 
 
 def run_directories(paths):
@@ -532,7 +532,7 @@ def run_directories(paths):
         if (path / 'plan.json').is_file():
             runs.append(str(path))
         else:
-            runs.extend(str(child) for child in sorted(path.iterdir()) if (child / 'plan.json').is_file())
+            runs.extend(str(child) for child in sorted(path.iterdir()) if not child.name.startswith('retained-') and (child / 'plan.json').is_file())
     need(runs, 'no bake runs found')
     return runs
 
@@ -613,7 +613,7 @@ def main():
     p.add_argument('--output', required=True)
     p.add_argument('--semantic-quests', help='corpus audit/semantic-quests.json; enables quest patches')
     p.add_argument('--semantic-sha256')
-    p.add_argument('--workers', type=int, help='processes for loading and searching (default: all logical cores; 1 = serial)')
+    p.add_argument('--workers', type=int, help='processes for loading and searching (default: at most four cores; 1 = serial)')
     p.add_argument('--patch-spawn-radius', type=float)
     p.add_argument('--patch-margin', type=float)
     p.add_argument('--patch-max-half', type=float)
@@ -630,7 +630,8 @@ def main():
     for name, attr in (('patch_spawn_radius', 'SPAWN_RADIUS'), ('patch_margin', 'CLUSTER_MARGIN'), ('patch_max_half', 'MAX_HALF')):
         if getattr(args, name) is not None:
             setattr(quest_pockets, attr, getattr(args, name))
-    workers = args.workers or road_parallel_workers()
+    workers = args.workers if args.workers is not None else road_parallel_workers()
+    need(1 <= workers <= 4, 'workers must be between 1 and 4')
     policy = dict(spawnRadius=quest_pockets.SPAWN_RADIUS, clusterMargin=quest_pockets.CLUSTER_MARGIN, maxHalf=quest_pockets.MAX_HALF)
     files, report = {}, dict(format='rikui-road-network-receipt-v1', inputSHA256=args.expected_sha256,
                              semanticSHA256=args.semantic_sha256, patchPolicy=policy,
@@ -667,4 +668,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main()

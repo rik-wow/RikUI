@@ -24,7 +24,7 @@ CELLS_PER_BATCH = 4    # a 512-yard bake batch spans four 128-yard cells
 
 
 def default_workers():
-    return os.cpu_count() or 1
+    return min(4, os.cpu_count() or 1)
 
 
 def log(label, started):
@@ -76,6 +76,35 @@ def _compact(args):
     return len(rows)
 
 
+def raster_inventory(directory):
+    root = pathlib.Path(directory).resolve()
+    need(root.is_dir(), 'road raster directory')
+    rows = []
+    for path in sorted(root.iterdir()):
+        need(not path.is_symlink() and not (hasattr(path, 'is_junction') and path.is_junction()), 'linked road raster')
+        if path.suffix == '.npy' or path.name == 'road-audit.json':
+            need(path.is_file() and path.stat().st_size <= 16 * 1024 * 1024, 'road raster bound')
+            rows.append(dict(path=path.name, sha256=sha(path.read_bytes())))
+    need(0 < len(rows) <= 16385, 'road raster inventory bound')
+    return rows
+
+
+def verify_cache(cache, expected, namespaces):
+    try:
+        doc = json.loads((cache / 'complete.json').read_bytes())
+        need(doc['inputSHA256'] == expected, 'compact input')
+        need(set(doc['counts']) == {'%d_%d_%d' % ns for ns in namespaces}, 'compact namespace inventory')
+        files = doc['files']
+        need(set(files) == {'w%d_%d_%d.pkl' % ns for ns in namespaces}, 'compact file inventory')
+        for name, digest in files.items():
+            path = cache / name
+            need(not path.is_symlink() and not (hasattr(path, 'is_junction') and path.is_junction()), 'linked compact cache')
+            need(sha(path.read_bytes()) == digest, 'compact cache bytes changed')
+        return True
+    except (ValueError, OSError, KeyError, TypeError):
+        return False
+
+
 def prepare(input_path, expected, road_dir, cache_root, pool):
     """Validate and cache every batch once per input. Returns world -> {(bx, bz): cache file}, sources, polygon totals."""
     raw = graph.read(input_path, expected, 8 * 1024 * 1024)
@@ -85,6 +114,7 @@ def prepare(input_path, expected, road_dir, cache_root, pool):
     # Rebuild them when their producing code or raster source changes.
     import world_bake
     model = dict(bake=world_bake.hashes(), roadDirectory=str(pathlib.Path(road_dir).resolve()),
+                 rasters=raster_inventory(road_dir),
                  compilers={name: sha(pathlib.Path(__file__).with_name(name).read_bytes())
                             for name in ('road_parallel.py', 'road_network.py', 'road_textures.py')})
     cache = pathlib.Path(cache_root) / ('input-' + expected[:16] + '-model-' + sha(canonical(model))[:16])
@@ -96,17 +126,24 @@ def prepare(input_path, expected, road_dir, cache_root, pool):
         by_ns[ns] = record
     done = cache / 'complete.json'
     started = time.monotonic()
-    if not done.is_file():
-        cache.mkdir(parents=True, exist_ok=True)
-        tasks = [(record, [by_ns[n] for n in ((w, x + 1, z), (w, x, z + 1)) if n in by_ns])
-                 for (w, x, z), record in sorted(by_ns.items())]
-        links, generation = {}, None
-        for current, pairs in pool.map(_validate, tasks, chunksize=2):
-            need(generation in (None, current), 'mixed decoder/source/index generations')
-            generation = current
-            links.update(pairs)
-        import world_bake
-        need(json.loads(generation[0]) == world_bake.hashes(), 'bake tools changed; regenerate affected batches')
+    tasks = [(record, [by_ns[n] for n in ((w, x + 1, z), (w, x, z + 1)) if n in by_ns])
+             for (w, x, z), record in sorted(by_ns.items())]
+    links, generation = {}, None
+    for current, pairs in pool.map(_validate, tasks, chunksize=2):
+        need(generation in (None, current), 'mixed decoder/source/index generations')
+        generation = current
+        links.update(pairs)
+    import world_bake
+    need(json.loads(generation[0]) == world_bake.hashes(), 'bake tools changed; regenerate affected batches')
+
+    # Recheck admitted source bytes even when compact results are unchanged.
+    reusable = verify_cache(cache, expected, by_ns)
+    if cache.exists() and not reusable:
+        parent = cache.parent.resolve()
+        need(cache.resolve().parent == parent, 'cache retention boundary')
+        cache.rename(parent / (cache.name + '-retained-' + str(time.time_ns())))
+    if not reusable:
+        cache.mkdir(parents=True, exist_ok=False)
         log('validate-and-seams', started); started = time.monotonic()
         owned = collections.defaultdict(dict)
         for k, v in links.items():
@@ -114,7 +151,10 @@ def prepare(input_path, expected, road_dir, cache_root, pool):
         present = set(by_ns)
         args = [(record, owned.get(ns, {}), present, road_dir, cache / ('w%d_%d_%d.pkl' % ns)) for ns, record in sorted(by_ns.items())]
         counts = dict(zip(['%d_%d_%d' % ns for ns in sorted(by_ns)], pool.map(_compact, args, chunksize=2)))
-        done.write_text(json.dumps(dict(inputSHA256=expected, roadRasters=str(road_dir), counts=counts)))
+        files = {('w%d_%d_%d.pkl' % ns): sha((cache / ('w%d_%d_%d.pkl' % ns)).read_bytes()) for ns in by_ns}
+        temporary = cache / 'complete.next'
+        temporary.write_text(json.dumps(dict(inputSHA256=expected, model=model, counts=counts, files=files)))
+        temporary.replace(done)
         log('compact-cache', started)
     else:
         log('cache-reused', started)
@@ -257,4 +297,4 @@ def patches(batches, infos, rects, pool):
     result, chosen, kept = {}, 0, 0
     for out, c, k in pool.map(_patches, tasks):
         result.update(out); chosen += c; kept += k
-    return result, chosen, kept
+    return result, chosen, kept

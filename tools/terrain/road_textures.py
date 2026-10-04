@@ -200,29 +200,32 @@ def main():
     output = pathlib.Path(args.output)
     output.mkdir(parents=True, exist_ok=False)
     usage, ids = {}, set()
-    datas = []
     for row in manifest['files']:
         data = (root / row['path']).read_bytes()
         if sha(data) != row['sha256']:
             fail('tex0-hash:' + row['path'])
-        datas.append((row, data))
         for ident in tile_texture_ids(data):
             ids.add(ident); usage[ident] = usage.get(ident, 0) + 1
     names = load_listfile(args.listfile, ids)
     road_ids = {i for i in ids if is_road(names.get(i))}
     covered = 0
-    for row, data in datas:
+    raster_files=[]
+    for row in manifest['files']:
+        data=(root / row['path']).read_bytes()
+        if sha(data)!=row['sha256']:fail('tex0-changed:'+row['path'])
         raster = tile_raster(data, road_ids)
-        np.save(output / ('w%d_%d_%d.npy' % (row['worldMapID'], *row['tile'])), raster)
+        target=output / ('w%d_%d_%d.npy' % (row['worldMapID'], *row['tile']))
+        np.save(target, raster)
+        raster_files.append(dict(path=target.name,bytes=target.stat().st_size,sha256=sha(target.read_bytes())))
         covered += int((raster >= 128).sum())
     audit = dict(format='rikui-road-texture-audit-v1', tex0ManifestSHA256=args.manifest_sha256,
                  listfileSHA256=args.listfile_sha256, parserSHA256=sha(pathlib.Path(__file__).read_bytes()),
                  pattern=ROAD_NAME.pattern, extra=sorted(ROAD_EXTRA), exclude=sorted(ROAD_EXCLUDE),
                  textures=sorted(([i, names.get(i), usage[i], i in road_ids] for i in ids), key=lambda r: -r[2]),
-                 roadTextures=len(road_ids), tiles=len(datas), roadCellsAtHalf=covered,
-                 cellYards=TILE / CELLS, nativeVerified=False)
+                 roadTextures=len(road_ids), tiles=len(manifest['files']), roadCellsAtHalf=covered,
+                 files=raster_files,cellYards=TILE / CELLS, nativeVerified=False)
     (output / 'road-audit.json').write_text(json.dumps(audit, indent=1), encoding='utf-8')
-    print(json.dumps(dict(output=str(output), tiles=len(datas), roadTextures=len(road_ids), roadCellsAtHalf=covered,
+    print(json.dumps(dict(output=str(output), tiles=len(manifest['files']), roadTextures=len(road_ids), roadCellsAtHalf=covered,
                           auditSHA256=sha((output / 'road-audit.json').read_bytes()))))
 
 

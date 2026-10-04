@@ -6,15 +6,7 @@ import argparse, csv, hashlib, json, math, pathlib, struct
 import terrain_probe as terrain
 import world_projection as projection
 
-from client_build import IDENTITY
-WDT_PINS = {
- 0:(775971,'160452dec4c2b0ae4cbe7468ce52fee91ac7ec521d2cb0f28e955def0d087137'),
- 1:(782779,'1120509b2ac42a94310bf05f915b5e67ed233be854089a3545829e064b614b44'),
- 30:(790112,'e4ee7f629954da6ea89d2b78e2d2f28fb973991570b1935c6122f8d0b492985a'),
- 489:(790291,'2f3c9ca85d43a7149016d15dd3d34e1d454b65a287125ba35bdb3a764b20fb29'),
- 529:(790377,'21543ccd8fb674d8f7cd791a41cc59d618e662321503bbc81c300c76de526b28'),
- 2991:(7198644,'f3710569f77e4d9bc96667e8acf2602321f1633d03d8febf62db5e56ab4aa29c'),
- 2997:(7251908,'e495780b448bf98f3fd1cf7aee16c24c990d2760d0e4e65f8c310bf4bde005a0')}
+from client_build import IDENTITY, WDT_PINS, require_current
 CELL=.25
 HEIGHT_CELL=.1
 RECAST_TILE=64
@@ -53,6 +45,9 @@ class Source:
  def __init__(self,profile,expected_sha,source_directory,tile_csv,topology_inventory):
   self.profile_path=pathlib.Path(profile).resolve();self.profile_sha=expected_sha
   doc=json.loads(pinned(self.profile_path,expected_sha,32*1024*1024))
+  receipt=require_current()
+  self.m2_proof_sha=receipt['m2Proof']['sha256']
+  need(expected_sha==receipt['profileSHA256'],'profile differs from current acquisition')
   need(doc.get('format')=='rikui-forever-world-acquisition-profile-v1' and doc.get('identity')==IDENTITY,'profile identity')
   rows=doc.get('files');need(type(rows) is list and 0<len(rows)<=32768,'profile file count')
   self.files={};self.used={}
@@ -74,7 +69,7 @@ class Source:
     asset=self.files.get(entry[kind]);need(asset is not None and asset['kind']==kind,'tile asset missing/wrong kind')
     need(asset.get('tile')==[x,y] and world in asset.get('worldMapIDs',[]),'tile asset namespace mismatch')
    self.tiles[key]=entry
-  need(len(self.tiles)==1888,'tile worklist count')
+  need(0<len(self.tiles)<=16384 and len(self.tiles)==receipt['tiles'],'current tile worklist count')
   self.catalog=projection.Catalog(source_directory)
   topo=json.loads(regular(topology_inventory).read_bytes()).get('topologyEvidence',[])
   self.wdts={}
@@ -122,7 +117,7 @@ class Source:
   return dict(format='rikui-world-bake-job-v1',id=world_key(world,bx,bz),worldMapID=world,batchGrid=[bx,bz],
    ownedXZ=owned,bakeXZ=bake,inputXZ=halo,tiles=tiles,projectionAssignments=assignments,
    lattice=dict(origin=[0,0,0],cell=CELL,heightCell=HEIGHT_CELL,recastTileSize=RECAST_TILE,batchTiles=BATCH_TILES,border=BORDER),
-   source=dict(profilePath=str(self.profile_path),profileSHA256=self.profile_sha,tileWorklistSHA256=projection.TILE_WORKLIST_SHA256,wdt=self.wdts[world],projectionSources=projection.SOURCE_HASHES),
+   source=dict(profilePath=str(self.profile_path),profileSHA256=self.profile_sha,m2ProofSHA256=self.m2_proof_sha,tileWorklistSHA256=projection.TILE_WORKLIST_SHA256,wdt=self.wdts[world],projectionSources=projection.SOURCE_HASHES),
    nativeVerified=False)
 
 def main():

@@ -16,6 +16,10 @@ local client = dofile('emulator/client.lua')
 local emulator = dofile('emulator/metadata.lua')
 local l10n = dofile('generator/l10n.lua')
 local flavor = assert(config.flavorByName.Forever)
+-- Only the Python wrapper sets this after validating publisher identity and every byte.
+if arg[3] == 'verified-publisher-snapshot' then
+  lib.gitCommit = function() return expectedCommit end
+end
 local revision = lib.gitCommit()
 assert(revision == expectedCommit, 'QuestieDB HEAD does not match expected revision: ' .. revision)
 l10n.assertInputs(config.paths.l10n, { flavor })

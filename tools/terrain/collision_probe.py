@@ -12,6 +12,17 @@ WORLD_PROFILES_SHA='8e96673c2d0474423911f112bbc0ab1bc818d50e4f48670f34743ac8382b
 
 @lru_cache(maxsize=1)
 def profiles274():
+    from client_build import RECEIPT as CURRENT
+    if CURRENT:
+        record=CURRENT.get('m2Proof')
+        if not record:t.fail('current-M2-proof-required')
+        raw=pathlib.Path(record['path']).read_bytes()
+        if t.digest(raw)!=record['sha256']:t.fail('current-M2-proof-changed')
+        profile=json.loads(raw)
+        if (profile.get('format')!='rikui-current-m2-proof-v1'
+                or profile.get('sourceProfileSHA256')!=CURRENT['profileSHA256']):
+            t.fail('current-M2-proof-identity')
+        return {row['sha256']:row for row in profile['records']}
     profile=json.loads((pathlib.Path(__file__).parent/'m2-274-world-profiles.json').read_bytes())
     if t.digest(json.dumps(profile,sort_keys=True,separators=(',',':')).encode())!=WORLD_PROFILES_SHA:
         t.fail('M2-world-profiles-pin')
@@ -30,7 +41,7 @@ def physics_gap(model,placement):
     return dict(kind='m2',fileDataID=placement['reference'],uniqueID=placement['uniqueID'],
         reason='extra-physics-chunks',chunks=extra)
 
-def m2(data):
+def m2(data,validate_profile=True):
     at=0;payload=None;tags=[]
     while at<len(data):
         if len(data)-at<8:t.fail('m2-truncated-header')
@@ -44,8 +55,14 @@ def m2(data):
         at=end
     if payload is None or len(payload)<240 or payload[:4]!=b'MD20':t.fail('M2-format')
     version,=struct.unpack_from('<I',payload,4)
-    profile=profiles274().get(t.digest(data)) if version==274 else None
-    if version!=272 and profile is None:t.fail('unsupported-M2-version')
+    profile=profiles274().get(t.digest(data)) if version==274 and validate_profile else None
+    # Current reader's v274 empty layout is structurally bounded, rather than
+    # tied to a historical decorative asset. Unknown chunks/physics stay closed.
+    empty274=(version==274 and set(tags)<={'MD21','TXAC','LDV1','SFID','TXID'}
+        and len(tags)==len(set(tags))
+        and struct.unpack_from('<6I',payload,216)==(0,0,0,0,0,0)
+        and struct.unpack_from('<7f',payload,188)==(1e7,1e7,1e7,-1e7,-1e7,-1e7,0))
+    if version not in (272,274) or (version==274 and validate_profile and profile is None and not empty274):t.fail('unsupported-M2-version')
     count,offset,nverts,vertOffset,nnormals,normalOffset=struct.unpack_from('<6I',payload,216)
     if count%3 or count>300000 or nverts>65536 or nnormals>100000:t.fail('M2-collision-count')
     if ((count and offset<240) or (nverts and vertOffset<240) or (nnormals and normalOffset<240) or
@@ -60,9 +77,11 @@ def m2(data):
         t.fail('M2-demonstrated-profile-mismatch')
     import m2_physics_extent
     result=dict(version=version,positions=coords,indices=indices,normals=normals,chunks=tags,physicsExtent=m2_physics_extent.extent(data))
+    if empty274 and profile is None:
+        result['profile']='bounded-v274-empty-static-collision'
     if profile:
         result['referenceProfile']=dict(fileDataID=profile['fileDataID'],sha256=profile['sha256'],
-            referenceCommit=t.PIN,nativeVerified=False)
+            reference='independent-collision-array-parity',nativeVerified=False)
         if profile['fileDataID']==314951:
             result['profile']='exact-314951-empty-collision-demonstrated-by-pinned-loader'
     return result

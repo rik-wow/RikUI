@@ -38,6 +38,23 @@ class M2Tests(unittest.TestCase):
         data=bytearray(fixture());struct.pack_into('<I',data,8+220,4)
         with self.assertRaisesRegex(ValueError,'M2-collision-overrun'):c.m2(data)
         with self.assertRaisesRegex(ValueError,'m2-chunk-overrun'):c.m2(fixture()[:-1])
+    def empty274(self,extras=b''):
+        data=bytearray(fixture(274,empty=True,extras=extras))
+        struct.pack_into('<7f',data,8+188,1e7,1e7,1e7,-1e7,-1e7,-1e7,0)
+        return bytes(data)
+    def test_structurally_empty_current_decoration(self):
+        model=c.m2(self.empty274(chunk('LDV1',bytes(16))))
+        self.assertEqual(model['positions'],[])
+        self.assertEqual(model['indices'],[])
+        self.assertEqual(model['profile'],'bounded-v274-empty-static-collision')
+    def test_empty_current_contract_rejects_unknown_physics_and_chunks(self):
+        for tag in (*c.EXTRA_PHYSICS,'NEW1','SKID'):
+            with self.subTest(tag=tag),self.assertRaisesRegex(ValueError,'unsupported-M2-version'):
+                c.m2(self.empty274(chunk(tag,bytes(4))))
+    def test_empty_contract_rejects_changed_sentinel_and_duplicate_chunks(self):
+        data=bytearray(self.empty274());struct.pack_into('<f',data,8+188,0)
+        with self.assertRaisesRegex(ValueError,'unsupported-M2-version'):c.m2(bytes(data))
+        with self.assertRaises(ValueError):c.m2(self.empty274(chunk('LDV1',bytes(4))+chunk('LDV1',bytes(4))))
     def test_known_profile_inventory(self):
         rows=c.profiles274();self.assertEqual(len(rows),132)
         self.assertEqual(sum(row['triangles']>0 for row in rows.values()),58)

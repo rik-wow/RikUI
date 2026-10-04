@@ -19,7 +19,23 @@ and the older single/two-tile procedures below remain historical regression prof
 
 These independently authored wrappers prepare a local exact-build terrain and collision datasource. They do not control the game, inspect process memory, modify the client, or assert that computed paths were walked. Generated assets and npm dependencies are written only to an explicit empty external directory, never beside the committed tool sources.
 
-## Reproduce on another machine
+## Current supported acquisition
+
+Use [Windows setup](../../installer/README.md) for ordinary installation. It bundles
+licensed dependencies and discovers the current Forever branch, full executable
+version, active product/configuration and schema/provider heads before dependent
+work. `current_acquisition.py` writes current receipt-bound topology, projections,
+quest membership, travel tables, textures and recursive collision dependencies.
+`world_bake.py` requires that receipt through `RIKUI_CURRENT_INPUTS`; historical
+profiles cannot admit new current work. Output names are owned generation keys,
+not a fixed old client build. Changed inputs rebuild affected products; all reused
+bytes and producing tools must verify. Generated data remains private and local.
+
+## Historical single-tile reproduction
+
+The procedures below retain review evidence and regression profiles for an older
+client. They are not supported acquisition instructions for the current client.
+Never run them as fallback after current discovery or compatibility fails.
 
 Requirements: Python 3.13+ and Node 24+ with npm, a local installation containing the exact build, and the pinned TACTTool 0.2.0-alpha1 Windows x64 binary. Acquire the release from https://github.com/wowdev/TACTSharp/releases/tag/0.2.0-alpha1 . The wrapper verifies its 15,205,803-byte binary against SHA256 `efbcf7c018310719328ca3cf101d366195a1d96d7fbc07871bdff70d88fe1945` before execution. Downloading or launching a different extractor is not automatic.
 

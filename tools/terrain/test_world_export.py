@@ -1,5 +1,6 @@
 """Exact export/gateway fixtures; optional replay and installed source audit."""
 import argparse,copy,json,math,pathlib,tempfile,unittest
+from unittest.mock import patch
 import world_export as export
 import world_export_graph as graph
 from world_source import canonical,sha
@@ -20,6 +21,8 @@ def row(i,first='W30_Xp0_Zp0',last='W30_Xp1_Zp0'):
  return dict(id=sha(str(i).encode()),worldMapID=30,fromNamespace=first,toNamespace=last,fromID=i+1,toID=i+2,fromKey='w30:r7:0:0:p0',toKey='w30:r8:0:0:p0',left=[512,0,0],right=[512,0,64],midpoint=[512,0,32],meters=64,authoredCenterCost=64,proofSHA256='a'*64)
 
 class Tests(unittest.TestCase):
+ def setUp(self):
+  fixture_hashes=patch.dict(graph.projection.SOURCE_HASHES,{'UiMapAssignment':'f'*64});fixture_hashes.start();self.addCleanup(fixture_hashes.stop)
  def test_required_gateway_without_region_crossing(self):
   adjacency={1:[(2,2,1)],2:[(3,3,2)],3:[],4:[]};owners={n:1 for n in adjacency}
   network,trees,used,boundary=graph.contract_gateways(adjacency,owners,{1,3,4})

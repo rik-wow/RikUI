@@ -54,7 +54,7 @@ class RefreshTests(unittest.TestCase):
                     mock.patch.object(export_forever, "source_manifest", return_value=[]), \
                     mock.patch.object(export_forever, "execute_export", side_effect=RuntimeError("backend failure")):
                 with self.assertRaisesRegex(RuntimeError, "backend failure"):
-                    export_forever.export_provider(provider, root / "data.json", Path(__file__), lua_command="lua5.1")
+                    export_forever.export_provider(provider, root / "data.json", Path(__file__), lua_command="lua5.1", revision="a"*40)
             self.assertEqual(Path.cwd(), before)
             self.assertFalse((root / "data.json").exists())
 

@@ -33,7 +33,8 @@ def records():
 
 
 def run(data, keep=None):
-    with mock.patch.object(liquid.t, 'chunks', return_value=[('MH2O', 0, len(data))]):
+    with mock.patch.object(liquid, 'SWIMMABLE', {1, 5, 1250, 1288, 1325}), \
+         mock.patch.object(liquid.t, 'chunks', return_value=[('MH2O', 0, len(data))]):
         return liquid.liquid(data, records(), [32, 32], keep)
 
 

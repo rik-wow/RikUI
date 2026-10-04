@@ -16,9 +16,7 @@ import shutil
 import subprocess
 import tempfile
 
-PIN = "365537a340473291f5af3b7a53a5eca94e2a5f1a"
-CLIENT_INDEX_SHA256 = "07353cb935ef0907a71c2e51f2aeed4d6460712d4011cb3873f759af5536df4a"
-IDENTITY = {"product": "forever", "build": "1.60.1.69913", "locale": "enUS"}
+IDENTITY = {"product": "forever", "build": None, "locale": "enUS"}
 KINDS = ("quests", "npcs", "items", "objects")
 PARTITION_SIZE = 128
 CELL_SIZE = .06
@@ -451,7 +449,7 @@ class Compiler:
         else:
             rate, source = wowhead, "wowhead"
         if finite(rate) and 0 <= rate <= 100:
-            return {"probability": rate / 100, "source": source, "revision": PIN, "authority": "reference"}
+            return {"probability": rate / 100, "source": source, "revision": self.data["provider"]["revision"], "authority": "reference"}
         return None
 
     def item_methods(self, item_id, trail=()):
@@ -627,12 +625,12 @@ class Compiler:
                 else:
                     self.unknown("extra-reference-kind", f"quest:{quest_id}:extra:{index}", reference)
             extras.append({"id": f"extra:{quest_id}:{index}", "type": "extra", "name": text, "text": text, "objectiveIndex": slot(extra, 4), "iconType": slot(extra, 2), "methods": methods})
-        quest = {"id": quest_id, "title": row.get("name", f"Quest {quest_id}"), "objectives": objectives, "extraObjectives": extras, "starts": self.relationships(quest_id, row, "starts"), "ends": self.relationships(quest_id, row, "ends"), "eligibility": {field: row[field] for field in ELIGIBILITY if field in row}, "prerequisites": {field: row[field] for field in PREREQUISITES if field in row}, "provenance": {"provider": "QuestieDB", "revision": PIN, "flavor": "Forever"}}
+        quest = {"id": quest_id, "title": row.get("name", f"Quest {quest_id}"), "objectives": objectives, "extraObjectives": extras, "starts": self.relationships(quest_id, row, "starts"), "ends": self.relationships(quest_id, row, "ends"), "eligibility": {field: row[field] for field in ELIGIBILITY if field in row}, "prerequisites": {field: row[field] for field in PREREQUISITES if field in row}, "provenance": {"provider": "QuestieDB", "revision": self.data["provider"]["revision"], "flavor": "Forever"}}
         quest["planning"] = planning_rules(row, self.entities)
         reward = self.support.get("QuestXP", {}).get("db", {}).get(str(quest_id))
         level, xp = slot(reward, 1), slot(reward, 2)
         if finite(level) and level > 0 and finite(xp) and xp >= 0:
-            quest["reward"] = {"baseXP": xp, "level": level, "source": "QuestieDB.Forever.QuestXP", "revision": PIN, "authority": "reference"}
+            quest["reward"] = {"baseXP": xp, "level": level, "source": "QuestieDB.Forever.QuestXP", "revision": self.data["provider"]["revision"], "authority": "reference"}
         if not objective_order_known:
             quest["objectiveOrderUnknown"] = "sparse-source-objectives"
         for field in ("zoneOrSort", "objectivesText", "reputationReward"):
@@ -828,7 +826,9 @@ def atomic_publish(stage, destination):
         shutil.rmtree(backup)
 
 
-def load_client_index(path, expected_sha=CLIENT_INDEX_SHA256):
+def load_client_index(path, expected_sha=None):
+    if expected_sha is None:
+        raise ValueError("Current client index digest required")
     raw = Path(path).read_bytes()
     if len(raw) > 64 * 1024 * 1024:
         raise ValueError("client index exceeds 64 MiB bound")
@@ -886,10 +886,7 @@ def verify_provider_manifest(path, data, raw):
     return metadata, proof_raw
 
 
-EVENT_PIN = "67c164d6e0aa4823ea26dad79a3ce54531b5b66c"
-
-
-def event_memberships(repo, revision=EVENT_PIN):
+def event_memberships(repo, revision):
     """Read only literal membership rows from the resolved consumer commit."""
     def git(*args):
         try:
@@ -899,14 +896,22 @@ def event_memberships(repo, revision=EVENT_PIN):
     prefix = "Database/Corrections/Holidays/quests"
     if not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("invalid holiday source revision")
-    files = sorted(git("ls-tree", "-r", "--name-only", revision, "--", prefix).splitlines())
+    snapshot = (Path(repo) / ".rikui-source.json").is_file()
+    if snapshot:
+        from source_archive import verify as verify_source
+        receipt = verify_source(repo, revision)
+        if receipt["repository"] != "Questie/Questie":
+            raise ValueError("Questie holiday publisher source required")
+        files = sorted(row["path"] for row in receipt["files"] if row["path"].startswith(prefix + "/") and row["path"].endswith(".lua"))
+    else:
+        files = sorted(git("ls-tree", "-r", "--name-only", revision, "--", prefix).splitlines())
     if not 1 <= len(files) <= 100 or any(not re.fullmatch(prefix + r"/[A-Za-z]+\.lua", file) for file in files):
         raise ValueError("pinned holiday source inventory differs from audited files")
     result = {}
     pattern = re.compile(r'^\s*tinsert\(eventQuests,\s*\{\s*"([^"]+)"\s*,\s*(\d+)(?=\s*[,}])')
     hashes = {}
     for file in files:
-        content = git("show", revision + ":" + file)
+        content = (Path(repo) / file).read_text(encoding="utf-8") if snapshot else git("show", revision + ":" + file)
         hashes[file] = sha(content.encode("utf-8"))
         for line_no, line in enumerate(content.splitlines(), 1):
             if not line.lstrip().startswith("tinsert(eventQuests"):
@@ -951,7 +956,7 @@ def corpus_revision(source_hash, compiler_hash, proof_hash, client_hash, identit
 
 
 def build(export_path, output, partition_size=PARTITION_SIZE, client_index=None, provider_manifest=None, event_source_root=None,
-          client_build=IDENTITY["build"], client_index_sha=CLIENT_INDEX_SHA256, event_revision=EVENT_PIN):
+          client_build=None, client_index_sha=None, event_revision=None):
     if not 16 <= partition_size <= 256:
         raise ValueError("partition size must be 16..256")
     data, raw = load_export(export_path)
@@ -1137,7 +1142,7 @@ def main(argv=None):
     make.add_argument("--client-build", help="Current client version resolved before acquisition")
     make.add_argument("--client-index-sha256", help="SHA-256 from the current QuestV2 acquisition")
     make.add_argument("--provider-manifest", type=Path)
-    make.add_argument("--event-revision", default=EVENT_PIN, help="Resolved Questie source revision")
+    make.add_argument("--event-revision", required=True, help="Resolved Questie source revision")
     make.add_argument("--event-source-root", required=True, type=Path, help="Questie checkout containing the pinned holiday membership commit")
     for name in ("verify", "install", "verify-installed"):
         command = sub.add_parser(name)
@@ -1168,5 +1173,4 @@ def main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
 

@@ -13,13 +13,8 @@ HEADER_BYTES = 3072          # 256 chunk headers of 12 bytes
 INSTANCE_BYTES = 24
 MAX_INSTANCES = 8
 SUBCELLS = 8                 # liquid grid cells per chunk side
-# LiquidType IDs by kind, pinned from the client's LiquidType table (SoundBank).
-KINDS = json.loads((pathlib.Path(__file__).resolve().parent / 'liquid-kinds-69913.json').read_text())['kinds']
-from client_build import BUILD
-# 70009 LiquidType CSV e3746a05...: ID 1344, Stormwind canals, SoundBank 0 (water).
-# Every prior ID retains its SoundBank classification.
-if BUILD == '1.60.1.70009':
-    KINDS['1344'] = 'water'
+# Liquid classifications are freshly acquired and hash-verified for the current client.
+from client_build import LIQUID_KINDS as KINDS
 SWIMMABLE = {int(i) for i, kind in KINDS.items() if kind in ('water', 'ocean')}
 HEIGHT_FORMATS = {0, 1, 3}   # liquid vertex formats that start with float heights
 HEIGHT_SLACK = 1.0           # yards a stored vertex height may sit outside the instance's min/max

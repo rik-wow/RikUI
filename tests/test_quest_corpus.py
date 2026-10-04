@@ -23,7 +23,7 @@ def rikui_folder(addons):
 
 def fixture():
     return {
-        "schemaVersion": 1, "provider": {"revision": corpus.PIN, "flavor": "Forever"},
+        "schemaVersion": 1, "provider": {"revision": "a"*40, "flavor": "Forever"},
         "maps": {"areaToMap": {"12": 1429, "40": 1436}, "areaMapOverride": {"718": 279}},
         "base": {
             "quests": {"1": {"name": "Collect samples", "zoneOrSort": 12,
@@ -79,13 +79,13 @@ class CorpusTests(unittest.TestCase):
         _, records = self.compile()
         variant = copy.deepcopy(records[1]["base"])
         records[1]["variants"]["Horde:MAGE"] = variant
-        events = {"revision": corpus.EVENT_PIN, "quests": {
+        events = {"revision": "b"*40, "quests": {
             1: {"key": "ExampleEvent", "source": "pinned.lua", "line": 7}}}
         self.assertEqual(corpus.apply_event_memberships(records, events), 1)
         for quest in (records[1]["base"], variant):
             self.assertEqual(quest["zoneOrSort"], 12)
             self.assertEqual(quest["planning"]["seasonalEvent"], "ExampleEvent")
-            self.assertEqual(quest["planning"]["seasonalProvenance"]["revision"], corpus.EVENT_PIN)
+            self.assertEqual(quest["planning"]["seasonalProvenance"]["revision"], "b"*40)
         inputs = ("source", "compiler", None, None, corpus.IDENTITY, 128)
         self.assertNotEqual(corpus.corpus_revision(*inputs, client_build="1.60.1.1"),
                             corpus.corpus_revision(*inputs, client_build="1.60.1.2"))
@@ -241,7 +241,7 @@ class CorpusTests(unittest.TestCase):
         classes = ("WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "SHAMAN", "MAGE", "WARLOCK", "DRUID")
         data["variants"] = [{"selector": {"faction": faction, "classFile": cls}} for faction in ("Alliance", "Horde") for cls in classes]
         raw = corpus.canonical(data).encode()
-        proof = {"schemaVersion": 1, "revision": corpus.PIN, "flavor": "Forever", "exportSha256": corpus.sha(raw), "exportBytes": len(raw), "personaCount": 18, "counts": {"Quest": 1, "Npc": 2, "Item": 1, "Object": 1}, "inputs": [{"path": f"source/{index}.lua", "sha256": "0" * 64} for index in range(147)]}
+        proof = {"schemaVersion": 1, "revision": "a"*40, "flavor": "Forever", "exportSha256": corpus.sha(raw), "exportBytes": len(raw), "personaCount": 18, "counts": {"Quest": 1, "Npc": 2, "Item": 1, "Object": 1}, "inputs": [{"path": f"source/{index}.lua", "sha256": "0" * 64} for index in range(147)]}
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "proof.json"
             path.write_text(corpus.canonical(proof), encoding="utf8")
@@ -350,7 +350,7 @@ class CorpusTests(unittest.TestCase):
             self.assertEqual(first, second)
             catalog = json.loads((output / "catalog.json").read_text(encoding="utf8"))
             self.assertEqual(catalog["revision"], first["corpusRevision"])
-            self.assertNotEqual(catalog["revision"], corpus.PIN)
+            self.assertNotEqual(catalog["revision"], "a"*40)
             pages = sorted((output / "generated" / "corpus").glob("p*.lua"))
             lua_data = "\n".join(path.read_text(encoding="utf8") for path in pages)
             self.assertIn('Register(0,"' + first["corpusRevision"] + '"', lua_data)
@@ -432,5 +432,4 @@ class CorpusTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
 

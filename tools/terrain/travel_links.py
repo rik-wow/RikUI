@@ -260,7 +260,7 @@ def compile_links(taxi_nodes, taxi_paths, path_nodes, triggers, animation=(), se
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--tables', required=True, help='directory with <Table>-<build>.csv exports')
-    p.add_argument('--build', default='1.60.1.69913')
+    p.add_argument('--build', required=True)
     p.add_argument('--output', required=True)
     p.add_argument('--server', help='azerothcore_travel.py output: lift spawns and portal destinations')
     args = p.parse_args()

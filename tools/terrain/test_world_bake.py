@@ -3,7 +3,6 @@ import argparse,copy,json,pathlib,tempfile,unittest
 from unittest.mock import patch
 import terrain_probe,world_projection,world_source as s,world_stitch as stitch
 import world_geometry as geometry
-PROFILE_SHA='de8b30b38337373f951a4a1570dd720554cfd14aa2fb52b94f0aed966ab1abf8'
 def pair():
  source={'profileSHA256':'p','tileWorklistSHA256':'t','projectionSources':{}}
  gen={k:'h' for k in ('wrapperSHA256','boundedWrapperSHA256','filterSHA256')}
@@ -16,6 +15,26 @@ def pair():
  return a,b
 
 class Tests(unittest.TestCase):
+ def test_scheduler_progress_windows_sharing_retry_and_retention(self):
+  import world_bake_parallel as scheduler
+  with tempfile.TemporaryDirectory() as root:
+   path=pathlib.Path(root)/'generation-progress.json'
+   original=pathlib.Path.replace
+   attempts=[]
+   def busy_reader(source,destination):
+    attempts.append(1)
+    if len(attempts)<3:raise PermissionError('Windows reader sharing')
+    return original(source,destination)
+   with patch.object(pathlib.Path,'replace',busy_reader),patch.object(scheduler.time,'sleep'):
+    scheduler.atomic(path,dict(completed=1))
+   self.assertEqual(json.loads(path.read_bytes()),dict(completed=1))
+   self.assertEqual(len(attempts),3)
+   with patch.object(pathlib.Path,'replace',side_effect=PermissionError('reader')) as replace,patch.object(scheduler.time,'sleep'):
+    with self.assertRaises(PermissionError):scheduler.atomic(path,dict(completed=2))
+    self.assertEqual(replace.call_count,40)
+   self.assertEqual(json.loads(path.read_bytes()),dict(completed=1))
+   self.assertEqual(json.loads(path.with_name(path.name+'.next').read_bytes()),dict(completed=2))
+
  def test_full_index_footprint_survives_smaller_modf_bounds(self):
   placement=dict(kind='wmo',reference=7,uniqueID=8,scale=1024,flags=12,doodadSet=0)
   job=dict(worldMapID=30,batchGrid=[0,0],inputXZ=[0,0,10,10],ownedXZ=[0,0,10,10],tiles=[])
@@ -61,6 +80,7 @@ class Tests(unittest.TestCase):
    body=json.dumps(dict(kind='m2',uniqueID=uid,reference=uid*10))
    c=db.execute('INSERT INTO placements(world,kind,uid,body,bounds,reason) VALUES(0,?,?,?,?,?)',('m2',uid,body,json.dumps(box) if box else None,reason))
    if box:db.execute('INSERT INTO extents VALUES(?,?,?,?,?)',(c.lastrowid,box[0][0],box[1][0],box[0][2],box[1][2]))
+  self.addCleanup(db.close)
   index=object.__new__(wp.Index);index.db=db;return index
  def test_index_separates_unknown_footprints(self):
   import world_placements as wp
@@ -121,14 +141,14 @@ class Tests(unittest.TestCase):
    with self.assertRaisesRegex(ValueError,'source hash mismatch'):s.Source(path,'0'*64,root,path,path)
 
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('--actual-source-directory');p.add_argument('--profile');p.add_argument('--first-bake');p.add_argument('--second-bake');p.add_argument('--receipt');a,unknown=p.parse_known_args()
+ p=argparse.ArgumentParser();p.add_argument('--actual-source-directory');p.add_argument('--profile');p.add_argument('--expected-sha256');p.add_argument('--first-bake');p.add_argument('--second-bake');p.add_argument('--receipt');a,unknown=p.parse_known_args()
  result=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromTestCase(Tests));need=result.wasSuccessful()
  if not need:raise SystemExit(1)
  receipt={'unitTests':result.testsRun,'nativeVerified':False}
  if a.actual_source_directory:
-  r=pathlib.Path(a.actual_source_directory);path=pathlib.Path(a.profile);source=s.Source(path,PROFILE_SHA,r,r/'all-projected-world-tile-worklist.csv',r/'inventory.json');jobs=source.jobs()
-  assert len(source.tiles)==1888 and len(jobs)==2290 and len({j['id'] for j in jobs})==2290
-  assert set(j['worldMapID'] for j in jobs)==set(s.WDT_PINS)
+  r=pathlib.Path(a.actual_source_directory);path=pathlib.Path(a.profile);source=s.Source(path,a.expected_sha256,r,r/'all-projected-world-tile-worklist.csv',r/'inventory.json');jobs=source.jobs()
+  assert source.tiles and jobs and len({j['id'] for j in jobs})==len(jobs)
+  assert set(j['worldMapID'] for j in jobs)==set(source.wdts)
   assert all(len(j['tiles'])<=9 and j['bakeXZ']==s.expand(j['ownedXZ'],64) and j['inputXZ']==s.expand(j['bakeXZ'],1.25) for j in jobs)
   receipt['actualSource']={'tiles':len(source.tiles),'jobs':len(jobs),'maxInputADTs':max(len(j['tiles']) for j in jobs),'profileSHA256':source.profile_sha}
  if a.first_bake and a.second_bake:

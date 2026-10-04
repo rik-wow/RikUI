@@ -1,26 +1,78 @@
-"""Explicit build pins. Unknown build overrides fail instead of reusing old terrain."""
+"""Current navigation identity from verified acquisition; no historical defaults.
+
+RIKUI_CURRENT_INPUTS names the freshly acquired current-inputs.json receipt.
+Orchestration must re-resolve publisher/client metadata before each operation.
+Pure decoder fixtures may import without a receipt; source admission cannot.
+"""
+import hashlib
+import json
 import os
+from pathlib import Path
+import re
+import sys
 
-BUILD = os.environ.get("RIKUI_TERRAIN_BUILD", "1.60.1.69913")
-CONFIGS = {
-    "1.60.1.69913": ("6c0df97e8e481a9a41600e373367c200", "5525ea1ce6668e895569c89c2d6a154c"),
-    "1.60.1.70009": ("05215079e3905ef5922ae0b03ffefb73", "9b3c456dbb837d133a026d380c7c13e9"),
-}
-if BUILD not in CONFIGS:
-    raise ValueError("unsupported terrain build: " + BUILD)
-IDENTITY = dict(product="wow_classic_beta", edition="Forever", build=BUILD, locale="enUS",
-                buildConfig=CONFIGS[BUILD][0], cdnConfig=CONFIGS[BUILD][1])
-RUNTIME_IDENTITY = dict(product="forever", build=BUILD, locale="enUS")
-PROJECTION_HASHES = {
-    "1.60.1.69913": {
-        "Map": "fdd6a598e4263ce106371ccb0d2bd8eca6842c4580feabce1f8f8e9cbc27344c",
-        "UiMap": "4c5ede52826ef48808aa7c0cd9d63fb3d028df88de1b2041148b164bb42328b2",
-    },
-    "1.60.1.70009": {
-        "Map": "97f83110f7f040868bc804aa1dce14a4691d3b8007abd11f4b4f7746009b6e89",
-        "UiMap": "1f4aac70eaac015b1d2d0ea0faf6e3d7fb2cf7afdf45e5bb6772d9b80a72346b",
-    },
-}
-SOURCE_HASHES = dict(PROJECTION_HASHES[BUILD],
-    UiMapAssignment="79267e8be8034e47daab14350411b3acc0b1f64e86efc9d821a217497254ca0a")
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+import forever_inputs
 
+if os.environ.get("RIKUI_TERRAIN_BUILD"):
+    raise ValueError("Historical build override removed; acquire current inputs and set RIKUI_CURRENT_INPUTS")
+
+RECEIPT_PATH = os.environ.get("RIKUI_CURRENT_INPUTS")
+RECEIPT = {}
+IDENTITY = {}
+SOURCE_HASHES = {}
+WDT_PINS = {}
+TILE_WORKLIST_SHA256 = ""
+LIQUID_KINDS = {}
+
+
+def checked(path, expected):
+    path = forever_inputs.regular(path)
+    if not re.fullmatch("[0-9a-f]{64}", expected):
+        raise ValueError("Invalid current input digest")
+    if path.stat().st_size > 16*1024*1024:
+        raise ValueError("Current metadata byte bound")
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != expected:
+        raise ValueError("Current input hash mismatch: " + str(path))
+    return raw
+
+
+if RECEIPT_PATH:
+    raw = forever_inputs.read_metadata(RECEIPT_PATH)
+    RECEIPT = json.loads(raw)
+    if RECEIPT.get("format") != "rikui-current-navigation-inputs-v1":
+        raise ValueError("Unsupported current navigation receipt")
+    resolution = forever_inputs.validate_resolution(RECEIPT["resolution"])
+    IDENTITY = RECEIPT["identity"]
+    if IDENTITY != dict(resolution["inputs"]["identity"],locale="enUS"):
+        raise ValueError("Navigation identity differs from current resolution")
+    directory = Path(RECEIPT["sourceDirectory"])
+    for name in ("Map","UiMap","UiMapAssignment","LiquidType","QuestV2"):
+        digest = RECEIPT["sourceHashes"][name]
+        checked(directory/(name+"-"+IDENTITY["build"]+".csv"),digest)
+        SOURCE_HASHES[name] = digest
+    TILE_WORKLIST_SHA256 = RECEIPT["tileWorklistSHA256"]
+    checked(directory/"all-projected-world-tile-worklist.csv",TILE_WORKLIST_SHA256)
+    LIQUID_KINDS = json.loads(checked(directory/"liquid-kinds.json",RECEIPT["liquidKindsSHA256"]))["kinds"]
+    if not LIQUID_KINDS or any(not str(key).isdigit() or value not in ("water","ocean","magma","slime","unknown")
+                               for key,value in LIQUID_KINDS.items()):
+        raise ValueError("Unsupported current liquid classification")
+    proof=RECEIPT["m2Proof"]
+    document=json.loads(checked(proof["path"],proof["sha256"]))
+    if (document.get("format")!="rikui-current-m2-proof-v1"
+            or document.get("sourceProfileSHA256")!=RECEIPT["profileSHA256"]
+            or not isinstance(document.get("records"),list) or not 0<len(document["records"])<=32768):
+        raise ValueError("Current model proof identity/inventory")
+    WDT_PINS = {int(world):(int(value[0]),value[1]) for world,value in RECEIPT["topology"].items()}
+    if not WDT_PINS or len(WDT_PINS)>256:
+        raise ValueError("Unsupported current topology inventory")
+
+BUILD = IDENTITY.get("build","")
+RUNTIME_IDENTITY = dict(product="forever",build=BUILD,locale="enUS") if IDENTITY else {}
+
+
+def require_current():
+    if not RECEIPT:
+        raise ValueError("Current acquisition receipt required: set RIKUI_CURRENT_INPUTS")
+    return RECEIPT

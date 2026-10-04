@@ -21,7 +21,6 @@ import subprocess
 import tempfile
 from typing import Any
 
-SUPPORTED_REVISION = "365537a340473291f5af3b7a53a5eca94e2a5f1a"
 LUPA_VERSION = "2.8"
 EXPECTED_COUNTS = {"Quest": 4257, "Npc": 10122, "Item": 14899, "Object": 6666}
 
@@ -36,7 +35,12 @@ def git(root: Path, *args: str) -> str:
                           capture_output=True, text=True).stdout.strip()
 
 
-def verify_checkout(root: Path, revision: str = SUPPORTED_REVISION) -> None:
+def verify_checkout(root: Path, revision: str) -> None:
+    if (root / ".rikui-source.json").is_file():
+        from source_archive import verify
+        if verify(root, revision)["repository"] != "Questie/QuestieDB":
+            raise ValueError("QuestieDB publisher source required")
+        return
     if not re.fullmatch(r"[0-9a-f]{40}", revision) or git(root, "rev-parse", "HEAD") != revision:
         raise ValueError("QuestieDB revision differs from the resolved source revision")
     if git(root, "status", "--porcelain=v1", "--untracked-files=no"):
@@ -45,7 +49,11 @@ def verify_checkout(root: Path, revision: str = SUPPORTED_REVISION) -> None:
 
 def source_manifest(root: Path) -> list[dict[str, Any]]:
     """Hash the complete Forever input family and the runtime/exporter machinery."""
-    paths = git(root, "ls-files", "-z").split("\0")
+    if (root / ".rikui-source.json").is_file():
+        from source_archive import inventory
+        paths = [row["path"] for row in inventory(root)]
+    else:
+        paths = git(root, "ls-files", "-z").split("\0")
     rows = []
     for relative in sorted(filter(None, paths)):
         role = None
@@ -102,15 +110,16 @@ def replace_bytes(path: Path, data: bytes) -> None:
 
 
 def execute_export(root, exporter, candidate, revision, lua_command=None):
+    snapshot = "verified-publisher-snapshot" if (root / ".rikui-source.json").is_file() else "git-checkout"
     if lua_command:
         subprocess.run([lua_command, "-e", "assert(_VERSION == 'Lua 5.1')"], check=True)
-        subprocess.run([lua_command, str(exporter), str(candidate), revision], cwd=root, check=True)
+        subprocess.run([lua_command, str(exporter), str(candidate), revision, snapshot], cwd=root, check=True)
         return
     if importlib.metadata.version("lupa") != LUPA_VERSION:
         raise RuntimeError(f"Reproducible export requires lupa=={LUPA_VERSION}")
     from lupa.lua51 import LuaRuntime
     lua = LuaRuntime()
-    lua.globals().arg = lua.table_from({0: str(exporter), 1: str(candidate), 2: revision})
+    lua.globals().arg = lua.table_from({0: str(exporter), 1: str(candidate), 2: revision, 3: snapshot})
     initial_cwd = Path.cwd()
     os.chdir(root)
     try:
@@ -120,7 +129,7 @@ def execute_export(root, exporter, candidate, revision, lua_command=None):
 
 
 def export_provider(source_root: Path, output: Path, lua_exporter: Path,
-                    manifest_path: Path | None = None, reuse: bool = False, revision: str = SUPPORTED_REVISION,
+                    manifest_path: Path | None = None, reuse: bool = False, revision: str | None = None,
                     lua_command: str | None = None) -> dict[str, Any]:
     root, output, lua_exporter = source_root.resolve(), output.resolve(), lua_exporter.resolve()
     manifest_path = (manifest_path or output.with_suffix(".manifest.json")).resolve()
@@ -131,6 +140,8 @@ def export_provider(source_root: Path, output: Path, lua_exporter: Path,
     # Protect the pinned provider from accidental output selection.
     if output.is_relative_to(root) or manifest_path.is_relative_to(root):
         raise ValueError("Export and manifest must be outside the provider checkout")
+    if revision is None:
+        raise ValueError("A freshly resolved provider revision is required")
     verify_checkout(root, revision)
     inputs = source_manifest(root)
     header = {"schemaVersion": 1, "repository": "https://github.com/Questie/QuestieDB",
@@ -187,7 +198,7 @@ def main() -> None:
     parser.add_argument("--lua-exporter", type=Path, default=Path(__file__).with_suffix(".lua"))
     parser.add_argument("--reuse", action="store_true")
     parser.add_argument("--lua-command", help="Stock Lua 5.1 executable; otherwise use lupa.lua51")
-    parser.add_argument("--revision", default=SUPPORTED_REVISION, help="Resolved provider HEAD for this acquisition")
+    parser.add_argument("--revision", required=True, help="Resolved provider HEAD for this acquisition")
     options = parser.parse_args()
     result = export_provider(options.source_root, options.output, options.lua_exporter,
                              options.manifest, options.reuse, options.revision, options.lua_command)
@@ -197,5 +208,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
