@@ -428,9 +428,9 @@
       "slug": "installation",
       "file": "docs/player/installation.md",
       "title": "Install RikUI",
-      "sourceSha256": "adfff77da4df80685dcceb4a6e44f0e5f88acdbaaf94f9e6ff41bd128b77260a",
-      "buildSha256": "cac9c02865e7c638af1d59d2599d1a273450e08209137944e0d16e87c08191ca",
-      "htmlSha256": "f644fe212893eaac92cb7989f8078dbc3981a4dbb52472d418f9f4804c764aaf"
+      "sourceSha256": "24cbc13d26584a0d439a439175b497dad50fac2b65b7e6d1eefe71773b67a499",
+      "buildSha256": "9f7cf50b68f5f8d13b4678d823276e6f9c19ad11afe7e76908b1bc993475e46c",
+      "htmlSha256": "944a1bb4dd4ce11ec793231869d0b4ff54c326e228dae14fa2bf10925b3656b8"
     },
     {
       "slug": "overview",

@@ -9,7 +9,7 @@ Quest guidance currently requires **English game text (enUS)**. Set Forever's ga
 1. Download **RikUI-Setup.exe** from the [installation page](/install). Open it and let it find your current Forever game. Use **Browse** if needed.
 2. Allow **16 GiB free** for first preparation. Setup keeps temporary files compact to reduce disk use. Previous generations and backups use additional space. **Preparation folder** lets you choose another drive; setup checks space before starting and while working.
 3. Choose **Prepare and install**. Setup downloads quest and holiday information from Questie, reads your current game files, and prepares supported routes on your computer. Its tools are included: you do not need Git, Python, Node or a database.
-4. Follow the phase and measured progress. This can take substantial time. **Pause setup** retains work; reopen setup and choose **Resume setup** to continue. Incomplete work is never installed as a complete guide.
+4. Follow setup’s progress. First preparation can take an hour or more. **Pause setup** retains work; reopen setup and choose **Resume setup** to continue. Incomplete work is never installed as a complete guide.
 5. Close WoW when prompted. Setup checks the prepared files, installs them and keeps a backup. Restart WoW fully and enable RikUI in the AddOns list.
 
 Setup downloads the quest information it needs automatically. You do not need to install QuestieDB first. Quest information and map data are prepared and kept on your computer.
@@ -18,7 +18,7 @@ Setup downloads the quest information it needs automatically. You do not need to
 
 ## Preparation cost and current coverage
 
-First setup downloads quest information, reads your game files and prepares walkable routes. This can take substantial time. Setup adjusts its workload to your computer and shows elapsed time as it works. Updates can reuse completed work after checking it. Pause setup whenever you need to; completed work is kept for the next run.
+First preparation can take an hour or more. Setup downloads quest information, reads your game files and prepares walkable routes. Setup adjusts its workload to your computer and shows elapsed time as it works. Updates can reuse completed work after checking it. Pause setup whenever you need to; completed work is kept for the next run.
 
 The currently verified regions are **Eastern Kingdoms, Kalimdor, Zephras Isle, Darkspear Islands, Alterac Valley, Warsong Gulch and Arathi Basin**. Routes for other maps and instances are not currently supported. Some floors and phased areas may also lack routes.
 
