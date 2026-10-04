@@ -61,7 +61,7 @@ def main():
     p.add_argument('--workers', type=int, default=2)
     p.add_argument('--reuse', nargs='*', default=[])
     a = p.parse_args()
-    need(1 <= a.workers <= 4, 'workers must be between 1 and 4')
+    need(1 <= a.workers <= 8, 'workers must be between 1 and 8')
     source = Source(a.profile, a.expected_sha256, a.source_directory, a.tile_csv, a.topology_inventory)
     jobs = {j['id']: j for j in source.jobs(a.world)}
     root = pathlib.Path(a.root).resolve()

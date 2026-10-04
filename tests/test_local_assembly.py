@@ -39,9 +39,9 @@ class Tests(unittest.TestCase):
     def metadata(self):
         return patch.object(current,"download",return_value=current.canonical(self.meta()))
 
-    def test_worker_budget_respects_cpu_memory_and_four_worker_cap(self):
+    def test_worker_budget_respects_cpu_memory_and_eight_worker_cap(self):
         gib=1024**3
-        for cpus,memory,expected in ((32,32*gib,4),(16,14*gib,4),(8,14*gib,2),
+        for cpus,memory,expected in ((32,32*gib,8),(128,128*gib,8),(16,14*gib,4),(8,14*gib,2),
                 (32,8*gib,2),(32,4*gib,1),(2,32*gib,1),(None,None,1),
                 (32,None,1),(32,0,1)):
             with self.subTest(cpus=cpus,memory=memory):
@@ -50,7 +50,7 @@ class Tests(unittest.TestCase):
     def test_cli_selects_capacity_automatically_and_preserves_explicit_override(self):
         base=["local_assembly.py","--runtime","runtime","--cache","cache","--status","status",
               "--result","result","--executable","Wow.exe","--base-bundle","base.zip"]
-        for extra,memory,expected in (([],32*1024**3,4),(["--workers","1"],32*1024**3,1),([],None,1)):
+        for extra,memory,expected in (([],32*1024**3,8),(["--workers","1"],32*1024**3,1),([],None,1)):
             with self.subTest(extra=extra,memory=memory),patch.object(local.sys,"argv",base+extra),\
                     patch.object(local,"available_memory",return_value=memory),\
                     patch.object(local.os,"cpu_count",return_value=32),\
@@ -65,7 +65,7 @@ class Tests(unittest.TestCase):
         memory=local.available_memory()
         self.assertIsInstance(memory,int)
         self.assertGreater(memory,0)
-        self.assertIn(local.worker_budget(local.os.cpu_count(),memory),range(1,5))
+        self.assertIn(local.worker_budget(local.os.cpu_count(),memory),range(1,9))
 
     def test_progress_atomic_write_retries_windows_reader_without_losing_receipt(self):
         path=self.root/"status.json"

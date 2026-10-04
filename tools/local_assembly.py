@@ -46,11 +46,11 @@ def available_memory():
 
 
 def worker_budget(cpus,memory):
-    """At most four workers, four logical CPUs and about 3 GiB per worker."""
+    """At most eight workers, four logical CPUs and about 3 GiB per worker."""
     cpu_limit=max(1,(cpus or 1)//4)
     if memory is None:return 1
     memory_limit=max(1,(memory-2*1024**3)//(3*1024**3))
-    return min(4,cpu_limit,memory_limit)
+    return min(8,cpu_limit,memory_limit)
 
 
 def atomic(path,value):
@@ -566,11 +566,11 @@ def main():
     parser.add_argument("--storage-root",action="append",default=[])
     parser.add_argument("--base-bundle")
     parser.add_argument("--resume-runtime",help="Verify and resume an older packaged preparation after an orchestration-only update")
-    parser.add_argument("--workers",type=int,help="Override automatic CPU/memory selection with 1 through 4 workers")
+    parser.add_argument("--workers",type=int,help="Override automatic CPU/memory selection with 1 through 8 workers")
     parser.add_argument("--check-only",action="store_true")
     args=parser.parse_args()
     if args.workers is None:args.workers=worker_budget(os.cpu_count(),available_memory())
-    if not 1<=args.workers<=4:parser.error("workers must be 1 through 4")
+    if not 1<=args.workers<=8:parser.error("workers must be 1 through 8")
     if not args.executable and not args.storage_root:parser.error("Choose a Forever executable or storage folder")
     if not args.check_only and not args.base_bundle:parser.error("base bundle required")
     assembly=None

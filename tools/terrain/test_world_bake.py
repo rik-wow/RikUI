@@ -15,6 +15,41 @@ def pair():
  return a,b
 
 class Tests(unittest.TestCase):
+ def test_scheduler_uses_eight_slots_without_exceeding_the_bound(self):
+  import threading
+  from types import SimpleNamespace
+  import world_bake_parallel as scheduler
+  jobs=[dict(id="fixture-%d"%i,worldMapID=0,batchGrid=[i,0]) for i in range(24)]
+  barrier=threading.Barrier(8,timeout=10);lock=threading.Lock();running=[0,0]
+  class Process:
+   returncode=0
+   def __init__(self,*args,**kwargs):
+    with lock:
+     running[0]+=1;running[1]=max(running)
+    barrier.wait()
+   def poll(self):
+    with lock:running[0]-=1
+    return 0
+  with tempfile.TemporaryDirectory() as folder:
+   root=pathlib.Path(folder)/"eight-workers"
+   args=["world_bake_parallel.py","--root",str(root),"--workers","8"]
+   for name in ("profile","expected-sha256","source-directory","tile-csv","topology-inventory","placement-index","index-sha256"):
+    args+=["--"+name,"fixture"]
+   with patch.object(scheduler.sys,"argv",args),patch.object(scheduler,"Source") as source,\
+        patch.object(scheduler.shutil,"disk_usage",return_value=SimpleNamespace(free=16*1024**3)),\
+        patch.object(scheduler.subprocess,"Popen",Process),\
+        patch.object(scheduler,"verified_run",return_value={job["id"] for job in jobs}) as verified,patch("builtins.print"):
+    source.return_value.jobs.return_value=jobs
+    scheduler.main()
+   progress=json.loads((root/"generation-progress.json").read_bytes())
+   self.assertEqual(running,[0,8]);self.assertEqual(progress["completed"],24)
+   self.assertEqual(progress["counts"],{"ok":24});self.assertEqual(verified.call_count,24)
+   self.assertEqual({row["jobID"] for row in progress["results"]},{job["id"] for job in jobs})
+   with patch.object(scheduler.sys,"argv",[arg if arg!="8" else "9" for arg in args]),\
+        patch.object(scheduler,"Source") as source:
+    with self.assertRaisesRegex(ValueError,"workers must be between 1 and 8"):scheduler.main()
+    source.assert_not_called()
+
  def test_scheduler_progress_windows_sharing_retry_and_retention(self):
   import world_bake_parallel as scheduler
   with tempfile.TemporaryDirectory() as root:

@@ -49,6 +49,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -B tests/test_preparation_storage.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B -m unittest discover -s tools/terrain -p "test_world_bake.py"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -B tests/test_setup_updates.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -B tests/test_public_installer_manifest.py
