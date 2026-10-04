@@ -18,7 +18,7 @@ Choose a preset and role. Click or hover an ability to read its name and learnin
 
 ![Role and ability icons](render:wizard-2)
 
-Key labels preview RikUI's optional binding scheme. They do not indicate that your current bindings have changed. Existing class preset coverage applies.
+Key labels preview RikUI's optional binding scheme. They do not indicate that your current bindings have changed. Available presets depend on your class.
 
 ## Choose bindings separately
 
@@ -42,7 +42,7 @@ This page appears only when requested on the first page. Module changes need a r
 
 ![Optional advanced choices](render:wizard-5)
 
-Module choices are written only after setup succeeds. A failed operation retains existing module flags.
+Module choices apply after setup completes. If setup fails, your existing module choices are kept.
 
 ## Review changes
 
@@ -50,7 +50,7 @@ Review selected operations and uncheck anything to keep. **Back** follows the ch
 
 ![Selected changes](render:wizard-6)
 
-Setup operations retain the existing `/rik undo` recovery. A failure reports where setup stopped; completed operations may already have changed. Module switches are separate profile settings.
+Use `/rik undo` to restore the previous setup. If setup fails, read the error before continuing: some selected changes may already have applied.
 
 ## Optional hands-on tutorial
 
@@ -58,7 +58,7 @@ After finishing, close and play, or open the existing configuration tools.
 
 ![Completion actions](render:wizard-complete)
 
-**Practice moving frames** opens the real player mover, followed by the main action bar and chat. Drag and release to save a position. Next frame moves on; Finish, Stop or Escape ends the tutorial. Shift or Alt bypasses snapping. Already-unlocked movers keep their state.
+**Practice moving frames** opens movement handles for your player frame, then the main action bar and chat. Drag and release to save a position. Next frame moves on; Finish, Stop or Escape ends the tutorial. Shift or Alt bypasses snapping. Already-unlocked movers keep their state.
 
 ![Player mover and tutorial](render:wizard-practice)
 

@@ -6,7 +6,7 @@ Open your character window and click **Gear goals**, or type `/rik gear`. Choose
 
 ![Equipment comparison](render:gear-browse)
 
-The two cards show your equipped item and the candidate. Hover either card for its native tooltip. The table aligns **Current**, **New** and signed **Change** values. Matching bars compare the amount of each stat within that row; they do not rank different stats against one another. Gains and losses have icons as well as color. These are stat tradeoffs, not a universal upgrade score.
+The two cards show your equipped item and the candidate. Hover either card for its game tooltip. The table aligns **Current**, **New** and signed **Change** values. Matching bars compare the amount of each stat within that row; they do not rank different stats against one another. Gains and losses have icons as well as color. These are stat tradeoffs, not a universal upgrade score.
 
 ![Two-hand replacement](render:gear-twohand)
 
@@ -38,16 +38,16 @@ Turn **Tracker** on for a compact active-goal card. Click it to return to the go
 
 ## Themes and readability
 
-Gear goals uses RikUI’s shared controls, font, borders, textures and theme accents. Your accessibility settings apply too.
+Gear goals follows your selected theme, font and readability settings.
 
 ![Ocean theme](render:gear-ocean) ![Ink theme](render:gear-ink) ![Enlarged text](render:gear-readable)
 
 ## Data availability
 
-Public source browsing requires an installed **QuestieDB** addon with Forever data and contract version 3. [QuestieDB’s project](https://github.com/Questie/QuestieDB) documents its installation and supported contract. RikUI does not bundle that addon or its database.
+Equipment sources can use a separately installed **QuestieDB** addon with current Forever support. See [QuestieDB’s installation instructions](https://github.com/Questie/QuestieDB).
 
-A privately generated current-client catalog is also supported. The session index is built in bounded background slices and reused when the window reopens. **Refresh sources** explicitly rebuilds it. Only visible candidates request full item metadata.
+Equipment sources can also come from data prepared for your current game. **Refresh sources** updates the list. Item details load as you browse.
 
 ![Unavailable item statistics](render:gear-unavailable)
 
-Missing metadata, completion flags or requirements remain unknown. Use **Retry item data** for a selected item. Missing optional providers preserve saved goals; those goals can still be removed. New dungeon coverage, exact Forever payout coverage and special prerequisites can be incomplete.
+Some item details, quest progress or requirements may be unavailable. Use **Retry item data** for a selected item. Your saved goals are kept when source information is unavailable, and you can still remove them. Some dungeon sources, rewards and special quest requirements may be missing or differ from the current server.

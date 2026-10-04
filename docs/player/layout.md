@@ -32,7 +32,7 @@ Under **Settings → General → Snapping and grid**, choose alignment snapping,
 
 The grid appears only while frames are unlocked. At fine spacing, fewer lines are drawn to keep the screen readable; the actual snapping interval remains exact. Editor preferences belong to your character and survive switching or importing profiles.
 
-![Native movement grid](render:layout-grid)
+![Movement grid](render:layout-grid)
 
 ## Scale and presets
 

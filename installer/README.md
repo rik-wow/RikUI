@@ -12,7 +12,7 @@ Run from the repository root with the declared developer commands. The existing 
 npm ci --prefix tools/terrain --ignore-scripts
 python -B tools/acquire_runtime_dependencies.py --output dist/dependencies
 python -B tools/build_local_runtime.py --reader dist/dependencies/reader --extractor dist/dependencies/extractor/TACTTool.exe --output dist/preparation
-python -B tools/build_installer_bundle.py --version 1.0.0-beta.15 --output dist/base-bundle.zip
+python -B tools/build_installer_bundle.py --version 1.0.0-beta.17 --output dist/base-bundle.zip
 python -B tools/build_public_installer.py --base dist/base-bundle.zip --runtime dist/preparation/runtime --output dist/public
 ```
 
@@ -26,7 +26,7 @@ At startup/update it checks the existing public GitHub release channel for newer
 
 ## Resource use and recovery
 
-First preparation requires at least 80 GiB free on its preparation drive. Players can choose another folder. Generation uses two workers by default, at most four, with per-phase and ongoing disk guards. Progress shows measured bytes, files or jobs and elapsed time; no fabricated global percentage is used.
+First preparation requires 16 GiB free on its preparation drive. A single current-acquisition extractor workspace avoids repeated metadata caches; geometry and polygon intermediates are losslessly compressed with bounded decoding and stored/decoded provenance checks. Players can choose another folder. Generation automatically chooses one to eight workers from available CPU and physical-memory capacity, with per-phase and ongoing disk guards. Progress shows measured bytes, files or jobs and elapsed time; no fabricated global percentage is used.
 
 Verified completed generation resumes; corrupt/interrupted products are retained before replacement. Cache reuse binds client/source/tool hashes, acquisition bytes, placement index, terrain receipts, road textures, travel and local bundle inputs. Local inputs and old generations are not automatically pruned.
 
@@ -40,6 +40,8 @@ cargo check --locked --manifest-path installer/Cargo.toml --all-targets
 cargo test --locked --manifest-path installer/Cargo.toml
 cargo clippy --locked --manifest-path installer/Cargo.toml --all-targets -- -D warnings
 python -B tests/test_local_assembly.py
+python -B tests/test_preparation_storage.py
+node tools/terrain/test_compact_batch.mjs
 python -B tests/test_setup_updates.py
 python -B tools/verify_installer_ui.py --exe installer/target/release/rikui-installer.exe --output dist/native-checks
 ```

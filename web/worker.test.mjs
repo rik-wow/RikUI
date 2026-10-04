@@ -32,9 +32,9 @@ test("consumer installation route explains dependencies, local costs and incompl
  assert.equal(response.status,200);
  const html=await response.text();
  assert.match(html,/Four simple steps/);
- assert.match(html,/80 GiB/);
- assert.match(html,/obtains.*QuestieDB/);
- assert.match(html,/Partial work.*never advertised/);
+ assert.match(html,/16 GiB/);
+ assert.match(html,/downloads.*QuestieDB/);
+ assert.match(html,/only when all supported regions are ready and checked/);
  assert.match(html,/daily Windows task/);
  assert.equal((await worker.fetch(request("/install/"),{})).headers.get("Location"),"https://rikwow.com/install");
  assert.equal(await (await worker.fetch(request("/install",{method:"HEAD"}),{})).text(),"");

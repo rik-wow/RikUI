@@ -12,6 +12,6 @@ For settings problems, note the module and setting involved. For quest guidance,
 
 Describe what you are trying to do and what would make it easier. Examples from ordinary play are useful, especially when a control is difficult to find or a layout gets in the way.
 
-## Code contributions
+## Get help
 
-The [repository](https://github.com/rik-wow/RikUI) contains the addon, installer, website and development instructions. Follow its contribution guide when preparing a pull request.
+The [installation guide](installation.md) explains setup, updates and restoring a backup. For interface questions, see [Settings and profiles](options.md) and the guide for the feature you are using.

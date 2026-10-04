@@ -23,7 +23,7 @@ The guidance row shows your current objective and direction. Its controls let yo
 - **Map** shows the current guidance on the world map.
 - **Preferences** opens the quest-planner settings.
 
-You can also use `/rik quests pin QUEST_ID`, `/rik quests route auto`, `/rik quests map` and `/rik quests retry`. **Route details** in the browser lists the current objective, the route evidence and the data coverage.
+You can also use `/rik quests pin QUEST_ID`, `/rik quests route auto`, `/rik quests map` and `/rik quests retry`. **Route details** in the browser lists the current objective, available route information and any missing quest or map details.
 
 ![Objective details](render:planner-details)
 

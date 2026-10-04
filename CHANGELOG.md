@@ -1,11 +1,24 @@
 # Changelog
 
 
-Versions follow [semantic versioning](https://semver.org/). The tags
-`v0.0.1-beta.1` and `v0.0.1-beta.2` from September 2026 were packaging tests
-and carry no notes. A version with `beta` in its name is a prerelease. The BigWigs packager ships this file in the release ZIP
-and uses it as the GitHub release text, so add the new version here before
-tagging.
+Updates to RikUI for WoW Forever. Versions with `beta` in their name are
+prereleases.
+
+## 1.0.0-beta.17
+
+2026-10-04. Reduced space needed for local quest and route preparation.
+
+- First preparation requires 16 GiB free instead of 80 GiB. Setup keeps its
+  temporary files compact. Previous generations and backups need additional space.
+- Setup adjusts preparation to available CPU and memory to use capable computers
+  more efficiently.
+- Updates check completed work before reusing it. Quest and holiday updates can
+  reuse compatible map preparation, and updating setup preserves completed work
+  when it is still compatible.
+- Improved recovery from temporary Windows file-access problems and malformed
+  quest information.
+- Settings, backups and existing local data remain preserved.
+- Clearer installation instructions and player guides throughout the website.
 
 ## 1.0.0-beta.16
 

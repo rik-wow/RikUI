@@ -23,7 +23,7 @@ try{
   assert.equal(await page.getByRole("link",{name:"Download RikUI setup for Windows"}).getAttribute("href"),catalog.installer.url);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   for(const state of ["closed","measured-cost"]){
-   if(state==="measured-cost")await page.getByText("Measured preparation example",{exact:true}).click();
+   if(state==="measured-cost")await page.getByText("Why does preparation take time?",{exact:true}).click();
    const filename="install-"+width+"-"+state+".png";
    const bytes=await page.screenshot({path:join(output,filename),fullPage:true,animations:"disabled"});
    images.push({filename,width,state,sha256:sha(bytes)});

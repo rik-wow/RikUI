@@ -157,7 +157,7 @@ test("gear guide stays usable on small screens and explains its data requirement
  await expect(comparison.locator("img")).toHaveJSProperty("complete",true);
  expect(await comparison.locator("img").evaluate(image=>image.naturalWidth)).toBeGreaterThan(0);
  await page.getByRole("heading",{name:"Data availability",exact:true}).scrollIntoViewIfNeeded();
- await expect(page.getByRole("link",{name:"QuestieDB’s project",exact:true})).toHaveAttribute("href","https://github.com/Questie/QuestieDB");
+ await expect(page.getByRole("link",{name:"QuestieDB’s installation instructions",exact:true})).toHaveAttribute("href","https://github.com/Questie/QuestieDB");
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
  await page.keyboard.press("Tab");
  expect(await page.evaluate(()=>document.activeElement?.tagName)).toBeTruthy();

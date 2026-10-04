@@ -30,13 +30,13 @@ Short names keep the same width as the health bar and level badge, including on 
 
 ![Compact short name aligned with the health row](render:plates-compact-short-name)
 
-Set **Minimum expanded name width** and **Maximum expanded name width** under **Settings → Nameplates**. Defaults are 160 and 280 UI units; both sliders range from 120 to 400. These limits apply only when a name needs more space than the native row; they do not widen a short name. If the maximum is below the minimum, the minimum wins. Names beyond the limit still truncate.
+Set **Minimum expanded name width** and **Maximum expanded name width** under **Settings → Nameplates**. Defaults are 160 and 280 UI units; both sliders range from 120 to 400. These limits apply only when a name needs more space than the original row; they do not widen a short name. If the maximum is below the minimum, the minimum wins. Names beyond the limit still truncate.
 
 ![Maximum label width](preview:plates-name-width-limit)
 
-A reused plate shrinks for its new name. If the client hides the text measurement, the label keeps the fixed row. Your preferences are included in profile sharing.
+The label adapts when a different unit takes its place. Your preferences are included in profile sharing.
 
-![A reused plate with a short name](render:plates-pooled-short-name) ![Nameplate readability settings](render:plates-name-options)
+![Short name](render:plates-pooled-short-name) ![Nameplate readability settings](render:plates-name-options)
 
 ## Size and visibility
 

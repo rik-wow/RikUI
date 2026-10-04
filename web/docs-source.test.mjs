@@ -15,7 +15,7 @@ test("canonical Markdown, release data and every generated page retain exact sou
   for(const [attribute,value]of [["source",p.sourceSha256],["build",p.buildSha256],["release",releaseSha256]])
    assert.ok(html.includes('data-'+attribute+'-sha256="'+value+'"'),p.slug+" provenance");
   assert.ok(!/aria-label="undefined"|<span>undefined<\/span>/.test(html),p.slug+" unnamed preview control");
-  assert.ok(html.includes('data-guide-source="'+p.file+'"'));assert.ok(html.includes("/blob/main/"+p.file));assert.ok(!/\{\{release\./.test(html));
+  assert.ok(html.includes('data-guide-source="'+p.file+'"'));assert.ok(!html.includes("View or improve this guide"));assert.ok(!/\{\{release\./.test(html));
  }
  const install=await readFile(new URL("./public/docs/installation.html",import.meta.url),"utf8");
  assert.ok(install.includes(release["release.download"]));assert.ok(install.includes(release["release.zip"]));assert.ok(install.includes(catalog.latest));
