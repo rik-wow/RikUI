@@ -5199,5 +5199,183 @@
     "fixtures": [],
     "lua": "RikRenderStudioGrids(36,true)\n",
     "expectText": []
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"browse\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Candidates"
+    ],
+    "id": "gear-browse",
+    "title": "Gear goals · browse"
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"twohand\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Candidates"
+    ],
+    "id": "gear-twohand",
+    "title": "Gear goals · twohand"
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"unavailable\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Candidates"
+    ],
+    "id": "gear-unavailable",
+    "title": "Gear goals · unavailable"
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"prerequisites\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Candidates"
+    ],
+    "id": "gear-prerequisites",
+    "title": "Gear goals · prerequisites"
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"goals\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Goals (1)"
+    ],
+    "id": "gear-goals",
+    "title": "Gear goals · goals"
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"acquired\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Goals (1)"
+    ],
+    "id": "gear-acquired",
+    "title": "Gear goals · acquired"
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"browse\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Candidates"
+    ],
+    "id": "gear-ocean",
+    "title": "Gear goals · ocean",
+    "profile": {
+      "theme": {
+        "accent": "blue",
+        "border": 2,
+        "texture": "flat",
+        "spacing": "relaxed"
+      }
+    }
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"browse\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Candidates"
+    ],
+    "id": "gear-ink",
+    "title": "Gear goals · ink",
+    "profile": {
+      "theme": {
+        "accent": "white",
+        "border": 1,
+        "texture": "flat",
+        "spacing": "standard"
+      }
+    }
+  },
+  {
+    "page": "gear-goals",
+    "frame": "RikUIGearGoalsWindow",
+    "crop": "980x690+534+231",
+    "fixtures": [
+      "RikRenderGear(\"browse\")"
+    ],
+    "lua": "RikRenderCenter(RikUI.GearGoals.View.Window)",
+    "expectText": [
+      "Gear goals",
+      "Compare & plan",
+      "Candidates"
+    ],
+    "id": "gear-readable",
+    "title": "Gear goals · readable",
+    "profile": {
+      "textScale": 1.3,
+      "reducedMotion": true
+    }
+  },
+  {
+    "id": "gear-tracker",
+    "title": "Gear goal compact tracker",
+    "page": "gear-goals",
+    "frame": "RikRenderGearTracker",
+    "crop": "290x94+879+529",
+    "fixtures": [
+      "RikRenderGear(\"tracker\")"
+    ],
+    "lua": "RikRenderCenter(RikRenderGearTracker)",
+    "expectText": [
+      "Quest sword"
+    ]
   }
 ]

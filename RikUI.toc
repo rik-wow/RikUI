@@ -4,6 +4,7 @@
 ## Author: Alrik Olson
 ## Version: @project-version@
 ## X-Curse-Project-ID: 0
+## OptionalDeps: QuestieDB
 ## SavedVariables: RikUIDB, RikUIStudioDB
 ## SavedVariablesPerCharacter: RikUICharDB
 ## IconTexture: Interface\Icons\INV_Misc_QuestionMark
@@ -236,6 +237,8 @@ src/modules/personalresource/combat-resource.lua
 src/ui/scroll.lua
 src/ui/shell.lua
 src/ui/shell-tools.lua
+src/modules/geargoals/gear-model.lua
+src/modules/geargoals/gear-provider.lua
 src/layout/layout-unlock.lua
 src/layout/layout-drag.lua
 src/layout/layout-resize.lua
@@ -292,6 +295,8 @@ src/configuration/options/options-class.lua
 src/configuration/options/options-view.lua
 src/configuration/options/sharing.lua
 src/configuration/options/profile-sharing.lua
+src/modules/geargoals/gear-view.lua
+src/modules/geargoals/geargoals.lua
 src/configuration/options/importexport.lua
 src/setup/setup-studio.lua
 src/configuration/options/setup-studio-view.lua

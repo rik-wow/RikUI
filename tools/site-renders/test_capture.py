@@ -187,6 +187,16 @@ class ProvenanceChecks(unittest.TestCase):
         self.assertEqual(self.inputs["script"], text_digest(script))
 
 class DependencyChecks(unittest.TestCase):
+    def test_gear_changes_expire_character_and_shared_entries_only(self):
+        from dependencies import addon_inputs
+        files = {"src/modules/geargoals/gear-view.lua": "gear",
+                 "src/modules/panels/panels.lua": "panels"}
+        for case in ({"page": "gear-goals"}, {"page": "shell"},
+                     {"page": "interiors", "id": "character-equipped"}):
+            self.assertIn("src/modules/geargoals/gear-view.lua", addon_inputs(case, files))
+        self.assertNotIn("src/modules/geargoals/gear-view.lua",
+                         addon_inputs({"page": "nameplates"}, files))
+
     def test_navigation_changes_do_not_invalidate_nameplates(self):
         from dependencies import addon_inputs
         files = {"src/modules/nameplates/nameplates.lua": "plate",

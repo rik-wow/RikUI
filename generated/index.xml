@@ -7,4 +7,5 @@
 	-->
 	<Include file="roads\roads.xml"/>
 	<Include file="corpus\corpus.xml"/>
+	<Include file="gear\gear.xml"/>
 </Ui>

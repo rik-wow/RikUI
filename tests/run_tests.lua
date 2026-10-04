@@ -292,6 +292,8 @@ end
 -- report
 local gearOk,gearErr=pcall(function() dofile("tests/gear-goals.test.lua")(check) end)
 check("Gear goal suite completes",gearOk,gearErr)
+local gearViewOk,gearViewErr=pcall(function() dofile("tests/gear-view.test.lua")(check) end)
+check("Gear view suite completes",gearViewOk,gearViewErr)
 local gearProviderOk,gearProviderErr=pcall(function() dofile("tests/gear-provider.test.lua")(check) end)
 check("Gear provider suite completes",gearProviderOk,gearProviderErr)
 

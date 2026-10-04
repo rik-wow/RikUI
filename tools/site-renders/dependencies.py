@@ -12,7 +12,8 @@ PAGES = {
     "loot": {"loot", "popups"}, "questplanner": {"questplanner", "questtracker", "worldmap"},
     "questtracker": {"questtracker", "questplanner"}, "questtimers": {"questtimers"},
     "worldmap": {"worldmap", "questplanner", "panels"},
-    "sharing": set(), "shell": set(),
+    "gear-goals": {"geargoals", "questplanner"},
+    "sharing": set(), "shell": {"geargoals"},
 }
 DIRECT = set("""unitframes castbars bags chat cooldowns swingtimer nameplates combopoints totems bars
 personalresource mirrortimers lossofcontrol combattimer extrabuttons damagemeter minimap xpbar
@@ -70,6 +71,11 @@ def uses_preset_positions(case):
 
 def addon_inputs(case, files):
     page = case.get("page")
+    # Gear UI is lazy except for its shell entry and character-button attachment.
+    # Retain the module for character captures/settings/overview and its own page.
+    gear = page in {"gear-goals","shell","options","overview","layout"} or "character" in case.get("id","")
+    if not gear:
+        files = {name:value for name,value in files.items() if not name.startswith("src/modules/geargoals/")}
     scene = "\n".join([case.get("lua", ""), *case.get("fixtures", []), case.get("sequence", {}).get("apply", "")])
     # Settings declarations build no visible UI until a fixture opens settings or uses its setters.
     # Unknown surfaces stay conservative. Inspect scene calls and reached fixture text.
@@ -121,6 +127,8 @@ def addon_inputs(case, files):
             unused.update({"src/setup/setup-pack.lua", "src/setup/setup-pack-library.lua"})
         return {name:value for name,value in files.items() if name not in unused}
     modules = PAGES.get(page, {page} if page in DIRECT else None)
+    if gear and modules is not None:
+        modules = modules | {"geargoals"}
     if modules is None and page not in GLOBAL_PAGES:
         return dict(files)
     preset_positions = uses_preset_positions(case)
@@ -136,6 +144,8 @@ def relevant(name, modules, page):
         return page in {"setup-studio", "studio-atlas", "studio-gallery", "sharing"}
     if name == "src/core/layout-metrics.lua":
         return bool(modules & {"bars", "castbars"})
+    if name.startswith("src/modules/geargoals/"):
+        return page=="gear-goals" or page=="shell" or page=="interiors"
     if name.startswith("src/modules/"):
         return name.split("/")[2] in modules
     # This validates serialized imports; it does not lay out ordinary UI regions.

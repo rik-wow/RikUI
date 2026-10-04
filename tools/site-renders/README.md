@@ -93,6 +93,17 @@ The compact short-name fixture changes the native script plate base width, then 
 
 Keep browser layout and interaction tests alongside the Lua render checks. [Playwright documents](https://playwright.dev/docs/test-snapshots) that pixel output varies by platform; GPU captures therefore retain their renderer binary and client provenance instead of treating Linux browser screenshots as Windows game-render baselines.
 
+## Gear goal coverage
+
+Gear goal fixtures supply synthetic source/prerequisite observations and representative
+numeric item statistics, then exercise unchanged addon controls. They cover equipped
+and candidate cards, both hands replaced by a two-handed weapon, signed stat changes,
+source branches, saved and acquired goals, unavailable statistics, the optional
+tracker, coordinated themes and enlarged text. Native item tooltip interaction,
+server reward payouts, proficiency and dungeon difficulty/drop rates are not
+established by these captures. They remain explicitly identified in the player guide.
+Renderer inputs are resolved and verified for every new run.
+
 ## Capture limits
 
 The simulator executes the addon; it is not the native game client. These images are documentation examples, not evidence of native gameplay or performance. The user's native acceptance remains separate.
