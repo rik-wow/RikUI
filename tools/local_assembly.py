@@ -89,6 +89,21 @@ def verify_acquisition(folder,resolution):
 
 
 
+def region_names(acquisition,worlds,build):
+    """Names come from the same byte-verified current Map table as navigation."""
+    import csv
+    import io
+    raw=current.read_metadata(Path(acquisition)/"db2"/("Map-"+build+".csv"))
+    labels={}
+    for row in csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))):
+        key=int(row["ID"])
+        if key in labels:raise ValueError("Duplicate current map identity")
+        name=row.get("MapName_lang","").strip()
+        labels[key]=name if name and len(name)<=256 and not any(ord(char)<32 for char in name) else None
+    return [dict(mapID=world["worldMapID"],name=labels.get(world["worldMapID"]) or
+                 ("Map "+str(world["worldMapID"])+" (name unavailable)")) for world in worlds]
+
+
 def verify_index(index, receipt, terrain):
     index,terrain=Path(index),Path(terrain)
     document=json.loads(index.with_suffix(".sqlite.receipt.json").read_bytes())
@@ -376,7 +391,8 @@ class Assembly:
             bundle,bundle_inputs=self.local_bundle(previous["corpus"],previous["roads"])
             result=dict(previous,resolution=self.resolution,tools=self.tools,baseSHA256=self.base_sha,
                 bundle=str(bundle),bundleSHA256=digest(bundle),bundleInputs=bundle_inputs,
-                seconds=round(time.monotonic()-self.start,1))
+                seconds=round(time.monotonic()-self.start,1),
+                coverage=dict(previous["coverage"],regions=region_names(previous["acquisition"],previous["coverage"]["worlds"],self.resolution["inputs"]["identity"]["build"])))
             self.verify_previous(result)
             self.fresh()
             atomic(latest,result)
@@ -488,7 +504,7 @@ class Assembly:
                     bundle=str(bundle),bundleSHA256=digest(bundle),bundleInputs=bundle_inputs,outputRoot=str(self.job),
                     outputs=inventory(roads),listfileIdentity=list_identity,seconds=round(time.monotonic()-self.start,1),
                     coverage=dict(questCounts=coverage["counts"],clientUniverse={key:value for key,value in coverage.get("clientUniverse",{}).items() if not isinstance(value,list)},
-                                  worlds=road_receipt["worlds"],limits=["Provider reference data can lag the current server.",
+                                  worlds=road_receipt["worlds"],regions=region_names(acquisition,road_receipt["worlds"],receipt["identity"]["build"]),limits=["Provider reference data can lag the current server.",
                                   "Unknown quests, floors, phases, physics and unsupported projections remain explicit.",
                                   "Transport times are estimates; server-specific portals and lift endpoints require compatible evidence."]))
         # Outputs are relative to their own verified road root.

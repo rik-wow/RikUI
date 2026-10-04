@@ -99,7 +99,9 @@ class Tests(unittest.TestCase):
         roads=self.root/"roads";roads.mkdir()
         receipt=roads/"road-network-receipt.json";receipt.write_bytes(b"verified road receipt")
         physical=self.root/"private-current-mesh";physical.write_bytes(b"preserve physical bytes")
-        self.previous.update(corpus=str(corpus),roads=str(roads),coverage=dict(limits=["fixture unknowns"]))
+        acquisition=self.root/"acquisition";(acquisition/"db2").mkdir(parents=True)
+        (acquisition/"db2"/("Map-"+BUILD+".csv")).write_bytes(b"ID,MapName_lang\n0,Current Coast\n")
+        self.previous.update(acquisition=str(acquisition),corpus=str(corpus),roads=str(roads),coverage=dict(worlds=[dict(worldMapID=0)],limits=["fixture unknowns"]))
         local.atomic(self.worker.cache/"latest.json",self.previous)
         self.worker.base_sha="c"*64
         self.worker.args.base_bundle=self.root/"new-interface.zip"
@@ -115,10 +117,23 @@ class Tests(unittest.TestCase):
         self.assertEqual(physical.read_bytes(),b"preserve physical bytes")
         self.assertEqual(receipt.stat().st_mtime_ns,before)
         self.assertEqual(result["roads"],str(roads))
+        self.assertEqual(result["coverage"]["regions"],[dict(mapID=0,name="Current Coast")])
         self.assertEqual(result["bundleInputs"]["base"],"c"*64)
         local.verify_local_bundle(result["bundle"],result["bundleInputs"])
         self.assertEqual(self.worker.verify_previous.call_count,2)
         self.worker.fresh.assert_called()
+
+    def test_current_region_names_preserve_unknowns_and_reject_duplicate_identity(self):
+        folder=self.root/"current-tables";(folder/"db2").mkdir(parents=True)
+        table=folder/"db2"/("Map-"+BUILD+".csv")
+        table.write_bytes(b"ID,MapName_lang\n0,Current Coast\n1,\n")
+        worlds=[dict(worldMapID=0),dict(worldMapID=1),dict(worldMapID=991)]
+        self.assertEqual(local.region_names(folder,worlds,BUILD),[
+            dict(mapID=0,name="Current Coast"),dict(mapID=1,name="Map 1 (name unavailable)"),
+            dict(mapID=991,name="Map 991 (name unavailable)")])
+        table.write_bytes(b"ID,MapName_lang\n0,Current Coast\n0,Other Coast\n")
+        with self.assertRaisesRegex(ValueError,"Duplicate current map"):
+            local.region_names(folder,worlds,BUILD)
 
     def test_changed_provider_probe_requests_only_affected_products(self):
         self.worker.args.check_only=True

@@ -239,7 +239,17 @@ pub fn details(root: &Path) -> Result<PathBuf> {
         body.push_str(&format!("Quest coverage\r\n{} quests have provider information. {} current client quest IDs have membership only, without provider objectives or locations. Unknown data is shown as unknown in the guide.\r\n",
             coverage["questCounts"]["quests"].as_u64().unwrap_or(0),
             coverage["clientUniverse"]["clientOnly"].as_u64().unwrap_or(0)));
-        if let Some(worlds) = coverage["worlds"].as_array() {
+        if let Some(regions) = coverage["regions"].as_array() {
+            body.push_str("Navigation regions prepared: ");
+            body.push_str(
+                &regions
+                    .iter()
+                    .filter_map(|region| region["name"].as_str())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            );
+            body.push_str("\r\n");
+        } else if let Some(worlds) = coverage["worlds"].as_array() {
             body.push_str("Navigation regions prepared (game map IDs): ");
             body.push_str(
                 &worlds

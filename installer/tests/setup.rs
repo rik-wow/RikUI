@@ -34,4 +34,15 @@ fn details_explains_verified_coverage_without_dumping_ids() {
     assert!(text.contains("3 current client quest IDs have membership only"));
     assert!(text.contains("0, 1"));
     assert!(text.contains("Unknown floors remain explicit."));
+    let mut installed: serde_json::Value =
+        serde_json::from_slice(&fs::read(profile.path().join("installed.json")).unwrap()).unwrap();
+    installed["coverage"]["regions"] = serde_json::json!([
+        {"mapID":0,"name":"Current Coast"},
+        {"mapID":1,"name":"Map 1 (name unavailable)"}
+    ]);
+    setup::atomic_json(&profile.path().join("installed.json"), &installed).unwrap();
+    let named = fs::read_to_string(setup::details(profile.path()).unwrap()).unwrap();
+    assert!(named.contains("Navigation regions prepared: Current Coast, Map 1 (name unavailable)"));
+    assert!(!named.contains("Navigation regions prepared (game map IDs)"));
+    assert!(named.contains("Unknown floors remain explicit."));
 }
