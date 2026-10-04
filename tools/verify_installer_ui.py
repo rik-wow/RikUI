@@ -176,11 +176,64 @@ def verify_progress(hwnd, folder, name):
  evidence["finalCommands"]=commands()
  return evidence
 
+def verify_idle_start(executable, root):
+ # Normal production launch, without --ui-fixture: stale status must not resume work.
+ results={}
+ for name,state in (("startup-new",None),("startup-paused","cancelled"),("startup-installed","installed")):
+  folder=root/name;folder.mkdir()
+  home=folder/"RikUI";home.mkdir()
+  game=folder/"game";game.mkdir()
+  (home/"configuration.json").write_text(json.dumps(dict(storage_root=str(game),executable=str(game/"WowB.exe"))),encoding="utf-8")
+  if state:
+   (home/"status.json").write_text(json.dumps(dict(state=state,phase="Old preparation",completed=5,total=10)),encoding="utf-8")
+   cache=home/"cache";cache.mkdir();(cache/"retained-input").write_bytes(b"Retain these bytes")
+   if state=="cancelled":(cache/"cancel").write_bytes(b"Paused")
+  def snapshot():
+   return {str(path.relative_to(home)):hashlib.sha256(path.read_bytes()).hexdigest() for path in home.rglob("*") if path.is_file()}
+  before=snapshot()
+  for opening in range(2):
+   startup=subprocess.STARTUPINFO();startup.dwFlags=subprocess.STARTF_USESHOWWINDOW;startup.wShowWindow=4
+   process=subprocess.Popen([executable],env=dict(os.environ,LOCALAPPDATA=str(folder)),startupinfo=startup)
+   hwnd=None
+   try:
+    for _ in range(100):
+     hwnd=find(process.pid)
+     if hwnd:break
+     assert process.poll() is None,"Normal installer exited"
+     time.sleep(.05)
+    assert hwnd,"Normal installer window unavailable"
+    time.sleep(.4)
+    for _ in range(30):u.SendMessageW(hwnd,0x0113,1,0)
+    assert text(u.GetDlgItem(hwnd,111))=="Ready to start","Opening setup started work"
+    assert u.IsWindowEnabled(u.GetDlgItem(hwnd,103)),"Primary start action unavailable"
+    assert not u.IsWindowEnabled(u.GetDlgItem(hwnd,109)),"Idle setup offers Pause"
+    bar=u.GetDlgItem(hwnd,110)
+    assert not u.GetWindowLongPtrW(bar,-16)&8,"Idle progress bar animates"
+    assert u.SendMessageW(bar,0x0408,0,0)==0,"Stale progress is shown on startup"
+    assert snapshot()==before,"Opening setup changed retained files or started a worker"
+    if opening==0:
+     results[name]=dict(**check(hwnd),accessibility=accessibility(hwnd),image=png(hwnd,folder/"window.png"),normalLaunch=True,reopenVerified=True)
+    # Editing a folder must stay idle; explicit actions reject bad input without work.
+    invalid=str(folder/"missing-game")
+    buffer=c.create_unicode_buffer(invalid)
+    u.SendMessageW(u.GetDlgItem(hwnd,101),0x000c,0,c.cast(buffer,c.c_void_p).value)
+    for _ in range(10):u.SendMessageW(hwnd,0x0113,1,0)
+    assert text(u.GetDlgItem(hwnd,111))=="Ready to start" and snapshot()==before
+    for action in (103,105):
+     u.SendMessageW(hwnd,0x0111,action,u.GetDlgItem(hwnd,action))
+     assert text(u.GetDlgItem(hwnd,111))=="Find your Forever game","Explicit action did not run its input check"
+     assert snapshot()==before,"Invalid input changed files"
+   finally:
+    if hwnd:u.PostMessageW(hwnd,0x0010,0,0)
+    try:process.wait(timeout=10)
+    except subprocess.TimeoutExpired:process.kill();process.wait();raise
+ return results
+
 def main():
  parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--exe",required=True);parser.add_argument("--output",required=True)
  args=parser.parse_args();root=Path(args.output).absolute()
  root.mkdir(parents=True,exist_ok=False)
- results={}
+ results=verify_idle_start(args.exe,root)
  for name,state in STATES.items():
   folder=root/name;folder.mkdir();fixture=folder/"state.json";fixture.write_text(json.dumps(state),encoding="utf-8")
   env=dict(os.environ,LOCALAPPDATA=str(folder))

@@ -6,10 +6,10 @@ RikUI **{{release.version}}** is a **{{release.channel}}** release for WoW Forev
 
 Quest guidance currently requires **English game text (enUS)**. Set Forever's game text to English to use the supported quest guide.
 
-1. Download **RikUI-Setup.exe** from the [installation page](/install). Open it and let it find your current Forever game. Use **Browse** if needed.
+1. Download **RikUI-Setup.exe** from the [installation page](/install). Open it and review the game folder. Use **Browse** if needed. Setup waits for you to start; opening it does not begin checks, downloads or preparation.
 2. Allow **16 GiB free** for first preparation. Setup keeps temporary files compact to reduce disk use. Previous generations and backups use additional space. **Preparation folder** lets you choose another drive; setup checks space before starting and while working.
-3. Choose **Prepare and install**. Setup downloads quest and holiday information from Questie, reads your current game files, and prepares supported routes on your computer. Its tools are included: you do not need Git, Python, Node or a database.
-4. Follow setup’s progress. First preparation can take an hour or more. **Pause setup** retains work; reopen setup and choose **Resume setup** to continue. Incomplete work is never installed as a complete guide.
+3. Choose **Prepare and install** when you’re ready. Setup checks your game against the current Forever version, then downloads quest and holiday information from Questie, reads your current game files, and prepares supported routes on your computer. Its tools are included: you do not need Git, Python, Node or a database.
+4. Follow setup’s progress. First preparation can take an hour or more. **Pause setup** retains work; reopen setup and choose **Prepare and install** or **Resume setup** to continue. Incomplete work is never installed as a complete guide.
 5. Close WoW when prompted. Setup checks the prepared files, installs them and keeps a backup. Restart WoW fully and enable RikUI in the AddOns list.
 
 Setup downloads the quest information it needs automatically. You do not need to install QuestieDB first. Quest information and map data are prepared and kept on your computer.
@@ -32,7 +32,7 @@ Use `/rik setup` for the separate character wizard: role, keys, action-bar prese
 
 ## Updates
 
-Setup checks for new RikUI releases, Forever versions and quest information when it opens or updates. A daily Windows task, **RikUI Current Forever Updates**, also checks automatically. When needed, setup prepares updated data. It checks existing files before reusing them.
+Setup checks for new RikUI releases, Forever versions and quest information when you choose **Prepare and install** or **Check game**. Opening setup leaves it idle. A daily Windows task, **RikUI Current Forever Updates**, also checks automatically. When needed, setup prepares updated data. It checks existing files before reusing them.
 
 Keep Forever updated through Battle.net. A version mismatch asks you to update and check again. Setup can find your game if its name or installation folder changes for release. New client builds require current compatible data, and stale guidance is withheld. Future builds are verified when available.
 

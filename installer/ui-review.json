@@ -2,95 +2,113 @@
   "format": "rikui-installer-visual-review-v1",
   "client": "1.60.1.70205",
   "uiRevision": "e3ecc27b64d30fdc735a3f6579b866858f9f9df1",
-  "executableSHA256": "077bea7f45f0d864b875a90fe8e94034c48efa91531c5ab92fcab630257b2d4a",
+  "executableSHA256": "2fd09b6ac27a9ad4b091768830da42b1ba1d5c0713b00a938a4e67a463562d6a",
   "sourceInputs": {
-    "installer/src/gui.rs": "644f7a3bc8bf4c78586cd5f5d665c6746b12b2b0342506bc4137864a0e46aa20",
-    "installer/src/gui/layout.rs": "c79cf51c9e56fb0d6dfac4574c1c73ed19d1521199b40f51df1b6c2cc22c51b9",
+    "installer/src/gui.rs": "7183eb9db5c42963737aac41439b9b583bf55d971d04d3a150954a510bb20438",
+    "installer/src/gui/layout.rs": "b0136be0642e847de153ab172eb86c7cb06e9a0952f784ec14f2215758289b00",
     "installer/app.manifest": "31269d2680815affbc1ddb2226afcf0201840d19fce3da63b2444ad81e1b1f1b",
-    "tools/verify_installer_ui.py": "e4eb15381e6c70e3eb9f6e23f4a19ae5dd8842af732f8818eb2a2aabb66b5ba8",
+    "tools/verify_installer_ui.py": "2a59d53ed6945873866232cea09fcfcb6d9af03f1eee590bc3346387c890d609",
     "tools/installer_uia.ps1": "f7a171cc36e9a448837a334e519d3acdcff16982f6ed49e28762d9e581716348",
     "installer/src/gui/progress.rs": "d523236e4868d39bedcd808d54c7821264d168169521c537ddb2e52928baeb54"
   },
-  "captureRoot": "D:/RikUI-local/progress-refresh-native-review-2",
-  "review": "Selection, mismatch, download and generation captures inspected at original 1035x1020 alongside previous selection/mismatch captures. Eleven exact image hashes match the reviewed prior baselines and retain that review. All thirteen actual native states passed keyboard, UI Automation and DPI bounds checks. Repeated real WM_TIMER polls sent no progress commands; count changes sent position only; actual control position/range/style verified through counted, new-stage, marquee and completion transitions. These exact inspected/reused hashes are promoted explicitly; tests never promote baselines.",
+  "captureRoot": "D:/RikUI-local/explicit-start-native-review-4",
+  "review": "Sixteen actual native states reviewed at original 1035x1020 size. Thirteen captures from the first candidate were visually inspected; twelve exact hashes match the verified public-package rerun and retain that review. The three normal startup captures and changed download image from the verified rerun were then inspected. Fresh, paused and installed profiles each opened twice without changing retained files, animating or polling stale progress. Primary action, folder edits and explicit invalid-input checks verified in the real production window; keyboard cycle, UI Automation, DPI bounds and stable native progress transitions pass. These exact reviewed hashes are promoted explicitly; tests never promote captures.",
   "images": [
+    {
+      "state": "startup-new",
+      "width": 1035,
+      "height": 1020,
+      "sha256": "81ec478dd6e3d9a1178c0532bbbf01196afb3debb50f7e8f13f2095e8d361d33"
+    },
+    {
+      "state": "startup-paused",
+      "width": 1035,
+      "height": 1020,
+      "sha256": "ed8dbd88d8e6106f359bdb07508f61c9d36505492920231ab21563cd52f744ae"
+    },
+    {
+      "state": "startup-installed",
+      "width": 1035,
+      "height": 1020,
+      "sha256": "550306bb5dca8c91e2cff2836d87f19bea1bb8a1d685177e8dd6323c0e50f8b5"
+    },
     {
       "state": "selection",
       "width": 1035,
       "height": 1020,
-      "sha256": "d17334eb6af89ccacb51ec65637eb1788e48636a0f8f687c696354d97aa7811b"
+      "sha256": "735e23f6fc72d4198d5e1ac7ede87b8badfb46aa76b5f8d5951b41a304f177fa"
     },
     {
       "state": "mismatch",
       "width": 1035,
       "height": 1020,
-      "sha256": "805afc5a96ed737130640610d595ac6100de99f4fafd443aec21df57353e1c67"
+      "sha256": "61f96c92fd2c328735ad945c1082889216c4d2d568adb896eb00a87b17610c61"
     },
     {
       "state": "download",
       "width": 1035,
       "height": 1020,
-      "sha256": "bc002499f23fbdc81d0b733674c23ba3038a916ee0b78e81db68254cd98e2a47"
+      "sha256": "92840b656405f6b239dc4c44aae74722da4ec6a33e259ccdc671d9be56e06beb"
     },
     {
       "state": "generation",
       "width": 1035,
       "height": 1020,
-      "sha256": "c1eb027fb5e5bebf549ea7b5cc96d1bea5770f8b11a80975232fb8268d8fd523"
+      "sha256": "c6a85c67ee4c357b1933164b062e19b18924dbaa539ddaf6bf2948482b4fc964"
     },
     {
       "state": "paused",
       "width": 1035,
       "height": 1020,
-      "sha256": "22c0a69d3602df384f82ecca312997ab0facfb9283d5da240159e745d173ccb9"
+      "sha256": "3c1b93f56a815c0c498674520cf37a679ae2dddbc42c677ac3fa4a28071c448b"
     },
     {
       "state": "disk-failure",
       "width": 1035,
       "height": 1020,
-      "sha256": "e1c1e78dff841440d054482fdca779a64cc9fb3ac831ac6bd51de9ea991d915d"
+      "sha256": "939903e8993ef98f9d7f995524f6bb6c7d32a98f8a1d3bd5ebf12f10c0693c7a"
     },
     {
       "state": "provider-failure",
       "width": 1035,
       "height": 1020,
-      "sha256": "c4e7c9da560acc6512256ecf928e5064ba6e72e8ece931e1c64aab9ec7ebd966"
+      "sha256": "86e924abb21a9ae6bf2834f5d813e012276a102b8fe7a02f8be065a19fc3d880"
     },
     {
       "state": "partial",
       "width": 1035,
       "height": 1020,
-      "sha256": "7103ddc0966a7db91f2a6622f9917a4512523d681424e3b89afeb93a36f27b37"
+      "sha256": "40368d06abf22f0581a55246204941cd658561fbefc1d55de075eee574afc819"
     },
     {
       "state": "verification-failure",
       "width": 1035,
       "height": 1020,
-      "sha256": "cb20d28c28e8a51030f5e38ed6ddd2d36e4d18cc0b2cbec8f91829658933e929"
+      "sha256": "64b0267763e2e0d89f5292053f7964e39d0ba4c5ddd30f77507b6c01599cd218"
     },
     {
       "state": "file-verification",
       "width": 1035,
       "height": 1020,
-      "sha256": "182bf1aeff896eb0c13da52b8cfe975666d5765ec9b410bc16161a8d277cdd09"
+      "sha256": "9a2c55228046c3d303333b07a728c3ac92b316031db45247f470a79be674370b"
     },
     {
       "state": "committing",
       "width": 1035,
       "height": 1020,
-      "sha256": "b53d43ee5373bb08f560510ba1a905bc414dd043e06ef187e72ec5c55297e483"
+      "sha256": "c616371db8b0d44c12406335c9c083356c9775806b92daa244fbb5f890b809dc"
     },
     {
       "state": "ready",
       "width": 1035,
       "height": 1020,
-      "sha256": "a51b9ab0ced3ed49bf1d6e7971c343c8b721bbe723afc6a997613405603fab44"
+      "sha256": "5f0a8c7ad1a69f450ca2ece30efb8eb2bfb61c62b0bcad63f303469a1038c4da"
     },
     {
       "state": "rollback",
       "width": 1035,
       "height": 1020,
-      "sha256": "ca62c1b18fb6001cc8c1b188113648ec19755e51fbb179c6d42ef971bb813249"
+      "sha256": "55e7753b6d79c6575145f3aa613deae0be69831059d9d6ba9e6945e5d26488f0"
     }
   ]
 }

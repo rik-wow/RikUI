@@ -4,6 +4,15 @@
 Updates to RikUI for WoW Forever. Versions with `beta` in their name are
 prereleases.
 
+## 1.0.0-beta.20
+
+2026-10-04. Start setup when you are ready.
+
+- Opening setup now shows an idle start screen. Choose Prepare and install to
+  begin checking your game, getting quest information and preparing routes.
+- Choosing a game or preparation folder no longer starts background checks.
+- Reopening setup keeps completed and paused work until you choose to continue.
+
 ## 1.0.0-beta.19
 
 2026-10-04. More reliable setup recovery.

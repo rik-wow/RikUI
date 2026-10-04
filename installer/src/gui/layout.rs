@@ -16,13 +16,7 @@ fn definitions() -> Vec<(&'static str, &'static str, i32, [i32; 4], u32)> {
             [32, 100, 606, 24],
             0,
         ),
-        (
-            "Static",
-            "Find your Forever game",
-            PHASE,
-            [32, 140, 606, 32],
-            0,
-        ),
+        ("Static", "Ready to start", PHASE, [32, 140, 606, 32], 0),
         ("Static", "&Forever game folder", 123, [32, 188, 606, 22], 0),
         (
             "Edit",
@@ -40,7 +34,7 @@ fn definitions() -> Vec<(&'static str, &'static str, i32, [i32; 4], u32)> {
         ),
         (
             "Static",
-            "Checking your game…",
+            "Your game will be checked when you start.",
             SUMMARY,
             [32, 260, 606, 42],
             0,
@@ -84,14 +78,14 @@ fn definitions() -> Vec<(&'static str, &'static str, i32, [i32; 4], u32)> {
         ),
         (
             "Static",
-            "Choose your game folder to begin.",
+            "Choose Prepare and install when you’re ready. Setup checks completed work before reusing it.",
             STATUS,
             [32, 544, 606, 62],
             0,
         ),
         (
             "Button",
-            "&Check again",
+            "&Check game",
             CHECK,
             [32, 610, 140, 28],
             WS_TABSTOP,

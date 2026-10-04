@@ -12,7 +12,7 @@
     "releases.mjs": "cc9b9b79e8a03413a2b9b8e831951241fdfdd5c54113fb4e819cc5bbfe6c5c87",
     "docs-generated.mjs": "0befbf5f8682811064877a1e51d9b33d71930189c5d93815469279ce9feb3784",
     "../docs/player/contributing.md": "c0ef639aaa299b46feb74c303656f2bd3851ec17809066b64666ce963558a169",
-    "../docs/player/installation.md": "24cbc13d26584a0d439a439175b497dad50fac2b65b7e6d1eefe71773b67a499",
+    "../docs/player/installation.md": "de40363b55adc3088f238315a30170dd4fe6ff74e328a9e90e5a43f5a6905263",
     "../docs/player/gear-goals.md": "435afb20f67aafea5e755538e50d1fe2c434539eb3267092a57058626af4e6fa",
     "../docs/player/questplanner.md": "4692912ebea5a41700540a3128741e60587bc6c84d2da8fe68041e9985cb6224",
     "../docs/player/banners.md": "c6a8dec3760b9c28c6646c33b1e6a47c84171a6e0643cfb44805b27c5c8b0c88",
@@ -37,7 +37,7 @@
       "route": "/docs/installation",
       "filename": "installation-390.png",
       "width": 390,
-      "sha256": "4d0aeb70cf7c339708452ddb107cee3dfc29718778ce8a9c4d36494f8b7c3bd5"
+      "sha256": "aeb901d94e15e079479665a34f5caa7f662fa1c504ca6b422618450729617307"
     },
     {
       "route": "/docs/gear-goals",
@@ -91,7 +91,7 @@
       "route": "/docs/installation",
       "filename": "installation-1440.png",
       "width": 1440,
-      "sha256": "36f208eb9aba7d4ec8786fc80875b1a78af5f2b7ff92e20dc7b6e81ce6611363"
+      "sha256": "77474af3848ba0644bb01e44d4da176eaa25229c93010230593d5afe9122b821"
     },
     {
       "route": "/docs/gear-goals",
@@ -130,13 +130,13 @@
       "sha256": "81dd2f50caa2e420fe5b6f560249ec924764f14ffd45b182f169a560c37e3c34"
     }
   ],
-  "captureRoot": "D:/RikUI-local/public-copy-beta19-review-1",
-  "reviewedAt": "2026-10-04T21:35:59Z",
-  "review": "All actual browser captures inspected at original size. Website prose addresses addon players and installation only; no internal instructions or developer commentary. No clipping at 390/1440 pixels.",
+  "captureRoot": "D:/RikUI-local/explicit-start-public-copy-review-1",
+  "reviewedAt": "2026-10-04T22:19:32Z",
+  "review": "Changed installation images inspected at original size. Unchanged public-page hashes retain the prior exact reviewed images. Player-facing instructions clearly require an explicit start; no internal or developer text. Native daily updates are accurately explained separately. Keyboard and layout checks pass at supported widths.",
   "reviewedSHA256s": [
     "1df070a82d4d5d6ef3f1c509813b999bda43f0d418d78e20c28d9441c5bf15e9",
     "09f71f91f2a96eb2f09ee06f6c10b032127e904a11d5a33d0fc8d053fb1bc961",
-    "4d0aeb70cf7c339708452ddb107cee3dfc29718778ce8a9c4d36494f8b7c3bd5",
+    "aeb901d94e15e079479665a34f5caa7f662fa1c504ca6b422618450729617307",
     "9b964e714dc3f8ae78286ce72c8a54984c28b1562167c2e72e3c3259a51e9604",
     "40d26b526b8c1e33c50644eed4a36193a296d7ab5aeef2480b36554a7e13183b",
     "e92d56672fab885d5d81534bd1b9ac8aa334b6193e3975e6c0cb1ae8b5a779be",
@@ -145,7 +145,7 @@
     "bf285c437d9d9bc326b8ba5b91217f1e31fa8a2df7cfe58731530d228c12434c",
     "e5c8e4e0b677be8a2fd0e10123cb909abf10d8605654481acda6aa4162bc6f64",
     "1bd138209cd66912b122e9ee740524052bd7d4663632100bf2dcbca406e08927",
-    "36f208eb9aba7d4ec8786fc80875b1a78af5f2b7ff92e20dc7b6e81ce6611363",
+    "77474af3848ba0644bb01e44d4da176eaa25229c93010230593d5afe9122b821",
     "4592ef770049df3aa2fd1ff86c291dabacdbc2c64d28f6d6f7d86e974772bea0",
     "83e468cb14828daf1c1c670ffc41633452a1cd7e7b54b1a369f97bda76572551",
     "36c83e9587b3f123c0244479f38efc3e9099c6b728c009f1881ae60fd7dccbf5",

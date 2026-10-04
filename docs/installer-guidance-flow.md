@@ -1,7 +1,7 @@
 # Local guide installer interface contract
 
 Interface contract for quest/navigation delivery. The native Win32 implementation
-and thirteen reviewed window states use this contract. Generation, installation
+and reviewed window states use this contract. Generation, installation
 and published artifact verification are recorded separately from visual review.
 
 Use Microsoft's [Fluent design guidelines](https://learn.microsoft.com/en-us/windows/apps/design/guidelines-overview)
@@ -18,24 +18,30 @@ Use a short headline explaining the player's next action and one visually
 dominant primary button. Put technical details behind an expandable details
 area. Advanced tool paths and raw schema names are not primary user choices.
 
-1. **Find your game.** Discover compatible installations and show the selected
-   directory, executable and current Forever version. Browse remains available.
-   Confirm compatibility against current publisher metadata before enabling
-   the next step. Explain mismatches with a concrete action such as
+1. **Ready to start.** Opening setup only shows the window and a saved or suggested
+   game folder. The primary **Prepare and install** button is available. Opening,
+   reopening paused setup, typing a game folder or choosing either folder must
+   not start an update check, acquisition, preparation or installation. Say
+   “Choose Prepare and install when you're ready.” Keep the progress bar idle.
+2. **Find your game.** After an explicit **Prepare and install** or **Check game**
+   action, discover the current compatible installation and confirm its executable,
+   directory and version against current publisher metadata. Browse remains
+   available while idle. Mandatory compatibility verification precedes acquisition
+   and installation. Explain mismatches with a concrete action such as
    “Update Forever in Battle.net, then check again.”
-2. **Get quest information.** Explain the separately obtained provider by name,
+3. **Get quest information.** Explain the separately obtained provider by name,
    publisher and purpose: it supplies quest targets and locations.
    Offer the supported publisher acquisition path and validate the required
    source/contract. An installed provider ZIP must not be presented as
    interchangeable with a source checkout. Show download size and destination
    when known. The player must not install Git, Python, Node or database tools.
-3. **Prepare your guide.** Explain that navigation is generated on this computer
+4. **Prepare your guide.** Explain that navigation is generated on this computer
    from the player's current game files. Show measured phases and units:
    download bytes, inspected files, completed/total generation jobs, verification,
    then installation. Show an indeterminate indicator only when the total is
    unknown. Do not produce fabricated overall percentages or completion times.
    Show measured elapsed cost; show an estimate only with a defensible model.
-4. **Ready to play.** Show verified installed version, quest coverage, built regions,
+5. **Ready to play.** Show verified installed version, quest coverage, built regions,
    remaining unsupported coverage and how updates are checked. The complete
    success state requires verified assembly and installed-byte checks. A partial
    region build must use a visibly different state, **Guide partially prepared**,

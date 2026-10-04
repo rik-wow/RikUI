@@ -3,7 +3,7 @@
   "origin": "http://127.0.0.1:8787",
   "version": "1.0.0-beta.19",
   "sources": {
-    "install-page.mjs": "02cfa4d00f8e8c4bd84e056f66ba705628fb2fe84635a4346ae7749c13512ba4",
+    "install-page.mjs": "055b5d11c5dd8ac82c2ba57a82c47a60a4b7746a44fb76576fa70b0d4b6d9f12",
     "releases.mjs": "cc9b9b79e8a03413a2b9b8e831951241fdfdd5c54113fb4e819cc5bbfe6c5c87",
     "studio-styles.mjs": "470a1dd3a3bd28c5859296be02c6a5dcf98fe68203023d8cca7ad8a65592237a",
     "capture-install.mjs": "f2c95914f20a961a03b1ec5f0d4c6128ae67769e745257a07b83b6bb59ebcbab"
@@ -13,35 +13,35 @@
       "filename": "install-390-closed.png",
       "width": 390,
       "state": "closed",
-      "sha256": "325e353465d0e949ac2f7fd7d409dadd6cb0be9ed1139534e469b0b29b030368"
+      "sha256": "bac7afb09b8cf8f32342e03ea99056a6bdecc8ec90d3b55deaa17084ba4b76f3"
     },
     {
       "filename": "install-390-measured-cost.png",
       "width": 390,
       "state": "measured-cost",
-      "sha256": "64f16a9e65a1ea0a4fdb467b0e03bb5044fe0c11d2a9f44784572b3e93b40cb6"
+      "sha256": "0705f8979846b39f4f85e7153887567a79cffa23dc7b2d29abd458ae17696b09"
     },
     {
       "filename": "install-1440-closed.png",
       "width": 1440,
       "state": "closed",
-      "sha256": "059364548a118c957bcd3539f50ea7a704c51baf468b50643f72a3584d6446b8"
+      "sha256": "edf2c6e8a5a1a532d0bdc0531acfd855731beacdf21d2e123e1a1b4ceb09b795"
     },
     {
       "filename": "install-1440-measured-cost.png",
       "width": 1440,
       "state": "measured-cost",
-      "sha256": "8c99046ac79d7adbe78452c311e099de1a2940a6d4a5450f0ec8c2a2e92e2cdd"
+      "sha256": "6b6f69684c4eaab9bbce19994cbd05fd930f498964230bcdf88d21f305057148"
     }
   ],
-  "captureRoot": "D:/RikUI-local/install-page-beta19-review-1",
-  "reviewedAt": "2026-10-04T21:35:59Z",
-  "review": "All actual browser captures inspected at original size. Website prose addresses addon players and installation only; no internal instructions or developer commentary. No clipping at 390/1440 pixels.",
+  "captureRoot": "D:/RikUI-local/explicit-start-install-copy-review-1",
+  "reviewedAt": "2026-10-04T22:19:32Z",
+  "review": "Changed installation images inspected at original size. Unchanged public-page hashes retain the prior exact reviewed images. Player-facing instructions clearly require an explicit start; no internal or developer text. Native daily updates are accurately explained separately. Keyboard and layout checks pass at supported widths.",
   "reviewedSHA256s": [
-    "325e353465d0e949ac2f7fd7d409dadd6cb0be9ed1139534e469b0b29b030368",
-    "64f16a9e65a1ea0a4fdb467b0e03bb5044fe0c11d2a9f44784572b3e93b40cb6",
-    "059364548a118c957bcd3539f50ea7a704c51baf468b50643f72a3584d6446b8",
-    "8c99046ac79d7adbe78452c311e099de1a2940a6d4a5450f0ec8c2a2e92e2cdd"
+    "bac7afb09b8cf8f32342e03ea99056a6bdecc8ec90d3b55deaa17084ba4b76f3",
+    "0705f8979846b39f4f85e7153887567a79cffa23dc7b2d29abd458ae17696b09",
+    "edf2c6e8a5a1a532d0bdc0531acfd855731beacdf21d2e123e1a1b4ceb09b795",
+    "6b6f69684c4eaab9bbce19994cbd05fd930f498964230bcdf88d21f305057148"
   ]
 }
 

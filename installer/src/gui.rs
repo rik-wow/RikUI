@@ -61,7 +61,6 @@ struct App {
     result: Option<mpsc::Receiver<Result<Finished, String>>>,
     smoke: bool,
     fixture: Option<serde_json::Value>,
-    verified: bool,
     preparing: bool,
     close_when_done: bool,
     fonts: [HFONT; 3],
@@ -167,10 +166,19 @@ unsafe fn busy(hwnd: HWND, app: *mut App, enabled: bool, preparing: bool) {
     for id in [PATH, BROWSE, INSTALL, ROLLBACK, CHECK, CACHE] {
         EnableWindow(GetDlgItem(hwnd, id), (!enabled) as i32);
     }
-    if !enabled {
-        EnableWindow(GetDlgItem(hwnd, INSTALL), (*app).verified as i32);
-    }
     EnableWindow(GetDlgItem(hwnd, PAUSE), (enabled && preparing) as i32);
+}
+unsafe fn idle(hwnd: HWND) {
+    label(hwnd, PHASE, "Ready to start");
+    label(hwnd, SUMMARY, "Your game will be checked when you start.");
+    label(hwnd, INSTALL, "&Prepare and install");
+    label(
+        hwnd,
+        STATUS,
+        "Choose Prepare and install when you're ready. Setup checks completed work before reusing it.",
+    );
+    label(hwnd, METRICS, "");
+    show_progress(hwnd, Display::Idle);
 }
 unsafe fn selected(hwnd: HWND) -> PathBuf {
     let control = GetDlgItem(hwnd, PATH);
@@ -189,7 +197,7 @@ unsafe fn start(hwnd: HWND, app: *mut App, operation: Operation) {
         label(
             hwnd,
             STATUS,
-            "Choose the folder containing your current Forever client, then Check again.",
+            "Choose the folder containing your current Forever client, then choose Prepare and install.",
         );
         return;
     }
@@ -389,11 +397,8 @@ unsafe extern "system" fn procedure(
                     INSTALL,
                     value["action"].as_str().unwrap_or("Prepare and install"),
                 );
-                (*app).verified = value["verified"].as_bool().unwrap_or(false);
                 busy(hwnd, app, value["busy"].as_bool().unwrap_or(false), true);
                 refresh_status(hwnd, &(*app).root);
-            } else if !(*app).smoke {
-                start(hwnd, app, Operation::Probe);
             }
             0
         }
@@ -403,28 +408,26 @@ unsafe extern "system" fn procedure(
                 return 0;
             }
             match (wparam & 0xffff) as i32 {
+                PATH if (wparam >> 16) as u32 == EN_CHANGE && (*app).result.is_none() => idle(hwnd),
                 BROWSE => {
                     if let Some(path) = pick(hwnd)
                         && let Some(folder) = path.parent()
                     {
                         label(hwnd, PATH, &folder.to_string_lossy());
-                        (*app).verified = false;
-                        start(hwnd, app, Operation::Probe);
+                        idle(hwnd);
                     }
                 }
                 CACHE => {
                     if let Some(folder) = layout::pick_folder(hwnd) {
                         match setup::choose_cache(&(*app).root, &folder) {
                             Ok(()) => {
-                                (*app).verified = false;
-                                start(hwnd, app, Operation::Probe);
+                                idle(hwnd);
                             }
                             Err(problem) => error(hwnd, &problem.to_string()),
                         }
                     }
                 }
                 CHECK => {
-                    (*app).verified = false;
                     start(hwnd, app, Operation::Probe);
                 }
                 INSTALL => start(hwnd, app, Operation::Install),
@@ -519,7 +522,6 @@ unsafe extern "system" fn procedure(
                         }
                     }
                     Ok(Finished::Probe(value)) => {
-                        (*app).verified = true;
                         if let Some(folder) =
                             value["resolution"]["installation"]["directory"].as_str()
                         {
@@ -550,7 +552,6 @@ unsafe extern "system" fn procedure(
                         );
                     }
                     Ok(Finished::Installed(text)) => {
-                        (*app).verified = true;
                         label(hwnd, PHASE, "Ready to play");
                         label(hwnd, STATUS, &text);
                         progress(hwnd, 100, 100);
@@ -655,7 +656,6 @@ pub fn run() {
             root,
             result: None,
             smoke: std::env::args().any(|arg| arg == "--smoke-test"),
-            verified: false,
             preparing: false,
             close_when_done: false,
             fonts: [null_mut(); 3],
