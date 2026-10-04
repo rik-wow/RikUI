@@ -43,7 +43,7 @@ try{
   }
   if(!head||head.size!==row.bytes||head.customMetadata?.sha256!==digest)throw Error("Immutable published metadata differs: "+key);
   const object=await platform.env.RELEASES.get(key,{onlyIf:{etagMatches:head.etag}});
-  if(!object?.body||sha(Buffer.from(await object.arrayBuffer()))!==digest)throw Error("Published storage bytes differ: "+key);
+  if(!object||sha(Buffer.from(await object.arrayBuffer()))!==digest)throw Error("Published storage bytes differ: "+key);
   artifacts.push(row);
  }
 }finally{await platform.dispose();}

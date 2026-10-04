@@ -2,6 +2,10 @@
 
 Reviewed 2026-10-04 UTC in response to the request to get past the data licensing blocker.
 
+This document preserves the acquisition research and original delivery plan.
+See [current implementation and delivery evidence](quest-navigation-current-evidence.md)
+for executed generation, installation, operating updates and release verification.
+
 ## Recommendation
 
 Deliver the complete guide and navigation through a supported local assembly

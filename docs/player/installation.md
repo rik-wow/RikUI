@@ -14,6 +14,14 @@ An installed QuestieDB ZIP is not a source checkout. Setup gets the supported so
 
 **View details** lists your verified build, preparation folder, quest counts, prepared regions, coverage limits, logs and backups. Current client quest IDs missing provider objectives stay unknown. Provider information can lag the server; unsupported phases, floors, physics and projections are explicit. Transport times are estimates.
 
+## Preparation cost and current coverage
+
+The October 4, 2026 reference run on a Ryzen 9 7950X3D took **about 74 minutes** for retained terrain/route preparation and verification with four workers, after initial acquisition and quest composition. Current game input acquisition took 7.7 minutes separately. All 2,290 terrain jobs verified, including 47 reused after a pause. Setup normally uses two workers; downloads, quest composition and your hardware affect total time.
+
+The currently verified regions are **Eastern Kingdoms, Kalimdor, Zephras Isle, Darkspear Islands, Alterac Valley, Warsong Gulch and Arathi Basin**. This is the supported regional set, with floors, phases, physics and projection gaps still explicit. It does not establish navigation for other maps or instances.
+
+All eighteen supported provider variants were composed. The provider contains 5,009 quest records; 2,324 additional current client IDs lack provider semantics and remain unknown. Inventory membership is not proof that a quest is available to your character.
+
 ## First login
 
 Open `/rik config` to customize the interface. Appearance offers themes and readability choices; feature pages have enable switches and their own settings. Use `/rik move` to arrange frames.
@@ -25,6 +33,8 @@ Use `/rik setup` for the separate character wizard: role, keys, action-bar prese
 Setup checks the published installer channel and the latest Forever client, provider and schema inputs at startup and update. A daily Windows task, **RikUI Current Forever Updates**, repeats those checks. Changed inputs rebuild affected products. Unchanged files are reused only after their bytes and current compatibility verify.
 
 Keep Forever updated through Battle.net. A version mismatch asks you to update and check again. Setup discovers the current executable, product and directory; it does not require the beta folder to survive release. New client builds require current compatible data, and stale guidance is withheld. Future builds are verified when available.
+
+If an update needs more disk space, choose **Preparation folder** on a roomier drive. Setup keeps completed data in its original folders and verifies it before reuse; keep those folders available. Incomplete work remains on the previous drive. Existing files in the chosen folder are preserved.
 
 A paused preparation stays paused until you explicitly resume. Network, provider, schema, space or generation failures preserve your existing installation and local files. Follow the explanation, then reopen setup to retry. If WoW is running, prepared work waits for it to close.
 

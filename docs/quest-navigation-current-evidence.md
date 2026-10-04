@@ -7,12 +7,12 @@ and cross-checks the selected client again.
 The Forever branch head e3ecc27b64d30fdc735a3f6579b866858f9f9df1 and
 version.txt agree with the selected executable and active .build.info product
 on 1.60.1.70205. The current product is wow_classic_beta. The resolution
-fingerprint is 420c027aeb714385e18055efb210755e1c8327fc2238a49d94e739829635903d.
+fingerprint is a8f1d72d04cdd9937b0f38cf418418c1df952b93d8732c6292fb24e20c52857e.
 The active build configuration is 842b2e5d11f8d6fe257a5b73bd5cf6c6.
 
 Separately obtained QuestieDB source at
 6e7aa495a087ad7d934c0fff800753ec24db5f9d and Questie holiday source at
-e7a9077482ed7b3fca09dc2d8c9ce3c8e7bb04ba supply the offline export. All eighteen
+70c822e3ef787987be413d0e54904b50907d89c4 supply the offline export. All eighteen
 supported player variants were exported. The provider contains 5,009 quests,
 13,309 NPCs, 21,159 items and 6,967 objects, with nine locales. Composed
 objectives, relationship, eligibility, acquisition and supporting fields keep
@@ -23,7 +23,7 @@ Current QuestV2 contains 6,609 IDs. The union contains 7,333 quests, including
 2,324 client-only IDs without provider semantics and 724 provider-only IDs.
 Membership is supplementary evidence, not an invented objective database.
 The corpus revision is
-75c0cd784812c81e826b18389b60032f10f30876c9adade3151feacabb45e97a.
+4833490ee9ba28695f1a298ac74dec15aca7d704073f596362fb28acb7c2ddc8.
 Its audit records 655 conflicts and 100,586 unknown occurrences; these are not
 claimed as verified server behavior.
 
@@ -50,15 +50,45 @@ Four actual Lua navigation replays on maps 1426, 1429, 1411 and 1438 followed
 five-yard approach where the goal is outside a mesh patch. A* agrees with
 Dijkstra for tested connected and disconnected world-zero/world-one pairs.
 The actual deferred corpus loads all eighteen selectors and 226 partitions;
-a changed client identity rejects guidance. Consumer installation, operating
-daily checks and publication remain separate pending delivery requirements.
+a changed client identity rejects guidance.
 
 The clean packaged consumer run independently acquired current inputs and
 exported the same provider bytes without developer Git/Python/Node in PATH.
-It completed its corpus and demonstrated retained pause/retry. An observed
-Windows progress-sharing failure was fixed with bounded retries in the worker
-and scheduler; the failure and completed jobs remain retained. Consumer
-generation is continuing. All producing tool hashes still verify before reuse.
+It completed all eighteen variants, 226 corpus partitions, 2,290 terrain jobs
+and the seven supported worlds. Its independent road receipt SHA-256 is
+6c0baa6d5a015296567c277f2447912b3cc01c5276530bc44c51a819fab5951a.
+All 12,198 installable navigation files passed byte verification and four
+actual Lua routes passed again. Pause/resume retained 47 completed terrain
+jobs. An observed Windows progress-sharing failure was fixed with bounded
+retries; the failed attempt and completed jobs remain retained.
+
+On a Ryzen 9 7950X3D, a retained four-worker run took 4,461.3 seconds after
+initial acquisition and quest composition. Reading current game inputs took
+461.4 seconds separately. These are measured phase costs, not a promise of
+download-to-play time. The consumer default is two workers. First preparation
+requires at least 80 GiB free, plus retained generations and backups.
+
+The isolated public executable completed first installation, unchanged
+installation, invalid-client failure and restored-client recovery with no
+developer tools in PATH. The relocated release-directory fixture used a
+different executable name rather than assuming the beta directory survives.
+
+Actual current-client installation verified 12,997 owned files across seven
+addon roots and six patch packs. Preservation checks verified 545 settings
+files, 899 source files, 110 unowned addon files and 12,623 original owned-root
+files in the retained first backup. The registered Windows daily task executed
+successfully against unchanged inputs in 186.8 seconds, without adding a
+backup. It checks the published setup channel and freshly resolves client,
+provider and schema inputs. Changed-input fixtures verify affected rebuilds;
+unchanged-input fixtures and this actual task run verify byte-checked reuse.
+
+The final retained-file progress run used the packaged controller with no
+developer tools in PATH. It reported 301 measured progress samples, preserved
+the corpus, bakes, road receipt and bundle bytes, and completed in 372.5 seconds.
+Cancellation during verification preserves valid completed work. Native
+interface review covers thirteen actual Rust window states, including the
+verified-file counter; changed images were inspected at original size and
+only exact reviewed hashes promoted. Addon UI source is unchanged.
 
 Recorded checks cover publisher boundaries, current client discovery,
 changed-input corpus rebuild, unchanged-input reuse, placement/geometry,

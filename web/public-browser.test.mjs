@@ -26,6 +26,18 @@ for(const width of [390,1440]){
   await expect(page.getByRole("heading",{level:1})).toHaveText("Your quest guide and routes");
   await expect(page.getByRole("heading",{name:"Four simple steps"})).toBeVisible();
   await expect(page.locator("main ol li")).toHaveCount(4);
+  const releases=await (await page.request.get("/api/v1/releases")).json();
+  if(releases.installer){
+   const download=page.getByRole("link",{name:"Download RikUI setup for Windows"});
+   await expect(download).toHaveAttribute("href",releases.installer.url);
+   await download.focus();await expect(download).toBeFocused();
+  }
+  const measured=page.getByText("Measured preparation example",{exact:true});
+  await measured.focus();await page.keyboard.press("Enter");
+  await expect(page.getByText(/about 74 minutes/)).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText(/about 74 minutes/)).not.toBeVisible();
+  await page.goto("/install");
   await expect(page.getByRole("heading",{name:"What coverage means"})).toBeVisible();
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   await page.keyboard.press("Tab");

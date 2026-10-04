@@ -69,7 +69,7 @@ Before adding a release, verify the downloaded setup with
 Then run `node web/publish-release.mjs --directory <download-folder> --proof <new-proof-folder>/evidence.json --version <version> --output <new-storage-receipt>`.
 The publisher uses the documented Wrangler platform proxy with an explicitly remote binding to the existing release bucket. It accepts only the program, manifest, checksums and notices, creates immutable keys conditionally, sets SHA-256 metadata, and reads back every byte. `--check-only` performs read-only preflight. Matching authored source is available at the annotated GitHub release tag; separately acquired datasets are excluded.
 Add reviewed catalog entries from the storage receipt with path, key, bytes, sha256, filename and contentType.
-Verify GET, HEAD, ranges and digest against production. For a bad release,
+Run `node web/verify-published.mjs --origin https://rikwow.com --output <new-proof-directory>` to download and hash all four approved setup artifacts, compare the live catalog and installation pages, and verify HEAD, byte ranges and conditional responses. The receipt retains the actual downloads and their digests. Verify those downloaded executable bytes again with `tools/verify_public_setup.py` before installation evidence is finalized. For a bad release,
 remove its catalog entry and redeploy; preserve artifacts for diagnosis.
 Roll back website code by deploying the preceding reviewed commit.
 
