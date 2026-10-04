@@ -40,6 +40,17 @@ return function(check)
     local n=#w.blocks
     for i=1,10 do g.View.Refresh()end
     check("Gear detail furniture bounded across refreshes",#w.blocks==n)
+    local character,mainHand=CharacterFrame,CharacterMainHandSlot
+    CharacterFrame=CreateFrame("Frame",nil,UIParent)
+    CharacterMainHandSlot=CreateFrame("Button",nil,CharacterFrame)
+    local equipAction=function()end;CharacterMainHandSlot:SetScript("OnClick",equipAction)
+    g.AttachCharacter()
+    env.runScript(g.View.CharacterEntry,"OnClick")
+    check("Gear character entry opens the shared browser",w:IsShown())
+    env.runScript(g.View.Badges[16],"OnClick")
+    check("Gear character slot entry chooses its equipment slot",g.View.slot==16)
+    check("Gear slot entry preserves native equipment action",CharacterMainHandSlot:GetScript("OnClick")==equipAction)
+    CharacterFrame,CharacterMainHandSlot=character,mainHand
     env.runScript(w,"OnKeyDown","TAB")
     check("Gear keyboard can reach search",w.search.keyboard~=false)
     env.runScript(w,"OnKeyDown","ESCAPE")
