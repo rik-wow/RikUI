@@ -12,7 +12,7 @@ def merge(source,destination,ids):
     incoming=json.loads((source/"manifest.json").read_text(encoding="utf-8"))
     destination.mkdir(parents=True,exist_ok=True)
     manifest=json.loads((destination/"manifest.json").read_text(encoding="utf-8")) if (destination/"manifest.json").exists() else {**incoming,"renders":[]}
-    cases={c["id"]:c for c in json.loads(Path(__file__).with_name("scenarios.json").read_text())}
+    cases={c["id"]:c for c in json.loads(Path(__file__).with_name("scenarios.json").read_text(encoding="utf-8"))}
     records={c["id"]:c for c in incoming["renders"]}
     selected=[records[name] for name in ids] if ids else incoming["renders"]
     errors=[];verify_environment({"renders":selected},errors)

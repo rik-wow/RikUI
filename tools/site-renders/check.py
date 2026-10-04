@@ -110,9 +110,13 @@ def verify_capture(case, capture, expected, directory, errors, hashes):
     """`expected` is the tree part of the inputs rebuilt from the repository for this scenario."""
     recorded = capture.get("inputs") or {}
     reasons = [name for name in TREE_FIELDS if recorded.get(name) != expected.get(name)]
-    if any(capture.get(key) != value for key, value in scenario_record(case).items()) \
-            or any(key in capture for key in SCENARIO_KEYS if key not in case):
-        reasons.append("scenario")
+    scenario_fields = [key for key, value in scenario_record(case).items() if capture.get(key) != value]
+    scenario_fields += [key for key in SCENARIO_KEYS if key in capture and key not in case]
+    if scenario_fields:
+        detail = ", ".join(scenario_fields)
+        if "title" in scenario_fields:
+            detail += ": " + repr(capture.get("title"))[:160] + " != " + repr(case.get("title"))[:160]
+        reasons.append("scenario (" + detail + ")")
     if reasons:
         errors.append(f"Stale capture {case['id']}: " + ", ".join(reasons))
     if bool(case.get("sequence")) != bool(capture.get("frames")):

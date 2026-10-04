@@ -367,7 +367,7 @@ class EvidenceChecks(unittest.TestCase):
 
     def test_changed_scenario(self):
         self.case["title"] = "New state"
-        self.assertTrue(any("Stale capture sample: scenario" in error for error in self.errors()))
+        self.assertTrue(any("Stale capture sample: scenario (title" in error for error in self.errors()))
 
     def test_historical_environments_remain_valid_but_missing_provenance_fails(self):
         from check import verify_environment
@@ -417,6 +417,28 @@ class EvidenceChecks(unittest.TestCase):
         self.assertEqual([e for e in self.errors() if "Stale" not in e], [])
         self.capture["frames"].pop()
         self.assertTrue(any("Sequence values changed" in error for error in self.errors()))
+
+class MergeEncodingChecks(unittest.TestCase):
+    def test_utf8_scenarios_merge_under_non_utf8_windows_locale(self):
+        import merge
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, destination = root / "source", root / "destination"
+            source.mkdir()
+            (source / "manifest.json").write_text('{"renders": []}', encoding="utf-8")
+            (root / "scenarios.json").write_text(
+                json.dumps([{"id": "gear", "title": "Gear goals · acquired"}], ensure_ascii=False),
+                encoding="utf-8")
+            read_text = Path.read_text
+            def locale_read(path, *args, **kwargs):
+                if not args and kwargs.get("encoding") is None:
+                    kwargs["encoding"] = "ascii"
+                return read_text(path, *args, **kwargs)
+            with patch.object(merge, "__file__", str(root / "merge.py")), \
+                    patch.object(Path, "read_text", locale_read), \
+                    patch.object(merge, "current_addon_files", return_value={}):
+                merge.merge(source, destination, [])
+            self.assertTrue((destination / "manifest.json").is_file())
 
 class ModuleChecks(unittest.TestCase):
     def test_real_modules_resolve_every_catalogued_scenario(self):
