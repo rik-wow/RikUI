@@ -238,6 +238,93 @@ class Tests(unittest.TestCase):
                 with self.subTest(section=section),self.assertRaisesRegex(ValueError,"not current"):
                     local.verify_current_corpus(corpus,self.resolution,index)
 
+    def publisher_fixture(self,key,repository,revision=None,folder=None):
+        revision=revision or self.resolution["inputs"]["sources"][key]["revision"]
+        folder=folder or self.root/"original-preparation"/(key+"-"+revision)
+        folder.mkdir(parents=True)
+        (folder/"source.lua").write_bytes(b"current publisher fixture")
+        local.atomic(folder/".rikui-source.json",dict(format=local.source_archive.FORMAT,
+            repository=repository,revision=revision,files=local.source_archive.inventory(folder)))
+        return folder
+
+    def test_retained_sources_verify_in_original_folder_without_copy_or_download(self):
+        for key,repository in (("provider","Questie/QuestieDB"),("events","Questie/Questie")):
+            retained=self.publisher_fixture(key,repository)
+            self.previous[key+"Root"]=str(retained)
+            revision=self.resolution["inputs"]["sources"][key]["revision"]
+            with patch.object(local.source_archive,"acquire",side_effect=AssertionError("No download")):
+                selected=self.worker.publisher_source(self.previous,key,repository,revision)
+            self.assertEqual(selected,retained)
+            self.assertFalse((self.worker.cache/(key+"-"+revision)).exists())
+            self.assertEqual((retained/"source.lua").read_bytes(),b"current publisher fixture")
+
+    def test_foreign_corrupt_and_obsolete_sources_are_preserved_and_reacquired(self):
+        revision=self.resolution["inputs"]["sources"]["provider"]["revision"]
+        for condition in ("foreign","corrupt","obsolete"):
+            with self.subTest(condition=condition):
+                retained=self.publisher_fixture("provider","Questie/Questie" if condition=="foreign" else "Questie/QuestieDB",
+                    "f"*40 if condition=="obsolete" else revision, self.root/condition)
+                if condition=="corrupt":(retained/"source.lua").write_bytes(b"preserve amended source")
+                self.previous["providerRoot"]=str(retained)
+                before=(retained/"source.lua").read_bytes()
+                target=self.worker.cache/("provider-"+revision)
+                self.worker.fresh=Mock()
+                def obtain(repository,head,output):
+                    self.assertEqual((repository,head),("Questie/QuestieDB",revision))
+                    return local.source_archive.verify(self.publisher_fixture("provider",repository,head,output),head)
+                with patch.object(local.source_archive,"acquire",side_effect=obtain) as acquire:
+                    selected=self.worker.publisher_source(self.previous,"provider","Questie/QuestieDB",revision)
+                self.assertEqual(selected,target)
+                acquire.assert_called_once_with("Questie/QuestieDB",revision,target)
+                self.worker.fresh.assert_called_once()
+                self.assertEqual((retained/"source.lua").read_bytes(),before)
+                # Keep each acquired fixture; the next case uses another preparation folder.
+                self.worker.cache=self.root/("cache-"+condition);self.worker.cache.mkdir()
+
+    def test_reused_corpus_still_retains_actual_publisher_roots_during_road_update(self):
+        import time
+        acquisition=self.root/"acquisition";acquisition.mkdir()
+        (acquisition/"placements.sqlite").write_bytes(b"verified index fixture")
+        corpus=self.root/"corpus";corpus.mkdir()
+        self.previous.update(acquisition=str(acquisition),corpus=str(corpus),bakes=str(self.root/"bakes"))
+        for key,repository in (("provider","Questie/QuestieDB"),("events","Questie/Questie")):
+            self.previous[key+"Root"]=str(self.publisher_fixture(key,repository))
+        local.atomic(self.worker.cache/"latest.json",self.previous)
+        self.worker.runtime=self.root/"runtime";self.worker.start=time.monotonic();self.worker.env={}
+        self.worker.reusable=Mock(return_value=True)
+        self.worker.publisher_source=Mock(wraps=self.worker.publisher_source)
+        self.worker.run=Mock(side_effect=InterruptedError("Pause before terrain verification"))
+        receipt=dict(identity=self.resolution["inputs"]["identity"],profileSHA256="a"*64)
+        with patch.object(current,"download",return_value=current.canonical(self.meta("new-tag"))), \
+                patch.object(local,"verify_acquisition",return_value=receipt), \
+                patch.object(local,"verify_current_corpus"),patch.object(local,"verify_index",return_value=dict(sha256="b"*64)), \
+                patch.object(local.source_archive,"acquire",side_effect=AssertionError("No source copy")), \
+                patch.object(local.shutil,"disk_usage",return_value=Mock(free=20*1024**3)):
+            with self.assertRaisesRegex(InterruptedError,"Pause before terrain"):self.worker.prepare()
+        self.assertEqual(self.worker.publisher_source.call_count,2)
+        self.assertEqual(self.worker.run.call_args.args[0],"terrain/world_bake_parallel.py")
+        self.assertFalse(any(path.name.startswith(("provider-","events-")) for path in self.worker.cache.iterdir()))
+
+    def test_newer_checkpoint_resumes_alongside_older_complete_generation(self):
+        candidate=self.worker.cache/"job-completed-current-roads";candidate.mkdir()
+        (candidate/"completed-road").write_bytes(b"preserve current completed work")
+        old_tools=dict(self.worker.tools,**{"tools/local_assembly.py":"a"*64})
+        self.worker.tools=dict(self.worker.tools,**{"tools/local_assembly.py":"b"*64})
+        checkpoint=dict(format="rikui-preparation-checkpoint-v1",job=str(candidate),
+            resolution=self.resolution,tools=old_tools,baseSHA256="d"*64,
+            listfileIdentity=local.listfile_identity(self.meta("new-tag")))
+        local.atomic(self.worker.cache/"preparing.json",checkpoint)
+        self.previous["acquisition"]=str(self.root/"retained-acquisition")
+        local.atomic(self.worker.cache/"latest.json",self.previous)
+        self.worker.reusable=Mock(side_effect=InterruptedError("Pause at independently verified acquisition"))
+        with patch.object(current,"download",return_value=current.canonical(self.meta("new-tag"))), \
+                patch.object(local.shutil,"disk_usage",return_value=Mock(free=20*1024**3)):
+            with self.assertRaisesRegex(InterruptedError,"independently verified acquisition"):self.worker.prepare()
+        self.assertEqual(self.worker.job,candidate)
+        self.assertEqual((candidate/"completed-road").read_bytes(),b"preserve current completed work")
+        self.assertEqual(json.loads((self.worker.cache/"latest.json").read_bytes()),self.previous)
+        self.assertEqual(json.loads((self.worker.cache/"preparing.json").read_bytes())["tools"],self.worker.tools)
+
     def test_verified_unchanged_update_is_actual_noop(self):
         self.worker.run=Mock(side_effect=AssertionError("No build should run"))
         with self.metadata():result=self.worker.prepare()

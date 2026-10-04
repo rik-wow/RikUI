@@ -377,6 +377,24 @@ class Assembly:
             folder.rename(parent/(folder.name+"-retained-"+str(time.time_ns())))
             return False
 
+    def publisher_source(self,previous,key,repository,revision):
+        """Keep independently verified current sources in their retained folders."""
+        def verified(folder):
+            receipt=source_archive.verify(folder,revision)
+            if receipt["repository"]!=repository:raise ValueError("Unexpected source publisher")
+        if previous and previous["resolution"]["inputs"]["sources"][key]["revision"]==revision:
+            retained=previous.get(key+"Root")
+            if retained:
+                try:verified(retained)
+                except (OSError,ValueError,KeyError,TypeError):pass
+                else:return Path(retained)
+        folder=self.cache/(key+"-"+revision)
+        if not self.reusable(folder,verified):
+            self.fresh()
+            source_archive.acquire(repository,revision,folder)
+        verified(folder)
+        return folder
+
     def listfile(self,meta):
         asset=next(row for row in meta["assets"] if row["name"]=="community-listfile.csv")
         url=asset["browser_download_url"]
@@ -465,7 +483,7 @@ class Assembly:
             verify_acquisition(prior_job/"acquisition",self.resolution)
             atomic(preparing,dict(format="rikui-preparation-checkpoint-v1",job=str(prior_job),resolution=self.resolution,
                 tools=prior_tools,baseSHA256=self.base_sha,listfileIdentity=list_identity))
-        if not previous and preparing.exists():
+        if preparing.exists():
             try:
                 checkpoint=json.loads(current.read_metadata(preparing))
                 candidate=checkpoint_job(self.cache,checkpoint,self.resolution,self.tools,self.base_sha,list_identity)
@@ -509,14 +527,10 @@ class Assembly:
         self.report("Downloading QuestieDB source separately from its publisher, then composing all supported player variants.")
         corpus=Path(previous["corpus"]) if previous and "corpus" not in scopes else self.job/"corpus"
         sources=self.resolution["inputs"]["sources"]
-        provider=self.cache/("provider-"+sources["provider"]["revision"])
-        events=self.cache/("events-"+sources["events"]["revision"])
+        provider=self.publisher_source(previous,"provider","Questie/QuestieDB",sources["provider"]["revision"])
+        events=self.publisher_source(previous,"events","Questie/Questie",sources["events"]["revision"])
         client_index=acquisition/"db2"/("QuestV2-"+receipt["identity"]["build"]+".csv")
         if not self.reusable(corpus,lambda folder:verify_current_corpus(folder,self.resolution,client_index)):
-            self.reusable(provider,lambda folder:source_archive.verify(folder,sources["provider"]["revision"]))
-            self.reusable(events,lambda folder:source_archive.verify(folder,sources["events"]["revision"]))
-            self.fresh();source_archive.acquire("Questie/QuestieDB",sources["provider"]["revision"],provider)
-            self.fresh();source_archive.acquire("Questie/Questie",sources["events"]["revision"],events)
             export=self.job/"provider.json"
             export_manifest=export.with_suffix(".manifest.json")
             if export.exists() and (not export_manifest.exists() or

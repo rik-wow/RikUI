@@ -4,6 +4,15 @@
 Updates to RikUI for WoW Forever. Versions with `beta` in their name are
 prereleases.
 
+## 1.0.0-beta.19
+
+2026-10-04. More reliable setup recovery.
+
+- Updates keep using verified quest sources in their original preparation folders.
+- Retrying setup resumes compatible completed work, including when an earlier
+  installation is already available.
+- Includes the smoother progress bar from beta.18.
+
 ## 1.0.0-beta.18
 
 2026-10-04. Smoother setup progress.
