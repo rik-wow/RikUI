@@ -321,7 +321,10 @@ class Assembly:
         last=float("-inf")
         def verified(done,total):
             nonlocal last
-            if self.cancel.exists():raise InterruptedError("Preparation paused. Verified completed work is retained.")
+            # Pausing generation still permits read-only current-input/byte checks.
+            # The marker remains in place and every producing phase still honours it.
+            if self.cancel.exists() and not self.args.check_only:
+                raise InterruptedError("Preparation paused. Verified completed work is retained.")
             now=time.monotonic()
             if done==total or now-last>=1:
                 last=now

@@ -141,6 +141,33 @@ class Tests(unittest.TestCase):
         with self.assertRaises(InterruptedError):observer(1,10)
         self.worker.report.assert_not_called()
 
+    def test_paused_probe_verifies_real_bytes_without_resuming_or_writing_products(self):
+        self.worker.args.check_only=True
+        self.worker.cancel=self.worker.cache/"cancel"
+        self.worker.cancel.write_bytes(b"player paused")
+        product=self.worker.job/"retained-route";product.write_bytes(b"verified route")
+        rows=[dict(path=product.name,bytes=product.stat().st_size,sha256=local.digest(product))]
+        self.worker.verify_previous.side_effect=lambda _:local.refresh.verify_files(
+            self.worker.job,rows,self.worker.verification_progress("Checking retained routes."))
+        for changed in (False,True):
+            with self.subTest(changed=changed):
+                self.worker.resolution=copy.deepcopy(self.resolution)
+                if changed:
+                    self.worker.resolution["inputs"]["sources"]["provider"]["revision"]="f"*40
+                    self.worker.resolution["fingerprint"]=current.sha(current.canonical(self.worker.resolution["inputs"]))
+                with self.metadata():result=self.worker.prepare()
+                self.assertEqual(result["rebuild"],["corpus","roads"] if changed else [])
+                self.assertEqual(self.worker.cancel.read_bytes(),b"player paused")
+                self.assertEqual(product.read_bytes(),b"verified route")
+                self.assertEqual(json.loads((self.worker.cache/"latest.json").read_bytes()),self.previous)
+        product.write_bytes(b"corrupt route")
+        self.worker.resolution=self.resolution
+        with self.metadata():result=self.worker.prepare()
+        self.assertIn("unverified-bytes",result["changed"])
+        self.assertEqual(result["rebuild"],["acquisition","corpus","bakes","roads"])
+        self.assertEqual(self.worker.cancel.read_bytes(),b"player paused")
+        self.assertEqual(product.read_bytes(),b"corrupt route")
+
     def test_incomplete_generation_survives_orchestration_upgrade_only(self):
         old_tools={"tools/local_assembly.py":"a"*64,"tools/terrain/world_geometry.py":"b"*64}
         checkpoint=dict(format="rikui-preparation-checkpoint-v1",job=str(self.worker.cache/"job-prior"),
