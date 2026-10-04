@@ -77,9 +77,19 @@ verified physical geometry. Runtime26 contains the committed fixes; the fresh
 cold proof accurately retains its original runtime24 provenance. A subsequent
 runtime26 refresh completed with only the bundle/tool scope changed. Acquisition,
 corpus, bakes, rasters, road outputs and all recorded product/support-file receipts
-remain identical. The final local bundle SHA-256 is
-d8c3323b8a45458b40c845025e63d6d2138c5ba3565f903636c15b3fb26f9823.
-The refreshed receipt is D:/RikUI-local/compact-runtime26-refresh-result-1.json.
+remain identical. That intermediate controller refresh produced bundle SHA-256
+d8c3323b8a45458b40c845025e63d6d2138c5ba3565f903636c15b3fb26f9823;
+its receipt is D:/RikUI-local/compact-runtime26-refresh-result-1.json.
+
+The exact published Windows setup embeds interface base SHA-256
+93f38ce4c91ad296f8ae39c9bdbe99ea822ba38c2f992add32806abb2020cff0.
+Windows checkout line endings differ from the private proof's interface text;
+all 332 nonmanifest source entries normalize identically. Derived manifests
+correctly differ in byte lengths/hashes. The final assembly was refreshed against
+the exact public base, verified all 333 base files byte-for-byte, and retained
+all physical input/output inventories unchanged. Final local bundle SHA-256 is
+f0dfd34981b305ff818eb8ec91e90205f58fd6eef95b21758b0c96de1394dfed.
+Receipt: D:/RikUI-local/published-beta17-base-refresh-result-1.json.
 
 Configured project checks and required visual checks passed: 19,383 addon Lua
 runtime checks and 285 reviewed captures / 527 images. Addon UI source is unchanged.
@@ -98,5 +108,74 @@ checks are recorded with the delivery receipts.
 
 ## Delivery receipts
 
-Public release, isolated consumer installation, actual client preservation,
-operating daily updates and production website verification remain pending.
+GitHub release: https://github.com/rik-wow/RikUI/releases/tag/v1.0.0-beta.17.
+CurseForge release: https://www.curseforge.com/wow/addons/rikui/files/9062297.
+Both downloaded addon archives verify 333 files and SHA-256
+8ab93d989f41d758e3c700eeddeb92f273353d2d736847590596aa487a5a0ccc.
+CurseForge's public publisher API confirms file 9062297; its CDN download matches.
+
+The public setup is 67,913,728 bytes, SHA-256
+ee0a88e9f8536e22eadee5f07d97853f41b004f95ef8e5266ec0f4665c94a5d3.
+Downloaded checksums, executable embedded payload, licensed runtime and notices
+verify. Public payloads contain neither imported provider datasets nor client
+geometry. Exact setup receipts are retained under
+D:/RikUI-local/published-beta17-setup-proof-1 and
+D:/RikUI-local/published-beta17-website-setup-proof-1.
+
+The existing https://rikwow.com/install channel now serves beta.17 and accurately
+discloses the separate QuestieDB dependency, 16 GiB minimum plus retained data,
+measured hour-or-more first preparation and current supported coverage.
+Worker deployment is 16aae5bc-eec7-4751-b4ce-115224edd399. Four immutable download
+objects match the GitHub release bytes, including manifest, notices and checksums;
+HEAD, ranges and conditional responses verify. Production browser checks pass
+24/24 across all58 public routes, responsive sizes, keyboard controls and the
+player-only copy guard. Final source passes 44 website regressions; 22 exact
+reviewed browser image hashes and their source identities verify. Receipts:
+D:/RikUI-local/published-beta17-website-proof-1,
+web/install-review.json and web/public-copy-review.json.
+
+The public setup is installed into the selected current Forever client. Native
+verification checks all 12,997 owned files across seven roots against the final
+public-base bundle. It confirms 545 settings files, 110 unowned addon files and
+899 source files unchanged, and 13,076 previous owned-root files in completed
+backup 01791143345160950700. The retained source junction and all earlier backups
+remain intact. Receipt: D:/RikUI-local/current-client-beta17-preservation-proof-1.json.
+The preparation preference now selects the supported compact cache through
+setup's preparation-folder flow; the previous cache and private data remain.
+
+The isolated clean consumer fixture completed first installation, unchanged
+update and paused current-input checking with all strict byte, sentinel and backup
+assertions. Its explicit-resume action then encountered the publisher's shared
+60/hour unauthenticated metadata quota. Installed data stayed intact; the failed
+run and traceback are retained. Recovery resumes from that checkpoint after the
+reported quota reset. Individual timings/exit receipts for the first three actions
+were not flushed before failure; their passing assertions are evidenced by the
+exact driver's control flow reaching the fourth action, not fabricated timings.
+
+The registered current-user **RikUI Current Forever Updates** task uses the exact
+public setup executable, has an enabled daily trigger, and completed its observed
+2026-10-04 run with Task Scheduler result 0. The daily receipt reports checked;
+fresh source/client resolution agrees, the probe reports no changed inputs or
+rebuild scopes, all installed bytes verify, the latest preparation receipt and
+bundle remain unchanged, and no additional backup was created. The active cache
+is unpaused. Receipt: D:/RikUI-local/current-client-beta17-daily-proof-1.json.
+Changed-input fixtures and the observed publisher advancement verify selective
+refresh and stale-admission rejection separately; no future client is claimed tested.
+
+The recovered isolated resume passed with exit 0 (187.7 seconds) and no extra
+backup. Invalid PE selection failed with exit 1 (7.0 seconds) while preserving
+installed data and sentinels. Restoring the current executable recovered with
+exit 0 (184.1 seconds), again a no-op. The final 12,997 installed files, settings,
+private sentinels, backup count, current resolution and public program/bundle
+identities verify. The isolated game uses a relocated directory and renamed
+current executable; this exercises discovery and does not claim the future
+release client has been tested. Receipt:
+D:/RikUI-local/isolated-public-beta17-proof-1/recovered-evidence.json.
+The original failed run remains retained and is not relabeled successful.
+
+Release workflow 37228398982 passed the existing addon/CurseForge/setup channel
+checks. Website workflow 37229555152 passed on final public-site commit
+924573c9628f2347c9fa0a73d5f17b7cb979ab4e, alongside the independently observed
+production browser/download checks. No required supported-scope implementation
+or delivery requirement remains. Provider and spatial coverage limits above
+remain explicit; today's verification makes no claim about future beta builds.
