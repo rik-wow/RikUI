@@ -21,12 +21,12 @@ def file_hash(path):
         return hashlib.file_digest(stream,"sha256").hexdigest()
 
 
-def verify_files(root, rows):
+def verify_files(root, rows, progress=None):
     root=Path(root).resolve()
     if not isinstance(rows,list) or not 0<len(rows)<=65536:
         raise ValueError("Refresh inventory bound")
     names=set()
-    for row in rows:
+    for done,row in enumerate(rows,1):
         name=row.get("path","")
         target=root/name
         if (not name or Path(name).is_absolute() or "\\" in name or ":" in name
@@ -37,6 +37,7 @@ def verify_files(root, rows):
         target=current.regular(target)
         if target.stat().st_size!=row["bytes"] or file_hash(target)!=row["sha256"]:
             raise ValueError("Refresh bytes changed: "+name)
+        if progress:progress(done,len(rows))
     return True
 
 
@@ -81,6 +82,8 @@ def scopes(previous, resolution, tools, verify):
         products.update(("corpus","roads"))
     try:
         verify(previous)
+    except InterruptedError:
+        raise
     except (ValueError,OSError,KeyError,TypeError,zipfile.BadZipFile,sqlite3.DatabaseError):
         products.update(("acquisition","corpus","bakes","roads"))
         changed.append("unverified-bytes")

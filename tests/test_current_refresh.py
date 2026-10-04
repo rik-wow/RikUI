@@ -133,6 +133,24 @@ class Tests(unittest.TestCase):
         path.write_bytes(b"changed")
         with self.assertRaises(ValueError):refresh.verify_files(self.root,rows)
 
+    def test_progress_never_counts_corrupt_bytes_as_verified(self):
+        rows=[]
+        for name in ("first","second","third"):
+            (self.root/name).write_bytes(b"verified")
+            rows.append(dict(path=name,bytes=8,sha256=current.sha(b"verified")))
+        (self.root/"second").write_bytes(b"tampered")
+        observed=[]
+        with self.assertRaisesRegex(ValueError,"Refresh bytes changed"):
+            refresh.verify_files(self.root,rows,lambda done,total:observed.append((done,total)))
+        self.assertEqual(observed,[(1,3)])
+        self.assertEqual((self.root/"second").read_bytes(),b"tampered")
+
+    def test_cancelled_verification_does_not_invalidate_good_outputs(self):
+        verify=Mock(side_effect=InterruptedError("player paused"))
+        with self.assertRaisesRegex(InterruptedError,"player paused"):
+            refresh.scopes(self.previous,self.resolution,self.tools,verify)
+        self.assertEqual(self.previous["resolution"],self.resolution)
+
     def test_release_directory_and_executable_discovered(self):
         result=refresh.find_client([self.root],self.publisher.fetch,lambda _:BUILD)
         self.assertEqual(result["installation"]["executable"],str(self.exe))

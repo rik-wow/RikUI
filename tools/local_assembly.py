@@ -58,7 +58,7 @@ def inventory(root, active_only=False):
     return rows
 
 
-def verify_acquisition(folder,resolution):
+def verify_acquisition(folder,resolution,progress=None):
     folder=Path(folder)
     receipt=json.loads((folder/"current-inputs.json").read_bytes())
     old=current.validate_resolution(receipt["resolution"])
@@ -71,10 +71,11 @@ def verify_acquisition(folder,resolution):
     profile=json.loads((folder/"acquisition-profile.json").read_bytes())
     if digest(folder/"acquisition-profile.json")!=receipt["profileSHA256"]:
         raise ValueError("Acquisition profile changed")
-    for row in profile["files"]:
+    for done,row in enumerate(profile["files"],1):
         path=current.regular(row["path"])
         if path.stat().st_size!=row["bytes"] or digest(path)!=row["sha256"]:
             raise ValueError("Acquired geometry changed")
+        if progress:progress(done,len(profile["files"]))
     tables=json.loads((folder/"db2/db2-inputs.json").read_bytes())
     if tables["build"]!=resolution["inputs"]["identity"]["build"] or set(tables["tables"])!=set(TABLES):
         raise ValueError("Required current table inventory incomplete")
@@ -251,8 +252,21 @@ class Assembly:
                 raise
         if process.returncode:raise ValueError("Preparation failed in "+self.phase+". Logs and existing data are retained: "+str(log))
 
+    def verification_progress(self,message):
+        last=float("-inf")
+        def verified(done,total):
+            nonlocal last
+            if self.cancel.exists():raise InterruptedError("Preparation paused. Verified completed work is retained.")
+            now=time.monotonic()
+            if done==total or now-last>=1:
+                last=now
+                self.report(message,completed=done,total=total,units="files")
+        return verified
+
     def verify_previous(self,previous):
-        receipt=verify_acquisition(previous["acquisition"],self.resolution)
+        self.report("Checking your retained game inputs.")
+        receipt=verify_acquisition(previous["acquisition"],self.resolution,
+                                  self.verification_progress("Checking retained terrain files."))
         verify_index(Path(previous["acquisition"])/"placements.sqlite",receipt,self.runtime/"tools/terrain")
         for row in previous["supportFiles"]:
             path=current.regular(row["path"])
@@ -263,15 +277,20 @@ class Assembly:
             raise ValueError("Travel inputs are not current")
         for filename,expected in travel["sources"].items():
             if digest(Path(previous["acquisition"])/"db2"/filename)!=expected:raise ValueError("Travel source changed")
+        self.report("Checking your prepared quest information.")
         quest_corpus.verify(previous["corpus"])
-        refresh.verify_files(previous["outputRoot"],previous["outputs"])
+        refresh.verify_files(previous["outputRoot"],previous["outputs"],
+                             self.verification_progress("Checking prepared route files."))
         bundle_inputs=dict(base=previous["baseSHA256"],corpus=digest(Path(previous["corpus"])/"manifest.json"),
                            roads=digest(Path(previous["roads"])/"road-network-receipt.json"))
         if bundle_inputs!=previous["bundleInputs"]:raise ValueError("Bundle source receipt changed")
         verify_local_bundle(previous["bundle"],bundle_inputs)
         if digest(previous["bundle"])!=previous["bundleSHA256"]:raise ValueError("Local bundle changed")
         for product in previous["products"]:
-            refresh.verify_files(product["root"],product["files"])
+            message={"corpus":"Checking prepared quest guide files.","bakes":"Checking prepared region files.",
+                     "road-rasters":"Checking current road inputs."}.get(Path(product["root"]).name,"Checking prepared files.")
+            refresh.verify_files(product["root"],product["files"],self.verification_progress(message))
+        self.report("Checking separately obtained quest sources.")
         for key,repository in (("provider","Questie/QuestieDB"),("events","Questie/Questie")):
             receipt=source_archive.verify(previous[key+"Root"],previous["resolution"]["inputs"]["sources"][key]["revision"])
             if receipt["repository"]!=repository:raise ValueError("Unexpected source publisher")

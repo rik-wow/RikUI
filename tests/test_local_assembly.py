@@ -53,6 +53,19 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(attempts),3)
         self.assertFalse(path.with_name(path.name+".next").exists())
 
+    def test_verified_file_progress_is_bounded_and_pause_is_immediate(self):
+        self.worker.cancel=self.worker.cache/"cancel"
+        observer=self.worker.verification_progress("Checking prepared regions.")
+        with patch.object(local.time,"monotonic",side_effect=[0,.2,.9,1.1,1.2]):
+            for done in range(1,6):observer(done,5)
+        self.assertEqual([call.kwargs["completed"] for call in self.worker.report.call_args_list],[1,4,5])
+        self.assertTrue(all(call.kwargs["total"]==5 and call.kwargs["units"]=="files"
+                            for call in self.worker.report.call_args_list))
+        self.worker.report.reset_mock()
+        self.worker.cancel.write_bytes(b"player paused")
+        with self.assertRaises(InterruptedError):observer(1,10)
+        self.worker.report.assert_not_called()
+
     def test_incomplete_generation_survives_orchestration_upgrade_only(self):
         old_tools={"tools/local_assembly.py":"a"*64,"tools/terrain/world_geometry.py":"b"*64}
         checkpoint=dict(format="rikui-preparation-checkpoint-v1",job=str(self.worker.cache/"job-prior"),
