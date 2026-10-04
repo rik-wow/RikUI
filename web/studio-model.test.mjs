@@ -21,7 +21,7 @@ test("independent grid edits undo, preserve source, and round-trip exact configu
 });
 test("individual module switches preserve source, remove disabled space, and round-trip with dependency and ownership rules",()=>{
  const e=engine(),m=new StudioModel(e);m.choose("centered");const original=e.call("Encode",m.source);
- assert.equal(m.moduleChoices.length,46);m.setModule("chat",false);
+ assert.equal(m.moduleChoices.length,47);m.setModule("chat",false);
  let r=m.resolve();assert.equal(r.profile.modules.chat,false);assert.ok(!Array.from(r.groups).some(g=>g.key==="chat"));
  assert.ok(Array.from(r.disabledGroups).some(g=>g.key==="chat"));assert.equal(e.call("Encode",m.source),original);
  const n=new StudioModel(e);n.import(m.export());assert.equal(n.resolve().profile.modules.chat,false);

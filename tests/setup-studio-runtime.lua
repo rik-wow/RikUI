@@ -140,6 +140,9 @@ check(exported and type(exportCode)=="string","live export normalizes partial pe
 check(RikUI.Profile.positions.main.point==nil,"export does not rewrite stored source anchors")
 local decoded=assert(p.Decode(exportCode))
 check(decoded.profile.positions.main.relativePoint=="BOTTOM","portable anchor is complete")
+RikUI.Profile.modules.geargoals=false
+local gearExport=assert(p.Decode(assert(s.Export())))
+check(gearExport.profile.modules.geargoals==false,"gear module preference survives live export")
 RikUI.Profile.modules.classcooldowns=false;RikUI.Profile.modules.cooldownviewer=true;RikUI.Profile.modules.cooldowns=false
 local migrated=assert(p.Decode(assert(s.Export())))
 check(migrated.profile.modules.classcooldowns==nil and migrated.profile.modules.cooldownviewer==nil,"retired flags do not block live export")

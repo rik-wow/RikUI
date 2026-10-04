@@ -35,7 +35,7 @@ end
 pack.Components = { appearance=true, hud=true, nameplates=true, group=true, navigation=true, inventory=true, character=true }
 pack.Modules = {
     hud={"bars","unitframes","castbars","auras","cooldowns","swingtimer","combopoints","totems","personalresource","combatresource","druidmana","classauras","unitauras","procoverlay","hudframes","xpbar"},
-    nameplates={"nameplates"}, group={"unitframes"}, navigation={"minimap","questtracker","questplanner","worldmap","questtimers"},
+    nameplates={"nameplates"}, group={"unitframes"}, navigation={"minimap","questtracker","questplanner","worldmap","questtimers","geargoals"},
     inventory={"bags","micromenu","loot","durability"}, appearance={"wizard","panels","controls","dialogs","popups","tooltip","menus","chat","alerts","banners","widgets","screentext","toasts","chatbubbles","damagemeter","combattext","combattimer","lossofcontrol","extrabuttons","mirrortimers"},
 }
 pack.Activities = { exploration=true, party=true, raid=true, town=true }
@@ -66,7 +66,7 @@ pack.GroupModules = {
     castplayer="castbars",casttarget="castbars",castfocus="castbars",castpet="castbars",buffs="auras",debuffs="auras",
     cooldowns="cooldowns",swingtimer="swingtimer",combatresource="combatresource",combopoints="combopoints",totems="totems",xpbar="xpbar",
     chat="chat",damagemeter="damagemeter",bags="bags",bagspace="bags",loot="loot",minimap="minimap",questtracker="questtracker",
-    questtimers="questtimers",micromenu="micromenu",durability="durability",
+    questtimers="questtimers",micromenu="micromenu",durability="durability",geargoals="geargoals",
 }
 -- The browser loads only the data contract. Native fixtures verify this fallback
 -- against the actual registered dependency graph before publication.

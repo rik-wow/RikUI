@@ -43,7 +43,12 @@ function RikUI.SetupPack.Conformance()
     local floating=p.Copy(sample);floating.groups.target.floating=true
     assert(#assert(p.Resolve(floating,{overrides=override})).conflicts==0)
     local cyclic={};cyclic.self=cyclic;assert(not p.Validate(cyclic))
-    local choices=p.ModuleChoices();assert(#choices==46)
+    local choices=p.ModuleChoices();assert(#choices==47)
+    local gear=p.Copy(sample);gear.profile.modules={geargoals=false}
+    local gearRoundTrip=assert(p.Decode(assert(p.Encode(gear))))
+    assert(gearRoundTrip.profile.modules.geargoals==false and not p.GroupEnabled("geargoals",gearRoundTrip.profile))
+    gearRoundTrip.profile=assert(p.SetModule(gearRoundTrip.profile,"geargoals",true))
+    assert(p.GroupEnabled("geargoals",gearRoundTrip.profile))
     local moduleSample=p.Copy(sample);moduleSample.profile.modules={bars=false}
     local off=assert(p.Resolve(moduleSample,{overrides={positions={main={point="BOTTOMLEFT",relativePoint="BOTTOMLEFT",x=-1000,y=-1000}}}}))
     assert(#off.disabledGroups==1 and off.disabledGroups[1].key=="main")
