@@ -21,6 +21,18 @@ for third-party data or a determination of client agreement terms. A ZIP or EXE
 containing our prebuilt corpus and mesh is a different distribution decision.
 Changing the format, host, or license label does not settle it.
 
+Distinguish raw preparation inputs from generated navigation outputs. The raw
+collision triangles and extracted client files stay private. Recast rasterizes
+triangles into voxels, filters walkability and generates new navigation polygons;
+our final routing pack retains polygon rings and directed portal endpoints
+(tools/terrain/compile_backbone.py), rather than original models or textures.
+See [Recast's generation process](https://github.com/recastnavigation/recastnavigation#-how-it-works).
+A versioned prebuilt navigation download is technically feasible and could remove
+per-player generation cost. Simplification does not itself establish distribution
+rights, but this plan has not established that generated navigation redistribution
+is prohibited. The local assembly recommendation is a distribution choice under
+the requested private-data boundary, not proof that every player must rebuild.
+
 No single verified source currently provides every Forever quest rule, spawn,
 interaction, floor and transport condition. "All" must mean an inventoried
 supported corpus with explicit gaps, not an invented complete server dump.

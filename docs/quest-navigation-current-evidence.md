@@ -1,4 +1,8 @@
-# Current Forever acquisition evidence
+# Forever acquisition evidence: public beta.16
+
+This section records beta.16 delivery, including its historical resource policy.
+Later preparation optimizations and current input identities require their own
+verification; the build numbers and measurements below remain review evidence.
 
 Reviewed 2026-10-04 UTC. These identities describe observed inputs, not a fixed
 client target. Every dependent operation resolves the current publisher heads
