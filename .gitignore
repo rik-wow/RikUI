@@ -19,6 +19,7 @@ Thumbs.db
 # Installer-written quest corpus and road data (generated/index.xml is committed).
 /generated/roads/
 /generated/corpus/
+/generated/gear/
 /generated/.rikui*
 __pycache__/
 *.pyc
