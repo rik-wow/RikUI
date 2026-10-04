@@ -69,7 +69,7 @@ def main():
             used = measured()
             maximum = max(maximum, used)
             try:
-                progress = json.loads(status.read_bytes())
+                progress = local.progress_snapshot(status) or {}
             except (OSError, ValueError):
                 progress = {}
             memory=local.available_memory()

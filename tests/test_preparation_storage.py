@@ -19,6 +19,39 @@ from test_world_bake import pair
 
 
 class StorageTests(unittest.TestCase):
+    def test_acquisition_atomic_write_recovers_transient_reader_and_preserves_failed_candidate(self):
+        with tempfile.TemporaryDirectory() as folder:
+            target=Path(folder)/"acquisition-progress.json"
+            target.write_bytes(b'{"completed":1}')
+            original=Path.replace
+            attempts=[]
+            def busy(source,destination):
+                attempts.append(source)
+                if len(attempts)<3:raise PermissionError("transient reader")
+                return original(source,destination)
+            with patch.object(Path,"replace",busy),patch.object(acquisition.time,"sleep"):
+                acquisition.atomic(target,{"completed":2})
+            self.assertEqual(len(attempts),3)
+            self.assertEqual(target.read_bytes(),canonical({"completed":2})+b"\n")
+            with patch.object(Path,"replace",side_effect=PermissionError("persistent reader")), \
+                    patch.object(acquisition.time,"sleep") as waits:
+                with self.assertRaises(PermissionError):acquisition.atomic(target,{"completed":3})
+            self.assertEqual(waits.call_count,39)
+            self.assertEqual(target.read_bytes(),canonical({"completed":2})+b"\n")
+            self.assertEqual(target.with_suffix(".json.next").read_bytes(),canonical({"completed":3})+b"\n")
+
+    @unittest.skipUnless(sys.platform=="win32","Actual Windows sharing recovery")
+    def test_acquisition_atomic_write_waits_for_an_actual_windows_reader(self):
+        with tempfile.TemporaryDirectory() as folder:
+            target=Path(folder)/"progress.json"
+            target.write_bytes(b'{"completed":1}')
+            reader=target.open("rb")
+            try:
+                with patch.object(acquisition.time,"sleep",side_effect=lambda _:reader.close()):
+                    acquisition.atomic(target,{"completed":2})
+            finally:reader.close()
+            self.assertEqual(target.read_bytes(),canonical({"completed":2})+b"\n")
+
     def test_exact_round_trip_and_deterministic_encoding(self):
         raw = canonical(dict(positions=[1.123456789, -0.0001] * 10000, audit="unknown"))
         stored = encode(raw, len(raw))

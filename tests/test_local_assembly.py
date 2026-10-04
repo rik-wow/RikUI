@@ -152,6 +152,8 @@ class Tests(unittest.TestCase):
             return local.checkpoint_job(self.worker.cache,document,self.resolution,tools,
                 self.worker.base_sha,local.listfile_identity(self.meta()))
         self.assertEqual(select(checkpoint),self.worker.cache/"job-prior")
+        addon_changed=dict(checkpoint,baseSHA256="9"*64)
+        self.assertEqual(select(addon_changed),self.worker.cache/"job-prior")
         semantic=dict(updated,**{"tools/export_forever.lua":"1"*64,"tools/quest_corpus.py":"2"*64})
         self.assertEqual(select(checkpoint,semantic),self.worker.cache/"job-prior")
         changed=dict(updated,**{"tools/terrain/world_geometry.py":"d"*64})

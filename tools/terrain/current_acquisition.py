@@ -33,7 +33,16 @@ def atomic(path, value):
     target = Path(path)
     temporary = target.with_suffix(target.suffix + ".next")
     temporary.write_bytes(current.canonical(value) + b"\n")
-    temporary.replace(target)
+    # Progress readers and virus scanners can briefly prevent replacement.
+    # Keep the previous receipt valid until the new complete bytes are swapped.
+    for attempt in range(40):
+        try:
+            temporary.replace(target)
+            return
+        except PermissionError:
+            if attempt == 39:
+                raise
+            time.sleep(.05)
 
 
 def topology(raw, world, ident):

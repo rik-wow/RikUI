@@ -195,12 +195,13 @@ def checkpoint_job(cache, checkpoint, resolution, tools, base_sha, list_identity
     # Provider/holiday changes require fresh semantics, not fresh physical geometry.
     # All client, UI and schema inputs must still match; each retained product is
     # independently byte-verified and corpus admission checks current heads and
-    # semantic producer hashes. Semantic upgrades may retain physical checkpoints.
+    # semantic producer hashes. The addon ZIP affects bundle assembly only;
+    # its current bytes are checked by local_bundle before installation.
     physical=lambda inputs:dict(inputs, sources={key:value for key,value in inputs["sources"].items()
                                                 if key not in ("provider","events")})
     if (checkpoint.get("format")!="rikui-preparation-checkpoint-v1" or candidate.parent!=cache
         or not candidate.name.startswith("job-") or physical(old["inputs"])!=physical(resolution["inputs"])
-        or checkpoint.get("baseSHA256")!=base_sha or checkpoint.get("listfileIdentity")!=list_identity
+        or checkpoint.get("listfileIdentity")!=list_identity
         or refresh.tool_scopes(checkpoint["tools"],tools)-{"bundle","corpus","roads"}):
         return None
     if candidate.is_symlink() or (hasattr(candidate,"is_junction") and candidate.is_junction()):
