@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools"))
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools/terrain"))
 from test_forever_inputs import Publishers, BUILD, RAW
 import forever_inputs as current
 import local_assembly as local
@@ -55,6 +56,23 @@ class Tests(unittest.TestCase):
         process.kill.assert_not_called()
         process.wait.assert_not_called()
         self.assertEqual(self.worker.report.call_args.kwargs["completed"],3)
+
+    def test_full_world_and_resumed_progress_stays_readable_with_the_bounded_reader(self):
+        from terrain.world_bake_parallel import progress_summary
+        path=self.worker.job/"progress.json"
+        for reused,new in ((0,2290),(1069,1221),(65535,1)):
+            with self.subTest(reused=reused,new=new):
+                completed=[dict(jobID="w0-b-%d--13"%i,status="ok") for i in range(new)]
+                summary=progress_summary(reused+new,reused,completed,{"ok":new},1520.25)
+                local.atomic(path,summary)
+                displayed=local.progress_snapshot(path)
+                self.assertIsNotNone(displayed)
+                self.assertEqual(displayed["completed"],reused+new)
+                self.assertEqual(displayed["total"],reused+new)
+                self.assertEqual(displayed["reused"],reused)
+                self.assertEqual(displayed["newCompleted"],new)
+                self.assertNotIn("results",displayed)
+                self.assertLess(path.stat().st_size,65536)
 
     def test_progress_snapshots_are_bounded_and_tolerate_sharing_and_partial_writes(self):
         path=self.worker.job/"progress.json"

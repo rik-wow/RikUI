@@ -28,6 +28,12 @@ def atomic(path, value):
             time.sleep(.05)
 
 
+def progress_summary(total, reused, completed, counts, seconds):
+    """Bounded display counters; per-job plans and receipts establish admission."""
+    return dict(total=total, reused=reused, completed=reused + len(completed),
+                newCompleted=len(completed), counts=counts, seconds=round(seconds, 1))
+
+
 def verified_run(run, source, jobs, index_sha):
     """A progress row alone cannot establish successful current-generation output."""
     root = pathlib.Path(run)
@@ -126,10 +132,10 @@ def main():
                 job, status = future.result()
                 counts[status] = counts.get(status, 0) + 1
                 completed.append(dict(jobID=job,status=status))
-                progress = dict(total=len(jobs),reused=len(done),completed=len(completed),counts=counts,
-                                seconds=round(time.monotonic()-started,1),results=completed)
+                progress = progress_summary(len(jobs), len(done), completed, counts,
+                                            time.monotonic() - started)
                 atomic(root / 'generation-progress.json', progress)
-                print(json.dumps({k:v for k,v in progress.items() if k != 'results'}),flush=True)
+                print(json.dumps(progress),flush=True)
                 if not cancel.exists():
                     job = next(iterator, None)
                     if job: pending[pool.submit(bake, job)] = job

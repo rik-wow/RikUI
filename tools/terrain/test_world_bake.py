@@ -44,7 +44,9 @@ class Tests(unittest.TestCase):
    progress=json.loads((root/"generation-progress.json").read_bytes())
    self.assertEqual(running,[0,8]);self.assertEqual(progress["completed"],24)
    self.assertEqual(progress["counts"],{"ok":24});self.assertEqual(verified.call_count,24)
-   self.assertEqual({row["jobID"] for row in progress["results"]},{job["id"] for job in jobs})
+   self.assertEqual(progress["newCompleted"],24)
+   self.assertNotIn("results",progress)
+   self.assertLess(len((root/"generation-progress.json").read_bytes()),65536)
    with patch.object(scheduler.sys,"argv",[arg if arg!="8" else "9" for arg in args]),\
         patch.object(scheduler,"Source") as source:
     with self.assertRaisesRegex(ValueError,"workers must be between 1 and 8"):scheduler.main()
